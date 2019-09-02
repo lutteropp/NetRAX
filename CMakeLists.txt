@@ -26,6 +26,9 @@ include_directories(${GTEST_INCLUDE_DIRS})
 set(NETRAX_LOCALDEPS_DIR ${PROJECT_BINARY_DIR}/localdeps)
 add_subdirectory(${PROJECT_SOURCE_DIR}/libs)
 
+set(RAXML_LOCALDEPS_DIR ${PROJECT_BINARY_DIR}/libs/raxml-ng/localdeps)
+include_directories(${RAXML_LOCALDEPS_DIR}/include ${PROJECT_SOURCE_DIR}/libs/raxml-ng/src)
+
 add_subdirectory(${PROJECT_SOURCE_DIR}/src)
 
 enable_testing()
