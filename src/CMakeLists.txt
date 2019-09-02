@@ -8,4 +8,6 @@ set(NETRAX_SOURCES ${NETRAX_SOURCES} PARENT_SCOPE)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 
+include_directories("../libs/")
+
 add_executable(netrax ${NETRAX_SOURCES})
