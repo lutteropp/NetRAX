@@ -4,7 +4,7 @@
 
 #include "NetraxTest.hpp"
 
-RaxmlTest* env;
+NetraxTest* env;
 
 int main(int argc, char** argv)
 {

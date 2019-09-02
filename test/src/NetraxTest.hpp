@@ -2,8 +2,6 @@
 
 #include <gtest/gtest.h>
 
-#include "src/Options.hpp"
-
 // The testing environment
 class NetraxTest : public ::testing::Environment {
 public:
@@ -32,7 +30,6 @@ public:
   // Objects declared here can be used by all tests in the test case for Foo.
   std::string data_dir;
   std::string out_dir;
-  Options options;
 
 };
 

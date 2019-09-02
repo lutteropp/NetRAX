@@ -1,4 +1,5 @@
 find_package (GTest)
+include_directories(${GTEST_INCLUDE_DIRS})
 
 if(NOT GTEST_FOUND)
     message (STATUS "GTest not found")
@@ -27,6 +28,5 @@ target_link_libraries (netrax_test_module ${MPI_CXX_LIBRARIES})
 
 set_target_properties (netrax_test_module PROPERTIES OUTPUT_NAME netrax_test)
 set_target_properties (netrax_test_module PROPERTIES PREFIX "")
-
 
 add_test (netrax_test ${PROJECT_SOURCE_DIR}/test/bin/netrax_test)
