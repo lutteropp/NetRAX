@@ -1,0 +1,3 @@
+[submodule "raxml-ng"]
+	path = lib/raxml-ng
+	url = https://github.com/amkozlov/raxml-ng.git
