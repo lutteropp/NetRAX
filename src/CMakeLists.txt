@@ -10,4 +10,17 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 
 include_directories("../libs/")
 
+find_package(BISON)
+find_package(FLEX)
+set(NETRAX_BISON_FLAGS "-y -d -p rnetwork_")
+set(NETRAX_FLEX_FLAGS "-P rnetwork_")
+BISON_TARGET(parse_rnetwork_t 
+  ${CMAKE_CURRENT_SOURCE_DIR}/parse_rnetwork.y ${CMAKE_CURRENT_BINARY_DIR}/parse_rnetwork.c
+  COMPILE_FLAGS ${LIBPLL_BISON_FLAGS})
+FLEX_TARGET(lex_rnetwork_t 
+  ${CMAKE_CURRENT_SOURCE_DIR}/lex_rnetwork.l ${CMAKE_CURRENT_BINARY_DIR}/lex_rnetwork.c
+  COMPILE_FLAGS ${LIBPLL_FLEX_FLAGS})
+ADD_FLEX_BISON_DEPENDENCY(lex_rnetwork_t parse_rnetwork_t)
+
+
 add_executable(netrax ${NETRAX_SOURCES})
