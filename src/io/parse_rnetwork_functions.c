@@ -5,6 +5,10 @@
  *      Author: sarah
  */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+
 #include "lowlevel_parsing.h"
 
 #ifndef NULL

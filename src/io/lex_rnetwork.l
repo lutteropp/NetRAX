@@ -20,7 +20,7 @@
 */
 %{
 #include "parse_rnetwork.h"
-#include "lowlevel_parsing.h"
+#include <io/lowlevel_parsing.h>
 
 #define YY_USER_ACTION preaction();
 

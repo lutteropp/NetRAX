@@ -7,8 +7,11 @@
 
 #pragma once
 
-#include "lowlevel_parsing.h"
 #include "../Network.hpp"
+
+extern "C" {
+#include "lowlevel_parsing.h"
+}
 
 namespace netrax {
 

@@ -5,6 +5,11 @@
  *      Author: sarah
  */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+#include <string.h>
+
 #include "lowlevel_parsing.h"
 
 #define MAX_RETICULATION_COUNT 64
@@ -12,6 +17,23 @@
 #ifndef NULL
 #define NULL   ((void *) 0)
 #endif
+
+void * xmalloc(size_t size)
+{
+  void * t;
+  t = malloc(size);
+  if (!t)
+    printf("Unable to allocate enough memory.\n");
+
+  return t;
+}
+
+char * xstrdup(const char * s)
+{
+  size_t len = strlen(s);
+  char * p = (char *)xmalloc(len+1);
+  return strcpy(p,s);
+}
 
 static void dealloc_data(unetwork_node_t * node, void (*cb_destroy)(void *))
 {
@@ -100,6 +122,28 @@ void unetwork_destroy(unetwork_t * network,
 static int unetwork_is_rooted(const unetwork_node_t * root)
 {
   return (root->next && root->next->next == root) ? 1 : 0;
+}
+
+unsigned int count_incoming(const unetwork_node_t * node) {
+	assert(node);
+	unsigned int cnt = 0;
+	if (node->incoming) {
+		cnt++;
+	}
+	unetwork_node_t * snode = node->next;
+	while (snode && snode != node) {
+		if (snode->incoming) {
+			cnt++;
+		}
+		snode = snode->next;
+	}
+	return cnt;
+}
+
+int unetwork_is_reticulation(const unetwork_node_t * node) {
+	assert(node);
+	unsigned int cnt_in = count_incoming(node);
+	return (cnt_in > 1);
 }
 
 static void fill_nodes_recursive(unetwork_node_t * node,
@@ -390,7 +434,7 @@ unetwork_t * unetwork_wrapnetwork_multi(unetwork_node_t * root,
    that contains a list of nodes, number of tips and number of inner
    nodes. If 0 is passed as tip_count, then an additional recrursion
    of the tree structure is done to detect the number of tips */
-unetwork_t * unetwork_wrapnetwork(unetwork_node_t * root,
+unetwork_t * unetwork_wrapnetwork_main(unetwork_node_t * root,
                                             unsigned int tip_count)
 {
   return unetwork_wrapnetwork(root, tip_count, 0, 0, 1);
@@ -429,11 +473,307 @@ unetwork_node_t * unetwork_unroot_inplace(unetwork_node_t * root)
   	return root;
 }
 
+static unetwork_node_t * rnetwork_unroot(rnetwork_node_t * root, unetwork_node_t * back, unetwork_node_t** reticulation_nodes)
+{
+  unetwork_node_t * uroot;
+  if (!root->is_reticulation) {
+	  uroot = (void *)calloc(1,sizeof(unetwork_node_t));
+	  if (!uroot)
+	  {
+	    printf("Unable to allocate enough memory.\n");
+	    return NULL;
+	  }
+	  uroot->back = back;
+	  uroot->label = (root->label) ? xstrdup(root->label) : NULL;
+	  uroot->reticulation_name = NULL;
+	  uroot->reticulation_index = -1;
+	  uroot->length = uroot->back->length;
+	  uroot->prob = uroot->back->prob;
+
+	  if (!root->left && !root->right)
+	  {
+		uroot->next = NULL;
+		return uroot;
+	  }
+
+	  uroot->next = (void *)calloc(1,sizeof(unetwork_node_t));
+	  if (!uroot->next)
+	  {
+		free(uroot);
+		printf("Unable to allocate enough memory.\n");
+		return NULL;
+	  }
+
+	  uroot->next->next = (void *)calloc(1,sizeof(unetwork_node_t));
+	  if (!uroot->next->next)
+	  {
+		free(uroot->next);
+		free(uroot);
+		printf("Unable to allocate enough memory.\n");
+		return NULL;
+	  }
+
+	  uroot->next->next->next = uroot;
+
+	  if (root->left->is_reticulation) {
+		if (root->left->first_parent == root) {
+	      uroot->next->length = root->left->first_parent_length;
+		  uroot->next->prob = root->left->first_parent_prob;
+		} else {
+		  uroot->next->length = root->left->second_parent_length;
+		  uroot->next->prob = root->left->second_parent_prob;
+		}
+	  } else {
+		uroot->next->length = root->left->length;
+		uroot->next->prob = 1.0;
+	  }
+	  uroot->next->label = uroot->label;
+	  uroot->next->reticulation_index = uroot->reticulation_index;
+	  uroot->next->reticulation_name = uroot->reticulation_name;
+	  uroot->next->active = 1;
+	  uroot->next->incoming = 0;
+	  uroot->next->back = rnetwork_unroot(root->left, uroot->next, reticulation_nodes);
+	  uroot->next->back->active = 1;
+	  uroot->next->back->incoming = 1;
+
+	  if (root->right->is_reticulation) {
+	    if (root->right->first_parent == root) {
+	  	  uroot->next->next->length = root->right->first_parent_length;
+	  	  uroot->next->next->prob = root->right->first_parent_prob;
+	    } else {
+	  	  uroot->next->next->length = root->right->second_parent_length;
+	  	  uroot->next->next->prob = root->right->second_parent_prob;
+	    }
+	  } else {
+	  	uroot->next->next->length = root->right->length;
+	  	uroot->next->next->prob = 1.0;
+	  }
+	  uroot->next->next->label = uroot->label;
+	  uroot->next->next->reticulation_index = uroot->reticulation_index;
+	  uroot->next->next->reticulation_name = uroot->reticulation_name;
+
+	  uroot->next->next->active = 1;
+	  uroot->next->next->incoming = 0;
+	  uroot->next->next->back = rnetwork_unroot(root->right, uroot->next->next, reticulation_nodes);
+	  uroot->next->next->back->active = 1;
+	  uroot->next->next->back->incoming = 1;
+  } else { // now, we have a reticulation node
+	// first, check if we already created a node for this reticulation
+	if (!reticulation_nodes[root->reticulation_index]) {
+      uroot = (void *)calloc(1,sizeof(unetwork_node_t));
+	  if (!uroot)
+	  {
+		printf("Unable to allocate enough memory.\n");
+		return NULL;
+	  }
+	  uroot->back = back;
+	  uroot->label = (root->label) ? xstrdup(root->label) : NULL;
+	  uroot->reticulation_name = (root->reticulation_name) ? xstrdup(root->reticulation_name) : NULL;
+	  uroot->reticulation_index = root->reticulation_index;
+
+	  uroot->length = uroot->back->length;
+	  uroot->prob = uroot->back->prob;
+
+	  if (!root->child)
+	  {
+		free(uroot);
+		printf("The reticulation node has no child.\n");
+		return NULL;
+	  }
+
+	  uroot->next = (void *)calloc(1,sizeof(unetwork_node_t));
+	  if (!uroot->next)
+	  {
+        free(uroot);
+		printf("Unable to allocate enough memory.\n");
+		return NULL;
+	  }
+
+	  uroot->next->next = (void *)calloc(1,sizeof(unetwork_node_t));
+	  if (!uroot->next->next)
+	  {
+	    free(uroot->next);
+		free(uroot);
+		printf("Unable to allocate enough memory.\n");
+		return NULL;
+	  }
+
+	  reticulation_nodes[root->reticulation_index] = uroot->next->next;
+
+	  uroot->next->next->next = uroot;
+
+	  if (root->child->is_reticulation) {
+	    if (root->child->first_parent == root) {
+	      uroot->next->length = root->child->first_parent_length;
+		  uroot->next->prob = root->child->first_parent_prob;
+	    } else {
+		  uroot->next->length = root->child->second_parent_length;
+		  uroot->next->prob = 1.0 - root->child->second_parent_prob;
+		}
+	  } else {
+	    uroot->next->length = root->child->length;
+		uroot->next->prob = 1.0;
+	  }
+	  uroot->next->label = uroot->label;
+	  uroot->next->reticulation_name = uroot->reticulation_name;
+	  uroot->next->reticulation_index = uroot->reticulation_index;
+
+	  uroot->next->active = 1;
+      uroot->next->incoming = 0;
+	  uroot->next->back = rnetwork_unroot(root->child, uroot->next, reticulation_nodes);
+	  uroot->next->back->active = 1;
+	  uroot->next->back->incoming = 1;
+
+	  uroot->next->next->label = uroot->label;
+	  uroot->next->next->reticulation_name = uroot->reticulation_name;
+	  uroot->next->next->reticulation_index = uroot->reticulation_index;
+	} else {
+	  uroot = reticulation_nodes[root->reticulation_index];
+	  uroot->back = back;
+	  uroot->prob = uroot->back->prob;
+	  uroot->length = uroot->back->length;
+	}
+  }
+
+  return uroot;
+}
+
+unetwork_t * rnetwork_unroot_main(rnetwork_t * network) {
+  // for each node in the rnetwork, we need to create three nodes in the unetwork... except for the leaves.
+  unetwork_node_t** reticulation_nodes = (unetwork_node_t**)malloc(network->reticulation_count * sizeof(unetwork_node_t*)); // we only need one representative per reticulation node
+
+  rnetwork_node_t * root = network->root;
+
+  if (!root->left->left && !root->right->left)
+  {
+	printf("Network requires at least three tips to be converted to unrooted\n");
+	return NULL;
+  }
+
+  rnetwork_node_t * new_root;
+
+  unetwork_node_t * uroot = (void *)calloc(1,sizeof(unetwork_node_t));
+  if (!uroot)
+  {
+	printf("Unable to allocate enough memory.\n");
+	return NULL;
+  }
+
+  uroot->next = (void *)calloc(1,sizeof(unetwork_node_t));
+  if (!uroot->next)
+  {
+	free(uroot);
+	printf("Unable to allocate enough memory.\n");
+	return NULL;
+  }
+
+  uroot->next->next = (void *)calloc(1,sizeof(unetwork_node_t));
+  if (!uroot->next->next)
+  {
+	free(uroot->next);
+	free(uroot);
+	printf("Unable to allocate enough memory.\n");
+	return NULL;
+  }
+
+  uroot->next->next->next = uroot;
+
+  uroot->length = root->left->length + root->right->length;
+  uroot->prob = 1.0;
+
+  /* get the first root child that has descendants and make it the new root */
+  if (root->left->left)
+  {
+	new_root = root->left;
+	uroot->back = rnetwork_unroot(root->right,uroot, reticulation_nodes);
+	/* TODO: Need to clean uroot in case of error */
+	if (!uroot->back) return NULL;
+  }
+  else
+  {
+	new_root = root->right;
+	uroot->back = rnetwork_unroot(root->left,uroot, reticulation_nodes);
+	/* TODO: Need to clean uroot in case of error*/
+	if (!uroot->back) return NULL;
+  }
+
+  uroot->label = (new_root->label) ? xstrdup(new_root->label) : NULL;
+  uroot->reticulation_name = NULL;
+  uroot->active = 1;
+  uroot->incoming = 0;
+  uroot->back->active = 1;
+  uroot->back->incoming = 1;
+  uroot->reticulation_index = -1;
+
+  uroot->next->active = 1;
+  uroot->next->incoming = 0;
+  uroot->next->label = uroot->label;
+  uroot->next->reticulation_name = uroot->reticulation_name;
+  uroot->next->reticulation_index = -1;
+  if (new_root->left->is_reticulation)
+  {
+    if (new_root->left->first_parent == new_root)
+    {
+      uroot->next->prob = new_root->left->first_parent_prob;
+      uroot->next->length = new_root->left->first_parent_length;
+    } else
+    {
+      uroot->next->prob = new_root->left->second_parent_prob;
+      uroot->next->length = new_root->left->second_parent_length;
+    }
+  }
+  else
+  {
+  	uroot->next->length = new_root->left->length;
+    uroot->next->prob = 1.0;
+  }
+  uroot->next->back = rnetwork_unroot(new_root->left, uroot->next, reticulation_nodes);
+  /* TODO: Need to clean uroot in case of error*/
+  if (!uroot->next->back) return NULL;
+  uroot->next->back->active = 1;
+  uroot->next->back->incoming = 1;
+
+  uroot->next->next->active = 1;
+  uroot->next->next->incoming = 0;
+  uroot->next->next->label = uroot->label;
+  uroot->next->next->reticulation_name = uroot->reticulation_name;
+  uroot->next->next->reticulation_index = -1;
+
+  if (new_root->right->is_reticulation)
+  {
+    if (new_root->right->first_parent == new_root)
+    {
+      uroot->next->next->prob = new_root->right->first_parent_prob;
+      uroot->next->next->length = new_root->right->first_parent_length;
+    } else
+    {
+      uroot->next->next->prob = new_root->right->second_parent_prob;
+      uroot->next->next->length = new_root->right->second_parent_length;
+    }
+  }
+  else
+  {
+	uroot->next->next->length = new_root->right->length;
+	uroot->next->next->prob = 1.0;
+  }
+  uroot->next->next->back = rnetwork_unroot(new_root->right, uroot->next->next, reticulation_nodes);
+  /* TODO: Need to clean uroot in case of error*/
+  if (!uroot->next->next->back) return NULL;
+  uroot->next->next->back->active = 1;
+  uroot->next->next->back->incoming = 1;
+
+  free(reticulation_nodes);
+  unetwork_t * res = unetwork_wrapnetwork_main(uroot,0);
+  // re-wire pointer to fit the utree conventions...
+  res->vroot = res->vroot->next;
+  return res;
+}
+
 unetwork_t * unetwork_parse_newick_string(const char * s)
 {
   rnetwork_t * rnetwork = rnetwork_parse_newick_string(s);
   assert(rnetwork);
-  unetwork_t * unetwork = rnetwork_unroot(rnetwork);
+  unetwork_t * unetwork = rnetwork_unroot_main(rnetwork);
   unetwork->binary = rnetwork->binary;
   rnetwork_destroy(rnetwork, NULL);
   return unetwork;
@@ -442,7 +782,8 @@ unetwork_t * unetwork_parse_newick_string(const char * s)
 unetwork_t * unetwork_parse_newick(const char * filename)
 {
   rnetwork_t * rnetwork = rnetwork_parse_newick(filename);
-  unetwork_t * unetwork = rnetwork_unroot(rnetwork);
+  unetwork_t * unetwork = rnetwork_unroot_main(rnetwork);
   rnetwork_destroy(rnetwork, NULL);
   return unetwork;
 }
+

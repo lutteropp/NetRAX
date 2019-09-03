@@ -19,7 +19,8 @@
     Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 %{
-#include "lowlevel_parsing.h"
+#include <io/lowlevel_parsing.h>
+#include <stdio.h>
 
 extern int rnetwork_lex();
 extern FILE * rnetwork_in;

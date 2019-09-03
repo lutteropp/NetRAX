@@ -29,9 +29,9 @@ enum class NodeType {
 
 class ReticulationData {
 public:
-	ReticulationData(size_t index, const std::string& label) :
-			index(index), label(label), active_parent(0), link_to_first_parent(nullptr), link_to_second_parent(nullptr), link_to_child(
-					nullptr), prob(0.5) {
+	ReticulationData() :
+			index(0), label(""), active_parent(0), link_to_first_parent(nullptr), link_to_second_parent(nullptr), link_to_child(nullptr), prob(
+					0.5) {
 	}
 
 	void init(size_t index, const std::string& label, bool activeParent, Link* linkToFirstParent, Link* linkToSecondParent,

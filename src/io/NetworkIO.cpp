@@ -12,6 +12,14 @@
 
 namespace netrax {
 
+// NetTree: Item[;]
+// Item: (Item, Item) OR Node
+// Node: TreeNode OR ReticulationNode
+
+// TreeNode: [label][:branch_length] or [label] or [label][:branch_length][:support] or [] or [:branch_length] or [:branch_length][:support]
+// ReticulationNode: [label]#[type]i[:branch_length] or [label][:branch_length][:support][:inheritance_probability] or #[type]i[:branch_length] or #[type]i[:branch_length][:support] or #[type]i[:branch_length][:support][:inheritance_probability] or #[type]i
+
+
 Network convertNetwork(const unetwork_t& unetwork) {
 	Network network;
 	network.nodes.resize(unetwork.inner_tree_count + unetwork.tip_count + unetwork.reticulation_count);
