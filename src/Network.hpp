@@ -8,9 +8,10 @@
 #pragma once
 
 #include <stddef.h>
+#include <cassert>
+#include <memory>
 #include <string>
 #include <vector>
-#include <cassert>
 
 namespace netrax {
 
@@ -26,39 +27,23 @@ enum class NodeType {
 	BASIC_NODE, RETICULATION_NODE
 };
 
-class Network {
-public:
-	Network() :
-			root(nullptr) {
-	}
-
-	std::vector<double> collectBranchLengths() const {
-		std::vector<double> brLengths(edges.size());
-		for (size_t i = 0; i < edges.size(); ++i) {
-			brLengths[i] = edges[i].getLength();
-		}
-		return brLengths;
-	}
-	void applyBranchLengths(const std::vector<double>& branchLengths) {
-		assert(branchLengths.size() == edges.size());
-		for (size_t i = 0; i < edges.size(); ++i) {
-			edges[i].setLength(branchLengths[i]);
-		}
-	}
-
-	std::vector<Node> nodes;
-	std::vector<Edge> edges;
-	std::vector<Link> links;
-	std::vector<Node*> reticulation_nodes;
-	Node* root;
-};
-
 class ReticulationData {
 public:
 	ReticulationData(size_t index, const std::string& label) :
 			index(index), label(label), active_parent(0), link_to_child(nullptr), link_to_first_parent(nullptr), link_to_second_parent(
 					nullptr), prob(0.5) {
 	}
+
+	ReticulationData(const ReticulationData& retData) {
+		index = retData.index;
+		label = retData.label;
+		active_parent = retData.active_parent;
+		link_to_child = retData.link_to_child;
+		link_to_first_parent = retData.link_to_first_parent;
+		link_to_second_parent = retData.link_to_second_parent;
+		prob = retData.prob;
+	}
+
 	size_t getIndex() const {
 		return index;
 	}
@@ -78,16 +63,23 @@ public:
 	double getProb() const {
 		return prob;
 	}
+	double getActiveProb() const {
+		if (active_parent == 0) {
+			return prob;
+		} else {
+			return 1.0 - prob;
+		}
+	}
 	void setProb(double val) {
 		prob = val;
 	}
 	Link* getLinkToFirstParent() const {
 		return link_to_first_parent;
 	}
-	Node* getLinkToSecondParent() const {
+	Link* getLinkToSecondParent() const {
 		return link_to_second_parent;
 	}
-	Node* getLinkToChild() const {
+	Link* getLinkToChild() const {
 		return link_to_child;
 	}
 	void setLinkToFirstParent(Link* link) {
@@ -109,13 +101,27 @@ private:
 	double prob; // probability of taking the first parent
 };
 
+struct Link { // subnode in raxml-ng
+	Link(size_t index, Node* node) :
+			index(index), node(node), edge(nullptr), next(nullptr), outer(nullptr), direction(Direction::UNDEFINED) {
+	}
+	size_t index; // node_index in libpll
+	Node* node;
+	Edge* edge;
+
+	Link* next;
+	Link* outer;
+	Direction direction;
+};
+
 class Node {
 public:
 	Node(size_t index, const std::string& label) :
 			index(index), link(nullptr), label(label), type(NodeType::BASIC_NODE), reticulationData(nullptr) {
 	}
 	Node(size_t index, const std::string& label, const ReticulationData& retData) :
-			index(index), link(nullptr), label(label), type(NodeType::RETICULATION_NODE), reticulationData(retData) {
+			index(index), link(nullptr), label(label), type(NodeType::RETICULATION_NODE) {
+		reticulationData = std::make_unique<ReticulationData>(retData);
 	}
 
 	std::vector<Node*> getNeighbors() const {
@@ -144,7 +150,7 @@ public:
 		return type;
 	}
 
-	const ReticulationData& getReticulationData() const {
+	const std::unique_ptr<ReticulationData>& getReticulationData() const {
 		assert(type == NodeType::RETICULATION_NODE);
 		return reticulationData;
 	}
@@ -154,7 +160,7 @@ private:
 	std::string label;
 	NodeType type;
 
-	ReticulationData* reticulationData;
+	std::unique_ptr<ReticulationData> reticulationData;
 };
 
 class Edge {
@@ -202,17 +208,31 @@ private:
 	double length;
 };
 
-struct Link { // subnode in raxml-ng
-	Link(size_t index, Node* node) :
-			index(index), node(node), edge(nullptr), next(nullptr), outer(nullptr), direction(Direction::UNDEFINED) {
+class Network {
+public:
+	Network() :
+			root(nullptr) {
 	}
-	size_t index; // node_index in libpll
-	Node* node;
-	Edge* edge;
 
-	Link* next;
-	Link* outer;
-	Direction direction;
+	std::vector<double> collectBranchLengths() const {
+		std::vector<double> brLengths(edges.size());
+		for (size_t i = 0; i < edges.size(); ++i) {
+			brLengths[i] = edges[i].getLength();
+		}
+		return brLengths;
+	}
+	void applyBranchLengths(const std::vector<double>& branchLengths) {
+		assert(branchLengths.size() == edges.size());
+		for (size_t i = 0; i < edges.size(); ++i) {
+			edges[i].setLength(branchLengths[i]);
+		}
+	}
+
+	std::vector<Node> nodes;
+	std::vector<Edge> edges;
+	std::vector<Link> links;
+	std::vector<Node*> reticulation_nodes;
+	Node* root;
 };
 
 }
