@@ -6,6 +6,7 @@
  */
 
 #include "NetworkIO.hpp"
+#include "../Network.hpp"
 
 #include <array>
 #include <stdexcept>

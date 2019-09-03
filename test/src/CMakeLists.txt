@@ -9,7 +9,7 @@ endif()
 
 message (STATUS "Building tests")
 
-file (GLOB_RECURSE NETRAX_TEST_SOURCES ${PROJECT_SOURCE_DIR}/test/src/*.cpp ${SRC_FILES})
+file (GLOB_RECURSE NETRAX_TEST_SOURCES ${PROJECT_SOURCE_DIR}/test/src/*.cpp ${NETRAX_SOURCES})
 
 # sources list now has 2 Main.cpp, old has to be removed
 list(REMOVE_ITEM NETRAX_TEST_SOURCES "${PROJECT_SOURCE_DIR}/src/main.cpp")
