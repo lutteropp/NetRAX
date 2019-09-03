@@ -90,45 +90,27 @@ typedef struct unetwork_s
 } unetwork_t;
 
 
-
 /* functions in parse_rnetwork.y */
-
 rnetwork_t * rnetwork_parse_newick(const char * filename);
-
 rnetwork_t * rnetwork_parse_newick_string(const char * s);
-
 void rnetwork_destroy(rnetwork_t * root, void (*cb_destroy)(void *));
-
 void rnetwork_graph_destroy(rnetwork_node_t * root, void (*cb_destroy)(void *));
-
 rnetwork_t * rnetwork_wrapnetwork(rnetwork_node_t * root);
 
 /* functions in parse_unetwork_functions.c */
-
 unetwork_t * unetwork_parse_newick(const char * filename);
-
 unetwork_t * unetwork_parse_newick_string(const char * s);
-
 void unetwork_destroy(unetwork_t * root, void (*cb_destroy)(void *));
-
 void unetwork_reset_template_indices(unetwork_node_t * node, unsigned int tip_count);
-
 void unetwork_graph_destroy(unetwork_node_t * root, void (*cb_destroy)(void *));
-
 void unetwork_set_indices(unetwork_t * network);
-
 unetwork_t * unetwork_wrapnetwork(unetwork_node_t * root, unsigned int tip_count);
-
 unetwork_t * unetwork_wrapnetwork_multi(unetwork_node_t * root, unsigned int tip_count, unsigned int inner_tree_count,
 		unsigned int reticulation_count);
 
 /* functions in parse_rnetwork_functions.c */
-
 void rnetwork_destroy(rnetwork_t * root, void (*cb_destroy)(void *));
-
 void rnetwork_graph_destroy(rnetwork_node_t * root, void (*cb_destroy)(void *));
-
 rnetwork_t * rnetwork_wrapnetwork(rnetwork_node_t * root);
-
 rnetwork_t * rnetwork_wrapnetwork_multi(rnetwork_node_t * root, unsigned int tip_count, unsigned int inner_tree_count,
 		unsigned int reticulation_count);
