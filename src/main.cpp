@@ -7,6 +7,7 @@
 
 #include "Options.hpp"
 #include "Network.hpp"
+#include "io/NetworkIO.hpp"
 
 int parseOptions(int argc, char** argv, netrax::Options* options) {
 	CLI::App app { "NetRAX: Phylogenetic Network Inference without Incomplete Lineage Sorting" };
@@ -22,3 +23,4 @@ int main(int argc, char** argv) {
 	parseOptions(argc, argv, &options);
 	return 0;
 }
+

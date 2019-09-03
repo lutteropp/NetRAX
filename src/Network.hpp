@@ -30,17 +30,28 @@ enum class NodeType {
 class ReticulationData {
 public:
 	ReticulationData(size_t index, const std::string& label) :
-			index(index), label(label), active_parent(0), link_to_child(nullptr), link_to_first_parent(nullptr), link_to_second_parent(
+			index(index), label(label), active_parent(0), link_to_first_parent(nullptr), link_to_second_parent(nullptr), link_to_child(
 					nullptr), prob(0.5) {
+	}
+
+	void init(size_t index, const std::string& label, bool activeParent, Link* linkToFirstParent, Link* linkToSecondParent,
+			Link* linkToChild, double prob) {
+		this->index = index;
+		this->label = label;
+		this->active_parent = activeParent;
+		this->link_to_first_parent = linkToFirstParent;
+		this->link_to_second_parent = linkToSecondParent;
+		this->link_to_child = linkToChild;
+		this->prob = prob;
 	}
 
 	ReticulationData(const ReticulationData& retData) {
 		index = retData.index;
 		label = retData.label;
 		active_parent = retData.active_parent;
-		link_to_child = retData.link_to_child;
 		link_to_first_parent = retData.link_to_first_parent;
 		link_to_second_parent = retData.link_to_second_parent;
+		link_to_child = retData.link_to_child;
 		prob = retData.prob;
 	}
 
@@ -95,16 +106,26 @@ private:
 	size_t index;
 	std::string label;
 	bool active_parent; // 0: first_parent, 1: second_parent
-	Link* link_to_child; // The link that has link->outer->node as the child
 	Link* link_to_first_parent; // The link that has link->outer->node as the first parent
 	Link* link_to_second_parent; // The link that has link->outer->node as the second parent
+	Link* link_to_child; // The link that has link->outer->node as the child
 	double prob; // probability of taking the first parent
 };
 
 struct Link { // subnode in raxml-ng
-	Link(size_t index, Node* node) :
-			index(index), node(node), edge(nullptr), next(nullptr), outer(nullptr), direction(Direction::UNDEFINED) {
+	Link() :
+			index(0), node(nullptr), edge(nullptr), next(nullptr), outer(nullptr), direction(Direction::UNDEFINED) {
 	}
+
+	void init(size_t index, Node* node, Edge* edge, Link* next, Link* outer, Direction direction) {
+		this->index = index;
+		this->node = node;
+		this->edge = edge;
+		this->next = next;
+		this->outer = outer;
+		this->direction = direction;
+	}
+
 	size_t index; // node_index in libpll
 	Node* node;
 	Edge* edge;
@@ -116,12 +137,31 @@ struct Link { // subnode in raxml-ng
 
 class Node {
 public:
-	Node(size_t index, const std::string& label) :
-			index(index), link(nullptr), label(label), type(NodeType::BASIC_NODE), reticulationData(nullptr) {
+	Node() :
+			index(0), scaler_index(-1), link(nullptr), type(NodeType::BASIC_NODE), reticulationData(nullptr) {
+
 	}
-	Node(size_t index, const std::string& label, const ReticulationData& retData) :
-			index(index), link(nullptr), label(label), type(NodeType::RETICULATION_NODE) {
+
+	void initBasic(size_t index, int scaler_index, Link* link, const std::string& label) {
+		this->index = index;
+		this->scaler_index = scaler_index;
+		this->link = link;
+		this->label = label;
+		this->type = NodeType::BASIC_NODE;
+		this->reticulationData = nullptr;
+	}
+	void initReticulation(size_t index, int scaler_index, Link* link, const std::string& label, const ReticulationData& retData) {
+		this->index = index;
+		this->scaler_index = scaler_index;
+		this->link = link;
+		this->label = label;
+		this->type = NodeType::RETICULATION_NODE;
 		reticulationData = std::make_unique<ReticulationData>(retData);
+	}
+
+	bool isTip() {
+		assert(this->link);
+		return (!this->link->next);
 	}
 
 	std::vector<Node*> getNeighbors() const {
@@ -140,11 +180,30 @@ public:
 	size_t getIndex() const {
 		return index;
 	}
+
+	void setIndex(size_t index) {
+		this->index = index;
+	}
+
+	int getScalerIndex() const {
+		return scaler_index;
+	}
+
+	void setScalerIndex(int idx) {
+		scaler_index = idx;
+	}
+
 	Link* getLink() const {
 		return link;
 	}
+	void setLink(Link* link) {
+		this->link = link;
+	}
 	const std::string& getLabel() const {
 		return label;
+	}
+	void setLabel(const std::string& label) {
+		this->label = label;
 	}
 	NodeType getType() const {
 		return type;
@@ -156,6 +215,7 @@ public:
 	}
 private:
 	size_t index; // clv_index in libpll
+	int scaler_index;
 	Link* link;
 	std::string label;
 	NodeType type;
@@ -165,20 +225,17 @@ private:
 
 class Edge {
 public:
-	Edge(size_t index, Link* link1, Link* link2, double length, bool directed = false) :
-			index(index), link1(link1), link2(link2), length(length) {
-		link1->edge = this;
-		link2->edge = this;
-		link1->outer = link2;
-		link2->outer = link1;
-		if (directed) {
-			link1->direction = Direction::OUTGOING;
-			link2->direction = Direction::INCOMING;
-		} else {
-			link1->direction = Direction::UNDEFINED;
-			link2->direction = Direction::UNDEFINED;
-		}
+	Edge() :
+			index(0), link1(nullptr), link2(nullptr), length(0.0) {
 	}
+
+	void init(size_t index, Link* link1, Link* link2, double length) {
+		this->index = index;
+		this->link1 = link1;
+		this->link2 = link2;
+		this->length = length;
+	}
+
 	size_t getIndex() const {
 		return index;
 	}
@@ -211,7 +268,7 @@ private:
 class Network {
 public:
 	Network() :
-			root(nullptr) {
+			root(nullptr), tip_count(0) {
 	}
 
 	std::vector<double> collectBranchLengths() const {
@@ -233,6 +290,7 @@ public:
 	std::vector<Link> links;
 	std::vector<Node*> reticulation_nodes;
 	Node* root;
+	size_t tip_count;
 };
 
 }

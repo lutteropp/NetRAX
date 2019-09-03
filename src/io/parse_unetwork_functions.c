@@ -21,21 +21,6 @@ static void dealloc_data(unetwork_node_t * node, void (*cb_destroy)(void *))
       cb_destroy(node->data);
   }
 }
-/*static void close_roundabout(unetwork_node_t * first)
-{
-  unetwork_node_t * last = first;
-  while(last->next != NULL && last->next != first)
-  {
-  	if (!last->next->label)
-  	  last->next->label = last->label;
-  	if (!last->next->reticulation_name)
-  	  last->next->reticulation_name = last->reticulation_name;
-  	if (last->next->reticulation_index == -1)
-  	  last->next->reticulation_index = last->reticulation_index;
-  	last = last->next;
-  }
-  last->next = first;
-}*/
 
 static void dealloc_graph_recursive(unetwork_node_t * node,
                                    void (*cb_destroy)(void *),
