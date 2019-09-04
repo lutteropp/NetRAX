@@ -21,6 +21,8 @@
 %{
 #include <io/lowlevel_parsing.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 extern int rnetwork_lex();
 extern FILE * rnetwork_in;
