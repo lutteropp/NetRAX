@@ -126,6 +126,10 @@ struct Link { // subnode in raxml-ng
 		this->direction = direction;
 	}
 
+	Node* getTargetNode() const {
+		return outer->node;
+	}
+
 	size_t index; // node_index in libpll
 	Node* node;
 	Edge* edge;
@@ -168,7 +172,7 @@ public:
 		std::vector<Node*> neighbors;
 		Link* currLink = link;
 		while (currLink != nullptr) {
-			neighbors.push_back(currLink->node);
+			neighbors.push_back(currLink->outer->node);
 			currLink = currLink->next;
 			if (currLink == link) {
 				break;
@@ -282,6 +286,13 @@ public:
 		assert(branchLengths.size() == edges.size());
 		for (size_t i = 0; i < edges.size(); ++i) {
 			edges[i].setLength(branchLengths[i]);
+		}
+	}
+	void setReticulationParents(size_t treeIdx) {
+		for (size_t i = 0; i < reticulation_nodes.size(); ++i) {
+			// check if i-th bit is set in treeIdx
+			bool activeParentIdx = treeIdx & (1 << i);
+			reticulation_nodes[i]->getReticulationData()->setActiveParent(activeParentIdx);
 		}
 	}
 
