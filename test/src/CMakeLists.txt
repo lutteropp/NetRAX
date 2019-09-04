@@ -14,9 +14,11 @@ file (GLOB_RECURSE NETRAX_TEST_SOURCES ${PROJECT_SOURCE_DIR}/test/src/*.cpp ${NE
 # sources list now has 2 Main.cpp, old has to be removed
 list(REMOVE_ITEM NETRAX_TEST_SOURCES "${PROJECT_SOURCE_DIR}/src/main.cpp")
 
-get_filename_component(DIR_TWO_ABOVE ../../ ABSOLUTE ${CMAKE_CURRENT_SOURCE_DIR})
+#get_filename_component(DIR_TWO_ABOVE ../../ ABSOLUTE ${CMAKE_CURRENT_SOURCE_DIR})
 
-include_directories (${PROJECT_SOURCE_DIR} ${DIR_TWO_ABOVE}/src/io ${DIR_TWO_ABOVE}/src)
+#include_directories (${PROJECT_SOURCE_DIR} ${DIR_TWO_ABOVE}/src/io ${DIR_TWO_ABOVE}/src)
+
+include_directories (${PROJECT_SOURCE_DIR})
 
 set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/test/bin)
 
