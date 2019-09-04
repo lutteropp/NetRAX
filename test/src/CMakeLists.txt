@@ -14,9 +14,13 @@ file (GLOB_RECURSE NETRAX_TEST_SOURCES ${PROJECT_SOURCE_DIR}/test/src/*.cpp ${NE
 # sources list now has 2 Main.cpp, old has to be removed
 list(REMOVE_ITEM NETRAX_TEST_SOURCES "${PROJECT_SOURCE_DIR}/src/main.cpp")
 
-#get_filename_component(DIR_TWO_ABOVE ../../ ABSOLUTE ${CMAKE_CURRENT_SOURCE_DIR})
+set(NETRAX_TEST_SOURCES ${PROJECT_SOURCE_DIR}/src/io/lex_rnetwork.c
+                   ${PROJECT_SOURCE_DIR}/src/io/parse_rnetwork.c
+                   ${NETRAX_TEST_SOURCES}
+  )
 
-#include_directories (${PROJECT_SOURCE_DIR} ${DIR_TWO_ABOVE}/src/io ${DIR_TWO_ABOVE}/src)
+set_source_files_properties(${PROJECT_SOURCE_DIR}/src/io/lex_rnetwork.c PROPERTIES GENERATED TRUE)
+set_source_files_properties(${PROJECT_SOURCE_DIR}/src/io/parse_rnetwork.c PROPERTIES GENERATED TRUE)
 
 include_directories (${PROJECT_SOURCE_DIR})
 

@@ -33,7 +33,7 @@ Network convertNetwork(const unetwork_t& unetwork) {
 
 		if (unode->reticulation_index == -1) { // basic node
 			network.nodes[unode->clv_index].initBasic(unode->clv_index, unode->scaler_index, &network.links[unode->node_index],
-					unode->label);
+					unode->label ? unode->label : "");
 			if (unode->next) { // not a leaf node, thus: 3 links in total
 				network.links[unode->node_index].init(unode->node_index, &network.nodes[unode->clv_index],
 						&network.edges[unode->pmatrix_index], &network.links[unode->next->node_index],
@@ -66,7 +66,7 @@ Network convertNetwork(const unetwork_t& unetwork) {
 			assert(!unode->next->next->incoming); // link to child
 			assert(unode->next->next->next == unode);
 
-			retData.init(unode->reticulation_index, unode->reticulation_name, 0, &network.links[unode->node_index],
+			retData.init(unode->reticulation_index, unode->reticulation_name ? unode->reticulation_name : "", 0, &network.links[unode->node_index],
 					&network.links[unode->next->node_index], &network.links[unode->next->next->node_index], unode->prob);
 			network.nodes[unode->clv_index].initReticulation(unode->clv_index, unode->scaler_index, &network.links[unode->node_index],
 					unode->label, retData);
