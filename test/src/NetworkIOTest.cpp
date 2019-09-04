@@ -11,6 +11,8 @@
 #include <string>
 #include "src/Network.hpp"
 
+using namespace netrax;
+
 TEST (NetworkIOTest, testTheTest) {
 	ASSERT_TRUE(true);
 }
