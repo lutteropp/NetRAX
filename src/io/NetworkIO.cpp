@@ -87,7 +87,7 @@ Network convertNetwork(const unetwork_t& unetwork) {
 					&network.links[first_parent_unode->node_index], &network.links[second_parent_unode->node_index],
 					&network.links[child_unode->node_index], first_parent_unode->prob);
 			network.nodes[first_parent_unode->clv_index].initReticulation(first_parent_unode->clv_index, first_parent_unode->scaler_index, &network.links[first_parent_unode->node_index],
-					first_parent_unode->label, retData);
+					first_parent_unode->label ? first_parent_unode->label : "", retData);
 
 			network.links[first_parent_unode->node_index].init(first_parent_unode->node_index, &network.nodes[first_parent_unode->clv_index], &network.edges[first_parent_unode->pmatrix_index],
 					&network.links[second_parent_unode->node_index], &network.links[first_parent_unode->back->node_index], Direction::INCOMING);

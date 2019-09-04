@@ -42,6 +42,12 @@ TEST(NetworkIOTest, readSimpleNetworkReticulationNoExtra) {
 	ASSERT_EQ(4, network.tip_count);
 }
 
+TEST(NetworkIOTest, readSimpleNetworkReticulationNoExtraNoLabel) {
+	std::string input = "((A:2,((B:1,C:1)P:1)#H1)Q:2,(D:2,#H1)R:2);";
+	Network network = readNetworkFromString(input);
+	ASSERT_EQ(4, network.tip_count);
+}
+
 TEST(NetworkIOTest, readSimpleNetworkReticulationOnlyLength) {
 	std::string input = "((A:2,((B:1,C:1)P:1)X#H1:0)Q:2,(D:2,X#H1:0)R:2);";
 	Network network = readNetworkFromString(input);
@@ -56,6 +62,30 @@ TEST(NetworkIOTest, readSimpleNetworkReticulationOnlyProb) {
 
 TEST(NetworkIOTest, readSimpleNetworkReticulationOnlySupport) {
 	std::string input = "((A:2,((B:1,C:1)P:1)X#H1::0)Q:2,(D:2,X#H1::0)R:2);";
+	Network network = readNetworkFromString(input);
+	ASSERT_EQ(4, network.tip_count);
+}
+
+TEST(NetworkIOTest, readSimpleNetworkReticulationLengthAndSupport) {
+	std::string input = "((A:2,((B:1,C:1)P:1)X#H1:0:0)Q:2,(D:2,X#H1:0:0)R:2);";
+	Network network = readNetworkFromString(input);
+	ASSERT_EQ(4, network.tip_count);
+}
+
+TEST(NetworkIOTest, readSimpleNetworkReticulationLengthAndProb) {
+	std::string input = "((A:2,((B:1,C:1)P:1)X#H1:0::1)Q:2,(D:2,X#H1:0::0)R:2);";
+	Network network = readNetworkFromString(input);
+	ASSERT_EQ(4, network.tip_count);
+}
+
+TEST(NetworkIOTest, readSimpleNetworkReticulationSupportAndProb) {
+	std::string input = "((A:2,((B:1,C:1)P:1)X#H1::0:1)Q:2,(D:2,X#H1::0:0)R:2);";
+	Network network = readNetworkFromString(input);
+	ASSERT_EQ(4, network.tip_count);
+}
+
+TEST(NetworkIOTest, readSimpleNetworkReticulationLengthAndProbAndSupport) {
+	std::string input = "((A:2,((B:1,C:1)P:1)X#H1:0:0:1)Q:2,(D:2,X#H1:0:0:0)R:2);";
 	Network network = readNetworkFromString(input);
 	ASSERT_EQ(4, network.tip_count);
 }
@@ -112,6 +142,12 @@ TEST(NetworkIOTest, readSimpleNetworkCelineStyle) {
 	std::string input = "((A:0.0,((B:0.0,C:0.0)P:0.0)#H1:0.0)Q:0.0,(D:0.0,#H1:0.0)R:0.0);";
 	Network network = readNetworkFromString(input);
 	ASSERT_EQ(4, network.tip_count);
+}
+
+TEST(NetworkIOTest, readCelineNetworkSimplified) {
+	std::string input = "((A,(B,(((((C,(D)#H1),(E)#H2),(F)#H3),(G)#H4),(((#H1,((#H3,H),(I)#H5)),(J)#H6),(((#H5,(#H6,K)),(L,M)),(N,(O,((P,#H4),#H2)))))))));";
+	Network network = readNetworkFromString(input);
+	ASSERT_EQ(16, network.tip_count);
 }
 
 TEST(NetworkIOTest, readCelineNetwork) {

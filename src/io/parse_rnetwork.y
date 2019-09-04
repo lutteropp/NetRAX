@@ -70,7 +70,7 @@ static void rnetwork_error(rnetwork_node_t * node, const char * s)
 %token<s> STRING
 %token<d> NUMBER
 %type<s> label optional_label
-%type<d> number optional_length optional_number_after_colon
+%type<d> number optional_length optional_number
 %type<network> subnetwork
 %start input
 %%
@@ -235,7 +235,7 @@ subnetwork: '(' subnetwork ',' subnetwork ')' optional_label optional_length
     $$->right->parent = $$;
   }
 }
-       | '(' subnetwork ')' optional_label '#' label ':' optional_number_after_colon ':' optional_number_after_colon ':' number // optional_branch_length, optional_support, prob
+       | '(' subnetwork ')' optional_label '#' label ':' optional_number ':' optional_number ':' number // optional_branch_length, optional_support, prob
 {
   $$ = (rnetwork_node_t *)calloc(1, sizeof(rnetwork_node_t));
   $$->is_reticulation = 1;
@@ -283,7 +283,7 @@ subnetwork: '(' subnetwork ',' subnetwork ')' optional_label optional_length
   reticulation_cnt++;
 }
 
-       | '(' subnetwork ')' optional_label '#' label ':' optional_number_after_colon ':' number // optional_branch_length, support
+       | '(' subnetwork ')' optional_label '#' label ':' optional_number ':' number // optional_branch_length, support
 {
   $$ = (rnetwork_node_t *)calloc(1, sizeof(rnetwork_node_t));
   $$->is_reticulation = 1;
@@ -366,7 +366,7 @@ subnetwork: '(' subnetwork ',' subnetwork ')' optional_label optional_length
   reticulation_node_names[reticulation_cnt] = $$->reticulation_name;
   reticulation_cnt++;
 }
-       | optional_label '#' label ':' optional_number_after_colon ':' optional_number_after_colon ':' number // branch length, support, probability
+       | optional_label '#' label ':' optional_number ':' optional_number ':' number // branch length, support, probability
 {
   unsigned int i = 0;
   for (i = 0; i < reticulation_cnt; ++i)
@@ -382,7 +382,7 @@ subnetwork: '(' subnetwork ',' subnetwork ')' optional_label optional_length
       }
       if ($7) {
         $$->support = atof($7);
-        free($7); // TODO: why does this line cause double free or corruption?
+        //free($7); // TODO: why does this line cause double free or corruption?
       } else {
         $$->support = 0;
       }
@@ -397,7 +397,7 @@ subnetwork: '(' subnetwork ',' subnetwork ')' optional_label optional_length
   }
 }
 
-       | optional_label '#' label ':' optional_number_after_colon ':' number // optional_branch length, support
+       | optional_label '#' label ':' optional_number ':' number // optional_branch length, support
 {
   unsigned int i = 0;
   for (i = 0; i < reticulation_cnt; ++i)
@@ -412,7 +412,7 @@ subnetwork: '(' subnetwork ',' subnetwork ')' optional_label optional_length
         $$->second_parent_length = 0;
       }
       $$->support = atof($7);
-      free($7); // TODO: why does this line cause double free or corruption?
+      free($7);
       
       $$->second_parent_prob = 1.0 - $$->first_parent_prob;
       break;
@@ -463,7 +463,7 @@ optional_length: {$$ = NULL;} | ':' number {$$ = $2;};
 label: STRING    {$$=$1;} | NUMBER {$$=$1;};
 number: NUMBER   {$$=$1;};
 
-optional_number_after_colon: {$$ = NULL;} | number {$$ = $1;};
+optional_number: {$$ = NULL;} | number {$$ = $1;};
 
 %%
 
