@@ -36,6 +36,12 @@ TEST(NetworkIOTest, readSimpleNetwork) {
 	ASSERT_EQ(4, network.tip_count);
 }
 
+TEST(NetworkIOTest, readSimpleNetworkCelineStyle) {
+	std::string input = "((A:0.0,((B:0.0,C:0.0)P:0.0)#H1:0.0)Q:0.0,(D:0.0,#H1:0.0)R:0.0);";
+	Network network = readNetworkFromString(input);
+	ASSERT_EQ(4, network.tip_count);
+}
+
 TEST(NetworkIOTest, readCelineNetwork) {
 	std::string input =
 			"((protopterus:0.0,(Xenopus:0.0,(((((Monodelphis:0.0,(python:0.0)#H1:0.0):0.0,(Caretta:0.0)#H2:0.0):0.0,(Homo:0.0)#H3:0.0):0.0,(Ornithorhynchus:0.0)#H4:0.0):0.0,(((#H1:0.0,((#H3:0.0,Anolis:0.0):0.0,(Gallus:0.0)#H5:0.0):0.0):0.0,(Podarcis:0.0)#H6:0.0):0.0,(((#H5:0.0,(#H6:0.0,Taeniopygia:0.0):0.0):0.0,(alligator:0.0,Caiman:0.0):0.0):0.0,(phrynops:0.0,(Emys:0.0,((Chelonoidi:0.0,#H4:0.0):0.0,#H2:0.0):0.0):0.0):0.0):0.0):0.0):0.0):0.0):0.0);";
