@@ -9,7 +9,7 @@ set(NETRAX_SOURCES ${NETRAX_SOURCES} PARENT_SCOPE)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 
-include_directories("../libs/" ${CMAKE_CURRENT_SOURCE_DIR})
+include_directories("../libs/" ${CMAKE_CURRENT_SOURCE_DIR}/io)
 
 find_package(BISON)
 find_package(FLEX)
@@ -31,5 +31,7 @@ set(NETRAX_SOURCES ${BISON_parse_rnetwork_t_OUTPUTS}
                    ${NETRAX_SOURCES}
   )
 
+# export to the parent dir to use in GTest makefile
+set(NETRAX_SOURCES ${NETRAX_SOURCES} PARENT_SCOPE)
 
 add_executable(netrax ${NETRAX_SOURCES})
