@@ -235,7 +235,7 @@ subnetwork: '(' subnetwork ',' subnetwork ')' optional_label optional_length
     $$->right->parent = $$;
   }
 }
-       | '(' subnetwork ')' optional_label '#' label ':' optional_number_after_colon ':' optional_number_after_colon ':' number
+       | '(' subnetwork ')' optional_label '#' label ':' optional_number_after_colon ':' optional_number_after_colon ':' number // optional_branch_length, optional_support, prob
 {
   $$ = (rnetwork_node_t *)calloc(1, sizeof(rnetwork_node_t));
   $$->is_reticulation = 1;
@@ -282,7 +282,44 @@ subnetwork: '(' subnetwork ',' subnetwork ')' optional_label optional_length
   reticulation_node_names[reticulation_cnt] = $$->reticulation_name;
   reticulation_cnt++;
 }
-       | '(' subnetwork ')' optional_label '#' label
+
+       | '(' subnetwork ')' optional_label '#' label ':' optional_number_after_colon ':' number // optional_branch_length, support
+{
+  $$ = (rnetwork_node_t *)calloc(1, sizeof(rnetwork_node_t));
+  $$->is_reticulation = 1;
+  $$->child   = $2;
+  $$->left   = NULL;
+  $$->right  = NULL;
+  $$->first_parent   = NULL;
+  $$->second_parent  = NULL;
+  $$->label  = $4;
+  $$->reticulation_name = $6;
+  $$->reticulation_index = reticulation_cnt;
+  if ($8)
+  {
+    $$->first_parent_length = atof($8);
+    free($8);
+  }
+  else
+  {
+    $$->first_parent_length = 0;
+  }
+
+  $$->support = atof($10);
+  free($10);
+
+  $$->first_parent_prob = 0.5;
+
+  $$->idx = 0;
+
+  $$->child->parent  = $$;
+
+  reticulation_node_pointers[reticulation_cnt] = $$;
+  reticulation_node_names[reticulation_cnt] = $$->reticulation_name;
+  reticulation_cnt++;
+}
+
+       | '(' subnetwork ')' optional_label '#' label // no branch length, no support, no prob
 {
   $$ = (rnetwork_node_t *)calloc(1, sizeof(rnetwork_node_t));
   $$->is_reticulation = 1;
@@ -295,6 +332,32 @@ subnetwork: '(' subnetwork ',' subnetwork ')' optional_label optional_length
   $$->reticulation_name = $6;
   $$->reticulation_index = reticulation_cnt;
   $$->length = 0;
+  $$->support = 0;
+  $$->idx = 0;
+
+  $$->child->parent  = $$;
+  reticulation_node_pointers[reticulation_cnt] = $$;
+  reticulation_node_names[reticulation_cnt] = $$->reticulation_name;
+  reticulation_cnt++;
+}
+       | '(' subnetwork ')' optional_label '#' label ':' number // only branch length
+{
+  $$ = (rnetwork_node_t *)calloc(1, sizeof(rnetwork_node_t));
+  $$->is_reticulation = 1;
+  $$->child   = $2;
+  $$->left   = NULL;
+  $$->right  = NULL;
+  $$->first_parent   = NULL;
+  $$->second_parent  = NULL;
+  $$->label  = $4;
+  $$->reticulation_name = $6;
+  $$->reticulation_index = reticulation_cnt;
+  if ($8) {
+    $$->length = atof($8);
+    free($8);
+  } else {
+    $$->length = 0;
+  }
   $$->support = 0;
   $$->idx = 0;
 
@@ -319,7 +382,7 @@ subnetwork: '(' subnetwork ',' subnetwork ')' optional_label optional_length
       }
       if ($7) {
         $$->support = atof($7);
-        free($7); 
+        free($7); // TODO: why does this line cause double free or corruption?
       } else {
         $$->support = 0;
       }
@@ -333,6 +396,30 @@ subnetwork: '(' subnetwork ',' subnetwork ')' optional_label optional_length
     }
   }
 }
+
+       | optional_label '#' label ':' optional_number_after_colon ':' number // optional_branch length, support
+{
+  unsigned int i = 0;
+  for (i = 0; i < reticulation_cnt; ++i)
+  {
+    if (strcmp(reticulation_node_names[i],$3) == 0)
+    {
+      $$ = reticulation_node_pointers[i];
+      if ($5) {
+        $$->second_parent_length = atof($5);
+        free($5);
+      } else {
+        $$->second_parent_length = 0;
+      }
+      $$->support = atof($7);
+      free($7); // TODO: why does this line cause double free or corruption?
+      
+      $$->second_parent_prob = 1.0 - $$->first_parent_prob;
+      break;
+    }
+  }
+}
+
        | optional_label '#' label optional_length
 {
   unsigned int i = 0;
