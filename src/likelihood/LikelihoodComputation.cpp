@@ -53,8 +53,29 @@ std::vector<pll_operation_t> createOperations(Network& network, size_t treeIdx) 
 	return ops;
 }
 
-void updateProbMatrices(Network& network, PartitionInfo& partition) {
-	throw std::runtime_error("Not implemented yet");
+void updateProbMatrices(Network& network, std::vector<PartitionInfo>& partitions, bool updateAll) {
+	unsigned int pmatrix_count = network.edges.size();
+	for (size_t i = 0; i < partitions.size(); ++i) {
+		for (unsigned int j = 0; j < pmatrix_count; ++j) {
+			if (partitions[i].pmatrix_valid[j] && !updateAll) {
+				continue;
+			}
+			double p_brlen = partitions[i].branch_lengths[j];
+			if (partitions[i].brlen_scaler != 1.0) {
+				p_brlen *= partitions[i].brlen_scaler;
+			}
+			int ret = pll_update_prob_matrices(
+					&partitions[i].pll_partition,
+					partitions[i].param_indices.data(),
+					&j,
+					&p_brlen,
+					1);
+			if (!ret) {
+				throw std::runtime_error("Updating the pmatrices failed");
+			}
+			partitions[i].pmatrix_valid[j] = true;
+		}
+	}
 }
 
 // TODO: Implement the Gray Code displayed tree iteration order and intelligent update of the operations array

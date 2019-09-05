@@ -17,6 +17,7 @@
 
 namespace netrax {
 
+void updateProbMatrices(Network& network, std::vector<PartitionInfo>& partitions, bool updateAll);
 double computeLoglikelihood(Network& network, std::vector<PartitionInfo>& partitions);
 
 }
