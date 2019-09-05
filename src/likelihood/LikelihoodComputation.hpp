@@ -10,7 +10,7 @@
 #include <stddef.h>
 #include <vector>
 
-#include <pll/pll.h>
+#include <libpll/pll.h>
 
 #include "../Network.hpp"
 #include "../PartitionInfo.hpp"

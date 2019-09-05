@@ -12,7 +12,7 @@
 
 namespace netrax {
 
-// TODO: Use a dirty flag to only update CLVs that are needed...
+// TODO: Use a dirty flag to only update CLVs that are needed... actually, we might already have it. It's called clv_valid and is in PartitionInfo...
 
 void createOperationsPostorder(Node* parent, Node* actNode, std::vector<pll_operation_t>& ops, size_t fake_clv_index,
 		size_t fake_pmatrix_index) {
@@ -78,6 +78,7 @@ void updateProbMatrices(Network& network, std::vector<PartitionInfo>& partitions
 	}
 }
 
+// TODO: Add bool incremental...
 // TODO: Implement the Gray Code displayed tree iteration order and intelligent update of the operations array
 // TODO: Get rid of the exponentiation, as discussed in the notes when Céline was there (using the per-site-likelihoods)
 double computeLoglikelihood(Network& network, std::vector<PartitionInfo>& partitions) {

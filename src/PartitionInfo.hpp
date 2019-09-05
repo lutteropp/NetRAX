@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include <pll/pll.h>
+#include <libpll/pll.h>
 #include <vector>
 #include <stdexcept>
 

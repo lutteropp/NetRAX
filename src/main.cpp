@@ -9,6 +9,11 @@
 #include "Network.hpp"
 #include "io/NetworkIO.hpp"
 
+#include "likelihood/LikelihoodComputation.hpp"
+#include "optimization/BranchLengthOptimization.hpp"
+#include "optimization/ModelOptimization.hpp"
+#include "traversal/Traversal.hpp"
+
 int parseOptions(int argc, char** argv, netrax::Options* options) {
 	CLI::App app { "NetRAX: Phylogenetic Network Inference without Incomplete Lineage Sorting" };
 	app.add_option("--msa", options->msa_file, "The Multiple Sequence Alignment File")->required();
