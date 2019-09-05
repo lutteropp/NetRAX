@@ -8,11 +8,14 @@
 #include "LikelihoodComputation.hpp"
 #include "../traversal/Traversal.hpp"
 
+#include <cmath>
+
 namespace netrax {
 
 // TODO: Use a dirty flag to only update CLVs that are needed...
 
-void createOperationsPostorder(Node* parent, Node* actNode, std::vector<pll_operation_t>& ops, size_t fake_clv_index, size_t fake_pmatrix_index) {
+void createOperationsPostorder(Node* parent, Node* actNode, std::vector<pll_operation_t>& ops, size_t fake_clv_index,
+		size_t fake_pmatrix_index) {
 	std::vector<Node*> activeChildren = actNode->getActiveChildren(parent);
 	if (activeChildren.empty()) { // nothing to do if we are at a leaf node
 		return;
@@ -45,7 +48,6 @@ std::vector<pll_operation_t> createOperations(Network& network, size_t treeIdx) 
 	std::vector<pll_operation_t> ops;
 	size_t fake_clv_index = network.nodes.size();
 	size_t fake_pmatrix_index = network.edges.size();
-
 	network.setReticulationParents(treeIdx);
 	createOperationsPostorder(nullptr, network.root, ops, fake_clv_index, fake_pmatrix_index);
 	return ops;
@@ -55,17 +57,37 @@ void updateProbMatrices(Network& network, PartitionInfo& partition) {
 	throw std::runtime_error("Not implemented yet");
 }
 
+// TODO: Implement the Gray Code displayed tree iteration order and intelligent update of the operations array
+// TODO: Get rid of the exponentiation, as discussed in the notes when Céline was there (using the per-site-likelihoods)
 double computeLoglikelihood(Network& network, std::vector<PartitionInfo>& partitions) {
-
+	size_t n_trees = 1 << network.reticulation_nodes.size();
+	double network_l = 1.0;
 	// Iterate over all displayed trees
+	for (size_t i = 0; i < n_trees; ++i) {
+		double tree_logl = 0.0;
+		// Create pll_operations_t array for the current displayed tree
+		std::vector<pll_operation_t> ops = createOperations(network, i);
+		unsigned int ops_count = ops.size();
+		// Iterate over all partitions
+		for (size_t j = 0; j < partitions.size(); ++j) {
+			// Compute CLVs in pll_update_partials, as specified by the operations array. This needs a pll_partition_t object.
+			pll_update_partials(&partitions[j].pll_partition, ops.data(), ops_count);
+			// Compute loglikelihood at the root of the displayed tree in pll_compute_edge_loglikelihood. This needs an array of unsigned int (exists for each partition) param_indices.
+			Node* rootBack = network.root->getLink()->getTargetNode();
+			tree_logl += pll_compute_edge_loglikelihood(
+					&partitions[j].pll_partition,
+					network.root->getIndex(),
+					network.root->getScalerIndex(),
+					rootBack->getIndex(),
+					rootBack->getScalerIndex(),
+					network.root->getLink()->edge->getIndex(),
+					partitions[j].param_indices.data(),
+					nullptr);
+		}
+		network_l *= exp(tree_logl);
+	}
 
-		// Compute pll_operations_t array
-
-		// Compute CLVs in pll_update_partials, as specified by the operations array. This needs a pll_partition_t object.
-
-		// Compute loglikelihood at the root of the displaxed tree in pll_compute_edge_loglikelihood. This needs an array of unsigned int (exists for each partition) param_indices.
-
-	return 0;
+	return log(network_l);
 }
 
 }
