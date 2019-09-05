@@ -10,14 +10,14 @@
 
 namespace netrax {
 
-void postorder(Node* parent, Node* actNode, std::vector<pll_operation_t>& ops, size_t fake_clv_index, size_t fake_pmatrix_index) {
+void createOperationsPostorder(Node* parent, Node* actNode, std::vector<pll_operation_t>& ops, size_t fake_clv_index, size_t fake_pmatrix_index) {
 	std::vector<Node*> activeChildren = actNode->getActiveChildren(parent);
 	if (activeChildren.empty()) { // nothing to do if we are at a leaf node
 		return;
 	}
 	assert(activeChildren.size() <= 2);
 	for (size_t i = 0; i < activeChildren.size(); ++i) {
-		postorder(actNode, activeChildren[i], ops, fake_clv_index, fake_pmatrix_index);
+		createOperationsPostorder(actNode, activeChildren[i], ops, fake_clv_index, fake_pmatrix_index);
 	}
 	pll_operation_t operation;
 	operation.parent_clv_index = actNode->getIndex();
@@ -45,7 +45,7 @@ std::vector<pll_operation_t> createOperations(Network& network, size_t treeIdx) 
 	size_t fake_pmatrix_index = network.edges.size();
 
 	network.setReticulationParents(treeIdx);
-	postorder(nullptr, network.root, ops, fake_clv_index, fake_pmatrix_index);
+	createOperationsPostorder(nullptr, network.root, ops, fake_clv_index, fake_pmatrix_index);
 	return ops;
 }
 
