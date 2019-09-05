@@ -10,6 +10,8 @@
 
 namespace netrax {
 
+// TODO: Use a dirty flag to only update CLVs that are needed...
+
 void createOperationsPostorder(Node* parent, Node* actNode, std::vector<pll_operation_t>& ops, size_t fake_clv_index, size_t fake_pmatrix_index) {
 	std::vector<Node*> activeChildren = actNode->getActiveChildren(parent);
 	if (activeChildren.empty()) { // nothing to do if we are at a leaf node
@@ -49,13 +51,19 @@ std::vector<pll_operation_t> createOperations(Network& network, size_t treeIdx) 
 	return ops;
 }
 
-double computeLoglikelihood(const Network& network) {
+void updateProbMatrices(Network& network, PartitionInfo& partition) {
+	throw std::runtime_error("Not implemented yet");
+}
+
+double computeLoglikelihood(Network& network, std::vector<PartitionInfo>& partitions) {
 
 	// Iterate over all displayed trees
 
 		// Compute pll_operations_t array
 
-		// Compute CLVs in
+		// Compute CLVs in pll_update_partials, as specified by the operations array. This needs a pll_partition_t object.
+
+		// Compute loglikelihood at the root of the displaxed tree in pll_compute_edge_loglikelihood. This needs an array of unsigned int (exists for each partition) param_indices.
 
 	return 0;
 }

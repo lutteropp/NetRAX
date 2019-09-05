@@ -13,9 +13,10 @@
 #include <pll/pll.h>
 
 #include "../Network.hpp"
+#include "../PartitionInfo.hpp"
 
 namespace netrax {
 
-double computeLoglikelihood(const Network& network);
+double computeLoglikelihood(Network& network, std::vector<PartitionInfo>& partitions);
 
 }
