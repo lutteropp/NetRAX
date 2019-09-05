@@ -7,6 +7,8 @@
 
 #include "Traversal.hpp"
 
+#include "../Network.hpp"
+
 namespace netrax {
 
 void postorder(Node* parent, Node* actNode, std::vector<Node*>& buffer) {

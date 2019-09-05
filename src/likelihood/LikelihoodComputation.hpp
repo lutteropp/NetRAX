@@ -7,6 +7,11 @@
 
 #pragma once
 
+#include <stddef.h>
+#include <vector>
+
+#include <pll/pll.h>
+
 #include "../Network.hpp"
 
 namespace netrax {

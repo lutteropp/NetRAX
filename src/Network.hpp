@@ -168,6 +168,36 @@ public:
 		return (!this->link->next);
 	}
 
+	std::vector<Node*> getChildren(Node* myParent) const {
+		std::vector<Node*> children;
+		if (type == NodeType::RETICULATION_NODE) {
+			children.push_back(reticulationData->getLinkToChild()->getTargetNode());
+		} else { // normal node
+			std::vector<Node*> neighbors = getNeighbors();
+			for (size_t i = 0; i < neighbors.size(); ++i) {
+				if (neighbors[i] != myParent) {
+					children.push_back(neighbors[i]);
+				}
+			}
+		}
+		return children;
+	}
+
+	std::vector<Node*> getActiveChildren(Node* myParent) const {
+		std::vector<Node*> activeChildren;
+		std::vector<Node*> children = getChildren(myParent);
+		for (size_t i = 0; i < children.size(); ++i) {
+			if (children[i]->getType() == NodeType::RETICULATION_NODE) {
+				// we need to check if the child is active, this is, if we are currently the selected parent
+				if (children[i]->getReticulationData()->getLinkToActiveParent()->getTargetNode() != this) {
+					continue;
+				}
+			}
+			activeChildren.push_back(children[i]);
+		}
+		return activeChildren;
+	}
+
 	std::vector<Node*> getNeighbors() const {
 		std::vector<Node*> neighbors;
 		Link* currLink = link;
@@ -179,6 +209,21 @@ public:
 			}
 		}
 		return neighbors;
+	}
+
+	Edge* getEdgeTo(Node* target) const {
+		assert(target);
+		Link* currLink = link;
+		while (currLink != nullptr) {
+			if (currLink->outer->node == target) {
+				return currLink->edge;
+			}
+			currLink = currLink->next;
+			if (currLink == link) {
+				break;
+			}
+		}
+		throw std::runtime_error("The given target node is not a neighbor of this node");
 	}
 
 	size_t getIndex() const {
