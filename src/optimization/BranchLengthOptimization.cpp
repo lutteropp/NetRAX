@@ -9,6 +9,8 @@
 
 #include <stdexcept>
 
+#include "../Network.hpp"
+
 namespace netrax {
 	void optimizeBranchLengths(Network& network) {
 		throw std::runtime_error("Not implemented yet");

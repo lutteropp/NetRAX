@@ -8,7 +8,8 @@
 #pragma once
 
 #include "../Network.hpp"
+#include "../PartitionInfo.hpp"
 
 namespace netrax {
-	void optimizeBranchLengths(Network& network);
+	double optimize_branches(Network& network, std::vector<PartitionInfo>& partitions, double lh_epsilon, double brlen_smooth_factor);
 }
