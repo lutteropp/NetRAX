@@ -68,7 +68,7 @@ int fake_init_tree(pllmod_treeinfo_t * treeinfo, Network& network) {
 
 	// collect the branch lengths
 	for (size_t i = 0; i < network.edges.size(); ++i)  {
-		treeinfo->branch_lengths[0][i] = network.edges[i].length;
+		treeinfo->branch_lengths[0][i] = network.edges[i].getLength();
 	}
 	treeinfo->branch_lengths[0][network.edges.size()] = 0; // the fake branch length
 
@@ -225,7 +225,7 @@ pllmod_treeinfo_t * create_fake_treeinfo(Network& network, unsigned int tips, un
 
 		/* check memory allocation */
 		if (!treeinfo->branch_lengths[p]) {
-			throw std::runtime_error("Cannot allocate memory for arrays for partition %d\n", p);
+			throw std::runtime_error("Cannot allocate memory for arrays for partition " + std::to_string(p));
 			return NULL;
 		}
 	}
