@@ -9,7 +9,6 @@
 
 #include <libpll/pll_tree.h>
 #include "../Network.hpp"
-#include "../PartitionInfo.hpp"
 #include <vector>
 
 namespace netrax {

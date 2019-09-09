@@ -139,6 +139,8 @@ void destroy_fake_treeinfo(pllmod_treeinfo_t * treeinfo) {
 		free(treeinfo->tree);
 	}
 
+	free(treeinfo->likelihood_computation_params);
+
 	/* finally, deallocate treeinfo object itself */
 	free(treeinfo);
 }
@@ -235,11 +237,11 @@ pllmod_treeinfo_t * create_fake_treeinfo(Network& network, unsigned int tips, un
 
 	fake_init_tree(treeinfo, network);
 
-	NetworkParams params;
-	params.network = &network;
-	params.fake_treeinfo = treeinfo;
+	NetworkParams* params = (NetworkParams*) malloc(sizeof(NetworkParams));
+	params->network = &network;
+	params->fake_treeinfo = treeinfo;
 	treeinfo->likelihood_target_function = fake_network_loglikelihood;
-	treeinfo->likelihood_computation_params = params;
+	treeinfo->likelihood_computation_params = (void*) params;
 
 	return treeinfo;
 }
