@@ -53,27 +53,28 @@ std::vector<pll_operation_t> createOperations(Network& network, size_t treeIdx) 
 	return ops;
 }
 
-void updateProbMatrices(Network& network, std::vector<PartitionInfo>& partitions, bool updateAll) {
+void updateProbMatrices(Network& network, pllmod_treeinfo_t& fake_treeinfo, bool updateAll) {
 	unsigned int pmatrix_count = network.edges.size();
-	for (size_t i = 0; i < partitions.size(); ++i) {
+	for (size_t i = 0; i < fake_treeinfo.partition_count; ++i) {
 		for (unsigned int j = 0; j < pmatrix_count; ++j) {
-			if (partitions[i].pmatrix_valid[j] && !updateAll) {
+			if (fake_treeinfo.pmatrix_valid[i][j] && !updateAll) {
 				continue;
 			}
-			double p_brlen = partitions[i].branch_lengths[j];
-			if (partitions[i].brlen_scaler != 1.0) {
-				p_brlen *= partitions[i].brlen_scaler;
+			double p_brlen = fake_treeinfo.branch_lengths[i][j];
+			if (fake_treeinfo.brlen_scalers[i] != 1.0) {
+				p_brlen *= fake_treeinfo.brlen_scalers[i];
 			}
 			int ret = pll_update_prob_matrices(
-					&partitions[i].pll_partition,
-					partitions[i].param_indices.data(),
+					fake_treeinfo.partitions[i],
+					fake_treeinfo.param_indices[i],
 					&j,
 					&p_brlen,
 					1);
 			if (!ret) {
 				throw std::runtime_error("Updating the pmatrices failed");
 			}
-			partitions[i].pmatrix_valid[j] = true;
+
+			fake_treeinfo.pmatrix_valid[i][j] = true;
 		}
 	}
 }
@@ -81,7 +82,7 @@ void updateProbMatrices(Network& network, std::vector<PartitionInfo>& partitions
 // TODO: Add bool incremental...
 // TODO: Implement the Gray Code displayed tree iteration order and intelligent update of the operations array
 // TODO: Get rid of the exponentiation, as discussed in the notes when Céline was there (using the per-site-likelihoods)
-double computeLoglikelihood(Network& network, std::vector<PartitionInfo>& partitions) {
+double computeLoglikelihood(Network& network, pllmod_treeinfo_t& fake_treeinfo) {
 	size_t n_trees = 1 << network.reticulation_nodes.size();
 	double network_l = 1.0;
 	// Iterate over all displayed trees
@@ -91,19 +92,19 @@ double computeLoglikelihood(Network& network, std::vector<PartitionInfo>& partit
 		std::vector<pll_operation_t> ops = createOperations(network, i);
 		unsigned int ops_count = ops.size();
 		// Iterate over all partitions
-		for (size_t j = 0; j < partitions.size(); ++j) {
+		for (size_t j = 0; j < fake_treeinfo.partition_count; ++j) {
 			// Compute CLVs in pll_update_partials, as specified by the operations array. This needs a pll_partition_t object.
-			pll_update_partials(&partitions[j].pll_partition, ops.data(), ops_count);
+			pll_update_partials(fake_treeinfo.partitions[j], ops.data(), ops_count);
 			// Compute loglikelihood at the root of the displayed tree in pll_compute_edge_loglikelihood. This needs an array of unsigned int (exists for each partition) param_indices.
 			Node* rootBack = network.root->getLink()->getTargetNode();
 			tree_logl += pll_compute_edge_loglikelihood(
-					&partitions[j].pll_partition,
+					fake_treeinfo.partitions[j],
 					network.root->getIndex(),
 					network.root->getScalerIndex(),
 					rootBack->getIndex(),
 					rootBack->getScalerIndex(),
 					network.root->getLink()->edge->getIndex(),
-					partitions[j].param_indices.data(),
+					fake_treeinfo.param_indices[j],
 					nullptr);
 		}
 		network_l *= exp(tree_logl);
