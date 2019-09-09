@@ -53,32 +53,6 @@ std::vector<pll_operation_t> createOperations(Network& network, size_t treeIdx) 
 	return ops;
 }
 
-void updateProbMatrices(Network& network, pllmod_treeinfo_t& fake_treeinfo, bool updateAll) {
-	unsigned int pmatrix_count = network.edges.size();
-	for (size_t i = 0; i < fake_treeinfo.partition_count; ++i) {
-		for (unsigned int j = 0; j < pmatrix_count; ++j) {
-			if (fake_treeinfo.pmatrix_valid[i][j] && !updateAll) {
-				continue;
-			}
-			double p_brlen = fake_treeinfo.branch_lengths[i][j];
-			if (fake_treeinfo.brlen_scalers[i] != 1.0) {
-				p_brlen *= fake_treeinfo.brlen_scalers[i];
-			}
-			int ret = pll_update_prob_matrices(
-					fake_treeinfo.partitions[i],
-					fake_treeinfo.param_indices[i],
-					&j,
-					&p_brlen,
-					1);
-			if (!ret) {
-				throw std::runtime_error("Updating the pmatrices failed");
-			}
-
-			fake_treeinfo.pmatrix_valid[i][j] = true;
-		}
-	}
-}
-
 // TODO: Add bool incremental...
 // TODO: Implement the Gray Code displayed tree iteration order and intelligent update of the operations array
 // TODO: Get rid of the exponentiation, as discussed in the notes when Céline was there (using the per-site-likelihoods)

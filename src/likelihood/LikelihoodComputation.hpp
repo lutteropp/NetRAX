@@ -17,7 +17,6 @@
 
 namespace netrax {
 
-void updateProbMatrices(Network& network, pllmod_treeinfo_t& fake_treeinfo, bool updateAll);
 double computeLoglikelihood(Network& network, pllmod_treeinfo_t& fake_treeinfo);
 
 }
