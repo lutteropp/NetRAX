@@ -16,5 +16,5 @@ extern "C"
 #include <vector>
 
 namespace netrax {
-	void optimizeModel(Network& network, pllmod_treeinfo_t& fake_treeinfo, double lh_epsilon);
+	double optimizeModel(Network& network, pllmod_treeinfo_t& fake_treeinfo, double lh_epsilon);
 }
