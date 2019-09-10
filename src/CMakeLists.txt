@@ -43,3 +43,7 @@ set(NETRAX_SOURCES ${PROJECT_SOURCE_DIR}/src/io/lex_rnetwork.c
 set(NETRAX_SOURCES ${NETRAX_SOURCES} PARENT_SCOPE)
 
 add_executable(netrax ${NETRAX_SOURCES})
+
+#message(STATUS "Using RAXML_LIBS: ${RAXML_LIBS}")
+
+target_link_libraries(netrax ${RAXML_LIBS})
