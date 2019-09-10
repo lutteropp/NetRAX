@@ -22,15 +22,16 @@ message(STATUS "Using flags: ${CMAKE_CXX_FLAGS}")
 find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS})
 
-# build dependencies
+# include header files
 set(NETRAX_LOCALDEPS_DIR ${PROJECT_BINARY_DIR}/localdeps)
-add_subdirectory(${PROJECT_SOURCE_DIR}/libs)
-
 set(RAXML_LOCALDEPS_DIR ${PROJECT_BINARY_DIR}/libs/raxml-ng/localdeps)
-include_directories(${RAXML_LOCALDEPS_DIR}/include ${PROJECT_SOURCE_DIR}/libs/raxml-ng/src)
+include_directories(${NETRAX_LOCALDEPS_DIR}/include ${RAXML_LOCALDEPS_DIR}/include ${PROJECT_SOURCE_DIR}/libs/raxml-ng/src)
 
+# build dependencies
+add_subdirectory(${PROJECT_SOURCE_DIR}/libs)
+# build code
 add_subdirectory(${PROJECT_SOURCE_DIR}/src)
-
+# build tests
 enable_testing()
 add_subdirectory(${PROJECT_SOURCE_DIR}/test/src)
 
