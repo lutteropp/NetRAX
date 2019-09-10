@@ -41,9 +41,11 @@ set(NETRAX_SOURCES ${PROJECT_SOURCE_DIR}/src/io/lex_rnetwork.c
 
 # export to the parent dir to use in GTest makefile
 set(NETRAX_SOURCES ${NETRAX_SOURCES} PARENT_SCOPE)
+set(NETRAX_LIBS ${RAXML_LIBS})
+set(NETRAX_LIBS ${NETRAX_LIBS} PARENT_SCOPE)
 
 add_executable(netrax ${NETRAX_SOURCES})
 
 #message(STATUS "Using RAXML_LIBS: ${RAXML_LIBS}")
 
-target_link_libraries(netrax ${RAXML_LIBS})
+target_link_libraries(netrax ${NETRAX_LIBS})
