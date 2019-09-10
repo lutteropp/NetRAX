@@ -10,8 +10,14 @@
 #include "../Network.hpp"
 #include <raxml-ng/constants.hpp>
 #include <raxml-ng/common.h>
+
+extern "C"
+{
 #include <libpll/pll_optimize.h>
 #include <libpll/pll_tree.h>
+}
+
+#include <stdexcept>
 
 #include "BranchLengthOptimization.hpp"
 
@@ -31,7 +37,8 @@ void assert_lh_improvement(double old_lh, double new_lh, const std::string& wher
 }
 
 void optimize_params_all(Network& network, pllmod_treeinfo_t& fake_treeinfo, double lh_epsilon) {
-	optimize_params(network, fake_treeinfo, PLLMOD_OPT_PARAM_ALL, lh_epsilon);
+	throw std::runtime_error("Still needs to be implemented");
+	//optimize_params(network, fake_treeinfo, PLLMOD_OPT_PARAM_ALL, lh_epsilon);
 }
 
 double optimizeModel(Network& network, pllmod_treeinfo_t& fake_treeinfo, double lh_epsilon) {

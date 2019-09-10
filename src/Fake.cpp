@@ -7,8 +7,18 @@
 
 #include "Fake.hpp"
 
+#include <stddef.h>
+#include <stdlib.h>
+#include <cstring>
+#include <stdexcept>
+#include <string>
+
 #include "likelihood/LikelihoodComputation.hpp"
+
+extern "C"
+{
 #include <libpll/pll_tree.h>
+}
 
 namespace netrax {
 

@@ -8,8 +8,10 @@
 #pragma once
 
 #include <vector>
+extern "C"
+{
 #include <libpll/pll.h>
-
+}
 #include "../Network.hpp"
 
 namespace netrax {

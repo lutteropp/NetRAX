@@ -7,7 +7,11 @@
 
 #pragma once
 
+
+extern "C"
+{
 #include <libpll/pll_tree.h>
+}
 #include "../Network.hpp"
 #include <vector>
 

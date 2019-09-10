@@ -10,8 +10,11 @@
 #include <stddef.h>
 #include <vector>
 
+extern "C"
+{
 #include <libpll/pll.h>
 #include <libpll/pll_tree.h>
+}
 
 #include "../Network.hpp"
 

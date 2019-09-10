@@ -12,7 +12,7 @@
 #include "../Network.hpp"
 
 namespace netrax {
-	void optimizeBranchLengths(Network& network) {
+	double optimize_branches(Network& network, pllmod_treeinfo_t& fake_treeinfo, double lh_epsilon, double brlen_smooth_factor) {
 		throw std::runtime_error("Not implemented yet");
 	}
 }
