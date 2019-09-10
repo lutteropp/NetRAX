@@ -12,12 +12,12 @@
 namespace netrax {
 
 void postorder(Node* parent, Node* actNode, std::vector<Node*>& buffer) {
-	if (actNode->type == NodeType::BASIC_NODE) { // visit the two children
+	if (actNode->getType() == NodeType::BASIC_NODE) { // visit the two children
 		std::vector<Node*> neighbors = actNode->getNeighbors();
 		for (size_t i = 0; i < neighbors.size(); ++i) {
 			if (neighbors[i] != parent) {
 				// check if the current neighbor is a reticulation node, if so, only go this path if we are the active parent
-				if (neighbors[i]->type != NodeType::RETICULATION_NODE || neighbors[i]->getReticulationData()->getLinkToActiveParent()->getTargetNode() == actNode) {
+				if (neighbors[i]->getType() != NodeType::RETICULATION_NODE || neighbors[i]->getReticulationData()->getLinkToActiveParent()->getTargetNode() == actNode) {
 					postorder(actNode, neighbors[i], buffer);
 				}
 			}
