@@ -11,5 +11,7 @@ file(COPY ${PROJECT_SOURCE_DIR}/libs/raxml-ng/src/PartitionedMSA.hpp
           ${PROJECT_SOURCE_DIR}/libs/raxml-ng/src/common.h
             DESTINATION ${NETRAX_LOCALDEPS_DIR}/include/raxml-ng)
 
+set(RAXML_LIBS ${RAXML_LIBS} PARENT_SCOPE)
+
 
 

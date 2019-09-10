@@ -7,9 +7,12 @@
 
 #pragma once
 
+extern "C"
+{
 #include <libpll/pll_tree.h>
 #include <libpll/pll.h>
 #include <libpll/pllmod_common.h>
+}
 
 #include <vector>
 #include "PartitionInfo.hpp"

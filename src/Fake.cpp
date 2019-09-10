@@ -15,10 +15,6 @@
 
 #include "likelihood/LikelihoodComputation.hpp"
 
-extern "C"
-{
-#include <libpll/pll_tree.h>
-}
 
 namespace netrax {
 
