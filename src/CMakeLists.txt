@@ -46,6 +46,7 @@ set(NETRAX_LIBS ${NETRAX_LIBS} PARENT_SCOPE)
 
 add_executable(netrax ${NETRAX_SOURCES})
 
-#message(STATUS "Using RAXML_LIBS: ${RAXML_LIBS}")
+#message(STATUS "Using NETRAX_LIBS: ${NETRAX_LIBS}")
 
-target_link_libraries(netrax ${NETRAX_LIBS})
+target_link_libraries(netrax "${PROJECT_BINARY_DIR}/../libs/raxml-ng/bin/raxml-ng.a" ${NETRAX_LIBS})
+

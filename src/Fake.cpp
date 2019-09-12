@@ -13,6 +13,8 @@
 #include <stdexcept>
 #include <string>
 
+#include <raxml-ng/TreeInfo.hpp>
+
 #include "likelihood/LikelihoodComputation.hpp"
 #include "optimization/BranchLengthOptimization.hpp"
 
@@ -266,11 +268,14 @@ pllmod_treeinfo_t * create_fake_treeinfo(Network& network, unsigned int tips, un
 	treeinfo->likelihood_target_function = fake_network_loglikelihood;
 	treeinfo->likelihood_computation_params = (void*) params;
 
-	treeinfo->opt_brlen_function = fake_opt_brlen;
-	treeinfo->spr_round_function = fake_spr_round;
-	treeinfo->compute_ancestral_function = fake_compute_ancestral;
-
 	return treeinfo;
+}
+
+TreeInfo create_fake_raxml_ng_treeinfo() {
+	throw std::runtime_error("Not implemented yet");
+	//treeinfo->opt_brlen_function = fake_opt_brlen;
+	//treeinfo->spr_round_function = fake_spr_round;
+	//treeinfo->compute_ancestral_function = fake_compute_ancestral;
 }
 
 }

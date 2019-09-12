@@ -28,7 +28,7 @@ set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/test/bin)
 
 add_executable        (netrax_test_module ${NETRAX_TEST_SOURCES})
 
-target_link_libraries (netrax_test_module ${NETRAX_LIBS})
+target_link_libraries(netrax_test_module "${PROJECT_BINARY_DIR}/../libs/raxml-ng/bin/raxml-ng.a" ${NETRAX_LIBS})
 
 target_link_libraries (netrax_test_module ${GTEST_BOTH_LIBRARIES} -pthread)
 
