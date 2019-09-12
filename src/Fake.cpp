@@ -13,8 +13,6 @@
 #include <stdexcept>
 #include <string>
 
-#include <raxml-ng/TreeInfo.hpp>
-
 #include "likelihood/LikelihoodComputation.hpp"
 #include "optimization/BranchLengthOptimization.hpp"
 
