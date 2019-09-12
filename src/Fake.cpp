@@ -14,7 +14,7 @@
 #include <string>
 
 #include "likelihood/LikelihoodComputation.hpp"
-
+#include "optimization/BranchLengthOptimization.hpp"
 
 namespace netrax {
 
@@ -74,7 +74,7 @@ int fake_init_tree(pllmod_treeinfo_t * treeinfo, Network& network) {
 	treeinfo->root = NULL;
 
 	// collect the branch lengths
-	for (size_t i = 0; i < network.edges.size(); ++i)  {
+	for (size_t i = 0; i < network.edges.size(); ++i) {
 		treeinfo->branch_lengths[0][i] = network.edges[i].getLength();
 	}
 	treeinfo->branch_lengths[0][network.edges.size()] = 0; // the fake branch length
@@ -154,7 +154,23 @@ void destroy_fake_treeinfo(pllmod_treeinfo_t * treeinfo) {
 
 double fake_network_loglikelihood(void* network_params, int incremental, int update_pmatrices) {
 	NetworkParams* params = (NetworkParams*) network_params;
-	return computeLoglikelihood(*params->network, *params->fake_treeinfo);
+	return computeLoglikelihood(*params->network, *params->fake_treeinfo, incremental, update_pmatrices);
+}
+
+double fake_opt_brlen(pllmod_treeinfo_t * fake_treeinfo, double min_brlen, double max_brlen, double lh_epsilon, int max_iters,
+		int opt_method, int radius) {
+	Network* network = ((NetworkParams*) (fake_treeinfo->likelihood_computation_params))->network;
+	return optimize_branches(*network, *fake_treeinfo, min_brlen, max_brlen, lh_epsilon, max_iters, opt_method, radius);
+}
+
+double fake_spr_round(pllmod_treeinfo_t * treeinfo, unsigned int radius_min, unsigned int radius_max, unsigned int ntopol_keep,
+		pll_bool_t thorough, int brlen_opt_method, double bl_min, double bl_max, int smoothings, double epsilon,
+		cutoff_info_t * cutoff_info, double subtree_cutoff) {
+	throw std::runtime_error("Not implemented yet");
+}
+
+pllmod_ancestral_t * fake_compute_ancestral(pllmod_treeinfo_t * treeinfo) {
+	throw std::runtime_error("Not implemented yet");
 }
 
 pllmod_treeinfo_t * create_fake_treeinfo(Network& network, unsigned int tips, unsigned int partitions, int brlen_linkage) {
@@ -249,6 +265,10 @@ pllmod_treeinfo_t * create_fake_treeinfo(Network& network, unsigned int tips, un
 	params->fake_treeinfo = treeinfo;
 	treeinfo->likelihood_target_function = fake_network_loglikelihood;
 	treeinfo->likelihood_computation_params = (void*) params;
+
+	treeinfo->opt_brlen_function = fake_opt_brlen;
+	treeinfo->spr_round_function = fake_spr_round;
+	treeinfo->compute_ancestral_function = fake_compute_ancestral;
 
 	return treeinfo;
 }

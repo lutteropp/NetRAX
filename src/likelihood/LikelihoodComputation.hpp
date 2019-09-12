@@ -20,6 +20,6 @@ extern "C"
 
 namespace netrax {
 
-double computeLoglikelihood(Network& network, pllmod_treeinfo_t& fake_treeinfo);
+double computeLoglikelihood(Network& network, pllmod_treeinfo_t& fake_treeinfo, int incremental, int update_pmatrices);
 
 }

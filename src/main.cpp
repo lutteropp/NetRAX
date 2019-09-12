@@ -11,7 +11,6 @@
 
 #include "likelihood/LikelihoodComputation.hpp"
 #include "optimization/BranchLengthOptimization.hpp"
-#include "optimization/ModelOptimization.hpp"
 #include "traversal/Traversal.hpp"
 
 int parseOptions(int argc, char** argv, netrax::Options* options) {
