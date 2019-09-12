@@ -271,11 +271,26 @@ pllmod_treeinfo_t * create_fake_treeinfo(Network& network, unsigned int tips, un
 	return treeinfo;
 }
 
-TreeInfo create_fake_raxml_ng_treeinfo() {
+TreeInfo create_fake_raxml_treeinfo(const Options &opts, const AbstractTree& tree,
+		const PartitionedMSA& parted_msa, const IDVector& tip_msa_idmap, const PartitionAssignment& part_assign) {
+	TreeInfo tinfo(opts, tree, parted_msa, tip_msa_idmap, part_assign);
+	tinfo.opt_brlen_function = fake_opt_brlen;
+	tinfo.spr_round_function = fake_spr_round;
+	tinfo.compute_ancestral_function = fake_compute_ancestral;
+	return tinfo;
+}
+TreeInfo create_fake_raxml_treeinfo(const Options &opts, const AbstractTree& tree,
+		const PartitionedMSA& parted_msa, const IDVector& tip_msa_idmap, const PartitionAssignment& part_assign,
+		const std::vector<uintVector>& site_weights) {
+	TreeInfo tinfo(opts, tree, parted_msa, tip_msa_idmap, part_assign, site_weights);
+	tinfo.opt_brlen_function = fake_opt_brlen;
+	tinfo.spr_round_function = fake_spr_round;
+	tinfo.compute_ancestral_function = fake_compute_ancestral;
+	return tinfo;
+}
+
+AbstractTree create_fake_tree(Network& network, pllmod_treeinfo_t& fake_treeinfo) {
 	throw std::runtime_error("Not implemented yet");
-	//treeinfo->opt_brlen_function = fake_opt_brlen;
-	//treeinfo->spr_round_function = fake_spr_round;
-	//treeinfo->compute_ancestral_function = fake_compute_ancestral;
 }
 
 }

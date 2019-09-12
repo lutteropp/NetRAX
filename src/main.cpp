@@ -5,15 +5,15 @@
 #include <iostream>
 #include <string>
 
-#include "Options.hpp"
 #include "Network.hpp"
 #include "io/NetworkIO.hpp"
 
 #include "likelihood/LikelihoodComputation.hpp"
+#include "NetraxOptions.hpp"
 #include "optimization/BranchLengthOptimization.hpp"
 #include "traversal/Traversal.hpp"
 
-int parseOptions(int argc, char** argv, netrax::Options* options) {
+int parseOptions(int argc, char** argv, netrax::NetraxOptions* options) {
 	CLI::App app { "NetRAX: Phylogenetic Network Inference without Incomplete Lineage Sorting" };
 	app.add_option("--msa", options->msa_file, "The Multiple Sequence Alignment File")->required();
 	app.add_option("--network", options->network_file, "The Network File");
@@ -23,7 +23,7 @@ int parseOptions(int argc, char** argv, netrax::Options* options) {
 }
 
 int main(int argc, char** argv) {
-	netrax::Options options;
+	netrax::NetraxOptions options;
 	parseOptions(argc, argv, &options);
 	return 0;
 }

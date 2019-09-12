@@ -11,9 +11,9 @@
 
 namespace netrax {
 
-class Options {
+class NetraxOptions {
 public:
-	Options() :
+	NetraxOptions() :
 			msa_file(""), network_file(""), num_reticulations(0), optimize_brlen(true), optimize_model(true), brlen_linkage(
 					PLLMOD_COMMON_BRLEN_SCALED), brlen_opt_method(PLLMOD_OPT_BLO_NEWTON_FAST), brlen_min(RAXML_BRLEN_MIN), brlen_max(
 					RAXML_BRLEN_MAX) {
