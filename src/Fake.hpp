@@ -15,7 +15,6 @@ extern "C"
 }
 
 #include <vector>
-#include "PartitionInfo.hpp"
 
 #include "Network.hpp"
 
