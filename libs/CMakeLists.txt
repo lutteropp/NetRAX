@@ -11,7 +11,6 @@ file(COPY ${PROJECT_SOURCE_DIR}/libs/raxml-ng/src/PartitionedMSA.hpp
           ${PROJECT_SOURCE_DIR}/libs/raxml-ng/src/common.h
           ${PROJECT_SOURCE_DIR}/libs/raxml-ng/src/TreeInfo.hpp
           ${PROJECT_SOURCE_DIR}/libs/raxml-ng/src/Optimizer.hpp
-          ${PROJECT_SOURCE_DIR}/libs/raxml-ng/src/AbstractTree.hpp
             DESTINATION ${NETRAX_LOCALDEPS_DIR}/include/raxml-ng)
 
 set(RAXML_LIBS ${RAXML_LIBS} PARENT_SCOPE)

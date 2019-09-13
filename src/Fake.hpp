@@ -29,9 +29,8 @@ struct NetworkParams {
 
 void destroy_fake_treeinfo(pllmod_treeinfo_t * treeinfo);
 pllmod_treeinfo_t * create_fake_treeinfo(Network& network, unsigned int tips, unsigned int partitions, int brlen_linkage);
-AbstractTree create_fake_tree(Network& network, pllmod_treeinfo_t& fake_treeinfo);
-TreeInfo create_fake_raxml_treeinfo(const Options &opts, const AbstractTree& tree, const PartitionedMSA& parted_msa,
-        const IDVector& tip_msa_idmap, const PartitionAssignment& part_assign);
-TreeInfo create_fake_raxml_treeinfo(const Options &opts, const AbstractTree& tree, const PartitionedMSA& parted_msa,
-        const IDVector& tip_msa_idmap, const PartitionAssignment& part_assign, const std::vector<uintVector>& site_weights);
+TreeInfo create_fake_raxml_treeinfo(const Options &opts, pllmod_treeinfo_t* base_treeinfo,
+	      const PartitionedMSA& parted_msa,
+        const IDVector& tip_msa_idmap, const PartitionAssignment& part_assign,
+        const std::vector<uintVector>& site_weights);
 }
