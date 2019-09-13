@@ -1,7 +1,7 @@
 # NetRAX
 Phylogenetic Network Inference without ILS
 
-1. **Install the dependecies.** On Ubuntu (and other Debian-based systems), you can simply run:
+1. **Install the dependencies.** On Ubuntu (and other Debian-based systems), you can simply run:
 ```
 sudo apt-get install flex bison libgmp3-dev
 ```
