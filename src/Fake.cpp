@@ -269,11 +269,25 @@ pllmod_treeinfo_t * create_fake_treeinfo(Network& network, unsigned int tips, un
 	return treeinfo;
 }
 
-TreeInfo create_fake_raxml_treeinfo(const Options &opts, pllmod_treeinfo_t* base_treeinfo,
-	      const PartitionedMSA& parted_msa,
-        const IDVector& tip_msa_idmap, const PartitionAssignment& part_assign,
-        const std::vector<uintVector>& site_weights) {
-	return TreeInfo(opts, base_treeinfo, parted_msa, tip_msa_idmap, part_assign, site_weights, fake_opt_brlen, fake_spr_round, fake_compute_ancestral);
+TreeInfo create_fake_raxml_treeinfo(Network& network, const Options &opts, const PartitionedMSA& parted_msa, const IDVector& tip_msa_idmap,
+		const PartitionAssignment& part_assign, const std::vector<uintVector>& site_weights) {
+	pllmod_treeinfo_t* base_treeinfo = create_fake_treeinfo(network, network.tip_count, parted_msa.part_count(), opts.brlen_linkage);
+	return TreeInfo(opts, base_treeinfo, parted_msa, tip_msa_idmap, part_assign, site_weights, fake_opt_brlen, fake_spr_round,
+			fake_compute_ancestral);
+}
+
+TreeInfo create_fake_raxml_treeinfo(Network& network, const Options &opts, const std::vector<doubleVector>& partition_brlens,
+		const PartitionedMSA& parted_msa, const IDVector& tip_msa_idmap, const PartitionAssignment& part_assign) {
+	return create_fake_raxml_treeinfo(network, opts, parted_msa, tip_msa_idmap, part_assign, std::vector<uintVector>());
+}
+TreeInfo create_fake_raxml_treeinfo(Network& network, const Options &opts, const std::vector<doubleVector>& partition_brlens,
+		const PartitionedMSA& parted_msa, const IDVector& tip_msa_idmap, const PartitionAssignment& part_assign,
+		const std::vector<uintVector>& site_weights) {
+	return create_fake_raxml_treeinfo(network, opts, parted_msa, tip_msa_idmap, part_assign, site_weights);
+}
+TreeInfo create_fake_raxml_treeinfo(Network& network, const Options &opts, const PartitionedMSA& parted_msa, const IDVector& tip_msa_idmap,
+		const PartitionAssignment& part_assign) {
+	return create_fake_raxml_treeinfo(network, opts, parted_msa, tip_msa_idmap, part_assign, std::vector<uintVector>());
 }
 
 }

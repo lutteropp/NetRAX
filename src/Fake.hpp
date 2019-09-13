@@ -7,8 +7,7 @@
 
 #pragma once
 
-extern "C"
-{
+extern "C" {
 #include <libpll/pll_tree.h>
 #include <libpll/pll.h>
 #include <libpll/pllmod_common.h>
@@ -28,9 +27,16 @@ struct NetworkParams {
 };
 
 void destroy_fake_treeinfo(pllmod_treeinfo_t * treeinfo);
-pllmod_treeinfo_t * create_fake_treeinfo(Network& network, unsigned int tips, unsigned int partitions, int brlen_linkage);
-TreeInfo create_fake_raxml_treeinfo(const Options &opts, pllmod_treeinfo_t* base_treeinfo,
-	      const PartitionedMSA& parted_msa,
-        const IDVector& tip_msa_idmap, const PartitionAssignment& part_assign,
-        const std::vector<uintVector>& site_weights);
+//pllmod_treeinfo_t * create_fake_treeinfo(Network& network, unsigned int tips, unsigned int partitions, int brlen_linkage);
+
+TreeInfo create_fake_raxml_treeinfo(Network& network, const Options &opts, const std::vector<doubleVector>& partition_brlens,
+		const PartitionedMSA& parted_msa, const IDVector& tip_msa_idmap, const PartitionAssignment& part_assign);
+TreeInfo create_fake_raxml_treeinfo(Network& network, const Options &opts, const std::vector<doubleVector>& partition_brlens,
+		const PartitionedMSA& parted_msa, const IDVector& tip_msa_idmap, const PartitionAssignment& part_assign,
+		const std::vector<uintVector>& site_weights);
+TreeInfo create_fake_raxml_treeinfo(Network& network, const Options &opts, const PartitionedMSA& parted_msa, const IDVector& tip_msa_idmap,
+		const PartitionAssignment& part_assign);
+TreeInfo create_fake_raxml_treeinfo(Network& network, const Options &opts, const PartitionedMSA& parted_msa, const IDVector& tip_msa_idmap,
+		const PartitionAssignment& part_assign, const std::vector<uintVector>& site_weights);
+
 }
