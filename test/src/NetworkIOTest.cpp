@@ -150,6 +150,25 @@ TEST(NetworkIOTest, readSimpleNetworkCelineStyle) {
 	ASSERT_EQ(4, network.tip_count);
 }
 
+TEST(NetworkIOTest, readCelineExample1SimplifiedWithLengths) {
+	std::string input = "((((Anolis:0.0,(Podarcis:0.0):0.0#H1:0.0):0.0,(((#H1:0.0,Taeniopygia:0.0):0.0,Caiman:0.0):0.0,(Emys:0.0,(Chelonoidi:0.0,(Caretta:0.0):0.0#H2:0.0):0.0):0.0):0.0):0.0,(#H2:0.0,Monodelphis:0.0):0.0):0.0):0.0;";
+	Network network = readNetworkFromString(input);
+	ASSERT_EQ(16, network.tip_count);
+}
+
+TEST(NetworkIOTest, readSimpleNetworkCelineStyleNoLengths) {
+	std::string input = "((A,((B,C)P)#H1)Q,(D,#H1)R);";
+	Network network = readNetworkFromString(input);
+	ASSERT_EQ(4, network.tip_count);
+}
+
+TEST(NetworkIOTest, readCelineExample1Simplified) {
+	std::string input = "((((Anolis,(Podarcis)#H1),(((#H1,Taeniopygia),Caiman),(Emys,(Chelonoidi,(Caretta)#H2)))),(#H2,Monodelphis)));";
+	Network network = readNetworkFromString(input);
+	ASSERT_EQ(16, network.tip_count);
+}
+
+
 TEST(NetworkIOTest, celineExample1x) {
 	std::string input = "((((((A,(P)X#H1),(((X#H1,T),(A2,Caiman)),(P2,(E,(C1,(C2)Y#H2))))),(Y#H2,M)),X2),P2));";
 	Network network = readNetworkFromString(input);
@@ -172,12 +191,6 @@ TEST(NetworkIOTest, celineExample3) {
 	std::string input = "((protopterus,(Xenopus,(((Monodelphis,(Caretta)#H1),(Homo)#H2),(((#H2,Anolis),(Podarcis)#H3),(((#H3,Taeniopygia),(alligator,Caiman)),(phrynops,(Emys,(Chelonoidi,#H1)))))))));";
 	Network network = readNetworkFromString(input);
 	ASSERT_EQ(13, network.tip_count);
-}
-
-TEST(NetworkIOTest, readCelineNetworkSimplified) {
-	std::string input = "((A,(B,(((((C,(D)#H1),(E)#H2),(F)#H3),(G)#H4),(((#H1,((#H3,H),(I)#H5)),(J)#H6),(((#H5,(#H6,K)),(L,M)),(N,(O,((P,#H4),#H2)))))))));";
-	Network network = readNetworkFromString(input);
-	ASSERT_EQ(16, network.tip_count);
 }
 
 TEST(NetworkIOTest, readCelineNetwork) {
