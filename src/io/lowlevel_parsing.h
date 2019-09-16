@@ -109,3 +109,4 @@ void rnetwork_graph_destroy(rnetwork_node_t * root, void (*cb_destroy)(void *));
 rnetwork_t * rnetwork_wrapnetwork(rnetwork_node_t * root);
 rnetwork_t * rnetwork_wrapnetwork_multi(rnetwork_node_t * root, unsigned int tip_count, unsigned int inner_tree_count,
 		unsigned int reticulation_count);
+rnetwork_node_t * create_rnetwork_node_t();

@@ -90,12 +90,6 @@ TEST(NetworkIOTest, readSimpleNetworkReticulationSupportAndProb) {
 	ASSERT_EQ(4, network.tip_count);
 }
 
-TEST(NetworkIOTest, readSimpleNetworkReticulationLengthAndProbAndSupport) {
-	std::string input = "((A:2,((B:1,C:1)P:1)X#H1:0:0:1)Q:2,(D:2,X#H1:0:0:0)R:2);";
-	Network network = readNetworkFromString(input);
-	ASSERT_EQ(4, network.tip_count);
-}
-
 TEST(NetworkIOTest, readSimpleNetworkLowercaseTaxa) {
 	std::string input = "((a:2,((b:1,c:1)P:1)X#H1:0::0.3)Q:2,(d:2,X#H1:0::0.7)R:2);";
 	Network network = readNetworkFromString(input);
@@ -120,14 +114,15 @@ TEST(NetworkIOTest, readSimpleNetworkLowercaseAll) {
 	ASSERT_EQ(4, network.tip_count);
 }
 
-TEST(NetworkIOTest, readSimpleNetworkCelineStyle0) {
-	std::string input = "((A:0.0,((B:0.0,C:0.0)P:0.0)X#H1:0.0::0.3)Q:0.0,(D:0.0,X#H1:0.0::0.7)R:0.0);";
+TEST(NetworkIOTest, readCelineNetwork) {
+	std::string input =
+			"((protopterus:0.0,(Xenopus:0.0,(((((Monodelphis:0.0,(python:0.0)#H1:0.0):0.0,(Caretta:0.0)#H2:0.0):0.0,(Homo:0.0)#H3:0.0):0.0,(Ornithorhynchus:0.0)#H4:0.0):0.0,(((#H1:0.0,((#H3:0.0,Anolis:0.0):0.0,(Gallus:0.0)#H5:0.0):0.0):0.0,(Podarcis:0.0)#H6:0.0):0.0,(((#H5:0.0,(#H6:0.0,Taeniopygia:0.0):0.0):0.0,(alligator:0.0,Caiman:0.0):0.0):0.0,(phrynops:0.0,(Emys:0.0,((Chelonoidi:0.0,#H4:0.0):0.0,#H2:0.0):0.0):0.0):0.0):0.0):0.0):0.0):0.0):0.0);";
 	Network network = readNetworkFromString(input);
-	ASSERT_EQ(4, network.tip_count);
+	ASSERT_EQ(16, network.tip_count);
 }
 
-TEST(NetworkIOTest, readSimpleNetworkCelineStyle1WithSupportValues) {
-	std::string input = "((A:0.0,((B:0.0,C:0.0)P:0.0)X#H1:0.0:0.0:0.3)Q:0.0,(D:0.0,X#H1:0.0:0.0:0.7)R:0.0);";
+TEST(NetworkIOTest, readSimpleNetworkCelineStyle0) {
+	std::string input = "((A:0.0,((B:0.0,C:0.0)P:0.0)X#H1:0.0::0.3)Q:0.0,(D:0.0,X#H1:0.0::0.7)R:0.0);";
 	Network network = readNetworkFromString(input);
 	ASSERT_EQ(4, network.tip_count);
 }
@@ -193,9 +188,14 @@ TEST(NetworkIOTest, celineExample3) {
 	ASSERT_EQ(13, network.tip_count);
 }
 
-TEST(NetworkIOTest, readCelineNetwork) {
-	std::string input =
-			"((protopterus:0.0,(Xenopus:0.0,(((((Monodelphis:0.0,(python:0.0)#H1:0.0):0.0,(Caretta:0.0)#H2:0.0):0.0,(Homo:0.0)#H3:0.0):0.0,(Ornithorhynchus:0.0)#H4:0.0):0.0,(((#H1:0.0,((#H3:0.0,Anolis:0.0):0.0,(Gallus:0.0)#H5:0.0):0.0):0.0,(Podarcis:0.0)#H6:0.0):0.0,(((#H5:0.0,(#H6:0.0,Taeniopygia:0.0):0.0):0.0,(alligator:0.0,Caiman:0.0):0.0):0.0,(phrynops:0.0,(Emys:0.0,((Chelonoidi:0.0,#H4:0.0):0.0,#H2:0.0):0.0):0.0):0.0):0.0):0.0):0.0):0.0):0.0);";
+TEST(NetworkIOTest, readSimpleNetworkCelineStyle1WithSupportValues) {
+	std::string input = "((A:0.0,((B:0.0,C:0.0)P:0.0)X#H1:0.0:0.0:0.3)Q:0.0,(D:0.0,X#H1:0.0:0.0:0.7)R:0.0);";
 	Network network = readNetworkFromString(input);
-	ASSERT_EQ(16, network.tip_count);
+	ASSERT_EQ(4, network.tip_count);
+}
+
+TEST(NetworkIOTest, readSimpleNetworkReticulationLengthAndProbAndSupport) {
+	std::string input = "((A:2,((B:1,C:1)P:1)X#H1:0:0:1)Q:2,(D:2,X#H1:0:0:0)R:2);";
+	Network network = readNetworkFromString(input);
+	ASSERT_EQ(4, network.tip_count);
 }

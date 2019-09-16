@@ -211,3 +211,36 @@ void rnetwork_destroy(rnetwork_t * network,
   free(network->reticulation_nodes);
   free(network);
 }
+
+rnetwork_node_t * create_rnetwork_node_t() {
+	rnetwork_node_t* node = (rnetwork_node_t*) malloc(sizeof(rnetwork_node_t));
+
+	node->label = NULL;
+	node->idx = 0;
+	node->clv_index = 0;
+	node->pmatrix_index = 0;
+	node->is_reticulation = 0;
+	node->data = NULL;
+	node->scaler_index = -1;
+
+	node->length = 0.0; // length of the edge to the parent node
+	node->parent = NULL; // in case of a reticulation node, this can be either first_parent, right_parent, or NULL (undecided).
+
+		// the following fields are only relevant if it is a reticulation node
+	node->reticulation_name = NULL;
+	node->reticulation_index = -1; // -1 if not a reticulation
+	node->support = 0.0;
+	node->first_parent = NULL; // the first parent has to be a non-reticulation node
+	node->first_parent_length = 0.0; // length of the edge from the first parent node
+	node->first_parent_prob = 0.5;
+	node->second_parent_prob = 0.5;
+	node->second_parent_length = 0.0; // length of the edge from the second parent node
+	node->second_parent = NULL; // the second parent has to be a non-reticulation node
+	node->child = NULL; // the child has to be a non-reticulation node
+
+		// the following fields are only relevant if it is not a reticulation node
+	node->left = NULL;
+	node->right = NULL;
+
+	return node;
+}
