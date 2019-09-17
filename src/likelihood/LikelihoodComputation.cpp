@@ -6,13 +6,15 @@
  */
 
 #include "LikelihoodComputation.hpp"
-#include "../traversal/Traversal.hpp"
 
+#include <cassert>
 #include <cmath>
+
+#include "../Fake.hpp"
 
 namespace netrax {
 
-// TODO: Use a dirty flag to only update CLVs that are needed... actually, we might already have it. It's called clv_valid and is in PartitionInfo...
+// TODO: Use a dirty flag to only update CLVs that are needed... actually, we might already have it. It's called clv_valid and is in the treeinfo...
 
 void createOperationsPostorder(Node* parent, Node* actNode, std::vector<pll_operation_t>& ops, size_t fake_clv_index,
 		size_t fake_pmatrix_index) {
@@ -56,7 +58,7 @@ std::vector<pll_operation_t> createOperations(Network& network, size_t treeIdx) 
 // TODO: Add bool incremental...
 // TODO: Implement the Gray Code displayed tree iteration order and intelligent update of the operations array
 // TODO: Get rid of the exponentiation, as discussed in the notes when Céline was there (using the per-site-likelihoods)
-double computeLoglikelihood(Network& network, pllmod_treeinfo_t& fake_treeinfo, int incremental, int update_pmatrices) {
+double computeLoglikelihood(Network& network, const pllmod_treeinfo_t& fake_treeinfo, int incremental, int update_pmatrices) {
 	size_t n_trees = 1 << network.reticulation_nodes.size();
 	double network_l = 1.0;
 	// Iterate over all displayed trees

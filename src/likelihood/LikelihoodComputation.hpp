@@ -17,9 +17,10 @@ extern "C"
 }
 
 #include "../Network.hpp"
+#include <raxml-ng/TreeInfo.hpp>
 
 namespace netrax {
 
-double computeLoglikelihood(Network& network, pllmod_treeinfo_t& fake_treeinfo, int incremental, int update_pmatrices);
+double computeLoglikelihood(Network& network, const pllmod_treeinfo_t& fake_treeinfo, int incremental, int update_pmatrices);
 
 }

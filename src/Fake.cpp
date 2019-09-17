@@ -187,6 +187,8 @@ pllmod_treeinfo_t * create_fake_treeinfo(Network& network, unsigned int tips, un
 	treeinfo->partition_count = partitions;
 	treeinfo->brlen_linkage = brlen_linkage;
 
+	fake_init_tree(treeinfo, network);
+
 	/* compute some derived dimensions */
 	unsigned int inner_nodes_count = treeinfo->tree->inner_count;
 	unsigned int nodes_count = inner_nodes_count + tips;
@@ -257,8 +259,6 @@ pllmod_treeinfo_t * create_fake_treeinfo(Network& network, unsigned int tips, un
 
 	/* by default, work with all partitions */
 	treeinfo->active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
-
-	fake_init_tree(treeinfo, network);
 
 	NetworkParams* params = (NetworkParams*) malloc(sizeof(NetworkParams));
 	params->network = &network;
