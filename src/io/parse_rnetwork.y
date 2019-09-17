@@ -211,10 +211,43 @@ input: '(' subnetwork ',' subnetwork ')' label ':' number ';' // label + branch 
   toplevel_trifurcation(network, $2, $4, $6, NULL, atof($9));
   free($9);
 }
-
        | '(' subnetwork ',' subnetwork ',' subnetwork ')' ';' // no extra
 {
   toplevel_trifurcation(network, $2, $4, $6, NULL, 0.0);
+}
+
+       | '(' '(' subnetwork ',' subnetwork ')' label ':' number ')' ';' // label + branch length, weird extra brackets
+{
+  toplevel_bifurcation(network, $3, $5, $7, atof($9));
+  free($9);
+}      | '(' '(' subnetwork ',' subnetwork ')' label ')' ';' // label only, weird extra brackets
+{
+  toplevel_bifurcation(network, $3, $5, $7, 0.0);
+}      | '(' '(' subnetwork ',' subnetwork ')' ':' number ')' ';' // branch length only, weird extra brackets
+{
+  toplevel_bifurcation(network, $3, $5, NULL, atof($8));
+  free($8);
+}      | '(' '(' subnetwork ',' subnetwork ')' ')' ';' // no extra, weird extra brackets
+{
+  toplevel_bifurcation(network, $3, $5, NULL, 0.0);
+}
+       | '(' '(' subnetwork ',' subnetwork ',' subnetwork ')' label ':' number ')' ';' // label + branch length, weird extra brackets
+{
+  toplevel_trifurcation(network, $3, $5, $7, $9, atof($11));
+  free($11);
+}
+       | '(' '(' subnetwork ',' subnetwork ',' subnetwork ')' label ')' ';' // label only, weird extra brackets
+{
+  toplevel_trifurcation(network, $3, $5, $7, $9, 0.0);
+}
+       | '(' '(' subnetwork ',' subnetwork ',' subnetwork ')' ':' number ')' ';' // branch length only, weird extra brackets
+{
+  toplevel_trifurcation(network, $3, $5, $7, NULL, atof($10));
+  free($10);
+}
+       | '(' '(' subnetwork ',' subnetwork ',' subnetwork ')' ')' ';' // no extra, weird extra brackets
+{
+  toplevel_trifurcation(network, $3, $5, $7, NULL, 0.0);
 }
 ;
 
