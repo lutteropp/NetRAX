@@ -102,6 +102,7 @@ void unetwork_set_indices(unetwork_t * network);
 unetwork_t * unetwork_wrapnetwork_main(unetwork_node_t * root, unsigned int tip_count);
 unetwork_t * unetwork_wrapnetwork_multi(unetwork_node_t * root, unsigned int tip_count, unsigned int inner_tree_count,
 		unsigned int reticulation_count);
+unetwork_node_t * create_unetwork_node_t();
 
 /* functions in parse_rnetwork_functions.c */
 void rnetwork_destroy(rnetwork_t * root, void (*cb_destroy)(void *));

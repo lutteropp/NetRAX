@@ -127,11 +127,13 @@ static int unetwork_is_rooted(const unetwork_node_t * root)
 unsigned int count_incoming(const unetwork_node_t * node) {
 	assert(node);
 	unsigned int cnt = 0;
+	assert(node->incoming == 0 || node->incoming == 1);
 	if (node->incoming) {
 		cnt++;
 	}
 	unetwork_node_t * snode = node->next;
 	while (snode && snode != node) {
+		assert(snode->incoming == 0 || snode->incoming == 1);
 		if (snode->incoming) {
 			cnt++;
 		}
@@ -430,10 +432,10 @@ unetwork_t * unetwork_wrapnetwork_multi(unetwork_node_t * root,
   return unetwork_wrapnetwork(root, tip_count, inner_tree_count, reticulation_count, 0);
 }
 
-/* wraps/encalupsates the unrooted tree graph into a tree structure
+/* wraps/encalupsates the unrooted network graph into a network structure
    that contains a list of nodes, number of tips and number of inner
    nodes. If 0 is passed as tip_count, then an additional recrursion
-   of the tree structure is done to detect the number of tips */
+   of the network structure is done to detect the number of tips */
 unetwork_t * unetwork_wrapnetwork_main(unetwork_node_t * root,
                                             unsigned int tip_count)
 {
@@ -477,7 +479,7 @@ static unetwork_node_t * rnetwork_unroot(rnetwork_node_t * root, unetwork_node_t
 {
   unetwork_node_t * uroot;
   if (!root->is_reticulation) {
-	  uroot = (void *)calloc(1,sizeof(unetwork_node_t));
+	  uroot = create_unetwork_node_t();
 	  if (!uroot)
 	  {
 	    printf("Unable to allocate enough memory.\n");
@@ -496,7 +498,7 @@ static unetwork_node_t * rnetwork_unroot(rnetwork_node_t * root, unetwork_node_t
 		return uroot;
 	  }
 
-	  uroot->next = (void *)calloc(1,sizeof(unetwork_node_t));
+	  uroot->next = create_unetwork_node_t();
 	  if (!uroot->next)
 	  {
 		free(uroot);
@@ -504,7 +506,7 @@ static unetwork_node_t * rnetwork_unroot(rnetwork_node_t * root, unetwork_node_t
 		return NULL;
 	  }
 
-	  uroot->next->next = (void *)calloc(1,sizeof(unetwork_node_t));
+	  uroot->next->next = create_unetwork_node_t();
 	  if (!uroot->next->next)
 	  {
 		free(uroot->next);
@@ -560,7 +562,7 @@ static unetwork_node_t * rnetwork_unroot(rnetwork_node_t * root, unetwork_node_t
   } else { // now, we have a reticulation node
 	// first, check if we already created a node for this reticulation
 	if (!reticulation_nodes[root->reticulation_index]) {
-      uroot = (void *)calloc(1,sizeof(unetwork_node_t));
+      uroot = create_unetwork_node_t();
 	  if (!uroot)
 	  {
 		printf("Unable to allocate enough memory.\n");
@@ -581,7 +583,7 @@ static unetwork_node_t * rnetwork_unroot(rnetwork_node_t * root, unetwork_node_t
 		return NULL;
 	  }
 
-	  uroot->next = (void *)calloc(1,sizeof(unetwork_node_t));
+	  uroot->next = create_unetwork_node_t();
 	  if (!uroot->next)
 	  {
         free(uroot);
@@ -589,7 +591,7 @@ static unetwork_node_t * rnetwork_unroot(rnetwork_node_t * root, unetwork_node_t
 		return NULL;
 	  }
 
-	  uroot->next->next = (void *)calloc(1,sizeof(unetwork_node_t));
+	  uroot->next->next = create_unetwork_node_t();
 	  if (!uroot->next->next)
 	  {
 	    free(uroot->next);
@@ -641,6 +643,10 @@ static unetwork_node_t * rnetwork_unroot(rnetwork_node_t * root, unetwork_node_t
 unetwork_t * rnetwork_unroot_main(rnetwork_t * network) {
   // for each node in the rnetwork, we need to create three nodes in the unetwork... except for the leaves.
   unetwork_node_t** reticulation_nodes = (unetwork_node_t**)malloc(network->reticulation_count * sizeof(unetwork_node_t*)); // we only need one representative per reticulation node
+  // ... we should explicitly fill the reticulation nodes array with null pointers.
+  for (unsigned int i = 0; i < network->reticulation_count; ++i) {
+	  reticulation_nodes[i] = NULL;
+  }
 
   rnetwork_node_t * root = network->root;
 
@@ -652,14 +658,14 @@ unetwork_t * rnetwork_unroot_main(rnetwork_t * network) {
 
   rnetwork_node_t * new_root;
 
-  unetwork_node_t * uroot = (void *)calloc(1,sizeof(unetwork_node_t));
+  unetwork_node_t * uroot = create_unetwork_node_t();
   if (!uroot)
   {
 	printf("Unable to allocate enough memory.\n");
 	return NULL;
   }
 
-  uroot->next = (void *)calloc(1,sizeof(unetwork_node_t));
+  uroot->next = create_unetwork_node_t();
   if (!uroot->next)
   {
 	free(uroot);
@@ -667,7 +673,7 @@ unetwork_t * rnetwork_unroot_main(rnetwork_t * network) {
 	return NULL;
   }
 
-  uroot->next->next = (void *)calloc(1,sizeof(unetwork_node_t));
+  uroot->next->next = create_unetwork_node_t();
   if (!uroot->next->next)
   {
 	free(uroot->next);
@@ -786,4 +792,25 @@ unetwork_t * unetwork_parse_newick(const char * filename)
   rnetwork_destroy(rnetwork, NULL);
   return unetwork;
 }
+
+unetwork_node_t * create_unetwork_node_t() {
+	unetwork_node_t* node = (unetwork_node_t*) malloc(sizeof(unetwork_node_t));
+	node->length = 0.0;
+	node->prob = 1.0;
+	node->support = 0.0;
+	node->node_index = 0;
+	node->clv_index = 0;
+	node->scaler_index = -1;
+	node->pmatrix_index = 0;
+	node->reticulation_index = -1;
+	node->next = NULL;
+	node->back = NULL;
+	node->incoming = 0;
+	node->active = 1;
+	node->label = NULL;
+	node->reticulation_name = NULL;
+	node->data = NULL;
+	return node;
+}
+
 
