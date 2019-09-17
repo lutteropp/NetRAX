@@ -63,16 +63,7 @@ namespace netrax {
 
  */
 
-int fake_init_tree(pllmod_treeinfo_t * treeinfo, Network& network) {
-	pll_utree_t * tree = (pll_utree_t*) malloc(sizeof(pll_utree_t));
-	treeinfo->tree = tree;
-
-	tree->tip_count = network.tip_count + 1; // +1 for the fake clv index, TODO: Do we need it here?
-	tree->edge_count = network.edges.size() + 1; // +1 for the fake pmatrix index, TODO: Do we need it here?
-	tree->inner_count = network.nodes.size();
-
-	treeinfo->root = NULL;
-
+void fake_init_collect_branch_lengths(pllmod_treeinfo_t* treeinfo, Network& network) {
 	// collect the branch lengths
 	for (size_t i = 0; i < network.edges.size(); ++i) {
 		treeinfo->branch_lengths[0][i] = network.edges[i].getLength();
@@ -83,12 +74,23 @@ int fake_init_tree(pllmod_treeinfo_t * treeinfo, Network& network) {
 	if (treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
 		for (unsigned int i = 1; i < treeinfo->partition_count; ++i) {
 			// TODO: only save brlens for initialized partitions
-//      if (treeinfo->partitions[i])
+			//      if (treeinfo->partitions[i])
 			{
-				memcpy(treeinfo->branch_lengths[i], treeinfo->branch_lengths[0], tree->edge_count * sizeof(double));
+				memcpy(treeinfo->branch_lengths[i], treeinfo->branch_lengths[0], treeinfo->tree->edge_count * sizeof(double));
 			}
 		}
 	}
+}
+
+int fake_init_tree(pllmod_treeinfo_t * treeinfo, Network& network) {
+	pll_utree_t * tree = (pll_utree_t*) malloc(sizeof(pll_utree_t));
+	treeinfo->tree = tree;
+
+	tree->tip_count = network.tip_count + 1; // +1 for the fake clv index, TODO: Do we need it here?
+	tree->edge_count = network.edges.size() + 1; // +1 for the fake pmatrix index, TODO: Do we need it here?
+	tree->inner_count = network.nodes.size();
+
+	treeinfo->root = NULL;
 
 	return PLL_SUCCESS;
 }
@@ -265,6 +267,8 @@ pllmod_treeinfo_t * create_fake_treeinfo(Network& network, unsigned int tips, un
 	params->fake_treeinfo = treeinfo;
 	treeinfo->likelihood_target_function = fake_network_loglikelihood;
 	treeinfo->likelihood_computation_params = (void*) params;
+
+	fake_init_collect_branch_lengths(treeinfo, network);
 
 	return treeinfo;
 }
