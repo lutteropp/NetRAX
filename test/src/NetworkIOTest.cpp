@@ -117,7 +117,7 @@ TEST(NetworkIOTest, readSimpleNetworkLowercaseAll) {
 TEST(NetworkIOTest, readCelineExample1Simplified) {
 	std::string input = "((((Anolis,(Podarcis)#H1),(((#H1,Taeniopygia),Caiman),(Emys,(Chelonoidi,(Caretta)#H2)))),(#H2,Monodelphis)));";
 	Network network = readNetworkFromString(input);
-	ASSERT_EQ(16, network.tip_count);
+	ASSERT_EQ(8, network.tip_count);
 }
 
 TEST(NetworkIOTest, readCelineNetwork) {
