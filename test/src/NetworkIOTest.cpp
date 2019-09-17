@@ -151,12 +151,6 @@ TEST(NetworkIOTest, readSimpleNetworkCelineStyle) {
 	ASSERT_EQ(4, network.tip_count);
 }
 
-TEST(NetworkIOTest, readCelineExample1SimplifiedWithLengths) {
-	std::string input = "((((Anolis:0.0,(Podarcis:0.0):0.0#H1:0.0):0.0,(((#H1:0.0,Taeniopygia:0.0):0.0,Caiman:0.0):0.0,(Emys:0.0,(Chelonoidi:0.0,(Caretta:0.0):0.0#H2:0.0):0.0):0.0):0.0):0.0,(#H2:0.0,Monodelphis:0.0):0.0):0.0):0.0;";
-	Network network = readNetworkFromString(input);
-	ASSERT_EQ(16, network.tip_count);
-}
-
 TEST(NetworkIOTest, readSimpleNetworkCelineStyleNoLengths) {
 	std::string input = "((A,((B,C)P)#H1)Q,(D,#H1)R);";
 	Network network = readNetworkFromString(input);
