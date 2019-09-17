@@ -176,6 +176,7 @@ pllmod_ancestral_t * fake_compute_ancestral(pllmod_treeinfo_t * treeinfo) {
 }
 
 pllmod_treeinfo_t * create_fake_treeinfo(Network& network, unsigned int tips, unsigned int partitions, int brlen_linkage) {
+	assert(partitions > 0);
 	/* create treeinfo instance */
 	pllmod_treeinfo_t * treeinfo;
 
