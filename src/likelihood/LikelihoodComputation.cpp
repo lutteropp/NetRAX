@@ -87,6 +87,7 @@ double computeLoglikelihood(Network& network, const pllmod_treeinfo_t& fake_tree
 					network.root->getLink()->edge->getPMatrixIndex(),
 					fake_treeinfo.param_indices[j],
 					nullptr);
+			assert(tree_logl != -std::numeric_limits<double>::infinity());
 		}
 		network_l *= exp(tree_logl);
 	}
