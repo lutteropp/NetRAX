@@ -23,4 +23,6 @@ namespace netrax {
 
 double computeLoglikelihood(Network& network, const pllmod_treeinfo_t& fake_treeinfo, int incremental, int update_pmatrices);
 
+pll_utree_t * displayed_tree_to_utree(Network& network, size_t tree_index);
+
 }
