@@ -106,6 +106,13 @@ Options createDefaultOptions() {
 	return opts;
 }
 
+TEST (LikelihoodTest, displayedTreeOfTreeToUtree) {
+	std::string networkPath = "examples/sample_networks/tree.nw";
+	Network network = readNetworkFromFile(networkPath);
+	pll_utree_t * utree = displayed_tree_to_utree(network, 0);
+	ASSERT_NE(utree, nullptr);
+}
+
 TEST (LikelihoodTest, simpleTreeNoRepeatsNormalRaxml) {
 	std::string networkPath = "examples/sample_networks/tree.nw";
 	Network network = readNetworkFromFile(networkPath);
