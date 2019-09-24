@@ -106,6 +106,32 @@ Options createDefaultOptions() {
 	return opts;
 }
 
+TEST (LikelihoodTest, simpleTreeNoRepeatsNormalRaxml) {
+	std::string networkPath = "examples/sample_networks/tree.nw";
+	Network network = readNetworkFromFile(networkPath);
+	std::string msaPath = "examples/sample_networks/small_fake_alignment.nw";
+
+	RaxmlInstance instance;
+	instance.opts = createDefaultOptions();
+	instance.opts.tree_file = networkPath;
+	instance.opts.msa_file = msaPath;
+	instance.opts.command = Command::evaluate;
+	instance.opts.num_threads = 1;
+	instance.opts.use_repeats = false;
+	instance.opts.use_tip_inner = true;
+	load_parted_msa(instance);
+	check_options(instance);
+	balance_load(instance);
+	/* get partitions assigned to the current thread */
+	PartitionAssignment& part_assign = instance.proc_part_assign.at(ParallelContext::proc_id());
+
+	TreeInfo raxml_treeinfo = TreeInfo(instance.opts, Tree::loadFromFile(instance.opts.tree_file), *(instance.parted_msa.get()), instance.tip_msa_idmap, part_assign);
+
+	double network_logl = raxml_treeinfo.loglh(false);
+	std::cout << "The computed network_logl is: " << network_logl << "\n";
+	ASSERT_NE(network_logl, -std::numeric_limits<double>::infinity());
+}
+
 TEST (LikelihoodTest, simpleTreeNoRepeats) {
 	std::string networkPath = "examples/sample_networks/tree.nw";
 	Network network = readNetworkFromFile(networkPath);
