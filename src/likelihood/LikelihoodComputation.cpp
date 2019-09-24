@@ -25,9 +25,8 @@ static char * xstrdup(const char * s) {
 	return strcpy(p, s);
 }
 
-void make_connections(Node* networkNode, Node* networkParentNode, pll_unode_t* unode, pll_unode_t* parent) {
+void make_connections(Node* networkNode, Node* networkParentNode, pll_unode_t* unode) {
 	assert(networkNode->getType() == NodeType::BASIC_NODE);
-	unode->back = parent;
 	unode->next = NULL;
 
 	std::vector<Node*> children = networkNode->getActiveChildren(networkParentNode);
@@ -40,17 +39,35 @@ void make_connections(Node* networkNode, Node* networkParentNode, pll_unode_t* u
 	// now we should have either zero children (leaf node), or 2 children (inner tree node)
 	assert(children.empty() || children.size() == 2);
 	if (!children.empty()) {
-		pll_unode_t* child1 = pllmod_utree_create_node(children[0]->getClvIndex(), children[0]->getScalerIndex(),
+		pll_unode_t* fromChild1 = pllmod_utree_create_node(children[0]->getClvIndex(), children[0]->getScalerIndex(),
 				xstrdup(children[0]->getLabel().c_str()), NULL);
-		child1->length = children[0]->getLink()->edge->getLength() + length_to_add;
-		pll_unode_t* child2 = pllmod_utree_create_node(children[0]->getClvIndex(), children[0]->getScalerIndex(),
-						xstrdup(children[0]->getLabel().c_str()), NULL);
-		child2->length = children[1]->getLink()->edge->getLength() + length_to_add;
-		unode->next = child1;
-		unode->next->next = child2;
+		fromChild1->node_index = children[0]->getLink()->node_index;
+		fromChild1->length = children[0]->getLink()->edge->getLength() + length_to_add;
+		fromChild1->back = unode;
+
+		pll_unode_t* toChild1 = pllmod_utree_create_node(children[0]->getClvIndex(), children[0]->getScalerIndex(),
+				xstrdup(children[0]->getLabel().c_str()), NULL);
+		toChild1->node_index = children[0]->getLink()->outer->node_index;
+		toChild1->length = children[0]->getLink()->edge->getLength() + length_to_add;
+		toChild1->back = fromChild1;
+
+		pll_unode_t* fromChild2 = pllmod_utree_create_node(children[1]->getClvIndex(), children[1]->getScalerIndex(),
+				xstrdup(children[1]->getLabel().c_str()), NULL);
+		fromChild2->node_index = children[1]->getLink()->node_index;
+		fromChild2->length = children[1]->getLink()->edge->getLength() + length_to_add;
+		fromChild2->back = unode;
+
+		pll_unode_t* toChild2 = pllmod_utree_create_node(children[0]->getClvIndex(), children[0]->getScalerIndex(),
+				xstrdup(children[0]->getLabel().c_str()), NULL);
+		toChild2->node_index = children[1]->getLink()->outer->node_index;
+		toChild2->length = children[1]->getLink()->edge->getLength() + length_to_add;
+		toChild2->back = fromChild2;
+
+		unode->next = toChild1;
+		unode->next->next = toChild2;
 		unode->next->next->next = unode;
-		make_connections(children[0], networkNode, child1, unode);
-		make_connections(children[1], networkNode, child2, unode);
+		make_connections(children[0], networkNode, fromChild1);
+		make_connections(children[1], networkNode, fromChild2);
 	}
 }
 
@@ -60,17 +77,21 @@ pll_utree_t * displayed_tree_to_utree(Network& network, size_t tree_index) {
 	Node* root = network.root;
 	Node* root_back = network.root->getLink()->getTargetNode();
 
-	pll_unode_t* uroot = pllmod_utree_create_node(root->getClvIndex(), root->getScalerIndex(),
-			xstrdup(root->getLabel().c_str()), NULL);
+	pll_unode_t* uroot = pllmod_utree_create_node(root->getClvIndex(), root->getScalerIndex(), xstrdup(root->getLabel().c_str()), NULL);
+	uroot->node_index = root->getLink()->node_index;
 	pll_unode_t* uroot_back = pllmod_utree_create_node(root_back->getClvIndex(), root_back->getScalerIndex(),
-				xstrdup(root_back->getLabel().c_str()), NULL);
+			xstrdup(root_back->getLabel().c_str()), NULL);
+	uroot_back->node_index = root_back->getLink()->node_index;
 
 	// TODO: Set the lengths of uroot and uroot_back... The following is only correct if neither root nor root_back is a reticulation node.
 	uroot->length = root->getLink()->edge->getLength();
 	uroot_back->length = root_back->getLink()->edge->getLength();
 
-	make_connections(root, root_back, uroot, uroot_back);
-	make_connections(root_back, root, uroot_back, uroot);
+	uroot->back = uroot_back;
+	uroot_back->back = uroot;
+
+	make_connections(root, root_back, uroot);
+	make_connections(root_back, root, uroot_back);
 
 	pll_utree_reset_template_indices(uroot, network.num_tips());
 	return pll_utree_wraptree(uroot, network.num_tips());
