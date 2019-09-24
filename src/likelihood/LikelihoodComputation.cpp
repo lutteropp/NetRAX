@@ -22,7 +22,7 @@ void createOperationsPostorder(Node* parent, Node* actNode, std::vector<pll_oper
 	if (activeChildren.empty()) { // nothing to do if we are at a leaf node
 		return;
 	}
-	assert(activeChildren.size() <= 2);
+	assert(activeChildren.size() <= 2 || (parent == nullptr && activeChildren.size() == 3));
 	for (size_t i = 0; i < activeChildren.size(); ++i) {
 		createOperationsPostorder(actNode, activeChildren[i], ops, fake_clv_index, fake_pmatrix_index);
 	}
