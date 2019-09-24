@@ -12,6 +12,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <algorithm>
 
 namespace netrax {
 
@@ -202,6 +203,10 @@ public:
 		std::vector<Node*> neighbors;
 		Link* currLink = link;
 		while (currLink != nullptr) {
+			if (std::find(neighbors.begin(), neighbors.end(), currLink->outer->node) != neighbors.end()) {
+				throw std::runtime_error("Loop in neighbors list!");
+			}
+
 			neighbors.push_back(currLink->outer->node);
 			currLink = currLink->next;
 			if (currLink == link) {
@@ -317,7 +322,7 @@ private:
 class Network {
 public:
 	Network() :
-			root(nullptr), tip_count(0) {
+			root(nullptr) {
 	}
 
 	std::vector<double> collectBranchLengths() const {
@@ -341,24 +346,41 @@ public:
 		}
 	}
 
+	Node* getNodeByLabel(const std::string& label) {
+		Node* result = nullptr;
+		for (size_t i = 0; i < nodes.size(); ++i) {
+			if (nodes[i].getLabel() == label) {
+				result = &nodes[i];
+				break;
+			}
+		}
+		assert(result);
+		return result;
+	}
+
 	size_t num_tips() const {
-		return tip_count;
+		return tip_nodes.size();
 	}
 
 	size_t num_inner() const {
-		return nodes.size() - tip_count;
+		return nodes.size() - tip_nodes.size();
 	}
 
 	size_t num_branches() const {
 		return edges.size();
 	}
 
+	size_t num_reticulations() const {
+		return reticulation_nodes.size();
+	}
+
 	std::vector<Node> nodes;
 	std::vector<Edge> edges;
 	std::vector<Link> links;
 	std::vector<Node*> reticulation_nodes;
+	std::vector<Node*> tip_nodes;
+	std::vector<Node*> inner_nodes;
 	Node* root;
-	size_t tip_count;
 };
 
 }

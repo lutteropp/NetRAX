@@ -106,7 +106,7 @@ Options createDefaultOptions() {
 	return opts;
 }
 
-TEST (LikelihoodTest, simpleNetwork) {
+TEST (LikelihoodTest, DISABLED_simpleNetwork) {
 	std::string networkPath = "examples/sample_networks/small.nw";
 	Network network = readNetworkFromFile(networkPath);
 	std::string msaPath = "examples/sample_networks/small_fake_alignment.nw";

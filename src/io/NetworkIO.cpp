@@ -28,6 +28,8 @@ Network convertNetwork(const unetwork_t& unetwork) {
 	network.links.resize(unetwork.tip_count + unetwork.reticulation_count * 3 + unetwork.inner_tree_count * 3);
 	network.reticulation_nodes.resize(unetwork.reticulation_count);
 
+
+
 	for (size_t i = 0; i < network.nodes.size(); ++i) {
 		unetwork_node_t* unode = unetwork.nodes[i];
 
@@ -53,11 +55,14 @@ Network convertNetwork(const unetwork_t& unetwork) {
 						&network.links[unode->next->next->node_index], &network.links[unode->next->next->back->node_index],
 						unode->next->next->length);
 
+				network.inner_nodes.push_back(&network.nodes[unode->clv_index]);
 			} else { // leaf node, thus: only a single link
 				network.links[unode->node_index].init(unode->node_index, &network.nodes[unode->clv_index],
 						&network.edges[unode->pmatrix_index], nullptr, &network.links[unode->back->node_index], Direction::UNDEFINED);
 				network.edges[unode->pmatrix_index].init(unode->pmatrix_index, &network.links[unode->node_index],
 						&network.links[unode->back->node_index], unode->length);
+
+				network.tip_nodes.push_back(&network.nodes[unode->clv_index]);
 			}
 		} else { // reticulation node
 			ReticulationData retData;
@@ -107,10 +112,13 @@ Network convertNetwork(const unetwork_t& unetwork) {
 					child_unode->length);
 
 			network.reticulation_nodes[first_parent_unode->reticulation_index] = &network.nodes[first_parent_unode->clv_index];
+			network.inner_nodes.push_back(&network.nodes[first_parent_unode->clv_index]);
 		}
 	}
 	network.root = &network.nodes[unetwork.vroot->clv_index];
-	network.tip_count = unetwork.tip_count;
+
+	assert(network.tip_nodes.size() == unetwork.tip_count);
+	assert(network.inner_nodes.size() == unetwork.inner_tree_count + unetwork.reticulation_count);
 
 	return network;
 }

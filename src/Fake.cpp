@@ -86,9 +86,9 @@ int fake_init_tree(pllmod_treeinfo_t * treeinfo, Network& network) {
 	pll_utree_t * tree = (pll_utree_t*) malloc(sizeof(pll_utree_t));
 	treeinfo->tree = tree;
 
-	tree->tip_count = network.tip_count + 1; // +1 for the fake clv index, TODO: Do we need it here?
-	tree->edge_count = network.edges.size() + 1; // +1 for the fake pmatrix index, TODO: Do we need it here?
-	tree->inner_count = network.nodes.size();
+	tree->tip_count = network.num_tips(); // +1 for the fake clv index, TODO: Do we need it here?
+	tree->edge_count = network.num_branches(); // +1 for the fake pmatrix index, TODO: Do we need it here?
+	tree->inner_count = network.num_inner();
 
 	treeinfo->root = NULL;
 
@@ -276,7 +276,7 @@ pllmod_treeinfo_t * create_fake_treeinfo(Network& network, unsigned int tips, un
 
 TreeInfo create_fake_raxml_treeinfo(Network& network, const Options &opts, const PartitionedMSA& parted_msa, const IDVector& tip_msa_idmap,
 		const PartitionAssignment& part_assign, const std::vector<uintVector>& site_weights) {
-	pllmod_treeinfo_t* base_treeinfo = create_fake_treeinfo(network, network.tip_count, parted_msa.part_count(), opts.brlen_linkage);
+	pllmod_treeinfo_t* base_treeinfo = create_fake_treeinfo(network, network.num_tips(), parted_msa.part_count(), opts.brlen_linkage);
 	return TreeInfo(opts, base_treeinfo, parted_msa, tip_msa_idmap, part_assign, site_weights, fake_opt_brlen, fake_spr_round,
 			fake_compute_ancestral, network.num_tips(), network.num_inner(), network.num_branches());
 }
