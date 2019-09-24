@@ -49,6 +49,8 @@ TEST(NetworkIOTest, convertNetworkTest) {
 	unetwork_t * unetwork = unetwork_parse_newick_string(newick.c_str());
 	Network network = convertNetwork(*unetwork);
 
+	ASSERT_EQ(unetwork->vroot->node_index, unetwork->nodes[unetwork->vroot->clv_index]->node_index);
+
 	ASSERT_EQ(network.root->getLink()->index, unetwork->vroot->node_index);
 	size_t n = unetwork->tip_count + unetwork->inner_tree_count + unetwork->reticulation_count;
 	for (size_t i = 0; i < n; ++i) {

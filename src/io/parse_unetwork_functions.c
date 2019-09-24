@@ -772,6 +772,7 @@ unetwork_t * rnetwork_unroot_main(rnetwork_t * network) {
   unetwork_t * res = unetwork_wrapnetwork_main(uroot,0);
   // re-wire pointer to fit the utree conventions...
   res->vroot = res->vroot->next;
+  res->nodes[res->vroot->clv_index] = res->vroot;
   return res;
 }
 
