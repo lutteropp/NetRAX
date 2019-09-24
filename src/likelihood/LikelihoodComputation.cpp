@@ -79,6 +79,15 @@ pll_utree_t * displayed_tree_to_utree(Network& network, size_t tree_index) {
 
 	pll_unode_t* uroot = pllmod_utree_create_node(root->getClvIndex(), root->getScalerIndex(), xstrdup(root->getLabel().c_str()), NULL);
 	uroot->node_index = root->getLink()->node_index;
+
+	if (root_back->getType() == NodeType::RETICULATION_NODE) {
+		if (root_back->getReticulationData()->getLinkToActiveParent()->getTargetNode() == root) {
+			// TODO
+		} else {
+			// TODO
+		}
+	}
+
 	pll_unode_t* uroot_back = pllmod_utree_create_node(root_back->getClvIndex(), root_back->getScalerIndex(),
 			xstrdup(root_back->getLabel().c_str()), NULL);
 	uroot_back->node_index = root_back->getLink()->node_index;
@@ -86,6 +95,8 @@ pll_utree_t * displayed_tree_to_utree(Network& network, size_t tree_index) {
 	// TODO: Set the lengths of uroot and uroot_back... The following is only correct if neither root nor root_back is a reticulation node.
 	uroot->length = root->getLink()->edge->getLength();
 	uroot_back->length = root_back->getLink()->edge->getLength();
+
+	// TODO: If root_back is a reticulation node, then we have two cases: Either we have to do nothing (if root is not the active parent of root_back), or we have to do the same reticulation node handling as in make_connections.
 
 	uroot->back = uroot_back;
 	uroot_back->back = uroot;
