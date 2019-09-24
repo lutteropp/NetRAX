@@ -341,6 +341,18 @@ public:
 		}
 	}
 
+	size_t num_tips() const {
+		return tip_count;
+	}
+
+	size_t num_inner() const {
+		return nodes.size() - tip_count;
+	}
+
+	size_t num_branches() const {
+		return edges.size();
+	}
+
 	std::vector<Node> nodes;
 	std::vector<Edge> edges;
 	std::vector<Link> links;

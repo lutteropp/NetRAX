@@ -278,7 +278,7 @@ TreeInfo create_fake_raxml_treeinfo(Network& network, const Options &opts, const
 		const PartitionAssignment& part_assign, const std::vector<uintVector>& site_weights) {
 	pllmod_treeinfo_t* base_treeinfo = create_fake_treeinfo(network, network.tip_count, parted_msa.part_count(), opts.brlen_linkage);
 	return TreeInfo(opts, base_treeinfo, parted_msa, tip_msa_idmap, part_assign, site_weights, fake_opt_brlen, fake_spr_round,
-			fake_compute_ancestral);
+			fake_compute_ancestral, network.num_tips(), network.num_inner(), network.num_branches());
 }
 
 TreeInfo create_fake_raxml_treeinfo(Network& network, const Options &opts, const std::vector<doubleVector>& partition_brlens,
