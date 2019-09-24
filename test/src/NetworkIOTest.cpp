@@ -56,14 +56,14 @@ TEST(NetworkIOTest, convertNetworkTest) {
 
 	ASSERT_EQ(unetwork->vroot->node_index, unetwork->nodes[unetwork->vroot->clv_index]->node_index);
 
-	ASSERT_EQ(network.root->getLink()->index, unetwork->vroot->node_index);
+	ASSERT_EQ(network.root->getLink()->node_index, unetwork->vroot->node_index);
 	size_t n = unetwork->tip_count + unetwork->inner_tree_count + unetwork->reticulation_count;
 	for (size_t i = 0; i < n; ++i) {
 		size_t clv_idx = unetwork->nodes[i]->clv_index;
-		ASSERT_EQ(unetwork->nodes[i]->node_index, network.nodes[clv_idx].getLink()->index);
-		ASSERT_EQ(unetwork->nodes[i]->pmatrix_index, network.links[unetwork->nodes[i]->node_index].edge->getIndex());
+		ASSERT_EQ(unetwork->nodes[i]->node_index, network.nodes[clv_idx].getLink()->node_index);
+		ASSERT_EQ(unetwork->nodes[i]->pmatrix_index, network.links[unetwork->nodes[i]->node_index].edge->getPMatrixIndex());
 		ASSERT_EQ(unetwork->nodes[i]->scaler_index, network.nodes[clv_idx].getScalerIndex());
-		ASSERT_EQ(clv_idx, network.nodes[clv_idx].getIndex());
+		ASSERT_EQ(clv_idx, network.nodes[clv_idx].getClvIndex());
 	}
 	ASSERT_EQ(unetwork->reticulation_count, network.num_reticulations());
 	ASSERT_EQ(unetwork->edge_count, network.num_branches());

@@ -27,15 +27,15 @@ void createOperationsPostorder(Node* parent, Node* actNode, std::vector<pll_oper
 		createOperationsPostorder(actNode, activeChildren[i], ops, fake_clv_index, fake_pmatrix_index);
 	}
 	pll_operation_t operation;
-	operation.parent_clv_index = actNode->getIndex();
+	operation.parent_clv_index = actNode->getClvIndex();
 	operation.parent_scaler_index = actNode->getScalerIndex();
-	operation.child1_clv_index = activeChildren[0]->getIndex();
+	operation.child1_clv_index = activeChildren[0]->getClvIndex();
 	operation.child1_scaler_index = activeChildren[0]->getScalerIndex();
-	operation.child1_matrix_index = activeChildren[0]->getEdgeTo(actNode)->getIndex();
+	operation.child1_matrix_index = activeChildren[0]->getEdgeTo(actNode)->getPMatrixIndex();
 	if (activeChildren.size() == 2) {
-		operation.child2_clv_index = activeChildren[1]->getIndex();
+		operation.child2_clv_index = activeChildren[1]->getClvIndex();
 		operation.child2_scaler_index = activeChildren[1]->getScalerIndex();
-		operation.child2_matrix_index = activeChildren[0]->getEdgeTo(actNode)->getIndex();
+		operation.child2_matrix_index = activeChildren[0]->getEdgeTo(actNode)->getPMatrixIndex();
 
 	} else { // activeChildren.size() == 1
 		operation.child2_clv_index = fake_clv_index;
@@ -75,11 +75,11 @@ double computeLoglikelihood(Network& network, const pllmod_treeinfo_t& fake_tree
 			Node* rootBack = network.root->getLink()->getTargetNode();
 			tree_logl += pll_compute_edge_loglikelihood(
 					fake_treeinfo.partitions[j],
-					network.root->getIndex(),
+					network.root->getClvIndex(),
 					network.root->getScalerIndex(),
-					rootBack->getIndex(),
+					rootBack->getClvIndex(),
 					rootBack->getScalerIndex(),
-					network.root->getLink()->edge->getIndex(),
+					network.root->getLink()->edge->getPMatrixIndex(),
 					fake_treeinfo.param_indices[j],
 					nullptr);
 		}

@@ -31,13 +31,13 @@ enum class NodeType {
 class ReticulationData {
 public:
 	ReticulationData() :
-			index(0), label(""), active_parent(0), link_to_first_parent(nullptr), link_to_second_parent(nullptr), link_to_child(nullptr), prob(
+			reticulation_index(0), label(""), active_parent(0), link_to_first_parent(nullptr), link_to_second_parent(nullptr), link_to_child(nullptr), prob(
 					0.5) {
 	}
 
 	void init(size_t index, const std::string& label, bool activeParent, Link* linkToFirstParent, Link* linkToSecondParent,
 			Link* linkToChild, double prob) {
-		this->index = index;
+		this->reticulation_index = index;
 		this->label = label;
 		this->active_parent = activeParent;
 		this->link_to_first_parent = linkToFirstParent;
@@ -47,7 +47,7 @@ public:
 	}
 
 	ReticulationData(const ReticulationData& retData) {
-		index = retData.index;
+		reticulation_index = retData.reticulation_index;
 		label = retData.label;
 		active_parent = retData.active_parent;
 		link_to_first_parent = retData.link_to_first_parent;
@@ -56,8 +56,8 @@ public:
 		prob = retData.prob;
 	}
 
-	size_t getIndex() const {
-		return index;
+	size_t getReticulationIndex() const {
+		return reticulation_index;
 	}
 	const std::string& getLabel() const {
 		return label;
@@ -104,7 +104,7 @@ public:
 		link_to_child = link;
 	}
 private:
-	size_t index;
+	size_t reticulation_index;
 	std::string label;
 	bool active_parent; // 0: first_parent, 1: second_parent
 	Link* link_to_first_parent; // The link that has link->outer->node as the first parent
@@ -115,11 +115,11 @@ private:
 
 struct Link { // subnode in raxml-ng
 	Link() :
-			index(0), node(nullptr), edge(nullptr), next(nullptr), outer(nullptr), direction(Direction::UNDEFINED) {
+			node_index(0), node(nullptr), edge(nullptr), next(nullptr), outer(nullptr), direction(Direction::UNDEFINED) {
 	}
 
 	void init(size_t index, Node* node, Edge* edge, Link* next, Link* outer, Direction direction) {
-		this->index = index;
+		this->node_index = index;
 		this->node = node;
 		this->edge = edge;
 		this->next = next;
@@ -131,7 +131,7 @@ struct Link { // subnode in raxml-ng
 		return outer->node;
 	}
 
-	size_t index; // node_index in libpll
+	size_t node_index;
 	Node* node;
 	Edge* edge;
 
@@ -143,12 +143,12 @@ struct Link { // subnode in raxml-ng
 class Node {
 public:
 	Node() :
-			index(0), scaler_index(-1), link(nullptr), type(NodeType::BASIC_NODE), reticulationData(nullptr) {
+			clv_index(0), scaler_index(-1), link(nullptr), type(NodeType::BASIC_NODE), reticulationData(nullptr) {
 
 	}
 
 	void initBasic(size_t index, int scaler_index, Link* link, const std::string& label) {
-		this->index = index;
+		this->clv_index = index;
 		this->scaler_index = scaler_index;
 		this->link = link;
 		this->label = label;
@@ -156,7 +156,7 @@ public:
 		this->reticulationData = nullptr;
 	}
 	void initReticulation(size_t index, int scaler_index, Link* link, const std::string& label, const ReticulationData& retData) {
-		this->index = index;
+		this->clv_index = index;
 		this->scaler_index = scaler_index;
 		this->link = link;
 		this->label = label;
@@ -231,12 +231,12 @@ public:
 		throw std::runtime_error("The given target node is not a neighbor of this node");
 	}
 
-	size_t getIndex() const {
-		return index;
+	size_t getClvIndex() const {
+		return clv_index;
 	}
 
-	void setIndex(size_t index) {
-		this->index = index;
+	void setClvIndex(size_t index) {
+		this->clv_index = index;
 	}
 
 	int getScalerIndex() const {
@@ -268,7 +268,7 @@ public:
 		return reticulationData;
 	}
 private:
-	size_t index; // clv_index in libpll
+	size_t clv_index;
 	int scaler_index;
 	Link* link;
 	std::string label;
@@ -280,18 +280,18 @@ private:
 class Edge {
 public:
 	Edge() :
-			index(0), link1(nullptr), link2(nullptr), length(0.0) {
+			pmatrix_index(0), link1(nullptr), link2(nullptr), length(0.0) {
 	}
 
 	void init(size_t index, Link* link1, Link* link2, double length) {
-		this->index = index;
+		this->pmatrix_index = index;
 		this->link1 = link1;
 		this->link2 = link2;
 		this->length = length;
 	}
 
-	size_t getIndex() const {
-		return index;
+	size_t getPMatrixIndex() const {
+		return pmatrix_index;
 	}
 	Link* getLink1() const {
 		return link1;
@@ -312,7 +312,7 @@ public:
 		this->length = length;
 	}
 private:
-	size_t index; // pmatrix_index in libpll
+	size_t pmatrix_index;
 	Link* link1;
 	Link* link2;
 

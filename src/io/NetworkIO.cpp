@@ -21,6 +21,42 @@ namespace netrax {
 // TreeNode: [label][:branch_length] or [label] or [label][:branch_length][:support] or [] or [:branch_length] or [:branch_length][:support]
 // ReticulationNode: [label]#[type]i[:branch_length] or [label][:branch_length][:support][:inheritance_probability] or #[type]i[:branch_length] or #[type]i[:branch_length][:support] or #[type]i[:branch_length][:support][:inheritance_probability] or #[type]i
 
+void setLinksAndEdgesAndNodes(Network& network, const unetwork_node_t* unode, bool keepDirection) {
+	if (!unode->next) { // leaf node
+		assert(!keepDirection);
+		network.links[unode->node_index].init(unode->node_index, &network.nodes[unode->clv_index], &network.edges[unode->pmatrix_index],
+				nullptr, &network.links[unode->back->node_index], Direction::UNDEFINED);
+		network.edges[unode->pmatrix_index].init(unode->pmatrix_index, &network.links[unode->node_index],
+				&network.links[unode->back->node_index], unode->length);
+		network.tip_nodes.push_back(&network.nodes[unode->clv_index]);
+	} else { // inner node
+		Direction dir1, dir2, dir3 = Direction::UNDEFINED;
+		if (keepDirection) {
+			dir1 = unode->incoming ? Direction::INCOMING : Direction::OUTGOING;
+			dir2 = unode->next->incoming ? Direction::INCOMING : Direction::OUTGOING;
+			dir3 = unode->next->next->incoming ? Direction::INCOMING : Direction::OUTGOING;
+		}
+		network.links[unode->node_index].init(unode->node_index, &network.nodes[unode->clv_index], &network.edges[unode->pmatrix_index],
+				&network.links[unode->next->node_index], &network.links[unode->back->node_index], dir1);
+		network.links[unode->next->node_index].init(unode->next->node_index, &network.nodes[unode->clv_index],
+				&network.edges[unode->next->pmatrix_index], &network.links[unode->next->next->node_index],
+				&network.links[unode->next->back->node_index], dir2);
+		network.links[unode->next->next->node_index].init(unode->next->next->node_index, &network.nodes[unode->clv_index],
+				&network.edges[unode->next->next->pmatrix_index], &network.links[unode->node_index],
+				&network.links[unode->next->next->back->node_index], dir3);
+
+		network.edges[unode->pmatrix_index].init(unode->pmatrix_index, &network.links[unode->node_index],
+				&network.links[unode->back->node_index], unode->length);
+		network.edges[unode->next->pmatrix_index].init(unode->next->pmatrix_index, &network.links[unode->next->node_index],
+				&network.links[unode->next->back->node_index], unode->next->length);
+		network.edges[unode->next->next->pmatrix_index].init(unode->next->next->pmatrix_index,
+				&network.links[unode->next->next->node_index], &network.links[unode->next->next->back->node_index],
+				unode->next->next->length);
+
+		network.inner_nodes.push_back(&network.nodes[unode->clv_index]);
+	}
+}
+
 Network convertNetwork(const unetwork_t& unetwork) {
 	Network network;
 	network.nodes.resize(unetwork.inner_tree_count + unetwork.tip_count + unetwork.reticulation_count);
@@ -34,34 +70,7 @@ Network convertNetwork(const unetwork_t& unetwork) {
 		if (unode->reticulation_index == -1) { // basic node
 			network.nodes[unode->clv_index].initBasic(unode->clv_index, unode->scaler_index, &network.links[unode->node_index],
 					unode->label ? unode->label : "");
-			if (unode->next) { // not a leaf node, thus: 3 links in total
-				network.links[unode->node_index].init(unode->node_index, &network.nodes[unode->clv_index],
-						&network.edges[unode->pmatrix_index], &network.links[unode->next->node_index],
-						&network.links[unode->back->node_index], Direction::UNDEFINED);
-				network.links[unode->next->node_index].init(unode->next->node_index, &network.nodes[unode->clv_index],
-						&network.edges[unode->next->pmatrix_index], &network.links[unode->next->next->node_index],
-						&network.links[unode->next->back->node_index], Direction::UNDEFINED);
-				network.links[unode->next->next->node_index].init(unode->next->next->node_index, &network.nodes[unode->clv_index],
-						&network.edges[unode->next->next->pmatrix_index], &network.links[unode->node_index],
-						&network.links[unode->next->next->back->node_index], Direction::UNDEFINED);
-
-				network.edges[unode->pmatrix_index].init(unode->pmatrix_index, &network.links[unode->node_index],
-						&network.links[unode->back->node_index], unode->length);
-				network.edges[unode->next->pmatrix_index].init(unode->next->pmatrix_index, &network.links[unode->next->node_index],
-						&network.links[unode->next->back->node_index], unode->next->length);
-				network.edges[unode->next->next->pmatrix_index].init(unode->next->next->pmatrix_index,
-						&network.links[unode->next->next->node_index], &network.links[unode->next->next->back->node_index],
-						unode->next->next->length);
-
-				network.inner_nodes.push_back(&network.nodes[unode->clv_index]);
-			} else { // leaf node, thus: only a single link
-				network.links[unode->node_index].init(unode->node_index, &network.nodes[unode->clv_index],
-						&network.edges[unode->pmatrix_index], nullptr, &network.links[unode->back->node_index], Direction::UNDEFINED);
-				network.edges[unode->pmatrix_index].init(unode->pmatrix_index, &network.links[unode->node_index],
-						&network.links[unode->back->node_index], unode->length);
-
-				network.tip_nodes.push_back(&network.nodes[unode->clv_index]);
-			}
+			setLinksAndEdgesAndNodes(network, unode, false);
 		} else { // reticulation node
 			ReticulationData retData;
 
@@ -86,31 +95,15 @@ Network convertNetwork(const unetwork_t& unetwork) {
 			assert(second_parent_unode->incoming);
 			assert(!child_unode->incoming);
 
-			retData.init(first_parent_unode->reticulation_index, first_parent_unode->reticulation_name ? first_parent_unode->reticulation_name : "", 0,
+			retData.init(first_parent_unode->reticulation_index,
+					first_parent_unode->reticulation_name ? first_parent_unode->reticulation_name : "", 0,
 					&network.links[first_parent_unode->node_index], &network.links[second_parent_unode->node_index],
 					&network.links[child_unode->node_index], first_parent_unode->prob);
-			network.nodes[first_parent_unode->clv_index].initReticulation(first_parent_unode->clv_index, first_parent_unode->scaler_index, &network.links[first_parent_unode->node_index],
-					first_parent_unode->label ? first_parent_unode->label : "", retData);
+			network.nodes[first_parent_unode->clv_index].initReticulation(first_parent_unode->clv_index, first_parent_unode->scaler_index,
+					&network.links[first_parent_unode->node_index], first_parent_unode->label ? first_parent_unode->label : "", retData);
 
-			network.links[first_parent_unode->node_index].init(first_parent_unode->node_index, &network.nodes[first_parent_unode->clv_index], &network.edges[first_parent_unode->pmatrix_index],
-					&network.links[second_parent_unode->node_index], &network.links[first_parent_unode->back->node_index], Direction::INCOMING);
-			network.links[second_parent_unode->node_index].init(second_parent_unode->node_index, &network.nodes[second_parent_unode->clv_index],
-					&network.edges[second_parent_unode->pmatrix_index], &network.links[child_unode->node_index],
-					&network.links[second_parent_unode->back->node_index], Direction::INCOMING);
-			network.links[child_unode->node_index].init(child_unode->node_index, &network.nodes[child_unode->clv_index],
-					&network.edges[child_unode->pmatrix_index], &network.links[child_unode->node_index],
-					&network.links[child_unode->back->node_index], Direction::OUTGOING);
-
-			network.edges[first_parent_unode->pmatrix_index].init(first_parent_unode->pmatrix_index, &network.links[first_parent_unode->node_index],
-					&network.links[first_parent_unode->back->node_index], first_parent_unode->length);
-			network.edges[second_parent_unode->pmatrix_index].init(second_parent_unode->pmatrix_index, &network.links[second_parent_unode->node_index],
-					&network.links[second_parent_unode->back->node_index], second_parent_unode->length);
-			network.edges[child_unode->pmatrix_index].init(child_unode->pmatrix_index,
-					&network.links[child_unode->node_index], &network.links[child_unode->back->node_index],
-					child_unode->length);
-
-			network.reticulation_nodes[first_parent_unode->reticulation_index] = &network.nodes[first_parent_unode->clv_index];
-			network.inner_nodes.push_back(&network.nodes[first_parent_unode->clv_index]);
+			setLinksAndEdgesAndNodes(network, unode, true);
+			network.reticulation_nodes[unode->reticulation_index] = &network.nodes[unode->clv_index];
 		}
 	}
 	network.root = &network.nodes[unetwork.vroot->clv_index];
