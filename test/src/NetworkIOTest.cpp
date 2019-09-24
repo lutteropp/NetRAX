@@ -28,9 +28,14 @@ void check_node_types(const Network& network) {
 
 void check_neighbor_count(const Network& network) {
 	for (size_t i = 0; i < network.tip_nodes.size(); ++i) {
+		ASSERT_EQ(network.tip_nodes[i]->getLink()->next, nullptr);
 		ASSERT_EQ(network.tip_nodes[i]->getNeighbors().size(), 1);
 	}
 	for (size_t i = 0; i < network.inner_nodes.size(); ++i) {
+		ASSERT_NE(network.inner_nodes[i]->getLink()->next, nullptr);
+		ASSERT_NE(network.inner_nodes[i]->getLink()->next->next, nullptr);
+		ASSERT_NE(network.inner_nodes[i]->getLink()->next->next->next, nullptr);
+		ASSERT_EQ(network.inner_nodes[i]->getLink(), network.inner_nodes[i]->getLink()->next->next->next);
 		ASSERT_EQ(network.inner_nodes[i]->getNeighbors().size(), 3);
 	}
 }
