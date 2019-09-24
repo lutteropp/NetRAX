@@ -28,8 +28,6 @@ Network convertNetwork(const unetwork_t& unetwork) {
 	network.links.resize(unetwork.tip_count + unetwork.reticulation_count * 3 + unetwork.inner_tree_count * 3);
 	network.reticulation_nodes.resize(unetwork.reticulation_count);
 
-
-
 	for (size_t i = 0; i < network.nodes.size(); ++i) {
 		unetwork_node_t* unode = unetwork.nodes[i];
 

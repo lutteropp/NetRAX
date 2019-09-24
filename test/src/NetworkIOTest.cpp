@@ -17,7 +17,8 @@ using namespace netrax;
 
 void check_node_types(const Network& network) {
 	for (size_t i = 0; i < network.nodes.size(); ++i) {
-		if (std::find(network.reticulation_nodes.begin(), network.reticulation_nodes.end(), &network.nodes[i]) == network.reticulation_nodes.end()) {
+		if (std::find(network.reticulation_nodes.begin(), network.reticulation_nodes.end(), &network.nodes[i])
+				== network.reticulation_nodes.end()) {
 			ASSERT_EQ(network.nodes[i].getType(), NodeType::BASIC_NODE);
 		} else {
 			ASSERT_EQ(network.nodes[i].getType(), NodeType::RETICULATION_NODE);
@@ -41,6 +42,26 @@ void sanity_checks(const Network& network) {
 
 TEST (NetworkIOTest, testTheTest) {
 	ASSERT_TRUE(true);
+}
+
+TEST(NetworkIOTest, convertNetworkTest) {
+	std::string newick = "((A:2,((B:1,C:1)P:1)X#H1:0::0.3)Q:2,(D:2,X#H1:0::0.7)R:2);";
+	unetwork_t * unetwork = unetwork_parse_newick_string(newick.c_str());
+	Network network = convertNetwork(*unetwork);
+
+	ASSERT_EQ(network.root->getLink()->index, unetwork->vroot->node_index);
+	size_t n = unetwork->tip_count + unetwork->inner_tree_count + unetwork->reticulation_count;
+	for (size_t i = 0; i < n; ++i) {
+		size_t clv_idx = unetwork->nodes[i]->clv_index;
+		ASSERT_EQ(unetwork->nodes[i]->node_index, network.nodes[clv_idx].getLink()->index);
+		ASSERT_EQ(unetwork->nodes[i]->pmatrix_index, network.links[unetwork->nodes[i]->node_index].edge->getIndex());
+		ASSERT_EQ(unetwork->nodes[i]->scaler_index, network.nodes[clv_idx].getScalerIndex());
+		ASSERT_EQ(clv_idx, network.nodes[clv_idx].getIndex());
+	}
+	ASSERT_EQ(unetwork->reticulation_count, network.num_reticulations());
+	ASSERT_EQ(unetwork->edge_count, network.num_branches());
+	ASSERT_EQ(unetwork->inner_tree_count, network.num_inner() - network.num_reticulations());
+	ASSERT_EQ(unetwork->tip_count, network.num_tips());
 }
 
 TEST(NetworkIOTest, readRootedTree) {
@@ -206,7 +227,6 @@ TEST(NetworkIOTest, readSimpleNetworkCelineStyleNoLengths) {
 	sanity_checks(network);
 }
 
-
 TEST(NetworkIOTest, celineExample1x) {
 	std::string input = "((((((A,(P)X#H1),(((X#H1,T),(A2,Caiman)),(P2,(E,(C1,(C2)Y#H2))))),(Y#H2,M)),X2),P2));";
 	Network network = readNetworkFromString(input);
@@ -215,21 +235,24 @@ TEST(NetworkIOTest, celineExample1x) {
 }
 
 TEST(NetworkIOTest, celineExample1) {
-	std::string input = "((((((Anolis,(Podarcis)#H1),(((#H1,Taeniopygia),(alligator,Caiman)),(phrynops,(Emys,(Chelonoidi,(Caretta)#H2))))),(#H2,Monodelphis)),Xenopus),protopterus));";
+	std::string input =
+			"((((((Anolis,(Podarcis)#H1),(((#H1,Taeniopygia),(alligator,Caiman)),(phrynops,(Emys,(Chelonoidi,(Caretta)#H2))))),(#H2,Monodelphis)),Xenopus),protopterus));";
 	Network network = readNetworkFromString(input);
 	ASSERT_EQ(12, network.num_tips());
 	sanity_checks(network);
 }
 
 TEST(NetworkIOTest, celineExample2) {
-	std::string input = "(((((((Anolis,(Gallus)#H1),(Podarcis)#H2),(((#H1,(#H2,Taeniopygia)),(alligator,Caiman)),(phrynops,(Emys,((Chelonoidi,(Ornithorhynchus)#H3),(Caretta)#H4))))),(#H3,(#H4,Monodelphis))),Xenopus),protopterus));";
+	std::string input =
+			"(((((((Anolis,(Gallus)#H1),(Podarcis)#H2),(((#H1,(#H2,Taeniopygia)),(alligator,Caiman)),(phrynops,(Emys,((Chelonoidi,(Ornithorhynchus)#H3),(Caretta)#H4))))),(#H3,(#H4,Monodelphis))),Xenopus),protopterus));";
 	Network network = readNetworkFromString(input);
 	ASSERT_EQ(14, network.num_tips());
 	sanity_checks(network);
 }
 
 TEST(NetworkIOTest, celineExample3) {
-	std::string input = "((protopterus,(Xenopus,(((Monodelphis,(Caretta)#H1),(Homo)#H2),(((#H2,Anolis),(Podarcis)#H3),(((#H3,Taeniopygia),(alligator,Caiman)),(phrynops,(Emys,(Chelonoidi,#H1)))))))));";
+	std::string input =
+			"((protopterus,(Xenopus,(((Monodelphis,(Caretta)#H1),(Homo)#H2),(((#H2,Anolis),(Podarcis)#H3),(((#H3,Taeniopygia),(alligator,Caiman)),(phrynops,(Emys,(Chelonoidi,#H1)))))))));";
 	Network network = readNetworkFromString(input);
 	ASSERT_EQ(13, network.num_tips());
 	sanity_checks(network);

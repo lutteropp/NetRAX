@@ -15,6 +15,7 @@ extern "C" {
 
 namespace netrax {
 
+Network convertNetwork(const unetwork_t& unetwork);
 Network readNetworkFromString(const std::string& newick);
 Network readNetworkFromFile(const std::string& filename);
 std::string toExtendedNewick(const Network& network);
