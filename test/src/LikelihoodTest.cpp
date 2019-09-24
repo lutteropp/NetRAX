@@ -107,8 +107,9 @@ Options createDefaultOptions() {
 }
 
 TEST (LikelihoodTest, displayedTreeOfTreeToUtree) {
-	std::string networkPath = "examples/sample_networks/tree.nw";
-	Network network = readNetworkFromFile(networkPath);
+	std::string treePath = "examples/sample_networks/tree.nw";
+	unetwork_t * unetwork = unetwork_parse_newick(treePath.c_str());
+	Network network = convertNetwork(*unetwork);
 	pll_utree_t * utree = displayed_tree_to_utree(network, 0);
 	ASSERT_NE(utree, nullptr);
 }
