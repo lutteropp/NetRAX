@@ -276,7 +276,15 @@ pllmod_treeinfo_t * create_fake_treeinfo(Network& network, unsigned int tips, un
 
 TreeInfo create_fake_raxml_treeinfo(Network& network, const Options &opts, const PartitionedMSA& parted_msa, const IDVector& tip_msa_idmap,
 		const PartitionAssignment& part_assign, const std::vector<uintVector>& site_weights) {
-	pllmod_treeinfo_t* base_treeinfo = create_fake_treeinfo(network, network.num_tips(), parted_msa.part_count(), opts.brlen_linkage);
+	pllmod_treeinfo_t* base_treeinfo;
+
+	//base_treeinfo = create_fake_treeinfo(network, network.num_tips(), parted_msa.part_count(), opts.brlen_linkage);
+
+	std::cout << "just for debugging purposes, creating a normal treeinfo.\n";
+	pll_utree_t* displayed_tree = netrax::displayed_tree_to_utree(network, 0);
+
+	base_treeinfo = pllmod_treeinfo_create(displayed_tree->vroot, displayed_tree->tip_count, parted_msa.part_count(), opts.brlen_linkage);
+
 	return TreeInfo(opts, base_treeinfo, parted_msa, tip_msa_idmap, part_assign, site_weights, fake_opt_brlen, fake_spr_round,
 			fake_compute_ancestral, destroy_fake_treeinfo, network.num_tips(), network.num_inner(), network.num_branches());
 }
