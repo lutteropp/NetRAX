@@ -18,7 +18,30 @@
 
 using namespace netrax;
 
-TEST (LikelihoodTest, testTheTest) {
+class LikelihoodTest: public ::testing::Test {
+protected:
+	std::string treePath = "examples/sample_networks/tree.nw";
+	std::string networkPath = "examples/sample_networks/small.nw";
+	std::string msaPath = "examples/sample_networks/small_fake_alignment.nw";
+
+	RaxmlInstance treeInstance;
+	RaxmlInstance smallInstance;
+
+	Network treeNetwork;
+	Network smallNetwork;
+
+	virtual void SetUp() {
+		treeInstance = createStandardRaxmlInstance(treePath, msaPath, false);
+		smallInstance = createStandardRaxmlInstance(networkPath, msaPath, false);
+		treeNetwork = readNetworkFromFile(treePath);
+		smallNetwork = readNetworkFromFile(networkPath);
+	}
+
+	virtual void TearDown() {
+	}
+};
+
+TEST_F (LikelihoodTest, testTheTest) {
 	ASSERT_TRUE(true);
 }
 
@@ -52,25 +75,22 @@ void compareNodes(pll_unode_t* node1, pll_unode_t* node2) {
 	ASSERT_EQ(node1->length, node2->length);
 }
 
-TEST (LikelihoodTest, displayedTreeOfTreeToUtree) {
-	std::string treePath = "examples/sample_networks/tree.nw";
-	std::string msaPath = "examples/sample_networks/small_fake_alignment.nw";
-	unetwork_t * unetwork = unetwork_parse_newick(treePath.c_str());
-	Network network = convertNetwork(*unetwork);
-	pll_utree_t * network_utree = displayed_tree_to_utree(network, 0);
-
-	TreeInfo raxml_treeinfo = createStandardRaxmlTreeinfo(treePath, msaPath, false);
+TEST_F (LikelihoodTest, displayedTreeOfTreeToUtree) {
+	pll_utree_t * network_utree = displayed_tree_to_utree(treeNetwork, 0);
 
 	ASSERT_NE(network_utree, nullptr);
 	// compare the utrees:
-	pll_utree_t* raxml_utree = raxml_treeinfo.pll_treeinfo().tree;
+
+	TreeInfo raxml_treeinfo_tree = createStandardRaxmlTreeinfo(treeInstance);
+
+	pll_utree_t* raxml_utree = raxml_treeinfo_tree.pll_treeinfo().tree;
 	ASSERT_EQ(network_utree->inner_count, raxml_utree->inner_count);
 	ASSERT_EQ(network_utree->binary, raxml_utree->binary);
 	ASSERT_EQ(network_utree->edge_count, raxml_utree->edge_count);
 	ASSERT_EQ(network_utree->tip_count, raxml_utree->tip_count);
 	compareNodes(network_utree->vroot, raxml_utree->vroot);
 
-	for (size_t i = 0; i < network.nodes.size(); ++i) {
+	for (size_t i = 0; i < treeNetwork.nodes.size(); ++i) {
 		compareNodes(network_utree->nodes[i], raxml_utree->nodes[i]);
 		compareNodes(network_utree->nodes[i]->back, raxml_utree->nodes[i]->back);
 		if (network_utree->nodes[i]->next) {
@@ -85,40 +105,53 @@ TEST (LikelihoodTest, displayedTreeOfTreeToUtree) {
 	}
 }
 
-TEST (LikelihoodTest, displayedTreeOfNetworkToUtree) {
-	std::string treePath = "examples/sample_networks/small.nw";
-	unetwork_t * unetwork = unetwork_parse_newick(treePath.c_str());
-	Network network = convertNetwork(*unetwork);
-	pll_utree_t * utree = displayed_tree_to_utree(network, 0);
+TEST_F (LikelihoodTest, displayedTreeOfNetworkToUtree) {
+	pll_utree_t * utree = displayed_tree_to_utree(smallNetwork, 0);
 	ASSERT_NE(utree, nullptr);
 }
 
-TEST (LikelihoodTest, simpleTreeNoRepeatsNormalRaxml) {
-	std::string treePath = "examples/sample_networks/tree.nw";
-	Network network = readNetworkFromFile(treePath);
-	std::string msaPath = "examples/sample_networks/small_fake_alignment.nw";
-
-	TreeInfo raxml_treeinfo = createStandardRaxmlTreeinfo(treePath, msaPath, false);
+TEST_F (LikelihoodTest, simpleTreeNoRepeatsNormalRaxml) {
+	TreeInfo raxml_treeinfo = createStandardRaxmlTreeinfo(treeInstance, false);
 
 	double network_logl = raxml_treeinfo.loglh(false);
 	std::cout << "The computed network_logl 1 is: " << network_logl << "\n";
 	ASSERT_NE(network_logl, -std::numeric_limits<double>::infinity());
 }
 
-TEST (LikelihoodTest, DISABLED_compareOperationArrays) {
-	std::string treePath = "examples/sample_networks/tree.nw";
-	std::string msaPath = "examples/sample_networks/small_fake_alignment.nw";
-	unetwork_t * unetwork = unetwork_parse_newick(treePath.c_str());
-	Network network = convertNetwork(*unetwork);
-	pll_utree_t * network_utree = displayed_tree_to_utree(network, 0);
+TEST_F (LikelihoodTest, comparePllmodTreeinfo) {
+	TreeInfo network_treeinfo_tree = createFakeRaxmlTreeinfo(treeInstance, treeNetwork);
 
-	TreeInfo raxml_treeinfo = createStandardRaxmlTreeinfo(treePath, msaPath);
-	TreeInfo network_treeinfo = createFakeRaxmlTreeinfo(network, treePath, msaPath);
+	std::cout << "This is a test \n";
 
-	raxml_treeinfo.loglh(false); // to fill the operations array
+	TreeInfo raxml_treeinfo_tree = createStandardRaxmlTreeinfo(treeInstance);
 
-	std::vector<pll_operation_t> network_ops = createOperations(network, 0);
-	pll_operation_t* raxml_ops = raxml_treeinfo.pll_treeinfo().operations;
+	std::cout << "Here I am \n";
+
+	/*const pllmod_treeinfo_t& network_treeinfo = network_treeinfo_tree.pll_treeinfo();
+	const pllmod_treeinfo_t& raxml_treeinfo = raxml_treeinfo_tree.pll_treeinfo();
+
+	 ASSERT_EQ(network_treeinfo.active_partition, raxml_treeinfo.active_partition);
+	 ASSERT_EQ(network_treeinfo.brlen_linkage, raxml_treeinfo.brlen_linkage);
+	 ASSERT_EQ(network_treeinfo.init_partition_count, raxml_treeinfo.init_partition_count);
+	 ASSERT_EQ(network_treeinfo.partition_count, raxml_treeinfo.partition_count);
+	 ASSERT_EQ(network_treeinfo.subnode_count, raxml_treeinfo.subnode_count);
+	 ASSERT_EQ(network_treeinfo.tip_count, raxml_treeinfo.tip_count);*/
+}
+
+TEST_F (LikelihoodTest, DISABLED_simpleTreeNoRepeats) {
+	TreeInfo network_treeinfo_tree = createFakeRaxmlTreeinfo(treeInstance, treeNetwork);
+	double network_logl = network_treeinfo_tree.loglh(false);
+	std::cout << "The computed network_logl 2 is: " << network_logl << "\n";
+	ASSERT_NE(network_logl, -std::numeric_limits<double>::infinity());
+}
+
+TEST_F (LikelihoodTest, DISABLED_compareOperationArrays) {
+	pll_utree_t * network_utree = displayed_tree_to_utree(treeNetwork, 0);
+	TreeInfo raxml_treeinfo_tree = createStandardRaxmlTreeinfo(treeInstance);
+	raxml_treeinfo_tree.loglh(false); // to fill the operations array
+
+	std::vector<pll_operation_t> network_ops = createOperations(treeNetwork, 0);
+	pll_operation_t* raxml_ops = raxml_treeinfo_tree.pll_treeinfo().operations;
 
 	std::cout << "Number of operations: " << network_ops.size() << "\n";
 	for (size_t i = 0; i < network_ops.size(); ++i) {
@@ -155,40 +188,24 @@ TEST (LikelihoodTest, DISABLED_compareOperationArrays) {
 
 }
 
-TEST (LikelihoodTest, DISABLED_simpleTreeNoRepeats) {
-	std::string treePath = "examples/sample_networks/tree.nw";
-	Network network = readNetworkFromFile(treePath);
-	std::string msaPath = "examples/sample_networks/small_fake_alignment.nw";
-
-	TreeInfo network_treeinfo = createFakeRaxmlTreeinfo(network, treePath, msaPath, false);
-
-	double network_logl = network_treeinfo.loglh(false);
-	std::cout << "The computed network_logl 2 is: " << network_logl << "\n";
-	ASSERT_NE(network_logl, -std::numeric_limits<double>::infinity());
-}
-
-TEST (LikelihoodTest, DISABLED_simpleNetworkNoRepeatsOnlyDisplayedTreeWithRaxml) {
-	std::string networkPath = "examples/sample_networks/small.nw";
+TEST_F (LikelihoodTest, simpleNetworkNoRepeatsOnlyDisplayedTreeWithRaxml) {
 	Network network = readNetworkFromFile(networkPath);
-	std::string msaPath = "examples/sample_networks/small_fake_alignment.nw";
 
-	RaxmlInstance instance = createStandardRaxmlInstance(networkPath, msaPath, false);
 	/* get partitions assigned to the current thread */
-	PartitionAssignment& part_assign = instance.proc_part_assign.at(ParallelContext::proc_id());
+	PartitionAssignment& part_assign = smallInstance.proc_part_assign.at(ParallelContext::proc_id());
 
 	Tree tree(*(displayed_tree_to_utree(network, 0)));
 
-	TreeInfo raxml_treeinfo = TreeInfo(instance.opts, tree, *(instance.parted_msa.get()), instance.tip_msa_idmap, part_assign);
+	TreeInfo raxml_treeinfo = TreeInfo(smallInstance.opts, tree, *(smallInstance.parted_msa.get()), smallInstance.tip_msa_idmap,
+			part_assign);
 
 	double network_logl = raxml_treeinfo.loglh(false);
 	std::cout << "The computed network_logl 3 is: " << network_logl << "\n";
 	ASSERT_NE(network_logl, -std::numeric_limits<double>::infinity());
 }
 
-TEST (LikelihoodTest, DISABLED_simpleNetworkWithRepeatsOnlyDisplayedTreeWithRaxml) {
-	std::string networkPath = "examples/sample_networks/small.nw";
+TEST_F (LikelihoodTest, simpleNetworkWithRepeatsOnlyDisplayedTreeWithRaxml) {
 	Network network = readNetworkFromFile(networkPath);
-	std::string msaPath = "examples/sample_networks/small_fake_alignment.nw";
 
 	RaxmlInstance instance = createStandardRaxmlInstance(networkPath, msaPath, true);
 	/* get partitions assigned to the current thread */
@@ -202,41 +219,37 @@ TEST (LikelihoodTest, DISABLED_simpleNetworkWithRepeatsOnlyDisplayedTreeWithRaxm
 	ASSERT_NE(network_logl, -std::numeric_limits<double>::infinity());
 }
 
-TEST (LikelihoodTest, DISABLED_simpleTreeWithRepeats) {
-	std::string treePath = "examples/sample_networks/tree.nw";
+TEST_F (LikelihoodTest, DISABLED_simpleTreeWithRepeats) {
 	Network network = readNetworkFromFile(treePath);
-	std::string msaPath = "examples/sample_networks/small_fake_alignment.nw";
 
-	TreeInfo raxml_treeinfo = createFakeRaxmlTreeinfo(network, treePath, msaPath, true);
+	RaxmlInstance instance = createStandardRaxmlInstance(treePath, msaPath);
+	TreeInfo raxml_treeinfo = createFakeRaxmlTreeinfo(instance, network, true);
 
 	double network_logl = raxml_treeinfo.loglh(false);
 	std::cout << "The computed network_logl 5 is: " << network_logl << "\n";
 	ASSERT_NE(network_logl, -std::numeric_limits<double>::infinity());
 }
 
-TEST (LikelihoodTest, DISABLED_simpleNetworkNoRepeats) {
-	std::string networkPath = "examples/sample_networks/small.nw";
+TEST_F (LikelihoodTest, DISABLED_simpleNetworkNoRepeats) {
 	Network network = readNetworkFromFile(networkPath);
-	std::string msaPath = "examples/sample_networks/small_fake_alignment.nw";
-
-	TreeInfo raxml_treeinfo = createFakeRaxmlTreeinfo(network, networkPath, msaPath, false);
+	RaxmlInstance instance = createStandardRaxmlInstance(networkPath, msaPath);
+	TreeInfo raxml_treeinfo = createFakeRaxmlTreeinfo(instance, network, false);
 	double network_logl = raxml_treeinfo.loglh(false);
 	std::cout << "The computed network_logl 6 is: " << network_logl << "\n";
 	ASSERT_NE(network_logl, -std::numeric_limits<double>::infinity());
 }
 
-TEST (LikelihoodTest, DISABLED_simpleNetworkWithRepeats) {
-	std::string networkPath = "examples/sample_networks/small.nw";
+TEST_F (LikelihoodTest, DISABLED_simpleNetworkWithRepeats) {
 	Network network = readNetworkFromFile(networkPath);
-	std::string msaPath = "examples/sample_networks/small_fake_alignment.nw";
 
-	TreeInfo raxml_treeinfo = createFakeRaxmlTreeinfo(network, networkPath, msaPath, true);
+	RaxmlInstance instance = createStandardRaxmlInstance(networkPath, msaPath);
+	TreeInfo raxml_treeinfo = createFakeRaxmlTreeinfo(instance, network, true);
 	double network_logl = raxml_treeinfo.loglh(false);
 	std::cout << "The computed network_logl 7 is: " << network_logl << "\n";
 	ASSERT_NE(network_logl, -std::numeric_limits<double>::infinity());
 }
 
-TEST (LikelihoodTest, DISABLED_celineNetwork) {
+TEST_F (LikelihoodTest, DISABLED_celineNetwork) {
 	std::string input =
 			"((protopterus:0.0,(Xenopus:0.0,(((((Monodelphis:0.0,(python:0.0)#H1:0.0):0.0,(Caretta:0.0)#H2:0.0):0.0,(Homo:0.0)#H3:0.0):0.0,(Ornithorhynchus:0.0)#H4:0.0):0.0,(((#H1:0.0,((#H3:0.0,Anolis:0.0):0.0,(Gallus:0.0)#H5:0.0):0.0):0.0,(Podarcis:0.0)#H6:0.0):0.0,(((#H5:0.0,(#H6:0.0,Taeniopygia:0.0):0.0):0.0,(alligator:0.0,Caiman:0.0):0.0):0.0,(phrynops:0.0,(Emys:0.0,((Chelonoidi:0.0,#H4:0.0):0.0,#H2:0.0):0.0):0.0):0.0):0.0):0.0):0.0):0.0):0.0);";
 	Network network = readNetworkFromString(input);

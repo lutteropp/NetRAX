@@ -41,9 +41,10 @@ TreeInfo create_fake_raxml_treeinfo(Network& network, const Options &opts, const
 		const PartitionAssignment& part_assign, const std::vector<uintVector>& site_weights);
 
 RaxmlInstance createStandardRaxmlInstance(const std::string& treePath, const std::string& msaPath, bool useRepeats = false);
+void setInstanceRepeats(RaxmlInstance& instance, bool useRepeats);
 
-TreeInfo createStandardRaxmlTreeinfo(const std::string& treePath, const std::string& msaPath, bool useRepeats = false);
+TreeInfo createStandardRaxmlTreeinfo(RaxmlInstance& instance, bool useRepeats = false);
 
-TreeInfo createFakeRaxmlTreeinfo(Network& network, const std::string& networkPath, const std::string& msaPath, bool useRepeats = false);
+TreeInfo createFakeRaxmlTreeinfo(RaxmlInstance& instance, Network& network, bool useRepeats = false);
 
 }

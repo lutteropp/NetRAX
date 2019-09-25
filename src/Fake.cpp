@@ -394,8 +394,13 @@ RaxmlInstance createStandardRaxmlInstance(const std::string& treePath, const std
 	return instance;
 }
 
-TreeInfo createStandardRaxmlTreeinfo(const std::string& treePath, const std::string& msaPath, bool useRepeats) {
-	RaxmlInstance instance = createStandardRaxmlInstance(treePath, msaPath, useRepeats);
+void setInstanceRepeats(RaxmlInstance& instance, bool useRepeats) {
+	instance.opts.use_repeats = useRepeats;
+	instance.opts.use_tip_inner = !useRepeats;
+}
+
+TreeInfo createStandardRaxmlTreeinfo(RaxmlInstance& instance, bool useRepeats) {
+	setInstanceRepeats(instance, useRepeats);
 	/* get partitions assigned to the current thread */
 	PartitionAssignment& part_assign = instance.proc_part_assign.at(ParallelContext::proc_id());
 	TreeInfo raxml_treeinfo = TreeInfo(instance.opts, Tree::loadFromFile(instance.opts.tree_file), *(instance.parted_msa.get()),
@@ -403,8 +408,8 @@ TreeInfo createStandardRaxmlTreeinfo(const std::string& treePath, const std::str
 	return raxml_treeinfo;
 }
 
-TreeInfo createFakeRaxmlTreeinfo(Network& network, const std::string& networkPath, const std::string& msaPath, bool useRepeats) {
-	RaxmlInstance instance = createStandardRaxmlInstance(networkPath, msaPath, useRepeats);
+TreeInfo createFakeRaxmlTreeinfo(RaxmlInstance& instance, Network& network, bool useRepeats) {
+	setInstanceRepeats(instance, useRepeats);
 	/* get partitions assigned to the current thread */
 		PartitionAssignment& part_assign = instance.proc_part_assign.at(ParallelContext::proc_id());
 	TreeInfo network_treeinfo = create_fake_raxml_treeinfo(network, instance.opts, *(instance.parted_msa.get()), instance.tip_msa_idmap,
