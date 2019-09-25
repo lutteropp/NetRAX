@@ -131,9 +131,9 @@ void compareNodes(pll_unode_t* node1, pll_unode_t* node2) {
 	}
 
 	ASSERT_EQ(node1->node_index, node2->node_index);
-	//ASSERT_EQ(node1->pmatrix_index, node2->pmatrix_index);
-	//ASSERT_EQ(node1->scaler_index, node2->scaler_index);
-	//ASSERT_EQ(node1->length, node2->length);
+	ASSERT_EQ(node1->pmatrix_index, node2->pmatrix_index);
+	ASSERT_EQ(node1->scaler_index, node2->scaler_index);
+	ASSERT_EQ(node1->length, node2->length);
 }
 
 TEST (LikelihoodTest, displayedTreeOfTreeToUtree) {
@@ -169,7 +169,6 @@ TEST (LikelihoodTest, displayedTreeOfTreeToUtree) {
 	compareNodes(network_utree->vroot, raxml_utree->vroot);
 
 	for (size_t i = 0; i < network.nodes.size(); ++i) {
-		std::cout << "i = " << i << "\n";
 		compareNodes(network_utree->nodes[i], raxml_utree->nodes[i]);
 		compareNodes(network_utree->nodes[i]->back, raxml_utree->nodes[i]->back);
 		if (network_utree->nodes[i]->next) {
@@ -252,28 +251,35 @@ TEST (LikelihoodTest, compareOperationArrays) {
 	for (size_t i = 0; i < network_ops.size(); ++i) {
 		std::cout << "network_ops[" << i << "]: \n";
 		std::cout << "  parent_clv_index: " << network_ops[i].parent_clv_index << "\n";
+		std::cout << "  parent_scaler_index: " << network_ops[i].parent_scaler_index << "\n";
 		std::cout << "  child1_clv_index: " << network_ops[i].child1_clv_index << "\n";
+		std::cout << "  child1_matrix_index: " << network_ops[i].child1_matrix_index << "\n";
+		std::cout << "  child1_scaler_index: " << network_ops[i].child1_scaler_index << "\n";
 		std::cout << "  child2_clv_index: " << network_ops[i].child2_clv_index << "\n";
+		std::cout << "  child2_matrix_index: " << network_ops[i].child2_matrix_index << "\n";
+		std::cout << "  child2_scaler_index: " << network_ops[i].child2_scaler_index << "\n";
+
 		std::cout << "raxml_ops[" << i << "]: \n";
 		std::cout << "  parent_clv_index: " << raxml_ops[i].parent_clv_index << "\n";
+		std::cout << "  parent_scaler_index: " << raxml_ops[i].parent_scaler_index << "\n";
 		std::cout << "  child1_clv_index: " << raxml_ops[i].child1_clv_index << "\n";
+		std::cout << "  child1_matrix_index: " << raxml_ops[i].child1_matrix_index << "\n";
+		std::cout << "  child1_scaler_index: " << raxml_ops[i].child1_scaler_index << "\n";
 		std::cout << "  child2_clv_index: " << raxml_ops[i].child2_clv_index << "\n";
+		std::cout << "  child2_matrix_index: " << raxml_ops[i].child2_matrix_index << "\n";
+		std::cout << "  child2_scaler_index: " << raxml_ops[i].child2_scaler_index << "\n";
 		std::cout << "\n";
+
+		/*ASSERT_EQ(network_ops[i].parent_clv_index, raxml_ops[i].parent_clv_index);
+		ASSERT_EQ(network_ops[i].child1_clv_index, raxml_ops[i].child1_clv_index);
+		ASSERT_EQ(network_ops[i].child2_clv_index, raxml_ops[i].child2_clv_index);
+		ASSERT_EQ(network_ops[i].parent_scaler_index, raxml_ops[i].parent_scaler_index);
+		ASSERT_EQ(network_ops[i].child1_scaler_index, raxml_ops[i].child1_scaler_index);
+		ASSERT_EQ(network_ops[i].child2_scaler_index, raxml_ops[i].child2_scaler_index);
+		ASSERT_EQ(network_ops[i].child1_matrix_index, raxml_ops[i].child1_matrix_index);
+		ASSERT_EQ(network_ops[i].child2_matrix_index, raxml_ops[i].child2_matrix_index);*/
 	}
 
-	// compare the utrees:
-	pll_utree_t* raxml_utree = raxml_treeinfo.pll_treeinfo().tree;
-	ASSERT_EQ(network_utree->inner_count, raxml_utree->inner_count);
-	ASSERT_EQ(network_utree->binary, raxml_utree->binary);
-	ASSERT_EQ(network_utree->edge_count, raxml_utree->edge_count);
-	ASSERT_EQ(network_utree->tip_count, raxml_utree->tip_count);
-	ASSERT_EQ(network_utree->vroot->clv_index, raxml_utree->vroot->clv_index);
-	ASSERT_EQ(network_utree->vroot->pmatrix_index, raxml_utree->vroot->pmatrix_index);
-	ASSERT_EQ(network_utree->vroot->scaler_index, raxml_utree->vroot->scaler_index);
-	ASSERT_EQ(network_utree->vroot->node_index, raxml_utree->vroot->node_index);
-	ASSERT_EQ(network_utree->vroot->length, raxml_utree->vroot->length);
-
-	std::cout << "utree comparison seemed to work.\n";
 }
 
 TEST (LikelihoodTest, simpleTreeNoRepeats) {
