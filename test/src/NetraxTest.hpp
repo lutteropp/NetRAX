@@ -2,6 +2,10 @@
 
 #include <gtest/gtest.h>
 
+#include <mutex>
+
+extern std::mutex g_singleThread;
+
 // The testing environment
 class NetraxTest : public ::testing::Environment {
 public:

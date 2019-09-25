@@ -11,12 +11,17 @@
 
 #include <gtest/gtest.h>
 #include <string>
+#include <mutex>
 #include <iostream>
 #include "src/Network.hpp"
 
 #include <raxml-ng/main.hpp>
 
+#include "NetraxTest.hpp"
+
 using namespace netrax;
+
+std::mutex g_singleThread;
 
 class LikelihoodTest: public ::testing::Test {
 protected:
@@ -31,6 +36,7 @@ protected:
 	Network smallNetwork;
 
 	virtual void SetUp() {
+		g_singleThread.lock();
 		treeInstance = createStandardRaxmlInstance(treePath, msaPath, false);
 		smallInstance = createStandardRaxmlInstance(networkPath, msaPath, false);
 		treeNetwork = readNetworkFromFile(treePath);
@@ -38,6 +44,7 @@ protected:
 	}
 
 	virtual void TearDown() {
+		g_singleThread.unlock();
 	}
 };
 
@@ -138,7 +145,7 @@ TEST_F (LikelihoodTest, comparePllmodTreeinfo) {
 	 ASSERT_EQ(network_treeinfo.tip_count, raxml_treeinfo.tip_count);*/
 }
 
-TEST_F (LikelihoodTest, DISABLED_simpleTreeNoRepeats) {
+TEST_F (LikelihoodTest, simpleTreeNoRepeats) {
 	TreeInfo network_treeinfo_tree = createFakeRaxmlTreeinfo(treeInstance, treeNetwork);
 	double network_logl = network_treeinfo_tree.loglh(false);
 	std::cout << "The computed network_logl 2 is: " << network_logl << "\n";
@@ -188,7 +195,7 @@ TEST_F (LikelihoodTest, DISABLED_compareOperationArrays) {
 
 }
 
-TEST_F (LikelihoodTest, simpleNetworkNoRepeatsOnlyDisplayedTreeWithRaxml) {
+TEST_F (LikelihoodTest, DISABLED_simpleNetworkNoRepeatsOnlyDisplayedTreeWithRaxml) {
 	Network network = readNetworkFromFile(networkPath);
 
 	/* get partitions assigned to the current thread */
