@@ -244,7 +244,7 @@ void createOperationsPostorder(Node* parent, Node* actNode, std::vector<pll_oper
 	if (activeChildren.size() == 2) {
 		operation.child2_clv_index = activeChildren[1]->getClvIndex();
 		operation.child2_scaler_index = activeChildren[1]->getScalerIndex();
-		operation.child2_matrix_index = activeChildren[0]->getEdgeTo(actNode)->getPMatrixIndex();
+		operation.child2_matrix_index = activeChildren[1]->getEdgeTo(actNode)->getPMatrixIndex();
 
 	} else { // activeChildren.size() == 1
 		operation.child2_clv_index = fake_clv_index;
