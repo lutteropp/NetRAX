@@ -31,8 +31,8 @@ enum class NodeType {
 class ReticulationData {
 public:
 	ReticulationData() :
-			reticulation_index(0), label(""), active_parent(0), link_to_first_parent(nullptr), link_to_second_parent(nullptr), link_to_child(nullptr), prob(
-					0.5) {
+			reticulation_index(0), label(""), active_parent(0), link_to_first_parent(nullptr), link_to_second_parent(nullptr), link_to_child(
+					nullptr), prob(0.5) {
 	}
 
 	void init(size_t index, const std::string& label, bool activeParent, Link* linkToFirstParent, Link* linkToSecondParent,
@@ -128,6 +128,7 @@ struct Link { // subnode in raxml-ng
 	}
 
 	Node* getTargetNode() const {
+		assert(outer != nullptr);
 		return outer->node;
 	}
 
@@ -203,17 +204,18 @@ public:
 	std::vector<Node*> getNeighbors() const {
 		std::vector<Node*> neighbors;
 		Link* currLink = link;
-		while (currLink != nullptr) {
-			if (std::find(neighbors.begin(), neighbors.end(), currLink->outer->node) != neighbors.end()) {
+		do {
+			Node* target = currLink->getTargetNode();
+			if (std::find(neighbors.begin(), neighbors.end(), target) != neighbors.end()) {
 				throw std::runtime_error("Loop in neighbors list!");
 			}
-
-			neighbors.push_back(currLink->outer->node);
-			currLink = currLink->next;
-			if (currLink == link) {
+			neighbors.push_back(target);
+			if (!currLink->next) { // leaf node
+				assert(neighbors.size() == 1);
 				break;
 			}
-		}
+			currLink = currLink->next;
+		} while (currLink != link);
 		return neighbors;
 	}
 

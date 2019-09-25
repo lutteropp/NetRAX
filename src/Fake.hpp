@@ -14,6 +14,7 @@ extern "C" {
 }
 
 #include <raxml-ng/TreeInfo.hpp>
+#include <raxml-ng/main.hpp>
 
 #include <vector>
 
@@ -38,5 +39,11 @@ TreeInfo create_fake_raxml_treeinfo(Network& network, const Options &opts, const
 		const PartitionAssignment& part_assign);
 TreeInfo create_fake_raxml_treeinfo(Network& network, const Options &opts, const PartitionedMSA& parted_msa, const IDVector& tip_msa_idmap,
 		const PartitionAssignment& part_assign, const std::vector<uintVector>& site_weights);
+
+RaxmlInstance createStandardRaxmlInstance(const std::string& treePath, const std::string& msaPath, bool useRepeats = false);
+
+TreeInfo createStandardRaxmlTreeinfo(const std::string& treePath, const std::string& msaPath, bool useRepeats = false);
+
+TreeInfo createFakeRaxmlTreeinfo(Network& network, const std::string& networkPath, const std::string& msaPath, bool useRepeats = false);
 
 }

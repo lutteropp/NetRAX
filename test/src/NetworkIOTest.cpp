@@ -40,9 +40,18 @@ void check_neighbor_count(const Network& network) {
 	}
 }
 
+void check_tip_clvs(const Network& network) {
+	size_t n = network.num_tips();
+	ASSERT_EQ(network.tip_nodes.size(), n);
+	for (size_t i = 0; i < network.tip_nodes.size(); ++i) {
+		ASSERT_TRUE(network.tip_nodes[i]->getClvIndex() < n);
+	}
+}
+
 void sanity_checks(const Network& network) {
 	check_node_types(network);
 	check_neighbor_count(network);
+	check_tip_clvs(network);
 }
 
 TEST (NetworkIOTest, testTheTest) {

@@ -295,4 +295,121 @@ TreeInfo create_fake_raxml_treeinfo(Network& network, const Options &opts, const
 	return create_fake_raxml_treeinfo(network, opts, parted_msa, tip_msa_idmap, part_assign, std::vector<uintVector>());
 }
 
+Options createDefaultOptions() {
+	Options opts;
+	/* if no command specified, default to --search (or --help if no args were given) */
+	opts.command = Command::search;
+	opts.start_trees.clear();
+	opts.random_seed = (long) time(NULL);
+
+	/* compress alignment patterns by default */
+	opts.use_pattern_compression = true;
+
+	/* do not use tip-inner case optimization by default */
+	opts.use_tip_inner = false;
+	/* use site repeats */
+	opts.use_repeats = true;
+
+	/* do not use per-rate-category CLV scalers */
+	opts.use_rate_scalers = false;
+
+	/* use probabilistic MSA _if available_ (e.g. CATG file was provided) */
+	opts.use_prob_msa = true;
+
+	/* optimize model and branch lengths */
+	opts.optimize_model = true;
+	opts.optimize_brlen = true;
+
+	/* initialize LH epsilon with default value */
+	opts.lh_epsilon = DEF_LH_EPSILON;
+
+	/* default: autodetect best SPR radius */
+	opts.spr_radius = -1;
+	opts.spr_cutoff = 1.0;
+
+	/* bootstrapping / bootstopping */
+	opts.bs_metrics.push_back(BranchSupportMetric::fbp);
+	opts.bootstop_criterion = BootstopCriterion::autoMRE;
+	opts.bootstop_cutoff = RAXML_BOOTSTOP_CUTOFF;
+	opts.bootstop_interval = RAXML_BOOTSTOP_INTERVAL;
+	opts.bootstop_permutations = RAXML_BOOTSTOP_PERMUTES;
+
+	/* default: linked branch lengths */
+	opts.brlen_linkage = PLLMOD_COMMON_BRLEN_SCALED;
+	opts.brlen_min = RAXML_BRLEN_MIN;
+	opts.brlen_max = RAXML_BRLEN_MAX;
+
+	/* use all available cores per default */
+#if defined(_RAXML_PTHREADS) && !defined(_RAXML_MPI)
+	opts.num_threads = std::max(1u, sysutil_get_cpu_cores());
+#else
+	opts.num_threads = 1;
+#endif
+
+#if defined(_RAXML_MPI)
+	opts.thread_pinning = ParallelContext::ranks_per_node() == 1 ? true : false;
+#else
+	opts.thread_pinning = false;
+#endif
+
+	opts.model_file = "";
+	opts.tree_file = "";
+
+	// autodetect CPU instruction set and use respective SIMD kernels
+	opts.simd_arch = sysutil_simd_autodetect();
+	opts.load_balance_method = LoadBalancing::benoit;
+
+	opts.num_searches = 0;
+	opts.num_bootstraps = 0;
+
+	opts.force_mode = false;
+	opts.safety_checks = SafetyCheck::all;
+
+	opts.redo_mode = false;
+	opts.nofiles_mode = false;
+
+	opts.tbe_naive = false;
+
+	opts.data_type = DataType::autodetect;
+	opts.use_prob_msa = false;
+	opts.brlen_opt_method = PLLMOD_OPT_BLO_NEWTON_FAST;
+
+	opts.model_file = "DNA";
+
+	return opts;
+}
+
+RaxmlInstance createStandardRaxmlInstance(const std::string& treePath, const std::string& msaPath, bool useRepeats) {
+	RaxmlInstance instance;
+	instance.opts = createDefaultOptions();
+	instance.opts.tree_file = treePath;
+	instance.opts.msa_file = msaPath;
+	instance.opts.command = Command::evaluate;
+	instance.opts.num_threads = 1;
+	instance.opts.use_repeats = useRepeats;
+	instance.opts.use_tip_inner = !useRepeats;
+	load_parted_msa(instance);
+	check_options(instance);
+	balance_load(instance);
+	return instance;
+}
+
+TreeInfo createStandardRaxmlTreeinfo(const std::string& treePath, const std::string& msaPath, bool useRepeats) {
+	RaxmlInstance instance = createStandardRaxmlInstance(treePath, msaPath, useRepeats);
+	/* get partitions assigned to the current thread */
+	PartitionAssignment& part_assign = instance.proc_part_assign.at(ParallelContext::proc_id());
+	TreeInfo raxml_treeinfo = TreeInfo(instance.opts, Tree::loadFromFile(instance.opts.tree_file), *(instance.parted_msa.get()),
+			instance.tip_msa_idmap, part_assign);
+	return raxml_treeinfo;
+}
+
+TreeInfo createFakeRaxmlTreeinfo(Network& network, const std::string& networkPath, const std::string& msaPath, bool useRepeats) {
+	RaxmlInstance instance = createStandardRaxmlInstance(networkPath, msaPath, useRepeats);
+	/* get partitions assigned to the current thread */
+		PartitionAssignment& part_assign = instance.proc_part_assign.at(ParallelContext::proc_id());
+	TreeInfo network_treeinfo = create_fake_raxml_treeinfo(network, instance.opts, *(instance.parted_msa.get()), instance.tip_msa_idmap,
+				part_assign);
+	return network_treeinfo;
+}
+
 }
