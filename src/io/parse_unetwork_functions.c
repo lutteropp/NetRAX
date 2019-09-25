@@ -780,7 +780,21 @@ unetwork_t * unetwork_parse_newick_string(const char * s)
 {
   rnetwork_t * rnetwork = rnetwork_parse_newick_string(s);
   assert(rnetwork);
+
+  // just for debug: ensure that the reticulation name is NULL for non-reticulation nodes
+  unsigned int i;
+  unsigned int node_count = rnetwork->tip_count + rnetwork->inner_tree_count + rnetwork->reticulation_count;
+  for (i = 0; i < node_count; ++i) {
+    assert((rnetwork->nodes[i]->is_reticulation == 1 && rnetwork->nodes[i]->reticulation_name != NULL) || (rnetwork->nodes[i]->is_reticulation == 0 && rnetwork->nodes[i]->reticulation_name == NULL));
+  }
+
   unetwork_t * unetwork = rnetwork_unroot_main(rnetwork);
+
+  // just for debug: ensure that the reticulation name is NULL for non-reticulation nodes
+  for (i = 0; i < node_count; ++i) {
+    assert((rnetwork->nodes[i]->is_reticulation == 1 && rnetwork->nodes[i]->reticulation_name != NULL) || (rnetwork->nodes[i]->is_reticulation == 0 && rnetwork->nodes[i]->reticulation_name == NULL));
+  }
+
   unetwork->binary = rnetwork->binary;
   rnetwork_destroy(rnetwork, NULL);
   return unetwork;

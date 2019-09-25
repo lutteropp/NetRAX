@@ -151,6 +151,7 @@ rnetwork_t * rnetwork_wrapnetwork(rnetwork_node_t * root)
 
   fill_nodes_recursive(root->left, network->nodes, network->reticulation_nodes, &tip_index, &inner_index, &scaler_index);
   fill_nodes_recursive(root->right, network->nodes, network->reticulation_nodes, &tip_index, &inner_index, &scaler_index);
+
   root->idx = inner_index;
   root->clv_index = inner_index;
   root->pmatrix_index = inner_index;
@@ -160,6 +161,29 @@ rnetwork_t * rnetwork_wrapnetwork(rnetwork_node_t * root)
   network->edge_count = reticulation_count + inner_tree_count * 2;
   network->tree_edge_count = inner_tree_count * 2;
   network->binary = 1;
+
+  // just for debug: print the node labels
+  unsigned int i;
+  printf("Just for debug: print the node labels\n");
+  for (i = 0; i < node_count; ++i) {
+	  assert(network->nodes[i]);
+	  if (network->nodes[i]->label) {
+		  printf("%d: %s\n", i, network->nodes[i]->label);
+	  } else {
+		  printf("%d: NULL\n", i);
+	  }
+  }
+  unsigned int j;
+  // just for debug: ensure that no two node pointers are the same
+  for (i = 0; i < node_count; ++i) {
+	  for (j = i + 1; j < node_count; ++j) {
+		  assert(network->nodes[i] != network->nodes[j]);
+	  }
+  }
+  // just for debug: ensure that the retcículation name is NULL for non-reticulation nodes
+  for (i = 0; i < node_count; ++i) {
+	  assert((network->nodes[i]->is_reticulation == 1 && network->nodes[i]->reticulation_name != NULL) || (network->nodes[i]->is_reticulation == 0 && network->nodes[i]->reticulation_name == NULL));
+  }
 
   return network;
 }
@@ -191,6 +215,21 @@ void rnetwork_destroy(rnetwork_t * network,
 {
   unsigned int i;
   rnetwork_node_t * node;
+
+
+  // just for debug: ensure that no two node pointers are the same
+  unsigned int node_count = network->tip_count + network->inner_tree_count + network->reticulation_count;
+  unsigned int j;
+  for (i = 0; i < node_count; ++i) {
+	  for (j = i + 1; j < node_count; ++j) {
+		  assert(network->nodes[i] != network->nodes[j]);
+	  }
+  }
+  // just for debug: ensure that the reticulation name is NULL for non-reticulation nodes
+    for (i = 0; i < node_count; ++i) {
+  	  assert((network->nodes[i]->is_reticulation == 1 && network->nodes[i]->reticulation_name != NULL) || (network->nodes[i]->is_reticulation == 0 && network->nodes[i]->reticulation_name == NULL));
+    }
+
 
   /* deallocate all nodes */
   for (i = 0; i < network->tip_count + network->inner_tree_count + network->reticulation_count; ++i)
