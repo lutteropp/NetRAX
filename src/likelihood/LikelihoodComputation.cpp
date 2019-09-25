@@ -94,22 +94,22 @@ void make_connections(Node* networkNode, pll_unode_t* unode) {
 		pll_unode_t* fromChild1 = create_unode(children[0], true);
 		fromChild1->node_index = children[0]->getLink()->node_index;
 		fromChild1->length = children[0]->getLink()->edge->getLength() + length_to_add + child1LenToAdd;
-		fromChild1->back = unode;
 
 		pll_unode_t* toChild1 = create_unode(children[0], false);
 		toChild1->node_index = children[0]->getLink()->outer->node_index;
 		toChild1->length = children[0]->getLink()->edge->getLength() + length_to_add + child1LenToAdd;
 		toChild1->back = fromChild1;
+		fromChild1->back = toChild1;
 
 		pll_unode_t* fromChild2 = create_unode(children[1], true);
 		fromChild2->node_index = children[1]->getLink()->node_index;
 		fromChild2->length = children[1]->getLink()->edge->getLength() + length_to_add + child2LenToAdd;
-		fromChild2->back = unode;
 
 		pll_unode_t* toChild2 = create_unode(children[1], false);
 		toChild2->node_index = children[1]->getLink()->outer->node_index;
 		toChild2->length = children[1]->getLink()->edge->getLength() + length_to_add + child2LenToAdd;
 		toChild2->back = fromChild2;
+		fromChild2->back = toChild2;
 
 		unode->next = toChild1;
 		unode->next->next = toChild2;
