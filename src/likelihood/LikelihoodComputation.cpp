@@ -25,87 +25,194 @@ static char * xstrdup(const char * s) {
 	return strcpy(p, s);
 }
 
-void make_connections(Node* networkNode, Node* networkParentNode, pll_unode_t* unode) {
+void make_connections(Node* networkNode, pll_unode_t* unode) {
 	assert(networkNode->getType() == NodeType::BASIC_NODE);
 	unode->next = NULL;
 
+	Node* networkParentNode = networkNode->getLink()->getTargetNode();
+
 	std::vector<Node*> children = networkNode->getActiveChildren(networkParentNode);
 	double length_to_add = 0;
+
+	Node* childParentNode = networkNode;
 	while (children.size() == 1) { // this is the case if one of the children is a reticulation node but it's not active
-		// in this case, we need to skip this node and directly connect to the next
+		// in this case, we need to skip the other child node and directly connect to the next
 		length_to_add += children[0]->getLink()->edge->getLength();
-		children = children[0]->getActiveChildren(networkNode);
+		Node* newChildParentNode = children[0];
+		children = children[0]->getActiveChildren(childParentNode);
+		childParentNode = newChildParentNode;
 	}
+
 	// now we should have either zero children (leaf node), or 2 children (inner tree node)
 	assert(children.empty() || children.size() == 2);
 	if (!children.empty()) {
+		// TODO: if an active child is a reticulation node, we need to do some special case stuff
+		double child1LenToAdd = 0.0;
+		while (children[0]->getType() == NodeType::RETICULATION_NODE) {
+			child1LenToAdd += children[0]->getLink()->edge->getLength();
+			Node* reticulationChild = children[0]->getReticulationData()->getLinkToChild()->getTargetNode();
+			if (reticulationChild->getType() == NodeType::RETICULATION_NODE && reticulationChild->getReticulationData()->getLinkToActiveParent()->getTargetNode() != children[0]) {
+				children[0] = nullptr;
+				break;
+			} else {
+				children[0] = reticulationChild;
+			}
+		}
+		double child2LenToAdd = 0.0;
+		while (children[1]->getType() == NodeType::RETICULATION_NODE) {
+			child2LenToAdd += children[1]->getLink()->edge->getLength();
+			Node* reticulationChild = children[1]->getReticulationData()->getLinkToChild()->getTargetNode();
+			if (reticulationChild->getType() == NodeType::RETICULATION_NODE && reticulationChild->getReticulationData()->getLinkToActiveParent()->getTargetNode() != children[1]) {
+				children[1] = nullptr;
+				break;
+			} else {
+				children[1] = reticulationChild;
+			}
+		}
+		assert(children[0]);
+		assert(children[1]);
+
+		assert(children[0]->getType() == NodeType::BASIC_NODE);
+		assert(children[1]->getType() == NodeType::BASIC_NODE);
+
 		pll_unode_t* fromChild1 = pllmod_utree_create_node(children[0]->getClvIndex(), children[0]->getScalerIndex(),
 				xstrdup(children[0]->getLabel().c_str()), NULL);
 		fromChild1->node_index = children[0]->getLink()->node_index;
-		fromChild1->length = children[0]->getLink()->edge->getLength() + length_to_add;
+		fromChild1->length = children[0]->getLink()->edge->getLength() + length_to_add + child1LenToAdd;
 		fromChild1->back = unode;
 
 		pll_unode_t* toChild1 = pllmod_utree_create_node(children[0]->getClvIndex(), children[0]->getScalerIndex(),
 				xstrdup(children[0]->getLabel().c_str()), NULL);
 		toChild1->node_index = children[0]->getLink()->outer->node_index;
-		toChild1->length = children[0]->getLink()->edge->getLength() + length_to_add;
+		toChild1->length = children[0]->getLink()->edge->getLength() + length_to_add + child1LenToAdd;
 		toChild1->back = fromChild1;
 
 		pll_unode_t* fromChild2 = pllmod_utree_create_node(children[1]->getClvIndex(), children[1]->getScalerIndex(),
 				xstrdup(children[1]->getLabel().c_str()), NULL);
 		fromChild2->node_index = children[1]->getLink()->node_index;
-		fromChild2->length = children[1]->getLink()->edge->getLength() + length_to_add;
+		fromChild2->length = children[1]->getLink()->edge->getLength() + length_to_add + child2LenToAdd;
 		fromChild2->back = unode;
 
 		pll_unode_t* toChild2 = pllmod_utree_create_node(children[0]->getClvIndex(), children[0]->getScalerIndex(),
 				xstrdup(children[0]->getLabel().c_str()), NULL);
 		toChild2->node_index = children[1]->getLink()->outer->node_index;
-		toChild2->length = children[1]->getLink()->edge->getLength() + length_to_add;
+		toChild2->length = children[1]->getLink()->edge->getLength() + length_to_add + child2LenToAdd;
 		toChild2->back = fromChild2;
 
 		unode->next = toChild1;
 		unode->next->next = toChild2;
 		unode->next->next->next = unode;
-		make_connections(children[0], networkNode, fromChild1);
-		make_connections(children[1], networkNode, fromChild2);
+		make_connections(children[0], fromChild1);
+		make_connections(children[1], fromChild2);
 	}
+}
+
+pll_utree_t * handleRootPassiveReticulation(Network& network) {
+	Node* root = network.root;
+	Node* root_back = network.root->getLink()->getTargetNode();
+	assert(root->getType() == NodeType::BASIC_NODE);
+	assert(root_back->getType() == NodeType::RETICULATION_NODE);
+	assert(root_back->getReticulationData()->getLinkToActiveParent()->getTargetNode() != root);
+
+	// root is not the active parent of root_back
+	// this is a more difficult case, as also the root changes
+
+	Node* new_root;
+	Node* other_child;
+	// we need to get a non-leaf active child node as the new root.
+	std::vector<Node*> activeChildren = root->getActiveChildren(root_back);
+	assert(activeChildren.size() == 2);
+	if (activeChildren[0]->isTip()) {
+		assert(!activeChildren[1]->isTip());
+		new_root = activeChildren[1];
+		other_child = activeChildren[0];
+	} else {
+		new_root = activeChildren[0];
+		other_child = activeChildren[1];
+	}
+
+	pll_unode_t* uroot = pllmod_utree_create_node(new_root->getClvIndex(), new_root->getScalerIndex(),
+			xstrdup(new_root->getLabel().c_str()), NULL);
+	uroot->node_index = new_root->getLink()->node_index;
+	pll_unode_t* uroot_back = pllmod_utree_create_node(other_child->getClvIndex(), other_child->getScalerIndex(),
+			xstrdup(other_child->getLabel().c_str()), NULL);
+	uroot_back->node_index = other_child->getLink()->node_index;
+
+	double edgeLen = new_root->getLink()->edge->getLength() + other_child->getLink()->edge->getLength();
+	uroot->length = edgeLen;
+	uroot_back->length = edgeLen;
+	uroot->back = uroot_back;
+	uroot_back->back = uroot;
+
+	make_connections(new_root, uroot);
+	make_connections(other_child, uroot_back);
+
+	pll_utree_reset_template_indices(uroot, network.num_tips());
+	return pll_utree_wraptree(uroot, network.num_tips());
+}
+
+pll_utree_t * handleRootActiveReticulation(Network& network) {
+	Node* root = network.root;
+	Node* root_back = network.root->getLink()->getTargetNode();
+	assert(root->getType() == NodeType::BASIC_NODE);
+	assert(root_back->getType() == NodeType::RETICULATION_NODE);
+	pll_unode_t* uroot = pllmod_utree_create_node(root->getClvIndex(), root->getScalerIndex(), xstrdup(root->getLabel().c_str()), NULL);
+
+	// skip the reticulation node on its way...
+	double skippedLen = 0.0;
+	while (root_back->getType() == NodeType::RETICULATION_NODE) {
+		skippedLen += root_back->getLink()->edge->getLength();
+		root_back = root_back->getReticulationData()->getLinkToChild()->getTargetNode();
+	}
+	double totalLen = skippedLen + root_back->getLink()->edge->getLength();
+	pll_unode_t* uroot_back = (pll_unode_t*) pllmod_utree_create_node(root_back->getClvIndex(), root_back->getScalerIndex(),
+			xstrdup(root_back->getLabel().c_str()),
+			NULL);
+	uroot_back->node_index = root_back->getLink()->node_index;
+	uroot->back = uroot_back;
+	uroot_back->back = uroot;
+	uroot->length = totalLen;
+	uroot_back->length = totalLen;
+	make_connections(root, uroot);
+	make_connections(root_back, uroot_back);
+
+	pll_utree_reset_template_indices(uroot, network.num_tips());
+	return pll_utree_wraptree(uroot, network.num_tips());
+}
+
+pll_utree_t * handleRootNormal(Network& network) {
+	Node* root = network.root;
+	Node* root_back = network.root->getLink()->getTargetNode();
+	pll_unode_t* uroot = pllmod_utree_create_node(root->getClvIndex(), root->getScalerIndex(), xstrdup(root->getLabel().c_str()), NULL);
+	uroot->node_index = root->getLink()->node_index;
+	pll_unode_t* uroot_back = pllmod_utree_create_node(root_back->getClvIndex(), root_back->getScalerIndex(),
+			xstrdup(root_back->getLabel().c_str()), NULL);
+	uroot_back->node_index = root_back->getLink()->node_index;
+	uroot->length = root->getLink()->edge->getLength();
+	uroot_back->length = root_back->getLink()->edge->getLength();
+	uroot->back = uroot_back;
+	uroot_back->back = uroot;
+	make_connections(root, uroot);
+	make_connections(root_back, uroot_back);
+	pll_utree_reset_template_indices(uroot, network.num_tips());
+	return pll_utree_wraptree(uroot, network.num_tips());
 }
 
 pll_utree_t * displayed_tree_to_utree(Network& network, size_t tree_index) {
 	network.setReticulationParents(tree_index);
-
 	Node* root = network.root;
+	assert(root->getType() == NodeType::BASIC_NODE);
 	Node* root_back = network.root->getLink()->getTargetNode();
-
-	pll_unode_t* uroot = pllmod_utree_create_node(root->getClvIndex(), root->getScalerIndex(), xstrdup(root->getLabel().c_str()), NULL);
-	uroot->node_index = root->getLink()->node_index;
 
 	if (root_back->getType() == NodeType::RETICULATION_NODE) {
 		if (root_back->getReticulationData()->getLinkToActiveParent()->getTargetNode() == root) {
-			// TODO
+			return handleRootActiveReticulation(network);
 		} else {
-			// TODO
+			return handleRootPassiveReticulation(network);
 		}
+	} else { // normal case
+		return handleRootNormal(network);
 	}
-
-	pll_unode_t* uroot_back = pllmod_utree_create_node(root_back->getClvIndex(), root_back->getScalerIndex(),
-			xstrdup(root_back->getLabel().c_str()), NULL);
-	uroot_back->node_index = root_back->getLink()->node_index;
-
-	// TODO: Set the lengths of uroot and uroot_back... The following is only correct if neither root nor root_back is a reticulation node.
-	uroot->length = root->getLink()->edge->getLength();
-	uroot_back->length = root_back->getLink()->edge->getLength();
-
-	// TODO: If root_back is a reticulation node, then we have two cases: Either we have to do nothing (if root is not the active parent of root_back), or we have to do the same reticulation node handling as in make_connections.
-
-	uroot->back = uroot_back;
-	uroot_back->back = uroot;
-
-	make_connections(root, root_back, uroot);
-	make_connections(root_back, root, uroot_back);
-
-	pll_utree_reset_template_indices(uroot, network.num_tips());
-	return pll_utree_wraptree(uroot, network.num_tips());
 }
 
 // TODO: Use a dirty flag to only update CLVs that are needed... actually, we might already have it. It's called clv_valid and is in the treeinfo...

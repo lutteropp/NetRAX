@@ -144,7 +144,7 @@ TEST (LikelihoodTest, simpleTreeNoRepeatsNormalRaxml) {
 	TreeInfo raxml_treeinfo = TreeInfo(instance.opts, Tree::loadFromFile(instance.opts.tree_file), *(instance.parted_msa.get()), instance.tip_msa_idmap, part_assign);
 
 	double network_logl = raxml_treeinfo.loglh(false);
-	std::cout << "The computed network_logl is: " << network_logl << "\n";
+	std::cout << "The computed network_logl 1 is: " << network_logl << "\n";
 	ASSERT_NE(network_logl, -std::numeric_limits<double>::infinity());
 }
 
@@ -170,12 +170,12 @@ TEST (LikelihoodTest, DISABLED_simpleTreeNoRepeats) {
 	TreeInfo raxml_treeinfo = create_fake_raxml_treeinfo(network, instance.opts, *(instance.parted_msa.get()), instance.tip_msa_idmap,
 			part_assign);
 	double network_logl = raxml_treeinfo.loglh(false);
-	std::cout << "The computed network_logl is: " << network_logl << "\n";
+	std::cout << "The computed network_logl 2 is: " << network_logl << "\n";
 	ASSERT_NE(network_logl, -std::numeric_limits<double>::infinity());
 }
 
 TEST (LikelihoodTest, simpleNetworkNoRepeatsOnlyDisplayedTreeWithRaxml) {
-	std::string networkPath = "examples/sample_networks/tree.nw";
+	std::string networkPath = "examples/sample_networks/small.nw";
 	Network network = readNetworkFromFile(networkPath);
 	std::string msaPath = "examples/sample_networks/small_fake_alignment.nw";
 
@@ -197,12 +197,12 @@ TEST (LikelihoodTest, simpleNetworkNoRepeatsOnlyDisplayedTreeWithRaxml) {
 
 	TreeInfo raxml_treeinfo = TreeInfo(instance.opts, tree, *(instance.parted_msa.get()), instance.tip_msa_idmap, part_assign);
 	double network_logl = raxml_treeinfo.loglh(false);
-	std::cout << "The computed network_logl is: " << network_logl << "\n";
+	std::cout << "The computed network_logl 3 is: " << network_logl << "\n";
 	ASSERT_NE(network_logl, -std::numeric_limits<double>::infinity());
 }
 
 TEST (LikelihoodTest, simpleNetworkWithRepeatsOnlyDisplayedTreeWithRaxml) {
-	std::string networkPath = "examples/sample_networks/tree.nw";
+	std::string networkPath = "examples/sample_networks/small.nw";
 	Network network = readNetworkFromFile(networkPath);
 	std::string msaPath = "examples/sample_networks/small_fake_alignment.nw";
 
@@ -224,7 +224,7 @@ TEST (LikelihoodTest, simpleNetworkWithRepeatsOnlyDisplayedTreeWithRaxml) {
 
 	TreeInfo raxml_treeinfo = TreeInfo(instance.opts, tree, *(instance.parted_msa.get()), instance.tip_msa_idmap, part_assign);
 	double network_logl = raxml_treeinfo.loglh(false);
-	std::cout << "The computed network_logl is: " << network_logl << "\n";
+	std::cout << "The computed network_logl 4 is: " << network_logl << "\n";
 	ASSERT_NE(network_logl, -std::numeric_limits<double>::infinity());
 }
 
@@ -252,7 +252,7 @@ TEST (LikelihoodTest, simpleTreeWithRepeats) {
 	TreeInfo raxml_treeinfo = create_fake_raxml_treeinfo(network, instance.opts, *(instance.parted_msa.get()), instance.tip_msa_idmap,
 			part_assign);
 	double network_logl = raxml_treeinfo.loglh(false);
-	std::cout << "The computed network_logl is: " << network_logl << "\n";
+	std::cout << "The computed network_logl 5 is: " << network_logl << "\n";
 	ASSERT_NE(network_logl, -std::numeric_limits<double>::infinity());
 }
 
@@ -278,7 +278,7 @@ TEST (LikelihoodTest, simpleNetworkNoRepeats) {
 	TreeInfo raxml_treeinfo = create_fake_raxml_treeinfo(network, instance.opts, *(instance.parted_msa.get()), instance.tip_msa_idmap,
 			part_assign);
 	double network_logl = raxml_treeinfo.loglh(false);
-	std::cout << "The computed network_logl is: " << network_logl << "\n";
+	std::cout << "The computed network_logl 6 is: " << network_logl << "\n";
 	ASSERT_NE(network_logl, -std::numeric_limits<double>::infinity());
 }
 
@@ -306,7 +306,7 @@ TEST (LikelihoodTest, simpleNetworkWithRepeats) {
 	TreeInfo raxml_treeinfo = create_fake_raxml_treeinfo(network, instance.opts, *(instance.parted_msa.get()), instance.tip_msa_idmap,
 			part_assign);
 	double network_logl = raxml_treeinfo.loglh(false);
-	std::cout << "The computed network_logl is: " << network_logl << "\n";
+	std::cout << "The computed network_logl 7 is: " << network_logl << "\n";
 	ASSERT_NE(network_logl, -std::numeric_limits<double>::infinity());
 }
 
@@ -321,6 +321,6 @@ TEST (LikelihoodTest, DISABLED_celineNetwork) {
 
 	TreeInfo raxml_treeinfo = create_fake_raxml_treeinfo(network, raxml_opts, parted_msa, tip_msa_idmap, part_assign);
 	double network_logl = raxml_treeinfo.loglh(false);
-	std::cout << "The computed network_logl is: " << network_logl << "\n";
+	std::cout << "The computed network_logl 8 is: " << network_logl << "\n";
 	ASSERT_TRUE(true);
 }
