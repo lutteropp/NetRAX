@@ -111,6 +111,10 @@ Network convertNetwork(const unetwork_t& unetwork) {
 	return network;
 }
 
+Link* buildBackLink() {
+	throw new std::runtime_error("Not implemented yet");
+}
+
 Network convertNetwork(const RootedNetwork& rnetwork) {
 	size_t node_count = rnetwork.nodes.size();
 	// special case: check if rnetwork.root has only one child... if so, reset the root to its child.
@@ -127,13 +131,15 @@ Network convertNetwork(const RootedNetwork& rnetwork) {
 	size_t link_count = branch_count * 2;
 
 	Network network;
-
-	network.reticulation_nodes.resize(reticulation_count);
 	network.nodes.resize(node_count);
-	network.tip_nodes.resize(tip_count);
-	network.inner_nodes.resize(inner_count);
 	network.edges.resize(branch_count);
 	network.links.resize(link_count);
+	network.reticulation_nodes.resize(reticulation_count);
+
+	size_t actNodeCount = 0;
+	size_t actEdgeCount = 0;
+	size_t actLinkCount = 0;
+	size_t actReticulationCount = 0;
 
 	// create the uroot node.
 	/* get the first root child that has descendants and make it the new root */
@@ -155,7 +161,50 @@ Network convertNetwork(const RootedNetwork& rnetwork) {
 	size_t inner_pmatrix_index = tip_count;
 	size_t inner_node_index = tip_count;
 
-	// ... TODO: Do the actual work...
+	Node* uroot = &network.nodes[actNodeCount++];
+	Link* firstLink = &network.links[actLinkCount++];
+	firstLink->node_index = inner_node_index++;
+	Link* secondLink = &network.links[actLinkCount++];
+	secondLink->node_index = inner_node_index++;
+	Link* thirdLink = &network.links[actLinkCount++];
+	thirdLink->node_index = inner_node_index++;
+	firstLink->next = secondLink;
+	secondLink->next = thirdLink;
+	thirdLink->next = firstLink;
+	firstLink->node = uroot;
+	secondLink->node = uroot;
+	thirdLink->node = uroot;
+
+	Edge* firstEdge = &network.edges[actEdgeCount++];
+	Edge* secondEdge = &network.edges[actEdgeCount++];
+	Edge* thirdEdge = &network.edges[actEdgeCount++];
+	firstEdge->pmatrix_index = inner_pmatrix_index++;
+	secondEdge->pmatrix_index = inner_pmatrix_index++;
+	thirdEdge->pmatrix_index = inner_pmatrix_index++;
+	firstEdge->link1 = firstLink;
+	secondEdge->link1 = secondLink;
+	thirdEdge->link1 = thirdLink;
+
+	firstEdge->length = new_root->children[0]->length;
+	secondEdge->length = new_root->children[1]->length;
+	thirdEdge->length = other_child->length;
+
+	firstLink->edge = firstEdge;
+	secondLink->edge = secondEdge;
+	thirdLink->edge = thirdEdge;
+
+	uroot->initBasic(inner_clv_index++, inner_scaler_index++, firstLink, new_root->label);
+
+	Link* link1Back = buildBackLink();
+	Link* link2Back = buildBackLink();
+	Link* link3Back = buildBackLink();
+
+	firstLink->outer = link1Back;
+	secondLink->outer = link2Back;
+	thirdLink->outer = link3Back;
+	firstEdge->link2 = link1Back;
+	secondEdge->link2 = link2Back;
+	thirdEdge->link2 = link3Back;
 
 	//At the end, sort the arrays based on clv_index, pmatrix_index, node_index...
 	std::sort(network.nodes.begin(), network.nodes.end(), [] (const auto& lhs, const auto& rhs) {
@@ -167,6 +216,8 @@ Network convertNetwork(const RootedNetwork& rnetwork) {
 	std::sort(network.links.begin(), network.links.end(), [] (const auto& lhs, const auto& rhs) {
 		return lhs.getNodeIndex() < rhs.getNodeIndex();
 	});
+
+	return network;
 }
 
 Network readNetworkFromString(const std::string& newick) {

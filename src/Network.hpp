@@ -103,7 +103,7 @@ public:
 	void setLinkToChild(Link* link) {
 		link_to_child = link;
 	}
-private:
+
 	size_t reticulation_index;
 	std::string label;
 	bool active_parent; // 0: first_parent, 1: second_parent
@@ -274,7 +274,7 @@ public:
 		assert(type == NodeType::RETICULATION_NODE);
 		return reticulationData;
 	}
-private:
+
 	size_t clv_index;
 	int scaler_index;
 	Link* link;
@@ -318,7 +318,7 @@ public:
 	void setLength(double length) {
 		this->length = length;
 	}
-private:
+
 	size_t pmatrix_index;
 	Link* link1;
 	Link* link2;

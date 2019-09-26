@@ -77,7 +77,7 @@ RootedNetworkNode* buildNormalNodeFromString(const std::string& str, RootedNetwo
 	node->parent = parent;
 
 	size_t firstColonIndex = str.find(':');
-	node->name = substring(str, 0, firstColonIndex);
+	node->label = substring(str, 0, firstColonIndex);
 	std::array<double, 3> brlen_support_prob = readBrlenSupportProb(str);
 	node->length = brlen_support_prob[0];
 	node->support = brlen_support_prob[1];
@@ -99,7 +99,7 @@ RootedNetworkNode* buildNewReticulationNodeFromString(const std::string& str, si
 	size_t colonCount = std::count(str.begin(), str.end(), ':');
 	assert(colonCount <= 3);
 
-	node->name = substring(str, 0, hashtagIndex);
+	node->label = substring(str, 0, hashtagIndex);
 	size_t firstColonPos = str.find(':');
 	assert(firstColonPos > hashtagIndex);
 	std::string reticulationName = substring(str, hashtagIndex + 1, firstColonPos);
@@ -133,7 +133,7 @@ void extendReticulationNodeFromString(const std::string& str, RootedNetworkNode*
 	assert(firstColonPos > hashtagIndex);
 	std::string reticulationName = substring(str, hashtagIndex + 1, firstColonPos);
 	assert(!reticulationName.empty());
-	assert(node->name == name);
+	assert(node->label == name);
 	assert(node->reticulationName == reticulationName);
 
 	std::array<double, 3> brlen_support_prob = readBrlenSupportProb(str);
@@ -239,7 +239,7 @@ std::string newickNodeName(const RootedNetworkNode* node, const RootedNetworkNod
 	assert(node);
 	std::stringstream sb("");
 
-	sb << node->name;
+	sb << node->label;
 	if (node->isReticulation) {
 		assert(parent);
 		sb << "#" << node->reticulationName;

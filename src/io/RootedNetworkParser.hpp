@@ -19,7 +19,7 @@
 namespace netrax {
 
 struct RootedNetworkNode {
-	std::string name = "";
+	std::string label = "";
 	std::vector<RootedNetworkNode*> children;
 
 	// only relevant for non-reticulation nodes
