@@ -15,10 +15,16 @@
 
 #include "NetraxTest.hpp"
 
+#include "src/io/RootedNetworkParser.hpp"
+
 using namespace netrax;
 
 class NetworkIOTest: public ::testing::Test {
 protected:
+	std::string treePath = "examples/sample_networks/tree.nw";
+	std::string networkPath = "examples/sample_networks/small.nw";
+	std::string msaPath = "examples/sample_networks/small_fake_alignment.nw";
+
 	virtual void SetUp() {
 		g_singleThread.lock();
 	}
@@ -27,7 +33,6 @@ protected:
 		g_singleThread.unlock();
 	}
 };
-
 
 void check_node_types(const Network& network) {
 	for (size_t i = 0; i < network.nodes.size(); ++i) {
@@ -69,6 +74,17 @@ void sanity_checks(const Network& network) {
 }
 
 TEST_F (NetworkIOTest, testTheTest) {
+	ASSERT_TRUE(true);
+}
+
+TEST_F (NetworkIOTest, rootedNetworkParserSmall) {
+	std::string newick = "((A:2,((B:1,C:1)P:1)X#H1:0::0.3)Q:2,(D:2,X#H1:0::0.7)R:2);";
+	RootedNetwork small = netrax::parseRootedNetworkFromNewickString(newick);
+	std::cout << netrax::toNewickString(small) << "\n";
+}
+
+TEST_F (NetworkIOTest, readNetworkFromFile) {
+	Network small = readNetworkFromFile(networkPath);
 	ASSERT_TRUE(true);
 }
 

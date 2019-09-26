@@ -82,7 +82,7 @@ void compareNodes(pll_unode_t* node1, pll_unode_t* node2) {
 	ASSERT_EQ(node1->length, node2->length);
 }
 
-TEST_F (LikelihoodTest, DISABLED_displayedTreeOfTreeToUtree) {
+TEST_F (LikelihoodTest, displayedTreeOfTreeToUtree) {
 	pll_utree_t * network_utree = displayed_tree_to_utree(treeNetwork, 0);
 
 	ASSERT_NE(network_utree, nullptr);
@@ -112,12 +112,12 @@ TEST_F (LikelihoodTest, DISABLED_displayedTreeOfTreeToUtree) {
 	}
 }
 
-TEST_F (LikelihoodTest, DISABLED_displayedTreeOfNetworkToUtree) {
+TEST_F (LikelihoodTest, displayedTreeOfNetworkToUtree) {
 	pll_utree_t * utree = displayed_tree_to_utree(smallNetwork, 0);
 	ASSERT_NE(utree, nullptr);
 }
 
-TEST_F (LikelihoodTest, DISABLED_simpleTreeNoRepeatsNormalRaxml) {
+TEST_F (LikelihoodTest, simpleTreeNoRepeatsNormalRaxml) {
 	TreeInfo raxml_treeinfo = createStandardRaxmlTreeinfo(treeInstance, false);
 
 	double network_logl = raxml_treeinfo.loglh(false);
@@ -125,27 +125,22 @@ TEST_F (LikelihoodTest, DISABLED_simpleTreeNoRepeatsNormalRaxml) {
 	ASSERT_NE(network_logl, -std::numeric_limits<double>::infinity());
 }
 
-TEST_F (LikelihoodTest, DISABLED_comparePllmodTreeinfo) {
+TEST_F (LikelihoodTest, comparePllmodTreeinfo) {
 	TreeInfo network_treeinfo_tree = createFakeRaxmlTreeinfo(treeInstance, treeNetwork);
-
-	std::cout << "This is a test \n";
-
 	TreeInfo raxml_treeinfo_tree = createStandardRaxmlTreeinfo(treeInstance);
 
-	std::cout << "Here I am \n";
-
-	/*const pllmod_treeinfo_t& network_treeinfo = network_treeinfo_tree.pll_treeinfo();
+	const pllmod_treeinfo_t& network_treeinfo = network_treeinfo_tree.pll_treeinfo();
 	const pllmod_treeinfo_t& raxml_treeinfo = raxml_treeinfo_tree.pll_treeinfo();
 
-	 ASSERT_EQ(network_treeinfo.active_partition, raxml_treeinfo.active_partition);
-	 ASSERT_EQ(network_treeinfo.brlen_linkage, raxml_treeinfo.brlen_linkage);
-	 ASSERT_EQ(network_treeinfo.init_partition_count, raxml_treeinfo.init_partition_count);
-	 ASSERT_EQ(network_treeinfo.partition_count, raxml_treeinfo.partition_count);
-	 ASSERT_EQ(network_treeinfo.subnode_count, raxml_treeinfo.subnode_count);
-	 ASSERT_EQ(network_treeinfo.tip_count, raxml_treeinfo.tip_count);*/
+	ASSERT_EQ(network_treeinfo.active_partition, raxml_treeinfo.active_partition);
+	ASSERT_EQ(network_treeinfo.brlen_linkage, raxml_treeinfo.brlen_linkage);
+	ASSERT_EQ(network_treeinfo.init_partition_count, raxml_treeinfo.init_partition_count);
+	ASSERT_EQ(network_treeinfo.partition_count, raxml_treeinfo.partition_count);
+	ASSERT_EQ(network_treeinfo.subnode_count, raxml_treeinfo.subnode_count);
+	ASSERT_EQ(network_treeinfo.tip_count, raxml_treeinfo.tip_count);
 }
 
-TEST_F (LikelihoodTest, DISABLED_simpleTreeNoRepeats) {
+TEST_F (LikelihoodTest, simpleTreeNoRepeats) {
 	TreeInfo network_treeinfo_tree = createFakeRaxmlTreeinfo(treeInstance, treeNetwork);
 	double network_logl = network_treeinfo_tree.loglh(false);
 	std::cout << "The computed network_logl 2 is: " << network_logl << "\n";
