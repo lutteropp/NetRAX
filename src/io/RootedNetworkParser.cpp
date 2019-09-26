@@ -10,6 +10,7 @@
 #include <unordered_set>
 #include <algorithm>
 #include <sstream>
+#include <cassert>
 
 #include "RootedNetworkParser.hpp"
 
@@ -197,7 +198,7 @@ std::vector<std::string> split(const std::string& s) {
 }
 
 RootedNetworkNode* readSubtree(RootedNetworkNode* parent, const std::string& s, std::vector<RootedNetworkNode*>& nodeList,
-		std::unordered_map<std::string, size_t>& reticulations_lookup, size_t* num_reticulations) {
+		std::unordered_map<std::string, size_t>& reticulations_lookup, size_t* num_reticulations, size_t* num_tips) {
 	size_t leftParen = s.find('(');
 	size_t rightParen = s.rfind(')');
 	if (leftParen != std::string::npos && rightParen != std::string::npos) {
@@ -207,7 +208,7 @@ RootedNetworkNode* readSubtree(RootedNetworkNode* parent, const std::string& s, 
 		RootedNetworkNode* node = buildNodeFromString(name, parent, nodeList, reticulations_lookup, num_reticulations);
 
 		for (std::string sub : childrenString) {
-			RootedNetworkNode* child = readSubtree(node, sub, nodeList, reticulations_lookup, num_reticulations);
+			RootedNetworkNode* child = readSubtree(node, sub, nodeList, reticulations_lookup, num_reticulations, num_tips);
 			node->children.push_back(child);
 			if (!child->isReticulation) {
 				child->parent = node;
@@ -216,6 +217,10 @@ RootedNetworkNode* readSubtree(RootedNetworkNode* parent, const std::string& s, 
 		return node;
 	} else if (leftParen == rightParen) {
 		RootedNetworkNode* node = buildNodeFromString(s, parent, nodeList, reticulations_lookup, num_reticulations);
+		if (!node->isReticulation) {
+			node->tip_index = *num_tips;
+			(*num_tips)++;
+		}
 		return node;
 	} else
 		throw std::runtime_error("unbalanced ()'s");
@@ -225,9 +230,8 @@ RootedNetwork parseRootedNetworkFromNewickString(const std::string& newick) {
 	RootedNetwork rnetwork;
 	// TODO: special case: ignore faulty extra Céline parantheses which lead to top-level monofurcation
 	std::unordered_map<std::string, size_t> reticulations_lookup;
-	size_t num_reticulations = 0;
 	rnetwork.root = readSubtree(nullptr, substring(newick, 0, newick.size() - 1), rnetwork.nodes, reticulations_lookup,
-			&num_reticulations);
+			&rnetwork.reticulationCount, &rnetwork.tipCount);
 	return rnetwork;
 }
 

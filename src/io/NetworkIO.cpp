@@ -12,14 +12,11 @@
 #include <stdexcept>
 #include <iostream>
 
+extern "C" {
+#include "lowlevel_parsing.hpp"
+}
+
 namespace netrax {
-
-// NetTree: Item[;]
-// Item: (Item, Item) OR Node
-// Node: TreeNode OR ReticulationNode
-
-// TreeNode: [label][:branch_length] or [label] or [label][:branch_length][:support] or [] or [:branch_length] or [:branch_length][:support]
-// ReticulationNode: [label]#[type]i[:branch_length] or [label][:branch_length][:support][:inheritance_probability] or #[type]i[:branch_length] or #[type]i[:branch_length][:support] or #[type]i[:branch_length][:support][:inheritance_probability] or #[type]i
 
 void setLinksAndEdgesAndNodes(Network& network, const unetwork_node_t* unode, bool keepDirection) {
 	if (!unode->next) { // leaf node
@@ -112,6 +109,64 @@ Network convertNetwork(const unetwork_t& unetwork) {
 	assert(network.inner_nodes.size() == unetwork.inner_tree_count + unetwork.reticulation_count);
 
 	return network;
+}
+
+Network convertNetwork(const RootedNetwork& rnetwork) {
+	size_t node_count = rnetwork.nodes.size();
+	// special case: check if rnetwork.root has only one child... if so, reset the root to its child.
+	RootedNetworkNode* root = rnetwork.root;
+	if (root->children.size() == 1) {
+		root = root->children[0];
+		node_count--;
+	}
+	assert(root->children.size() == 2);
+	size_t reticulation_count = rnetwork.reticulationCount;
+	size_t tip_count = rnetwork.tipCount;
+	size_t inner_count = node_count - tip_count;
+	size_t branch_count = inner_count * 3; // assuming binary network
+	size_t link_count = branch_count * 2;
+
+	Network network;
+
+	network.reticulation_nodes.resize(reticulation_count);
+	network.nodes.resize(node_count);
+	network.tip_nodes.resize(tip_count);
+	network.inner_nodes.resize(inner_count);
+	network.edges.resize(branch_count);
+	network.links.resize(link_count);
+
+	// create the uroot node.
+	/* get the first root child that has descendants and make it the new root */
+	RootedNetworkNode* new_root = nullptr;
+	RootedNetworkNode* other_child = nullptr;
+	if (root->children[0]->children.size() == 2) { // we don't want to have a reticulation node as the new root...
+		new_root = root->children[0];
+		other_child = root->children[1];
+	} else {
+		new_root = root->children[1];
+		other_child = root->children[0];
+	}
+	// the new 3 neighbors of new_root are now: new_root->children[0], new_root->children[1], and other_child
+	assert(new_root);
+	assert(other_child);
+
+	size_t inner_clv_index = tip_count;
+	size_t inner_scaler_index = 0;
+	size_t inner_pmatrix_index = tip_count;
+	size_t inner_node_index = tip_count;
+
+	// ... TODO: Do the actual work...
+
+	//At the end, sort the arrays based on clv_index, pmatrix_index, node_index...
+	std::sort(network.nodes.begin(), network.nodes.end(), [] (const auto& lhs, const auto& rhs) {
+		return lhs.getClvIndex() < rhs.getClvIndex();
+	});
+	std::sort(network.edges.begin(), network.edges.end(), [] (const auto& lhs, const auto& rhs) {
+		return lhs.getPMatrixIndex() < rhs.getPMatrixIndex();
+	});
+	std::sort(network.links.begin(), network.links.end(), [] (const auto& lhs, const auto& rhs) {
+		return lhs.getNodeIndex() < rhs.getNodeIndex();
+	});
 }
 
 Network readNetworkFromString(const std::string& newick) {

@@ -127,6 +127,10 @@ struct Link { // subnode in raxml-ng
 		this->direction = direction;
 	}
 
+	size_t getNodeIndex() const {
+		return node_index;
+	}
+
 	Node* getTargetNode() const {
 		assert(outer != nullptr);
 		return outer->node;

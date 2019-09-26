@@ -39,11 +39,21 @@ struct RootedNetworkNode {
 	double secondParentSupport = 0.0;
 	RootedNetworkNode* firstParent = nullptr;
 	RootedNetworkNode* secondParent = nullptr;
+
+	size_t tip_index = std::numeric_limits<size_t>::infinity(); // this will be used to later on set the clv_index and the pmatrix_index values of tip nodes
 };
 
 struct RootedNetwork {
 	RootedNetworkNode* root;
 	std::vector<RootedNetworkNode*> nodes;
+	size_t reticulationCount = 0;
+	size_t tipCount = 0;
+
+	~RootedNetwork() {
+		for (size_t i = 0; i < nodes.size(); ++i) {
+			delete nodes[i];
+		}
+	}
 };
 
 std::string toNewickString(const RootedNetwork& network);
