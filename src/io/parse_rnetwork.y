@@ -19,7 +19,7 @@
     Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 %{
-#include "lowlevel_parsing.h"
+#include "lowlevel_parsing.hpp"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

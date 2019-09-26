@@ -9,7 +9,9 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "lowlevel_parsing.h"
+extern "C" {
+#include "lowlevel_parsing.hpp"
+}
 
 #ifndef NULL
 #define NULL   ((void *) 0)
@@ -161,29 +163,6 @@ rnetwork_t * rnetwork_wrapnetwork(rnetwork_node_t * root)
   network->edge_count = reticulation_count + inner_tree_count * 2;
   network->tree_edge_count = inner_tree_count * 2;
   network->binary = 1;
-
-  // just for debug: print the node labels
-  unsigned int i;
-  printf("Just for debug: print the node labels\n");
-  for (i = 0; i < node_count; ++i) {
-	  assert(network->nodes[i]);
-	  if (network->nodes[i]->label) {
-		  printf("%d: %s\n", i, network->nodes[i]->label);
-	  } else {
-		  printf("%d: NULL\n", i);
-	  }
-  }
-  unsigned int j;
-  // just for debug: ensure that no two node pointers are the same
-  for (i = 0; i < node_count; ++i) {
-	  for (j = i + 1; j < node_count; ++j) {
-		  assert(network->nodes[i] != network->nodes[j]);
-	  }
-  }
-  // just for debug: ensure that the retcículation name is NULL for non-reticulation nodes
-  for (i = 0; i < node_count; ++i) {
-	  assert((network->nodes[i]->is_reticulation == 1 && network->nodes[i]->reticulation_name != NULL) || (network->nodes[i]->is_reticulation == 0 && network->nodes[i]->reticulation_name == NULL));
-  }
 
   return network;
 }

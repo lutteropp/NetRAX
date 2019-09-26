@@ -82,7 +82,7 @@ void compareNodes(pll_unode_t* node1, pll_unode_t* node2) {
 	ASSERT_EQ(node1->length, node2->length);
 }
 
-TEST_F (LikelihoodTest, displayedTreeOfTreeToUtree) {
+TEST_F (LikelihoodTest, DISABLED_displayedTreeOfTreeToUtree) {
 	pll_utree_t * network_utree = displayed_tree_to_utree(treeNetwork, 0);
 
 	ASSERT_NE(network_utree, nullptr);
@@ -112,12 +112,12 @@ TEST_F (LikelihoodTest, displayedTreeOfTreeToUtree) {
 	}
 }
 
-TEST_F (LikelihoodTest, displayedTreeOfNetworkToUtree) {
+TEST_F (LikelihoodTest, DISABLED_displayedTreeOfNetworkToUtree) {
 	pll_utree_t * utree = displayed_tree_to_utree(smallNetwork, 0);
 	ASSERT_NE(utree, nullptr);
 }
 
-TEST_F (LikelihoodTest, simpleTreeNoRepeatsNormalRaxml) {
+TEST_F (LikelihoodTest, DISABLED_simpleTreeNoRepeatsNormalRaxml) {
 	TreeInfo raxml_treeinfo = createStandardRaxmlTreeinfo(treeInstance, false);
 
 	double network_logl = raxml_treeinfo.loglh(false);
@@ -125,7 +125,7 @@ TEST_F (LikelihoodTest, simpleTreeNoRepeatsNormalRaxml) {
 	ASSERT_NE(network_logl, -std::numeric_limits<double>::infinity());
 }
 
-TEST_F (LikelihoodTest, comparePllmodTreeinfo) {
+TEST_F (LikelihoodTest, DISABLED_comparePllmodTreeinfo) {
 	TreeInfo network_treeinfo_tree = createFakeRaxmlTreeinfo(treeInstance, treeNetwork);
 
 	std::cout << "This is a test \n";
@@ -145,7 +145,7 @@ TEST_F (LikelihoodTest, comparePllmodTreeinfo) {
 	 ASSERT_EQ(network_treeinfo.tip_count, raxml_treeinfo.tip_count);*/
 }
 
-TEST_F (LikelihoodTest, simpleTreeNoRepeats) {
+TEST_F (LikelihoodTest, DISABLED_simpleTreeNoRepeats) {
 	TreeInfo network_treeinfo_tree = createFakeRaxmlTreeinfo(treeInstance, treeNetwork);
 	double network_logl = network_treeinfo_tree.loglh(false);
 	std::cout << "The computed network_logl 2 is: " << network_logl << "\n";
@@ -211,7 +211,7 @@ TEST_F (LikelihoodTest, DISABLED_simpleNetworkNoRepeatsOnlyDisplayedTreeWithRaxm
 	ASSERT_NE(network_logl, -std::numeric_limits<double>::infinity());
 }
 
-TEST_F (LikelihoodTest, simpleNetworkWithRepeatsOnlyDisplayedTreeWithRaxml) {
+TEST_F (LikelihoodTest, DISABLED_simpleNetworkWithRepeatsOnlyDisplayedTreeWithRaxml) {
 	Network network = readNetworkFromFile(networkPath);
 
 	RaxmlInstance instance = createStandardRaxmlInstance(networkPath, msaPath, true);

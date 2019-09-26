@@ -10,7 +10,7 @@
 #include "../Network.hpp"
 
 extern "C" {
-#include "lowlevel_parsing.h"
+#include "lowlevel_parsing.hpp"
 }
 
 namespace netrax {

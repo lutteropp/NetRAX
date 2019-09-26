@@ -10,7 +10,12 @@
 #include <assert.h>
 #include <string.h>
 
-#include "lowlevel_parsing.h"
+#include <vector>
+
+
+extern "C" {
+#include "lowlevel_parsing.hpp"
+}
 
 #define MAX_RETICULATION_COUNT 64
 
@@ -155,7 +160,7 @@ static void fill_nodes_recursive(unetwork_node_t * node,
                                          unsigned int * tip_index,
                                          unsigned int * inner_index,
                                          unsigned int level,
-	                                     int* visited_reticulations) // TODO: Is this correct?
+	                                     std::vector<bool>& visited_reticulations) // TODO: Is this correct?
 {
   if (!node || (unetwork_is_reticulation(node) && visited_reticulations[node->reticulation_index])) {
 	  return;
@@ -182,7 +187,7 @@ static void fill_nodes_recursive(unetwork_node_t * node,
   { // inner node
 	if (unetwork_is_reticulation(node)) {
 	  	reticulation_nodes[node->reticulation_index] = node;
-	  	visited_reticulations[node->reticulation_index] += 1;
+	  	visited_reticulations[node->reticulation_index] = true;
 	}
 	// TODO: We need to ensure that we only put one representative of each node into the array!!! That is, only the incoming node...
 	assert(level == 0 || node->incoming);
@@ -198,7 +203,7 @@ static unsigned int unetwork_count_nodes_recursive(unetwork_node_t * node,
                                                 unsigned int * inner_tree_count,
 												unsigned int * reticulation_count,
                                                 unsigned int level,
-												int* visited_reticulations)
+												std::vector<bool>& visited_reticulations)
 {
   if (!node->next) // we have a tip node
   {
@@ -223,7 +228,7 @@ static unsigned int unetwork_count_nodes_recursive(unetwork_node_t * node,
 
 	if (unetwork_is_reticulation(node)) {
 	  *reticulation_count += 1;
-	  visited_reticulations[node->reticulation_index] += 1;
+	  visited_reticulations[node->reticulation_index] = true;
 	} else {
       *inner_tree_count += 1;
 	}
@@ -252,14 +257,8 @@ static unsigned int unetwork_count_nodes(unetwork_node_t * root, unsigned int * 
   if (!root->next)
     root = root->back;
 
-  int* visited_reticulations = (int *)malloc(MAX_RETICULATION_COUNT * sizeof(int));
-  int i;
-  for (i = 0; i < MAX_RETICULATION_COUNT; ++i)
-  {
-	visited_reticulations[i] = 0;
-  }
+  std::vector<bool> visited_reticulations(MAX_RETICULATION_COUNT, false);
   count = unetwork_count_nodes_recursive(root, tip_count, inner_tree_count, reticulation_count, 0, visited_reticulations);
-  free(visited_reticulations);
 
   if (tip_count && inner_tree_count && reticulation_count)
     assert(count == *tip_count + *inner_tree_count + *reticulation_count);
@@ -398,14 +397,8 @@ static unetwork_t * unetwork_wrapnetwork(unetwork_node_t * root,
   unsigned int tip_index = 0;
   unsigned int inner_index = tip_count;
 
-  int* visited_reticulations = (int *)malloc(MAX_RETICULATION_COUNT * sizeof(int));
-  int i;
-  for (i = 0; i < MAX_RETICULATION_COUNT; ++i)
-  {
-  	visited_reticulations[i] = 0;
-  }
+  std::vector<bool> visited_reticulations(MAX_RETICULATION_COUNT, false);
   fill_nodes_recursive(root, network->nodes, network->reticulation_nodes, node_count, &tip_index, &inner_index, 0, visited_reticulations);
-  free(visited_reticulations);
 
   assert(tip_index == tip_count);
   assert(inner_index == tip_count + inner_tree_count + reticulation_count);
@@ -640,7 +633,7 @@ static unetwork_node_t * rnetwork_unroot(rnetwork_node_t * root, unetwork_node_t
   return uroot;
 }
 
-unetwork_t * rnetwork_unroot_main(rnetwork_t * network) {
+unetwork_t * rnetwork_unroot_main(const rnetwork_t * network) {
   // for each node in the rnetwork, we need to create three nodes in the unetwork... except for the leaves.
   unetwork_node_t** reticulation_nodes = (unetwork_node_t**)malloc(network->reticulation_count * sizeof(unetwork_node_t*)); // we only need one representative per reticulation node
   // ... we should explicitly fill the reticulation nodes array with null pointers.
@@ -648,15 +641,13 @@ unetwork_t * rnetwork_unroot_main(rnetwork_t * network) {
 	  reticulation_nodes[i] = NULL;
   }
 
-  rnetwork_node_t * root = network->root;
+  const rnetwork_node_t * root = network->root;
 
   if (!root->left->left && !root->right->left)
   {
 	printf("Network requires at least three tips to be converted to unrooted\n");
 	return NULL;
   }
-
-  rnetwork_node_t * new_root;
 
   unetwork_node_t * uroot = create_unetwork_node_t();
   if (!uroot)
@@ -686,6 +677,8 @@ unetwork_t * rnetwork_unroot_main(rnetwork_t * network) {
 
   uroot->length = root->left->length + root->right->length;
   uroot->prob = 1.0;
+
+  rnetwork_node_t * new_root;
 
   /* get the first root child that has descendants and make it the new root */
   if (root->left->left)

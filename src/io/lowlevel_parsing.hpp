@@ -1,5 +1,5 @@
 /*
- * lowlevel_parsing.h
+ * lowlevel_parsing.hpp
  *
  *  Created on: Sep 2, 2019
  *      Author: Sarah Lutteropp
@@ -92,7 +92,7 @@ void rnetwork_destroy(rnetwork_t * root, void (*cb_destroy)(void *));
 void rnetwork_graph_destroy(rnetwork_node_t * root, void (*cb_destroy)(void *));
 rnetwork_t * rnetwork_wrapnetwork(rnetwork_node_t * root);
 
-/* functions in parse_unetwork_functions.c */
+/* functions in parse_unetwork_functions.cpp */
 unetwork_t * unetwork_parse_newick(const char * filename);
 unetwork_t * unetwork_parse_newick_string(const char * s);
 void unetwork_destroy(unetwork_t * root, void (*cb_destroy)(void *));
@@ -104,7 +104,7 @@ unetwork_t * unetwork_wrapnetwork_multi(unetwork_node_t * root, unsigned int tip
 		unsigned int reticulation_count);
 unetwork_node_t * create_unetwork_node_t();
 
-/* functions in parse_rnetwork_functions.c */
+/* functions in parse_rnetwork_functions.cpp */
 void rnetwork_destroy(rnetwork_t * root, void (*cb_destroy)(void *));
 void rnetwork_graph_destroy(rnetwork_node_t * root, void (*cb_destroy)(void *));
 rnetwork_t * rnetwork_wrapnetwork(rnetwork_node_t * root);
