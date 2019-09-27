@@ -12,6 +12,9 @@
 #include <stdexcept>
 #include <iostream>
 #include <unordered_map>
+#include <fstream>
+#include <string>
+#include <sstream>
 
 extern "C" {
 #include "lowlevel_parsing.hpp"
@@ -527,12 +530,19 @@ Network convertNetwork(const RootedNetwork &rnetwork) {
 }
 
 Network readNetworkFromString(const std::string &newick) {
-	unetwork_t *unetwork = unetwork_parse_newick_string(newick.c_str());
-	return convertNetwork(*unetwork);
+	//unetwork_t *unetwork = unetwork_parse_newick_string(newick.c_str());
+	//return convertNetwork(*unetwork);
+	RootedNetwork rnetwork = parseRootedNetworkFromNewickString(newick);
+	return convertNetwork(rnetwork);
 }
 Network readNetworkFromFile(const std::string &filename) {
-	unetwork_t *unetwork = unetwork_parse_newick(filename.c_str());
-	return convertNetwork(*unetwork);
+	//unetwork_t *unetwork = unetwork_parse_newick(filename.c_str());
+	//return convertNetwork(*unetwork);
+	std::ifstream t(filename);
+	std::stringstream buffer;
+	buffer << t.rdbuf();
+	std::string newick = buffer.str();
+	return readNetworkFromString(newick);
 }
 std::string toExtendedNewick(const Network &network) {
 	throw std::runtime_error("This function has not been implemented yet");
