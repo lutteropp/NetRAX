@@ -488,6 +488,7 @@ Network convertNetworkToplevelTrifurcation(const RootedNetwork &rnetwork,
 	thirdEdge->pmatrix_index = inner_pmatrix_index++;
 	uroot->initBasic(inner_clv_index++, inner_scaler_index++, thirdLink,
 			root->label);
+	network.root = uroot;
 	return network;
 }
 
@@ -585,6 +586,7 @@ Network convertNetworkToplevelBifurcation(const RootedNetwork &rnetwork,
 	thirdEdge->pmatrix_index = inner_pmatrix_index++;
 	uroot->initBasic(inner_clv_index++, inner_scaler_index++, thirdLink,
 			new_root->label);
+	network.root = uroot;
 	return network;
 }
 
