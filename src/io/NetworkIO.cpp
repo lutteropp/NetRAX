@@ -608,8 +608,9 @@ Network convertNetwork(const RootedNetwork &rnetwork) {
 		throw std::runtime_error("The network is not bifurcating");
 	}
 
+	// BUG: The sorting invalidates all the pointers!!! Disabled it for now.
 //At the end, sort the arrays based on clv_index, pmatrix_index, node_index, reticulation_index...
-	std::sort(network.nodes.begin(), network.nodes.end(),
+	/*std::sort(network.nodes.begin(), network.nodes.end(),
 			[](const auto &lhs, const auto &rhs) {
 				return lhs.getClvIndex() < rhs.getClvIndex();
 			});
@@ -626,7 +627,7 @@ Network convertNetwork(const RootedNetwork &rnetwork) {
 			[](const auto &lhs, const auto &rhs) {
 				return lhs->getReticulationData()->getReticulationIndex()
 						< rhs->getReticulationData()->getReticulationIndex();
-			});
+			});*/
 
 	assert(!network.root->isTip());
 
