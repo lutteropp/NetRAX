@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <sstream>
 #include <cassert>
+#include <iostream>
 
 #include "RootedNetworkParser.hpp"
 
@@ -166,6 +167,9 @@ RootedNetworkNode* buildNodeFromString(const std::string& str, RootedNetworkNode
 }
 
 std::vector<std::string> split(const std::string& s) {
+	std::cout << "String to split:\n";
+	std::cout << s << "\n";
+
 	std::vector<size_t> splitIndices;
 	size_t rightParenCount = 0;
 	size_t leftParenCount = 0;
@@ -194,6 +198,12 @@ std::vector<std::string> split(const std::string& s) {
 		}
 		splits[numSplits - 1] = s.substr(splitIndices.at(splitIndices.size() - 1) + 1);
 	}
+
+	std::cout << "splitted string:\n";
+	for (size_t i = 0; i < splits.size(); ++i) {
+		std::cout << splits[i] << "\n";
+	}
+
 	return splits;
 }
 
@@ -207,8 +217,8 @@ RootedNetworkNode* readSubtree(RootedNetworkNode* parent, const std::string& s, 
 
 		RootedNetworkNode* node = buildNodeFromString(name, parent, nodeList, reticulations_lookup, num_reticulations);
 
-		for (std::string sub : childrenString) {
-			RootedNetworkNode* child = readSubtree(node, sub, nodeList, reticulations_lookup, num_reticulations, num_tips);
+		for (size_t i = 0; i < childrenString.size(); ++i) {
+			RootedNetworkNode* child = readSubtree(node, childrenString[i], nodeList, reticulations_lookup, num_reticulations, num_tips);
 			node->children.push_back(child);
 			if (!child->isReticulation) {
 				child->parent = node;
