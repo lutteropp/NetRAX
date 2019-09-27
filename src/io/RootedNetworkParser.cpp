@@ -11,7 +11,6 @@
 #include <algorithm>
 #include <sstream>
 #include <cassert>
-#include <iostream>
 
 #include "RootedNetworkParser.hpp"
 
@@ -167,9 +166,6 @@ RootedNetworkNode* buildNodeFromString(const std::string& str, RootedNetworkNode
 }
 
 std::vector<std::string> split(const std::string& s) {
-	std::cout << "String to split:\n";
-	std::cout << s << "\n";
-
 	std::vector<size_t> splitIndices;
 	size_t rightParenCount = 0;
 	size_t leftParenCount = 0;
@@ -197,11 +193,6 @@ std::vector<std::string> split(const std::string& s) {
 			splits[i] = substring(s, splitIndices.at(i - 1) + 1, splitIndices.at(i));
 		}
 		splits[numSplits - 1] = s.substr(splitIndices.at(splitIndices.size() - 1) + 1);
-	}
-
-	std::cout << "splitted string:\n";
-	for (size_t i = 0; i < splits.size(); ++i) {
-		std::cout << splits[i] << "\n";
 	}
 
 	return splits;
