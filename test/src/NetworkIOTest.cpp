@@ -34,7 +34,7 @@ protected:
 	}
 };
 
-void check_node_types(const Network& network) {
+void check_node_types(const Network &network) {
 	for (size_t i = 0; i < network.nodes.size(); ++i) {
 		if (std::find(network.reticulation_nodes.begin(), network.reticulation_nodes.end(), &network.nodes[i])
 				== network.reticulation_nodes.end()) {
@@ -45,7 +45,7 @@ void check_node_types(const Network& network) {
 	}
 }
 
-void check_neighbor_count(const Network& network) {
+void check_neighbor_count(const Network &network) {
 	for (size_t i = 0; i < network.tip_nodes.size(); ++i) {
 		ASSERT_EQ(network.tip_nodes[i]->getLink()->next, nullptr);
 		ASSERT_EQ(network.tip_nodes[i]->getNeighbors().size(), 1);
@@ -59,7 +59,7 @@ void check_neighbor_count(const Network& network) {
 	}
 }
 
-void check_tip_clvs(const Network& network) {
+void check_tip_clvs(const Network &network) {
 	size_t n = network.num_tips();
 	ASSERT_EQ(network.tip_nodes.size(), n);
 	for (size_t i = 0; i < network.tip_nodes.size(); ++i) {
@@ -67,7 +67,7 @@ void check_tip_clvs(const Network& network) {
 	}
 }
 
-void check_pmatrix_indices(const Network& network) {
+void check_pmatrix_indices(const Network &network) {
 	std::vector<size_t> allPmatrixIndices;
 	for (size_t i = 0; i < network.edges.size(); ++i) {
 		allPmatrixIndices.push_back(network.edges[i].pmatrix_index);
@@ -78,43 +78,63 @@ void check_pmatrix_indices(const Network& network) {
 	}
 }
 
-void sanity_checks(const Network& network) {
+void check_links_edges(const Network &network) {
+	for (size_t i = 0; i < network.edges.size(); ++i) {
+		ASSERT_NE(network.edges[i].link1, nullptr);
+		ASSERT_NE(network.edges[i].link2, nullptr);
+	}
+}
+
+void check_clv_range(const Network &network) {
+	std::vector<size_t> allCLVmatrixIndices;
+	for (size_t i = 0; i < network.nodes.size(); ++i) {
+		allCLVmatrixIndices.push_back(network.nodes[i].clv_index);
+	}
+	std::sort(allCLVmatrixIndices.begin(), allCLVmatrixIndices.end());
+	for (size_t i = 0; i < allCLVmatrixIndices.size(); ++i) {
+		ASSERT_EQ(allCLVmatrixIndices[i], i);
+	}
+}
+
+void sanity_checks(const Network &network) {
 	check_node_types(network);
 	check_neighbor_count(network);
 	check_tip_clvs(network);
+	check_links_edges(network);
 	check_pmatrix_indices(network);
+	check_clv_range(network);
 }
 
-TEST_F (NetworkIOTest, DISABLED_testTheTest) {
+TEST_F (NetworkIOTest, testTheTest) {
 	ASSERT_TRUE(true);
 }
 
-TEST_F (NetworkIOTest, DISABLED_rootedNetworkParserSmall) {
+TEST_F (NetworkIOTest, rootedNetworkParserSmall) {
 	std::string newick = "((A:2,((B:1,C:1)P:1)X#H1:0::0.3)Q:2,(D:2,X#H1:0::0.7)R:2);";
-	RootedNetwork* small = netrax::parseRootedNetworkFromNewickString(newick);
+	RootedNetwork *small = netrax::parseRootedNetworkFromNewickString(newick);
 	std::cout << netrax::toNewickString(*small) << "\n";
 }
 
-TEST_F (NetworkIOTest, DISABLED_readNetworkFromFile) {
+TEST_F (NetworkIOTest, readNetworkFromFile) {
 	Network small = readNetworkFromFile(networkPath);
 	ASSERT_TRUE(true);
 }
 
-TEST_F (NetworkIOTest, DISABLED_readRootedTree) {
+TEST_F (NetworkIOTest, readRootedTree) {
 	std::string input = "((A:0.1,B:0.2):0.1,(C:0.3,D:0.4):0.5);";
 	Network network = readNetworkFromString(input);
 	ASSERT_EQ(4, network.num_tips());
 	sanity_checks(network);
 }
 
-TEST_F (NetworkIOTest, DISABLED_readUnrootedTree) {
+TEST_F (NetworkIOTest, readUnrootedTree) {
 	std::string input = "(A:0.1,B:0.2,(C:0.3,D:0.4):0.5);";
 	Network network = readNetworkFromString(input);
 	ASSERT_EQ(4, network.num_tips());
 	sanity_checks(network);
 }
 
-TEST_F (NetworkIOTest, DISABLED_readSimpleNetwork) {
+TEST_F (NetworkIOTest, readSimpleNetwork) {
 	std::string input = "((A:2,((B:1,C:1)P:1)X#H1:0::0.3)Q:2,(D:2,X#H1:0::0.7)R:2);";
 	Network network = readNetworkFromString(input);
 	ASSERT_EQ(4, network.num_tips());
@@ -122,99 +142,100 @@ TEST_F (NetworkIOTest, DISABLED_readSimpleNetwork) {
 	sanity_checks(network);
 }
 
-TEST_F (NetworkIOTest, DISABLED_readSimpleNetwork2) {
+TEST_F (NetworkIOTest, readSimpleNetwork2) {
 	std::string input = "((A,(B)x#H1),(D,x#H1));";
 	Network network = readNetworkFromString(input);
 	ASSERT_EQ(3, network.num_tips());
 	sanity_checks(network);
 }
 
-TEST_F (NetworkIOTest, DISABLED_readSimpleNetworkReticulationNoExtra) {
+TEST_F (NetworkIOTest, readSimpleNetworkReticulationNoExtra) {
 	std::string input = "((A:2,((B:1,C:1)P:1)X#H1)Q:2,(D:2,X#H1)R:2);";
 	Network network = readNetworkFromString(input);
 	ASSERT_EQ(4, network.num_tips());
 	sanity_checks(network);
 }
 
-TEST_F (NetworkIOTest, DISABLED_readSimpleNetworkReticulationNoExtraNoLabel) {
+TEST_F (NetworkIOTest, readSimpleNetworkReticulationNoExtraNoLabel) {
 	std::string input = "((A:2,((B:1,C:1)P:1)#H1)Q:2,(D:2,#H1)R:2);";
 	Network network = readNetworkFromString(input);
 	ASSERT_EQ(4, network.num_tips());
 	sanity_checks(network);
 }
 
-TEST_F (NetworkIOTest, DISABLED_readSimpleNetworkReticulationOnlyLength) {
+TEST_F (NetworkIOTest, readSimpleNetworkReticulationOnlyLength) {
 	std::string input = "((A:2,((B:1,C:1)P:1)X#H1:0)Q:2,(D:2,X#H1:0)R:2);";
 	Network network = readNetworkFromString(input);
 	ASSERT_EQ(4, network.num_tips());
 	sanity_checks(network);
 }
 
-TEST_F (NetworkIOTest, DISABLED_readSimpleNetworkReticulationOnlyProb) {
+TEST_F (NetworkIOTest, readSimpleNetworkReticulationOnlyProb) {
 	std::string input = "((A:2,((B:1,C:1)P:1)X#H1:::0.3)Q:2,(D:2,X#H1:::0.7)R:2);";
 	Network network = readNetworkFromString(input);
 	ASSERT_EQ(4, network.num_tips());
 	sanity_checks(network);
 }
 
-TEST_F (NetworkIOTest, DISABLED_readSimpleNetworkReticulationOnlySupport) {
+TEST_F (NetworkIOTest, readSimpleNetworkReticulationOnlySupport) {
 	std::string input = "((A:2,((B:1,C:1)P:1)X#H1::0)Q:2,(D:2,X#H1::0)R:2);";
 	Network network = readNetworkFromString(input);
 	ASSERT_EQ(4, network.num_tips());
 	sanity_checks(network);
 }
 
-TEST_F (NetworkIOTest, DISABLED_readSimpleNetworkReticulationLengthAndSupport) {
+TEST_F (NetworkIOTest, readSimpleNetworkReticulationLengthAndSupport) {
 	std::string input = "((A:2,((B:1,C:1)P:1)X#H1:0:0)Q:2,(D:2,X#H1:0:0)R:2);";
 	Network network = readNetworkFromString(input);
 	ASSERT_EQ(4, network.num_tips());
 	sanity_checks(network);
 }
 
-TEST_F (NetworkIOTest, DISABLED_readSimpleNetworkReticulationLengthAndProb) {
+TEST_F (NetworkIOTest, readSimpleNetworkReticulationLengthAndProb) {
 	std::string input = "((A:2,((B:1,C:1)P:1)X#H1:0::1)Q:2,(D:2,X#H1:0::0)R:2);";
 	Network network = readNetworkFromString(input);
 	ASSERT_EQ(4, network.num_tips());
 	sanity_checks(network);
 }
 
-TEST_F (NetworkIOTest, DISABLED_readSimpleNetworkReticulationSupportAndProb) {
+TEST_F (NetworkIOTest, readSimpleNetworkReticulationSupportAndProb) {
 	std::string input = "((A:2,((B:1,C:1)P:1)X#H1::0:1)Q:2,(D:2,X#H1::0:0)R:2);";
 	Network network = readNetworkFromString(input);
 	ASSERT_EQ(4, network.num_tips());
 	sanity_checks(network);
 }
 
-TEST_F (NetworkIOTest, DISABLED_readSimpleNetworkLowercaseTaxa) {
+TEST_F (NetworkIOTest, readSimpleNetworkLowercaseTaxa) {
 	std::string input = "((a:2,((b:1,c:1)P:1)X#H1:0::0.3)Q:2,(d:2,X#H1:0::0.7)R:2);";
 	Network network = readNetworkFromString(input);
 	ASSERT_EQ(4, network.num_tips());
 	sanity_checks(network);
 }
 
-TEST_F (NetworkIOTest, DISABLED_readSimpleNetworkLowercaseTaxaAndInternalTree) {
+TEST_F (NetworkIOTest, readSimpleNetworkLowercaseTaxaAndInternalTree) {
 	std::string input = "((a:2,((b:1,c:1)p:1)X#H1:0::0.3)q:2,(d:2,X#H1:0::0.7)r:2);";
 	Network network = readNetworkFromString(input);
 	ASSERT_EQ(4, network.num_tips());
 	sanity_checks(network);
 }
 
-TEST_F (NetworkIOTest, DISABLED_readSimpleNetworkLowercaseLabels) {
+TEST_F (NetworkIOTest, readSimpleNetworkLowercaseLabels) {
 	std::string input = "((a:2,((b:1,c:1)p:1)x#H1:0::0.3)q:2,(d:2,x#H1:0::0.7)r:2);";
 	Network network = readNetworkFromString(input);
 	ASSERT_EQ(4, network.num_tips());
 	sanity_checks(network);
 }
 
-TEST_F (NetworkIOTest, DISABLED_readSimpleNetworkLowercaseAll) {
+TEST_F (NetworkIOTest, readSimpleNetworkLowercaseAll) {
 	std::string input = "((a:2,((b:1,c:1)p:1)x#h1:0::0.3)q:2,(d:2,x#h1:0::0.7)r:2);";
 	Network network = readNetworkFromString(input);
 	ASSERT_EQ(4, network.num_tips());
 	sanity_checks(network);
 }
 
-TEST_F (NetworkIOTest, DISABLED_readCelineExample1Simplified) {
-	std::string input = "((((Anolis,(Podarcis)#H1),(((#H1,Taeniopygia),Caiman),(Emys,(Chelonoidi,(Caretta)#H2)))),(#H2,Monodelphis)));";
+TEST_F (NetworkIOTest, readCelineExample1Simplified) {
+	std::string input =
+			"((((Anolis,(Podarcis)#H1),(((#H1,Taeniopygia),Caiman),(Emys,(Chelonoidi,(Caretta)#H2)))),(#H2,Monodelphis)));";
 	Network network = readNetworkFromString(input);
 	ASSERT_EQ(8, network.num_tips());
 	sanity_checks(network);
