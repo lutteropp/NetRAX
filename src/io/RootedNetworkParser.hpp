@@ -13,6 +13,7 @@
 #include <string>
 #include <unordered_map>
 #include <algorithm>
+#include <memory>
 
 #include "../Network.hpp"
 
@@ -45,15 +46,9 @@ struct RootedNetworkNode {
 
 struct RootedNetwork {
 	RootedNetworkNode* root;
-	std::vector<RootedNetworkNode*> nodes;
+	std::vector<std::unique_ptr<RootedNetworkNode> > nodes;
 	size_t reticulationCount = 0;
 	size_t tipCount = 0;
-
-	~RootedNetwork() {
-		for (size_t i = 0; i < nodes.size(); ++i) {
-			delete nodes[i];
-		}
-	}
 };
 
 std::string toNewickString(const RootedNetwork& network);

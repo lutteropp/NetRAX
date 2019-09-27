@@ -71,47 +71,47 @@ std::array<double, 3> readBrlenSupportProb(const std::string& str) {
 	return res;
 }
 
-RootedNetworkNode* buildNormalNodeFromString(const std::string& str, RootedNetworkNode* parent) {
-	RootedNetworkNode* node = new RootedNetworkNode();
-	node->isReticulation = false;
-	node->parent = parent;
+RootedNetworkNode buildNormalNodeFromString(const std::string& str, RootedNetworkNode* parent) {
+	RootedNetworkNode node;
+	node.isReticulation = false;
+	node.parent = parent;
 
 	size_t firstColonIndex = str.find(':');
-	node->label = substring(str, 0, firstColonIndex);
+	node.label = substring(str, 0, firstColonIndex);
 	std::array<double, 3> brlen_support_prob = readBrlenSupportProb(str);
-	node->length = brlen_support_prob[0];
-	node->support = brlen_support_prob[1];
+	node.length = brlen_support_prob[0];
+	node.support = brlen_support_prob[1];
 
 	return node;
 }
 
-RootedNetworkNode* buildNewReticulationNodeFromString(const std::string& str, size_t reticulationId, RootedNetworkNode* firstParent) {
+RootedNetworkNode buildNewReticulationNodeFromString(const std::string& str, size_t reticulationId, RootedNetworkNode* firstParent) {
 	// case 1: X#H1:brlen:support:prob
 	// case 2: X#H1:brlen:support
 	// case 3: X#H1:brlen
 	// case 4: X#H1
 	// X can also be empty, as well as brlen, support and prob (if no the last ones).
-	RootedNetworkNode* node = new RootedNetworkNode();
-	node->isReticulation = true;
+	RootedNetworkNode node;
+	node.isReticulation = true;
 	assert(firstParent);
 	size_t hashtagIndex = str.find('#');
 	assert(hashtagIndex != std::string::npos);
 	size_t colonCount = std::count(str.begin(), str.end(), ':');
 	assert(colonCount <= 3);
 
-	node->label = substring(str, 0, hashtagIndex);
+	node.label = substring(str, 0, hashtagIndex);
 	size_t firstColonPos = str.find(':');
 	assert(firstColonPos > hashtagIndex);
 	std::string reticulationName = substring(str, hashtagIndex + 1, firstColonPos);
-	node->reticulationName = reticulationName;
-	assert(!node->reticulationName.empty());
-	node->reticulationId = reticulationId;
-	node->firstParent = firstParent;
+	node.reticulationName = reticulationName;
+	assert(!node.reticulationName.empty());
+	node.reticulationId = reticulationId;
+	node.firstParent = firstParent;
 
 	std::array<double, 3> brlen_support_prob = readBrlenSupportProb(str);
-	node->firstParentLength = brlen_support_prob[0];
-	node->firstParentSupport = brlen_support_prob[1];
-	node->firstParentProb = brlen_support_prob[2];
+	node.firstParentLength = brlen_support_prob[0];
+	node.firstParentSupport = brlen_support_prob[1];
+	node.firstParentProb = brlen_support_prob[2];
 	return node;
 }
 
@@ -143,25 +143,25 @@ void extendReticulationNodeFromString(const std::string& str, RootedNetworkNode*
 	node->secondParent = secondParent;
 }
 
-RootedNetworkNode* buildNodeFromString(const std::string& str, RootedNetworkNode* parent, std::vector<RootedNetworkNode*>& nodeList,
+RootedNetworkNode* buildNodeFromString(const std::string& str, RootedNetworkNode* parent, std::vector<std::unique_ptr<RootedNetworkNode> >& nodeList,
 		std::unordered_map<std::string, size_t>& reticulations, size_t* num_reticulations) {
 	size_t hashtagIndex = str.find('#');
 	if (hashtagIndex != std::string::npos) {
 		std::string reticulationName = parseReticulationNameFromString(str);
 		if (reticulations.find(reticulationName) != reticulations.end()) {
-			extendReticulationNodeFromString(str, nodeList[reticulations[reticulationName]], parent);
-			return nodeList[reticulations[reticulationName]];
+			extendReticulationNodeFromString(str, nodeList[reticulations[reticulationName]].get(), parent);
+			return nodeList[reticulations[reticulationName]].get();
 		} else {
-			RootedNetworkNode* retNode = buildNewReticulationNodeFromString(str, *num_reticulations, parent);
+			RootedNetworkNode retNode = buildNewReticulationNodeFromString(str, *num_reticulations, parent);
 			(*num_reticulations)++;
-			nodeList.push_back(retNode);
+			nodeList.push_back(std::make_unique<RootedNetworkNode>(retNode));
 			reticulations[reticulationName] = nodeList.size() - 1;
-			return nodeList[nodeList.size() - 1];
+			return nodeList[nodeList.size() - 1].get();
 		}
 	} else {
-		RootedNetworkNode* node = buildNormalNodeFromString(str, parent);
-		nodeList.push_back(node);
-		return nodeList[nodeList.size() - 1];
+		RootedNetworkNode node = buildNormalNodeFromString(str, parent);
+		nodeList.push_back(std::make_unique<RootedNetworkNode>(node));
+		return nodeList[nodeList.size() - 1].get();
 	}
 }
 
@@ -198,7 +198,7 @@ std::vector<std::string> split(const std::string& s) {
 	return splits;
 }
 
-RootedNetworkNode* readSubtree(RootedNetworkNode* parent, const std::string& s, std::vector<RootedNetworkNode*>& nodeList,
+RootedNetworkNode* readSubtree(RootedNetworkNode* parent, const std::string& s, std::vector<std::unique_ptr<RootedNetworkNode> >& nodeList,
 		std::unordered_map<std::string, size_t>& reticulations_lookup, size_t* num_reticulations, size_t* num_tips) {
 	size_t leftParen = s.find('(');
 	size_t rightParen = s.rfind(')');
