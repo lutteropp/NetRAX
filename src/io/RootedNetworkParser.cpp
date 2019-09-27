@@ -230,7 +230,12 @@ RootedNetwork parseRootedNetworkFromNewickString(const std::string& newick) {
 	RootedNetwork rnetwork;
 	// TODO: special case: ignore faulty extra Céline parantheses which lead to top-level monofurcation
 	std::unordered_map<std::string, size_t> reticulations_lookup;
-	rnetwork.root = readSubtree(nullptr, substring(newick, 0, newick.size() - 1), rnetwork.nodes, reticulations_lookup,
+
+	size_t semicolonPos = newick.find(';');
+	assert(semicolonPos != std::string::npos);
+	assert(std::count(newick.begin(), newick.end(), ';') == 1);
+
+	rnetwork.root = readSubtree(nullptr, substring(newick, 0, semicolonPos), rnetwork.nodes, reticulations_lookup,
 			&rnetwork.reticulationCount, &rnetwork.tipCount);
 	return rnetwork;
 }

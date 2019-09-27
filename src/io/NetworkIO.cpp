@@ -380,11 +380,11 @@ Link* buildBackLinkLeaf(Link *myLink, const RootedNetworkNode *targetNode,
 	return firstLink;
 }
 
-Link* buildBackLink(Link *myLink, const RootedNetworkNode *targetNode, const RootedNetworkNode* parentNode,
-		size_t *inner_clv_index, size_t *inner_scaler_index,
-		size_t *inner_pmatrix_index, size_t *inner_node_index,
-		size_t *actNodeCount, size_t *actEdgeCount, size_t *actLinkCount,
-		Network &network,
+Link* buildBackLink(Link *myLink, const RootedNetworkNode *targetNode,
+		const RootedNetworkNode *parentNode, size_t *inner_clv_index,
+		size_t *inner_scaler_index, size_t *inner_pmatrix_index,
+		size_t *inner_node_index, size_t *actNodeCount, size_t *actEdgeCount,
+		size_t *actLinkCount, Network &network,
 		std::unordered_map<const RootedNetworkNode*, Node*> &visitedReticulations) {
 	if (targetNode->isReticulation) {
 		assert(targetNode->children.size() == 1);
@@ -406,16 +406,95 @@ Link* buildBackLink(Link *myLink, const RootedNetworkNode *targetNode, const Roo
 	}
 }
 
-Network convertNetwork(const RootedNetwork &rnetwork) {
+Network convertNetworkToplevelTrifurcation(const RootedNetwork &rnetwork,
+		size_t node_count, RootedNetworkNode *root) {
 	std::unordered_map<const RootedNetworkNode*, Node*> visitedReticulations;
-	size_t node_count = rnetwork.nodes.size();
-// special case: check if rnetwork.root has only one child... if so, reset the root to its child.
-	RootedNetworkNode *root = rnetwork.root;
-	if (root->children.size() == 1) {
-		root = root->children[0];
-		node_count--;
-	}
+	assert(root->children.size() == 3);
+
+	size_t tip_count = rnetwork.tipCount;
+	size_t inner_count = node_count - tip_count;
+	size_t branch_count = inner_count * 3; // assuming binary network
+	size_t link_count = branch_count * 2;
+
+	Network network;
+	network.nodes.resize(node_count);
+	network.edges.resize(branch_count);
+	network.links.resize(link_count);
+
+	size_t actNodeCount = 0;
+	size_t actEdgeCount = 0;
+	size_t actLinkCount = 0;
+
+	assert(root);
+
+	size_t inner_clv_index = tip_count;
+	size_t inner_scaler_index = 0;
+	size_t inner_pmatrix_index = tip_count;
+	size_t inner_node_index = tip_count;
+
+	Node *uroot = &network.nodes[actNodeCount++];
+	Link *firstLink = &network.links[actLinkCount++];
+	Link *secondLink = &network.links[actLinkCount++];
+	Link *thirdLink = &network.links[actLinkCount++];
+	firstLink->next = secondLink;
+	secondLink->next = thirdLink;
+	thirdLink->next = firstLink;
+	firstLink->node = uroot;
+	secondLink->node = uroot;
+	thirdLink->node = uroot;
+
+	Edge *firstEdge = &network.edges[actEdgeCount++];
+	Edge *secondEdge = &network.edges[actEdgeCount++];
+	Edge *thirdEdge = &network.edges[actEdgeCount++];
+	firstEdge->link1 = firstLink;
+	secondEdge->link1 = secondLink;
+	thirdEdge->link1 = thirdLink;
+
+	firstEdge->length = root->children[0]->length;
+	secondEdge->length = root->children[1]->length;
+	thirdEdge->length = root->children[2]->length;
+
+	firstLink->edge = firstEdge;
+	secondLink->edge = secondEdge;
+	thirdLink->edge = thirdEdge;
+
+	Link *link1Back = buildBackLink(firstLink, root->children[0], root,
+			&inner_clv_index, &inner_scaler_index, &inner_pmatrix_index,
+			&inner_node_index, &actNodeCount, &actEdgeCount, &actLinkCount,
+			network, visitedReticulations);
+	Link *link2Back = buildBackLink(secondLink, root->children[1], root,
+			&inner_clv_index, &inner_scaler_index, &inner_pmatrix_index,
+			&inner_node_index, &actNodeCount, &actEdgeCount, &actLinkCount,
+			network, visitedReticulations);
+	Link *link3Back = buildBackLink(thirdLink, root->children[2], root,
+			&inner_clv_index, &inner_scaler_index, &inner_pmatrix_index,
+			&inner_node_index, &actNodeCount, &actEdgeCount, &actLinkCount,
+			network, visitedReticulations);
+
+	firstLink->outer = link1Back;
+	secondLink->outer = link2Back;
+	thirdLink->outer = link3Back;
+	firstEdge->link2 = link1Back;
+	secondEdge->link2 = link2Back;
+	thirdEdge->link2 = link3Back;
+
+// set the indices now
+	firstLink->node_index = inner_node_index++;
+	secondLink->node_index = inner_node_index++;
+	thirdLink->node_index = inner_node_index++;
+	firstEdge->pmatrix_index = inner_pmatrix_index++;
+	secondEdge->pmatrix_index = inner_pmatrix_index++;
+	thirdEdge->pmatrix_index = inner_pmatrix_index++;
+	uroot->initBasic(inner_clv_index++, inner_scaler_index++, thirdLink,
+			root->label);
+	return network;
+}
+
+Network convertNetworkToplevelBifurcation(const RootedNetwork &rnetwork,
+		size_t node_count, RootedNetworkNode *root) {
+	std::unordered_map<const RootedNetworkNode*, Node*> visitedReticulations;
 	assert(root->children.size() == 2);
+
 	size_t tip_count = rnetwork.tipCount;
 	size_t inner_count = node_count - tip_count;
 	size_t branch_count = inner_count * 3; // assuming binary network
@@ -484,10 +563,10 @@ Network convertNetwork(const RootedNetwork &rnetwork) {
 			&inner_clv_index, &inner_scaler_index, &inner_pmatrix_index,
 			&inner_node_index, &actNodeCount, &actEdgeCount, &actLinkCount,
 			network, visitedReticulations);
-	Link *link3Back = buildBackLink(thirdLink, other_child, root, &inner_clv_index,
-			&inner_scaler_index, &inner_pmatrix_index, &inner_node_index,
-			&actNodeCount, &actEdgeCount, &actLinkCount, network,
-			visitedReticulations);
+	Link *link3Back = buildBackLink(thirdLink, other_child, root,
+			&inner_clv_index, &inner_scaler_index, &inner_pmatrix_index,
+			&inner_node_index, &actNodeCount, &actEdgeCount, &actLinkCount,
+			network, visitedReticulations);
 
 	firstLink->outer = link1Back;
 	secondLink->outer = link2Back;
@@ -505,6 +584,26 @@ Network convertNetwork(const RootedNetwork &rnetwork) {
 	thirdEdge->pmatrix_index = inner_pmatrix_index++;
 	uroot->initBasic(inner_clv_index++, inner_scaler_index++, thirdLink,
 			new_root->label);
+	return network;
+}
+
+Network convertNetwork(const RootedNetwork &rnetwork) {
+	size_t node_count = rnetwork.nodes.size();
+// special case: check if rnetwork.root has only one child... if so, reset the root to its child.
+	RootedNetworkNode *root = rnetwork.root;
+	if (root->children.size() == 1) {
+		root = root->children[0];
+		node_count--;
+	}
+	// now, the root has either 2 children (top-level bifurcation), or 3 children (top-level trifurcation).
+	Network network;
+	if (root->children.size() == 2) {
+		network = convertNetworkToplevelBifurcation(rnetwork, node_count, root);
+	} else if (root->children.size() == 3) {
+		network = convertNetworkToplevelTrifurcation(rnetwork, node_count, root);
+	} else {
+		throw std::runtime_error("The network is not bifurcating");
+	}
 
 //At the end, sort the arrays based on clv_index, pmatrix_index, node_index, reticulation_index...
 	std::sort(network.nodes.begin(), network.nodes.end(),
