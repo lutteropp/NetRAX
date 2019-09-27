@@ -9,15 +9,10 @@
 
 #include "../Network.hpp"
 
-extern "C" {
-#include "lowlevel_parsing.hpp"
-}
-
 #include "RootedNetworkParser.hpp"
 
 namespace netrax {
 
-Network convertNetwork(const unetwork_t& unetwork);
 Network convertNetwork(const RootedNetwork& rnetwork);
 Network readNetworkFromString(const std::string& newick);
 Network readNetworkFromFile(const std::string& filename);
