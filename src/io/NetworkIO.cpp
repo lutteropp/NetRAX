@@ -247,6 +247,7 @@ Link* buildBackLinkReticulationFirstVisit(Link *myLink,
 
 	network.inner_nodes.push_back(unode);
 	network.reticulation_nodes.push_back(unode);
+	visitedReticulations[targetNode] = unode;
 
 	return firstLink;
 }
@@ -280,7 +281,7 @@ Link* buildBackLinkReticulation(Link *myLink,
 		size_t *inner_node_index, size_t *actNodeCount, size_t *actEdgeCount,
 		size_t *actLinkCount, Network &network,
 		std::unordered_map<const RootedNetworkNode*, Node*> &visitedReticulations) {
-	if (visitedReticulations.find(targetNode) != visitedReticulations.end()) {
+	if (visitedReticulations.find(targetNode) == visitedReticulations.end()) { // first visit
 		return buildBackLinkReticulationFirstVisit(myLink, targetNode,
 				parentNode, inner_clv_index, inner_scaler_index,
 				inner_pmatrix_index, inner_node_index, actNodeCount,
