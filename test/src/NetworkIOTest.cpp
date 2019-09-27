@@ -27,11 +27,9 @@ protected:
 
 	virtual void SetUp() {
 		g_singleThread.lock();
-		std::cout << "Starting\n";
 	}
 
 	virtual void TearDown() {
-		std::cout << "Ending\n";
 		g_singleThread.unlock();
 	}
 };

@@ -37,7 +37,6 @@ protected:
 
 	virtual void SetUp() {
 		g_singleThread.lock();
-		std::cout << "Starting\n";
 		treeInstance = createStandardRaxmlInstance(treePath, msaPath, false);
 		smallInstance = createStandardRaxmlInstance(networkPath, msaPath,
 				false);
@@ -46,7 +45,6 @@ protected:
 	}
 
 	virtual void TearDown() {
-		std::cout << "Ending\n";
 		g_singleThread.unlock();
 	}
 };
@@ -85,7 +83,7 @@ void compareNodes(pll_unode_t *node1, pll_unode_t *node2) {
 	ASSERT_EQ(node1->length, node2->length);
 }
 
-TEST_F (LikelihoodTest, displayedTreeOfTreeToUtree) {
+TEST_F (LikelihoodTest, DISABLED_displayedTreeOfTreeToUtree) {
 	pll_utree_t *network_utree = displayed_tree_to_utree(treeNetwork, 0);
 
 	ASSERT_NE(network_utree, nullptr);
@@ -163,8 +161,8 @@ TEST_F (LikelihoodTest, simpleTreeNoRepeats) {
 	ASSERT_NE(network_logl, -std::numeric_limits<double>::infinity());
 }
 
-TEST_F (LikelihoodTest, compareOperationArrays) {
-	pll_utree_t *network_utree = displayed_tree_to_utree(treeNetwork, 0);
+TEST_F (LikelihoodTest, DISABLED_compareOperationArrays) {
+	//pll_utree_t *network_utree = displayed_tree_to_utree(treeNetwork, 0);
 	TreeInfo raxml_treeinfo_tree = createStandardRaxmlTreeinfo(treeInstance);
 	raxml_treeinfo_tree.loglh(false); // to fill the operations array
 
