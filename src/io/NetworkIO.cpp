@@ -147,47 +147,144 @@ Network convertNetwork(const unetwork_t &unetwork) {
 }
 
 Link* buildBackLink(Link *myLink, const RootedNetworkNode *targetNode,
-		size_t *inner_clv_index, size_t *inner_scaler_index,
-		size_t *inner_pmatrix_index, size_t *inner_node_index,
-		size_t *actNodeCount, size_t *actEdgeCount, size_t *actLinkCount,
-		Network &network,
+		const RootedNetworkNode *parentNode, size_t *inner_clv_index,
+		size_t *inner_scaler_index, size_t *inner_pmatrix_index,
+		size_t *inner_node_index, size_t *actNodeCount, size_t *actEdgeCount,
+		size_t *actLinkCount, Network &network,
 		std::unordered_map<const RootedNetworkNode*, Node*> &visitedReticulations);
 
 Link* buildBackLinkReticulationFirstVisit(Link *myLink,
-		const RootedNetworkNode *targetNode, size_t *inner_clv_index,
+		const RootedNetworkNode *targetNode,
+		const RootedNetworkNode *parentNode, size_t *inner_clv_index,
 		size_t *inner_scaler_index, size_t *inner_pmatrix_index,
 		size_t *inner_node_index, size_t *actNodeCount, size_t *actEdgeCount,
 		size_t *actLinkCount, Network &network,
 		std::unordered_map<const RootedNetworkNode*, Node*> &visitedReticulations) {
-	// we will keep link2 for the second parent...
-	// TODO: Remember setting the link directions here
+	assert(targetNode->isReticulation);
+
+	const RootedNetworkNode *firstEncounteredParent;
+	const RootedNetworkNode *secondEncounteredParent;
+	double firstEncounteredParentLength, secondEncounteredParentLength,
+			firstEncounteredParentSupport, secondEncounteredParentSupport,
+			firstEncounteredParentProb, secondEncounteredParentProb;
+	if (targetNode->firstParent == parentNode) {
+		firstEncounteredParent = targetNode->firstParent;
+		firstEncounteredParentLength = targetNode->firstParentLength;
+		firstEncounteredParentSupport = targetNode->firstParentSupport;
+		firstEncounteredParentProb = targetNode->firstParentProb;
+		secondEncounteredParent = targetNode->secondParent;
+		secondEncounteredParentLength = targetNode->secondParentLength;
+		secondEncounteredParentSupport = targetNode->secondParentSupport;
+		secondEncounteredParentProb = targetNode->secondParentProb;
+	} else {
+		assert(targetNode->secondParent == parentNode);
+		firstEncounteredParent = targetNode->secondParent;
+		secondEncounteredParent = targetNode->firstParent;
+		firstEncounteredParentLength = targetNode->secondParentLength;
+		firstEncounteredParentSupport = targetNode->secondParentSupport;
+		firstEncounteredParentProb = targetNode->secondParentProb;
+		secondEncounteredParentLength = targetNode->firstParentLength;
+		secondEncounteredParentSupport = targetNode->firstParentSupport;
+		secondEncounteredParentProb = targetNode->firstParentProb;
+	}
+	// firstLink goes to first encountered parent, secondLink goes to second encountered parent, third link goes to child.
+
+	Node *unode = &network.nodes[(*actNodeCount)++];
+	Link *firstLink = &network.links[(*actLinkCount)++];
+	Link *secondLink = &network.links[(*actLinkCount)++];
+	Link *thirdLink = &network.links[(*actLinkCount)++];
+	firstLink->next = secondLink;
+	secondLink->next = thirdLink;
+	thirdLink->next = firstLink;
+	firstLink->node = unode;
+	secondLink->node = unode;
+	thirdLink->node = unode;
+
+	Edge *firstEdge = myLink->edge;
+	// delay creation of second edge, as we haven't yet encountered the second parent
+	//Edge *secondEdge = &network.edges[(*actEdgeCount)++];
+	Edge *thirdEdge = &network.edges[(*actEdgeCount)++];
+	//firstEdge->link1 is already set
+	assert(firstEdge->link1 == myLink);
+	thirdEdge->link1 = thirdLink;
+
+	// firstEdge->length is already set
+	assert(firstEdge->length == targetNode->firstParentLength);
+	thirdEdge->length = targetNode->children[0]->length;
+
+	firstLink->edge = firstEdge;
+	secondLink->edge = nullptr; // will be set later
+	thirdLink->edge = thirdEdge;
+
+	Link *link1Back = myLink;
+	Link *link2Back = nullptr; // will be set later
+	Link *link3Back = buildBackLink(thirdLink, targetNode->children[0],
+			targetNode, inner_clv_index, inner_scaler_index,
+			inner_pmatrix_index, inner_node_index, actNodeCount, actEdgeCount,
+			actLinkCount, network, visitedReticulations);
+
+	firstLink->outer = link1Back;
+	secondLink->outer = link2Back;
+	thirdLink->outer = link3Back;
+	// firstEdge->link2 will be set by the caller
+	thirdEdge->link2 = link3Back;
+
+	// set the indices now
+	firstLink->node_index = (*inner_node_index)++;
+	secondLink->node_index = (*inner_node_index)++;
+	thirdLink->node_index = (*inner_node_index)++;
+	// firstEdge->pmatrix_index is already set
+	thirdEdge->pmatrix_index = (*inner_pmatrix_index)++;
+
+	ReticulationData retData;
+	retData.init(targetNode->reticulationId, targetNode->reticulationName, 0,
+			firstLink, secondLink, thirdLink, firstEncounteredParentProb);
+	unode->initReticulation((*inner_clv_index)++, (*inner_scaler_index)++,
+			firstLink, targetNode->label, retData);
+
+	network.inner_nodes.push_back(unode);
+	network.reticulation_nodes.push_back(unode);
+
+	return firstLink;
 }
 
 Link* buildBackLinkReticulationSecondVisit(Link *myLink,
-		const RootedNetworkNode *targetNode, size_t *inner_clv_index,
-		size_t *inner_scaler_index, size_t *inner_pmatrix_index,
-		size_t *inner_node_index, size_t *actNodeCount, size_t *actEdgeCount,
-		size_t *actLinkCount, Network &network, Node *unode) {
-	// we only need to set link2...
-	// TODO: Remember setting the link directions here
+		const RootedNetworkNode *targetNode, Network &network, Node *unode) {
+	assert(unode);
+	assert(targetNode->isReticulation);
+	// we only need to set link2 to the calling second parent...
+	Link *link2 = unode->link->next;
+	assert(link2->edge == nullptr);
+	assert(link2->outer == nullptr);
+	link2->edge = myLink->edge;
+	link2->outer = myLink;
+
+	// set the link directions
+	unode->link->direction = Direction::INCOMING; // link to the first parent
+	unode->link->next->direction = Direction::INCOMING; // link to the second parent
+	unode->link->next->next->direction = Direction::OUTGOING; // link to the child
+	unode->link->outer->direction = Direction::OUTGOING; // link from the first parent
+	unode->link->next->outer->direction = Direction::OUTGOING; // link from the second parent
+	unode->link->next->next->outer->direction = Direction::INCOMING; // link from the child
+
+	return unode->link->next; // return the link2 that goes to the second encountered parent
 }
 
 Link* buildBackLinkReticulation(Link *myLink,
-		const RootedNetworkNode *targetNode, size_t *inner_clv_index,
+		const RootedNetworkNode *targetNode,
+		const RootedNetworkNode *parentNode, size_t *inner_clv_index,
 		size_t *inner_scaler_index, size_t *inner_pmatrix_index,
 		size_t *inner_node_index, size_t *actNodeCount, size_t *actEdgeCount,
 		size_t *actLinkCount, Network &network,
 		std::unordered_map<const RootedNetworkNode*, Node*> &visitedReticulations) {
 	if (visitedReticulations.find(targetNode) != visitedReticulations.end()) {
 		return buildBackLinkReticulationFirstVisit(myLink, targetNode,
-				inner_clv_index, inner_scaler_index, inner_pmatrix_index,
-				inner_node_index, actNodeCount, actEdgeCount, actLinkCount,
-				network, visitedReticulations);
+				parentNode, inner_clv_index, inner_scaler_index,
+				inner_pmatrix_index, inner_node_index, actNodeCount,
+				actEdgeCount, actLinkCount, network, visitedReticulations);
 	} else {
-		return buildBackLinkReticulationSecondVisit(myLink, targetNode,
-				inner_clv_index, inner_scaler_index, inner_pmatrix_index,
-				inner_node_index, actNodeCount, actEdgeCount, actLinkCount,
-				network, visitedReticulations[targetNode]);
+		return buildBackLinkReticulationSecondVisit(myLink, targetNode, network,
+				visitedReticulations[targetNode]);
 	}
 }
 
@@ -212,6 +309,7 @@ Link* buildBackLinkInnerTree(Link *myLink, const RootedNetworkNode *targetNode,
 	Edge *secondEdge = &network.edges[(*actEdgeCount)++];
 	Edge *thirdEdge = &network.edges[(*actEdgeCount)++];
 	//firstEdge->link1 is already set
+	assert(firstEdge->link1 == myLink);
 	secondEdge->link1 = secondLink;
 	thirdEdge->link1 = thirdLink;
 
@@ -225,13 +323,13 @@ Link* buildBackLinkInnerTree(Link *myLink, const RootedNetworkNode *targetNode,
 
 	Link *link1Back = myLink;
 	Link *link2Back = buildBackLink(secondLink, targetNode->children[0],
-			inner_clv_index, inner_scaler_index, inner_pmatrix_index,
-			inner_node_index, actNodeCount, actEdgeCount, actLinkCount, network,
-			visitedReticulations);
-	Link *link3Back = buildBackLink(thirdLink, targetNode->children[0],
-			inner_clv_index, inner_scaler_index, inner_pmatrix_index,
-			inner_node_index, actNodeCount, actEdgeCount, actLinkCount, network,
-			visitedReticulations);
+			targetNode, inner_clv_index, inner_scaler_index,
+			inner_pmatrix_index, inner_node_index, actNodeCount, actEdgeCount,
+			actLinkCount, network, visitedReticulations);
+	Link *link3Back = buildBackLink(thirdLink, targetNode->children[1],
+			targetNode, inner_clv_index, inner_scaler_index,
+			inner_pmatrix_index, inner_node_index, actNodeCount, actEdgeCount,
+			actLinkCount, network, visitedReticulations);
 
 	firstLink->outer = link1Back;
 	secondLink->outer = link2Back;
@@ -279,7 +377,7 @@ Link* buildBackLinkLeaf(Link *myLink, const RootedNetworkNode *targetNode,
 	return firstLink;
 }
 
-Link* buildBackLink(Link *myLink, const RootedNetworkNode *targetNode,
+Link* buildBackLink(Link *myLink, const RootedNetworkNode *targetNode, const RootedNetworkNode* parentNode,
 		size_t *inner_clv_index, size_t *inner_scaler_index,
 		size_t *inner_pmatrix_index, size_t *inner_node_index,
 		size_t *actNodeCount, size_t *actEdgeCount, size_t *actLinkCount,
@@ -287,6 +385,10 @@ Link* buildBackLink(Link *myLink, const RootedNetworkNode *targetNode,
 		std::unordered_map<const RootedNetworkNode*, Node*> &visitedReticulations) {
 	if (targetNode->isReticulation) {
 		assert(targetNode->children.size() == 1);
+		return buildBackLinkReticulation(myLink, targetNode, parentNode,
+				inner_clv_index, inner_scaler_index, inner_pmatrix_index,
+				inner_node_index, actNodeCount, actEdgeCount, actLinkCount,
+				network, visitedReticulations);
 	} else {
 		if (targetNode->children.empty()) { // leaf node
 			return buildBackLinkLeaf(myLink, targetNode, actNodeCount,
@@ -304,14 +406,13 @@ Link* buildBackLink(Link *myLink, const RootedNetworkNode *targetNode,
 Network convertNetwork(const RootedNetwork &rnetwork) {
 	std::unordered_map<const RootedNetworkNode*, Node*> visitedReticulations;
 	size_t node_count = rnetwork.nodes.size();
-	// special case: check if rnetwork.root has only one child... if so, reset the root to its child.
+// special case: check if rnetwork.root has only one child... if so, reset the root to its child.
 	RootedNetworkNode *root = rnetwork.root;
 	if (root->children.size() == 1) {
 		root = root->children[0];
 		node_count--;
 	}
 	assert(root->children.size() == 2);
-	size_t reticulation_count = rnetwork.reticulationCount;
 	size_t tip_count = rnetwork.tipCount;
 	size_t inner_count = node_count - tip_count;
 	size_t branch_count = inner_count * 3; // assuming binary network
@@ -321,13 +422,12 @@ Network convertNetwork(const RootedNetwork &rnetwork) {
 	network.nodes.resize(node_count);
 	network.edges.resize(branch_count);
 	network.links.resize(link_count);
-	network.reticulation_nodes.resize(reticulation_count);
 
 	size_t actNodeCount = 0;
 	size_t actEdgeCount = 0;
 	size_t actLinkCount = 0;
 
-	// create the uroot node.
+// create the uroot node.
 	/* get the first root child that has descendants and make it the new root */
 	RootedNetworkNode *new_root = nullptr;
 	RootedNetworkNode *other_child = nullptr;
@@ -338,7 +438,7 @@ Network convertNetwork(const RootedNetwork &rnetwork) {
 		new_root = root->children[1];
 		other_child = root->children[0];
 	}
-	// the new 3 neighbors of new_root are now: new_root->children[0], new_root->children[1], and other_child
+// the new 3 neighbors of new_root are now: new_root->children[0], new_root->children[1], and other_child
 	assert(new_root);
 	assert(other_child);
 
@@ -373,15 +473,15 @@ Network convertNetwork(const RootedNetwork &rnetwork) {
 	secondLink->edge = secondEdge;
 	thirdLink->edge = thirdEdge;
 
-	Link *link1Back = buildBackLink(firstLink, new_root->children[0],
+	Link *link1Back = buildBackLink(firstLink, new_root->children[0], new_root,
 			&inner_clv_index, &inner_scaler_index, &inner_pmatrix_index,
 			&inner_node_index, &actNodeCount, &actEdgeCount, &actLinkCount,
 			network, visitedReticulations);
-	Link *link2Back = buildBackLink(secondLink, new_root->children[1],
+	Link *link2Back = buildBackLink(secondLink, new_root->children[1], new_root,
 			&inner_clv_index, &inner_scaler_index, &inner_pmatrix_index,
 			&inner_node_index, &actNodeCount, &actEdgeCount, &actLinkCount,
 			network, visitedReticulations);
-	Link *link3Back = buildBackLink(thirdLink, other_child, &inner_clv_index,
+	Link *link3Back = buildBackLink(thirdLink, other_child, root, &inner_clv_index,
 			&inner_scaler_index, &inner_pmatrix_index, &inner_node_index,
 			&actNodeCount, &actEdgeCount, &actLinkCount, network,
 			visitedReticulations);
@@ -393,7 +493,7 @@ Network convertNetwork(const RootedNetwork &rnetwork) {
 	secondEdge->link2 = link2Back;
 	thirdEdge->link2 = link3Back;
 
-	// set the indices now
+// set the indices now
 	firstLink->node_index = inner_node_index++;
 	secondLink->node_index = inner_node_index++;
 	thirdLink->node_index = inner_node_index++;
@@ -403,7 +503,7 @@ Network convertNetwork(const RootedNetwork &rnetwork) {
 	uroot->initBasic(inner_clv_index++, inner_scaler_index++, thirdLink,
 			new_root->label);
 
-	//At the end, sort the arrays based on clv_index, pmatrix_index, node_index...
+//At the end, sort the arrays based on clv_index, pmatrix_index, node_index, reticulation_index...
 	std::sort(network.nodes.begin(), network.nodes.end(),
 			[](const auto &lhs, const auto &rhs) {
 				return lhs.getClvIndex() < rhs.getClvIndex();
@@ -415,6 +515,12 @@ Network convertNetwork(const RootedNetwork &rnetwork) {
 	std::sort(network.links.begin(), network.links.end(),
 			[](const auto &lhs, const auto &rhs) {
 				return lhs.getNodeIndex() < rhs.getNodeIndex();
+			});
+	std::sort(network.reticulation_nodes.begin(),
+			network.reticulation_nodes.end(),
+			[](const auto &lhs, const auto &rhs) {
+				return lhs->getReticulationData()->getReticulationIndex()
+						< rhs->getReticulationData()->getReticulationIndex();
 			});
 
 	return network;
