@@ -144,24 +144,24 @@ void extendReticulationNodeFromString(const std::string& str, RootedNetworkNode*
 }
 
 RootedNetworkNode* buildNodeFromString(const std::string& str, RootedNetworkNode* parent, std::vector<std::unique_ptr<RootedNetworkNode> >& nodeList,
-		std::unordered_map<std::string, size_t>& reticulations, size_t* num_reticulations) {
+		std::unordered_map<std::string, RootedNetworkNode*>& reticulations, size_t* num_reticulations) {
 	size_t hashtagIndex = str.find('#');
 	if (hashtagIndex != std::string::npos) {
 		std::string reticulationName = parseReticulationNameFromString(str);
 		if (reticulations.find(reticulationName) != reticulations.end()) {
-			extendReticulationNodeFromString(str, nodeList[reticulations[reticulationName]].get(), parent);
-			return nodeList[reticulations[reticulationName]].get();
+			extendReticulationNodeFromString(str, reticulations[reticulationName], parent);
+			return reticulations[reticulationName];
 		} else {
 			RootedNetworkNode* retNode = buildNewReticulationNodeFromString(str, *num_reticulations, parent);
 			(*num_reticulations)++;
 			nodeList.push_back(std::unique_ptr<RootedNetworkNode>(retNode));
-			reticulations[reticulationName] = nodeList.size() - 1;
-			return nodeList[nodeList.size() - 1].get();
+			reticulations[reticulationName] = retNode;
+			return retNode;
 		}
 	} else {
 		RootedNetworkNode* node = buildNormalNodeFromString(str, parent);
 		nodeList.push_back(std::unique_ptr<RootedNetworkNode>(node));
-		return nodeList[nodeList.size() - 1].get();
+		return node;
 	}
 }
 
@@ -199,12 +199,16 @@ std::vector<std::string> split(const std::string& s) {
 }
 
 RootedNetworkNode* readSubtree(RootedNetworkNode* parent, const std::string& s, std::vector<std::unique_ptr<RootedNetworkNode> >& nodeList,
-		std::unordered_map<std::string, size_t>& reticulations_lookup, size_t* num_reticulations, size_t* num_tips) {
+		std::unordered_map<std::string, RootedNetworkNode*>& reticulations_lookup, size_t* num_reticulations, size_t* num_tips) {
 	size_t leftParen = s.find('(');
 	size_t rightParen = s.rfind(')');
 	if (leftParen != std::string::npos && rightParen != std::string::npos) {
 		std::string name = s.substr(rightParen + 1);
-		std::vector<std::string> childrenString = split(substring(s, leftParen + 1, rightParen));
+		const std::vector<std::string> childrenString = split(substring(s, leftParen + 1, rightParen));
+
+		for (size_t i = 0; i < childrenString.size(); ++i) {
+			assert(std::isprint(childrenString[i][0]));
+		}
 
 		RootedNetworkNode* node = buildNodeFromString(name, parent, nodeList, reticulations_lookup, num_reticulations);
 
@@ -231,7 +235,7 @@ RootedNetworkNode* readSubtree(RootedNetworkNode* parent, const std::string& s, 
 RootedNetwork* parseRootedNetworkFromNewickString(const std::string& newick) {
 	RootedNetwork* rnetwork = new RootedNetwork();
 	// TODO: special case: ignore faulty extra Céline parantheses which lead to top-level monofurcation
-	std::unordered_map<std::string, size_t> reticulations_lookup;
+	std::unordered_map<std::string, RootedNetworkNode*> reticulations_lookup;
 
 	size_t semicolonPos = newick.find(';');
 	assert(semicolonPos != std::string::npos);
