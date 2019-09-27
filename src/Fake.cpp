@@ -63,7 +63,8 @@ namespace netrax {
 
  */
 
-void fake_init_collect_branch_lengths(pllmod_treeinfo_t* treeinfo, Network& network) {
+void fake_init_collect_branch_lengths(pllmod_treeinfo_t *treeinfo,
+		Network &network) {
 	// collect the branch lengths
 	for (size_t i = 0; i < network.edges.size(); ++i) {
 		treeinfo->branch_lengths[0][i] = network.edges[i].getLength();
@@ -76,14 +77,15 @@ void fake_init_collect_branch_lengths(pllmod_treeinfo_t* treeinfo, Network& netw
 			// TODO: only save brlens for initialized partitions
 			//      if (treeinfo->partitions[i])
 			{
-				memcpy(treeinfo->branch_lengths[i], treeinfo->branch_lengths[0], treeinfo->tree->edge_count * sizeof(double));
+				memcpy(treeinfo->branch_lengths[i], treeinfo->branch_lengths[0],
+						treeinfo->tree->edge_count * sizeof(double));
 			}
 		}
 	}
 }
 
-int fake_init_tree(pllmod_treeinfo_t * treeinfo, Network& network) {
-	pll_utree_t * tree = (pll_utree_t*) malloc(sizeof(pll_utree_t));
+int fake_init_tree(pllmod_treeinfo_t *treeinfo, Network &network) {
+	pll_utree_t *tree = (pll_utree_t*) malloc(sizeof(pll_utree_t));
 	treeinfo->tree = tree;
 
 	tree->tip_count = network.num_tips(); // +1 for the fake clv index, TODO: Do we need it here?
@@ -95,92 +97,49 @@ int fake_init_tree(pllmod_treeinfo_t * treeinfo, Network& network) {
 	return PLL_SUCCESS;
 }
 
-void destroy_fake_treeinfo(pllmod_treeinfo_t * treeinfo) {
+void destroy_fake_treeinfo(pllmod_treeinfo_t *treeinfo) {
 	if (!treeinfo)
 		return;
-
-	/* deallocate traversal buffer, branch lengths array, matrix indices
-	 array and operations */
-	//free(treeinfo->travbuffer);
-	//free(treeinfo->matrix_indices);
-	//free(treeinfo->operations);
-	//free(treeinfo->subnodes);
-	/* destroy all structures allocated for the concrete PLL partition instance */
-	unsigned int p;
-	for (p = 0; p < treeinfo->partition_count; ++p) {
-		if (treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED)
-			free(treeinfo->branch_lengths[p]);
-
-		pllmod_treeinfo_destroy_partition(treeinfo, p);
+	if (treeinfo->likelihood_computation_params != treeinfo) {
+		free(treeinfo->likelihood_computation_params);
 	}
-
-	if (treeinfo->subst_matrix_symmetries)
-		free(treeinfo->subst_matrix_symmetries);
-
-	if (treeinfo->constraint)
-		free(treeinfo->constraint);
-
-	/* free invalidation arrays */
-	free(treeinfo->clv_valid);
-	free(treeinfo->pmatrix_valid);
-
-	free(treeinfo->linked_branch_lengths);
-
-	/* free alpha and param_indices arrays */
-	free(treeinfo->params_to_optimize);
-	free(treeinfo->alphas);
-	free(treeinfo->gamma_mode);
-	free(treeinfo->param_indices);
-	free(treeinfo->branch_lengths);
-	free(treeinfo->partition_loglh);
-	free(treeinfo->deriv_precomp);
-
-	if (treeinfo->brlen_scalers)
-		free(treeinfo->brlen_scalers);
-
-	/* deallocate partition array */
-	free(treeinfo->partitions);
-	free(treeinfo->init_partitions);
-	free(treeinfo->init_partition_idx);
-
-	if (treeinfo->tree) {
-		//free(treeinfo->tree->nodes);
-		free(treeinfo->tree);
-	}
-
-	free(treeinfo->likelihood_computation_params);
-
-	/* finally, deallocate treeinfo object itself */
-	free(treeinfo);
+	pllmod_treeinfo_destroy(treeinfo);
 }
 
-double fake_network_loglikelihood(void* network_params, int incremental, int update_pmatrices) {
-	NetworkParams* params = (NetworkParams*) network_params;
-	return computeLoglikelihood(*params->network, *params->fake_treeinfo, incremental, update_pmatrices);
+double fake_network_loglikelihood(void *network_params, int incremental,
+		int update_pmatrices) {
+	NetworkParams *params = (NetworkParams*) network_params;
+	return computeLoglikelihood(*params->network, *params->fake_treeinfo,
+			incremental, update_pmatrices);
 }
 
-double fake_opt_brlen(pllmod_treeinfo_t * fake_treeinfo, double min_brlen, double max_brlen, double lh_epsilon, int max_iters,
-		int opt_method, int radius) {
-	Network* network = ((NetworkParams*) (fake_treeinfo->likelihood_computation_params))->network;
-	return optimize_branches(*network, *fake_treeinfo, min_brlen, max_brlen, lh_epsilon, max_iters, opt_method, radius);
+double fake_opt_brlen(pllmod_treeinfo_t *fake_treeinfo, double min_brlen,
+		double max_brlen, double lh_epsilon, int max_iters, int opt_method,
+		int radius) {
+	Network *network =
+			((NetworkParams*) (fake_treeinfo->likelihood_computation_params))->network;
+	return optimize_branches(*network, *fake_treeinfo, min_brlen, max_brlen,
+			lh_epsilon, max_iters, opt_method, radius);
 }
 
-double fake_spr_round(pllmod_treeinfo_t * treeinfo, unsigned int radius_min, unsigned int radius_max, unsigned int ntopol_keep,
-		pll_bool_t thorough, int brlen_opt_method, double bl_min, double bl_max, int smoothings, double epsilon,
-		cutoff_info_t * cutoff_info, double subtree_cutoff) {
+double fake_spr_round(pllmod_treeinfo_t *treeinfo, unsigned int radius_min,
+		unsigned int radius_max, unsigned int ntopol_keep, pll_bool_t thorough,
+		int brlen_opt_method, double bl_min, double bl_max, int smoothings,
+		double epsilon, cutoff_info_t *cutoff_info, double subtree_cutoff) {
 	throw std::runtime_error("Not implemented yet");
 }
 
-pllmod_ancestral_t * fake_compute_ancestral(pllmod_treeinfo_t * treeinfo) {
+pllmod_ancestral_t* fake_compute_ancestral(pllmod_treeinfo_t *treeinfo) {
 	throw std::runtime_error("Not implemented yet");
 }
 
-pllmod_treeinfo_t * create_fake_treeinfo(Network& network, unsigned int tips, unsigned int partitions, int brlen_linkage) {
+pllmod_treeinfo_t* create_fake_treeinfo(Network &network, unsigned int tips,
+		unsigned int partitions, int brlen_linkage) {
 	assert(partitions > 0);
 	/* create treeinfo instance */
-	pllmod_treeinfo_t * treeinfo;
+	pllmod_treeinfo_t *treeinfo;
 
-	if (!(treeinfo = (pllmod_treeinfo_t *) calloc(1, sizeof(pllmod_treeinfo_t)))) {
+	if (!(treeinfo = (pllmod_treeinfo_t*) calloc(1, sizeof(pllmod_treeinfo_t)))) {
 		throw std::runtime_error("Cannot allocate memory for treeinfo\n");
 		return NULL;
 	}
@@ -204,37 +163,48 @@ pllmod_treeinfo_t * create_fake_treeinfo(Network& network, unsigned int tips, un
 	treeinfo->subnodes = NULL;
 
 	/* allocate arrays for storing per-partition info */
-	treeinfo->partitions = (pll_partition_t **) calloc(partitions, sizeof(pll_partition_t *));
-	treeinfo->params_to_optimize = (int *) calloc(partitions, sizeof(int));
-	treeinfo->alphas = (double *) calloc(partitions, sizeof(double));
-	treeinfo->gamma_mode = (int *) calloc(partitions, sizeof(int));
-	treeinfo->param_indices = (unsigned int **) calloc(partitions, sizeof(unsigned int*));
-	treeinfo->subst_matrix_symmetries = (int **) calloc(partitions, sizeof(int*));
-	treeinfo->branch_lengths = (double **) calloc(partitions, sizeof(double*));
-	treeinfo->deriv_precomp = (double **) calloc(partitions, sizeof(double*));
-	treeinfo->clv_valid = (char **) calloc(partitions, sizeof(char*));
-	treeinfo->pmatrix_valid = (char **) calloc(partitions, sizeof(char*));
-	treeinfo->partition_loglh = (double *) calloc(partitions, sizeof(double));
+	treeinfo->partitions = (pll_partition_t**) calloc(partitions,
+			sizeof(pll_partition_t*));
+	treeinfo->params_to_optimize = (int*) calloc(partitions, sizeof(int));
+	treeinfo->alphas = (double*) calloc(partitions, sizeof(double));
+	treeinfo->gamma_mode = (int*) calloc(partitions, sizeof(int));
+	treeinfo->param_indices = (unsigned int**) calloc(partitions,
+			sizeof(unsigned int*));
+	treeinfo->subst_matrix_symmetries = (int**) calloc(partitions,
+			sizeof(int*));
+	treeinfo->branch_lengths = (double**) calloc(partitions, sizeof(double*));
+	treeinfo->deriv_precomp = (double**) calloc(partitions, sizeof(double*));
+	treeinfo->clv_valid = (char**) calloc(partitions, sizeof(char*));
+	treeinfo->pmatrix_valid = (char**) calloc(partitions, sizeof(char*));
+	treeinfo->partition_loglh = (double*) calloc(partitions, sizeof(double));
 
 	treeinfo->init_partition_count = 0;
-	treeinfo->init_partition_idx = (unsigned int *) calloc(partitions, sizeof(unsigned int));
-	treeinfo->init_partitions = (pll_partition_t **) calloc(partitions, sizeof(pll_partition_t *));
+	treeinfo->init_partition_idx = (unsigned int*) calloc(partitions,
+			sizeof(unsigned int));
+	treeinfo->init_partitions = (pll_partition_t**) calloc(partitions,
+			sizeof(pll_partition_t*));
 
 	/* allocate array for storing linked/average branch lengths */
-	treeinfo->linked_branch_lengths = (double *) malloc(branch_count * sizeof(double));
+	treeinfo->linked_branch_lengths = (double*) malloc(
+			branch_count * sizeof(double));
 
 	/* allocate branch length scalers if needed */
 	if (brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED)
-		treeinfo->brlen_scalers = (double *) calloc(partitions, sizeof(double));
+		treeinfo->brlen_scalers = (double*) calloc(partitions, sizeof(double));
 	else
 		treeinfo->brlen_scalers = NULL;
 
 	/* check memory allocation */
-	if (!treeinfo->partitions || !treeinfo->alphas || !treeinfo->param_indices || !treeinfo->subst_matrix_symmetries
-			|| !treeinfo->branch_lengths || !treeinfo->deriv_precomp || !treeinfo->clv_valid || !treeinfo->pmatrix_valid
-			|| !treeinfo->linked_branch_lengths || !treeinfo->partition_loglh || !treeinfo->gamma_mode || !treeinfo->init_partition_idx
-			|| (brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED && !treeinfo->brlen_scalers)) {
-		throw std::runtime_error("Cannot allocate memory for treeinfo arrays\n");
+	if (!treeinfo->partitions || !treeinfo->alphas || !treeinfo->param_indices
+			|| !treeinfo->subst_matrix_symmetries || !treeinfo->branch_lengths
+			|| !treeinfo->deriv_precomp || !treeinfo->clv_valid
+			|| !treeinfo->pmatrix_valid || !treeinfo->linked_branch_lengths
+			|| !treeinfo->partition_loglh || !treeinfo->gamma_mode
+			|| !treeinfo->init_partition_idx
+			|| (brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED
+					&& !treeinfo->brlen_scalers)) {
+		throw std::runtime_error(
+				"Cannot allocate memory for treeinfo arrays\n");
 		return NULL;
 	}
 
@@ -245,7 +215,8 @@ pllmod_treeinfo_t * create_fake_treeinfo(Network& network, unsigned int tips, un
 
 		/* allocate arrays for storing the per-partition branch lengths */
 		if (brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
-			treeinfo->branch_lengths[p] = (double *) malloc(branch_count * sizeof(double));
+			treeinfo->branch_lengths[p] = (double*) malloc(
+					branch_count * sizeof(double));
 		} else
 			treeinfo->branch_lengths[p] = treeinfo->linked_branch_lengths;
 
@@ -255,7 +226,9 @@ pllmod_treeinfo_t * create_fake_treeinfo(Network& network, unsigned int tips, un
 
 		/* check memory allocation */
 		if (!treeinfo->branch_lengths[p]) {
-			throw std::runtime_error("Cannot allocate memory for arrays for partition " + std::to_string(p));
+			throw std::runtime_error(
+					"Cannot allocate memory for arrays for partition "
+							+ std::to_string(p));
 			return NULL;
 		}
 	}
@@ -263,7 +236,7 @@ pllmod_treeinfo_t * create_fake_treeinfo(Network& network, unsigned int tips, un
 	/* by default, work with all partitions */
 	treeinfo->active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
 
-	NetworkParams* params = (NetworkParams*) malloc(sizeof(NetworkParams));
+	NetworkParams *params = (NetworkParams*) malloc(sizeof(NetworkParams));
 	params->network = &network;
 	params->fake_treeinfo = treeinfo;
 	treeinfo->likelihood_target_function = fake_network_loglikelihood;
@@ -274,33 +247,47 @@ pllmod_treeinfo_t * create_fake_treeinfo(Network& network, unsigned int tips, un
 	return treeinfo;
 }
 
-TreeInfo create_fake_raxml_treeinfo(Network& network, const Options &opts, const PartitionedMSA& parted_msa, const IDVector& tip_msa_idmap,
-		const PartitionAssignment& part_assign, const std::vector<uintVector>& site_weights) {
-	pllmod_treeinfo_t* base_treeinfo;
+TreeInfo create_fake_raxml_treeinfo(Network &network, const Options &opts,
+		const PartitionedMSA &parted_msa, const IDVector &tip_msa_idmap,
+		const PartitionAssignment &part_assign,
+		const std::vector<uintVector> &site_weights) {
+	pllmod_treeinfo_t *base_treeinfo;
 
 	//base_treeinfo = create_fake_treeinfo(network, network.num_tips(), parted_msa.part_count(), opts.brlen_linkage);
 
 	std::cout << "just for debugging purposes, creating a normal treeinfo.\n";
-	pll_utree_t* displayed_tree = netrax::displayed_tree_to_utree(network, 0);
+	pll_utree_t *displayed_tree = netrax::displayed_tree_to_utree(network, 0);
 
-	base_treeinfo = pllmod_treeinfo_create(displayed_tree->vroot, displayed_tree->tip_count, parted_msa.part_count(), opts.brlen_linkage);
+	base_treeinfo = pllmod_treeinfo_create(displayed_tree->vroot,
+			displayed_tree->tip_count, parted_msa.part_count(),
+			opts.brlen_linkage);
 
-	return TreeInfo(opts, base_treeinfo, parted_msa, tip_msa_idmap, part_assign, site_weights, fake_opt_brlen, fake_spr_round,
-			fake_compute_ancestral, destroy_fake_treeinfo, network.num_tips(), network.num_inner(), network.num_branches());
+	return TreeInfo(opts, base_treeinfo, parted_msa, tip_msa_idmap, part_assign,
+			site_weights, fake_opt_brlen, fake_spr_round,
+			fake_compute_ancestral, destroy_fake_treeinfo, network.num_tips(),
+			network.num_inner(), network.num_branches());
 }
 
-TreeInfo create_fake_raxml_treeinfo(Network& network, const Options &opts, const std::vector<doubleVector>& partition_brlens,
-		const PartitionedMSA& parted_msa, const IDVector& tip_msa_idmap, const PartitionAssignment& part_assign) {
-	return create_fake_raxml_treeinfo(network, opts, parted_msa, tip_msa_idmap, part_assign, std::vector<uintVector>());
+TreeInfo create_fake_raxml_treeinfo(Network &network, const Options &opts,
+		const std::vector<doubleVector> &partition_brlens,
+		const PartitionedMSA &parted_msa, const IDVector &tip_msa_idmap,
+		const PartitionAssignment &part_assign) {
+	return create_fake_raxml_treeinfo(network, opts, parted_msa, tip_msa_idmap,
+			part_assign, std::vector<uintVector>());
 }
-TreeInfo create_fake_raxml_treeinfo(Network& network, const Options &opts, const std::vector<doubleVector>& partition_brlens,
-		const PartitionedMSA& parted_msa, const IDVector& tip_msa_idmap, const PartitionAssignment& part_assign,
-		const std::vector<uintVector>& site_weights) {
-	return create_fake_raxml_treeinfo(network, opts, parted_msa, tip_msa_idmap, part_assign, site_weights);
+TreeInfo create_fake_raxml_treeinfo(Network &network, const Options &opts,
+		const std::vector<doubleVector> &partition_brlens,
+		const PartitionedMSA &parted_msa, const IDVector &tip_msa_idmap,
+		const PartitionAssignment &part_assign,
+		const std::vector<uintVector> &site_weights) {
+	return create_fake_raxml_treeinfo(network, opts, parted_msa, tip_msa_idmap,
+			part_assign, site_weights);
 }
-TreeInfo create_fake_raxml_treeinfo(Network& network, const Options &opts, const PartitionedMSA& parted_msa, const IDVector& tip_msa_idmap,
-		const PartitionAssignment& part_assign) {
-	return create_fake_raxml_treeinfo(network, opts, parted_msa, tip_msa_idmap, part_assign, std::vector<uintVector>());
+TreeInfo create_fake_raxml_treeinfo(Network &network, const Options &opts,
+		const PartitionedMSA &parted_msa, const IDVector &tip_msa_idmap,
+		const PartitionAssignment &part_assign) {
+	return create_fake_raxml_treeinfo(network, opts, parted_msa, tip_msa_idmap,
+			part_assign, std::vector<uintVector>());
 }
 
 Options createDefaultOptions() {
@@ -387,7 +374,8 @@ Options createDefaultOptions() {
 	return opts;
 }
 
-RaxmlInstance createStandardRaxmlInstance(const std::string& treePath, const std::string& msaPath, bool useRepeats) {
+RaxmlInstance createStandardRaxmlInstance(const std::string &treePath,
+		const std::string &msaPath, bool useRepeats) {
 	RaxmlInstance instance;
 	instance.opts = createDefaultOptions();
 	instance.opts.tree_file = treePath;
@@ -402,26 +390,31 @@ RaxmlInstance createStandardRaxmlInstance(const std::string& treePath, const std
 	return instance;
 }
 
-void setInstanceRepeats(RaxmlInstance& instance, bool useRepeats) {
+void setInstanceRepeats(RaxmlInstance &instance, bool useRepeats) {
 	instance.opts.use_repeats = useRepeats;
 	instance.opts.use_tip_inner = !useRepeats;
 }
 
-TreeInfo createStandardRaxmlTreeinfo(RaxmlInstance& instance, bool useRepeats) {
+TreeInfo createStandardRaxmlTreeinfo(RaxmlInstance &instance, bool useRepeats) {
 	setInstanceRepeats(instance, useRepeats);
 	/* get partitions assigned to the current thread */
-	PartitionAssignment& part_assign = instance.proc_part_assign.at(ParallelContext::proc_id());
-	TreeInfo raxml_treeinfo = TreeInfo(instance.opts, Tree::loadFromFile(instance.opts.tree_file), *(instance.parted_msa.get()),
-			instance.tip_msa_idmap, part_assign);
+	PartitionAssignment &part_assign = instance.proc_part_assign.at(
+			ParallelContext::proc_id());
+	TreeInfo raxml_treeinfo = TreeInfo(instance.opts,
+			Tree::loadFromFile(instance.opts.tree_file),
+			*(instance.parted_msa.get()), instance.tip_msa_idmap, part_assign);
 	return raxml_treeinfo;
 }
 
-TreeInfo createFakeRaxmlTreeinfo(RaxmlInstance& instance, Network& network, bool useRepeats) {
+TreeInfo createFakeRaxmlTreeinfo(RaxmlInstance &instance, Network &network,
+		bool useRepeats) {
 	setInstanceRepeats(instance, useRepeats);
 	/* get partitions assigned to the current thread */
-		PartitionAssignment& part_assign = instance.proc_part_assign.at(ParallelContext::proc_id());
-	TreeInfo network_treeinfo = create_fake_raxml_treeinfo(network, instance.opts, *(instance.parted_msa.get()), instance.tip_msa_idmap,
-				part_assign);
+	PartitionAssignment &part_assign = instance.proc_part_assign.at(
+			ParallelContext::proc_id());
+	TreeInfo network_treeinfo = create_fake_raxml_treeinfo(network,
+			instance.opts, *(instance.parted_msa.get()), instance.tip_msa_idmap,
+			part_assign);
 	return network_treeinfo;
 }
 
