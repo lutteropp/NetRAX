@@ -67,10 +67,22 @@ void check_tip_clvs(const Network& network) {
 	}
 }
 
+void check_pmatrix_indices(const Network& network) {
+	std::vector<size_t> allPmatrixIndices;
+	for (size_t i = 0; i < network.edges.size(); ++i) {
+		allPmatrixIndices.push_back(network.edges[i].pmatrix_index);
+	}
+	std::sort(allPmatrixIndices.begin(), allPmatrixIndices.end());
+	for (size_t i = 0; i < allPmatrixIndices.size(); ++i) {
+		ASSERT_EQ(allPmatrixIndices[i], i);
+	}
+}
+
 void sanity_checks(const Network& network) {
 	check_node_types(network);
 	check_neighbor_count(network);
 	check_tip_clvs(network);
+	check_pmatrix_indices(network);
 }
 
 TEST_F (NetworkIOTest, DISABLED_testTheTest) {
