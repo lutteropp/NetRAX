@@ -178,8 +178,6 @@ Link* buildBackLinkReticulation(Link *myLink,
 		size_t *inner_node_index, size_t *actNodeCount, size_t *actEdgeCount,
 		size_t *actLinkCount, Network &network,
 		std::unordered_map<const RootedNetworkNode*, Node*> &visitedReticulations) {
-	bool firstVisit = true;
-	Node *unode = nullptr;
 	if (visitedReticulations.find(targetNode) != visitedReticulations.end()) {
 		return buildBackLinkReticulationFirstVisit(myLink, targetNode,
 				inner_clv_index, inner_scaler_index, inner_pmatrix_index,
@@ -258,10 +256,7 @@ Link* buildBackLinkInnerTree(Link *myLink, const RootedNetworkNode *targetNode,
 }
 
 Link* buildBackLinkLeaf(Link *myLink, const RootedNetworkNode *targetNode,
-		size_t *inner_clv_index, size_t *inner_scaler_index,
-		size_t *inner_pmatrix_index, size_t *inner_node_index,
-		size_t *actNodeCount, size_t *actEdgeCount, size_t *actLinkCount,
-		Network &network) {
+		size_t *actNodeCount, size_t *actLinkCount, Network &network) {
 	Node *unode = &network.nodes[(*actNodeCount)++];
 	Link *firstLink = &network.links[(*actLinkCount)++];
 	firstLink->next = nullptr;
@@ -275,7 +270,7 @@ Link* buildBackLinkLeaf(Link *myLink, const RootedNetworkNode *targetNode,
 	firstLink->outer = link1Back;
 
 	// set the indices now
-	firstLink->node_index = (*inner_node_index)++;
+	firstLink->node_index = targetNode->tip_index;
 	// firstEdge->pmatrix_index is already set
 	assert(targetNode->tip_index != std::numeric_limits<size_t>::infinity());
 	unode->initBasic(targetNode->tip_index, -1, firstLink, targetNode->label);
@@ -294,9 +289,8 @@ Link* buildBackLink(Link *myLink, const RootedNetworkNode *targetNode,
 		assert(targetNode->children.size() == 1);
 	} else {
 		if (targetNode->children.empty()) { // leaf node
-			return buildBackLinkLeaf(myLink, targetNode, inner_clv_index,
-					inner_scaler_index, inner_pmatrix_index, inner_node_index,
-					actNodeCount, actEdgeCount, actLinkCount, network);
+			return buildBackLinkLeaf(myLink, targetNode, actNodeCount,
+					actLinkCount, network);
 		} else { // inner tree node
 			assert(targetNode->children.size() == 2);
 			return buildBackLinkInnerTree(myLink, targetNode, inner_clv_index,
@@ -332,7 +326,6 @@ Network convertNetwork(const RootedNetwork &rnetwork) {
 	size_t actNodeCount = 0;
 	size_t actEdgeCount = 0;
 	size_t actLinkCount = 0;
-	size_t actReticulationCount = 0;
 
 	// create the uroot node.
 	/* get the first root child that has descendants and make it the new root */
