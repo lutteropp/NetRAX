@@ -373,7 +373,7 @@ Link* buildBackLinkLeaf(Link *myLink, const RootedNetworkNode *targetNode,
 	// set the indices now
 	firstLink->node_index = targetNode->tip_index;
 	// firstEdge->pmatrix_index is already set
-	assert(targetNode->tip_index != std::numeric_limits<size_t>::infinity());
+	assert(targetNode->tip_index != std::numeric_limits<size_t>::max());
 	unode->initBasic(targetNode->tip_index, -1, firstLink, targetNode->label);
 
 	network.tip_nodes.push_back(unode);

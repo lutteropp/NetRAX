@@ -40,7 +40,7 @@ struct RootedNetworkNode {
 	RootedNetworkNode* firstParent = nullptr;
 	RootedNetworkNode* secondParent = nullptr;
 
-	size_t tip_index = std::numeric_limits<size_t>::infinity(); // this will be used to later on set the clv_index and the pmatrix_index values of tip nodes
+	size_t tip_index = std::numeric_limits<size_t>::max(); // this will be used to later on set the clv_index and the pmatrix_index values of tip nodes
 };
 
 struct RootedNetwork {
