@@ -628,6 +628,8 @@ Network convertNetwork(const RootedNetwork &rnetwork) {
 						< rhs->getReticulationData()->getReticulationIndex();
 			});
 
+	assert(!network.root->isTip());
+
 	return network;
 }
 

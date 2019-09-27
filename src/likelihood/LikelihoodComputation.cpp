@@ -209,6 +209,7 @@ pll_utree_t * handleRootNormal(Network& network) {
 pll_utree_t * displayed_tree_to_utree(Network& network, size_t tree_index) {
 	network.setReticulationParents(tree_index);
 	Node* root = network.root;
+	assert(!root->isTip());
 	assert(root->getType() == NodeType::BASIC_NODE);
 	Node* root_back = network.root->getLink()->getTargetNode();
 
