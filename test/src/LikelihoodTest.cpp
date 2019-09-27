@@ -37,25 +37,28 @@ protected:
 
 	virtual void SetUp() {
 		g_singleThread.lock();
+		std::cout << "Starting\n";
 		treeInstance = createStandardRaxmlInstance(treePath, msaPath, false);
-		smallInstance = createStandardRaxmlInstance(networkPath, msaPath, false);
+		smallInstance = createStandardRaxmlInstance(networkPath, msaPath,
+				false);
 		treeNetwork = readNetworkFromFile(treePath);
 		smallNetwork = readNetworkFromFile(networkPath);
 	}
 
 	virtual void TearDown() {
+		std::cout << "Ending\n";
 		g_singleThread.unlock();
 	}
 };
 
-TEST_F (LikelihoodTest, testTheTest) {
+TEST_F (LikelihoodTest, DISABLED_testTheTest) {
 	ASSERT_TRUE(true);
 }
 
-std::vector<size_t> getNeighborClvIndices(pll_unode_t* node) {
+std::vector<size_t> getNeighborClvIndices(pll_unode_t *node) {
 	std::vector<size_t> neighbors;
 	if (node->next) {
-		pll_unode_t* actNode = node;
+		pll_unode_t *actNode = node;
 		do {
 			neighbors.push_back(actNode->back->clv_index);
 			actNode = actNode->next;
@@ -64,7 +67,7 @@ std::vector<size_t> getNeighborClvIndices(pll_unode_t* node) {
 	return neighbors;
 }
 
-void compareNodes(pll_unode_t* node1, pll_unode_t* node2) {
+void compareNodes(pll_unode_t *node1, pll_unode_t *node2) {
 	ASSERT_EQ(node1->clv_index, node2->clv_index);
 	// check if the clv indices of the neighbors are the same
 	std::vector<size_t> node1Neighbors = getNeighborClvIndices(node1);
@@ -83,14 +86,14 @@ void compareNodes(pll_unode_t* node1, pll_unode_t* node2) {
 }
 
 TEST_F (LikelihoodTest, displayedTreeOfTreeToUtree) {
-	pll_utree_t * network_utree = displayed_tree_to_utree(treeNetwork, 0);
+	pll_utree_t *network_utree = displayed_tree_to_utree(treeNetwork, 0);
 
 	ASSERT_NE(network_utree, nullptr);
 	// compare the utrees:
 
 	TreeInfo raxml_treeinfo_tree = createStandardRaxmlTreeinfo(treeInstance);
 
-	pll_utree_t* raxml_utree = raxml_treeinfo_tree.pll_treeinfo().tree;
+	pll_utree_t *raxml_utree = raxml_treeinfo_tree.pll_treeinfo().tree;
 	ASSERT_EQ(network_utree->inner_count, raxml_utree->inner_count);
 	ASSERT_EQ(network_utree->binary, raxml_utree->binary);
 	ASSERT_EQ(network_utree->edge_count, raxml_utree->edge_count);
@@ -99,21 +102,28 @@ TEST_F (LikelihoodTest, displayedTreeOfTreeToUtree) {
 
 	for (size_t i = 0; i < treeNetwork.nodes.size(); ++i) {
 		compareNodes(network_utree->nodes[i], raxml_utree->nodes[i]);
-		compareNodes(network_utree->nodes[i]->back, raxml_utree->nodes[i]->back);
+		compareNodes(network_utree->nodes[i]->back,
+				raxml_utree->nodes[i]->back);
 		if (network_utree->nodes[i]->next) {
-			compareNodes(network_utree->nodes[i]->next, raxml_utree->nodes[i]->next);
-			compareNodes(network_utree->nodes[i]->next->back, raxml_utree->nodes[i]->next->back);
-			compareNodes(network_utree->nodes[i]->next->next, raxml_utree->nodes[i]->next->next);
-			compareNodes(network_utree->nodes[i]->next->next->back, raxml_utree->nodes[i]->next->next->back);
+			compareNodes(network_utree->nodes[i]->next,
+					raxml_utree->nodes[i]->next);
+			compareNodes(network_utree->nodes[i]->next->back,
+					raxml_utree->nodes[i]->next->back);
+			compareNodes(network_utree->nodes[i]->next->next,
+					raxml_utree->nodes[i]->next->next);
+			compareNodes(network_utree->nodes[i]->next->next->back,
+					raxml_utree->nodes[i]->next->next->back);
 
-			compareNodes(network_utree->nodes[i]->next->next->next, network_utree->nodes[i]);
-			compareNodes(raxml_utree->nodes[i]->next->next->next, raxml_utree->nodes[i]);
+			compareNodes(network_utree->nodes[i]->next->next->next,
+					network_utree->nodes[i]);
+			compareNodes(raxml_utree->nodes[i]->next->next->next,
+					raxml_utree->nodes[i]);
 		}
 	}
 }
 
 TEST_F (LikelihoodTest, displayedTreeOfNetworkToUtree) {
-	pll_utree_t * utree = displayed_tree_to_utree(smallNetwork, 0);
+	pll_utree_t *utree = displayed_tree_to_utree(smallNetwork, 0);
 	ASSERT_NE(utree, nullptr);
 }
 
@@ -126,56 +136,78 @@ TEST_F (LikelihoodTest, simpleTreeNoRepeatsNormalRaxml) {
 }
 
 TEST_F (LikelihoodTest, comparePllmodTreeinfo) {
-	TreeInfo network_treeinfo_tree = createFakeRaxmlTreeinfo(treeInstance, treeNetwork);
+	TreeInfo network_treeinfo_tree = createFakeRaxmlTreeinfo(treeInstance,
+			treeNetwork);
 	TreeInfo raxml_treeinfo_tree = createStandardRaxmlTreeinfo(treeInstance);
 
-	const pllmod_treeinfo_t& network_treeinfo = network_treeinfo_tree.pll_treeinfo();
-	const pllmod_treeinfo_t& raxml_treeinfo = raxml_treeinfo_tree.pll_treeinfo();
+	const pllmod_treeinfo_t &network_treeinfo =
+			network_treeinfo_tree.pll_treeinfo();
+	const pllmod_treeinfo_t &raxml_treeinfo =
+			raxml_treeinfo_tree.pll_treeinfo();
 
-	ASSERT_EQ(network_treeinfo.active_partition, raxml_treeinfo.active_partition);
+	ASSERT_EQ(network_treeinfo.active_partition,
+			raxml_treeinfo.active_partition);
 	ASSERT_EQ(network_treeinfo.brlen_linkage, raxml_treeinfo.brlen_linkage);
-	ASSERT_EQ(network_treeinfo.init_partition_count, raxml_treeinfo.init_partition_count);
+	ASSERT_EQ(network_treeinfo.init_partition_count,
+			raxml_treeinfo.init_partition_count);
 	ASSERT_EQ(network_treeinfo.partition_count, raxml_treeinfo.partition_count);
 	ASSERT_EQ(network_treeinfo.subnode_count, raxml_treeinfo.subnode_count);
 	ASSERT_EQ(network_treeinfo.tip_count, raxml_treeinfo.tip_count);
 }
 
 TEST_F (LikelihoodTest, simpleTreeNoRepeats) {
-	TreeInfo network_treeinfo_tree = createFakeRaxmlTreeinfo(treeInstance, treeNetwork);
+	TreeInfo network_treeinfo_tree = createFakeRaxmlTreeinfo(treeInstance,
+			treeNetwork);
 	double network_logl = network_treeinfo_tree.loglh(false);
 	std::cout << "The computed network_logl 2 is: " << network_logl << "\n";
 	ASSERT_NE(network_logl, -std::numeric_limits<double>::infinity());
 }
 
-TEST_F (LikelihoodTest, DISABLED_compareOperationArrays) {
-	pll_utree_t * network_utree = displayed_tree_to_utree(treeNetwork, 0);
+TEST_F (LikelihoodTest, compareOperationArrays) {
+	pll_utree_t *network_utree = displayed_tree_to_utree(treeNetwork, 0);
 	TreeInfo raxml_treeinfo_tree = createStandardRaxmlTreeinfo(treeInstance);
 	raxml_treeinfo_tree.loglh(false); // to fill the operations array
 
 	std::vector<pll_operation_t> network_ops = createOperations(treeNetwork, 0);
-	pll_operation_t* raxml_ops = raxml_treeinfo_tree.pll_treeinfo().operations;
+	pll_operation_t *raxml_ops = raxml_treeinfo_tree.pll_treeinfo().operations;
 
 	std::cout << "Number of operations: " << network_ops.size() << "\n";
 	for (size_t i = 0; i < network_ops.size(); ++i) {
 		std::cout << "network_ops[" << i << "]: \n";
-		std::cout << "  parent_clv_index: " << network_ops[i].parent_clv_index << "\n";
-		std::cout << "  parent_scaler_index: " << network_ops[i].parent_scaler_index << "\n";
-		std::cout << "  child1_clv_index: " << network_ops[i].child1_clv_index << "\n";
-		std::cout << "  child1_matrix_index: " << network_ops[i].child1_matrix_index << "\n";
-		std::cout << "  child1_scaler_index: " << network_ops[i].child1_scaler_index << "\n";
-		std::cout << "  child2_clv_index: " << network_ops[i].child2_clv_index << "\n";
-		std::cout << "  child2_matrix_index: " << network_ops[i].child2_matrix_index << "\n";
-		std::cout << "  child2_scaler_index: " << network_ops[i].child2_scaler_index << "\n";
+		std::cout << "  parent_clv_index: " << network_ops[i].parent_clv_index
+				<< "\n";
+		std::cout << "  parent_scaler_index: "
+				<< network_ops[i].parent_scaler_index << "\n";
+		std::cout << "  child1_clv_index: " << network_ops[i].child1_clv_index
+				<< "\n";
+		std::cout << "  child1_matrix_index: "
+				<< network_ops[i].child1_matrix_index << "\n";
+		std::cout << "  child1_scaler_index: "
+				<< network_ops[i].child1_scaler_index << "\n";
+		std::cout << "  child2_clv_index: " << network_ops[i].child2_clv_index
+				<< "\n";
+		std::cout << "  child2_matrix_index: "
+				<< network_ops[i].child2_matrix_index << "\n";
+		std::cout << "  child2_scaler_index: "
+				<< network_ops[i].child2_scaler_index << "\n";
 
 		std::cout << "raxml_ops[" << i << "]: \n";
-		std::cout << "  parent_clv_index: " << raxml_ops[i].parent_clv_index << "\n";
-		std::cout << "  parent_scaler_index: " << raxml_ops[i].parent_scaler_index << "\n";
-		std::cout << "  child1_clv_index: " << raxml_ops[i].child1_clv_index << "\n";
-		std::cout << "  child1_matrix_index: " << raxml_ops[i].child1_matrix_index << "\n";
-		std::cout << "  child1_scaler_index: " << raxml_ops[i].child1_scaler_index << "\n";
-		std::cout << "  child2_clv_index: " << raxml_ops[i].child2_clv_index << "\n";
-		std::cout << "  child2_matrix_index: " << raxml_ops[i].child2_matrix_index << "\n";
-		std::cout << "  child2_scaler_index: " << raxml_ops[i].child2_scaler_index << "\n";
+		std::cout << "  parent_clv_index: " << raxml_ops[i].parent_clv_index
+				<< "\n";
+		std::cout << "  parent_scaler_index: "
+				<< raxml_ops[i].parent_scaler_index << "\n";
+		std::cout << "  child1_clv_index: " << raxml_ops[i].child1_clv_index
+				<< "\n";
+		std::cout << "  child1_matrix_index: "
+				<< raxml_ops[i].child1_matrix_index << "\n";
+		std::cout << "  child1_scaler_index: "
+				<< raxml_ops[i].child1_scaler_index << "\n";
+		std::cout << "  child2_clv_index: " << raxml_ops[i].child2_clv_index
+				<< "\n";
+		std::cout << "  child2_matrix_index: "
+				<< raxml_ops[i].child2_matrix_index << "\n";
+		std::cout << "  child2_scaler_index: "
+				<< raxml_ops[i].child2_scaler_index << "\n";
 		std::cout << "\n";
 
 		/*ASSERT_EQ(network_ops[i].parent_clv_index, raxml_ops[i].parent_clv_index);
@@ -190,15 +222,17 @@ TEST_F (LikelihoodTest, DISABLED_compareOperationArrays) {
 
 }
 
-TEST_F (LikelihoodTest, DISABLED_simpleNetworkNoRepeatsOnlyDisplayedTreeWithRaxml) {
+TEST_F (LikelihoodTest, simpleNetworkNoRepeatsOnlyDisplayedTreeWithRaxml) {
 	Network network = readNetworkFromFile(networkPath);
 
 	/* get partitions assigned to the current thread */
-	PartitionAssignment& part_assign = smallInstance.proc_part_assign.at(ParallelContext::proc_id());
+	PartitionAssignment &part_assign = smallInstance.proc_part_assign.at(
+			ParallelContext::proc_id());
 
 	Tree tree(*(displayed_tree_to_utree(network, 0)));
 
-	TreeInfo raxml_treeinfo = TreeInfo(smallInstance.opts, tree, *(smallInstance.parted_msa.get()), smallInstance.tip_msa_idmap,
+	TreeInfo raxml_treeinfo = TreeInfo(smallInstance.opts, tree,
+			*(smallInstance.parted_msa.get()), smallInstance.tip_msa_idmap,
 			part_assign);
 
 	double network_logl = raxml_treeinfo.loglh(false);
@@ -206,22 +240,25 @@ TEST_F (LikelihoodTest, DISABLED_simpleNetworkNoRepeatsOnlyDisplayedTreeWithRaxm
 	ASSERT_NE(network_logl, -std::numeric_limits<double>::infinity());
 }
 
-TEST_F (LikelihoodTest, DISABLED_simpleNetworkWithRepeatsOnlyDisplayedTreeWithRaxml) {
+TEST_F (LikelihoodTest, simpleNetworkWithRepeatsOnlyDisplayedTreeWithRaxml) {
 	Network network = readNetworkFromFile(networkPath);
 
-	RaxmlInstance instance = createStandardRaxmlInstance(networkPath, msaPath, true);
+	RaxmlInstance instance = createStandardRaxmlInstance(networkPath, msaPath,
+			true);
 	/* get partitions assigned to the current thread */
-	PartitionAssignment& part_assign = instance.proc_part_assign.at(ParallelContext::proc_id());
+	PartitionAssignment &part_assign = instance.proc_part_assign.at(
+			ParallelContext::proc_id());
 
 	Tree tree(*(displayed_tree_to_utree(network, 0)));
 
-	TreeInfo raxml_treeinfo = TreeInfo(instance.opts, tree, *(instance.parted_msa.get()), instance.tip_msa_idmap, part_assign);
+	TreeInfo raxml_treeinfo = TreeInfo(instance.opts, tree,
+			*(instance.parted_msa.get()), instance.tip_msa_idmap, part_assign);
 	double network_logl = raxml_treeinfo.loglh(false);
 	std::cout << "The computed network_logl 4 is: " << network_logl << "\n";
 	ASSERT_NE(network_logl, -std::numeric_limits<double>::infinity());
 }
 
-TEST_F (LikelihoodTest, DISABLED_simpleTreeWithRepeats) {
+TEST_F (LikelihoodTest, simpleTreeWithRepeats) {
 	Network network = readNetworkFromFile(treePath);
 
 	RaxmlInstance instance = createStandardRaxmlInstance(treePath, msaPath);
@@ -232,7 +269,7 @@ TEST_F (LikelihoodTest, DISABLED_simpleTreeWithRepeats) {
 	ASSERT_NE(network_logl, -std::numeric_limits<double>::infinity());
 }
 
-TEST_F (LikelihoodTest, DISABLED_simpleNetworkNoRepeats) {
+TEST_F (LikelihoodTest, simpleNetworkNoRepeats) {
 	Network network = readNetworkFromFile(networkPath);
 	RaxmlInstance instance = createStandardRaxmlInstance(networkPath, msaPath);
 	TreeInfo raxml_treeinfo = createFakeRaxmlTreeinfo(instance, network, false);
@@ -241,7 +278,7 @@ TEST_F (LikelihoodTest, DISABLED_simpleNetworkNoRepeats) {
 	ASSERT_NE(network_logl, -std::numeric_limits<double>::infinity());
 }
 
-TEST_F (LikelihoodTest, DISABLED_simpleNetworkWithRepeats) {
+TEST_F (LikelihoodTest, simpleNetworkWithRepeats) {
 	Network network = readNetworkFromFile(networkPath);
 
 	RaxmlInstance instance = createStandardRaxmlInstance(networkPath, msaPath);
@@ -260,7 +297,8 @@ TEST_F (LikelihoodTest, DISABLED_celineNetwork) {
 	IDVector tip_msa_idmap;
 	PartitionAssignment part_assign;
 
-	TreeInfo raxml_treeinfo = create_fake_raxml_treeinfo(network, raxml_opts, parted_msa, tip_msa_idmap, part_assign);
+	TreeInfo raxml_treeinfo = create_fake_raxml_treeinfo(network, raxml_opts,
+			parted_msa, tip_msa_idmap, part_assign);
 	double network_logl = raxml_treeinfo.loglh(false);
 	std::cout << "The computed network_logl 8 is: " << network_logl << "\n";
 	ASSERT_TRUE(true);
