@@ -227,8 +227,8 @@ RootedNetworkNode* readSubtree(RootedNetworkNode* parent, const std::string& s, 
 		throw std::runtime_error("unbalanced ()'s");
 }
 
-RootedNetwork parseRootedNetworkFromNewickString(const std::string& newick) {
-	RootedNetwork rnetwork;
+RootedNetwork* parseRootedNetworkFromNewickString(const std::string& newick) {
+	RootedNetwork* rnetwork = new RootedNetwork();
 	// TODO: special case: ignore faulty extra Céline parantheses which lead to top-level monofurcation
 	std::unordered_map<std::string, size_t> reticulations_lookup;
 
@@ -236,8 +236,8 @@ RootedNetwork parseRootedNetworkFromNewickString(const std::string& newick) {
 	assert(semicolonPos != std::string::npos);
 	assert(std::count(newick.begin(), newick.end(), ';') == 1);
 
-	rnetwork.root = readSubtree(nullptr, substring(newick, 0, semicolonPos), rnetwork.nodes, reticulations_lookup,
-			&rnetwork.reticulationCount, &rnetwork.tipCount);
+	rnetwork->root = readSubtree(nullptr, substring(newick, 0, semicolonPos), rnetwork->nodes, reticulations_lookup,
+			&(rnetwork->reticulationCount), &(rnetwork->tipCount));
 	return rnetwork;
 }
 

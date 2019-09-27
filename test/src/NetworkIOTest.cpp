@@ -79,8 +79,8 @@ TEST_F (NetworkIOTest, testTheTest) {
 
 TEST_F (NetworkIOTest, rootedNetworkParserSmall) {
 	std::string newick = "((A:2,((B:1,C:1)P:1)X#H1:0::0.3)Q:2,(D:2,X#H1:0::0.7)R:2);";
-	RootedNetwork small = netrax::parseRootedNetworkFromNewickString(newick);
-	std::cout << netrax::toNewickString(small) << "\n";
+	RootedNetwork* small = netrax::parseRootedNetworkFromNewickString(newick);
+	std::cout << netrax::toNewickString(*small) << "\n";
 }
 
 TEST_F (NetworkIOTest, readNetworkFromFile) {

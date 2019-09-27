@@ -637,8 +637,10 @@ Network convertNetwork(const RootedNetwork &rnetwork) {
 Network readNetworkFromString(const std::string &newick) {
 	//unetwork_t *unetwork = unetwork_parse_newick_string(newick.c_str());
 	//return convertNetwork(*unetwork);
-	RootedNetwork rnetwork = parseRootedNetworkFromNewickString(newick);
-	return convertNetwork(rnetwork);
+	RootedNetwork* rnetwork = parseRootedNetworkFromNewickString(newick);
+	Network network = convertNetwork(*rnetwork);
+	delete rnetwork;
+	return network;
 }
 Network readNetworkFromFile(const std::string &filename) {
 	//unetwork_t *unetwork = unetwork_parse_newick(filename.c_str());
