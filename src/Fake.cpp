@@ -69,6 +69,7 @@ void fake_init_collect_branch_lengths(pllmod_treeinfo_t *treeinfo,
 	for (size_t i = 0; i < network.edges.size(); ++i) {
 		treeinfo->branch_lengths[0][i] = network.edges[i].getLength();
 	}
+
 	treeinfo->branch_lengths[0][network.edges.size()] = 0; // the fake branch length
 
 	/* in unlinked branch length mode, copy brlen to other partitions */
@@ -88,9 +89,9 @@ int fake_init_tree(pllmod_treeinfo_t *treeinfo, Network &network) {
 	pll_utree_t *tree = (pll_utree_t*) malloc(sizeof(pll_utree_t));
 	treeinfo->tree = tree;
 
-	tree->tip_count = network.num_tips(); // +1 for the fake clv index, TODO: Do we need it here?
-	tree->edge_count = network.num_branches(); // +1 for the fake pmatrix index, TODO: Do we need it here?
-	tree->inner_count = network.num_inner();
+	tree->tip_count = network.num_tips();
+	tree->edge_count = network.num_branches() + 1; // +1 for the fake pmatrix index
+	tree->inner_count = network.num_inner() + 1; // +1 for the fake clv index
 
 	tree->nodes = NULL;
 	tree->vroot = NULL;

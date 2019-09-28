@@ -49,6 +49,8 @@ struct RootedNetwork {
 	std::vector<std::unique_ptr<RootedNetworkNode> > nodes;
 	size_t reticulationCount = 0;
 	size_t tipCount = 0;
+	size_t branchCount = 0;
+	size_t innerCount = 0;
 };
 
 std::string toNewickString(const RootedNetwork& network);

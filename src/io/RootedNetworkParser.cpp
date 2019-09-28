@@ -243,6 +243,14 @@ RootedNetwork* parseRootedNetworkFromNewickString(const std::string& newick) {
 
 	rnetwork->root = readSubtree(nullptr, substring(newick, 0, semicolonPos), rnetwork->nodes, reticulations_lookup,
 			&(rnetwork->reticulationCount), &(rnetwork->tipCount));
+
+	// TODO: Set rnetwork->branch_count...
+	rnetwork->innerCount = rnetwork->nodes.size() - rnetwork->tipCount;
+
+	rnetwork->branchCount = 0;
+	for (size_t i = 0; i < rnetwork->nodes.size(); ++i) {
+		rnetwork->branchCount += rnetwork->nodes[i]->children.size();
+	}
 	return rnetwork;
 }
 

@@ -48,7 +48,7 @@ protected:
 	}
 };
 
-TEST_F (LikelihoodTest, DISABLED_testTheTest) {
+TEST_F (LikelihoodTest, testTheTest) {
 	ASSERT_TRUE(true);
 }
 
@@ -82,7 +82,7 @@ void compareNodes(pll_unode_t *node1, pll_unode_t *node2) {
 	ASSERT_EQ(node1->length, node2->length);
 }
 
-TEST_F (LikelihoodTest, DISABLED_displayedTreeOfTreeToUtree) {
+TEST_F (LikelihoodTest, displayedTreeOfTreeToUtree) {
 	pll_utree_t *network_utree = displayed_tree_to_utree(treeNetwork, 0);
 
 	ASSERT_NE(network_utree, nullptr);
@@ -125,6 +125,22 @@ TEST_F (LikelihoodTest, simpleTreeNoRepeatsNormalRaxml) {
 	ASSERT_NE(network_logl, -std::numeric_limits<double>::infinity());
 }
 
+void comparePartitions(const pll_partition_t *p1, const pll_partition_t *p2) {
+	ASSERT_EQ(p1->tips, p2->tips);
+	ASSERT_EQ(p1->clv_buffers, p2->clv_buffers);
+	ASSERT_EQ(p1->nodes, p2->nodes);
+	ASSERT_EQ(p1->states, p2->states);
+	ASSERT_EQ(p1->sites, p2->sites);
+	ASSERT_EQ(p1->pattern_weight_sum, p2->pattern_weight_sum);
+	ASSERT_EQ(p1->rate_matrices, p2->rate_matrices);
+	ASSERT_EQ(p1->prob_matrices, p2->prob_matrices);
+	ASSERT_EQ(p1->rate_cats, p2->rate_cats);
+	ASSERT_EQ(p1->scale_buffers, p2->scale_buffers);
+	ASSERT_EQ(p1->attributes, p2->attributes);
+	ASSERT_EQ(p1->alignment, p2->alignment);
+	ASSERT_EQ(p1->states_padded, p2->states_padded);
+}
+
 TEST_F (LikelihoodTest, comparePllmodTreeinfo) {
 	TreeInfo network_treeinfo_tree = createFakeRaxmlTreeinfo(treeInstance, treeNetwork);
 	TreeInfo raxml_treeinfo_tree = createStandardRaxmlTreeinfo(treeInstance);
@@ -138,6 +154,10 @@ TEST_F (LikelihoodTest, comparePllmodTreeinfo) {
 	ASSERT_EQ(network_treeinfo.partition_count, raxml_treeinfo.partition_count);
 	ASSERT_EQ(network_treeinfo.subnode_count, raxml_treeinfo.subnode_count);
 	ASSERT_EQ(network_treeinfo.tip_count, raxml_treeinfo.tip_count);
+
+	for (size_t i = 0; i < raxml_treeinfo.partition_count; ++i) {
+		comparePartitions(network_treeinfo.partitions[i], raxml_treeinfo.partitions[i]);
+	}
 }
 
 pll_unode_t* getNodeWithClvIndex(unsigned int clv_index, const pll_utree_t *tree) {
@@ -149,7 +169,7 @@ pll_unode_t* getNodeWithClvIndex(unsigned int clv_index, const pll_utree_t *tree
 	throw std::runtime_error("There is no node with the given clv index");
 }
 
-bool isLeafNode(const pll_unode_t* node) {
+bool isLeafNode(const pll_unode_t *node) {
 	return (node->next == NULL);
 }
 
@@ -165,27 +185,6 @@ TEST_F (LikelihoodTest, compareOperationArrays) {
 
 	std::cout << "Number of operations: " << network_ops.size() << "\n";
 	for (size_t i = 0; i < network_ops.size(); ++i) {
-		std::cout << "network_ops[" << i << "]: \n";
-		std::cout << "  parent_clv_index: " << network_ops[i].parent_clv_index << "\n";
-		std::cout << "  parent_scaler_index: " << network_ops[i].parent_scaler_index << "\n";
-		std::cout << "  child1_clv_index: " << network_ops[i].child1_clv_index << "\n";
-		std::cout << "  child1_matrix_index: " << network_ops[i].child1_matrix_index << "\n";
-		std::cout << "  child1_scaler_index: " << network_ops[i].child1_scaler_index << "\n";
-		std::cout << "  child2_clv_index: " << network_ops[i].child2_clv_index << "\n";
-		std::cout << "  child2_matrix_index: " << network_ops[i].child2_matrix_index << "\n";
-		std::cout << "  child2_scaler_index: " << network_ops[i].child2_scaler_index << "\n";
-
-		std::cout << "raxml_ops[" << i << "]: \n";
-		std::cout << "  parent_clv_index: " << raxml_ops[i].parent_clv_index << "\n";
-		std::cout << "  parent_scaler_index: " << raxml_ops[i].parent_scaler_index << "\n";
-		std::cout << "  child1_clv_index: " << raxml_ops[i].child1_clv_index << "\n";
-		std::cout << "  child1_matrix_index: " << raxml_ops[i].child1_matrix_index << "\n";
-		std::cout << "  child1_scaler_index: " << raxml_ops[i].child1_scaler_index << "\n";
-		std::cout << "  child2_clv_index: " << raxml_ops[i].child2_clv_index << "\n";
-		std::cout << "  child2_matrix_index: " << raxml_ops[i].child2_matrix_index << "\n";
-		std::cout << "  child2_scaler_index: " << raxml_ops[i].child2_scaler_index << "\n";
-		std::cout << "\n";
-
 		pll_unode_t *parent_network = getNodeWithClvIndex(network_ops[i].parent_clv_index, network_utree);
 		pll_unode_t *child1_network = getNodeWithClvIndex(network_ops[i].child1_clv_index, network_utree);
 		pll_unode_t *child2_network = getNodeWithClvIndex(network_ops[i].child2_clv_index, network_utree);
@@ -197,22 +196,15 @@ TEST_F (LikelihoodTest, compareOperationArrays) {
 		ASSERT_EQ(isLeafNode(child1_network), isLeafNode(child1_raxml));
 		ASSERT_EQ(isLeafNode(child2_network), isLeafNode(child2_raxml));
 
-		/*ASSERT_EQ(network_ops[i].parent_clv_index, raxml_ops[i].parent_clv_index);
-		 ASSERT_EQ(network_ops[i].child1_clv_index, raxml_ops[i].child1_clv_index);
-		 ASSERT_EQ(network_ops[i].child2_clv_index, raxml_ops[i].child2_clv_index);
-		 ASSERT_EQ(network_ops[i].parent_scaler_index, raxml_ops[i].parent_scaler_index);
-		 ASSERT_EQ(network_ops[i].child1_scaler_index, raxml_ops[i].child1_scaler_index);
-		 ASSERT_EQ(network_ops[i].child2_scaler_index, raxml_ops[i].child2_scaler_index);
-		 ASSERT_EQ(network_ops[i].child1_matrix_index, raxml_ops[i].child1_matrix_index);
-		 ASSERT_EQ(network_ops[i].child2_matrix_index, raxml_ops[i].child2_matrix_index);*/
+		ASSERT_EQ(network_ops[i].parent_clv_index, raxml_ops[i].parent_clv_index);
+		ASSERT_EQ(network_ops[i].child1_clv_index, raxml_ops[i].child1_clv_index);
+		ASSERT_EQ(network_ops[i].child2_clv_index, raxml_ops[i].child2_clv_index);
+		ASSERT_EQ(network_ops[i].parent_scaler_index, raxml_ops[i].parent_scaler_index);
+		ASSERT_EQ(network_ops[i].child1_scaler_index, raxml_ops[i].child1_scaler_index);
+		ASSERT_EQ(network_ops[i].child2_scaler_index, raxml_ops[i].child2_scaler_index);
+		ASSERT_EQ(network_ops[i].child1_matrix_index, raxml_ops[i].child1_matrix_index);
+		ASSERT_EQ(network_ops[i].child2_matrix_index, raxml_ops[i].child2_matrix_index);
 	}
-}
-
-TEST_F (LikelihoodTest, simpleTreeNoRepeats) {
-	TreeInfo network_treeinfo_tree = createFakeRaxmlTreeinfo(treeInstance, treeNetwork);
-	double network_logl = network_treeinfo_tree.loglh(false);
-	std::cout << "The computed network_logl 2 is: " << network_logl << "\n";
-	ASSERT_NE(network_logl, -std::numeric_limits<double>::infinity());
 }
 
 TEST_F (LikelihoodTest, simpleNetworkNoRepeatsOnlyDisplayedTreeWithRaxml) {
@@ -244,6 +236,13 @@ TEST_F (LikelihoodTest, simpleNetworkWithRepeatsOnlyDisplayedTreeWithRaxml) {
 			part_assign);
 	double network_logl = raxml_treeinfo.loglh(false);
 	std::cout << "The computed network_logl 4 is: " << network_logl << "\n";
+	ASSERT_NE(network_logl, -std::numeric_limits<double>::infinity());
+}
+
+TEST_F (LikelihoodTest, simpleTreeNoRepeats) {
+	TreeInfo network_treeinfo_tree = createFakeRaxmlTreeinfo(treeInstance, treeNetwork);
+	double network_logl = network_treeinfo_tree.loglh(false);
+	std::cout << "The computed network_logl 2 is: " << network_logl << "\n";
 	ASSERT_NE(network_logl, -std::numeric_limits<double>::infinity());
 }
 
