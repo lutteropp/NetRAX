@@ -112,13 +112,13 @@ TreeInfo createRaxmlTreeinfo(RaxmlInstance &instance, const pll_utree_t *utree) 
 	return createRaxmlTreeinfo(instance, pllTreeinfo, standard_behaviour);
 }
 
-void set_partition_fake_entry(pll_partition_t* partition, size_t fake_clv_index, size_t fake_pmatrix_index) {
+void set_partition_fake_entry(pll_partition_t *partition, size_t fake_clv_index, size_t fake_pmatrix_index) {
 	// set pmatrix to identity for the fake node
 	unsigned int states = partition->states;
 	unsigned int states_padded = partition->states_padded;
 	unsigned int sites = partition->sites;
 	unsigned int rate_cats = partition->rate_cats;
-	double * pmat = partition->pmatrix[fake_pmatrix_index];
+	double *pmat = partition->pmatrix[fake_pmatrix_index];
 	unsigned int i, j, k;
 	for (i = 0; i < rate_cats; ++i) {
 		for (j = 0; j < states; ++j) {
@@ -129,7 +129,7 @@ void set_partition_fake_entry(pll_partition_t* partition, size_t fake_clv_index,
 	}
 
 	// set clv to all-ones for the fake node
-	double* clv = partition->clv[fake_clv_index];
+	double *clv = partition->clv[fake_clv_index];
 
 	if (clv == NULL) { // this happens when we have site repeats
 		// TODO: Does it work? Or do we need to increase the number of tips somehow when creating the partition?
@@ -252,7 +252,7 @@ int fake_init_tree(pllmod_treeinfo_t *treeinfo, Network &network) {
 	return PLL_SUCCESS;
 }
 
-pllmod_treeinfo_t* createNetworkPllTreeinfo(Network &network, unsigned int tips, unsigned int partitions,
+pllmod_treeinfo_t* createNetworkPllTreeinfo_buggy(Network &network, unsigned int tips, unsigned int partitions,
 		int brlen_linkage) {
 
 	assert(partitions > 0);
@@ -353,6 +353,27 @@ pllmod_treeinfo_t* createNetworkPllTreeinfo(Network &network, unsigned int tips,
 
 	return treeinfo;
 }
+
+pllmod_treeinfo_t* createNetworkPllTreeinfo_new(Network &network, unsigned int tips, unsigned int partitions,
+		int brlen_linkage) {
+	pll_utree_t *displayedTree = netrax::displayed_tree_to_utree(network, 0);
+	pllmod_treeinfo_t *treeinfo = pllmod_treeinfo_create(displayedTree->vroot, tips, partitions, brlen_linkage);
+
+	NetworkParams *params = (NetworkParams*) malloc(sizeof(NetworkParams));
+	params->network = &network;
+	params->network_treeinfo = treeinfo;
+	treeinfo->likelihood_target_function = network_logl_wrapper;
+	treeinfo->likelihood_computation_params = (void*) params;
+
+	return treeinfo;
+}
+
+pllmod_treeinfo_t* createNetworkPllTreeinfo(Network &network, unsigned int tips, unsigned int partitions,
+		int brlen_linkage) {
+	//return createNetworkPllTreeinfo_buggy(network, tips, partitions, brlen_linkage);
+	return createNetworkPllTreeinfo_new(network, tips, partitions, brlen_linkage);
+}
+
 void destroy_network_treeinfo(pllmod_treeinfo_t *treeinfo) {
 	if (!treeinfo)
 		return;
