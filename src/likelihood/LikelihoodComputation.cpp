@@ -297,4 +297,22 @@ double computeLoglikelihood(Network& network, const pllmod_treeinfo_t& fake_tree
 	return log(network_l);
 }
 
+
+double computeLoglikelihoodNaiveUtree(RaxmlWrapper& wrapper, Network& network, const pllmod_treeinfo_t& fake_treeinfo, int incremental, int update_pmatrices) {
+	size_t n_trees = 1 << network.reticulation_nodes.size();
+	double network_l = 1.0;
+	// Iterate over all displayed trees
+	for (size_t i = 0; i < n_trees; ++i) {
+		pll_utree_t* displayed_tree = netrax::displayed_tree_to_utree(network, i);
+		TreeInfo displayedTreeinfo = wrapper.createRaxmlTreeinfo(displayed_tree);
+
+		double tree_logl = displayedTreeinfo.loglh(0);
+		assert(tree_logl != -std::numeric_limits<double>::infinity());
+		network_l *= exp(tree_logl);
+	}
+
+	return log(network_l);
+}
+
+
 }

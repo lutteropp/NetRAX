@@ -17,6 +17,7 @@ extern "C"
 }
 
 #include "../Network.hpp"
+#include "../RaxmlWrapper.hpp"
 #include <raxml-ng/TreeInfo.hpp>
 
 namespace netrax {
@@ -24,6 +25,8 @@ namespace netrax {
 std::vector<pll_operation_t> createOperations(Network& network, size_t treeIdx);
 
 double computeLoglikelihood(Network& network, const pllmod_treeinfo_t& fake_treeinfo, int incremental, int update_pmatrices);
+
+double computeLoglikelihoodNaiveUtree(RaxmlWrapper& wrapper, Network& network, const pllmod_treeinfo_t& fake_treeinfo, int incremental, int update_pmatrices);
 
 pll_utree_t * displayed_tree_to_utree(Network& network, size_t tree_index);
 
