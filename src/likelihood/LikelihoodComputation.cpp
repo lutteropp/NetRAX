@@ -10,8 +10,6 @@
 #include <cassert>
 #include <cmath>
 
-#include "../Fake.hpp"
-
 namespace netrax {
 
 static char * xstrdup(const char * s) {
