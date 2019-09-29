@@ -112,6 +112,44 @@ TreeInfo createRaxmlTreeinfo(RaxmlInstance &instance, const pll_utree_t *utree) 
 	return createRaxmlTreeinfo(instance, pllTreeinfo, standard_behaviour);
 }
 
+void set_partition_fake_entry(pll_partition_t* partition, size_t fake_clv_index, size_t fake_pmatrix_index) {
+	// set pmatrix to identity for the fake node
+	unsigned int states = partition->states;
+	unsigned int states_padded = partition->states_padded;
+	unsigned int sites = partition->sites;
+	unsigned int rate_cats = partition->rate_cats;
+	double * pmat = partition->pmatrix[fake_pmatrix_index];
+	unsigned int i, j, k;
+	for (i = 0; i < rate_cats; ++i) {
+		for (j = 0; j < states; ++j) {
+			for (k = 0; k < states; ++k)
+				pmat[j * states_padded + k] = 1;
+		}
+		pmat += states * states_padded;
+	}
+
+	// set clv to all-ones for the fake node
+	double* clv = partition->clv[fake_clv_index];
+
+	if (clv == NULL) { // this happens when we have site repeats
+		// TODO: Does it work? Or do we need to increase the number of tips somehow when creating the partition?
+		partition->clv[fake_clv_index] = (double*) pll_aligned_alloc(sites * rate_cats * states_padded * sizeof(double),
+				partition->alignment);
+		clv = partition->clv[fake_clv_index];
+	}
+
+	unsigned int n;
+	for (n = 0; n < sites; ++n) {
+		for (i = 0; i < rate_cats; ++i) {
+			for (j = 0; j < states; ++j) {
+				clv[j] = 1;
+			}
+
+			clv += states_padded;
+		}
+	}
+}
+
 void network_init_treeinfo_wrapper(const Options &opts, const std::vector<doubleVector> &partition_brlens,
 		size_t num_branches, const PartitionedMSA &parted_msa, const IDVector &tip_msa_idmap,
 		const PartitionAssignment &part_assign, const std::vector<uintVector> &site_weights,
