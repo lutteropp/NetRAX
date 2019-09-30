@@ -49,6 +49,9 @@ public:
 			size_t num_branches, const PartitionedMSA &parted_msa, const IDVector &tip_msa_idmap,
 			const PartitionAssignment &part_assign, const std::vector<uintVector> &site_weights,
 			doubleVector *partition_contributions, pllmod_treeinfo_t *pll_treeinfo, IDSet *parts_master);
+	static void network_create_init_partition_wrapper(size_t p, int params_to_optimize, pllmod_treeinfo_t* pll_treeinfo, const Options &opts,
+			const PartitionInfo &pinfo, const IDVector &tip_msa_idmap, PartitionAssignment::const_iterator& part_range,
+			const uintVector &weights);
 private:
 	pllmod_treeinfo_t* createNetworkPllTreeinfo_new(Network &network, unsigned int tips, unsigned int partitions,
 			int brlen_linkage);

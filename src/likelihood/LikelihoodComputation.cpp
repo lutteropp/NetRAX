@@ -289,6 +289,8 @@ double computeLoglikelihood(Network& network, pllmod_treeinfo_t& fake_treeinfo, 
 			for (size_t i = 0; i < network.edges.size(); ++i) {
 				fake_treeinfo.branch_lengths[0][network.edges[i].pmatrix_index] = network.edges[i].length;
 			}
+			// don't forget the fake entry
+			fake_treeinfo.branch_lengths[0][network.edges.size()] = 0.0;
 		}
 		pllmod_treeinfo_update_prob_matrices(&fake_treeinfo, !incremental);
 	}
@@ -323,6 +325,8 @@ double computeLoglikelihood(Network& network, pllmod_treeinfo_t& fake_treeinfo, 
 }
 
 double computeLoglikelihoodNaiveUtree(RaxmlWrapper& wrapper, Network& network, int incremental, int update_pmatrices) {
+	(void) incremental;
+	(void) update_pmatrices;
 	size_t n_trees = 1 << network.reticulation_nodes.size();
 	double network_l = 1.0;
 	// Iterate over all displayed trees
