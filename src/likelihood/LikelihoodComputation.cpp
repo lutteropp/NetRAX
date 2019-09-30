@@ -31,11 +31,10 @@ pll_unode_t* create_unode(Node* network_node, bool takeLabelFromThisNode) {
 		label = network_node->getLink()->getTargetNode()->getLabel();
 	}
 	if (label != "") {
-		return pllmod_utree_create_node(network_node->getClvIndex(), network_node->getScalerIndex(),
-				xstrdup(label.c_str()), NULL);
+		return pllmod_utree_create_node(network_node->getClvIndex(), network_node->getScalerIndex(), xstrdup(label.c_str()), NULL);
 	} else {
 		return pllmod_utree_create_node(network_node->getClvIndex(), network_node->getScalerIndex(),
-						NULL, NULL);
+		NULL, NULL);
 	}
 }
 
@@ -65,7 +64,8 @@ void make_connections(Node* networkNode, pll_unode_t* unode) {
 		while (children[0]->getType() == NodeType::RETICULATION_NODE) {
 			child1LenToAdd += children[0]->getLink()->edge->getLength();
 			Node* reticulationChild = children[0]->getReticulationData()->getLinkToChild()->getTargetNode();
-			if (reticulationChild->getType() == NodeType::RETICULATION_NODE && reticulationChild->getReticulationData()->getLinkToActiveParent()->getTargetNode() != children[0]) {
+			if (reticulationChild->getType() == NodeType::RETICULATION_NODE
+					&& reticulationChild->getReticulationData()->getLinkToActiveParent()->getTargetNode() != children[0]) {
 				children[0] = nullptr;
 				break;
 			} else {
@@ -76,7 +76,8 @@ void make_connections(Node* networkNode, pll_unode_t* unode) {
 		while (children[1]->getType() == NodeType::RETICULATION_NODE) {
 			child2LenToAdd += children[1]->getLink()->edge->getLength();
 			Node* reticulationChild = children[1]->getReticulationData()->getLinkToChild()->getTargetNode();
-			if (reticulationChild->getType() == NodeType::RETICULATION_NODE && reticulationChild->getReticulationData()->getLinkToActiveParent()->getTargetNode() != children[1]) {
+			if (reticulationChild->getType() == NodeType::RETICULATION_NODE
+					&& reticulationChild->getReticulationData()->getLinkToActiveParent()->getTargetNode() != children[1]) {
 				children[1] = nullptr;
 				break;
 			} else {
@@ -271,17 +272,38 @@ std::vector<pll_operation_t> createOperations(Network& network, size_t treeIdx) 
 // TODO: Add bool incremental...
 // TODO: Implement the Gray Code displayed tree iteration order and intelligent update of the operations array
 // TODO: Get rid of the exponentiation, as discussed in the notes when Céline was there (using the per-site-likelihoods)
-double computeLoglikelihood(Network& network, const pllmod_treeinfo_t& fake_treeinfo, int incremental, int update_pmatrices) {
+double computeLoglikelihood(Network& network, pllmod_treeinfo_t& fake_treeinfo, int incremental, int update_pmatrices) {
 	size_t n_trees = 1 << network.reticulation_nodes.size();
 	double network_l = 1.0;
+
+	const int old_active_partition = fake_treeinfo.active_partition;
+
+	/* NOTE: in unlinked brlen mode, up-to-date brlens for partition p
+	 * have to be prefetched to treeinfo->branch_lengths[p] !!! */
+	bool collect_brlen = (fake_treeinfo.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED ? false : true);
+
+	fake_treeinfo.active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
+	// update the pmatrices, if needed
+	if (update_pmatrices) {
+		if (collect_brlen) {
+			for (size_t i = 0; i < network.edges.size(); ++i) {
+				fake_treeinfo.branch_lengths[0][network.edges[i].pmatrix_index] = network.edges[i].length;
+			}
+		}
+		pllmod_treeinfo_update_prob_matrices(&fake_treeinfo, !incremental);
+	}
+
 	// Iterate over all displayed trees
 	for (size_t i = 0; i < n_trees; ++i) {
 		double tree_logl = 0.0;
 		// Create pll_operations_t array for the current displayed tree
 		std::vector<pll_operation_t> ops = createOperations(network, i);
 		unsigned int ops_count = ops.size();
+
 		// Iterate over all partitions
 		for (size_t j = 0; j < fake_treeinfo.partition_count; ++j) {
+			fake_treeinfo.active_partition = j;
+
 			// Compute CLVs in pll_update_partials, as specified by the operations array. This needs a pll_partition_t object.
 			pll_update_partials(fake_treeinfo.partitions[j], ops.data(), ops_count);
 			// Compute loglikelihood at the root of the displayed tree in pll_compute_edge_loglikelihood. This needs an array of unsigned int (exists for each partition) param_indices.
@@ -294,11 +316,13 @@ double computeLoglikelihood(Network& network, const pllmod_treeinfo_t& fake_tree
 		network_l *= exp(tree_logl);
 	}
 
+	/* restore original active partition */
+	fake_treeinfo.active_partition = old_active_partition;
+
 	return log(network_l);
 }
 
-
-double computeLoglikelihoodNaiveUtree(RaxmlWrapper& wrapper, Network& network, const pllmod_treeinfo_t& fake_treeinfo, int incremental, int update_pmatrices) {
+double computeLoglikelihoodNaiveUtree(RaxmlWrapper& wrapper, Network& network, int incremental, int update_pmatrices) {
 	size_t n_trees = 1 << network.reticulation_nodes.size();
 	double network_l = 1.0;
 	// Iterate over all displayed trees
@@ -313,6 +337,5 @@ double computeLoglikelihoodNaiveUtree(RaxmlWrapper& wrapper, Network& network, c
 
 	return log(network_l);
 }
-
 
 }
