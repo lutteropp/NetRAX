@@ -238,7 +238,10 @@ RootedNetwork* parseRootedNetworkFromNewickString(const std::string& newick) {
 	std::unordered_map<std::string, RootedNetworkNode*> reticulations_lookup;
 
 	size_t semicolonPos = newick.find(';');
-	assert(semicolonPos != std::string::npos);
+	if (semicolonPos == std::string::npos) {
+		throw std::runtime_error("No semicolon found! The string is: " + newick);
+	}
+
 	assert(std::count(newick.begin(), newick.end(), ';') == 1);
 
 	rnetwork->root = readSubtree(nullptr, substring(newick, 0, semicolonPos), rnetwork->nodes, reticulations_lookup,
