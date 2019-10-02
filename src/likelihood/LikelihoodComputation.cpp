@@ -386,6 +386,9 @@ double computeLoglikelihoodLessExponentiation(Network &network, pllmod_treeinfo_
 	// Iterate over all partitions
 	for (size_t j = 0; j < fake_treeinfo.partition_count; ++j) {
 		fake_treeinfo.active_partition = j;
+
+		std::vector<double> persite_lh_network(fake_treeinfo.partitions[j]->sites, 0.0);
+
 		// Iterate over all displayed trees
 		for (size_t i = 0; i < n_trees; ++i) {
 			// Create pll_operations_t array for the current displayed tree
@@ -405,11 +408,13 @@ double computeLoglikelihoodLessExponentiation(Network &network, pllmod_treeinfo_
 					persite_lh.data());
 			double tree_prob = displayed_tree_prob(network, i);
 
-			double persite_lh_sum = 0.0;
 			for (size_t k = 0; k < persite_lh.size(); ++k) {
-				persite_lh_sum += persite_lh[k];
+				persite_lh_network[k] += exp(persite_lh[k]) * tree_prob;
 			}
-			network_logl += log(persite_lh_sum * tree_prob);
+		}
+
+		for (size_t k = 0; k < persite_lh_network.size(); ++k) {
+			network_logl += log(persite_lh_network[k]);
 		}
 	}
 
