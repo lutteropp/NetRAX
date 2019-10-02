@@ -75,7 +75,7 @@ protected:
 	}
 };
 
-TEST_F (LikelihoodTest, DISABLED_testTheTest) {
+TEST_F (LikelihoodTest, testTheTest) {
 	ASSERT_TRUE(true);
 }
 
@@ -109,7 +109,7 @@ void compareNodes(pll_unode_t *node1, pll_unode_t *node2) {
 	ASSERT_EQ(node1->length, node2->length);
 }
 
-TEST_F (LikelihoodTest, DISABLED_displayedTreeOfTreeToUtree) {
+TEST_F (LikelihoodTest, displayedTreeOfTreeToUtree) {
 	pll_utree_t *network_utree = displayed_tree_to_utree(treeNetwork, 0);
 
 	ASSERT_NE(network_utree, nullptr);
@@ -136,12 +136,12 @@ TEST_F (LikelihoodTest, DISABLED_displayedTreeOfTreeToUtree) {
 	}
 }
 
-TEST_F (LikelihoodTest, DISABLED_displayedTreeOfNetworkToUtree) {
+TEST_F (LikelihoodTest, displayedTreeOfNetworkToUtree) {
 	pll_utree_t *utree = displayed_tree_to_utree(smallNetwork, 0);
 	ASSERT_NE(utree, nullptr);
 }
 
-TEST_F (LikelihoodTest, DISABLED_simpleTreeNoRepeatsNormalRaxml) {
+TEST_F (LikelihoodTest, simpleTreeNoRepeatsNormalRaxml) {
 	TreeInfo raxml_treeinfo = treeWrapper->createRaxmlTreeinfo(raxml_utree);
 
 	double network_logl = raxml_treeinfo.loglh(false);
@@ -174,13 +174,11 @@ void comparePartitions(const pll_partition_t *p_network, const pll_partition_t *
 	unsigned int start = (p_raxml->attributes & PLL_ATTRIB_PATTERN_TIP) ?
 			p_raxml->tips : 0;
 	unsigned int end = p_raxml->tips + p_raxml->clv_buffers;
-	std::cout << "start is: " << start << "\n";
 
 	size_t sites_alloc = (unsigned int) p_raxml->asc_additional_sites + p_raxml->sites;
 
 	size_t clv_size = sites_alloc * p_raxml->states_padded * p_raxml->rate_cats;
 	for (size_t i = start; i < end; ++i) {
-		std::cout << "Checking CLV index " << i << "\n";
 		compare_clv(p_raxml->clv[i], p_network->clv[i], clv_size);
 	}
 }
@@ -199,7 +197,6 @@ TEST_F (LikelihoodTest, comparePllmodTreeinfo) {
 	ASSERT_EQ(network_treeinfo.subnode_count, raxml_treeinfo.subnode_count + 3);
 	ASSERT_EQ(network_treeinfo.tip_count, raxml_treeinfo.tip_count);
 
-	std::cout << "BEFORE COMPUTING LOGL\n";
 	for (size_t i = 0; i < raxml_treeinfo.partition_count; ++i) {
 		comparePartitions(network_treeinfo.partitions[i], raxml_treeinfo.partitions[i]);
 	}
@@ -207,7 +204,6 @@ TEST_F (LikelihoodTest, comparePllmodTreeinfo) {
 	double network_logl = network_treeinfo_tree.loglh();
 	double raxml_logl = raxml_treeinfo_tree.loglh();
 
-	std::cout << "AFTER COMPUTING LOGL\n";
 	for (size_t i = 0; i < raxml_treeinfo.partition_count; ++i) {
 		comparePartitions(network_treeinfo.partitions[i], raxml_treeinfo.partitions[i]);
 	}
@@ -228,7 +224,7 @@ bool isLeafNode(const pll_unode_t *node) {
 	return (node->next == NULL);
 }
 
-TEST_F (LikelihoodTest, DISABLED_compareOperationArrays) {
+TEST_F (LikelihoodTest, compareOperationArrays) {
 	pll_utree_t *network_utree = displayed_tree_to_utree(treeNetwork, 0);
 
 	TreeInfo raxml_treeinfo_tree = treeWrapper->createRaxmlTreeinfo(raxml_utree);
@@ -264,7 +260,7 @@ TEST_F (LikelihoodTest, DISABLED_compareOperationArrays) {
 	}
 }
 
-TEST_F (LikelihoodTest, DISABLED_simpleNetworkNoRepeatsOnlyDisplayedTreeWithRaxml) {
+TEST_F (LikelihoodTest, simpleNetworkNoRepeatsOnlyDisplayedTreeWithRaxml) {
 	TreeInfo raxml_treeinfo = treeWrapper->createRaxmlTreeinfo(displayed_tree_to_utree(smallNetwork, 0));
 
 	double network_logl = raxml_treeinfo.loglh(false);
@@ -272,7 +268,7 @@ TEST_F (LikelihoodTest, DISABLED_simpleNetworkNoRepeatsOnlyDisplayedTreeWithRaxm
 	ASSERT_NE(network_logl, -std::numeric_limits<double>::infinity());
 }
 
-TEST_F (LikelihoodTest, DISABLED_simpleNetworkWithRepeatsOnlyDisplayedTreeWithRaxml) {
+TEST_F (LikelihoodTest, simpleNetworkWithRepeatsOnlyDisplayedTreeWithRaxml) {
 	pll_utree_t *network_utree = displayed_tree_to_utree(smallNetwork, 0);
 
 	TreeInfo raxml_treeinfo = treeWrapperRepeats->createRaxmlTreeinfo(displayed_tree_to_utree(smallNetwork, 0));
@@ -282,14 +278,14 @@ TEST_F (LikelihoodTest, DISABLED_simpleNetworkWithRepeatsOnlyDisplayedTreeWithRa
 	ASSERT_NE(network_logl, -std::numeric_limits<double>::infinity());
 }
 
-TEST_F (LikelihoodTest, DISABLED_simpleTreeNoRepeats) {
+TEST_F (LikelihoodTest, simpleTreeNoRepeats) {
 	TreeInfo network_treeinfo_tree = treeWrapper->createRaxmlTreeinfo(treeNetwork);
 	double network_logl = network_treeinfo_tree.loglh(false);
 	std::cout << "The computed network_logl 2 is: " << network_logl << "\n";
 	ASSERT_NE(network_logl, -std::numeric_limits<double>::infinity());
 }
 
-TEST_F (LikelihoodTest, DISABLED_likelihoodFunctions) {
+TEST_F (LikelihoodTest, likelihoodFunctions) {
 	TreeInfo network_treeinfo_tree = treeWrapper->createRaxmlTreeinfo(treeNetwork);
 	double naive_logl = computeLoglikelihoodNaiveUtree(*(treeWrapper.get()), treeNetwork, 0, 1);
 	std::cout << "naive logl: " << naive_logl << "\n";
@@ -308,7 +304,7 @@ TEST_F (LikelihoodTest, DISABLED_simpleTreeWithRepeats) {
 	ASSERT_NE(network_logl, -std::numeric_limits<double>::infinity());
 }
 
-TEST_F (LikelihoodTest, DISABLED_simpleNetworkNoRepeats) {
+TEST_F (LikelihoodTest, simpleNetworkNoRepeats) {
 	TreeInfo network_treeinfo = smallWrapper->createRaxmlTreeinfo(smallNetwork);
 	double network_logl = network_treeinfo.loglh(false);
 	std::cout << "The computed network_logl 6 is: " << network_logl << "\n";

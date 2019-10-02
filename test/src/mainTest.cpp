@@ -20,7 +20,7 @@ int main(int argc, char** argv)
   ::testing::InitGoogleTest(&argc, argv);
 //  MPI_INIT(&argc, &argv);
   ::testing::AddGlobalTestEnvironment(env);
-  testing::GTEST_FLAG(filter) = "-NetworkIOTest.*";
+  //testing::GTEST_FLAG(filter) = "-NetworkIOTest.*";
   auto result = RUN_ALL_TESTS();
 //  MPI_FINALIZE();
   return result;
