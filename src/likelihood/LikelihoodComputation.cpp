@@ -288,7 +288,7 @@ double displayed_tree_prob(Network &network, size_t tree_index) {
 // TODO: Get rid of the exponentiation, as discussed in the notes when Céline was there (using the per-site-likelihoods)
 double computeLoglikelihood(Network &network, pllmod_treeinfo_t &fake_treeinfo, int incremental, int update_pmatrices) {
 	size_t n_trees = 1 << network.reticulation_nodes.size();
-	double network_l = 1.0;
+	double network_l = 0.0;
 
 	const int old_active_partition = fake_treeinfo.active_partition;
 
@@ -329,7 +329,7 @@ double computeLoglikelihood(Network &network, pllmod_treeinfo_t &fake_treeinfo, 
 					network.root->getLink()->edge->getPMatrixIndex(), fake_treeinfo.param_indices[j], nullptr);
 			assert(tree_logl != -std::numeric_limits<double>::infinity());
 		}
-		network_l *= exp(tree_logl) * displayed_tree_prob(network, i);
+		network_l += exp(tree_logl) * displayed_tree_prob(network, i);
 	}
 
 	/* restore original active partition */
@@ -342,7 +342,7 @@ double computeLoglikelihoodNaiveUtree(RaxmlWrapper &wrapper, Network &network, i
 	(void) incremental;
 	(void) update_pmatrices;
 	size_t n_trees = 1 << network.reticulation_nodes.size();
-	double network_l = 1.0;
+	double network_l = 0.0;
 	// Iterate over all displayed trees
 	for (size_t i = 0; i < n_trees; ++i) {
 		pll_utree_t *displayed_tree = netrax::displayed_tree_to_utree(network, i);
@@ -350,7 +350,7 @@ double computeLoglikelihoodNaiveUtree(RaxmlWrapper &wrapper, Network &network, i
 
 		double tree_logl = displayedTreeinfo.loglh(0);
 		assert(tree_logl != -std::numeric_limits<double>::infinity());
-		network_l *= exp(tree_logl) * displayed_tree_prob(network, i);
+		network_l += exp(tree_logl) * displayed_tree_prob(network, i);
 	}
 
 	return log(network_l);
@@ -401,15 +401,15 @@ double computeLoglikelihoodLessExponentiation(Network &network, pllmod_treeinfo_
 			Node *rootBack = network.root->getLink()->getTargetNode();
 
 			// sites array
-			std::vector<double> persite_lh(fake_treeinfo.partitions[j]->sites, 0.0);
+			std::vector<double> persite_logl(fake_treeinfo.partitions[j]->sites, 0.0);
 			pll_compute_edge_loglikelihood(fake_treeinfo.partitions[j], network.root->getClvIndex(),
 					network.root->getScalerIndex(), rootBack->getClvIndex(), rootBack->getScalerIndex(),
 					network.root->getLink()->edge->getPMatrixIndex(), fake_treeinfo.param_indices[j],
-					persite_lh.data());
+					persite_logl.data());
 			double tree_prob = displayed_tree_prob(network, i);
 
-			for (size_t k = 0; k < persite_lh.size(); ++k) {
-				persite_lh_network[k] += exp(persite_lh[k]) * tree_prob;
+			for (size_t k = 0; k < persite_logl.size(); ++k) {
+				persite_lh_network[k] += exp(persite_logl[k]) * tree_prob;
 			}
 		}
 
