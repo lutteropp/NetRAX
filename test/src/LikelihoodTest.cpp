@@ -297,7 +297,7 @@ TEST_F (LikelihoodTest, likelihoodFunctions) {
 	ASSERT_EQ(naive_logl, sarah_logl);
 }
 
-TEST_F (LikelihoodTest, DISABLED_simpleTreeWithRepeats) {
+TEST_F (LikelihoodTest, simpleTreeWithRepeats) {
 	TreeInfo network_treeinfo_tree = treeWrapperRepeats->createRaxmlTreeinfo(treeNetwork);
 	double network_logl = network_treeinfo_tree.loglh(false);
 	std::cout << "The computed network_logl 5 is: " << network_logl << "\n";
@@ -311,7 +311,7 @@ TEST_F (LikelihoodTest, simpleNetworkNoRepeats) {
 	ASSERT_NE(network_logl, -std::numeric_limits<double>::infinity());
 }
 
-TEST_F (LikelihoodTest, DISABLED_simpleNetworkWithRepeats) {
+TEST_F (LikelihoodTest, simpleNetworkWithRepeats) {
 	TreeInfo network_treeinfo = smallWrapperRepeats->createRaxmlTreeinfo(smallNetwork);
 	double network_logl = network_treeinfo.loglh(false);
 	std::cout << "The computed network_logl 7 is: " << network_logl << "\n";
