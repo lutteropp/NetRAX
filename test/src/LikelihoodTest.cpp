@@ -294,7 +294,11 @@ TEST_F (LikelihoodTest, likelihoodFunctions) {
 
 	double sarah_logl = computeLoglikelihood(treeNetwork, *(params->network_treeinfo), 0, 1);
 	std::cout << "sarah logl: " << sarah_logl << "\n";
+
+	double norep_logl = computeLoglikelihoodLessExponentiation(treeNetwork, *(params->network_treeinfo), 0, 1);
+	std::cout << "norep_logl: " << norep_logl << "\n";
 	ASSERT_EQ(naive_logl, sarah_logl);
+	ASSERT_EQ(naive_logl, norep_logl);
 }
 
 TEST_F (LikelihoodTest, simpleTreeWithRepeats) {

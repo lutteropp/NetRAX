@@ -26,6 +26,8 @@ std::vector<pll_operation_t> createOperations(Network& network, size_t treeIdx);
 
 double computeLoglikelihood(Network& network, pllmod_treeinfo_t& fake_treeinfo, int incremental, int update_pmatrices);
 
+double computeLoglikelihoodLessExponentiation(Network& network, pllmod_treeinfo_t& fake_treeinfo, int incremental, int update_pmatrices);
+
 double computeLoglikelihoodNaiveUtree(RaxmlWrapper& wrapper, Network& network, int incremental, int update_pmatrices);
 
 pll_utree_t * displayed_tree_to_utree(Network& network, size_t tree_index);
