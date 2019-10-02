@@ -282,7 +282,7 @@ void RaxmlWrapper::network_create_init_partition_wrapper(size_t p, int params_to
 		assert(pll_errno);
 		libpll_check_error("ERROR adding treeinfo partition");
 	}
-	set_partition_fake_entry(partition, pll_treeinfo->tree->inner_count - 1, pll_treeinfo->tree->edge_count - 1);
+	set_partition_fake_entry(partition, pll_treeinfo->tree->tip_count + pll_treeinfo->tree->inner_count - 1, pll_treeinfo->tree->edge_count - 1);
 }
 
 void RaxmlWrapper::network_init_treeinfo_wrapper(const Options &opts, const std::vector<doubleVector> &partition_brlens,
