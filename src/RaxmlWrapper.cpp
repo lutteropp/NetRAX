@@ -127,21 +127,11 @@ size_t RaxmlWrapper::num_partitions() const {
 	return instance.parted_msa->part_count();
 }
 
-void set_partition_fake_entry(pll_partition_t *partition, size_t fake_clv_index, size_t fake_pmatrix_index) {
-	// set pmatrix to identity for the fake node
+void set_partition_fake_clv_entry(pll_partition_t *partition, size_t fake_clv_index) {
 	unsigned int states = partition->states;
 	unsigned int states_padded = partition->states_padded;
 	unsigned int sites = partition->sites;
 	unsigned int rate_cats = partition->rate_cats;
-	double *pmat = partition->pmatrix[fake_pmatrix_index];
-	unsigned int i, j, k;
-	for (i = 0; i < rate_cats; ++i) {
-		for (j = 0; j < states; ++j) {
-			for (k = 0; k < states; ++k)
-				pmat[j * states_padded + k] = 1;
-		}
-		pmat += states * states_padded;
-	}
 
 	// set clv to all-ones for the fake node
 	double *clv = partition->clv[fake_clv_index];
@@ -153,10 +143,9 @@ void set_partition_fake_entry(pll_partition_t *partition, size_t fake_clv_index,
 		clv = partition->clv[fake_clv_index];
 	}
 
-	unsigned int n;
-	for (n = 0; n < sites; ++n) {
-		for (i = 0; i < rate_cats; ++i) {
-			for (j = 0; j < states; ++j) {
+	for (unsigned int n = 0; n < sites; ++n) {
+		for (unsigned int i = 0; i < rate_cats; ++i) {
+			for (unsigned int j = 0; j < states; ++j) {
 				clv[j] = 1;
 			}
 
@@ -255,8 +244,7 @@ void RaxmlWrapper::network_create_init_partition_wrapper(size_t p, int params_to
 		assert(pll_errno);
 		libpll_check_error("ERROR adding treeinfo partition");
 	}
-	set_partition_fake_entry(partition, pll_treeinfo->tree->tip_count + pll_treeinfo->tree->inner_count - 1,
-			pll_treeinfo->tree->edge_count - 1);
+	set_partition_fake_clv_entry(partition, pll_treeinfo->tree->tip_count + pll_treeinfo->tree->inner_count - 1);
 }
 
 void RaxmlWrapper::network_init_treeinfo_wrapper(const Options &opts, const std::vector<doubleVector> &partition_brlens,
@@ -296,7 +284,7 @@ void RaxmlWrapper::network_init_treeinfo_wrapper(const Options &opts, const std:
 				assert(pll_errno);
 				libpll_check_error("ERROR adding treeinfo partition");
 			}
-			set_partition_fake_entry(partition, pll_treeinfo->tree->inner_count, pll_treeinfo->tree->edge_count);
+			set_partition_fake_clv_entry(partition, pll_treeinfo->tree->inner_count);
 
 			// set per-partition branch lengths or scalers
 			if (opts.brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED) {
