@@ -398,6 +398,8 @@ double computeLoglikelihood(Network &network, pllmod_treeinfo_t &fake_treeinfo, 
 
 			assert(tree_partition_logl != -std::numeric_limits<double>::infinity());
 
+			std::cout << "sarah tree logl " << i << ": " << tree_partition_logl << "\n";
+
 			network_l += exp(tree_partition_logl) * tree_prob;
 		}
 
@@ -469,7 +471,10 @@ double computeLoglikelihoodLessExponentiation(Network &network, pllmod_treeinfo_
 		// Iterate over all displayed trees
 		for (size_t i = 0; i < n_trees; ++i) {
 			std::vector<double> persite_logl(fake_treeinfo.partitions[j]->sites, 0.0);
-			compute_tree_logl(network, fake_treeinfo, i, j, &persite_logl);
+			double tree_partition_logl = compute_tree_logl(network, fake_treeinfo, i, j, &persite_logl);
+
+			std::cout << "norep tree logl " << i << ": " << tree_partition_logl << "\n";
+
 			double tree_prob = displayed_tree_prob(network, i, unlinked_mode ? 0 : j);
 
 			for (size_t k = 0; k < persite_logl.size(); ++k) {
@@ -518,6 +523,9 @@ double computeLoglikelihoodNaiveUtree(RaxmlWrapper &wrapper, Network &network, i
 		TreeInfo displayedTreeinfo = wrapper.createRaxmlTreeinfo(displayed_tree);
 
 		double tree_logl = displayedTreeinfo.loglh(0);
+
+		std::cout << "naive tree logl " << i << ": " << tree_logl << "\n";
+
 		assert(tree_logl != -std::numeric_limits<double>::infinity());
 		network_l += exp(tree_logl) * displayed_tree_prob(network, i, 0);
 	}
