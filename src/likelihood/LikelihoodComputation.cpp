@@ -294,6 +294,8 @@ double computeLoglikelihood(Network &network, pllmod_treeinfo_t &fake_treeinfo, 
 
 	fake_treeinfo.active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
 
+	bool unlinked_mode = (fake_treeinfo.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
+
 	// Iterate over all partitions
 	for (size_t j = 0; j < fake_treeinfo.partition_count; ++j) {
 		if (collect_brlen) {
@@ -322,7 +324,7 @@ double computeLoglikelihood(Network &network, pllmod_treeinfo_t &fake_treeinfo, 
 					network.root->getLink()->edge->getPMatrixIndex(), fake_treeinfo.param_indices[j], nullptr);
 			assert(tree_logl != -std::numeric_limits<double>::infinity());
 
-			network_l += exp(tree_logl) * displayed_tree_prob(network, i, j);
+			network_l += exp(tree_logl) * displayed_tree_prob(network, i, unlinked_mode ? 0 : j);
 		}
 	}
 
@@ -369,6 +371,8 @@ double computeLoglikelihoodLessExponentiation(Network &network, pllmod_treeinfo_
 
 	fake_treeinfo.active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
 
+	bool unlinked_mode = (fake_treeinfo.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
+
 	// Iterate over all partitions
 	for (size_t j = 0; j < fake_treeinfo.partition_count; ++j) {
 		fake_treeinfo.active_partition = j;
@@ -407,7 +411,7 @@ double computeLoglikelihoodLessExponentiation(Network &network, pllmod_treeinfo_
 			pll_compute_edge_loglikelihood(fake_treeinfo.partitions[j], network.root->getClvIndex(), network.root->getScalerIndex(),
 					rootBack->getClvIndex(), rootBack->getScalerIndex(), network.root->getLink()->edge->getPMatrixIndex(),
 					fake_treeinfo.param_indices[j], persite_logl.data());
-			double tree_prob = displayed_tree_prob(network, i, j);
+			double tree_prob = displayed_tree_prob(network, i, unlinked_mode ? 0 : j);
 
 			for (size_t k = 0; k < persite_logl.size(); ++k) {
 				persite_lh_network[k] += exp(persite_logl[k]) * tree_prob;
