@@ -305,12 +305,16 @@ TEST_F (LikelihoodTest, likelihoodFunctionsNetwork) {
 	TreeInfo network_treeinfo_small = smallWrapper->createRaxmlTreeinfo(smallNetwork);
 	RaxmlWrapper::NetworkParams* params = (RaxmlWrapper::NetworkParams*) network_treeinfo_small.pll_treeinfo().likelihood_computation_params;
 
+	double naive_logl = computeLoglikelihoodNaiveUtree(*(smallWrapper.get()), smallNetwork, 0, 1);
+	std::cout << "naive logl: " << naive_logl << "\n";
+
 	double sarah_logl = computeLoglikelihood(smallNetwork, *(params->network_treeinfo), 0, 1);
 	std::cout << "sarah logl: " << sarah_logl << "\n";
 
 	double norep_logl = computeLoglikelihoodLessExponentiation(smallNetwork, *(params->network_treeinfo), 0, 1);
 	std::cout << "norep_logl: " << norep_logl << "\n";
 
+	ASSERT_EQ(naive_logl, sarah_logl);
 	ASSERT_EQ(sarah_logl, norep_logl);
 }
 
