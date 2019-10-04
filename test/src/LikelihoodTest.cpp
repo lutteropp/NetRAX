@@ -136,9 +136,51 @@ TEST_F (LikelihoodTest, displayedTreeOfTreeToUtree) {
 	}
 }
 
+int cb_trav_all(pll_unode_t* node) {
+	return 1;
+}
+
+std::unordered_set<std::string> collect_tip_labels_utree(pll_utree_t* utree) {
+	std::unordered_set<std::string> labels;
+
+	std::vector<pll_unode_t*> outbuffer(utree->inner_count + utree->tip_count);
+	unsigned int trav_size;
+	pll_utree_traverse(utree->vroot, PLL_TREE_TRAVERSE_POSTORDER, cb_trav_all, outbuffer.data(), &trav_size);
+	for (size_t i = 0; i < trav_size; ++i) {
+		if (!outbuffer[i]->next) {
+			labels.insert(outbuffer[i]->label);
+			std::cout << "Added label: " << outbuffer[i]->label << "\n";
+		}
+	}
+
+	return labels;
+}
+
+bool no_clv_indices_equal(pll_utree_t* utree) {
+	std::unordered_set<unsigned int> clv_idx;
+
+	std::vector<pll_unode_t*> outbuffer(utree->inner_count + utree->tip_count);
+	unsigned int trav_size;
+	pll_utree_traverse(utree->vroot, PLL_TREE_TRAVERSE_POSTORDER, cb_trav_all, outbuffer.data(), &trav_size);
+	for (size_t i = 0; i < trav_size; ++i) {
+		clv_idx.insert(outbuffer[i]->clv_index);
+	}
+	return (clv_idx.size() == trav_size);
+}
+
 TEST_F (LikelihoodTest, displayedTreeOfNetworkToUtree) {
 	pll_utree_t *utree = displayed_tree_to_utree(smallNetwork, 0);
 	ASSERT_NE(utree, nullptr);
+
+	// compare tip labels
+	std::unordered_set<std::string> tip_labels_utree = collect_tip_labels_utree(utree);
+	ASSERT_EQ(tip_labels_utree.size(), smallNetwork.num_tips());
+	for (size_t i = 0; i < smallNetwork.tip_nodes.size(); ++i) {
+		ASSERT_TRUE(tip_labels_utree.find(smallNetwork.tip_nodes[i]->label) != tip_labels_utree.end());
+	}
+
+	// check for all different clvs
+	ASSERT_TRUE(no_clv_indices_equal(utree));
 }
 
 TEST_F (LikelihoodTest, simpleTreeNoRepeatsNormalRaxml) {
