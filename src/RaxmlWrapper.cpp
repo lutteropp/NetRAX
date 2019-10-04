@@ -123,6 +123,10 @@ TreeInfo RaxmlWrapper::createRaxmlTreeinfo(const pll_utree_t *utree) {
 	return createRaxmlTreeinfo(pllTreeinfo, standard_behaviour);
 }
 
+size_t RaxmlWrapper::num_partitions() const {
+	return instance.parted_msa->part_count();
+}
+
 void set_partition_fake_entry(pll_partition_t *partition, size_t fake_clv_index, size_t fake_pmatrix_index) {
 	// set pmatrix to identity for the fake node
 	unsigned int states = partition->states;
@@ -161,117 +165,86 @@ void set_partition_fake_entry(pll_partition_t *partition, size_t fake_clv_index,
 	}
 }
 
-int pllmod_treeinfo_init_partition_sarah(pllmod_treeinfo_t * treeinfo,
-                                           unsigned int partition_index,
-                                           pll_partition_t * partition,
-                                           int params_to_optimize,
-                                           int gamma_mode,
-                                           double alpha,
-                                           const unsigned int * param_indices,
-                                           const int * subst_matrix_symmetries)
-{
-  if (!treeinfo)
-  {
-    return PLL_FAILURE;
-  }
-  else if (partition_index >= treeinfo->partition_count)
-  {
-    return PLL_FAILURE;
-  }
-  else if (treeinfo->partitions[partition_index])
-  {
-    return PLL_FAILURE;
-  }
+int pllmod_treeinfo_init_partition_sarah(pllmod_treeinfo_t * treeinfo, unsigned int partition_index, pll_partition_t * partition,
+		int params_to_optimize, int gamma_mode, double alpha, const unsigned int * param_indices, const int * subst_matrix_symmetries) {
+	if (!treeinfo) {
+		return PLL_FAILURE;
+	} else if (partition_index >= treeinfo->partition_count) {
+		return PLL_FAILURE;
+	} else if (treeinfo->partitions[partition_index]) {
+		return PLL_FAILURE;
+	}
 
-  unsigned int local_partition_index = treeinfo->init_partition_count++;
-  treeinfo->partitions[partition_index] = partition;
-  treeinfo->init_partitions[local_partition_index] = partition;
-  treeinfo->init_partition_idx[local_partition_index] = partition_index;
-  treeinfo->params_to_optimize[partition_index] = params_to_optimize;
-  treeinfo->gamma_mode[partition_index] = gamma_mode;
-  treeinfo->alphas[partition_index] = alpha;
+	unsigned int local_partition_index = treeinfo->init_partition_count++;
+	treeinfo->partitions[partition_index] = partition;
+	treeinfo->init_partitions[local_partition_index] = partition;
+	treeinfo->init_partition_idx[local_partition_index] = partition_index;
+	treeinfo->params_to_optimize[partition_index] = params_to_optimize;
+	treeinfo->gamma_mode[partition_index] = gamma_mode;
+	treeinfo->alphas[partition_index] = alpha;
 
-  /* compute some derived dimensions, here is the only relevant change by sarah */
-  unsigned int inner_nodes_count = treeinfo->tree->inner_count;
-  unsigned int branch_count      = treeinfo->tree->edge_count;
-  unsigned int pmatrix_count     = branch_count;
-  unsigned int utree_count       = inner_nodes_count * 3 + treeinfo->tip_count;
+	/* compute some derived dimensions, here is the only relevant change by sarah */
+	unsigned int inner_nodes_count = treeinfo->tree->inner_count;
+	unsigned int branch_count = treeinfo->tree->edge_count;
+	unsigned int pmatrix_count = branch_count;
+	unsigned int utree_count = inner_nodes_count * 3 + treeinfo->tip_count;
 
-  /* allocate invalidation arrays */
-  treeinfo->clv_valid[partition_index] =
-      (char *) calloc(utree_count, sizeof(char));
-  treeinfo->pmatrix_valid[partition_index] = (
-      char *) calloc(pmatrix_count, sizeof(char));
+	/* allocate invalidation arrays */
+	treeinfo->clv_valid[partition_index] = (char *) calloc(utree_count, sizeof(char));
+	treeinfo->pmatrix_valid[partition_index] = (char *) calloc(pmatrix_count, sizeof(char));
 
-  /* check memory allocation */
-  if (!treeinfo->clv_valid[partition_index] ||
-      !treeinfo->pmatrix_valid[partition_index])
-  {
-    return PLL_FAILURE;
-  }
+	/* check memory allocation */
+	if (!treeinfo->clv_valid[partition_index] || !treeinfo->pmatrix_valid[partition_index]) {
+		return PLL_FAILURE;
+	}
 
-  /* allocate param_indices array and initialize it to all 0s,
-   * i.e. per default, all rate categories will use
-   * the same substitution matrix and same base frequencies */
-  treeinfo->param_indices[partition_index] =
-    (unsigned int *) calloc(partition->rate_cats, sizeof(unsigned int));
+	/* allocate param_indices array and initialize it to all 0s,
+	 * i.e. per default, all rate categories will use
+	 * the same substitution matrix and same base frequencies */
+	treeinfo->param_indices[partition_index] = (unsigned int *) calloc(partition->rate_cats, sizeof(unsigned int));
 
-  /* check memory allocation */
-  if (!treeinfo->param_indices[partition_index])
-  {
-    return PLL_FAILURE;
-  }
+	/* check memory allocation */
+	if (!treeinfo->param_indices[partition_index]) {
+		return PLL_FAILURE;
+	}
 
-  /* if param_indices were provided, use them instead of default */
-  if (param_indices)
-    memcpy(treeinfo->param_indices[partition_index],
-           param_indices,
-           partition->rate_cats * sizeof(unsigned int));
+	/* if param_indices were provided, use them instead of default */
+	if (param_indices)
+		memcpy(treeinfo->param_indices[partition_index], param_indices, partition->rate_cats * sizeof(unsigned int));
 
-  /* copy substitution rate matrix symmetries, if any */
-  if (subst_matrix_symmetries)
-  {
-    const unsigned int symm_size =
-                            (partition->states * (partition->states - 1) / 2)
-                              * sizeof(int);
-    treeinfo->subst_matrix_symmetries[partition_index] =
-                               (int *) malloc(symm_size);
+	/* copy substitution rate matrix symmetries, if any */
+	if (subst_matrix_symmetries) {
+		const unsigned int symm_size = (partition->states * (partition->states - 1) / 2) * sizeof(int);
+		treeinfo->subst_matrix_symmetries[partition_index] = (int *) malloc(symm_size);
 
-    /* check memory allocation */
-    if (!treeinfo->subst_matrix_symmetries[partition_index])
-    {
-      return PLL_FAILURE;
-    }
+		/* check memory allocation */
+		if (!treeinfo->subst_matrix_symmetries[partition_index]) {
+			return PLL_FAILURE;
+		}
 
-    memcpy(treeinfo->subst_matrix_symmetries[partition_index],
-           subst_matrix_symmetries,
-           symm_size);
-  }
-  else
-    treeinfo->subst_matrix_symmetries[partition_index] = NULL;
+		memcpy(treeinfo->subst_matrix_symmetries[partition_index], subst_matrix_symmetries, symm_size);
+	} else
+		treeinfo->subst_matrix_symmetries[partition_index] = NULL;
 
-  /* allocate memory for derivative precomputation table */
-  unsigned int sites_alloc = partition->sites;
-  if (partition->attributes & PLL_ATTRIB_AB_FLAG)
-    sites_alloc += partition->states;
-  unsigned int precomp_size =
-      sites_alloc * partition->rate_cats * partition->states_padded;
+	/* allocate memory for derivative precomputation table */
+	unsigned int sites_alloc = partition->sites;
+	if (partition->attributes & PLL_ATTRIB_AB_FLAG)
+		sites_alloc += partition->states;
+	unsigned int precomp_size = sites_alloc * partition->rate_cats * partition->states_padded;
 
-  treeinfo->deriv_precomp[partition_index] = (double *) pll_aligned_alloc(
-      precomp_size * sizeof(double), partition->alignment);
+	treeinfo->deriv_precomp[partition_index] = (double *) pll_aligned_alloc(precomp_size * sizeof(double), partition->alignment);
 
-  if (!treeinfo->deriv_precomp[partition_index])
-  {
-    return PLL_FAILURE;
-  }
+	if (!treeinfo->deriv_precomp[partition_index]) {
+		return PLL_FAILURE;
+	}
 
-  memset(treeinfo->deriv_precomp[partition_index], 0, precomp_size * sizeof(double));
+	memset(treeinfo->deriv_precomp[partition_index], 0, precomp_size * sizeof(double));
 
-  return PLL_SUCCESS;
+	return PLL_SUCCESS;
 }
 
-void RaxmlWrapper::network_create_init_partition_wrapper(size_t p, int params_to_optimize, pllmod_treeinfo_t* pll_treeinfo, const Options &opts,
-		const PartitionInfo &pinfo, const IDVector &tip_msa_idmap, PartitionAssignment::const_iterator& part_range,
+void RaxmlWrapper::network_create_init_partition_wrapper(size_t p, int params_to_optimize, pllmod_treeinfo_t* pll_treeinfo,
+		const Options &opts, const PartitionInfo &pinfo, const IDVector &tip_msa_idmap, PartitionAssignment::const_iterator& part_range,
 		const uintVector &weights) {
 	/* create and init PLL partition structure */
 	pll_partition_t *partition = create_pll_partition(opts, pinfo, tip_msa_idmap, *part_range, weights, pll_treeinfo->tree->tip_count,
@@ -282,7 +255,8 @@ void RaxmlWrapper::network_create_init_partition_wrapper(size_t p, int params_to
 		assert(pll_errno);
 		libpll_check_error("ERROR adding treeinfo partition");
 	}
-	set_partition_fake_entry(partition, pll_treeinfo->tree->tip_count + pll_treeinfo->tree->inner_count - 1, pll_treeinfo->tree->edge_count - 1);
+	set_partition_fake_entry(partition, pll_treeinfo->tree->tip_count + pll_treeinfo->tree->inner_count - 1,
+			pll_treeinfo->tree->edge_count - 1);
 }
 
 void RaxmlWrapper::network_init_treeinfo_wrapper(const Options &opts, const std::vector<doubleVector> &partition_brlens,
@@ -384,10 +358,15 @@ int fake_init_tree(pllmod_treeinfo_t *treeinfo, Network &network) {
 	return PLL_SUCCESS;
 }
 
-pllmod_treeinfo_t* RaxmlWrapper::createNetworkPllTreeinfo_buggy(Network &network, unsigned int tips, unsigned int partitions,
-		int brlen_linkage) {
-
+pllmod_treeinfo_t* RaxmlWrapper::createNetworkPllTreeinfo(Network &network, unsigned int tips, unsigned int partitions, int brlen_linkage) {
 	assert(partitions > 0);
+
+	if (partitions > 1) {
+		for (size_t i = 0; i < network.reticulation_nodes.size(); ++i) {
+			network.reticulation_nodes[i]->getReticulationData()->setNumPartitions(partitions);
+		}
+	}
+
 	/* create treeinfo instance */
 	pllmod_treeinfo_t *treeinfo;
 
@@ -483,26 +462,6 @@ pllmod_treeinfo_t* RaxmlWrapper::createNetworkPllTreeinfo_buggy(Network &network
 	fake_init_collect_branch_lengths(treeinfo, network);
 
 	return treeinfo;
-}
-
-pllmod_treeinfo_t* RaxmlWrapper::createNetworkPllTreeinfo_new(Network &network, unsigned int tips, unsigned int partitions,
-		int brlen_linkage) {
-	pll_utree_t *displayedTree = netrax::displayed_tree_to_utree(network, 0);
-	pllmod_treeinfo_t *treeinfo = pllmod_treeinfo_create(displayedTree->vroot, tips, partitions, brlen_linkage);
-
-	NetworkParams *params = (NetworkParams*) malloc(sizeof(NetworkParams));
-	params->network = &network;
-	params->network_treeinfo = treeinfo;
-	params->raxml_wrapper = this;
-	treeinfo->likelihood_target_function = network_logl_wrapper;
-	treeinfo->likelihood_computation_params = (void*) params;
-
-	return treeinfo;
-}
-
-pllmod_treeinfo_t* RaxmlWrapper::createNetworkPllTreeinfo(Network &network, unsigned int tips, unsigned int partitions, int brlen_linkage) {
-	return createNetworkPllTreeinfo_buggy(network, tips, partitions, brlen_linkage);
-	//return createNetworkPllTreeinfo_new(network, tips, partitions, brlen_linkage);
 }
 
 void RaxmlWrapper::destroy_network_treeinfo(pllmod_treeinfo_t *treeinfo) {

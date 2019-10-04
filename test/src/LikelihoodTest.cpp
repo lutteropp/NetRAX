@@ -297,10 +297,6 @@ TEST_F (LikelihoodTest, likelihoodFunctionsTree) {
 	double norep_logl = computeLoglikelihoodLessExponentiation(treeNetwork, *(params->network_treeinfo), 0, 1);
 	std::cout << "norep_logl: " << norep_logl << "\n";
 
-	double pfirst_logl = computeLoglikelihoodPartitionsFirst(treeNetwork, *(params->network_treeinfo), 0, 1);
-	std::cout << "pfirst_logl: " << pfirst_logl << "\n";
-
-	ASSERT_EQ(naive_logl, pfirst_logl);
 	ASSERT_EQ(naive_logl, sarah_logl);
 	ASSERT_EQ(naive_logl, norep_logl);
 }
@@ -315,10 +311,6 @@ TEST_F (LikelihoodTest, likelihoodFunctionsNetwork) {
 	double norep_logl = computeLoglikelihoodLessExponentiation(smallNetwork, *(params->network_treeinfo), 0, 1);
 	std::cout << "norep_logl: " << norep_logl << "\n";
 
-	double pfirst_logl = computeLoglikelihoodPartitionsFirst(smallNetwork, *(params->network_treeinfo), 0, 1);
-	std::cout << "pfirst_logl: " << pfirst_logl << "\n";
-
-	ASSERT_EQ(sarah_logl, pfirst_logl);
 	ASSERT_EQ(sarah_logl, norep_logl);
 }
 

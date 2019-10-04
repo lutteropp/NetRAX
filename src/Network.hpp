@@ -36,14 +36,14 @@ public:
 	}
 
 	void init(size_t index, const std::string& label, bool activeParent, Link* linkToFirstParent, Link* linkToSecondParent,
-			Link* linkToChild, double prob) {
+			Link* linkToChild, double prob, size_t num_partitions = 1) {
 		this->reticulation_index = index;
 		this->label = label;
 		this->active_parent = activeParent;
 		this->link_to_first_parent = linkToFirstParent;
 		this->link_to_second_parent = linkToSecondParent;
 		this->link_to_child = linkToChild;
-		this->prob = prob;
+		this->prob = std::vector<double>(num_partitions, prob);
 	}
 
 	ReticulationData(const ReticulationData& retData) {
@@ -72,18 +72,18 @@ public:
 	void setActiveParent(bool val) {
 		active_parent = val;
 	}
-	double getProb() const {
-		return prob;
+	double getProb(size_t partition = 0) const {
+		return prob[partition];
 	}
-	double getActiveProb() const {
+	double getActiveProb(size_t partition = 0) const {
 		if (active_parent == 0) {
-			return prob;
+			return prob[partition];
 		} else {
-			return 1.0 - prob;
+			return 1.0 - prob[partition];
 		}
 	}
-	void setProb(double val) {
-		prob = val;
+	void setProb(double val, size_t partition = 0) {
+		prob[partition] = val;
 	}
 	Link* getLinkToFirstParent() const {
 		return link_to_first_parent;
@@ -103,6 +103,13 @@ public:
 	void setLinkToChild(Link* link) {
 		link_to_child = link;
 	}
+	void setNumPartitions(size_t partition_count) {
+		size_t old_num_partitions = prob.size();
+		prob.resize(partition_count);
+		for (size_t i = old_num_partitions; i < partition_count; ++i) {
+			prob[i] = prob[0];
+		}
+	}
 
 	size_t reticulation_index;
 	std::string label;
@@ -110,7 +117,8 @@ public:
 	Link* link_to_first_parent; // The link that has link->outer->node as the first parent
 	Link* link_to_second_parent; // The link that has link->outer->node as the second parent
 	Link* link_to_child; // The link that has link->outer->node as the child
-	double prob; // probability of taking the first parent
+
+	std::vector<double> prob; // probability of taking the first parent, for each partition
 };
 
 struct Link { // subnode in raxml-ng

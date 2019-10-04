@@ -52,6 +52,8 @@ public:
 	static void network_create_init_partition_wrapper(size_t p, int params_to_optimize, pllmod_treeinfo_t* pll_treeinfo, const Options &opts,
 			const PartitionInfo &pinfo, const IDVector &tip_msa_idmap, PartitionAssignment::const_iterator& part_range,
 			const uintVector &weights);
+
+	size_t num_partitions() const;
 private:
 	pllmod_treeinfo_t* createNetworkPllTreeinfo_new(Network &network, unsigned int tips, unsigned int partitions,
 			int brlen_linkage);

@@ -28,8 +28,6 @@ double computeLoglikelihood(Network& network, pllmod_treeinfo_t& fake_treeinfo, 
 
 double computeLoglikelihoodLessExponentiation(Network& network, pllmod_treeinfo_t& fake_treeinfo, int incremental, int update_pmatrices, bool update_reticulation_probs = false);
 
-double computeLoglikelihoodPartitionsFirst(Network &network, pllmod_treeinfo_t &fake_treeinfo, int incremental, int update_pmatrices, bool update_reticulation_probs = false);
-
 double computeLoglikelihoodNaiveUtree(RaxmlWrapper& wrapper, Network& network, int incremental, int update_pmatrices);
 
 pll_utree_t * displayed_tree_to_utree(Network& network, size_t tree_index);
