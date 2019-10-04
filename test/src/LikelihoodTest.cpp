@@ -320,16 +320,24 @@ TEST_F (LikelihoodTest, updateReticulationProb) {
 
 	double sarah_logl = computeLoglikelihood(smallNetwork, *(params->network_treeinfo), 0, 1, true);
 	std::cout << "sarah logl: " << sarah_logl << "\n";
-	double sarah_logl_2 = computeLoglikelihood(smallNetwork, *(params->network_treeinfo), 0, 1, false);
+	double sarah_logl_2 = computeLoglikelihood(smallNetwork, *(params->network_treeinfo), 0, 1, true);
 	std::cout << "sarah logl_2: " << sarah_logl_2 << "\n";
+	double sarah_logl_3 = computeLoglikelihood(smallNetwork, *(params->network_treeinfo), 0, 1, false);
+	std::cout << "sarah logl_3: " << sarah_logl_3 << "\n";
 
 	double norep_logl = computeLoglikelihoodLessExponentiation(smallNetwork, *(params->network_treeinfo), 0, 1, true);
 	std::cout << "norep_logl: " << norep_logl << "\n";
-	double norep_logl_2 = computeLoglikelihood(smallNetwork, *(params->network_treeinfo), 0, 1, false);
+	double norep_logl_2 = computeLoglikelihood(smallNetwork, *(params->network_treeinfo), 0, 1, true);
 	std::cout << "norep logl_2: " << norep_logl_2 << "\n";
+	double norep_logl_3 = computeLoglikelihood(smallNetwork, *(params->network_treeinfo), 0, 1, false);
+	std::cout << "norep logl_3: " << norep_logl_3 << "\n";
+
+	ASSERT_EQ(sarah_logl_2, sarah_logl_3);
+	ASSERT_EQ(norep_logl_2, norep_logl_3);
 
 	ASSERT_EQ(sarah_logl, norep_logl);
 	ASSERT_EQ(sarah_logl_2, norep_logl_2);
+	ASSERT_EQ(sarah_logl_3, norep_logl_3);
 }
 
 TEST_F (LikelihoodTest, simpleTreeWithRepeats) {

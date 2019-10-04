@@ -401,27 +401,6 @@ double computeLoglikelihood(Network &network, pllmod_treeinfo_t &fake_treeinfo, 
 	return log(network_l);
 }
 
-double computeLoglikelihoodNaiveUtree(RaxmlWrapper &wrapper, Network &network, int incremental, int update_pmatrices) {
-	(void) incremental;
-	(void) update_pmatrices;
-
-	assert(wrapper.num_partitions() == 1);
-
-	size_t n_trees = 1 << network.reticulation_nodes.size();
-	double network_l = 0.0;
-	// Iterate over all displayed trees
-	for (size_t i = 0; i < n_trees; ++i) {
-		pll_utree_t *displayed_tree = netrax::displayed_tree_to_utree(network, i);
-		TreeInfo displayedTreeinfo = wrapper.createRaxmlTreeinfo(displayed_tree);
-
-		double tree_logl = displayedTreeinfo.loglh(0);
-		assert(tree_logl != -std::numeric_limits<double>::infinity());
-		network_l += exp(tree_logl) * displayed_tree_prob(network, i, 0);
-	}
-
-	return log(network_l);
-}
-
 // TODO: Add bool incremental...
 // TODO: Implement the Gray Code displayed tree iteration order and intelligent update of the operations array
 // TODO: Maybe also update reticulation probs here?
@@ -513,10 +492,9 @@ double computeLoglikelihoodLessExponentiation(Network &network, pllmod_treeinfo_
 					}
 				}
 			}
-
-			for (size_t k = 0; k < persite_lh_network.size(); ++k) {
-				network_logl += log(persite_lh_network[k]);
-			}
+		}
+		for (size_t k = 0; k < persite_lh_network.size(); ++k) {
+			network_logl += log(persite_lh_network[k]);
 		}
 
 		if (update_reticulation_probs) {
@@ -553,6 +531,27 @@ double computeLoglikelihoodLessExponentiation(Network &network, pllmod_treeinfo_
 	fake_treeinfo.active_partition = old_active_partition;
 
 	return network_logl;
+}
+
+double computeLoglikelihoodNaiveUtree(RaxmlWrapper &wrapper, Network &network, int incremental, int update_pmatrices) {
+	(void) incremental;
+	(void) update_pmatrices;
+
+	assert(wrapper.num_partitions() == 1);
+
+	size_t n_trees = 1 << network.reticulation_nodes.size();
+	double network_l = 0.0;
+	// Iterate over all displayed trees
+	for (size_t i = 0; i < n_trees; ++i) {
+		pll_utree_t *displayed_tree = netrax::displayed_tree_to_utree(network, i);
+		TreeInfo displayedTreeinfo = wrapper.createRaxmlTreeinfo(displayed_tree);
+
+		double tree_logl = displayedTreeinfo.loglh(0);
+		assert(tree_logl != -std::numeric_limits<double>::infinity());
+		network_l += exp(tree_logl) * displayed_tree_prob(network, i, 0);
+	}
+
+	return log(network_l);
 }
 
 }
