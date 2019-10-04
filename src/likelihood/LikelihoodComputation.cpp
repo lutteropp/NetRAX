@@ -295,6 +295,8 @@ double computeLoglikelihood(Network &network, pllmod_treeinfo_t &fake_treeinfo, 
 	fake_treeinfo.active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
 
 	bool unlinked_mode = (fake_treeinfo.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
+	std::vector<unsigned int> totalTaken(network.num_reticulations(), 0);
+	std::vector<unsigned int> totalNotTaken(network.num_reticulations(), 0);
 
 	// Iterate over all partitions
 	for (size_t j = 0; j < fake_treeinfo.partition_count; ++j) {
@@ -309,6 +311,15 @@ double computeLoglikelihood(Network &network, pllmod_treeinfo_t &fake_treeinfo, 
 			}
 		}
 
+		std::vector<std::pair<double, std::vector<std::pair<unsigned int, unsigned int> > > > best_persite_logl_network;
+		if (update_reticulation_probs) {
+			best_persite_logl_network.resize(fake_treeinfo.partitions[j]->sites);
+			for (size_t k = 0; k < fake_treeinfo.partitions[j]->sites; ++k) {
+				std::vector<std::pair<unsigned int, unsigned int> > vec(network.num_reticulations(), std::make_pair(0, 0));
+				best_persite_logl_network[k] = std::make_pair(0.0, vec);
+			}
+		}
+
 		fake_treeinfo.active_partition = j;
 		for (size_t i = 0; i < n_trees; ++i) {
 			double tree_logl = 0.0;
@@ -319,12 +330,68 @@ double computeLoglikelihood(Network &network, pllmod_treeinfo_t &fake_treeinfo, 
 			pll_update_partials(fake_treeinfo.partitions[j], ops.data(), ops_count);
 			// Compute loglikelihood at the root of the displayed tree in pll_compute_edge_loglikelihood. This needs an array of unsigned int (exists for each partition) param_indices.
 			Node *rootBack = network.root->getLink()->getTargetNode();
+
+			std::vector<double> persite_logl(fake_treeinfo.partitions[j]->sites, 0.0);
 			tree_logl += pll_compute_edge_loglikelihood(fake_treeinfo.partitions[j], network.root->getClvIndex(),
 					network.root->getScalerIndex(), rootBack->getClvIndex(), rootBack->getScalerIndex(),
-					network.root->getLink()->edge->getPMatrixIndex(), fake_treeinfo.param_indices[j], nullptr);
+					network.root->getLink()->edge->getPMatrixIndex(), fake_treeinfo.param_indices[j], persite_logl.data());
+
+			if (update_reticulation_probs) {
+				for (size_t k = 0; k < persite_logl.size(); ++k) {
+					if (best_persite_logl_network[k].first >= persite_logl[k]) {
+						// find the current reticulation indices
+						std::vector<bool> taken_parent(network.num_reticulations());
+						for (size_t l = 0; l < network.num_reticulations(); ++l) {
+							taken_parent[l] = i & (1 << l);
+						}
+						if (best_persite_logl_network[k].first == persite_logl[k]) {
+							for (size_t l = 0; l < network.num_reticulations(); ++l) {
+								best_persite_logl_network[k].second[l].first += taken_parent[l];
+								best_persite_logl_network[k].second[l].second += !taken_parent[l];
+							}
+						} else {
+							best_persite_logl_network[k].first = persite_logl[k];
+							for (size_t l = 0; l < network.num_reticulations(); ++l) {
+								best_persite_logl_network[k].second[l].first = taken_parent[l];
+								best_persite_logl_network[k].second[l].second = !taken_parent[l];
+							}
+						}
+					}
+				}
+			}
+
 			assert(tree_logl != -std::numeric_limits<double>::infinity());
 
 			network_l += exp(tree_logl) * displayed_tree_prob(network, i, unlinked_mode ? 0 : j);
+		}
+
+		if (update_reticulation_probs) {
+			if (unlinked_mode) {
+				for (size_t l = 0; l < network.num_reticulations(); ++l) {
+					totalTaken[l] = 0;
+					totalNotTaken[l] = 0;
+				}
+			}
+
+			for (size_t k = 0; k < best_persite_logl_network.size(); ++k) {
+				for (size_t l = 0; l < network.num_reticulations(); ++l) {
+					totalTaken[l] += best_persite_logl_network[k].second[l].first;
+					totalNotTaken[l] += best_persite_logl_network[k].second[l].second;
+				}
+			}
+			if (unlinked_mode) {
+				for (size_t l = 0; l < network.num_reticulations(); ++l) {
+					double newProb = (double) totalTaken[l] / (totalTaken[l] + totalNotTaken[l]);
+					network.reticulation_nodes[l]->getReticulationData()->setProb(newProb, j);
+				}
+			}
+		}
+	}
+
+	if (update_reticulation_probs && !unlinked_mode) {
+		for (size_t l = 0; l < network.num_reticulations(); ++l) {
+			double newProb = (double) totalTaken[l] / (totalTaken[l] + totalNotTaken[l]);
+			network.reticulation_nodes[l]->getReticulationData()->setProb(newProb);
 		}
 	}
 
@@ -372,6 +439,8 @@ double computeLoglikelihoodLessExponentiation(Network &network, pllmod_treeinfo_
 	fake_treeinfo.active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
 
 	bool unlinked_mode = (fake_treeinfo.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
+	std::vector<unsigned int> totalTaken(network.num_reticulations(), 0);
+	std::vector<unsigned int> totalNotTaken(network.num_reticulations(), 0);
 
 	// Iterate over all partitions
 	for (size_t j = 0; j < fake_treeinfo.partition_count; ++j) {
@@ -390,10 +459,14 @@ double computeLoglikelihoodLessExponentiation(Network &network, pllmod_treeinfo_
 
 		std::vector<double> persite_lh_network(fake_treeinfo.partitions[j]->sites, 0.0);
 
-		/*std::vector<double, std::vector<std::pair<unsigned int, unsigned int> > > best_persite_logl_network(
-				fake_treeinfo.partitions[j]->sites, std::vector<std::pair<unsigned int, unsigned int> >(network.num_reticulations()));*/
-
-		std::vector<unsigned int> best_persite_tree_index_network(fake_treeinfo.partitions[j]->sites, 0); // for each site, stores which displayed tree gave the highest site logl
+		std::vector<std::pair<double, std::vector<std::pair<unsigned int, unsigned int> > > > best_persite_logl_network;
+		if (update_reticulation_probs) {
+			best_persite_logl_network.resize(fake_treeinfo.partitions[j]->sites);
+			for (size_t k = 0; k < fake_treeinfo.partitions[j]->sites; ++k) {
+				std::vector<std::pair<unsigned int, unsigned int> > vec(network.num_reticulations(), std::make_pair(0, 0));
+				best_persite_logl_network[k] = std::make_pair(0.0, vec);
+			}
+		}
 
 		// Iterate over all displayed trees
 		for (size_t i = 0; i < n_trees; ++i) {
@@ -416,10 +489,63 @@ double computeLoglikelihoodLessExponentiation(Network &network, pllmod_treeinfo_
 			for (size_t k = 0; k < persite_logl.size(); ++k) {
 				persite_lh_network[k] += exp(persite_logl[k]) * tree_prob;
 			}
+
+			if (update_reticulation_probs) {
+				for (size_t k = 0; k < persite_logl.size(); ++k) {
+					if (best_persite_logl_network[k].first >= persite_logl[k]) {
+						// find the current reticulation indices
+						std::vector<bool> taken_parent(network.num_reticulations());
+						for (size_t l = 0; l < network.num_reticulations(); ++l) {
+							taken_parent[l] = i & (1 << l);
+						}
+						if (best_persite_logl_network[k].first == persite_logl[k]) {
+							for (size_t l = 0; l < network.num_reticulations(); ++l) {
+								best_persite_logl_network[k].second[l].first += taken_parent[l];
+								best_persite_logl_network[k].second[l].second += !taken_parent[l];
+							}
+						} else {
+							best_persite_logl_network[k].first = persite_logl[k];
+							for (size_t l = 0; l < network.num_reticulations(); ++l) {
+								best_persite_logl_network[k].second[l].first = taken_parent[l];
+								best_persite_logl_network[k].second[l].second = !taken_parent[l];
+							}
+						}
+					}
+				}
+			}
+
+			for (size_t k = 0; k < persite_lh_network.size(); ++k) {
+				network_logl += log(persite_lh_network[k]);
+			}
 		}
 
-		for (size_t k = 0; k < persite_lh_network.size(); ++k) {
-			network_logl += log(persite_lh_network[k]);
+		if (update_reticulation_probs) {
+			if (unlinked_mode) {
+				for (size_t l = 0; l < network.num_reticulations(); ++l) {
+					totalTaken[l] = 0;
+					totalNotTaken[l] = 0;
+				}
+			}
+
+			for (size_t k = 0; k < best_persite_logl_network.size(); ++k) {
+				for (size_t l = 0; l < network.num_reticulations(); ++l) {
+					totalTaken[l] += best_persite_logl_network[k].second[l].first;
+					totalNotTaken[l] += best_persite_logl_network[k].second[l].second;
+				}
+			}
+			if (unlinked_mode) {
+				for (size_t l = 0; l < network.num_reticulations(); ++l) {
+					double newProb = (double) totalTaken[l] / (totalTaken[l] + totalNotTaken[l]);
+					network.reticulation_nodes[l]->getReticulationData()->setProb(newProb, j);
+				}
+			}
+		}
+	}
+
+	if (update_reticulation_probs && !unlinked_mode) {
+		for (size_t l = 0; l < network.num_reticulations(); ++l) {
+			double newProb = (double) totalTaken[l] / (totalTaken[l] + totalNotTaken[l]);
+			network.reticulation_nodes[l]->getReticulationData()->setProb(newProb);
 		}
 	}
 
