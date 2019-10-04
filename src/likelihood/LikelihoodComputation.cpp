@@ -365,6 +365,8 @@ double computeLoglikelihood(Network &network, pllmod_treeinfo_t &fake_treeinfo, 
 
 	// Iterate over all partitions
 	for (size_t j = 0; j < fake_treeinfo.partition_count; ++j) {
+		fake_treeinfo.active_partition = j;
+
 		if (collect_brlen) {
 			for (size_t i = 0; i < network.edges.size(); ++i) {
 				fake_treeinfo.branch_lengths[0][network.edges[i].pmatrix_index] = network.edges[i].length;
@@ -385,10 +387,10 @@ double computeLoglikelihood(Network &network, pllmod_treeinfo_t &fake_treeinfo, 
 			}
 		}
 
-		fake_treeinfo.active_partition = j;
 		for (size_t i = 0; i < n_trees; ++i) {
 			std::vector<double> persite_logl(fake_treeinfo.partitions[j]->sites, 0.0);
 			double tree_partition_logl = compute_tree_logl(network, fake_treeinfo, i, j, &persite_logl);
+			double tree_prob = displayed_tree_prob(network, i, unlinked_mode ? 0 : j);
 
 			if (update_reticulation_probs) {
 				update_reticulation_probs_internal_1(i, network.num_reticulations(), persite_logl, best_persite_logl_network);
@@ -396,7 +398,7 @@ double computeLoglikelihood(Network &network, pllmod_treeinfo_t &fake_treeinfo, 
 
 			assert(tree_partition_logl != -std::numeric_limits<double>::infinity());
 
-			network_l += exp(tree_partition_logl) * displayed_tree_prob(network, i, unlinked_mode ? 0 : j);
+			network_l += exp(tree_partition_logl) * tree_prob;
 		}
 
 		if (update_reticulation_probs) {

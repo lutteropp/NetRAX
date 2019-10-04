@@ -285,6 +285,11 @@ TEST_F (LikelihoodTest, simpleTreeNoRepeats) {
 }
 
 TEST_F (LikelihoodTest, likelihoodFunctionsTree) {
+	pll_utree_t* utree = displayed_tree_to_utree(treeNetwork, 0);
+	TreeInfo raxml_treeinfo_tree = treeWrapper->createRaxmlTreeinfo(utree);
+	double raxml_logl = raxml_treeinfo_tree.loglh(0);
+	std::cout << "raxml logl: " << raxml_logl << "\n";
+
 	TreeInfo network_treeinfo_tree = treeWrapper->createRaxmlTreeinfo(treeNetwork);
 	double naive_logl = computeLoglikelihoodNaiveUtree(*(treeWrapper.get()), treeNetwork, 0, 1);
 	std::cout << "naive logl: " << naive_logl << "\n";
@@ -297,6 +302,7 @@ TEST_F (LikelihoodTest, likelihoodFunctionsTree) {
 	double norep_logl = computeLoglikelihoodLessExponentiation(treeNetwork, *(params->network_treeinfo), 0, 1);
 	std::cout << "norep_logl: " << norep_logl << "\n";
 
+	ASSERT_EQ(raxml_logl, naive_logl);
 	ASSERT_EQ(naive_logl, sarah_logl);
 	ASSERT_EQ(naive_logl, norep_logl);
 }
