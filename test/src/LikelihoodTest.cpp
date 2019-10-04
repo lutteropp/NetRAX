@@ -314,6 +314,24 @@ TEST_F (LikelihoodTest, likelihoodFunctionsNetwork) {
 	ASSERT_EQ(sarah_logl, norep_logl);
 }
 
+TEST_F (LikelihoodTest, updateReticulationProb) {
+	TreeInfo network_treeinfo_small = smallWrapper->createRaxmlTreeinfo(smallNetwork);
+	RaxmlWrapper::NetworkParams* params = (RaxmlWrapper::NetworkParams*) network_treeinfo_small.pll_treeinfo().likelihood_computation_params;
+
+	double sarah_logl = computeLoglikelihood(smallNetwork, *(params->network_treeinfo), 0, 1, true);
+	std::cout << "sarah logl: " << sarah_logl << "\n";
+	double sarah_logl_2 = computeLoglikelihood(smallNetwork, *(params->network_treeinfo), 0, 1, false);
+	std::cout << "sarah logl_2: " << sarah_logl_2 << "\n";
+
+	double norep_logl = computeLoglikelihoodLessExponentiation(smallNetwork, *(params->network_treeinfo), 0, 1, true);
+	std::cout << "norep_logl: " << norep_logl << "\n";
+	double norep_logl_2 = computeLoglikelihood(smallNetwork, *(params->network_treeinfo), 0, 1, false);
+	std::cout << "norep logl_2: " << norep_logl_2 << "\n";
+
+	ASSERT_EQ(sarah_logl, norep_logl);
+	ASSERT_EQ(sarah_logl_2, norep_logl_2);
+}
+
 TEST_F (LikelihoodTest, simpleTreeWithRepeats) {
 	TreeInfo network_treeinfo_tree = treeWrapperRepeats->createRaxmlTreeinfo(treeNetwork);
 	double network_logl = network_treeinfo_tree.loglh(false);
