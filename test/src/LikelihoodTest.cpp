@@ -171,8 +171,7 @@ void comparePartitions(const pll_partition_t *p_network, const pll_partition_t *
 	ASSERT_EQ(p_network->states_padded, p_raxml->states_padded);
 
 	// compare the clv vector entries...
-	unsigned int start = (p_raxml->attributes & PLL_ATTRIB_PATTERN_TIP) ?
-			p_raxml->tips : 0;
+	unsigned int start = (p_raxml->attributes & PLL_ATTRIB_PATTERN_TIP) ? p_raxml->tips : 0;
 	unsigned int end = p_raxml->tips + p_raxml->clv_buffers;
 
 	size_t sites_alloc = (unsigned int) p_raxml->asc_additional_sites + p_raxml->sites;
@@ -310,6 +309,11 @@ TEST_F (LikelihoodTest, likelihoodFunctionsNetwork) {
 
 	double norep_logl = computeLoglikelihoodLessExponentiation(smallNetwork, *(params->network_treeinfo), 0, 1);
 	std::cout << "norep_logl: " << norep_logl << "\n";
+
+	double pfirst_logl = computeLoglikelihoodPartitionsFirst(smallNetwork, *(params->network_treeinfo), 0, 1);
+	std::cout << "pfirst_logl: " << pfirst_logl << "\n";
+
+	ASSERT_EQ(sarah_logl, pfirst_logl);
 	ASSERT_EQ(sarah_logl, norep_logl);
 }
 

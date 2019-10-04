@@ -31,8 +31,7 @@ pll_unode_t* create_unode(Node *network_node, bool takeLabelFromThisNode) {
 		label = network_node->getLink()->getTargetNode()->getLabel();
 	}
 	if (label != "") {
-		return pllmod_utree_create_node(network_node->getClvIndex(), network_node->getScalerIndex(),
-				xstrdup(label.c_str()), NULL);
+		return pllmod_utree_create_node(network_node->getClvIndex(), network_node->getScalerIndex(), xstrdup(label.c_str()), NULL);
 	} else {
 		return pllmod_utree_create_node(network_node->getClvIndex(), network_node->getScalerIndex(),
 		NULL, NULL);
@@ -66,8 +65,7 @@ void make_connections(Node *networkNode, pll_unode_t *unode) {
 			child1LenToAdd += children[0]->getLink()->edge->getLength();
 			Node *reticulationChild = children[0]->getReticulationData()->getLinkToChild()->getTargetNode();
 			if (reticulationChild->getType() == NodeType::RETICULATION_NODE
-					&& reticulationChild->getReticulationData()->getLinkToActiveParent()->getTargetNode()
-							!= children[0]) {
+					&& reticulationChild->getReticulationData()->getLinkToActiveParent()->getTargetNode() != children[0]) {
 				children[0] = nullptr;
 				break;
 			} else {
@@ -79,8 +77,7 @@ void make_connections(Node *networkNode, pll_unode_t *unode) {
 			child2LenToAdd += children[1]->getLink()->edge->getLength();
 			Node *reticulationChild = children[1]->getReticulationData()->getLinkToChild()->getTargetNode();
 			if (reticulationChild->getType() == NodeType::RETICULATION_NODE
-					&& reticulationChild->getReticulationData()->getLinkToActiveParent()->getTargetNode()
-							!= children[1]) {
+					&& reticulationChild->getReticulationData()->getLinkToActiveParent()->getTargetNode() != children[1]) {
 				children[1] = nullptr;
 				break;
 			} else {
@@ -266,10 +263,8 @@ std::vector<pll_operation_t> createOperations(Network &network, size_t treeIdx) 
 
 	// How to do the operations at the top-level root trifurcation?
 	// First with root->back, then with root...
-	createOperationsPostorder(network.root, network.root->getLink()->getTargetNode(), ops, fake_clv_index,
-			fake_pmatrix_index);
-	createOperationsPostorder(network.root->getLink()->getTargetNode(), network.root, ops, fake_clv_index,
-			fake_pmatrix_index);
+	createOperationsPostorder(network.root, network.root->getLink()->getTargetNode(), ops, fake_clv_index, fake_pmatrix_index);
+	createOperationsPostorder(network.root->getLink()->getTargetNode(), network.root, ops, fake_clv_index, fake_pmatrix_index);
 
 	return ops;
 }
@@ -338,6 +333,59 @@ double computeLoglikelihood(Network &network, pllmod_treeinfo_t &fake_treeinfo, 
 	return log(network_l);
 }
 
+// TODO: Add bool incremental...
+// TODO: Implement the Gray Code displayed tree iteration order and intelligent update of the operations array
+// TODO: Get rid of the exponentiation, as discussed in the notes when Céline was there (using the per-site-likelihoods)
+double computeLoglikelihoodPartitionsFirst(Network &network, pllmod_treeinfo_t &fake_treeinfo, int incremental, int update_pmatrices) {
+	size_t n_trees = 1 << network.reticulation_nodes.size();
+	double network_l = 0.0;
+
+	const int old_active_partition = fake_treeinfo.active_partition;
+
+	/* NOTE: in unlinked brlen mode, up-to-date brlens for partition p
+	 * have to be prefetched to treeinfo->branch_lengths[p] !!! */
+	bool collect_brlen = (fake_treeinfo.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED ? false : true);
+
+	fake_treeinfo.active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
+	// update the pmatrices, if needed
+	if (update_pmatrices) {
+		if (collect_brlen) {
+			for (size_t i = 0; i < network.edges.size(); ++i) {
+				fake_treeinfo.branch_lengths[0][network.edges[i].pmatrix_index] = network.edges[i].length;
+			}
+			// don't forget the fake entry
+			fake_treeinfo.branch_lengths[0][network.edges.size()] = 0.0;
+		}
+		pllmod_treeinfo_update_prob_matrices(&fake_treeinfo, !incremental);
+	}
+
+	// Iterate over all partitions
+	for (size_t j = 0; j < fake_treeinfo.partition_count; ++j) {
+		fake_treeinfo.active_partition = j;
+		for (size_t i = 0; i < n_trees; ++i) {
+			double tree_logl = 0.0;
+			// Create pll_operations_t array for the current displayed tree
+			std::vector<pll_operation_t> ops = createOperations(network, i);
+			unsigned int ops_count = ops.size();
+			// Compute CLVs in pll_update_partials, as specified by the operations array. This needs a pll_partition_t object.
+			pll_update_partials(fake_treeinfo.partitions[j], ops.data(), ops_count);
+			// Compute loglikelihood at the root of the displayed tree in pll_compute_edge_loglikelihood. This needs an array of unsigned int (exists for each partition) param_indices.
+			Node *rootBack = network.root->getLink()->getTargetNode();
+			tree_logl += pll_compute_edge_loglikelihood(fake_treeinfo.partitions[j], network.root->getClvIndex(),
+					network.root->getScalerIndex(), rootBack->getClvIndex(), rootBack->getScalerIndex(),
+					network.root->getLink()->edge->getPMatrixIndex(), fake_treeinfo.param_indices[j], nullptr);
+			assert(tree_logl != -std::numeric_limits<double>::infinity());
+
+			network_l += exp(tree_logl) * displayed_tree_prob(network, i);
+		}
+	}
+
+	/* restore original active partition */
+	fake_treeinfo.active_partition = old_active_partition;
+
+	return log(network_l);
+}
+
 double computeLoglikelihoodNaiveUtree(RaxmlWrapper &wrapper, Network &network, int incremental, int update_pmatrices) {
 	(void) incremental;
 	(void) update_pmatrices;
@@ -359,8 +407,7 @@ double computeLoglikelihoodNaiveUtree(RaxmlWrapper &wrapper, Network &network, i
 // TODO: Add bool incremental...
 // TODO: Implement the Gray Code displayed tree iteration order and intelligent update of the operations array
 // TODO: Maybe also update reticulation probs here?
-double computeLoglikelihoodLessExponentiation(Network &network, pllmod_treeinfo_t &fake_treeinfo, int incremental,
-		int update_pmatrices) {
+double computeLoglikelihoodLessExponentiation(Network &network, pllmod_treeinfo_t &fake_treeinfo, int incremental, int update_pmatrices) {
 	size_t n_trees = 1 << network.reticulation_nodes.size();
 	double network_logl = 0;
 
@@ -402,10 +449,9 @@ double computeLoglikelihoodLessExponentiation(Network &network, pllmod_treeinfo_
 
 			// sites array
 			std::vector<double> persite_logl(fake_treeinfo.partitions[j]->sites, 0.0);
-			pll_compute_edge_loglikelihood(fake_treeinfo.partitions[j], network.root->getClvIndex(),
-					network.root->getScalerIndex(), rootBack->getClvIndex(), rootBack->getScalerIndex(),
-					network.root->getLink()->edge->getPMatrixIndex(), fake_treeinfo.param_indices[j],
-					persite_logl.data());
+			pll_compute_edge_loglikelihood(fake_treeinfo.partitions[j], network.root->getClvIndex(), network.root->getScalerIndex(),
+					rootBack->getClvIndex(), rootBack->getScalerIndex(), network.root->getLink()->edge->getPMatrixIndex(),
+					fake_treeinfo.param_indices[j], persite_logl.data());
 			double tree_prob = displayed_tree_prob(network, i);
 
 			for (size_t k = 0; k < persite_logl.size(); ++k) {
