@@ -281,7 +281,8 @@ double displayed_tree_prob(Network &network, size_t tree_index) {
 // TODO: Add bool incremental...
 // TODO: Implement the Gray Code displayed tree iteration order and intelligent update of the operations array
 // TODO: Get rid of the exponentiation, as discussed in the notes when Céline was there (using the per-site-likelihoods)
-double computeLoglikelihood(Network &network, pllmod_treeinfo_t &fake_treeinfo, int incremental, int update_pmatrices) {
+double computeLoglikelihood(Network &network, pllmod_treeinfo_t &fake_treeinfo, int incremental, int update_pmatrices,
+		bool update_reticulation_probs) {
 	size_t n_trees = 1 << network.reticulation_nodes.size();
 	double network_l = 0.0;
 
@@ -313,6 +314,17 @@ double computeLoglikelihood(Network &network, pllmod_treeinfo_t &fake_treeinfo, 
 
 		// Iterate over all partitions
 		for (size_t j = 0; j < fake_treeinfo.partition_count; ++j) {
+			if (collect_brlen) {
+				for (size_t i = 0; i < network.edges.size(); ++i) {
+					fake_treeinfo.branch_lengths[0][network.edges[i].pmatrix_index] = network.edges[i].length;
+				}
+				// don't forget the fake entry
+				fake_treeinfo.branch_lengths[0][network.edges.size()] = 0.0;
+				if (update_pmatrices) {
+					pllmod_treeinfo_update_prob_matrices(&fake_treeinfo, !incremental);
+				}
+			}
+
 			fake_treeinfo.active_partition = j;
 
 			// Compute CLVs in pll_update_partials, as specified by the operations array. This needs a pll_partition_t object.
@@ -336,7 +348,8 @@ double computeLoglikelihood(Network &network, pllmod_treeinfo_t &fake_treeinfo, 
 // TODO: Add bool incremental...
 // TODO: Implement the Gray Code displayed tree iteration order and intelligent update of the operations array
 // TODO: Get rid of the exponentiation, as discussed in the notes when Céline was there (using the per-site-likelihoods)
-double computeLoglikelihoodPartitionsFirst(Network &network, pllmod_treeinfo_t &fake_treeinfo, int incremental, int update_pmatrices) {
+double computeLoglikelihoodPartitionsFirst(Network &network, pllmod_treeinfo_t &fake_treeinfo, int incremental, int update_pmatrices,
+		bool update_reticulation_probs) {
 	size_t n_trees = 1 << network.reticulation_nodes.size();
 	double network_l = 0.0;
 
@@ -347,20 +360,20 @@ double computeLoglikelihoodPartitionsFirst(Network &network, pllmod_treeinfo_t &
 	bool collect_brlen = (fake_treeinfo.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED ? false : true);
 
 	fake_treeinfo.active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
-	// update the pmatrices, if needed
-	if (update_pmatrices) {
+
+	// Iterate over all partitions
+	for (size_t j = 0; j < fake_treeinfo.partition_count; ++j) {
 		if (collect_brlen) {
 			for (size_t i = 0; i < network.edges.size(); ++i) {
 				fake_treeinfo.branch_lengths[0][network.edges[i].pmatrix_index] = network.edges[i].length;
 			}
 			// don't forget the fake entry
 			fake_treeinfo.branch_lengths[0][network.edges.size()] = 0.0;
+			if (update_pmatrices) {
+				pllmod_treeinfo_update_prob_matrices(&fake_treeinfo, !incremental);
+			}
 		}
-		pllmod_treeinfo_update_prob_matrices(&fake_treeinfo, !incremental);
-	}
 
-	// Iterate over all partitions
-	for (size_t j = 0; j < fake_treeinfo.partition_count; ++j) {
 		fake_treeinfo.active_partition = j;
 		for (size_t i = 0; i < n_trees; ++i) {
 			double tree_logl = 0.0;
@@ -407,7 +420,8 @@ double computeLoglikelihoodNaiveUtree(RaxmlWrapper &wrapper, Network &network, i
 // TODO: Add bool incremental...
 // TODO: Implement the Gray Code displayed tree iteration order and intelligent update of the operations array
 // TODO: Maybe also update reticulation probs here?
-double computeLoglikelihoodLessExponentiation(Network &network, pllmod_treeinfo_t &fake_treeinfo, int incremental, int update_pmatrices) {
+double computeLoglikelihoodLessExponentiation(Network &network, pllmod_treeinfo_t &fake_treeinfo, int incremental, int update_pmatrices,
+		bool update_reticulation_probs) {
 	size_t n_trees = 1 << network.reticulation_nodes.size();
 	double network_logl = 0;
 
@@ -418,21 +432,21 @@ double computeLoglikelihoodLessExponentiation(Network &network, pllmod_treeinfo_
 	bool collect_brlen = (fake_treeinfo.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED ? false : true);
 
 	fake_treeinfo.active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
-	// update the pmatrices, if needed
-	if (update_pmatrices) {
+
+	// Iterate over all partitions
+	for (size_t j = 0; j < fake_treeinfo.partition_count; ++j) {
+		fake_treeinfo.active_partition = j;
+
 		if (collect_brlen) {
 			for (size_t i = 0; i < network.edges.size(); ++i) {
 				fake_treeinfo.branch_lengths[0][network.edges[i].pmatrix_index] = network.edges[i].length;
 			}
 			// don't forget the fake entry
 			fake_treeinfo.branch_lengths[0][network.edges.size()] = 0.0;
+			if (update_pmatrices) {
+				pllmod_treeinfo_update_prob_matrices(&fake_treeinfo, !incremental);
+			}
 		}
-		pllmod_treeinfo_update_prob_matrices(&fake_treeinfo, !incremental);
-	}
-
-	// Iterate over all partitions
-	for (size_t j = 0; j < fake_treeinfo.partition_count; ++j) {
-		fake_treeinfo.active_partition = j;
 
 		std::vector<double> persite_lh_network(fake_treeinfo.partitions[j]->sites, 0.0);
 
