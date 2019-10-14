@@ -53,6 +53,18 @@ public:
 		return result;
 	}
 
+	Node* getNodeByClvIndex(size_t idx) {
+		Node* result = nullptr;
+		for (size_t i = 0; i < nodes.size(); ++i) {
+			if (nodes[i].getClvIndex() == idx) {
+				result = &nodes[i];
+				break;
+			}
+		}
+		assert(result);
+		return result;
+	}
+
 	std::vector<Node> nodes;
 	std::vector<Edge> edges;
 	std::vector<Link> links;
