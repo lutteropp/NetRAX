@@ -140,6 +140,7 @@ TEST_F (NetworkIOTest, readSimpleNetwork) {
 	ASSERT_EQ(4, network.num_tips());
 	ASSERT_EQ(1, network.num_reticulations());
 	sanity_checks(network);
+	std::cout << toExtendedNewick(network) << "\n";
 }
 
 TEST_F (NetworkIOTest, readSimpleNetwork2) {

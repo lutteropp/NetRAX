@@ -6,15 +6,27 @@
  */
 
 #include "NetworkIO.hpp"
-#include "../graph/Common.hpp"
 
-#include <array>
-#include <stdexcept>
-#include <iostream>
-#include <unordered_map>
+#include <stddef.h>
+#include <cassert>
 #include <fstream>
-#include <string>
+#include <limits>
+#include <memory>
 #include <sstream>
+#include <stdexcept>
+#include <string>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
+
+#include "../graph/Direction.hpp"
+#include "../graph/Edge.hpp"
+#include "../graph/Link.hpp"
+#include "../graph/Network.hpp"
+#include "../graph/Node.hpp"
+#include "../graph/NodeType.hpp"
+#include "../graph/ReticulationData.hpp"
 
 namespace netrax {
 
@@ -88,6 +100,7 @@ Link* buildBackLinkReticulationFirstVisit(Link *myLink, const RootedNetworkNode 
 	// firstEdge->length is already set
 	assert(firstEdge->length == targetNode->firstParentLength);
 	thirdEdge->length = targetNode->children[0]->length;
+	thirdEdge->support = targetNode->children[0]->support;
 
 	firstLink->edge = firstEdge;
 	secondLink->edge = nullptr; // will be set later
@@ -184,7 +197,9 @@ Link* buildBackLinkInnerTree(Link *myLink, const RootedNetworkNode *targetNode, 
 
 	// firstEdge->length is already set
 	secondEdge->length = targetNode->children[0]->length;
+	secondEdge->support = targetNode->children[0]->support;
 	thirdEdge->length = targetNode->children[1]->length;
+	thirdEdge->support = targetNode->children[1]->support;
 
 	firstLink->edge = firstEdge;
 	secondLink->edge = secondEdge;
@@ -306,8 +321,11 @@ Network convertNetworkToplevelTrifurcation(const RootedNetwork &rnetwork, size_t
 	thirdEdge->link1 = thirdLink;
 
 	firstEdge->length = root->children[0]->length;
+	firstEdge->support = root->children[0]->support;
 	secondEdge->length = root->children[1]->length;
+	secondEdge->support = root->children[1]->support;
 	thirdEdge->length = root->children[2]->length;
+	thirdEdge->support = root->children[2]->support;
 
 	firstLink->edge = firstEdge;
 	secondLink->edge = secondEdge;
@@ -400,8 +418,11 @@ Network convertNetworkToplevelBifurcation(const RootedNetwork &rnetwork, size_t 
 	thirdEdge->link1 = thirdLink;
 
 	firstEdge->length = new_root->children[0]->length;
+	firstEdge->support = new_root->children[0]->support;
 	secondEdge->length = new_root->children[1]->length;
+	secondEdge->length = new_root->children[1]->support;
 	thirdEdge->length = other_child->length + new_root->length;
+	thirdEdge->support = std::min(other_child->support, new_root->support);
 
 	firstLink->edge = firstEdge;
 	secondLink->edge = secondEdge;
@@ -501,8 +522,62 @@ Network readNetworkFromFile(const std::string &filename) {
 	std::string newick = buffer.str();
 	return readNetworkFromString(newick);
 }
+
+std::string newickNodeName(const Node* node, const Node* parent) {
+	assert(node);
+	std::stringstream sb("");
+
+	sb << node->label;
+	if (node->getType() == NodeType::RETICULATION_NODE) {
+		assert(parent);
+		sb << "#" << node->getReticulationData()->getLabel();
+		Link* link = node->getReticulationData()->getLinkToFirstParent();
+		double prob = node->getReticulationData()->getProb(0);
+		if (node->getReticulationData()->getLinkToSecondParent()->getTargetNode() == parent) {
+			link = node->getReticulationData()->getLinkToSecondParent();
+			prob = 1.0 - prob;
+		} else {
+			assert(node->getReticulationData()->getLinkToFirstParent()->getTargetNode() == parent);
+		}
+
+		sb << ":" << link->edge->length << ":";
+		if (link->edge->support != 0.0) {
+			sb << link->edge->support;
+		}
+		sb << ":" << prob;
+	} else {
+		if (parent != nullptr) {
+			sb << ":" << node->getEdgeTo(parent)->length;
+			if (node->getEdgeTo(parent)->support != 0.0) {
+				sb << ":" << node->getEdgeTo(parent)->support;
+			}
+		}
+	}
+	return sb.str();
+}
+
+std::string printNodeNewick(const Node* node, const Node* parent, std::unordered_set<const Node*>& visited_reticulations) {
+	std::stringstream sb("");
+	std::vector<Node*> children = node->getChildren(parent);
+	if (!children.empty() && visited_reticulations.find(node) == visited_reticulations.end()) {
+		sb << "(";
+		for (size_t i = 0; i < children.size() - 1; i++) {
+			sb << printNodeNewick(children[i], node, visited_reticulations);
+			sb << ",";
+		}
+		sb << printNodeNewick(children[children.size() - 1], node, visited_reticulations);
+		sb << ")";
+		if (node->getType() == NodeType::RETICULATION_NODE) {
+			visited_reticulations.insert(node);
+		}
+	}
+	sb << newickNodeName(node, parent);
+	return sb.str();
+}
+
 std::string toExtendedNewick(const Network &network) {
-	throw std::runtime_error("This function has not been implemented yet");
+	std::unordered_set<const Node*> visited_reticulations;
+	return printNodeNewick(network.root, nullptr, visited_reticulations) + ";";
 }
 
 }

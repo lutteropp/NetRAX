@@ -28,5 +28,6 @@ struct Edge {
 	Link* link1;
 	Link* link2;
 	double length;
+	double support;
 };
 }
