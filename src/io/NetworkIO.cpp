@@ -401,7 +401,7 @@ Network convertNetworkToplevelBifurcation(const RootedNetwork &rnetwork, size_t 
 
 	firstEdge->length = new_root->children[0]->length;
 	secondEdge->length = new_root->children[1]->length;
-	thirdEdge->length = other_child->length;
+	thirdEdge->length = other_child->length + new_root->length;
 
 	firstLink->edge = firstEdge;
 	secondLink->edge = secondEdge;
