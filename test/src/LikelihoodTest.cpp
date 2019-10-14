@@ -149,7 +149,6 @@ std::unordered_set<std::string> collect_tip_labels_utree(pll_utree_t* utree) {
 	for (size_t i = 0; i < trav_size; ++i) {
 		if (!outbuffer[i]->next) {
 			labels.insert(outbuffer[i]->label);
-			std::cout << "Added label: " << outbuffer[i]->label << "\n";
 		}
 	}
 
