@@ -15,7 +15,7 @@
 #include <algorithm>
 #include <memory>
 
-#include "../Network.hpp"
+#include "../graph/Common.hpp"
 
 namespace netrax {
 

@@ -5,7 +5,7 @@
 #include <iostream>
 #include <string>
 
-#include "Network.hpp"
+#include "graph/Common.hpp"
 #include "io/NetworkIO.hpp"
 
 #include "likelihood/LikelihoodComputation.hpp"

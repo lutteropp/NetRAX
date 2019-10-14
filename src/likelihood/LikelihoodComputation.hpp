@@ -16,7 +16,7 @@ extern "C"
 #include <libpll/pll_tree.h>
 }
 
-#include "../Network.hpp"
+#include "../graph/Common.hpp"
 #include "../RaxmlWrapper.hpp"
 #include <raxml-ng/TreeInfo.hpp>
 

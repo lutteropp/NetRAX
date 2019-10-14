@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "../Network.hpp"
+#include "../graph/Network.hpp"
 
 extern "C" {
 #include <libpll/pll_tree.h>

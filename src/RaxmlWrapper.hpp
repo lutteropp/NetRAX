@@ -10,7 +10,7 @@
 #include <raxml-ng/main.hpp>
 
 #include "NetraxOptions.hpp"
-#include "Network.hpp"
+#include "graph/Network.hpp"
 
 namespace netrax {
 

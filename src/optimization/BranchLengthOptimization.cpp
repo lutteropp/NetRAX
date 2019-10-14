@@ -9,7 +9,7 @@
 
 #include <stdexcept>
 
-#include "../Network.hpp"
+#include "../graph/Common.hpp"
 
 namespace netrax {
 double optimize_branches(Network& network, pllmod_treeinfo_t& fake_treeinfo, double min_brlen, double max_brlen, double lh_epsilon,

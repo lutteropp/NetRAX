@@ -7,7 +7,7 @@
 
 #include "Traversal.hpp"
 
-#include "../Network.hpp"
+#include "../graph/Common.hpp"
 
 namespace netrax {
 
@@ -32,7 +32,7 @@ void postorder(Node* parent, Node* actNode, std::vector<Node*>& buffer) {
 
 std::vector<Node*> postorderTraversal(Network& network, size_t tree_index) {
 	std::vector<Node*> buffer;
-	network.setReticulationParents(tree_index);
+	setReticulationParents(network, tree_index);
 	postorder(nullptr, network.root, buffer);
 	return buffer;
 }

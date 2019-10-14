@@ -12,7 +12,7 @@ extern "C"
 {
 #include <libpll/pll.h>
 }
-#include "../Network.hpp"
+#include "../graph/Common.hpp"
 
 namespace netrax {
 

@@ -13,7 +13,7 @@
 #include <string>
 #include <mutex>
 #include <iostream>
-#include "src/Network.hpp"
+#include "src/graph/Common.hpp"
 
 #include <raxml-ng/main.hpp>
 
@@ -172,15 +172,29 @@ TEST_F (LikelihoodTest, displayedTreeOfNetworkToUtree) {
 	pll_utree_t *utree = displayed_tree_to_utree(smallNetwork, 0);
 	ASSERT_NE(utree, nullptr);
 
+	pll_utree_t *utree2 = displayed_tree_to_utree(smallNetwork, 0);
+	ASSERT_NE(utree2, nullptr);
+
 	// compare tip labels
 	std::unordered_set<std::string> tip_labels_utree = collect_tip_labels_utree(utree);
 	ASSERT_EQ(tip_labels_utree.size(), smallNetwork.num_tips());
 	for (size_t i = 0; i < smallNetwork.tip_nodes.size(); ++i) {
 		ASSERT_TRUE(tip_labels_utree.find(smallNetwork.tip_nodes[i]->label) != tip_labels_utree.end());
 	}
+	// compare tip labels for second tree
+	std::unordered_set<std::string> tip_labels_utree2 = collect_tip_labels_utree(utree2);
+	ASSERT_EQ(tip_labels_utree2.size(), smallNetwork.num_tips());
+	for (size_t i = 0; i < smallNetwork.tip_nodes.size(); ++i) {
+		ASSERT_TRUE(tip_labels_utree2.find(smallNetwork.tip_nodes[i]->label) != tip_labels_utree2.end());
+	}
 
 	// check for all different clvs
 	ASSERT_TRUE(no_clv_indices_equal(utree));
+
+	// check for all different clvs for second tree
+	ASSERT_TRUE(no_clv_indices_equal(utree2));
+
+	// TODO: check the branch lengths!!!
 }
 
 TEST_F (LikelihoodTest, simpleTreeNoRepeatsNormalRaxml) {

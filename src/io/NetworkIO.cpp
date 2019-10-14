@@ -6,7 +6,7 @@
  */
 
 #include "NetworkIO.hpp"
-#include "../Network.hpp"
+#include "../graph/Common.hpp"
 
 #include <array>
 #include <stdexcept>
@@ -24,10 +24,10 @@ Link* buildBackLink(Link *myLink, const RootedNetworkNode *targetNode, const Roo
 		std::unordered_map<const RootedNetworkNode*, Node*> &visitedReticulations);
 
 void setPMatrixIndexConditional(Edge *edge, size_t *inner_pmatrix_index) {
-	if (edge->getLink1()->node->isTip()) {
-		edge->pmatrix_index = edge->getLink1()->node->clv_index;
-	} else if (edge->getLink2()->node->isTip()) {
-		edge->pmatrix_index = edge->getLink2()->node->clv_index;
+	if (edge->link1->node->isTip()) {
+		edge->pmatrix_index = edge->link1->node->clv_index;
+	} else if (edge->link2->node->isTip()) {
+		edge->pmatrix_index = edge->link2->node->clv_index;
 	} else {
 		edge->pmatrix_index = (*inner_pmatrix_index)++;
 	}

@@ -11,7 +11,7 @@
 #include <string>
 #include <iostream>
 #include <algorithm>
-#include "src/Network.hpp"
+#include "src/graph/Common.hpp"
 
 #include "NetraxTest.hpp"
 

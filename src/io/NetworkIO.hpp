@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "../Network.hpp"
+#include "../graph/Common.hpp"
 
 #include "RootedNetworkParser.hpp"
 
