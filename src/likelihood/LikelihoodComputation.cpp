@@ -50,8 +50,8 @@ std::vector<pll_operation_t> createOperations(Network &network, size_t treeIdx) 
 	size_t fake_pmatrix_index = network.edges.size();
 	setReticulationParents(network, treeIdx);
 
-// How to do the operations at the top-level root trifurcation?
-// First with root->back, then with root...
+	// How to do the operations at the top-level root trifurcation?
+	// First with root->back, then with root...
 	createOperationsPostorder(network.root, network.root->getLink()->getTargetNode(), ops, fake_clv_index, fake_pmatrix_index);
 	createOperationsPostorder(network.root->getLink()->getTargetNode(), network.root, ops, fake_clv_index, fake_pmatrix_index);
 

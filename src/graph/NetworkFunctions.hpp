@@ -31,5 +31,5 @@ void setReticulationParents(Network& network, size_t treeIdx);
 /*
  * Find possible placements for the root node in a semi-rooted network.
  */
-std::vector<const Node*> getPossibleRootNodes(const Network& network);
+std::vector<Node*> getPossibleRootNodes(Network& network);
 }

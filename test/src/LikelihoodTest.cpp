@@ -137,6 +137,7 @@ TEST_F (LikelihoodTest, displayedTreeOfTreeToUtree) {
 }
 
 int cb_trav_all(pll_unode_t* node) {
+	(pll_unode_t*) node;
 	return 1;
 }
 

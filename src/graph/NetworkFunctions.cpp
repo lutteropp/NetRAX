@@ -13,6 +13,7 @@
 #include "Network.hpp"
 #include "Edge.hpp"
 #include "ReticulationData.hpp"
+#include "Node.hpp"
 
 namespace netrax {
 
@@ -114,15 +115,8 @@ pll_utree_t* displayed_tree_to_utree(Network &network, size_t tree_index) {
 	const Node *root = nullptr;
 
 	// find a non-reticulation node with 3 active neighbors. This will be the root of the displayed tree.
-	std::vector<const Node*> possibleRoots = getPossibleRootNodes(network);
-	for (size_t i = 0; i < possibleRoots.size(); ++i) {
-		if (!possibleRoots[i]->isTip() && possibleRoots[i]->getType() == NodeType::BASIC_NODE) {
-			if (possibleRoots[i]->getActiveNeighbors().size() == 3) {
-				root = possibleRoots[i];
-				break;
-			}
-		}
-	}
+	std::vector<Node*> possibleRoots = getPossibleRootNodes(network);
+	root = possibleRoots[0];
 	assert(root);
 
 	pll_unode_t* uroot = connect_subtree_recursive(root, nullptr, nullptr);
@@ -165,15 +159,17 @@ void forbidSubnetwork(Node* myParent, Node* node, std::vector<bool>& forbidden) 
 /*
  * Find possible placements for the root node in a semi-rooted network.
  */
-std::vector<const Node*> getPossibleRootNodes(const Network& network) {
+std::vector<Node*> getPossibleRootNodes(Network& network) {
 	std::vector<bool> forbidden(network.nodes.size(), false);
 	for (size_t i = 0; i < network.reticulation_nodes.size(); ++i) {
 		forbidSubnetwork(nullptr, network.reticulation_nodes[i], forbidden);
 	}
-	std::vector<const Node*> res;
+	std::vector<Node*> res;
 	for (size_t i = 0; i < network.nodes.size(); ++i) {
 		if (!forbidden[network.nodes[i].getClvIndex()]) {
-			res.push_back(&network.nodes[i]);
+			if (network.nodes[i].getType() == NodeType::BASIC_NODE && network.nodes[i].getActiveNeighbors().size() == 3) {
+				res.push_back(&network.nodes[i]);
+			}
 		}
 	}
 	return res;
