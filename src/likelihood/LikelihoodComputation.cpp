@@ -69,20 +69,6 @@ std::vector<pll_operation_t> createOperations(Network &network, size_t treeIdx) 
 	// First with root->back, then with root...
 	createOperationsPostorder(network.root, network.root->getLink()->getTargetNode(), ops, fake_clv_index, fake_pmatrix_index);
 	createOperationsPostorder(network.root->getLink()->getTargetNode(), network.root, ops, fake_clv_index, fake_pmatrix_index);
-
-	// Remove the operations at the end which always have the fake node as one of their children
-	size_t num_ops_to_discard = 0;
-	for (int i = ops.size() - 1; i >= 0; --i) {
-		if (ops[i].child1_clv_index == fake_clv_index || ops[i].child2_clv_index == fake_clv_index) {
-			num_ops_to_discard++;
-		} else {
-			break;
-		}
-	}
-	for (size_t i = 0; i < num_ops_to_discard; ++i) {
-		ops.pop_back();
-	}
-
 	return ops;
 }
 
@@ -150,21 +136,12 @@ double compute_tree_logl(Network& network, pllmod_treeinfo_t &fake_treeinfo, siz
 	std::vector<pll_operation_t> ops = createOperations(network, tree_idx);
 	unsigned int ops_count = ops.size();
 
-	std::cout << "tree_idx: " << tree_idx << "\n";
-	std::cout << "The ops are: (parent_clv_idx, child1_clv_idx, child2_clv_idx) \n";
-	for (size_t i = 0; i < ops.size(); ++i) {
-		std::cout << "(" << ops[i].parent_clv_index << ", " << ops[i].child1_clv_index << ", " << ops[i].child2_clv_index << ")\n";
-	}
-
 	Node *ops_root = network.getNodeByClvIndex(ops[ops.size() - 1].parent_clv_index);
-	// TODO: Which one will be rootBack???
 
 // Compute CLVs in pll_update_partials, as specified by the operations array. This needs a pll_partition_t object.
 	pll_update_partials(fake_treeinfo.partitions[partition_idx], ops.data(), ops_count);
-// Compute loglikelihood at the root of the displayed tree in pll_compute_edge_loglikelihood. This needs an array of unsigned int (exists for each partition) param_indices.
-	Node *rootBack = network.root->getLink()->getTargetNode();
 
-	std::cout << "rootBack has label: " << rootBack->label << "\n";
+	Node *rootBack = network.root->getLink()->getTargetNode();
 
 	double tree_partition_logl = pll_compute_edge_loglikelihood(fake_treeinfo.partitions[partition_idx], ops_root->getClvIndex(),
 			ops_root->getScalerIndex(), rootBack->getClvIndex(), rootBack->getScalerIndex(), ops_root->getLink()->edge->pmatrix_index,
@@ -203,11 +180,6 @@ double computeLoglikelihood(Network &network, pllmod_treeinfo_t &fake_treeinfo, 
 	std::vector<unsigned int> totalTaken(network.num_reticulations(), 0);
 	std::vector<unsigned int> totalNotTaken(network.num_reticulations(), 0);
 
-	std::cout << "The Sarah tip clv indices are: \n";
-	for (size_t j = 0; j < network.tip_nodes.size(); ++j) {
-		std::cout << network.tip_nodes[j]->label << " has clv_index " << network.tip_nodes[j]->clv_index << "\n";
-	}
-
 // Iterate over all partitions
 	for (size_t j = 0; j < fake_treeinfo.partition_count; ++j) {
 		fake_treeinfo.active_partition = j;
@@ -225,9 +197,6 @@ double computeLoglikelihood(Network &network, pllmod_treeinfo_t &fake_treeinfo, 
 			std::vector<double> persite_logl(fake_treeinfo.partitions[j]->sites, 0.0);
 			double tree_partition_logl = compute_tree_logl(network, fake_treeinfo, i, j, &persite_logl);
 			double tree_prob = displayed_tree_prob(network, i, unlinked_mode ? 0 : j);
-
-			std::cout << "Clv of Q Sarah displayed tree #" << i << ":\n";
-			printClv(fake_treeinfo, network.getNodeByLabel("Q")->clv_index, 0);
 
 			if (update_reticulation_probs) {
 				update_reticulation_probs_internal_1(i, network.num_reticulations(), persite_logl, best_persite_logl_network);
@@ -366,21 +335,7 @@ double computeLoglikelihoodNaiveUtree(RaxmlWrapper &wrapper, Network &network, i
 
 		TreeInfo displayedTreeinfo = wrapper.createRaxmlTreeinfo(displayed_tree);
 
-		std::cout << "The naive tip clv indices are: \n";
-		for (size_t j = 0; j < displayed_tree->tip_count + displayed_tree->inner_count; ++j) {
-			if (displayed_tree->nodes[j]->clv_index < displayed_tree->tip_count) {
-				std::cout << displayed_tree->nodes[j]->label << " has clv_index " << displayed_tree->nodes[j]->clv_index << "\n";
-			}
-		}
-
 		double tree_logl = displayedTreeinfo.loglh(0);
-
-		std::cout << "Clv of R naive displayed tree #" << i << ":\n";
-		for (size_t j = 0; j < displayed_tree->tip_count + displayed_tree->inner_count; ++j) {
-			if (strcmp(displayed_tree->nodes[j]->label, "R") == 0) {
-				printClv(displayedTreeinfo.pll_treeinfo(), displayed_tree->nodes[j]->clv_index, 0);
-			}
-		}
 
 		std::cout << "naive tree logl " << i << ": " << tree_logl << "\n";
 
