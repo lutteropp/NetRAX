@@ -122,7 +122,17 @@ pll_utree_t* displayed_tree_to_utree(Network &network, size_t tree_index) {
 	pll_unode_t* uroot = connect_subtree_recursive(root, nullptr, nullptr);
 
 	pll_utree_reset_template_indices(uroot, network.num_tips());
-	return pll_utree_wraptree(uroot, network.num_tips());
+	pll_utree_t* utree = pll_utree_wraptree(uroot, network.num_tips());
+
+	// ensure that the tip clv indices are the same as in the network
+	for (size_t i = 0; i < utree->inner_count + utree->tip_count; ++i) {
+		if (utree->nodes[i]->clv_index < utree->tip_count) {
+			Node* networkNode = network.getNodeByLabel(utree->nodes[i]->label);
+			utree->nodes[i]->clv_index = utree->nodes[i]->node_index = networkNode->clv_index;
+		}
+	}
+
+	return utree;
 }
 
 std::vector<double> collectBranchLengths(const Network& network) {

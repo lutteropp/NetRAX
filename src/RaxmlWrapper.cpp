@@ -13,6 +13,29 @@
 
 namespace netrax {
 
+void reset_tip_ids(Network& network, const std::unordered_map<std::string, size_t>& label_id_map)
+{
+  if (label_id_map.size() < network.num_tips())
+    throw std::invalid_argument("Invalid map size");
+
+  for (auto& node: network.tip_nodes)
+  {
+    const unsigned int tip_id = label_id_map.at(node->label);
+    node->clv_index = tip_id;
+    node->getLink()->node_index = tip_id;
+  }
+}
+
+void reset_tip_ids(pll_utree_t* utree, const std::unordered_map<std::string, size_t>& label_id_map) {
+	for (size_t i = 0; i < utree->tip_count + utree->inner_count; ++i) {
+		if (utree->nodes[i]->clv_index < utree->tip_count) {
+			const unsigned int tip_id = label_id_map.at(utree->nodes[i]->label);
+			pll_unode_t* node = utree->nodes[i];
+			node->clv_index = node->node_index = tip_id;
+		}
+	}
+}
+
 Options createDefaultOptions() {
 	Options opts;
 	/* if no command specified, default to --search (or --help if no args were given) */
@@ -107,6 +130,9 @@ RaxmlWrapper::RaxmlWrapper(const NetraxOptions &options) {
 }
 
 TreeInfo RaxmlWrapper::createRaxmlTreeinfo(Network &network) {
+	// Check that the MSA has already been loaded
+	assert(!instance.tip_id_map.empty());
+	reset_tip_ids(network, instance.tip_id_map);
 	pllmod_treeinfo_t *pllTreeinfo = createNetworkPllTreeinfo(network, network.num_tips(), instance.parted_msa->part_count(),
 			instance.opts.brlen_linkage);
 	return createRaxmlTreeinfo(pllTreeinfo, network_behaviour);
@@ -116,9 +142,10 @@ pllmod_treeinfo_t* RaxmlWrapper::createStandardPllTreeinfo(const pll_utree_t *ut
 	return pllmod_treeinfo_create(utree->vroot, utree->tip_count, partitions, brlen_linkage);
 }
 
-TreeInfo RaxmlWrapper::createRaxmlTreeinfo(const pll_utree_t *utree) {
+TreeInfo RaxmlWrapper::createRaxmlTreeinfo(pll_utree_t *utree) {
 	// Check that the MSA has already been loaded
 	assert(!instance.tip_id_map.empty());
+	reset_tip_ids(utree, instance.tip_id_map);
 	pllmod_treeinfo_t *pllTreeinfo = createStandardPllTreeinfo(utree, instance.parted_msa->part_count(), instance.opts.brlen_linkage);
 	TreeInfo::tinfo_behaviour standard_behaviour;
 	return createRaxmlTreeinfo(pllTreeinfo, standard_behaviour);

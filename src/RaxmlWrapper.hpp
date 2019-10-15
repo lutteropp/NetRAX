@@ -19,7 +19,7 @@ public:
 	RaxmlWrapper(const NetraxOptions &options);
 
 	TreeInfo createRaxmlTreeinfo(Network &network); // Creates a network treeinfo
-	TreeInfo createRaxmlTreeinfo(const pll_utree_t *utree); // Creates a tree treeinfo
+	TreeInfo createRaxmlTreeinfo(pll_utree_t *utree); // Creates a tree treeinfo
 
 	// and now, the things only neccessary to be visible in this header because of the unit tests...
 
@@ -54,6 +54,7 @@ public:
 			const uintVector &weights);
 
 	size_t num_partitions() const;
+
 private:
 	pllmod_treeinfo_t* createNetworkPllTreeinfo_new(Network &network, unsigned int tips, unsigned int partitions,
 			int brlen_linkage);
