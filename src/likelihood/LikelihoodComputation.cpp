@@ -74,11 +74,11 @@ std::vector<pll_operation_t> createOperations(Network &network, size_t treeIdx) 
 
 double displayed_tree_prob(Network &network, size_t tree_index, size_t partition_index) {
 	setReticulationParents(network, tree_index);
-	double prob = 1.0;
+	double logProb = 0;
 	for (size_t i = 0; i < network.reticulation_nodes.size(); ++i) {
-		prob *= network.reticulation_nodes[i]->getReticulationData()->getActiveProb(partition_index);
+		logProb += log(network.reticulation_nodes[i]->getReticulationData()->getActiveProb(partition_index));
 	}
-	return prob;
+	return exp(logProb);
 }
 
 void update_reticulation_probs_internal_1(size_t tree_index, size_t num_reticulations, std::vector<double>& persite_logl,
