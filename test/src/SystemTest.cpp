@@ -70,6 +70,7 @@ TEST (SystemTest, allTree) {
 	// model parameter optimization
 	double modelopt_logl = info.optimize_model(treeWrapper.getRaxmlOptions().lh_epsilon);
 	std::cout << "Loglikelihood after model optimization: " << modelopt_logl << "\n";
+	// TODO: Why does the model parameter optimization fail in this case, but not in the one above?
 
 	// branch length optimization
 	double brlenopt_logl = info.optimize_branches(treeWrapper.getRaxmlOptions().lh_epsilon, 1);
