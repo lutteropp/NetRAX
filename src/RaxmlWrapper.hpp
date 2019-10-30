@@ -31,6 +31,8 @@ public:
 			int brlen_linkage);
 	void destroy_network_treeinfo(pllmod_treeinfo_t *treeinfo);
 
+	void enableRaxmlDebugOutput();
+
 	struct NetworkParams {
 		Network *network;
 		pllmod_treeinfo_t *network_treeinfo;

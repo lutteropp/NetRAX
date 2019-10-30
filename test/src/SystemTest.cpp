@@ -36,6 +36,7 @@ TEST (SystemTest, allTreeOldRaxml) {
 	treeOptions.msa_file = msaPath;
 	treeOptions.use_repeats = true;
 	RaxmlWrapper treeWrapper = RaxmlWrapper(treeOptions);
+	treeWrapper.enableRaxmlDebugOutput();
 	TreeInfo info = treeWrapper.createRaxmlTreeinfo(normalTree.pll_utree_copy());
 
 	// initial logl computation
@@ -49,6 +50,10 @@ TEST (SystemTest, allTreeOldRaxml) {
 	// branch length optimization
 	double brlenopt_logl = info.optimize_branches(treeWrapper.getRaxmlOptions().lh_epsilon, 1);
 	std::cout << "Loglikelihood after branch length optimization: " << brlenopt_logl << "\n";
+
+	// model parameter optimization
+	double modelopt2_logl = info.optimize_model(treeWrapper.getRaxmlOptions().lh_epsilon);
+	std::cout << "Loglikelihood after model optimization again: " << modelopt2_logl << "\n";
 }
 
 TEST (SystemTest, allTree) {
@@ -61,6 +66,7 @@ TEST (SystemTest, allTree) {
 	treeOptions.msa_file = msaPath;
 	treeOptions.use_repeats = true;
 	RaxmlWrapper treeWrapper = RaxmlWrapper(treeOptions);
+	treeWrapper.enableRaxmlDebugOutput();
 	TreeInfo info = treeWrapper.createRaxmlTreeinfo(treeNetwork);
 
 	// initial logl computation
@@ -75,6 +81,10 @@ TEST (SystemTest, allTree) {
 	// branch length optimization
 	double brlenopt_logl = info.optimize_branches(treeWrapper.getRaxmlOptions().lh_epsilon, 1);
 	std::cout << "Loglikelihood after branch length optimization: " << brlenopt_logl << "\n";
+
+	// model parameter optimization
+	double modelopt2_logl = info.optimize_model(treeWrapper.getRaxmlOptions().lh_epsilon);
+	std::cout << "Loglikelihood after model optimization again: " << modelopt2_logl << "\n";
 }
 
 TEST (SystemTest, allNetwork) {
@@ -87,6 +97,7 @@ TEST (SystemTest, allNetwork) {
 	smallOptions.msa_file = msaPath;
 	smallOptions.use_repeats = true;
 	RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
+	smallWrapper.enableRaxmlDebugOutput();
 	TreeInfo info = smallWrapper.createRaxmlTreeinfo(smallNetwork);
 
 	// initial logl computation
@@ -100,4 +111,8 @@ TEST (SystemTest, allNetwork) {
 	// branch length optimization
 	double brlenopt_logl = info.optimize_branches(smallWrapper.getRaxmlOptions().lh_epsilon, 1);
 	std::cout << "Loglikelihood after branch length optimization: " << brlenopt_logl << "\n";
+
+	// model parameter optimization
+	double modelopt2_logl = info.optimize_model(smallWrapper.getRaxmlOptions().lh_epsilon);
+	std::cout << "Loglikelihood after model optimization again: " << modelopt2_logl << "\n";
 }

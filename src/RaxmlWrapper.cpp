@@ -11,6 +11,8 @@
 #include "optimization/BranchLengthOptimization.hpp"
 #include "graph/Common.hpp"
 
+#include <raxml-ng/log.hpp>
+
 namespace netrax {
 
 void reset_tip_ids(Network& network, const std::unordered_map<std::string, size_t>& label_id_map)
@@ -517,6 +519,12 @@ pllmod_ancestral_t* RaxmlWrapper::network_ancestral_wrapper(pllmod_treeinfo_t *t
 
 Options RaxmlWrapper::getRaxmlOptions() const {
 	return instance.opts;
+}
+
+void RaxmlWrapper::enableRaxmlDebugOutput() {
+	instance.opts.log_level = LogLevel::debug;
+	logger().log_level(instance.opts.log_level);
+	logger().add_log_stream(&cout);
 }
 
 }
