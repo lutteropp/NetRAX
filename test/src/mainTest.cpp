@@ -22,7 +22,7 @@ int main(int argc, char** argv)
   ::testing::AddGlobalTestEnvironment(env);
   //testing::GTEST_FLAG(filter) = "-NetworkIOTest.*";
 
-  ::testing::GTEST_FLAG(filter) = "*SystemTest.allTreeOldRaxml*";
+  ::testing::GTEST_FLAG(filter) = "*SystemTest.allTree";
 
   auto result = RUN_ALL_TESTS();
 //  MPI_FINALIZE();
