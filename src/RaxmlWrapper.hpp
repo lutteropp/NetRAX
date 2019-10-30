@@ -18,6 +18,8 @@ class RaxmlWrapper {
 public:
 	RaxmlWrapper(const NetraxOptions &options);
 
+	Options getRaxmlOptions() const;
+
 	TreeInfo createRaxmlTreeinfo(Network &network); // Creates a network treeinfo
 	TreeInfo createRaxmlTreeinfo(pll_utree_t *utree); // Creates a tree treeinfo
 

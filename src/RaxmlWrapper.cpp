@@ -515,4 +515,8 @@ pllmod_ancestral_t* RaxmlWrapper::network_ancestral_wrapper(pllmod_treeinfo_t *t
 	throw std::runtime_error("Not implemented yet");
 }
 
+Options RaxmlWrapper::getRaxmlOptions() const {
+	return instance.opts;
+}
+
 }
