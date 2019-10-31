@@ -209,6 +209,7 @@ void getTipVectorRecursive(pll_unode_t *actParent, pll_unode_t *actNode, size_t 
 }
 
 std::vector<bool> getTipVector(const pll_utree_t &utree, size_t pmatrix_idx) {
+	// TODO: Bug is here
 	std::vector<bool> res(utree.tip_count, false);
 	// do a top-down preorder traversal of the tree,
 	//	starting to write to the tip vector as soon as we have encountered the wanted pmatrix_idx
