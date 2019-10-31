@@ -24,9 +24,9 @@ namespace netrax {
 
 std::vector<pll_operation_t> createOperations(Network& network, size_t treeIdx);
 
-double computeLoglikelihood(Network& network, pllmod_treeinfo_t& fake_treeinfo, int incremental, int update_pmatrices, bool update_reticulation_probs = true);
+double computeLoglikelihood(Network& network, pllmod_treeinfo_t& fake_treeinfo, int incremental, int update_pmatrices, bool update_reticulation_probs = false);
 
-double computeLoglikelihoodLessExponentiation(Network& network, pllmod_treeinfo_t& fake_treeinfo, int incremental, int update_pmatrices, bool update_reticulation_probs = true);
+double computeLoglikelihoodLessExponentiation(Network& network, pllmod_treeinfo_t& fake_treeinfo, int incremental, int update_pmatrices, bool update_reticulation_probs = false);
 
 double computeLoglikelihoodNaiveUtree(RaxmlWrapper& wrapper, Network& network, int incremental, int update_pmatrices);
 
