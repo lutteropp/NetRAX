@@ -63,7 +63,6 @@ TEST (BrlenOptTest, tree) {
 	std::cout << "RAXML - Loglikelihood after branch length optimization: " << brlenopt_logl_raxml << "\n";
 	double brlenopt_logl_network = infoNetwork.optimize_branches(treeWrapper.getRaxmlOptions().lh_epsilon, 1);
 	std::cout << "NETWORK - Loglikelihood after branch length optimization: " << brlenopt_logl_network << "\n";
-	ASSERT_FLOAT_EQ(brlenopt_logl_raxml, brlenopt_logl_network);
 
 	std::cout << "RAXML - The optimized branch lengths are:\n";
 	for (size_t i = 0; i < infoRaxml.pll_treeinfo().tree->edge_count; ++i) {
@@ -73,4 +72,6 @@ TEST (BrlenOptTest, tree) {
 	for (size_t i = 0; i < infoNetwork.pll_treeinfo().tree->edge_count; ++i) {
 		std::cout << " " << std::setprecision(17) << infoNetwork.pll_treeinfo().branch_lengths[0][i] << "\n";
 	}
+
+	ASSERT_FLOAT_EQ(brlenopt_logl_raxml, brlenopt_logl_network);
 }
