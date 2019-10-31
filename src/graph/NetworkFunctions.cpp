@@ -187,15 +187,56 @@ std::vector<Node*> getPossibleRootNodes(Network &network) {
 	return res;
 }
 
+void getTipVectorRecursive(pll_unode_t *actParent, pll_unode_t *actNode, size_t pmatrix_idx, bool pmatrix_idx_found,
+		std::vector<bool> &res) {
+	if (!actNode) {
+		return;
+	}
+	if (actNode->pmatrix_index == pmatrix_idx) {
+		pmatrix_idx_found = true;
+	}
+	if (pllmod_utree_is_tip(actNode) && pmatrix_idx_found) {
+		res[actNode->clv_index] = true;
+	} else if (!pllmod_utree_is_tip(actNode)) {
+		pll_unode_t* link = actNode;
+		do {
+			if (link->back != actParent) {
+				getTipVectorRecursive(actNode, link->back, pmatrix_idx, pmatrix_idx_found, res);
+			}
+			link = link->next;
+		} while (link != actNode);
+	}
+}
+
 std::vector<bool> getTipVector(const pll_utree_t &utree, size_t pmatrix_idx) {
 	std::vector<bool> res(utree.edge_count, false);
-	throw std::runtime_error("getTipVector for utree not implemented yet");
+	// do a top-down preorder traversal of the tree,
+	//	starting to write to the tip vector as soon as we have encountered the wanted pmatrix_idx
+	getTipVectorRecursive(nullptr, utree.vroot, pmatrix_idx, false, res);
+
 	return res;
+}
+
+void getTipVectorRecursive(Node *actParent, Node *actNode, size_t pmatrix_idx, bool pmatrix_idx_found,
+		std::vector<bool> &res) {
+	if (actNode->isTip() && pmatrix_idx_found) {
+		res[actNode->clv_index] = true;
+	} else if (!actNode->isTip()) {
+		if ((actParent != nullptr) && (actNode->getEdgeTo(actParent)->pmatrix_index == pmatrix_idx)) {
+			pmatrix_idx_found = true;
+		}
+		std::vector<Node*> activeChildren = actNode->getActiveChildren(actParent);
+		for (size_t i = 0; i < activeChildren.size(); ++i) {
+			getTipVectorRecursive(actNode, activeChildren[i], pmatrix_idx, pmatrix_idx_found, res);
+		}
+	}
 }
 
 std::vector<bool> getTipVector(const Network &network, size_t pmatrix_idx) {
 	std::vector<bool> res(network.num_branches(), false);
-	throw std::runtime_error("getTipVector for network not implemented yet");
+	// do a top-down preorder traversal of the network,
+	//	starting to write to the tip vector as soon as we have encountered the wanted pmatrix_idx
+	getTipVectorRecursive(nullptr, network.root, pmatrix_idx, false, res);
 	return res;
 }
 
