@@ -49,13 +49,26 @@ TEST (BrlenOptTest, tree) {
 	ASSERT_FLOAT_EQ(initial_logl_raxml, initial_logl_network);
 
 	ASSERT_EQ(infoRaxml.pll_treeinfo().tree->edge_count + 1, infoNetwork.pll_treeinfo().tree->edge_count);
+
+	// Compute branch id mapping to check the branch lengths
+	std::vector<size_t> utreeIDToNetworkID = getDtBranchToNetworkBranchMapping(*infoRaxml.pll_treeinfo().tree,
+			*((RaxmlWrapper::NetworkParams*) (infoNetwork.pll_treeinfo().likelihood_computation_params))->network, 0);
+
+	std::cout << "utreeIDToNetworkID.size(): " << utreeIDToNetworkID.size() << "\n";
+
 	std::cout << "RAXML - The branch lengths before brlen optimization are:\n";
 	for (size_t i = 0; i < infoRaxml.pll_treeinfo().tree->edge_count; ++i) {
 		std::cout << " " << std::setprecision(17) << infoRaxml.pll_treeinfo().branch_lengths[0][i] << "\n";
 	}
 	std::cout << "NETWORK - The branch lengths before brlen optimization are:\n";
-	for (size_t i = 0; i < infoNetwork.pll_treeinfo().tree->edge_count; ++i) {
-		std::cout << " " << std::setprecision(17) << infoNetwork.pll_treeinfo().branch_lengths[0][i] << "\n";
+	for (size_t i = 0; i < utreeIDToNetworkID.size(); ++i) {
+		std::cout << " " << std::setprecision(17) << infoNetwork.pll_treeinfo().branch_lengths[0][utreeIDToNetworkID[i]]
+				<< "\n";
+	}
+
+	for (size_t i = 0; i < utreeIDToNetworkID.size(); ++i) {
+		ASSERT_FLOAT_EQ(infoRaxml.pll_treeinfo().branch_lengths[0][i],
+				infoNetwork.pll_treeinfo().branch_lengths[0][utreeIDToNetworkID[i]]);
 	}
 
 	// branch length optimization
@@ -70,13 +83,10 @@ TEST (BrlenOptTest, tree) {
 		std::cout << " " << std::setprecision(17) << infoRaxml.pll_treeinfo().branch_lengths[0][i] << "\n";
 	}
 	std::cout << "NETWORK - The optimized branch lengths are:\n";
-	for (size_t i = 0; i < infoNetwork.pll_treeinfo().tree->edge_count; ++i) {
+	for (size_t i = 0; i < utreeIDToNetworkID.size(); ++i) {
 		std::cout << " " << std::setprecision(17) << infoNetwork.pll_treeinfo().branch_lengths[0][i] << "\n";
 	}
 
-	// Compute branch id mapping to check the branch lengths
-	std::vector<size_t> utreeIDToNetworkID = getDtBranchToNetworkBranchMapping(*infoRaxml.pll_treeinfo().tree,
-			*((RaxmlWrapper::NetworkParams*) (infoNetwork.pll_treeinfo().likelihood_computation_params))->network, 0);
 	for (size_t i = 0; i < utreeIDToNetworkID.size(); ++i) {
 		ASSERT_FLOAT_EQ(infoRaxml.pll_treeinfo().branch_lengths[0][i],
 				infoNetwork.pll_treeinfo().branch_lengths[0][utreeIDToNetworkID[i]]);

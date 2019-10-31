@@ -100,7 +100,7 @@ double optimize_branches(const NetraxOptions &options, Network &network, pllmod_
 		assert(network.edges[i].length == fake_treeinfo.branch_lengths[partitionIdx][network.edges[i].pmatrix_index]);
 	}
 
-	return computeLoglikelihood(network, fake_treeinfo, 0, 1, false);
+	return -1*computeLoglikelihood(network, fake_treeinfo, 0, 1, false);
 }
 
 }
