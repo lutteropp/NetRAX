@@ -62,7 +62,7 @@ double optimize_branches(const NetraxOptions &options, Network &network, pllmod_
 		}
 	}
 
-	// set the network brlens to the weighted average of the displayed tree_brlens
+	// set the network brlens to the weighted average of the displayed_tree brlens
 	for (size_t i = 0; i < network.edges.size(); ++i) {
 		double treeProbSum = 0;
 		for (size_t j = 0; j < opt_brlens[i].size(); ++j) {
@@ -87,6 +87,7 @@ double optimize_branches(const NetraxOptions &options, Network &network, pllmod_
 		}
 	}
 
-	throw std::runtime_error("Not implemented yet");
+	return computeLoglikelihood(network, fake_treeinfo, 0, 1, false);
 }
+
 }

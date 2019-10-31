@@ -187,6 +187,11 @@ std::vector<Node*> getPossibleRootNodes(Network& network) {
 
 std::vector<size_t> getDtBranchToNetworkBranchMapping(const pll_utree_t& utree, Network& network, size_t tree_idx) {
 	std::vector<size_t> res(network.edges.size());
+	setReticulationParents(network, tree_idx);
+
+	// for each branch, we need to figure out which tips are on one side of the branch, and which tips are on the other side
+	// so essentially, we need to compare bipartitions. That's all!
+
 	throw std::runtime_error("getDtBranchToNetworkBranchMapping not implemented yet");
 	return res;
 }
