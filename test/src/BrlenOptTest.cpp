@@ -74,5 +74,12 @@ TEST (BrlenOptTest, tree) {
 		std::cout << " " << std::setprecision(17) << infoNetwork.pll_treeinfo().branch_lengths[0][i] << "\n";
 	}
 
+	double normal_logl_raxml = infoRaxml.loglh(0);
+	double normal_logl_network = infoNetwork.loglh(0);
+	std::cout << "RAXML - Loglikelihood when called normally: " << normal_logl_raxml << "\n";
+	std::cout << "NETWORK - Loglikelihood when called normally: " << normal_logl_network << "\n";
+
+	ASSERT_FLOAT_EQ(brlenopt_logl_network, normal_logl_network);
+
 	ASSERT_FLOAT_EQ(brlenopt_logl_raxml, brlenopt_logl_network);
 }
