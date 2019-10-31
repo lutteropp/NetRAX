@@ -185,4 +185,9 @@ std::vector<Node*> getPossibleRootNodes(Network& network) {
 	return res;
 }
 
+std::unordered_map<size_t, size_t> getNetworkToDtBranchMapping(Network& network, const pll_utree_t& utree, size_t tree_idx) {
+	std::unordered_map<size_t, size_t> res;
+	return res;
+}
+
 }
