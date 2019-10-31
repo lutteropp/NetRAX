@@ -74,6 +74,14 @@ TEST (BrlenOptTest, tree) {
 		std::cout << " " << std::setprecision(17) << infoNetwork.pll_treeinfo().branch_lengths[0][i] << "\n";
 	}
 
+	// Compute branch id mapping to check the branch lengths
+	std::vector<size_t> utreeIDToNetworkID = getDtBranchToNetworkBranchMapping(*infoRaxml.pll_treeinfo().tree,
+			*((RaxmlWrapper::NetworkParams*) (infoNetwork.pll_treeinfo().likelihood_computation_params))->network, 0);
+	for (size_t i = 0; i < utreeIDToNetworkID.size(); ++i) {
+		ASSERT_FLOAT_EQ(infoRaxml.pll_treeinfo().branch_lengths[0][i],
+				infoNetwork.pll_treeinfo().branch_lengths[0][utreeIDToNetworkID[i]]);
+	}
+
 	double normal_logl_raxml = infoRaxml.loglh(0);
 	double normal_logl_network = infoNetwork.loglh(0);
 	std::cout << "RAXML - Loglikelihood when called normally: " << normal_logl_raxml << "\n";
