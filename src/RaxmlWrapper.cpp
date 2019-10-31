@@ -117,7 +117,7 @@ RaxmlInstance createRaxmlInstance(const NetraxOptions &options) {
 	return instance;
 }
 
-RaxmlWrapper::RaxmlWrapper(const NetraxOptions &options) {
+RaxmlWrapper::RaxmlWrapper(const NetraxOptions &options) : netraxOptions(options) {
 	instance = createRaxmlInstance(options);
 	network_behaviour.compute_ancestral_function = std::bind(&RaxmlWrapper::network_ancestral_wrapper, this, std::placeholders::_1);
 	network_behaviour.opt_brlen_function = std::bind(&RaxmlWrapper::network_opt_brlen_wrapper, this, std::placeholders::_1,
@@ -505,7 +505,7 @@ double RaxmlWrapper::network_logl_wrapper(void *network_params, int incremental,
 double RaxmlWrapper::network_opt_brlen_wrapper(pllmod_treeinfo_t *fake_treeinfo, double min_brlen, double max_brlen, double lh_epsilon,
 		int max_iters, int opt_method, int radius) {
 	Network *network = ((NetworkParams*) (fake_treeinfo->likelihood_computation_params))->network;
-	return optimize_branches(*network, *fake_treeinfo, min_brlen, max_brlen, lh_epsilon, max_iters, opt_method, radius);
+	return optimize_branches(netraxOptions, *network, *fake_treeinfo, min_brlen, max_brlen, lh_epsilon, max_iters, opt_method, radius);
 
 }
 double RaxmlWrapper::network_spr_round_wrapper(pllmod_treeinfo_t *treeinfo, unsigned int radius_min, unsigned int radius_max,

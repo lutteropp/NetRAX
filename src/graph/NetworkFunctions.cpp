@@ -185,8 +185,9 @@ std::vector<Node*> getPossibleRootNodes(Network& network) {
 	return res;
 }
 
-std::unordered_map<size_t, size_t> getNetworkToDtBranchMapping(Network& network, const pll_utree_t& utree, size_t tree_idx) {
-	std::unordered_map<size_t, size_t> res;
+std::vector<size_t> getDtBranchToNetworkBranchMapping(const pll_utree_t& utree, Network& network, size_t tree_idx) {
+	std::vector<size_t> res(network.edges.size());
+	throw std::runtime_error("getDtBranchToNetworkBranchMapping not implemented yet");
 	return res;
 }
 

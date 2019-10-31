@@ -25,7 +25,8 @@ class Network;
 
 namespace netrax {
 
-std::unordered_map<size_t, size_t> getNetworkToDtBranchMapping(Network& network, const pll_utree_t& utree, size_t tree_idx);
+std::vector<size_t> getDtBranchToNetworkBranchMapping(const pll_utree_t& utree, Network& network, size_t tree_idx);
+
 pll_utree_t* displayed_tree_to_utree(Network &network, size_t tree_index);
 std::vector<double> collectBranchLengths(const Network& network);
 void applyBranchLengths(Network& network, const std::vector<double>& branchLengths);

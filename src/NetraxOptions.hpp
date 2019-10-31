@@ -8,6 +8,8 @@
 #pragma once
 
 #include <string>
+#include <raxml-ng/constants.hpp>
+#include <raxml-ng/common.h>
 
 namespace netrax {
 
