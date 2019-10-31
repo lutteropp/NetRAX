@@ -133,6 +133,9 @@ pll_utree_t* displayed_tree_to_utree(Network &network, size_t tree_index) {
 		}
 	}
 
+	assert(utree->tip_count == network.num_tips());
+	assert(utree->edge_count == 2 * utree->tip_count - 1);
+
 	return utree;
 }
 
