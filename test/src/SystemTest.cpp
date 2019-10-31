@@ -79,6 +79,7 @@ TEST (SystemTest, allTree) {
 	// TODO: Why does the model parameter optimization fail in this case, but not in the one above?
 
 	// branch length optimization
+	// TODO: Why does this give us a positive number???
 	double brlenopt_logl = info.optimize_branches(treeWrapper.getRaxmlOptions().lh_epsilon, 1);
 	std::cout << "Loglikelihood after branch length optimization: " << brlenopt_logl << "\n";
 
@@ -109,6 +110,7 @@ TEST (SystemTest, allNetwork) {
 	std::cout << "Loglikelihood after model optimization: " << modelopt_logl << "\n";
 
 	// branch length optimization
+	// TODO: Why does this give us a positive number???
 	double brlenopt_logl = info.optimize_branches(smallWrapper.getRaxmlOptions().lh_epsilon, 1);
 	std::cout << "Loglikelihood after branch length optimization: " << brlenopt_logl << "\n";
 
