@@ -48,7 +48,7 @@ TEST (BrlenOptTest, tree) {
 	std::cout << "NETWORK - Initial loglikelihood: " << initial_logl_network << "\n";
 	ASSERT_FLOAT_EQ(initial_logl_raxml, initial_logl_network);
 
-	ASSERT_EQ(infoRaxml.pll_treeinfo().tree->edge_count, infoNetwork.pll_treeinfo().tree->edge_count);
+	ASSERT_EQ(infoRaxml.pll_treeinfo().tree->edge_count + 1, infoNetwork.pll_treeinfo().tree->edge_count);
 	std::cout << "RAXML - The branch lengths before brlen optimization are:\n";
 	for (size_t i = 0; i < infoRaxml.pll_treeinfo().tree->edge_count; ++i) {
 		std::cout << " " << std::setprecision(17) << infoRaxml.pll_treeinfo().branch_lengths[0][i] << "\n";
