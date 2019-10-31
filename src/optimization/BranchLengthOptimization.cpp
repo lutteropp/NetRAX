@@ -70,17 +70,19 @@ double optimize_branches(const NetraxOptions &options, Network &network, pllmod_
 
 	// set the network brlens to the weighted average of the displayed_tree brlens
 	for (size_t i = 0; i < network.edges.size(); ++i) {
-		double treeProbSum = 0;
-		for (size_t j = 0; j < opt_brlens[i].size(); ++j) {
-			treeProbSum += opt_brlens[i][j].tree_prob;
+		if (!opt_brlens[i].empty()) {
+			double treeProbSum = 0;
+			for (size_t j = 0; j < opt_brlens[i].size(); ++j) {
+				treeProbSum += opt_brlens[i][j].tree_prob;
+			}
+			double newLength = 0;
+			for (size_t j = 0; j < opt_brlens[i].size(); ++j) {
+				double weight = opt_brlens[i][j].tree_prob / treeProbSum;
+				newLength += opt_brlens[i][j].length * weight;
+			}
+			network.edges[i].length = newLength;
+			fake_treeinfo.branch_lengths[partitionIdx][i] = newLength;
 		}
-		double newLength = 0;
-		for (size_t j = 0; j < opt_brlens[i].size(); ++j) {
-			double weight = opt_brlens[i][j].tree_prob / treeProbSum;
-			newLength += opt_brlens[i][j].length * weight;
-		}
-		network.edges[i].length = newLength;
-		fake_treeinfo.branch_lengths[partitionIdx][i] = newLength;
 	}
 
 	// for each network branch length, do the printing
