@@ -71,18 +71,19 @@ double optimize_branches(const NetraxOptions &options, Network &network, pllmod_
 
 	// set the network brlens to the weighted average of the displayed_tree brlens
 	for (size_t i = 0; i < network.edges.size(); ++i) {
-		if (!opt_brlens[i].empty()) {
+		size_t networkBranchIdx = network.edges[i].pmatrix_index;
+		if (!opt_brlens[networkBranchIdx].empty()) {
 			double treeProbSum = 0;
-			for (size_t j = 0; j < opt_brlens[i].size(); ++j) {
-				treeProbSum += opt_brlens[i][j].tree_prob;
+			for (size_t j = 0; j < opt_brlens[networkBranchIdx].size(); ++j) {
+				treeProbSum += opt_brlens[networkBranchIdx][j].tree_prob;
 			}
 			double newLength = 0;
-			for (size_t j = 0; j < opt_brlens[i].size(); ++j) {
-				double weight = opt_brlens[i][j].tree_prob / treeProbSum;
-				newLength += opt_brlens[i][j].length * weight;
+			for (size_t j = 0; j < opt_brlens[networkBranchIdx].size(); ++j) {
+				double weight = opt_brlens[networkBranchIdx][j].tree_prob / treeProbSum;
+				newLength += opt_brlens[networkBranchIdx][j].length * weight;
 			}
 			network.edges[i].length = newLength;
-			fake_treeinfo.branch_lengths[partitionIdx][network.edges[i].pmatrix_index] = newLength;
+			fake_treeinfo.branch_lengths[partitionIdx][networkBranchIdx] = newLength;
 		}
 	}
 
@@ -100,7 +101,13 @@ double optimize_branches(const NetraxOptions &options, Network &network, pllmod_
 		assert(network.edges[i].length == fake_treeinfo.branch_lengths[partitionIdx][network.edges[i].pmatrix_index]);
 	}
 
-	return -1*computeLoglikelihood(network, fake_treeinfo, 0, 1, false);
+	// just for debug: printing all network branch lengths for the partition 0
+	std::cout << "End of BRLEN_OPT function - All network branch lengths for partition 0:\n";
+	for (size_t i = 0; i < network.edges.size(); ++i) {
+		std::cout << " pmatrix_idx = " << network.edges[i].pmatrix_index << " -> brlen = " << network.edges[i].length << "\n";
+	}
+
+	return -1 * computeLoglikelihood(network, fake_treeinfo, 0, 1, false);
 }
 
 }

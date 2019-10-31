@@ -166,6 +166,12 @@ double computeLoglikelihood(Network &network, pllmod_treeinfo_t &fake_treeinfo, 
 	size_t n_trees = 1 << network.reticulation_nodes.size();
 	double network_l = 0.0;
 
+	// just for debug: printing all network branch lengths for the partition 0
+	std::cout << "All network branch lengths for partition 0:\n";
+	for (size_t i = 0; i < network.edges.size(); ++i) {
+		std::cout << " pmatrix_idx = " << network.edges[i].pmatrix_index << " -> brlen = " << network.edges[i].length << "\n";
+	}
+
 	const int old_active_partition = fake_treeinfo.active_partition;
 
 	/* NOTE: in unlinked brlen mode, up-to-date brlens for partition p

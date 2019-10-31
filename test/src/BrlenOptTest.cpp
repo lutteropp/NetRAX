@@ -86,6 +86,14 @@ TEST (BrlenOptTest, tree) {
 	for (size_t i = 0; i < utreeIDToNetworkID.size(); ++i) {
 		std::cout << " " << std::setprecision(17) << infoNetwork.pll_treeinfo().branch_lengths[0][i] << "\n";
 	}
+	// extract the actual network data structure
+	Network *network_ptr =
+			((RaxmlWrapper::NetworkParams*) (infoNetwork.pll_treeinfo().likelihood_computation_params))->network;
+	std::cout << "NETWORK - The ACTUAL optimized branch lengths are:\n";
+	for (size_t i = 0; i < utreeIDToNetworkID.size(); ++i) {
+		std::cout << std::setprecision(17) << " pmatrix_idx = " << network_ptr->edges[i].pmatrix_index << " -> brlen = "
+				<< network_ptr->edges[i].length << "\n";
+	}
 
 	for (size_t i = 0; i < utreeIDToNetworkID.size(); ++i) {
 		ASSERT_FLOAT_EQ(infoRaxml.pll_treeinfo().branch_lengths[0][i],
