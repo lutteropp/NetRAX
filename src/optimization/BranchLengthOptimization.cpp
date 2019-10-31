@@ -42,7 +42,7 @@ double optimize_branches(const NetraxOptions &options, Network &network, pllmod_
 		old_brlens[i] = fake_treeinfo.branch_lengths[partitionIdx][i];
 	}
 
-	std::vector<std::vector<OptimizedBranchLength> > opt_brlens;
+	std::vector<std::vector<OptimizedBranchLength> > opt_brlens(network.num_branches());
 	size_t n_trees = 1 << network.reticulation_nodes.size();
 
 	for (size_t tree_idx = 0; tree_idx < n_trees; tree_idx++) {

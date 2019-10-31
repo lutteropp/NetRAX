@@ -210,15 +210,15 @@ void getTipVectorRecursive(pll_unode_t *actParent, pll_unode_t *actNode, size_t 
 }
 
 std::vector<bool> getTipVector(const pll_utree_t &utree, size_t pmatrix_idx) {
-	// TODO: Bug is here
 	std::vector<bool> res(utree.tip_count, false);
 	// do a top-down preorder traversal of the tree,
-
-	// problem: vroot and vroot->back have the same pmatrix index!!!
-
 	//	starting to write to the tip vector as soon as we have encountered the wanted pmatrix_idx
 	getTipVectorRecursive(utree.vroot->back, utree.vroot, pmatrix_idx, false, res);
-	getTipVectorRecursive(utree.vroot, utree.vroot->back, pmatrix_idx, false, res);
+
+	// vroot and vroot->back have the same pmatrix index!!!
+	if (utree.vroot->pmatrix_index != pmatrix_idx) {
+		getTipVectorRecursive(utree.vroot, utree.vroot->back, pmatrix_idx, false, res);
+	}
 	return res;
 }
 
