@@ -59,6 +59,7 @@ TEST (BrlenOptTest, tree) {
 	}
 
 	// branch length optimization
+	// problem seems to lie in the return value? The optimized brlens are the same
 	double brlenopt_logl_raxml = infoRaxml.optimize_branches(treeWrapper.getRaxmlOptions().lh_epsilon, 1);
 	std::cout << "RAXML - Loglikelihood after branch length optimization: " << brlenopt_logl_raxml << "\n";
 	double brlenopt_logl_network = infoNetwork.optimize_branches(treeWrapper.getRaxmlOptions().lh_epsilon, 1);
