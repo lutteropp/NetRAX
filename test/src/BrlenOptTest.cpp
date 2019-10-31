@@ -81,6 +81,7 @@ TEST (BrlenOptTest, tree) {
 		ASSERT_FLOAT_EQ(infoRaxml.pll_treeinfo().branch_lengths[0][i],
 				infoNetwork.pll_treeinfo().branch_lengths[0][utreeIDToNetworkID[i]]);
 	}
+	// TODO: Why are the branch lengths assigned to different edges in the two cases?
 
 	double normal_logl_raxml = infoRaxml.loglh(0);
 	double normal_logl_network = infoNetwork.loglh(0);
