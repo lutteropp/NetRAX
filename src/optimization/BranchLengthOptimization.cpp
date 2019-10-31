@@ -10,6 +10,7 @@
 #include <stdexcept>
 #include <vector>
 #include <iostream>
+#include <limits>
 
 #include "../graph/Common.hpp"
 #include "../graph/NetworkFunctions.hpp"
@@ -39,7 +40,7 @@ double optimize_branches(const NetraxOptions &options, Network &network, pllmod_
 
 	std::vector<double> old_brlens(network.num_branches());
 	for (size_t i = 0; i < old_brlens.size(); ++i) {
-		old_brlens[i] = fake_treeinfo.branch_lengths[partitionIdx][i];
+		old_brlens[i] = network.edges[i].length;
 	}
 
 	std::vector<std::vector<OptimizedBranchLength> > opt_brlens(network.num_branches());
@@ -86,6 +87,7 @@ double optimize_branches(const NetraxOptions &options, Network &network, pllmod_
 	}
 
 	// for each network branch length, do the printing
+	std::cout << std::setprecision(17);
 	for (size_t i = 0; i < network.edges.size(); ++i) {
 		std::cout << "Network branch " << i << ":\n";
 		std::cout << " Old brlen before optimization: " << old_brlens[i] << "\n";
