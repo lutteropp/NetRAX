@@ -96,6 +96,8 @@ double optimize_branches(const NetraxOptions &options, Network &network, pllmod_
 			std::cout << "  Tree #" << opt_brlens[i][j].tree_index << ", prob = " << opt_brlens[i][j].tree_prob
 					<< ", opt_brlen = " << opt_brlens[i][j].length << "\n";
 		}
+
+		assert(network.edges[i].length == fake_treeinfo.branch_lengths[partitionIdx][i]);
 	}
 
 	return computeLoglikelihood(network, fake_treeinfo, 0, 1, false);
