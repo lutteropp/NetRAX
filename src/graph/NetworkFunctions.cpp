@@ -209,7 +209,7 @@ void getTipVectorRecursive(pll_unode_t *actParent, pll_unode_t *actNode, size_t 
 }
 
 std::vector<bool> getTipVector(const pll_utree_t &utree, size_t pmatrix_idx) {
-	std::vector<bool> res(utree.edge_count, false);
+	std::vector<bool> res(utree.tip_count, false);
 	// do a top-down preorder traversal of the tree,
 	//	starting to write to the tip vector as soon as we have encountered the wanted pmatrix_idx
 	getTipVectorRecursive(nullptr, utree.vroot, pmatrix_idx, false, res);
@@ -233,7 +233,7 @@ void getTipVectorRecursive(Node *actParent, Node *actNode, size_t pmatrix_idx, b
 }
 
 std::vector<bool> getTipVector(const Network &network, size_t pmatrix_idx) {
-	std::vector<bool> res(network.num_branches(), false);
+	std::vector<bool> res(network.num_tips(), false);
 	// do a top-down preorder traversal of the network,
 	//	starting to write to the tip vector as soon as we have encountered the wanted pmatrix_idx
 	getTipVectorRecursive(nullptr, network.root, pmatrix_idx, false, res);
