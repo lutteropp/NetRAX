@@ -205,6 +205,7 @@ double computeLoglikelihood(Network &network, pllmod_treeinfo_t &fake_treeinfo, 
 			}
 		}
 
+		double network_partition_lh = 0.0;
 		for (size_t i = 0; i < n_trees; ++i) {
 			std::vector<double> persite_logl(fake_treeinfo.partitions[j]->sites, 0.0);
 			double tree_partition_logl = compute_tree_logl(network, fake_treeinfo, i, j, &persite_logl);
@@ -217,8 +218,10 @@ double computeLoglikelihood(Network &network, pllmod_treeinfo_t &fake_treeinfo, 
 
 			assert(tree_partition_logl != -std::numeric_limits<double>::infinity());
 
-			network_l += exp(tree_partition_logl) * tree_prob;
+			network_partition_lh += exp(tree_partition_logl) * tree_prob;
 		}
+		fake_treeinfo.partition_loglh[j] = log(network_partition_lh);
+		network_l += network_partition_lh;
 
 		if (update_reticulation_probs) {
 			reticulationProbsHaveChanged = update_reticulation_probs_internal_2(network, unlinked_mode, network.num_reticulations(), j, totalTaken,
@@ -291,6 +294,7 @@ double computeLoglikelihoodLessExponentiation(Network &network, pllmod_treeinfo_
 		}
 
 		// Iterate over all displayed trees
+		double network_partition_logl = 0.0;
 		for (size_t i = 0; i < n_trees; ++i) {
 			std::vector<double> persite_logl(fake_treeinfo.partitions[j]->sites, 0.0);
 			double tree_partition_logl = compute_tree_logl(network, fake_treeinfo, i, j, &persite_logl);
@@ -308,8 +312,11 @@ double computeLoglikelihoodLessExponentiation(Network &network, pllmod_treeinfo_
 		}
 
 		for (size_t k = 0; k < persite_lh_network.size(); ++k) {
-			network_logl += log(persite_lh_network[k]);
+			network_partition_logl += log(persite_lh_network[k]);
 		}
+
+		fake_treeinfo.partition_loglh[j] = network_partition_logl;
+		network_logl += network_partition_logl;
 
 		if (update_reticulation_probs) {
 			reticulationProbsHaveChanged = update_reticulation_probs_internal_2(network, unlinked_mode, network.num_reticulations(), j, totalTaken,
