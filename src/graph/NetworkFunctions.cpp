@@ -233,7 +233,6 @@ void getTipVectorRecursive(Node *actParent, Node *actNode, size_t pmatrix_idx, b
 }
 
 std::vector<bool> getTipVector(const Network &network, size_t pmatrix_idx) {
-	// TODO: Bug seems to be in here!
 	std::vector<bool> res(network.num_branches(), false);
 	// do a top-down preorder traversal of the network,
 	//	starting to write to the tip vector as soon as we have encountered the wanted pmatrix_idx
