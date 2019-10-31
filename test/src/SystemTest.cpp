@@ -36,7 +36,7 @@ TEST (SystemTest, allTreeOldRaxml) {
 	treeOptions.msa_file = msaPath;
 	treeOptions.use_repeats = true;
 	RaxmlWrapper treeWrapper = RaxmlWrapper(treeOptions);
-	treeWrapper.enableRaxmlDebugOutput();
+	//treeWrapper.enableRaxmlDebugOutput();
 	TreeInfo info = treeWrapper.createRaxmlTreeinfo(normalTree.pll_utree_copy());
 
 	// initial logl computation
@@ -76,7 +76,7 @@ TEST (SystemTest, allTree) {
 	treeOptions.msa_file = msaPath;
 	treeOptions.use_repeats = true;
 	RaxmlWrapper treeWrapper = RaxmlWrapper(treeOptions);
-	treeWrapper.enableRaxmlDebugOutput();
+	//treeWrapper.enableRaxmlDebugOutput();
 	TreeInfo info = treeWrapper.createRaxmlTreeinfo(treeNetwork);
 
 	// initial logl computation
@@ -118,7 +118,7 @@ TEST (SystemTest, allNetwork) {
 	smallOptions.msa_file = msaPath;
 	smallOptions.use_repeats = true;
 	RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
-	smallWrapper.enableRaxmlDebugOutput();
+	//smallWrapper.enableRaxmlDebugOutput();
 	TreeInfo info = smallWrapper.createRaxmlTreeinfo(smallNetwork);
 
 	// initial logl computation

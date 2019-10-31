@@ -34,7 +34,7 @@ TEST (BrlenOptTest, tree) {
 	treeOptions.msa_file = msaPath;
 	treeOptions.use_repeats = true;
 	RaxmlWrapper treeWrapper = RaxmlWrapper(treeOptions);
-	treeWrapper.enableRaxmlDebugOutput();
+	//treeWrapper.enableRaxmlDebugOutput();
 
 	Tree normalTree = Tree::loadFromFile(treePath);
 	TreeInfo infoRaxml = treeWrapper.createRaxmlTreeinfo(normalTree.pll_utree_copy());
