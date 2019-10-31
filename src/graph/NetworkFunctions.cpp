@@ -198,7 +198,7 @@ void getTipVectorRecursive(pll_unode_t *actParent, pll_unode_t *actNode, size_t 
 	if (pllmod_utree_is_tip(actNode) && pmatrix_idx_found) {
 		res[actNode->clv_index] = true;
 	} else if (!pllmod_utree_is_tip(actNode)) {
-		pll_unode_t* link = actNode;
+		pll_unode_t *link = actNode;
 		do {
 			if (link->back != actParent) {
 				getTipVectorRecursive(actNode, link->back, pmatrix_idx, pmatrix_idx_found, res);
@@ -219,12 +219,12 @@ std::vector<bool> getTipVector(const pll_utree_t &utree, size_t pmatrix_idx) {
 
 void getTipVectorRecursive(Node *actParent, Node *actNode, size_t pmatrix_idx, bool pmatrix_idx_found,
 		std::vector<bool> &res) {
+	if ((actParent != nullptr) && (actNode->getEdgeTo(actParent)->pmatrix_index == pmatrix_idx)) {
+		pmatrix_idx_found = true;
+	}
 	if (actNode->isTip() && pmatrix_idx_found) {
 		res[actNode->clv_index] = true;
 	} else if (!actNode->isTip()) {
-		if ((actParent != nullptr) && (actNode->getEdgeTo(actParent)->pmatrix_index == pmatrix_idx)) {
-			pmatrix_idx_found = true;
-		}
 		std::vector<Node*> activeChildren = actNode->getActiveChildren(actParent);
 		for (size_t i = 0; i < activeChildren.size(); ++i) {
 			getTipVectorRecursive(actNode, activeChildren[i], pmatrix_idx, pmatrix_idx_found, res);
