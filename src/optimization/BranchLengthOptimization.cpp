@@ -82,7 +82,7 @@ double optimize_branches(const NetraxOptions &options, Network &network, pllmod_
 				newLength += opt_brlens[i][j].length * weight;
 			}
 			network.edges[i].length = newLength;
-			fake_treeinfo.branch_lengths[partitionIdx][i] = newLength;
+			fake_treeinfo.branch_lengths[partitionIdx][network.edges[i].pmatrix_index] = newLength;
 		}
 	}
 
@@ -97,7 +97,7 @@ double optimize_branches(const NetraxOptions &options, Network &network, pllmod_
 					<< ", opt_brlen = " << opt_brlens[i][j].length << "\n";
 		}
 
-		assert(network.edges[i].length == fake_treeinfo.branch_lengths[partitionIdx][i]);
+		assert(network.edges[i].length == fake_treeinfo.branch_lengths[partitionIdx][network.edges[i].pmatrix_index]);
 	}
 
 	return computeLoglikelihood(network, fake_treeinfo, 0, 1, false);

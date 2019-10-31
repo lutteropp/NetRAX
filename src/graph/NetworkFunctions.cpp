@@ -260,16 +260,16 @@ std::vector<size_t> getDtBranchToNetworkBranchMapping(const pll_utree_t &utree, 
 
 	std::vector<std::vector<bool> > networkTipVectors(network.num_branches());
 	for (size_t i = 0; i < network.num_branches(); ++i) {
-		networkTipVectors[i] = getTipVector(network, i);
+		networkTipVectors[network.edges[i].pmatrix_index] = getTipVector(network, network.edges[i].pmatrix_index);
 	}
 
 	for (size_t i = 0; i < utree.edge_count; ++i) {
 		std::vector<bool> tipVecTree = getTipVector(utree, i);
 		bool found = false;
 		for (size_t j = 0; j < network.num_branches(); ++j) {
-			std::vector<bool> tipVecNetwork = getTipVector(network, j);
+			std::vector<bool> tipVecNetwork = networkTipVectors[network.edges[j].pmatrix_index];
 			if (tipVecTree == tipVecNetwork) {
-				res[i] = j;
+				res[i] = network.edges[j].pmatrix_index;
 				found = true;
 				break;
 			} else {
@@ -282,7 +282,7 @@ std::vector<size_t> getDtBranchToNetworkBranchMapping(const pll_utree_t &utree, 
 					}
 				}
 				if (allDifferent) {
-					res[i] = j;
+					res[i] = network.edges[j].pmatrix_index;
 					found = true;
 					break;
 				}
