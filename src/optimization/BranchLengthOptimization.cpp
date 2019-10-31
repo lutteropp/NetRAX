@@ -35,10 +35,16 @@ double optimize_branches(const NetraxOptions &options, Network &network, pllmod_
 	// also print the new network brlens.
 	// Do some plots.
 
+	size_t partitionIdx = 0;
+
+	std::vector<double> old_brlens(network.num_branches());
+	for (size_t i = 0; i < old_brlens.size(); ++i) {
+		old_brlens[i] = fake_treeinfo.branch_lengths[partitionIdx][i];
+	}
+
 	std::vector<std::vector<OptimizedBranchLength> > opt_brlens;
 	size_t n_trees = 1 << network.reticulation_nodes.size();
 
-	size_t partitionIdx = 0;
 	for (size_t tree_idx = 0; tree_idx < n_trees; tree_idx++) {
 		setReticulationParents(network, tree_idx);
 		pll_utree_t *displayed_utree = displayed_tree_to_utree(network, tree_idx);
@@ -80,6 +86,7 @@ double optimize_branches(const NetraxOptions &options, Network &network, pllmod_
 	// for each network branch length, do the printing
 	for (size_t i = 0; i < network.edges.size(); ++i) {
 		std::cout << "Network branch " << i << ":\n";
+		std::cout << " Old brlen before optimization: " << old_brlens[i] << "\n";
 		std::cout << " New brlen from weighted average: " << network.edges[i].length << "\n";
 		for (size_t j = 0; j < opt_brlens[i].size(); ++j) {
 			std::cout << "  Tree #" << opt_brlens[i][j].tree_index << ", prob = " << opt_brlens[i][j].tree_prob
