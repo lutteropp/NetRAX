@@ -246,8 +246,8 @@ std::vector<bool> getTipVector(const Network &network, size_t pmatrix_idx) {
 	return res;
 }
 
-std::vector<size_t> getDtBranchToNetworkBranchMapping(const pll_utree_t &utree, Network &network, size_t tree_idx) {
-	std::vector<size_t> res(utree.edge_count);
+std::vector<std::vector<size_t> > getDtBranchToNetworkBranchMapping(const pll_utree_t &utree, Network &network, size_t tree_idx) {
+	std::vector<std::vector<size_t> > res(utree.edge_count);
 	setReticulationParents(network, tree_idx);
 
 	// for each branch, we need to figure out which tips are on one side of the branch, and which tips are on the other side
@@ -265,30 +265,23 @@ std::vector<size_t> getDtBranchToNetworkBranchMapping(const pll_utree_t &utree, 
 
 	for (size_t i = 0; i < utree.edge_count; ++i) {
 		std::vector<bool> tipVecTree = getTipVector(utree, i);
-		bool found = false;
 		for (size_t j = 0; j < network.num_branches(); ++j) {
 			std::vector<bool> tipVecNetwork = networkTipVectors[network.edges[j].pmatrix_index];
 			if (tipVecTree == tipVecNetwork) {
-				res[i] = network.edges[j].pmatrix_index;
-				found = true;
-				break;
+				res[i].push_back(network.edges[j].pmatrix_index);
 			} else {
 				// check if they are all different
 				bool allDifferent = true;
 				for (size_t k = 0; k < tipVecTree.size(); ++k) {
 					if (tipVecTree[k] == tipVecNetwork[k]) {
 						allDifferent = false;
-						break;
 					}
 				}
 				if (allDifferent) {
-					res[i] = network.edges[j].pmatrix_index;
-					found = true;
-					break;
+					res[i].push_back(network.edges[j].pmatrix_index);
 				}
 			}
 		}
-		assert(found);
 	}
 	return res;
 }

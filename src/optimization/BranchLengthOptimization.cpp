@@ -25,8 +25,8 @@ struct OptimizedBranchLength {
 	double tree_prob;
 };
 
-double optimize_branches(const NetraxOptions &options, Network &network, pllmod_treeinfo_t &fake_treeinfo,
-		double min_brlen, double max_brlen, double lh_epsilon, int max_iters, int opt_method, int radius) {
+double optimize_branches(const NetraxOptions &options, Network &network, pllmod_treeinfo_t &fake_treeinfo, double min_brlen,
+		double max_brlen, double lh_epsilon, int max_iters, int opt_method, int radius) {
 	// for now, optimize branches on each of the displayed trees, exported as a pll_utree_t data structure.
 	// Keep track of which branch in the exported pll_utree_t corresponds to which branch of the network data structure.
 	// Run br-length optimization on each of the displayed trees.
@@ -49,8 +49,7 @@ double optimize_branches(const NetraxOptions &options, Network &network, pllmod_
 	for (size_t tree_idx = 0; tree_idx < n_trees; tree_idx++) {
 		setReticulationParents(network, tree_idx);
 		pll_utree_t *displayed_utree = displayed_tree_to_utree(network, tree_idx);
-		std::vector<size_t> dtBranchToNetworkBranch = getDtBranchToNetworkBranchMapping(*displayed_utree, network,
-				tree_idx);
+		std::vector<std::vector<size_t> > dtBranchToNetworkBranch = getDtBranchToNetworkBranchMapping(*displayed_utree, network, tree_idx);
 
 		// optimize brlens on the tree
 		NetraxOptions opts;
@@ -62,10 +61,12 @@ double optimize_branches(const NetraxOptions &options, Network &network, pllmod_
 
 		// collect optimized brlens from the tree
 		for (size_t i = 0; i < pllmod_tInfo.tree->edge_count; ++i) {
-			size_t networkBranchIdx = dtBranchToNetworkBranch[i];
-			double new_brlen = pllmod_tInfo.branch_lengths[partitionIdx][i];
-			double tree_prob = displayed_tree_prob(network, tree_idx, partitionIdx);
-			opt_brlens[networkBranchIdx].push_back(OptimizedBranchLength { tree_idx, new_brlen, tree_prob });
+			if (dtBranchToNetworkBranch[i].size() == 1) {
+				size_t networkBranchIdx = dtBranchToNetworkBranch[i][0];
+				double new_brlen = pllmod_tInfo.branch_lengths[partitionIdx][i];
+				double tree_prob = displayed_tree_prob(network, tree_idx, partitionIdx);
+				opt_brlens[networkBranchIdx].push_back(OptimizedBranchLength { tree_idx, new_brlen, tree_prob });
+			}
 		}
 	}
 
@@ -91,14 +92,17 @@ double optimize_branches(const NetraxOptions &options, Network &network, pllmod_
 	std::cout << std::setprecision(17);
 	for (size_t i = 0; i < network.edges.size(); ++i) {
 		std::cout << "Network branch " << i << ":\n";
-		std::cout << " Old brlen before optimization: " << old_brlens[i] << "\n";
-		std::cout << " New brlen from weighted average: " << network.edges[i].length << "\n";
-		for (size_t j = 0; j < opt_brlens[i].size(); ++j) {
-			std::cout << "  Tree #" << opt_brlens[i][j].tree_index << ", prob = " << opt_brlens[i][j].tree_prob
-					<< ", opt_brlen = " << opt_brlens[i][j].length << "\n";
+		if (!opt_brlens[i].empty()) {
+			std::cout << " Old brlen before optimization: " << old_brlens[i] << "\n";
+			std::cout << " New brlen from weighted average: " << network.edges[i].length << "\n";
+			for (size_t j = 0; j < opt_brlens[i].size(); ++j) {
+				std::cout << "  Tree #" << opt_brlens[i][j].tree_index << ", prob = " << opt_brlens[i][j].tree_prob << ", opt_brlen = "
+						<< opt_brlens[i][j].length << "\n";
+			}
+			assert(network.edges[i].length == fake_treeinfo.branch_lengths[partitionIdx][network.edges[i].pmatrix_index]);
+		} else {
+			std::cout << " This branch is has no exact presence in any displayed tree.\n";
 		}
-
-		assert(network.edges[i].length == fake_treeinfo.branch_lengths[partitionIdx][network.edges[i].pmatrix_index]);
 	}
 
 	// just for debug: printing all network branch lengths for the partition 0
