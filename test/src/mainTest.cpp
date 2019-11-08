@@ -23,7 +23,7 @@ int main(int argc, char** argv)
   //testing::GTEST_FLAG(filter) = "-NetworkIOTest.*";
   //::testing::GTEST_FLAG(filter) = "*SystemTest.allTree";
   //::testing::GTEST_FLAG(filter) = "*BrlenOptTest.*";
-  ::testing::GTEST_FLAG(filter) = "*LikelihoodTest.celineNetwork";
+  ::testing::GTEST_FLAG(filter) = "*LikelihoodTest.celineNetworkNonzeroBranches";
 
   auto result = RUN_ALL_TESTS();
 //  MPI_FINALIZE();
