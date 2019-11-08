@@ -34,4 +34,6 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/src)
 # build tests
 enable_testing()
 add_subdirectory(${PROJECT_SOURCE_DIR}/test/src)
+# build scripts
+add_subdirectory(${PROJECT_SOURCE_DIR}/scripts)
 

@@ -427,9 +427,27 @@ TEST_F (LikelihoodTest, simpleNetworkWithRepeats) {
 	ASSERT_NE(network_logl, -std::numeric_limits<double>::infinity());
 }
 
-TEST_F (LikelihoodTest, DISABLED_celineNetwork) {
-	std::string input =
-			"((protopterus:0.0,(Xenopus:0.0,(((((Monodelphis:0.0,(python:0.0)#H1:0.0):0.0,(Caretta:0.0)#H2:0.0):0.0,(Homo:0.0)#H3:0.0):0.0,(Ornithorhynchus:0.0)#H4:0.0):0.0,(((#H1:0.0,((#H3:0.0,Anolis:0.0):0.0,(Gallus:0.0)#H5:0.0):0.0):0.0,(Podarcis:0.0)#H6:0.0):0.0,(((#H5:0.0,(#H6:0.0,Taeniopygia:0.0):0.0):0.0,(alligator:0.0,Caiman:0.0):0.0):0.0,(phrynops:0.0,(Emys:0.0,((Chelonoidi:0.0,#H4:0.0):0.0,#H2:0.0):0.0):0.0):0.0):0.0):0.0):0.0):0.0):0.0);";
-	Network network = readNetworkFromString(input);
+TEST_F (LikelihoodTest, celineNetwork) {
+	std::string networkPath = "examples/sample_networks/celine.nw";
+	std::string msaPath = "examples/sample_networks/celine_fake_alignment.txt";
+	Network network = netrax::readNetworkFromFile(networkPath);
+	NetraxOptions options;
+	options.network_file = networkPath;
+	options.msa_file = msaPath;
+	RaxmlWrapper wrapper(options);
+	TreeInfo treeInfo = wrapper.createRaxmlTreeinfo(network);
 
+	RaxmlWrapper::NetworkParams* params = (RaxmlWrapper::NetworkParams*) treeInfo.pll_treeinfo().likelihood_computation_params;
+
+	double naive_logl = computeLoglikelihoodNaiveUtree(wrapper, network, 0, 1);
+	std::cout << "naive logl: " << naive_logl << "\n";
+
+	double sarah_logl = computeLoglikelihood(network, *(params->network_treeinfo), 0, 1);
+	std::cout << "sarah logl: " << sarah_logl << "\n";
+
+	double norep_logl = computeLoglikelihoodLessExponentiation(network, *(params->network_treeinfo), 0, 1);
+	std::cout << "norep_logl: " << norep_logl << "\n";
+
+	ASSERT_EQ(naive_logl, sarah_logl);
+	ASSERT_EQ(sarah_logl, norep_logl);
 }
