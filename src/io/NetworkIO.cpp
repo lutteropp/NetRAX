@@ -504,6 +504,11 @@ Network convertNetwork(const RootedNetwork &rnetwork) {
 
 	assert(!network.root->isTip());
 
+	// ensure that no branch lengths are zero
+	for (size_t i = 0; i < network.edges.size(); ++i) {
+		assert(network.edges[i].length != 0);
+	}
+
 	return network;
 }
 
