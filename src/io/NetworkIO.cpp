@@ -134,6 +134,9 @@ Link* buildBackLinkReticulationFirstVisit(Link *myLink, const RootedNetworkNode 
 	network.reticulation_nodes.push_back(unode);
 	visitedReticulations[targetNode] = unode;
 
+	assert(firstEdge->length != 0);
+	assert(thirdEdge->length != 0);
+
 	return firstLink;
 }
 
@@ -234,6 +237,10 @@ Link* buildBackLinkInnerTree(Link *myLink, const RootedNetworkNode *targetNode, 
 
 	network.inner_nodes.push_back(unode);
 
+	assert(firstEdge->length != 0);
+	assert(secondEdge->length != 0);
+	assert(thirdEdge->length != 0);
+
 	return firstLink;
 }
 
@@ -258,6 +265,8 @@ Link* buildBackLinkLeaf(Link *myLink, const RootedNetworkNode *targetNode, size_
 	unode->initBasic(targetNode->tip_index, -1, firstLink, targetNode->label);
 
 	network.tip_nodes.push_back(unode);
+
+	assert(firstEdge->length != 0);
 	return firstLink;
 }
 
