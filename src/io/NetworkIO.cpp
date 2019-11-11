@@ -431,7 +431,7 @@ Network convertNetworkToplevelBifurcation(const RootedNetwork &rnetwork, size_t 
 	firstEdge->length = new_root->children[0]->length;
 	firstEdge->support = new_root->children[0]->support;
 	secondEdge->length = new_root->children[1]->length;
-	secondEdge->length = new_root->children[1]->support;
+	secondEdge->support = new_root->children[1]->support;
 	thirdEdge->length = other_child->length + new_root->length;
 	thirdEdge->support = std::min(other_child->support, new_root->support);
 
