@@ -362,9 +362,13 @@ double computeLoglikelihoodNaiveUtree(RaxmlWrapper &wrapper, Network &network, i
 		TreeInfo displayedTreeinfo = wrapper.createRaxmlTreeinfo(displayed_tree);
 
 		double tree_logl = displayedTreeinfo.loglh(0);
+		std::cout << "  displayed tree #" << i << " has logl: " << tree_logl << "\n";
+		std::cout << "  displayed tree #" << i << " has prob: " << displayed_tree_prob(network, i, 0) << "\n";
 
 		assert(tree_logl != -std::numeric_limits<double>::infinity());
 		network_l += exp(tree_logl) * displayed_tree_prob(network, i, 0);
+
+		std::cout << "  network_l is now: " << network_l << "\n";
 	}
 
 	return log(network_l);
