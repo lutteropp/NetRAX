@@ -111,7 +111,7 @@ double optimize_branches(const NetraxOptions &options, Network &network, pllmod_
 		std::cout << " pmatrix_idx = " << network.edges[i].pmatrix_index << " -> brlen = " << network.edges[i].length << "\n";
 	}
 
-	return -1 * computeLoglikelihood(network, fake_treeinfo, 0, 1, false);
+	return -1 * computeLoglikelihoodLessExponentiation(network, fake_treeinfo, 0, 1, false);
 }
 
 }
