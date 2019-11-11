@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <sstream>
 #include <cassert>
+#include <raxml-ng/constants.hpp>
 
 #include "RootedNetworkParser.hpp"
 
@@ -262,6 +263,16 @@ RootedNetwork* parseRootedNetworkFromNewickString(const std::string& newick) {
 			} else {
 				assert(rnetwork->nodes[i]->firstParentProb + rnetwork->nodes[i]->secondParentProb == 1);
 			}
+		}
+	}
+
+	// further post-processing: Set zero-length branches to minimum branch length
+	double min_branch_length = RAXML_BRLEN_MIN;
+	for (size_t i = 0; i < rnetwork->nodes.size(); ++i) {
+		rnetwork->nodes[i]->length = std::max(rnetwork->nodes[i]->length, min_branch_length);
+		if (rnetwork->nodes[i]->isReticulation) {
+			rnetwork->nodes[i]->firstParentLength = std::max(rnetwork->nodes[i]->firstParentLength, min_branch_length);
+			rnetwork->nodes[i]->secondParentLength = std::max(rnetwork->nodes[i]->secondParentLength, min_branch_length);
 		}
 	}
 
