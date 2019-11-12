@@ -12,8 +12,9 @@ brlens = []
 for i in range(len(lines)):
 	if i != 0:
 		brlens.append(float(lines[i].split(",")[1]))
-plt.hist(brlens, bins='auto')
+plt.hist(brlens, bins=len(brlens))
 plt.title("Branch-length histogram for " + sys.argv[1].split(".csv")[0])
+plt.suptitle("Over " + str(len(brlens)) + " displayed trees")
 plt.xlabel('branch length')
 plt.ylabel('count')
 
