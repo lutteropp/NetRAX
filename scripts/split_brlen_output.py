@@ -24,7 +24,7 @@ mapping[bID] = brlens
 for k in mapping.keys():
 	if len(mapping[k]) > 0:
 		outfile = open("network_branch_" + str(k) + ".csv", "w")
-		outfile.write("tree_prob; brlen\n")
+		outfile.write("tree_prob,brlen\n")
 		for e in mapping[k]:
-			outfile.write(str(e[0]) + ";" + str(e[1]) + "\n")
+			outfile.write(str(e[0]) + "," + str(e[1]) + "\n")
 		outfile.close()
