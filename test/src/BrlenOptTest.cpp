@@ -167,3 +167,35 @@ TEST (BrlenOptTest, celineFake) {
 
 	ASSERT_FLOAT_EQ(brlenopt_logl_network, normal_logl_network);
 }
+
+TEST (BrlenOptTest, celineFakeWithModelopt) {
+	// initial setup
+	std::string celinePath = "examples/sample_networks/celine.nw";
+	std::string msaPath = "examples/sample_networks/celine_fake_alignment.txt";
+	NetraxOptions celineOptions;
+	celineOptions.network_file = celinePath;
+	celineOptions.msa_file = msaPath;
+	celineOptions.use_repeats = true;
+	RaxmlWrapper celineWrapper = RaxmlWrapper(celineOptions);
+	//smallWrapper.enableRaxmlDebugOutput();
+
+	Network celineNetwork = readNetworkFromFile(celinePath);
+	TreeInfo infoNetwork = celineWrapper.createRaxmlTreeinfo(celineNetwork);
+
+	// initial logl computation
+	double initial_logl_network = infoNetwork.loglh(false);
+	std::cout << "NETWORK - Initial loglikelihood: " << initial_logl_network << "\n";
+
+	// model parameter optimization
+	double modelopt_logl = infoNetwork.optimize_model(celineWrapper.getRaxmlOptions().lh_epsilon);
+	std::cout << "Loglikelihood after model optimization: " << modelopt_logl << "\n";
+
+	// branch length optimization
+	double brlenopt_logl_network = infoNetwork.optimize_branches(celineWrapper.getRaxmlOptions().lh_epsilon, 1);
+	std::cout << "NETWORK - Loglikelihood after branch length optimization: " << brlenopt_logl_network << "\n";
+
+	double normal_logl_network = infoNetwork.loglh(0);
+	std::cout << "NETWORK - Loglikelihood when called normally: " << normal_logl_network << "\n";
+
+	ASSERT_FLOAT_EQ(brlenopt_logl_network, normal_logl_network);
+}

@@ -56,6 +56,10 @@ double optimize_branches(const NetraxOptions &options, Network &network, pllmod_
 		RaxmlWrapper wrapper(options);
 		TreeInfo tInfo = wrapper.createRaxmlTreeinfo(displayed_utree);
 		Options raxmlOptions = wrapper.getRaxmlOptions();
+
+		// TODO: Remove this again, it was only here because of the Slack discussion
+		//tInfo.optimize_model(raxmlOptions.lh_epsilon);
+
 		tInfo.optimize_branches(raxmlOptions.lh_epsilon, 0.25);
 		const pllmod_treeinfo_t &pllmod_tInfo = tInfo.pll_treeinfo();
 
@@ -68,6 +72,14 @@ double optimize_branches(const NetraxOptions &options, Network &network, pllmod_
 				opt_brlens[networkBranchIdx].push_back(OptimizedBranchLength { tree_idx, new_brlen, tree_prob });
 			}
 		}
+
+		// print the displayed tree as NEWICK:
+		std::cout << "displayed tree #" << tree_idx << " as NEWICK, after brlen opt on this tree:\n";
+		char *text = pll_utree_export_newick(displayed_utree->vroot, NULL);
+		std::string str(text);
+		std::cout << str << "\n";
+		free(text);
+
 	}
 
 	// set the network brlens to the weighted average of the displayed_tree brlens
