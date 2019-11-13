@@ -10,22 +10,21 @@
 #include "likelihood/LikelihoodComputation.hpp"
 #include "optimization/BranchLengthOptimization.hpp"
 #include "graph/Common.hpp"
+#include "utils.hpp"
 
 #include <raxml-ng/log.hpp>
 
 namespace netrax {
 
-void reset_tip_ids(Network& network, const std::unordered_map<std::string, size_t>& label_id_map)
-{
-  if (label_id_map.size() < network.num_tips())
-    throw std::invalid_argument("Invalid map size");
+void reset_tip_ids(Network& network, const std::unordered_map<std::string, size_t>& label_id_map) {
+	if (label_id_map.size() < network.num_tips())
+		throw std::invalid_argument("Invalid map size");
 
-  for (auto& node: network.tip_nodes)
-  {
-    const unsigned int tip_id = label_id_map.at(node->label);
-    node->clv_index = tip_id;
-    node->getLink()->node_index = tip_id;
-  }
+	for (auto& node : network.tip_nodes) {
+		const unsigned int tip_id = label_id_map.at(node->label);
+		node->clv_index = tip_id;
+		node->getLink()->node_index = tip_id;
+	}
 }
 
 void reset_tip_ids(pll_utree_t* utree, const std::unordered_map<std::string, size_t>& label_id_map) {
@@ -117,7 +116,8 @@ RaxmlInstance createRaxmlInstance(const NetraxOptions &options) {
 	return instance;
 }
 
-RaxmlWrapper::RaxmlWrapper(const NetraxOptions &options) : netraxOptions(options) {
+RaxmlWrapper::RaxmlWrapper(const NetraxOptions &options) :
+		netraxOptions(options) {
 	instance = createRaxmlInstance(options);
 	network_behaviour.compute_ancestral_function = std::bind(&RaxmlWrapper::network_ancestral_wrapper, this, std::placeholders::_1);
 	network_behaviour.opt_brlen_function = std::bind(&RaxmlWrapper::network_opt_brlen_wrapper, this, std::placeholders::_1,
@@ -151,6 +151,17 @@ TreeInfo RaxmlWrapper::createRaxmlTreeinfo(pll_utree_t *utree) {
 	pllmod_treeinfo_t *pllTreeinfo = createStandardPllTreeinfo(utree, instance.parted_msa->part_count(), instance.opts.brlen_linkage);
 	TreeInfo::tinfo_behaviour standard_behaviour;
 	return createRaxmlTreeinfo(pllTreeinfo, standard_behaviour);
+}
+
+TreeInfo RaxmlWrapper::createRaxmlTreeinfo(pll_utree_t *utree, const pllmod_treeinfo_t& model_treeinfo) {
+	// Check that the MSA has already been loaded
+	assert(!instance.tip_id_map.empty());
+	reset_tip_ids(utree, instance.tip_id_map);
+	pllmod_treeinfo_t *pllTreeinfo = createStandardPllTreeinfo(utree, instance.parted_msa->part_count(), instance.opts.brlen_linkage);
+	TreeInfo::tinfo_behaviour standard_behaviour;
+	TreeInfo info = createRaxmlTreeinfo(pllTreeinfo, standard_behaviour);
+	transfer_model_params(model_treeinfo, pllTreeinfo);
+	return info;
 }
 
 size_t RaxmlWrapper::num_partitions() const {

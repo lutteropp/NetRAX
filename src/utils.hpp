@@ -18,6 +18,7 @@ extern "C" {
 
 namespace netrax {
 
-void print_model_params(const pll_partition_t* partition);
+void print_model_params(const pllmod_treeinfo_t& treeinfo);
+void transfer_model_params(const pllmod_treeinfo_t& from, pllmod_treeinfo_t* to);
 
 }

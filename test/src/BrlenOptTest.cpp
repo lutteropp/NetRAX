@@ -192,8 +192,7 @@ TEST (BrlenOptTest, celineFakeWithModelopt) {
 	std::cout << "Loglikelihood after model optimization: " << modelopt_logl << "\n";
 
 	std::cout << "The entire network would like these model params:\n";
-	const pll_partition_t* partition = infoNetwork.pll_treeinfo().partitions[0];
-	print_model_params(partition);
+	print_model_params(infoNetwork.pll_treeinfo());
 	std::cout << "\n";
 
 	// branch length optimization

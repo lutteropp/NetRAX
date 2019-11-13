@@ -16,6 +16,7 @@
 #include "../graph/NetworkFunctions.hpp"
 #include "../likelihood/LikelihoodComputation.hpp"
 #include "../RaxmlWrapper.hpp"
+#include "../utils.hpp"
 
 namespace netrax {
 
@@ -54,11 +55,15 @@ double optimize_branches(const NetraxOptions &options, Network &network, pllmod_
 		// optimize brlens on the tree
 		NetraxOptions opts;
 		RaxmlWrapper wrapper(options);
-		TreeInfo tInfo = wrapper.createRaxmlTreeinfo(displayed_utree);
+		TreeInfo tInfo = wrapper.createRaxmlTreeinfo(displayed_utree, fake_treeinfo);
 		Options raxmlOptions = wrapper.getRaxmlOptions();
 
 		// TODO: Remove this again, it was only here because of the Slack discussion
-		//tInfo.optimize_model(raxmlOptions.lh_epsilon);
+		/*tInfo.optimize_model(raxmlOptions.lh_epsilon);
+		std::cout << "displayed tree #" << tree_idx << " would like these model params:\n";
+		const pll_partition_t* partition = tInfo.pll_treeinfo().partitions[0];
+		print_model_params(*partition);
+		std::cout << "\n";*/
 
 		tInfo.optimize_branches(raxmlOptions.lh_epsilon, 0.25);
 		const pllmod_treeinfo_t &pllmod_tInfo = tInfo.pll_treeinfo();
@@ -74,11 +79,11 @@ double optimize_branches(const NetraxOptions &options, Network &network, pllmod_
 		}
 
 		// print the displayed tree as NEWICK:
-		std::cout << "displayed tree #" << tree_idx << " as NEWICK, after brlen opt on this tree:\n";
+		/*std::cout << "displayed tree #" << tree_idx << " as NEWICK, after brlen opt on this tree:\n";
 		char *text = pll_utree_export_newick(displayed_utree->vroot, NULL);
 		std::string str(text);
 		std::cout << str << "\n";
-		free(text);
+		free(text);*/
 
 	}
 
