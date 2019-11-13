@@ -14,6 +14,7 @@
 #include <mutex>
 #include <iostream>
 #include "src/graph/Common.hpp"
+#include "src/utils.hpp"
 
 #include <raxml-ng/main.hpp>
 
@@ -189,6 +190,11 @@ TEST (BrlenOptTest, celineFakeWithModelopt) {
 	// model parameter optimization
 	double modelopt_logl = infoNetwork.optimize_model(celineWrapper.getRaxmlOptions().lh_epsilon);
 	std::cout << "Loglikelihood after model optimization: " << modelopt_logl << "\n";
+
+	std::cout << "The entire network would like these model params:\n";
+	const pll_partition_t* partition = infoNetwork.pll_treeinfo().partitions[0];
+	print_model_params(partition);
+	std::cout << "\n";
 
 	// branch length optimization
 	double brlenopt_logl_network = infoNetwork.optimize_branches(celineWrapper.getRaxmlOptions().lh_epsilon, 1);
