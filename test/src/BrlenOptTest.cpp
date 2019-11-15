@@ -203,4 +203,7 @@ TEST (BrlenOptTest, celineFakeWithModelopt) {
 	std::cout << "NETWORK - Loglikelihood when called normally: " << normal_logl_network << "\n";
 
 	ASSERT_FLOAT_EQ(brlenopt_logl_network, normal_logl_network);
+
+	// print the network with brlen variance as branch support values
+	std::cout << "network with brlen variance as branch support values:\n" << toExtendedNewick(celineNetwork) << "\n";
 }
