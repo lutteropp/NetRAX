@@ -26,6 +26,29 @@ struct OptimizedBranchLength {
 	double tree_prob;
 };
 
+double computeVariance(const std::vector<OptimizedBranchLength>& brlens) {
+	// TODO: Maybe adapt to different tree probabilities, such as here?
+	// https://en.wikipedia.org/wiki/Variance#Discrete_random_variable
+	double var = 0;
+	if (brlens.empty()) {
+		var = std::numeric_limits<double>::infinity();
+	} else {
+		// compute the mean branch length
+		double mean = 0;
+		for (size_t i = 0; i < brlens.size(); ++i) {
+			mean += brlens[i].length;
+		}
+		mean /= (double) brlens.size();
+
+		// compute the variance
+		for (size_t i = 0; i < brlens.size(); ++i) {
+			var += (brlens[i].length - mean) * (brlens[i].length - mean);
+		}
+		var /= (double) brlens.size();
+	}
+	return var;
+}
+
 double optimize_branches(const NetraxOptions &options, Network &network, pllmod_treeinfo_t &fake_treeinfo, double min_brlen,
 		double max_brlen, double lh_epsilon, int max_iters, int opt_method, int radius) {
 	// for now, optimize branches on each of the displayed trees, exported as a pll_utree_t data structure.
@@ -88,6 +111,7 @@ double optimize_branches(const NetraxOptions &options, Network &network, pllmod_
 	}
 
 	// set the network brlens to the weighted average of the displayed_tree brlens
+	// also set the network brlen support values to the brlen variance in the displayed trees which are having this branch
 	for (size_t i = 0; i < network.edges.size(); ++i) {
 		size_t networkBranchIdx = network.edges[i].pmatrix_index;
 		if (!opt_brlens[networkBranchIdx].empty()) {
@@ -103,6 +127,7 @@ double optimize_branches(const NetraxOptions &options, Network &network, pllmod_
 			network.edges[i].length = newLength;
 			fake_treeinfo.branch_lengths[partitionIdx][networkBranchIdx] = newLength;
 		}
+		network.edges[i].support = computeVariance(opt_brlens[networkBranchIdx]);
 	}
 
 	// for each network branch length, do the printing
