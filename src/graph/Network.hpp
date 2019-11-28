@@ -16,8 +16,8 @@
 
 namespace netrax {
 
-class Edge;
-class Link;
+struct Edge;
+struct Link;
 
 class Network {
 public:

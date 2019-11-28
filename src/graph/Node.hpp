@@ -16,7 +16,7 @@
 
 namespace netrax {
 
-class Node {
+struct Node {
 public:
 	Node() :
 		type(NodeType::BASIC_NODE), scaler_index(-1), clv_index(0), link(nullptr), reticulationData(nullptr), label("") {

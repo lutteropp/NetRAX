@@ -14,8 +14,8 @@
 
 namespace netrax {
 
-class Node;
-class Edge;
+struct Node;
+struct Edge;
 struct Link { // subnode in raxml-ng
 	Link() :
 			node_index(0), node(nullptr), edge(nullptr), next(nullptr), outer(nullptr), direction(Direction::UNDEFINED) {
