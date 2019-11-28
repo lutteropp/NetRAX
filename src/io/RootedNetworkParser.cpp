@@ -12,6 +12,7 @@
 #include <sstream>
 #include <cassert>
 #include <raxml-ng/constants.hpp>
+#include <array>
 
 #include "RootedNetworkParser.hpp"
 
