@@ -74,6 +74,8 @@ while i < len(sys.argv):
 
 file = open(output+"_trees","w") 
 fileNetwork = open(output+"_network","w") 
+fileNetworkDendroscope = open(output+"_networkDendroscope","w") 
+
 
 simulateNetwork=1
 
@@ -141,7 +143,7 @@ while simulateNetwork==1:
 
  	extra_time -= current_time-time_limit
 
- 	if(len(leaves)>2):#network contains less than 2 sequences
+ 	if(len(leaves)>3):#network contains more than 3 sequences
  	 	for l in leaves:
  	 		pl = -1
  	 		for p in nw.predecessors(l):
@@ -247,9 +249,9 @@ while simulateNetwork==1:
 
  	 	fileNetwork.write(Newick_From_MULTree(nw,0,hybrid_nodes)+";\n")	
  	 	inheritance = False
- 	 	fileNetwork.write(Newick_From_MULTree(nw,0,hybrid_nodes)+";\n")	
+ 	 	fileNetworkDendroscope.write(Newick_From_MULTree(nw,0,hybrid_nodes)+";\n")	
  	 	print('done')
  	else:
- 	 	print('The simulated newtork contains less than 3 leaves, try again')	
+ 	 	print('The simulated newtork contains less than 4 leaves, try again')	
  	 	simulateNetwork=1
 	
