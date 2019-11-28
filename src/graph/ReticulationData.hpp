@@ -17,8 +17,8 @@ namespace netrax {
 class ReticulationData {
 public:
 	ReticulationData() :
-			reticulation_index(0), label(""), active_parent(0), link_to_first_parent(nullptr), link_to_second_parent(nullptr), link_to_child(
-					nullptr), prob(0.5) {
+		active_parent(0), reticulation_index(0), link_to_first_parent(nullptr), link_to_second_parent(nullptr), link_to_child(
+					nullptr), label(""), prob(1, 0.5) {
 	}
 
 	void init(size_t index, const std::string& label, bool activeParent, Link* linkToFirstParent, Link* linkToSecondParent,
@@ -97,13 +97,12 @@ public:
 		}
 	}
 
-	size_t reticulation_index;
-	std::string label;
 	bool active_parent; // 0: first_parent, 1: second_parent
+	size_t reticulation_index;
 	Link* link_to_first_parent; // The link that has link->outer->node as the first parent
 	Link* link_to_second_parent; // The link that has link->outer->node as the second parent
 	Link* link_to_child; // The link that has link->outer->node as the child
-
+	std::string label;
 	std::vector<double> prob; // probability of taking the first parent, for each partition
 };
 
