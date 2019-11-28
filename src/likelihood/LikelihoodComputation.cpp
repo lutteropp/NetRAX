@@ -224,15 +224,18 @@ double computeLoglikelihood(Network &network, pllmod_treeinfo_t &fake_treeinfo, 
 		network_l += network_partition_lh;
 
 		if (update_reticulation_probs) {
-			reticulationProbsHaveChanged = update_reticulation_probs_internal_2(network, unlinked_mode, network.num_reticulations(), j, totalTaken,
-					totalNotTaken, best_persite_logl_network);
+			reticulationProbsHaveChanged = update_reticulation_probs_internal_2(network, unlinked_mode,
+					network.num_reticulations(), j, totalTaken, totalNotTaken, best_persite_logl_network);
 		}
 	}
 
 	if (update_reticulation_probs && !unlinked_mode) {
 		for (size_t l = 0; l < network.num_reticulations(); ++l) {
 			double newProb = (double) totalTaken[l] / (totalTaken[l] + totalNotTaken[l]);
-			network.reticulation_nodes[l]->getReticulationData()->setProb(newProb);
+			if (newProb != network.reticulation_nodes[l]->getReticulationData()->getProb()) {
+				reticulationProbsHaveChanged = true;
+				network.reticulation_nodes[l]->getReticulationData()->setProb(newProb);
+			}
 		}
 	}
 
@@ -319,15 +322,18 @@ double computeLoglikelihoodLessExponentiation(Network &network, pllmod_treeinfo_
 		network_logl += network_partition_logl;
 
 		if (update_reticulation_probs) {
-			reticulationProbsHaveChanged = update_reticulation_probs_internal_2(network, unlinked_mode, network.num_reticulations(), j, totalTaken,
-					totalNotTaken, best_persite_logl_network);
+			reticulationProbsHaveChanged = update_reticulation_probs_internal_2(network, unlinked_mode,
+					network.num_reticulations(), j, totalTaken, totalNotTaken, best_persite_logl_network);
 		}
 	}
 
 	if (update_reticulation_probs && !unlinked_mode) {
 		for (size_t l = 0; l < network.num_reticulations(); ++l) {
 			double newProb = (double) totalTaken[l] / (totalTaken[l] + totalNotTaken[l]);
-			network.reticulation_nodes[l]->getReticulationData()->setProb(newProb);
+			if (newProb != network.reticulation_nodes[l]->getReticulationData()->getProb()) {
+				reticulationProbsHaveChanged = true;
+				network.reticulation_nodes[l]->getReticulationData()->setProb(newProb);
+			}
 		}
 	}
 
