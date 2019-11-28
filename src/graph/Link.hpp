@@ -17,10 +17,6 @@ namespace netrax {
 struct Node;
 struct Edge;
 struct Link { // subnode in raxml-ng
-	Link() :
-			node_index(0), node(nullptr), edge(nullptr), next(nullptr), outer(nullptr), direction(Direction::UNDEFINED) {
-	}
-
 	void init(size_t index, Node* node, Edge* edge, Link* next, Link* outer, Direction direction) {
 		this->node_index = index;
 		this->node = node;
@@ -39,12 +35,12 @@ struct Link { // subnode in raxml-ng
 		return outer->node;
 	}
 
-	size_t node_index;
-	Node* node;
-	Edge* edge;
+	size_t node_index = 0;
+	Node* node = nullptr;
+	Edge* edge = nullptr;
 
-	Link* next;
-	Link* outer;
-	Direction direction;
+	Link* next = nullptr;
+	Link* outer = nullptr;
+	Direction direction = Direction::UNDEFINED;
 };
 }

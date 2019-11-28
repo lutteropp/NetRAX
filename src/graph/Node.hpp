@@ -18,10 +18,6 @@ namespace netrax {
 
 struct Node {
 public:
-	Node() :
-		type(NodeType::BASIC_NODE), scaler_index(-1), clv_index(0), link(nullptr), reticulationData(nullptr), label("") {
-	}
-
 	void initBasic(size_t index, int scaler_index, Link* link, const std::string& label) {
 		this->clv_index = index;
 		this->scaler_index = scaler_index;
@@ -161,12 +157,12 @@ public:
 		return reticulationData;
 	}
 
-	NodeType type;
-	int scaler_index;
-	size_t clv_index;
-	Link* link;
-	std::unique_ptr<ReticulationData> reticulationData;
-	std::string label;
+	NodeType type = NodeType::BASIC_NODE;
+	int scaler_index = -1;
+	size_t clv_index = 0;
+	Link* link = nullptr;
+	std::unique_ptr<ReticulationData> reticulationData = nullptr;
+	std::string label = "";
 };
 
 }
