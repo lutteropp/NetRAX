@@ -20,17 +20,15 @@
 namespace netrax {
 
 struct RootedNetworkNode {
-	std::string label = "";
-	std::vector<RootedNetworkNode*> children;
-
 	// only relevant for non-reticulation nodes
 	double length = 0.0;
 	double support = 0.0;
 	RootedNetworkNode* parent = nullptr;
 
+	size_t tip_index = std::numeric_limits<size_t>::max(); // this will be used to later on set the clv_index and the pmatrix_index values of tip nodes
+
 	// only relevant for reticulation nodes
 	bool isReticulation = false;
-	std::string reticulationName = "";
 	int reticulationId = -1;
 	double firstParentProb = 0.5;
 	double secondParentProb = 0.5;
@@ -40,17 +38,19 @@ struct RootedNetworkNode {
 	double secondParentSupport = 0.0;
 	RootedNetworkNode* firstParent = nullptr;
 	RootedNetworkNode* secondParent = nullptr;
+	std::string reticulationName = "";
 
-	size_t tip_index = std::numeric_limits<size_t>::max(); // this will be used to later on set the clv_index and the pmatrix_index values of tip nodes
+	std::string label = "";
+	std::vector<RootedNetworkNode*> children;
 };
 
 struct RootedNetwork {
 	RootedNetworkNode* root;
-	std::vector<std::unique_ptr<RootedNetworkNode> > nodes;
 	size_t reticulationCount = 0;
 	size_t tipCount = 0;
 	size_t branchCount = 0;
 	size_t innerCount = 0;
+	std::vector<std::unique_ptr<RootedNetworkNode> > nodes;
 };
 
 std::string toNewickString(const RootedNetwork& network);
