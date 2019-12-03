@@ -73,6 +73,10 @@ double optimize_branches(const NetraxOptions &options, Network &network, pllmod_
 	size_t n_trees = 1 << network.reticulation_nodes.size();
 
 	for (size_t tree_idx = 0; tree_idx < n_trees; tree_idx++) {
+		if (displayed_tree_prob(network, tree_idx, partitionIdx) == 0.0) {
+			continue;
+		}
+
 		setReticulationParents(network, tree_idx);
 		pll_utree_t *displayed_utree = displayed_tree_to_utree(network, tree_idx);
 		std::vector<std::vector<size_t> > dtBranchToNetworkBranch = getDtBranchToNetworkBranchMapping(*displayed_utree,
@@ -116,12 +120,14 @@ double optimize_branches(const NetraxOptions &options, Network &network, pllmod_
 	// set the network brlens to the weighted average of the displayed_tree brlens
 	// also set the network brlen support values to the brlen variance in the displayed trees which are having this branch
 	for (size_t i = 0; i < network.edges.size(); ++i) {
+
 		size_t networkBranchIdx = network.edges[i].pmatrix_index;
 		if (!opt_brlens[networkBranchIdx].empty()) {
 			double treeProbSum = 0;
 			for (size_t j = 0; j < opt_brlens[networkBranchIdx].size(); ++j) {
 				treeProbSum += opt_brlens[networkBranchIdx][j].tree_prob;
 			}
+			assert(treeProbSum != 0);
 			double newLength = 0;
 			for (size_t j = 0; j < opt_brlens[networkBranchIdx].size(); ++j) {
 				double weight = opt_brlens[networkBranchIdx][j].tree_prob / treeProbSum;
@@ -135,7 +141,7 @@ double optimize_branches(const NetraxOptions &options, Network &network, pllmod_
 
 	if (DO_BRLEN_VARIANCE_EXPERIMENT) {
 		// for each network branch length, do the printing
-		std::cout << std::setprecision(17);
+		std::cout << std::setprecision(17) << "\n";
 		for (size_t i = 0; i < network.edges.size(); ++i) {
 			std::cout << "Network branch " << i << ":\n";
 			if (!opt_brlens[i].empty()) {
