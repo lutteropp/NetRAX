@@ -6,6 +6,7 @@
  */
 
 #include "LikelihoodComputation.hpp"
+#include "../graph/NetworkFunctions.hpp"
 
 #include <cassert>
 #include <cmath>
@@ -30,26 +31,35 @@ void printClv(const pllmod_treeinfo_t &treeinfo, size_t clv_index, size_t partit
 }
 
 void createOperationsPostorder(Node *parent, Node *actNode, std::vector<pll_operation_t> &ops, size_t fake_clv_index,
-		size_t fake_pmatrix_index) {
+		size_t fake_pmatrix_index, const std::vector<bool>& dead_nodes) {
 	std::vector<Node*> activeChildren = actNode->getActiveChildren(parent);
 	if (activeChildren.empty()) { // nothing to do if we are at a leaf node
 		return;
 	}
 	assert(activeChildren.size() <= 2);
 	for (size_t i = 0; i < activeChildren.size(); ++i) {
-		createOperationsPostorder(actNode, activeChildren[i], ops, fake_clv_index, fake_pmatrix_index);
+		if (!dead_nodes[activeChildren[i]->getClvIndex()]) {
+			createOperationsPostorder(actNode, activeChildren[i], ops, fake_clv_index, fake_pmatrix_index, dead_nodes);
+		}
 	}
 	pll_operation_t operation;
 	operation.parent_clv_index = actNode->getClvIndex();
 	operation.parent_scaler_index = actNode->getScalerIndex();
-	operation.child1_clv_index = activeChildren[0]->getClvIndex();
-	operation.child1_scaler_index = activeChildren[0]->getScalerIndex();
-	operation.child1_matrix_index = activeChildren[0]->getEdgeTo(actNode)->pmatrix_index;
-	if (activeChildren.size() == 2) {
+
+	if (!dead_nodes[activeChildren[0]->getClvIndex()]) {
+		operation.child1_clv_index = activeChildren[0]->getClvIndex();
+		operation.child1_scaler_index = activeChildren[0]->getScalerIndex();
+		operation.child1_matrix_index = activeChildren[0]->getEdgeTo(actNode)->pmatrix_index;
+	} else {
+		operation.child1_clv_index = fake_clv_index;
+		operation.child1_scaler_index = -1;
+		operation.child1_matrix_index = fake_pmatrix_index;
+	}
+
+	if (activeChildren.size() == 2 && !dead_nodes[activeChildren[1]->getClvIndex()]) {
 		operation.child2_clv_index = activeChildren[1]->getClvIndex();
 		operation.child2_scaler_index = activeChildren[1]->getScalerIndex();
 		operation.child2_matrix_index = activeChildren[1]->getEdgeTo(actNode)->pmatrix_index;
-
 	} else { // activeChildren.size() == 1
 		operation.child2_clv_index = fake_clv_index;
 		operation.child2_scaler_index = -1;
@@ -65,10 +75,13 @@ std::vector<pll_operation_t> createOperations(Network &network, size_t treeIdx) 
 	size_t fake_pmatrix_index = network.edges.size();
 	setReticulationParents(network, treeIdx);
 
+	std::vector<bool> dead_nodes(network.nodes.size(), false);
+	fill_dead_nodes_recursive(nullptr, network.root, dead_nodes);
+
 	// How to do the operations at the top-level root trifurcation?
 	// First with root->back, then with root...
-	createOperationsPostorder(network.root, network.root->getLink()->getTargetNode(), ops, fake_clv_index, fake_pmatrix_index);
-	createOperationsPostorder(network.root->getLink()->getTargetNode(), network.root, ops, fake_clv_index, fake_pmatrix_index);
+	createOperationsPostorder(network.root, network.root->getLink()->getTargetNode(), ops, fake_clv_index, fake_pmatrix_index, dead_nodes);
+	createOperationsPostorder(network.root->getLink()->getTargetNode(), network.root, ops, fake_clv_index, fake_pmatrix_index, dead_nodes);
 	return ops;
 }
 

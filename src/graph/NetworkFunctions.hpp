@@ -35,4 +35,6 @@ void setReticulationParents(Network& network, size_t treeIdx);
  * Find possible placements for the root node in a semi-rooted network.
  */
 std::vector<Node*> getPossibleRootNodes(Network& network);
+
+void fill_dead_nodes_recursive(const Node* myParent, const Node* node, std::vector<bool>& dead_nodes);
 }
