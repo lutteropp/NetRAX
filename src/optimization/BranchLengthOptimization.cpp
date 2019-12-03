@@ -26,7 +26,7 @@ struct OptimizedBranchLength {
 	double tree_prob;
 };
 
-const static bool DO_BRLEN_VARIANCE_EXPERIMENT = false;
+const static bool DO_BRLEN_VARIANCE_EXPERIMENT = true;
 
 double computeVariance(const std::vector<OptimizedBranchLength> &brlens) {
 	// TODO: Maybe adapt to different tree probabilities, such as here?

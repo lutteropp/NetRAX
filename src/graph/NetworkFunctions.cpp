@@ -9,6 +9,7 @@
 
 #include <cassert>
 #include <memory>
+#include <iostream>
 
 #include "Network.hpp"
 #include "Edge.hpp"
@@ -29,26 +30,81 @@ static char* xstrdup(const char *s) {
 }
 
 pll_unode_t* create_unode(const std::string &label) {
-	if (label != "") {
-		return pllmod_utree_create_node(0, 0, xstrdup(label.c_str()), NULL);
+	pll_unode_t* new_unode = (pll_unode_t*) malloc(sizeof(pll_unode_t));
+	if (!label.empty()) {
+		new_unode->label = xstrdup(label.c_str());
 	} else {
-		return pllmod_utree_create_node(0, 0, NULL, NULL);
+		new_unode->label = nullptr;
 	}
+	new_unode->scaler_index = -1;
+	new_unode->clv_index = 0;
+	new_unode->length = 0.0;
+	new_unode->node_index = 0;
+	new_unode->pmatrix_index = 0;
+	new_unode->next = nullptr;
+	return new_unode;
 }
 
-Node* getCollapsedChild(Node *child, const Node **parent, double *cumulated_length) {
-	while (child->getActiveChildren(*parent).size() == 1) {
-		const Node *temp = child;
-		*cumulated_length += child->getEdgeTo(*parent)->length;
-		child = child->getActiveChildren(*parent)[0];
-		*parent = temp;
+void destroy_unode(pll_unode_t* unode) {
+	assert(unode);
+	if (unode->label) {
+		free(unode->label);
 	}
-	return child;
+	if (unode->next) {
+		if (unode->next->next) {
+			free(unode->next->next);
+		}
+		free(unode->next);
+	}
+	free(unode);
 }
 
-pll_unode_t* connect_subtree_recursive(const Node *networkNode, pll_unode_t *from_parent,
-		const Node *networkParentNode) {
+void remove_dead_children(std::vector<Node*>& children, const std::vector<bool>& dead_nodes) {
+	children.erase(std::remove_if(children.begin(), children.end(), [&](Node* node) {
+		assert(node);
+		return (dead_nodes[node->clv_index]);
+	}), children.end());
+}
+
+
+struct CumulatedChild {
+	const Node* child = nullptr;
+	const Node* direct_parent = nullptr;
+	double cum_brlen = 0.0;
+};
+
+CumulatedChild getCumulatedChild(const Node* parent, const Node* child, const std::vector<bool>& dead_nodes, const std::vector<bool>& skipped_nodes) {
+	CumulatedChild res{child, parent, 0.0};
+	res.cum_brlen += child->getEdgeTo(parent)->length;
+	const Node* act_parent = parent;
+	while (skipped_nodes[res.child->clv_index]) {
+		std::vector<Node*> activeChildren = res.child->getActiveChildren(act_parent);
+		remove_dead_children(activeChildren, dead_nodes);
+		assert(activeChildren.size() == 1);
+		act_parent = res.child;
+		res.child = activeChildren[0];
+		res.cum_brlen += act_parent->getEdgeTo(res.child)->length;
+	}
+	res.direct_parent = act_parent;
+	return res;
+}
+
+std::vector<CumulatedChild> getCumulatedChildren(const Node* parent, const Node* actNode, const std::vector<bool>& dead_nodes, const std::vector<bool>& skipped_nodes) {
+	assert(actNode);
+	std::vector<CumulatedChild> res;
+	assert(!skipped_nodes[actNode->clv_index]);
+	std::vector<Node*> activeChildren = actNode->getActiveChildren(parent);
+	for (size_t i = 0; i < activeChildren.size(); ++i) {
+		res.push_back(getCumulatedChild(actNode, activeChildren[i], dead_nodes, skipped_nodes));
+	}
+	return res;
+}
+
+pll_unode_t* connect_subtree_recursive(const Node *networkNode, pll_unode_t *from_parent, const Node *networkParentNode,
+		const std::vector<bool>& dead_nodes, const std::vector<bool>& skipped_nodes) {
 	assert(networkNode->getType() == NodeType::BASIC_NODE);
+
+	assert(!dead_nodes[networkNode->clv_index] && !skipped_nodes[networkNode->clv_index]);
 
 	pll_unode_t *to_parent = nullptr;
 	if (networkParentNode) {
@@ -64,33 +120,15 @@ pll_unode_t* connect_subtree_recursive(const Node *networkNode, pll_unode_t *fro
 		return to_parent;
 	}
 
-	std::vector<Node*> children = networkNode->getActiveChildren(networkParentNode);
+	std::vector<CumulatedChild> cum_children = getCumulatedChildren(networkParentNode, networkNode, dead_nodes, skipped_nodes);
+	assert(cum_children.size() == 2 || (cum_children.size() == 3 && networkParentNode == nullptr)); // 2 children, or started with root node.
 
-	// skip children that themselves have only one active child
-	double length_to_add = 0;
-	const Node *childParentNode = networkNode;
-	while (children.size() == 1) { // this is the case if one of the children is a reticulation node but it's not active
-		// in this case, we need to skip the other child node and directly connect to the next
-		length_to_add += children[0]->getEdgeTo(childParentNode)->length;
-		const Node *newChildParentNode = children[0];
-		children = children[0]->getActiveChildren(childParentNode);
-		childParentNode = newChildParentNode;
-	}
-
-	assert(children.size() == 2 || (children.size() == 3 && networkParentNode == nullptr)); // 2 children, or started with root node.
-
-	std::vector<pll_unode_t*> toChildren(children.size(), nullptr);
+	std::vector<pll_unode_t*> toChildren(cum_children.size(), nullptr);
 	for (size_t i = 0; i < toChildren.size(); ++i) {
 		toChildren[i] = create_unode(networkNode->getLabel());
 		toChildren[i]->clv_index = networkNode->clv_index;
-	}
-
-	std::vector<double> childLengths(children.size(), length_to_add);
-	for (size_t i = 0; i < children.size(); ++i) {
-		const Node *myParent = childParentNode;
-		children[i] = getCollapsedChild(children[i], &myParent, &childLengths[i]);
-		toChildren[i]->length = childLengths[i] + children[i]->getEdgeTo(myParent)->length;
-		connect_subtree_recursive(children[i], toChildren[i], myParent);
+		toChildren[i]->length = cum_children[i].cum_brlen;
+		connect_subtree_recursive(cum_children[i].child, toChildren[i], cum_children[i].direct_parent, dead_nodes, skipped_nodes);
 	}
 
 	// set the next pointers
@@ -111,6 +149,48 @@ pll_unode_t* connect_subtree_recursive(const Node *networkNode, pll_unode_t *fro
 	return unode->next;
 }
 
+void fill_dead_nodes_recursive(const Node* myParent, const Node* node, std::vector<bool>& dead_nodes) {
+	if (node->isTip()) {
+		return;
+	}
+	std::vector<Node*> activeChildren = node->getActiveChildren(myParent);
+	if (activeChildren.empty()) {
+		dead_nodes[node->clv_index] = true;
+	} else {
+		for (size_t i = 0; i < activeChildren.size(); ++i) {
+			fill_dead_nodes_recursive(node, activeChildren[i], dead_nodes);
+		}
+	}
+	// count how many active children are not dead
+	size_t num_undead = std::count_if(activeChildren.begin(), activeChildren.end(), [&](Node* actNode) {
+		return !dead_nodes[actNode->clv_index];
+	});
+	if (num_undead == 0) {
+		dead_nodes[node->clv_index] = true;
+	}
+}
+
+void fill_skipped_nodes_recursive(const Node* myParent, const Node* node, const std::vector<bool>& dead_nodes, std::vector<bool>& skipped_nodes) {
+	if (node->isTip()) {
+		return; // tip nodes never need to be skipped/ contracted
+	}
+	std::vector<Node*> activeChildren = node->getActiveChildren(myParent);
+	remove_dead_children(activeChildren, dead_nodes);
+
+	if (activeChildren.size() < 2) {
+		skipped_nodes[node->clv_index] = true;
+	}
+
+	if (activeChildren.empty()) {
+		assert(dead_nodes[node->clv_index]);
+	}
+
+	for (size_t i = 0; i < activeChildren.size(); ++i) {
+		fill_skipped_nodes_recursive(node, activeChildren[i], dead_nodes, skipped_nodes);
+	}
+}
+
+
 pll_utree_t* displayed_tree_to_utree(Network &network, size_t tree_index) {
 	setReticulationParents(network, tree_index);
 	const Node *root = nullptr;
@@ -120,7 +200,13 @@ pll_utree_t* displayed_tree_to_utree(Network &network, size_t tree_index) {
 	root = possibleRoots[0];
 	assert(root);
 
-	pll_unode_t *uroot = connect_subtree_recursive(root, nullptr, nullptr);
+	std::vector<bool> dead_nodes(network.nodes.size(), false);
+	fill_dead_nodes_recursive(nullptr, root, dead_nodes);
+	std::vector<bool> skipped_nodes(network.nodes.size(), false);
+	fill_skipped_nodes_recursive(nullptr, root, dead_nodes, skipped_nodes);
+	// now, we already know which nodes are skipped and which nodes are dead.
+
+	pll_unode_t *uroot = connect_subtree_recursive(root, nullptr, nullptr, dead_nodes, skipped_nodes);
 
 	pll_utree_reset_template_indices(uroot, network.num_tips());
 	pll_utree_t *utree = pll_utree_wraptree(uroot, network.num_tips());
@@ -179,8 +265,7 @@ std::vector<Node*> getPossibleRootNodes(Network &network) {
 	std::vector<Node*> res;
 	for (size_t i = 0; i < network.nodes.size(); ++i) {
 		if (!forbidden[network.nodes[i].getClvIndex()]) {
-			if (network.nodes[i].getType() == NodeType::BASIC_NODE
-					&& network.nodes[i].getActiveNeighbors().size() == 3) {
+			if (network.nodes[i].getType() == NodeType::BASIC_NODE && network.nodes[i].getActiveNeighbors().size() == 3) {
 				res.push_back(&network.nodes[i]);
 			}
 		}
@@ -223,8 +308,7 @@ std::vector<bool> getTipVector(const pll_utree_t &utree, size_t pmatrix_idx) {
 	return res;
 }
 
-void getTipVectorRecursive(Node *actParent, Node *actNode, size_t pmatrix_idx, bool pmatrix_idx_found,
-		std::vector<bool> &res) {
+void getTipVectorRecursive(Node *actParent, Node *actNode, size_t pmatrix_idx, bool pmatrix_idx_found, std::vector<bool> &res) {
 	if ((actParent != nullptr) && (actNode->getEdgeTo(actParent)->pmatrix_index == pmatrix_idx)) {
 		pmatrix_idx_found = true;
 	}
