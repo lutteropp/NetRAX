@@ -16,6 +16,15 @@ namespace netrax {
 
 class RaxmlWrapper {
 public:
+	struct NetworkParams {
+		Network *network;
+		pllmod_treeinfo_t *network_treeinfo;
+		RaxmlWrapper *raxml_wrapper;
+		NetworkParams(Network *network, pllmod_treeinfo_t *network_treeinfo, RaxmlWrapper *raxml_wrapper) :
+				network(network), network_treeinfo(network_treeinfo), raxml_wrapper(raxml_wrapper) {
+		}
+	};
+
 	RaxmlWrapper(const NetraxOptions &options);
 
 	Options getRaxmlOptions() const;
@@ -33,15 +42,6 @@ public:
 	void destroy_network_treeinfo(pllmod_treeinfo_t *treeinfo);
 
 	void enableRaxmlDebugOutput();
-
-	struct NetworkParams {
-		Network *network;
-		pllmod_treeinfo_t *network_treeinfo;
-		RaxmlWrapper *raxml_wrapper;
-		NetworkParams(Network *network, pllmod_treeinfo_t *network_treeinfo, RaxmlWrapper *raxml_wrapper) :
-				network(network), network_treeinfo(network_treeinfo), raxml_wrapper(raxml_wrapper) {
-		}
-	};
 
 	static double network_logl_wrapper(void *network_params, int incremental, int update_pmatrices);
 	double network_opt_brlen_wrapper(pllmod_treeinfo_t *fake_treeinfo, double min_brlen, double max_brlen,

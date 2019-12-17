@@ -539,9 +539,22 @@ double RaxmlWrapper::network_opt_brlen_wrapper(pllmod_treeinfo_t *fake_treeinfo,
 double RaxmlWrapper::network_spr_round_wrapper(pllmod_treeinfo_t *treeinfo, unsigned int radius_min,
 		unsigned int radius_max, unsigned int ntopol_keep, pll_bool_t thorough, int brlen_opt_method, double bl_min,
 		double bl_max, int smoothings, double epsilon, cutoff_info_t *cutoff_info, double subtree_cutoff) {
+	(void)treeinfo;
+	(void)radius_min;
+	(void)radius_max;
+	(void)ntopol_keep;
+	(void)thorough;
+	(void)brlen_opt_method;
+	(void)bl_min;
+	(void)bl_max;
+	(void)smoothings;
+	(void)epsilon;
+	(void)cutoff_info;
+	(void)subtree_cutoff;
 	throw std::runtime_error("Not implemented yet");
 }
 pllmod_ancestral_t* RaxmlWrapper::network_ancestral_wrapper(pllmod_treeinfo_t *treeinfo) {
+	(void)treeinfo;
 	throw std::runtime_error("Not implemented yet");
 }
 
