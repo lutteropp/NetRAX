@@ -10,6 +10,10 @@
 #include <vector>
 
 namespace netrax {
-	std::vector<unsigned int> partitionNetworkNodesIntoBlobs(const Network& network);
-	std::vector<unsigned int> partitionNetworkEdgesIntoBlobs(const Network& network);
+	// A blob is a biconnected component in the underlying undirected graph of the phylogenetic network.
+	struct BlobInformation {
+		std::vector<unsigned int> edge_blob_id;
+		std::vector<unsigned int> blob_size;
+	};
+	BlobInformation partitionNetworkEdgesIntoBlobs(const Network& network);
 }
