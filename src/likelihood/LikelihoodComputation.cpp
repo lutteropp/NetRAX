@@ -170,7 +170,8 @@ double compute_tree_logl(Network &network, pllmod_treeinfo_t &fake_treeinfo, siz
 
 // TODO: Add bool incremental...
 // TODO: Implement the Gray Code displayed tree iteration order and intelligent update of the operations array
-double computeLoglikelihood(Network &network, pllmod_treeinfo_t &fake_treeinfo, int incremental, int update_pmatrices,
+// This was deprecated because of numerical issues
+double computeLoglikelihoodDeprecated(Network &network, pllmod_treeinfo_t &fake_treeinfo, int incremental, int update_pmatrices,
 		bool update_reticulation_probs) {
 	size_t n_trees = 1 << network.reticulation_nodes.size();
 	double network_l = 0.0;
@@ -254,7 +255,7 @@ double computeLoglikelihood(Network &network, pllmod_treeinfo_t &fake_treeinfo, 
 	fake_treeinfo.active_partition = old_active_partition;
 
 	if (update_reticulation_probs && reticulationProbsHaveChanged) {
-		return computeLoglikelihood(network, fake_treeinfo, incremental, false, false);
+		return computeLoglikelihoodDeprecated(network, fake_treeinfo, incremental, false, false);
 	} else {
 		return log(network_l);
 	}
