@@ -10,5 +10,6 @@
 #include <vector>
 
 namespace netrax {
-	std::vector<unsigned int> partitionNetworkIntoBlobs(const Network& network);
+	std::vector<unsigned int> partitionNetworkNodesIntoBlobs(const Network& network);
+	std::vector<unsigned int> partitionNetworkEdgesIntoBlobs(const Network& network);
 }
