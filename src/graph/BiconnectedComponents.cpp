@@ -6,7 +6,9 @@
  */
 
 #include "BiconnectedComponents.hpp"
+#include "NetworkFunctions.hpp"
 #include "Edge.hpp"
+#include "Common.hpp"
 
 #include <stack>
 #include <cassert>
@@ -16,7 +18,7 @@
 namespace netrax {
 
 // Algorithm taken from https://www.cs.cmu.edu/~avrim/451f12/lectures/biconnected.pdf
-void bicon(Node* v, Node* u, unsigned int& time, std::vector<unsigned int>& discovery_time, std::vector<unsigned int>& lowest,
+void bicon(const Node* v, const Node* u, unsigned int& time, std::vector<unsigned int>& discovery_time, std::vector<unsigned int>& lowest,
 		std::stack<Edge*>& s, std::vector<unsigned int>& edge_component_id, unsigned int& act_bicomp_id,
 		std::vector<unsigned int>& blob_sizes) {
 	time++;
@@ -55,7 +57,7 @@ void bicon(Node* v, Node* u, unsigned int& time, std::vector<unsigned int>& disc
 	}
 }
 
-BlobInformation partitionNetworkEdgesIntoBlobs(const Network& network) {
+BlobInformation partitionNetworkIntoBlobs(const Network& network) {
 	BlobInformation blob_info { std::vector<unsigned int>(network.num_edges(), std::numeric_limits<unsigned int>::max()),
 							    std::vector<unsigned int>() };
 	unsigned int time = 0;
@@ -63,11 +65,12 @@ BlobInformation partitionNetworkEdgesIntoBlobs(const Network& network) {
 	std::stack<Edge*> s;
 	std::vector<unsigned int> discovery_time(network.num_nodes(), 0);
 	std::vector<unsigned int> lowest(network.num_nodes(), std::numeric_limits<unsigned int>::max());
-	for (Node* node : network.nodes) {
-		if (discovery_time[node->clv_index] == 0) {
-			bicon(node, nullptr, time, discovery_time, lowest, s, blob_info.edge_blob_id, act_bicomp_id, blob_info.blob_size);
+	for (const Node& node : network.nodes) {
+		if (discovery_time[node.clv_index] == 0) {
+			bicon(&node, nullptr, time, discovery_time, lowest, s, blob_info.edge_blob_id, act_bicomp_id, blob_info.blob_size);
 		}
 	}
+
 	return blob_info;
 }
 }

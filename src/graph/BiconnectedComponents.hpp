@@ -16,5 +16,5 @@ namespace netrax {
 		std::vector<unsigned int> edge_blob_id;
 		std::vector<unsigned int> blob_size;
 	};
-	BlobInformation partitionNetworkEdgesIntoBlobs(const Network& network);
+	BlobInformation partitionNetworkIntoBlobs(const Network& network);
 }
