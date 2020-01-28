@@ -142,6 +142,53 @@ struct BestPersiteLoglikelihoodData {
 	}
 };
 
+void updateBestPersiteLoglikelihoods(unsigned int treeIdx, unsigned int num_reticulations, unsigned int numSites,
+		std::vector<BestPersiteLoglikelihoodData> &best_persite_logl_network, const std::vector<double> &persite_logl) {
+	for (size_t s = 0; s < numSites; ++s) {
+		if (best_persite_logl_network[s].best_site_logl < persite_logl[s]) {
+			std::fill(best_persite_logl_network[s].first_parent_taken_for_best_cnt.begin(),
+					best_persite_logl_network[s].first_parent_taken_for_best_cnt.end(), 0);
+			best_persite_logl_network[s].best_site_logl = persite_logl[s];
+		}
+		if (best_persite_logl_network[s].best_site_logl == persite_logl[s]) {
+			for (size_t r = 0; r < num_reticulations; ++r) {
+				if (treeIdx & (1 << r)) {
+					best_persite_logl_network[s].first_parent_taken_for_best_cnt[r]++;
+				}
+			}
+		}
+	}
+}
+
+void update_total_taken(std::vector<unsigned int> &totalTaken, std::vector<unsigned int> &totalNotTaken, bool unlinked_mode,
+		unsigned int numSites, unsigned int num_reticulations, const std::vector<BestPersiteLoglikelihoodData> &best_persite_logl_network) {
+	if (unlinked_mode) {
+		std::fill(totalTaken.begin(), totalTaken.end(), 0);
+		std::fill(totalNotTaken.begin(), totalNotTaken.end(), 0);
+	}
+	size_t n_trees = 1 << num_reticulations;
+	for (size_t s = 0; s < numSites; ++s) {
+		for (size_t r = 0; r < num_reticulations; ++r) {
+			totalTaken[r] += best_persite_logl_network[s].first_parent_taken_for_best_cnt[r];
+			totalNotTaken[r] += n_trees - best_persite_logl_network[s].first_parent_taken_for_best_cnt[r];
+		}
+	}
+}
+
+bool update_probs(Network& network, unsigned int partitionIdx, const std::vector<unsigned int> &totalTaken,
+		const std::vector<unsigned int> &totalNotTaken) {
+	bool reticulationProbsHaveChanged = false;
+	for (size_t r = 0; r < network.num_reticulations(); ++r) {
+		double newProb = (double) totalTaken[r] / (totalTaken[r] + totalNotTaken[r]); // Percentage of sites that were maximized when taking this reticulation
+		double oldProb = network.reticulation_nodes[r]->getReticulationData()->getProb(partitionIdx);
+		if (newProb != oldProb) {
+			reticulationProbsHaveChanged = true;
+		}
+		network.reticulation_nodes[r]->getReticulationData()->setProb(newProb, partitionIdx);
+	}
+	return reticulationProbsHaveChanged;
+}
+
 // TODO: Add bool incremental...
 // TODO: Implement the Gray Code displayed tree iteration order and intelligent update of the operations array
 // TODO: Add the blobs
@@ -149,7 +196,6 @@ double processPartition(unsigned int partitionIdx, Network &network, pllmod_tree
 		bool update_reticulation_probs, std::vector<unsigned int> &totalTaken, std::vector<unsigned int> &totalNotTaken, bool unlinked_mode,
 		bool &reticulationProbsHaveChanged) {
 	unsigned int numSites = fake_treeinfo.partitions[partitionIdx]->sites;
-
 	std::vector<BestPersiteLoglikelihoodData> best_persite_logl_network;
 	if (update_reticulation_probs) {
 		best_persite_logl_network = std::vector<BestPersiteLoglikelihoodData>(numSites,
@@ -158,67 +204,37 @@ double processPartition(unsigned int partitionIdx, Network &network, pllmod_tree
 	}
 
 	std::vector<double> persite_lh_network(fake_treeinfo.partitions[partitionIdx]->sites, 0.0);
-// Iterate over all displayed trees
-	size_t n_trees = 1 << network.reticulation_nodes.size();
+	// Iterate over all displayed trees
+	size_t num_reticulations = network.num_reticulations();
+	size_t n_trees = 1 << num_reticulations;
 	double network_partition_logl = 0.0;
 	for (size_t treeIdx = 0; treeIdx < n_trees; ++treeIdx) {
 		double tree_prob = displayed_tree_prob(network, treeIdx, unlinked_mode ? 0 : partitionIdx);
-		if (!update_reticulation_probs && tree_prob == 0.0) {
+		if (tree_prob == 0.0 && !update_reticulation_probs) {
 			continue;
 		}
 
 		std::vector<double> persite_logl(fake_treeinfo.partitions[partitionIdx]->sites, 0.0);
 		compute_tree_logl(network, fake_treeinfo, treeIdx, partitionIdx, &persite_logl);
-
-		for (size_t k = 0; k < numSites; ++k) {
-			persite_lh_network[k] += exp(persite_logl[k]) * tree_prob;
+		for (size_t s = 0; s < numSites; ++s) {
+			persite_lh_network[s] += exp(persite_logl[s]) * tree_prob;
 		}
 
 		if (update_reticulation_probs) {
-			for (size_t k = 0; k < numSites; ++k) {
-				if (best_persite_logl_network[k].best_site_logl < persite_logl[k]) {
-					std::fill(best_persite_logl_network[k].first_parent_taken_for_best_cnt.begin(),
-							best_persite_logl_network[k].first_parent_taken_for_best_cnt.end(), 0);
-					best_persite_logl_network[k].best_site_logl = persite_logl[k];
-				}
-				if (best_persite_logl_network[k].best_site_logl == persite_logl[k]) {
-					for (size_t l = 0; l < network.num_reticulations(); ++l) {
-						if (treeIdx & (1 << l)) {
-							best_persite_logl_network[k].first_parent_taken_for_best_cnt[l]++;
-						}
-					}
-				}
-			}
+			updateBestPersiteLoglikelihoods(treeIdx, network.num_reticulations(), numSites, best_persite_logl_network, persite_logl);
 		}
 	}
 
-	for (size_t k = 0; k < persite_lh_network.size(); ++k) {
-		network_partition_logl += log(persite_lh_network[k]);
+	for (size_t s = 0; s < numSites; ++s) {
+		network_partition_logl += log(persite_lh_network[s]);
 	}
 
 	fake_treeinfo.partition_loglh[partitionIdx] = network_partition_logl;
 
 	if (update_reticulation_probs) {
+		update_total_taken(totalTaken, totalNotTaken, unlinked_mode, numSites, num_reticulations, best_persite_logl_network);
 		if (unlinked_mode) {
-			std::fill(totalTaken.begin(), totalTaken.end(), 0);
-			std::fill(totalNotTaken.begin(), totalNotTaken.end(), 0);
-		}
-
-		for (size_t k = 0; k < best_persite_logl_network.size(); ++k) {
-			for (size_t l = 0; l < network.num_reticulations(); ++l) {
-				totalTaken[l] += best_persite_logl_network[k].first_parent_taken_for_best_cnt[l];
-				totalNotTaken[l] += n_trees - best_persite_logl_network[k].first_parent_taken_for_best_cnt[l];
-			}
-		}
-		if (unlinked_mode) {
-			for (size_t l = 0; l < network.num_reticulations(); ++l) {
-				double newProb = (double) totalTaken[l] / (totalTaken[l] + totalNotTaken[l]); // Percentage of sites that were maximized when taking this reticulation
-				double oldProb = network.reticulation_nodes[l]->getReticulationData()->getProb(partitionIdx);
-				if (newProb != oldProb) {
-					reticulationProbsHaveChanged = true;
-				}
-				network.reticulation_nodes[l]->getReticulationData()->setProb(newProb, partitionIdx);
-			}
+			reticulationProbsHaveChanged = update_probs(network, partitionIdx, totalTaken, totalNotTaken);
 		}
 	}
 
@@ -238,21 +254,15 @@ double computeLoglikelihood(Network &network, pllmod_treeinfo_t &fake_treeinfo, 
 	double network_logl = 0;
 
 	// Iterate over all partitions
-	for (size_t j = 0; j < fake_treeinfo.partition_count; ++j) {
-		fake_treeinfo.active_partition = j;
-		double network_partition_logl = processPartition(j, network, fake_treeinfo, incremental, update_reticulation_probs, totalTaken,
-				totalNotTaken, unlinked_mode, reticulationProbsHaveChanged);
+	for (size_t partitionIdx = 0; partitionIdx < fake_treeinfo.partition_count; ++partitionIdx) {
+		fake_treeinfo.active_partition = partitionIdx;
+		double network_partition_logl = processPartition(partitionIdx, network, fake_treeinfo, incremental, update_reticulation_probs,
+				totalTaken, totalNotTaken, unlinked_mode, reticulationProbsHaveChanged);
 		network_logl += network_partition_logl;
 	}
 
 	if (update_reticulation_probs && !unlinked_mode) {
-		for (size_t l = 0; l < network.num_reticulations(); ++l) {
-			double newProb = (double) totalTaken[l] / (totalTaken[l] + totalNotTaken[l]);
-			if (newProb != network.reticulation_nodes[l]->getReticulationData()->getProb()) {
-				reticulationProbsHaveChanged = true;
-				network.reticulation_nodes[l]->getReticulationData()->setProb(newProb);
-			}
-		}
+		reticulationProbsHaveChanged = update_probs(network, 0, totalTaken, totalNotTaken);
 	}
 
 	/* restore original active partition */
