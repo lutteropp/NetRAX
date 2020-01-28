@@ -189,25 +189,13 @@ bool update_probs(Network& network, unsigned int partitionIdx, const std::vector
 	return reticulationProbsHaveChanged;
 }
 
-// TODO: Add bool incremental...
-// TODO: Implement the Gray Code displayed tree iteration order and intelligent update of the operations array
-// TODO: Add the blobs
-double processPartition(unsigned int partitionIdx, Network &network, pllmod_treeinfo_t &fake_treeinfo, int incremental,
-		bool update_reticulation_probs, std::vector<unsigned int> &totalTaken, std::vector<unsigned int> &totalNotTaken, bool unlinked_mode,
-		bool &reticulationProbsHaveChanged) {
-	unsigned int numSites = fake_treeinfo.partitions[partitionIdx]->sites;
-	std::vector<BestPersiteLoglikelihoodData> best_persite_logl_network;
-	if (update_reticulation_probs) {
-		best_persite_logl_network = std::vector<BestPersiteLoglikelihoodData>(numSites,
-				BestPersiteLoglikelihoodData(network.num_reticulations()));
-		reticulationProbsHaveChanged = false;
-	}
-
+std::vector<double> compute_persite_lh(unsigned int partitionIdx, Network &network, pllmod_treeinfo_t &fake_treeinfo, bool unlinked_mode,
+		bool update_reticulation_probs, unsigned int numSites, std::vector<BestPersiteLoglikelihoodData> &best_persite_logl_network) {
 	std::vector<double> persite_lh_network(fake_treeinfo.partitions[partitionIdx]->sites, 0.0);
+
 	// Iterate over all displayed trees
-	size_t num_reticulations = network.num_reticulations();
+	unsigned int num_reticulations = network.num_reticulations();
 	size_t n_trees = 1 << num_reticulations;
-	double network_partition_logl = 0.0;
 	for (size_t treeIdx = 0; treeIdx < n_trees; ++treeIdx) {
 		double tree_prob = displayed_tree_prob(network, treeIdx, unlinked_mode ? 0 : partitionIdx);
 		if (tree_prob == 0.0 && !update_reticulation_probs) {
@@ -225,6 +213,27 @@ double processPartition(unsigned int partitionIdx, Network &network, pllmod_tree
 		}
 	}
 
+	return persite_lh_network;
+}
+
+// TODO: Add bool incremental...
+// TODO: Implement the Gray Code displayed tree iteration order and intelligent update of the operations array
+// TODO: Add the blobs
+double processPartition(unsigned int partitionIdx, Network &network, pllmod_treeinfo_t &fake_treeinfo, int incremental,
+		bool update_reticulation_probs, std::vector<unsigned int> &totalTaken, std::vector<unsigned int> &totalNotTaken, bool unlinked_mode,
+		bool &reticulationProbsHaveChanged) {
+	unsigned int numSites = fake_treeinfo.partitions[partitionIdx]->sites;
+	std::vector<BestPersiteLoglikelihoodData> best_persite_logl_network;
+	if (update_reticulation_probs) {
+		best_persite_logl_network = std::vector<BestPersiteLoglikelihoodData>(numSites,
+				BestPersiteLoglikelihoodData(network.num_reticulations()));
+		reticulationProbsHaveChanged = false;
+	}
+
+	std::vector<double> persite_lh_network = compute_persite_lh(partitionIdx, network, fake_treeinfo, unlinked_mode,
+			update_reticulation_probs, numSites, best_persite_logl_network);
+
+	double network_partition_logl = 0.0;
 	for (size_t s = 0; s < numSites; ++s) {
 		network_partition_logl += log(persite_lh_network[s]);
 	}
@@ -232,7 +241,7 @@ double processPartition(unsigned int partitionIdx, Network &network, pllmod_tree
 	fake_treeinfo.partition_loglh[partitionIdx] = network_partition_logl;
 
 	if (update_reticulation_probs) {
-		update_total_taken(totalTaken, totalNotTaken, unlinked_mode, numSites, num_reticulations, best_persite_logl_network);
+		update_total_taken(totalTaken, totalNotTaken, unlinked_mode, numSites, network.num_reticulations(), best_persite_logl_network);
 		if (unlinked_mode) {
 			reticulationProbsHaveChanged = update_probs(network, partitionIdx, totalTaken, totalNotTaken);
 		}
