@@ -7,6 +7,8 @@
 
 #include "LikelihoodComputation.hpp"
 #include "../graph/NetworkFunctions.hpp"
+#include "../graph/BiconnectedComponents.hpp"
+#include "../graph/Node.hpp"
 
 #include <cassert>
 #include <cmath>
@@ -169,19 +171,10 @@ double compute_tree_logl(Network &network, pllmod_treeinfo_t &fake_treeinfo, siz
 }
 
 // TODO: Add bool incremental...
-// TODO: Implement the Gray Code displayed tree iteration order and intelligent update of the operations array
-// This was deprecated because of numerical issues
-double computeLoglikelihoodDeprecated(Network &network, pllmod_treeinfo_t &fake_treeinfo, int incremental, int update_pmatrices,
-		bool update_reticulation_probs) {
-	size_t n_trees = 1 << network.reticulation_nodes.size();
-	double network_l = 0.0;
-
-	const int old_active_partition = fake_treeinfo.active_partition;
-
+void setup_pmatrices(Network& network, pllmod_treeinfo_t &fake_treeinfo, int incremental, int update_pmatrices) {
 	/* NOTE: in unlinked brlen mode, up-to-date brlens for partition p
 	 * have to be prefetched to treeinfo->branch_lengths[p] !!! */
 	bool collect_brlen = (fake_treeinfo.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED ? false : true);
-
 	if (collect_brlen) {
 		for (size_t i = 0; i < network.edges.size(); ++i) {
 			fake_treeinfo.branch_lengths[0][network.edges[i].pmatrix_index] = network.edges[i].length;
@@ -192,7 +185,19 @@ double computeLoglikelihoodDeprecated(Network &network, pllmod_treeinfo_t &fake_
 			pllmod_treeinfo_update_prob_matrices(&fake_treeinfo, !incremental);
 		}
 	}
+}
 
+
+// TODO: Add bool incremental...
+// TODO: Implement the Gray Code displayed tree iteration order and intelligent update of the operations array
+// This was deprecated because of numerical issues
+double computeLoglikelihoodDeprecated(Network &network, pllmod_treeinfo_t &fake_treeinfo, int incremental, int update_pmatrices,
+		bool update_reticulation_probs) {
+	setup_pmatrices(network, fake_treeinfo, incremental, update_pmatrices);
+
+	size_t n_trees = 1 << network.reticulation_nodes.size();
+	double network_l = 0.0;
+	const int old_active_partition = fake_treeinfo.active_partition;
 	fake_treeinfo.active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
 
 	bool unlinked_mode = (fake_treeinfo.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
@@ -263,28 +268,104 @@ double computeLoglikelihoodDeprecated(Network &network, pllmod_treeinfo_t &fake_
 
 // TODO: Add bool incremental...
 // TODO: Implement the Gray Code displayed tree iteration order and intelligent update of the operations array
-double computeLoglikelihoodLessExponentiation(Network &network, pllmod_treeinfo_t &fake_treeinfo, int incremental, int update_pmatrices,
+double computeLoglikelihoodWithBlobs(Network &network, pllmod_treeinfo_t &fake_treeinfo, int incremental, int update_pmatrices,
 		bool update_reticulation_probs) {
+	setup_pmatrices(network, fake_treeinfo, incremental, update_pmatrices);
+
 	size_t n_trees = 1 << network.reticulation_nodes.size();
+	BlobInformation blob_info = partitionNetworkIntoBlobs(network);
+	std::vector<const Node*> top_sort = reversed_topological_sort(network);
 	double network_logl = 0;
-
 	const int old_active_partition = fake_treeinfo.active_partition;
+	fake_treeinfo.active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
 
-	/* NOTE: in unlinked brlen mode, up-to-date brlens for partition p
-	 * have to be prefetched to treeinfo->branch_lengths[p] !!! */
-	bool collect_brlen = (fake_treeinfo.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED ? false : true);
+	bool unlinked_mode = (fake_treeinfo.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
+	std::vector<unsigned int> totalTaken(network.num_reticulations(), 0);
+	std::vector<unsigned int> totalNotTaken(network.num_reticulations(), 0);
 
-	if (collect_brlen) {
-		for (size_t i = 0; i < network.edges.size(); ++i) {
-			fake_treeinfo.branch_lengths[0][network.edges[i].pmatrix_index] = network.edges[i].length;
+	bool reticulationProbsHaveChanged = false;
+// Iterate over all partitions
+	for (size_t j = 0; j < fake_treeinfo.partition_count; ++j) {
+		fake_treeinfo.active_partition = j;
+
+		std::vector<double> persite_lh_network(fake_treeinfo.partitions[j]->sites, 0.0);
+
+		std::vector<std::pair<double, std::vector<std::pair<unsigned int, unsigned int> > > > best_persite_logl_network;
+		if (update_reticulation_probs) {
+			best_persite_logl_network.resize(fake_treeinfo.partitions[j]->sites);
+			for (size_t k = 0; k < fake_treeinfo.partitions[j]->sites; ++k) {
+				std::vector<std::pair<unsigned int, unsigned int> > vec(network.num_reticulations(), std::make_pair(0, 0));
+				best_persite_logl_network[k] = std::make_pair(0.0, vec);
+			}
 		}
-		// don't forget the fake entry
-		fake_treeinfo.branch_lengths[0][network.edges.size()] = 0.0;
-		if (update_pmatrices) {
-			pllmod_treeinfo_update_prob_matrices(&fake_treeinfo, !incremental);
+
+		double network_partition_logl = 0.0;
+
+		// Iterate over all displayed trees ---> TODO; This part changes for the blobs.
+		throw std::runtime_error("This function is still under construction");
+		for (size_t i = 0; i < n_trees; ++i) {
+			double tree_prob = displayed_tree_prob(network, i, unlinked_mode ? 0 : j);
+
+			if (!update_reticulation_probs && tree_prob == 0.0) {
+				continue;
+			}
+
+			std::vector<double> persite_logl(fake_treeinfo.partitions[j]->sites, 0.0);
+			double tree_partition_logl = compute_tree_logl(network, fake_treeinfo, i, j, &persite_logl);
+
+			for (size_t k = 0; k < persite_logl.size(); ++k) {
+				persite_lh_network[k] += exp(persite_logl[k]) * tree_prob;
+			}
+
+			if (update_reticulation_probs) {
+				update_reticulation_probs_internal_1(i, network.num_reticulations(), persite_logl, best_persite_logl_network);
+			}
+		}
+
+		// end of iterating over all displayed trees
+
+		for (size_t k = 0; k < persite_lh_network.size(); ++k) {
+			network_partition_logl += log(persite_lh_network[k]);
+		}
+
+		fake_treeinfo.partition_loglh[j] = network_partition_logl;
+		network_logl += network_partition_logl;
+
+		if (update_reticulation_probs) {
+			reticulationProbsHaveChanged = update_reticulation_probs_internal_2(network, unlinked_mode, network.num_reticulations(), j,
+					totalTaken, totalNotTaken, best_persite_logl_network);
 		}
 	}
 
+	if (update_reticulation_probs && !unlinked_mode) {
+		for (size_t l = 0; l < network.num_reticulations(); ++l) {
+			double newProb = (double) totalTaken[l] / (totalTaken[l] + totalNotTaken[l]);
+			if (newProb != network.reticulation_nodes[l]->getReticulationData()->getProb()) {
+				reticulationProbsHaveChanged = true;
+				network.reticulation_nodes[l]->getReticulationData()->setProb(newProb);
+			}
+		}
+	}
+
+	/* restore original active partition */
+	fake_treeinfo.active_partition = old_active_partition;
+
+	if (update_reticulation_probs && reticulationProbsHaveChanged) {
+		return computeLoglikelihoodLessExponentiation(network, fake_treeinfo, incremental, false, false);
+	} else {
+		return network_logl;
+	}
+}
+
+// TODO: Add bool incremental...
+// TODO: Implement the Gray Code displayed tree iteration order and intelligent update of the operations array
+double computeLoglikelihoodLessExponentiation(Network &network, pllmod_treeinfo_t &fake_treeinfo, int incremental, int update_pmatrices,
+		bool update_reticulation_probs) {
+	setup_pmatrices(network, fake_treeinfo, incremental, update_pmatrices);
+
+	size_t n_trees = 1 << network.reticulation_nodes.size();
+	double network_logl = 0;
+	const int old_active_partition = fake_treeinfo.active_partition;
 	fake_treeinfo.active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
 
 	bool unlinked_mode = (fake_treeinfo.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
