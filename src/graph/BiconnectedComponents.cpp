@@ -60,7 +60,7 @@ void bicon(const Node* v, const Node* u, unsigned int& time, std::vector<unsigne
 
 BlobInformation partitionNetworkIntoBlobs(const Network& network) {
 	BlobInformation blob_info { std::vector<unsigned int>(network.num_edges(), std::numeric_limits<unsigned int>::max()),
-							    std::vector<unsigned int>() };
+							    std::vector<unsigned int>(), std::vector<std::vector<const Node*> >() };
 	unsigned int time = 0;
 	unsigned int act_bicomp_id = 0;
 	std::stack<Edge*> s;
