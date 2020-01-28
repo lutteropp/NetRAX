@@ -15,6 +15,7 @@ namespace netrax {
 	struct BlobInformation {
 		std::vector<unsigned int> edge_blob_id;
 		std::vector<unsigned int> blob_size;
+		std::vector<std::vector<const Node*> > reticulation_nodes_per_blob;
 	};
 	BlobInformation partitionNetworkIntoBlobs(const Network& network);
 }

@@ -9,6 +9,7 @@
 #include "NetworkFunctions.hpp"
 #include "Edge.hpp"
 #include "Common.hpp"
+#include "Node.hpp"
 
 #include <stack>
 #include <cassert>
@@ -69,6 +70,14 @@ BlobInformation partitionNetworkIntoBlobs(const Network& network) {
 		if (discovery_time[node.clv_index] == 0) {
 			bicon(&node, nullptr, time, discovery_time, lowest, s, blob_info.edge_blob_id, act_bicomp_id, blob_info.blob_size);
 		}
+	}
+
+	blob_info.reticulation_nodes_per_blob.resize(blob_info.blob_size.size());
+	for (size_t i = 0; i < network.num_reticulations(); ++i) {
+		const Node* retNode = network.reticulation_nodes[i];
+		unsigned int firstParentEdgeIndex = retNode->getReticulationData()->getLinkToFirstParent()->edge->pmatrix_index;
+		unsigned int ret_blob_id = blob_info.edge_blob_id[firstParentEdgeIndex];
+		blob_info.reticulation_nodes_per_blob[ret_blob_id].emplace_back(retNode);
 	}
 
 	return blob_info;
