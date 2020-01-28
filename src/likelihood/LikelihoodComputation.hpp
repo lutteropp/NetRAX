@@ -32,4 +32,7 @@ double computeLoglikelihoodNaiveUtree(RaxmlWrapper& wrapper, Network& network, i
 
 double displayed_tree_prob(Network &network, size_t tree_index, size_t partition_index);
 
+double computeLoglikelihood(Network &network, pllmod_treeinfo_t &fake_treeinfo, int incremental, int update_pmatrices,
+		bool update_reticulation_probs = false);
+
 }

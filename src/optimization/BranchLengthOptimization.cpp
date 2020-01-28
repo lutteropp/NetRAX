@@ -167,7 +167,7 @@ double optimize_branches(const NetraxOptions &options, Network &network, pllmod_
 		}
 	}
 
-	return -1 * computeLoglikelihoodLessExponentiation(network, fake_treeinfo, 0, 1, false);
+	return -1 * computeLoglikelihood(network, fake_treeinfo, 0, 1, false);
 }
 
 }

@@ -33,11 +33,11 @@ int main(int argc, char** argv) {
 
 	std::cout << "The current Likelihood model being used is the DNA model from raxml-ng\n\n";
 	std::cout << "Initial network loglikelihood: " << treeinfo.loglh(false) << "\n";
-	std::cout << "After updating reticulation probs: " << netrax::computeLoglikelihoodLessExponentiation(network, *fake_treeinfo, 0, 1, true) << "\n";
+	std::cout << "After updating reticulation probs: " << netrax::computeLoglikelihood(network, *fake_treeinfo, 0, 1, true) << "\n";
 	std::cout << "After doing model optimization: " << treeinfo.optimize_model(raxmlOptions.lh_epsilon) << "\n";
-	std::cout << "After updating reticulation probs again: " << netrax::computeLoglikelihoodLessExponentiation(network, *fake_treeinfo, 0, 1, true) << "\n";
+	std::cout << "After updating reticulation probs again: " << netrax::computeLoglikelihood(network, *fake_treeinfo, 0, 1, true) << "\n";
 	std::cout << "After branch length optimization (by averaging over per-tree optimized brlens in easy cases): " << treeinfo.optimize_branches(raxmlOptions.lh_epsilon, 1) << "\n";
-	std::cout << "After updating reticulation probs again again: " << netrax::computeLoglikelihoodLessExponentiation(network, *fake_treeinfo, 0, 1, true) << "\n";
+	std::cout << "After updating reticulation probs again again: " << netrax::computeLoglikelihood(network, *fake_treeinfo, 0, 1, true) << "\n";
 	std::cout << "(Topology optimization not implemented yet) \n";
 	return 0;
 }

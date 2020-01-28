@@ -355,7 +355,7 @@ TEST_F (LikelihoodTest, likelihoodFunctionsTree) {
 	double sarah_logl = computeLoglikelihoodDeprecated(treeNetwork, *(params->network_treeinfo), 0, 1);
 	std::cout << "sarah logl: " << sarah_logl << "\n";
 
-	double norep_logl = computeLoglikelihoodLessExponentiation(treeNetwork, *(params->network_treeinfo), 0, 1);
+	double norep_logl = computeLoglikelihood(treeNetwork, *(params->network_treeinfo), 0, 1);
 	std::cout << "norep_logl: " << norep_logl << "\n";
 
 	ASSERT_EQ(raxml_logl, naive_logl);
@@ -373,7 +373,7 @@ TEST_F (LikelihoodTest, likelihoodFunctionsNetwork) {
 	double sarah_logl = computeLoglikelihoodDeprecated(smallNetwork, *(params->network_treeinfo), 0, 1);
 	std::cout << "sarah logl: " << sarah_logl << "\n";
 
-	double norep_logl = computeLoglikelihoodLessExponentiation(smallNetwork, *(params->network_treeinfo), 0, 1);
+	double norep_logl = computeLoglikelihood(smallNetwork, *(params->network_treeinfo), 0, 1);
 	std::cout << "norep_logl: " << norep_logl << "\n";
 
 	ASSERT_EQ(naive_logl, sarah_logl);
@@ -392,11 +392,11 @@ TEST_F (LikelihoodTest, updateReticulationProb) {
 	double sarah_logl_3 = computeLoglikelihoodDeprecated(smallNetwork, *(params->network_treeinfo), 0, 1, false);
 	std::cout << "sarah logl_3: " << sarah_logl_3 << "\n";
 
-	double norep_logl = computeLoglikelihoodLessExponentiation(smallNetwork, *(params->network_treeinfo), 0, 1, true);
+	double norep_logl = computeLoglikelihood(smallNetwork, *(params->network_treeinfo), 0, 1, true);
 	std::cout << "norep_logl: " << norep_logl << "\n";
-	double norep_logl_2 = computeLoglikelihoodDeprecated(smallNetwork, *(params->network_treeinfo), 0, 1, true);
+	double norep_logl_2 = computeLoglikelihood(smallNetwork, *(params->network_treeinfo), 0, 1, true);
 	std::cout << "norep logl_2: " << norep_logl_2 << "\n";
-	double norep_logl_3 = computeLoglikelihoodDeprecated(smallNetwork, *(params->network_treeinfo), 0, 1, false);
+	double norep_logl_3 = computeLoglikelihood(smallNetwork, *(params->network_treeinfo), 0, 1, false);
 	std::cout << "norep logl_3: " << norep_logl_3 << "\n";
 
 	ASSERT_EQ(sarah_logl_2, sarah_logl_3);
@@ -446,7 +446,7 @@ TEST_F (LikelihoodTest, celineNetwork) {
 	double sarah_logl = computeLoglikelihoodDeprecated(network, *(params->network_treeinfo), 0, 1);
 	std::cout << "sarah logl: " << sarah_logl << "\n";
 
-	double norep_logl = computeLoglikelihoodLessExponentiation(network, *(params->network_treeinfo), 0, 1);
+	double norep_logl = computeLoglikelihood(network, *(params->network_treeinfo), 0, 1);
 	std::cout << "norep_logl: " << norep_logl << "\n";
 
 	ASSERT_EQ(naive_logl, sarah_logl);
@@ -465,7 +465,7 @@ TEST_F (LikelihoodTest, celineNetworkNonzeroBranches) {
 
 	RaxmlWrapper::NetworkParams* params = (RaxmlWrapper::NetworkParams*) treeInfo.pll_treeinfo().likelihood_computation_params;
 
-	double norep_logl = computeLoglikelihoodLessExponentiation(network, *(params->network_treeinfo), 0, 1);
+	double norep_logl = computeLoglikelihood(network, *(params->network_treeinfo), 0, 1);
 	std::cout << "norep_logl: " << norep_logl << "\n";
 
 	ASSERT_NE(norep_logl, -std::numeric_limits<double>::infinity());
