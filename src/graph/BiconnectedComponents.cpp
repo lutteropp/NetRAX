@@ -59,7 +59,7 @@ void bicon(const Node* v, const Node* u, unsigned int& time, std::vector<unsigne
 	}
 }
 
-unsigned int get_node_blob_id(const Node* node, const BlobInformation& blobInfo, const std::vector<Node*> parent) {
+unsigned int get_node_blob_id(const Node* node, const BlobInformation& blobInfo, const std::vector<const Node*> parent) {
 	unsigned int res = std::numeric_limits<unsigned int>::infinity();
 	std::unordered_set<unsigned int> seen;
 	for (Node* neigh : node->getNeighbors()) {
@@ -71,7 +71,7 @@ unsigned int get_node_blob_id(const Node* node, const BlobInformation& blobInfo,
 	};
 
 	if (res == std::numeric_limits<unsigned int>::infinity()) {
-		unsigned int edgeToParentBlobID = blobInfo.edge_blob_id[node->getEdgeTo(parent[node->clv_index])];
+		unsigned int edgeToParentBlobID = blobInfo.edge_blob_id[node->getEdgeTo(parent[node->clv_index])->pmatrix_index];
 		res = edgeToParentBlobID;
 	}
 	return res;
@@ -99,12 +99,12 @@ BlobInformation partitionNetworkIntoBlobs(const Network& network) {
 		blob_info.reticulation_nodes_per_blob[ret_blob_id].emplace_back(retNode);
 	}
 
-	std::vector<Node*> parent = grab_current_node_parents(network);
+	std::vector<const Node*> parent = grab_current_node_parents(network);
 	// fill the megablob roots now.
-	std::vector<Node*> travbuffer = netrax::reversed_topological_sort(network);
+	std::vector<const Node*> travbuffer = netrax::reversed_topological_sort(network);
 	unsigned int lastBlobId = std::numeric_limits<unsigned int>::infinity();
 	for (size_t i = 0; i < travbuffer.size(); ++i) {
-		Node* node = travbuffer[i];
+		const Node* node = travbuffer[i];
 		unsigned int blobId = get_node_blob_id(node, blob_info, parent);
 		if (blobId != lastBlobId && i > 0) {
 			if (blob_info.blob_size[lastBlobId] == 1 && blob_info.blob_size[blobId] > 1) {
