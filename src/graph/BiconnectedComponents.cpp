@@ -15,6 +15,7 @@
 #include <cassert>
 #include <limits>
 #include <algorithm>
+#include <unordered_set>
 
 namespace netrax {
 
@@ -58,9 +59,27 @@ void bicon(const Node* v, const Node* u, unsigned int& time, std::vector<unsigne
 	}
 }
 
+unsigned int get_node_blob_id(const Node* node, const BlobInformation& blobInfo, const std::vector<Node*> parent) {
+	unsigned int res = std::numeric_limits<unsigned int>::infinity();
+	std::unordered_set<unsigned int> seen;
+	for (Node* neigh : node->getNeighbors()) {
+		unsigned int actBlobID = blobInfo.edge_blob_id[node->getEdgeTo(neigh)->pmatrix_index];
+		if (seen.find(actBlobID) != seen.end()) {
+			res = actBlobID;
+		}
+		seen.emplace(actBlobID);
+	};
+
+	if (res == std::numeric_limits<unsigned int>::infinity()) {
+		unsigned int edgeToParentBlobID = blobInfo.edge_blob_id[node->getEdgeTo(parent[node->clv_index])];
+		res = edgeToParentBlobID;
+	}
+	return res;
+}
+
 BlobInformation partitionNetworkIntoBlobs(const Network& network) {
-	BlobInformation blob_info { std::vector<unsigned int>(network.num_edges(), std::numeric_limits<unsigned int>::max()),
-							    std::vector<unsigned int>(), std::vector<std::vector<const Node*> >() };
+	BlobInformation blob_info { std::vector<unsigned int>(network.num_edges(), std::numeric_limits<unsigned int>::max()), std::vector<
+			unsigned int>(), std::vector<std::vector<const Node*> >(), std::vector<const Node*>() };
 	unsigned int time = 0;
 	unsigned int act_bicomp_id = 0;
 	std::stack<Edge*> s;
@@ -79,6 +98,22 @@ BlobInformation partitionNetworkIntoBlobs(const Network& network) {
 		unsigned int ret_blob_id = blob_info.edge_blob_id[firstParentEdgeIndex];
 		blob_info.reticulation_nodes_per_blob[ret_blob_id].emplace_back(retNode);
 	}
+
+	std::vector<Node*> parent = grab_current_node_parents(network);
+	// fill the megablob roots now.
+	std::vector<Node*> travbuffer = netrax::reversed_topological_sort(network);
+	unsigned int lastBlobId = std::numeric_limits<unsigned int>::infinity();
+	for (size_t i = 0; i < travbuffer.size(); ++i) {
+		Node* node = travbuffer[i];
+		unsigned int blobId = get_node_blob_id(node, blob_info, parent);
+		if (blobId != lastBlobId && i > 0) {
+			if (blob_info.blob_size[lastBlobId] == 1 && blob_info.blob_size[blobId] > 1) {
+				blob_info.megablob_roots.emplace_back(travbuffer[i - 1]);
+			}
+		}
+		lastBlobId = blobId;
+	}
+	blob_info.megablob_roots.emplace_back(network.root);
 
 	return blob_info;
 }
