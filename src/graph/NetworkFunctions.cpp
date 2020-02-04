@@ -373,32 +373,32 @@ std::vector<std::vector<size_t> > getDtBranchToNetworkBranchMapping(const pll_ut
 	return res;
 }
 
-void grab_current_node_parents_recursive(std::vector<const Node*>& parent, const Node* actNode) {
-	for (const Node* child : actNode->getChildren(parent[actNode->clv_index])){
+void grab_current_node_parents_recursive(std::vector<Node*>& parent, Node* actNode) {
+	for (Node* child : actNode->getChildren(parent[actNode->clv_index])){
 		parent[child->clv_index] = actNode;
 		grab_current_node_parents_recursive(parent, actNode);
 	}
 }
 
-std::vector<const Node*> grab_current_node_parents(const Network& network) {
-	std::vector<const Node*> parent(network.num_nodes(), nullptr);
+std::vector<Node*> grab_current_node_parents(const Network& network) {
+	std::vector<Node*> parent(network.num_nodes(), nullptr);
 	grab_current_node_parents_recursive(parent, network.root);
 	return parent;
 }
 
-std::vector<const Node*> reversed_topological_sort(const Network& network) {
-	std::vector<const Node*> res;
+std::vector<Node*> reversed_topological_sort(const Network& network) {
+	std::vector<Node*> res;
 	res.reserve(network.num_nodes());
-	std::vector<const Node*> parent = grab_current_node_parents(network);
+	std::vector<Node*> parent = grab_current_node_parents(network);
 	std::vector<unsigned int> indeg(network.num_nodes(), 0);
 
-	std::queue<const Node*> q;
+	std::queue<Node*> q;
 
 	// Kahn's algorithm for topological sorting
 
 	// compute indegree of all nodes
 	for (size_t i = 0; i < network.num_nodes(); ++i) {
-		const Node* actNode = &(network.nodes[i]);
+		Node* actNode = (Node*) &(network.nodes[i]); // TODO: dirty hack, trying to make pointer non-const
 		size_t act_clv_idx = actNode->clv_index;
 		indeg[act_clv_idx] = actNode->getChildren(parent[act_clv_idx]).size();
 		if (indeg[act_clv_idx] == 0) {
@@ -408,11 +408,11 @@ std::vector<const Node*> reversed_topological_sort(const Network& network) {
 
 	size_t num_visited_vertices = 0;
 	while (!q.empty()) {
-		const Node* actNode = q.front();
+		Node* actNode = q.front();
 		q.pop();
 		res.emplace_back(actNode);
 
-		for (const Node* neigh : actNode->getChildren(parent[actNode->clv_index])) {
+		for (Node* neigh : actNode->getChildren(parent[actNode->clv_index])) {
 			indeg[neigh->clv_index]--;
 			if (indeg[neigh->clv_index] == 0) {
 				q.emplace(neigh);

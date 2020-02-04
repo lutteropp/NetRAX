@@ -189,6 +189,8 @@ bool update_probs(Network& network, unsigned int partitionIdx, const std::vector
 	return reticulationProbsHaveChanged;
 }
 
+// TODO: Implement the Gray Code displayed tree iteration order and intelligent update of the operations array
+// TODO: Add the blobs
 std::vector<double> compute_persite_lh(unsigned int partitionIdx, Network &network, pllmod_treeinfo_t &fake_treeinfo, bool unlinked_mode,
 		bool update_reticulation_probs, unsigned int numSites, std::vector<BestPersiteLoglikelihoodData> &best_persite_logl_network) {
 	std::vector<double> persite_lh_network(fake_treeinfo.partitions[partitionIdx]->sites, 0.0);
@@ -217,8 +219,6 @@ std::vector<double> compute_persite_lh(unsigned int partitionIdx, Network &netwo
 }
 
 // TODO: Add bool incremental...
-// TODO: Implement the Gray Code displayed tree iteration order and intelligent update of the operations array
-// TODO: Add the blobs
 double processPartition(unsigned int partitionIdx, Network &network, pllmod_treeinfo_t &fake_treeinfo, int incremental,
 		bool update_reticulation_probs, std::vector<unsigned int> &totalTaken, std::vector<unsigned int> &totalNotTaken, bool unlinked_mode,
 		bool &reticulationProbsHaveChanged) {
