@@ -71,6 +71,37 @@ void createOperationsPostorder(Node *parent, Node *actNode, std::vector<pll_oper
 	ops.push_back(operation);
 }
 
+std::vector<pll_operation_t> createOperations(Network &network, const std::vector<Node*>& parent, BlobInformation& blobInfo, unsigned int megablobIdx, size_t treeIdx) {
+	std::vector<pll_operation_t> ops;
+	size_t fake_clv_index = network.nodes.size();
+	size_t fake_pmatrix_index = network.edges.size();
+	setReticulationParents(blobInfo, megablobIdx, treeIdx);
+
+	std::vector<bool> dead_nodes(network.nodes.size(), false);
+	fill_dead_nodes_recursive(nullptr, network.root, dead_nodes);
+
+	// Add the children of the other megablob roots as dead nodes, such that we don't continue down there...
+	for (size_t i = 0; i < blobInfo.megablob_roots.size(); ++i) {
+		if (i != megablobIdx) {
+			Node* actMegablobRoot = blobInfo.megablob_roots[i];
+			for (Node* child : actMegablobRoot->getChildren(parent[blobInfo.megablob_roots[i]->clv_index])) {
+				dead_nodes[child->clv_index] = true;
+			}
+		}
+	}
+
+	if (blobInfo.megablob_roots[megablobIdx] == network.root) {
+		// How to do the operations at the top-level root trifurcation?
+		// First with root->back, then with root...
+		createOperationsPostorder(network.root, network.root->getLink()->getTargetNode(), ops, fake_clv_index, fake_pmatrix_index, dead_nodes);
+		createOperationsPostorder(network.root->getLink()->getTargetNode(), network.root, ops, fake_clv_index, fake_pmatrix_index, dead_nodes);
+	} else {
+		Node* megablobRoot = blobInfo.megablob_roots[megablobIdx];
+		createOperationsPostorder(parent[megablobRoot->clv_index], megablobRoot, ops, fake_clv_index, fake_pmatrix_index, dead_nodes);
+	}
+	return ops;
+}
+
 std::vector<pll_operation_t> createOperations(Network &network, size_t treeIdx) {
 	std::vector<pll_operation_t> ops;
 	size_t fake_clv_index = network.nodes.size();

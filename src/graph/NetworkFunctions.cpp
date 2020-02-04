@@ -247,6 +247,14 @@ void setReticulationParents(Network &network, size_t treeIdx) {
 	}
 }
 
+void setReticulationParents(BlobInformation& blobInfo, unsigned int megablob_idx, size_t treeIdx) {
+	for (size_t i = 0; i < blobInfo.reticulation_nodes_per_megablob[megablob_idx].size(); ++i) {
+		// check if i-th bit is set in treeIdx
+		bool activeParentIdx = treeIdx & (1 << i);
+		blobInfo.reticulation_nodes_per_megablob[megablob_idx][i]->getReticulationData()->setActiveParent(activeParentIdx);
+	}
+}
+
 void forbidSubnetwork(Node *myParent, Node *node, std::vector<bool> &forbidden) {
 	if (forbidden[node->getClvIndex()])
 		return;

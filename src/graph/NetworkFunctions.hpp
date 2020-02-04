@@ -18,10 +18,8 @@ extern "C"
 }
 
 #include "Node.hpp"
-
-namespace netrax {
-class Network;
-} /* namespace netrax */
+#include "Network.hpp"
+#include "BiconnectedComponents.hpp"
 
 namespace netrax {
 
@@ -31,6 +29,7 @@ pll_utree_t* displayed_tree_to_utree(Network &network, size_t tree_index);
 std::vector<double> collectBranchLengths(const Network& network);
 void applyBranchLengths(Network& network, const std::vector<double>& branchLengths);
 void setReticulationParents(Network& network, size_t treeIdx);
+void setReticulationParents(BlobInformation& blobInfo, unsigned int megablob_idx, size_t treeIdx);
 /*
  * Find possible placements for the root node in a semi-rooted network.
  */

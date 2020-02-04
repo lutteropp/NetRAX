@@ -5,6 +5,8 @@
  *      Author: Sarah Lutteropp
  */
 
+#pragma once
+
 #include "Network.hpp"
 
 #include <vector>
