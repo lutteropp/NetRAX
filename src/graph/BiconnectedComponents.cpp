@@ -71,8 +71,10 @@ unsigned int get_node_blob_id(const Node* node, const BlobInformation& blobInfo,
 	};
 
 	if (res == std::numeric_limits<unsigned int>::infinity()) {
-		unsigned int edgeToParentBlobID = blobInfo.edge_blob_id[node->getEdgeTo(parent[node->clv_index])->pmatrix_index];
-		res = edgeToParentBlobID;
+		if (parent[node->clv_index] != nullptr) { // catch the network root node
+			unsigned int edgeToParentBlobID = blobInfo.edge_blob_id[node->getEdgeTo(parent[node->clv_index])->pmatrix_index];
+			res = edgeToParentBlobID;
+		}
 	}
 	return res;
 }
