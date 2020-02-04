@@ -158,8 +158,8 @@ double compute_tree_logl(Network &network, pllmod_treeinfo_t &fake_treeinfo, siz
 	return tree_partition_logl;
 }
 
-void compute_tree_logl_blobs(Network &network, BlobInformation& blobInfo, const std::vector<Node*>& parent, pllmod_treeinfo_t &fake_treeinfo, size_t megablob_idx, size_t tree_idx, size_t partition_idx,
-		std::vector<double> *persite_logl) {
+void compute_tree_logl_blobs(Network &network, BlobInformation& blobInfo, const std::vector<Node*>& parent,
+		pllmod_treeinfo_t &fake_treeinfo, size_t megablob_idx, size_t tree_idx, size_t partition_idx, std::vector<double> *persite_logl) {
 // Create pll_operations_t array for the current displayed tree
 	std::vector<pll_operation_t> ops = createOperations(network, parent, blobInfo, megablob_idx, tree_idx);
 	unsigned int ops_count = ops.size();
@@ -222,6 +222,33 @@ void updateBestPersiteLoglikelihoods(unsigned int treeIdx, unsigned int num_reti
 	}
 }
 
+void updateBestPersiteLoglikelihoodsBlobs(Network& network, const BlobInformation& blobInfo, unsigned int megablob_idx, unsigned int treeIdx,
+		unsigned int numSites, std::vector<BestPersiteLoglikelihoodData>& best_persite_logl_network, const std::vector<double> &persite_logl) {
+	for (size_t s = 0; s < numSites; ++s) {
+		if (best_persite_logl_network[s].best_site_logl < persite_logl[s]) {
+			std::fill(best_persite_logl_network[s].first_parent_taken_for_best_cnt.begin(),
+					best_persite_logl_network[s].first_parent_taken_for_best_cnt.end(), 0);
+			best_persite_logl_network[s].best_site_logl = persite_logl[s];
+		}
+		if (best_persite_logl_network[s].best_site_logl == persite_logl[s]) {
+			size_t num_reticulations = blobInfo.reticulation_nodes_per_megablob[megablob_idx].size();
+			for (size_t r = 0; r < num_reticulations; ++r) {
+				if (treeIdx & (1 << r)) {
+					size_t retIdxInNetwork = 0;
+					unsigned int retClVIdx = blobInfo.reticulation_nodes_per_megablob[megablob_idx][r]->clv_index;
+					for (size_t i = 0; i < network.reticulation_nodes.size(); ++i) {
+						if (network.reticulation_nodes[i]->clv_index == retClVIdx) {
+							retIdxInNetwork = i;
+							break;
+						}
+					}
+					best_persite_logl_network[s].first_parent_taken_for_best_cnt[retIdxInNetwork]++;
+				}
+			}
+		}
+	}
+}
+
 void update_total_taken(std::vector<unsigned int> &totalTaken, std::vector<unsigned int> &totalNotTaken, bool unlinked_mode,
 		unsigned int numSites, unsigned int num_reticulations, const std::vector<BestPersiteLoglikelihoodData> &best_persite_logl_network) {
 	if (unlinked_mode) {
@@ -274,8 +301,8 @@ std::vector<double> compute_persite_lh_blobs(unsigned int partitionIdx, Network 
 			std::vector<double> persite_logl(fake_treeinfo.partitions[partitionIdx]->sites, 0.0);
 			compute_tree_logl_blobs(network, blobInfo, parent, fake_treeinfo, megablob_idx, treeIdx, partitionIdx, &persite_logl);
 			if (update_reticulation_probs) {
-				// TODO: Adapt this function call for the blob trees
-				updateBestPersiteLoglikelihoods(treeIdx, network.num_reticulations(), numSites, best_persite_logl_network, persite_logl);
+				updateBestPersiteLoglikelihoodsBlobs(network, blobInfo, megablob_idx, treeIdx, numSites, best_persite_logl_network,
+						persite_logl);
 			}
 
 			if (megablob_idx == blobInfo.megablob_roots.size() - 1) { // we have reached the overall network root
