@@ -71,7 +71,8 @@ void createOperationsPostorder(Node *parent, Node *actNode, std::vector<pll_oper
 	ops.push_back(operation);
 }
 
-std::vector<pll_operation_t> createOperations(Network &network, const std::vector<Node*>& parent, BlobInformation& blobInfo, unsigned int megablobIdx, size_t treeIdx) {
+std::vector<pll_operation_t> createOperations(Network &network, const std::vector<Node*>& parent, BlobInformation& blobInfo,
+		unsigned int megablobIdx, size_t treeIdx) {
 	std::vector<pll_operation_t> ops;
 	size_t fake_clv_index = network.nodes.size();
 	size_t fake_pmatrix_index = network.edges.size();
@@ -93,8 +94,10 @@ std::vector<pll_operation_t> createOperations(Network &network, const std::vecto
 	if (blobInfo.megablob_roots[megablobIdx] == network.root) {
 		// How to do the operations at the top-level root trifurcation?
 		// First with root->back, then with root...
-		createOperationsPostorder(network.root, network.root->getLink()->getTargetNode(), ops, fake_clv_index, fake_pmatrix_index, dead_nodes);
-		createOperationsPostorder(network.root->getLink()->getTargetNode(), network.root, ops, fake_clv_index, fake_pmatrix_index, dead_nodes);
+		createOperationsPostorder(network.root, network.root->getLink()->getTargetNode(), ops, fake_clv_index, fake_pmatrix_index,
+				dead_nodes);
+		createOperationsPostorder(network.root->getLink()->getTargetNode(), network.root, ops, fake_clv_index, fake_pmatrix_index,
+				dead_nodes);
 	} else {
 		Node* megablobRoot = blobInfo.megablob_roots[megablobIdx];
 		createOperationsPostorder(parent[megablobRoot->clv_index], megablobRoot, ops, fake_clv_index, fake_pmatrix_index, dead_nodes);
@@ -127,6 +130,15 @@ double displayed_tree_prob(Network &network, size_t tree_index, size_t partition
 	return exp(logProb);
 }
 
+double displayed_tree_prob(BlobInformation& blobInfo, size_t megablob_idx, size_t tree_index, size_t partition_index) {
+	setReticulationParents(blobInfo, megablob_idx, tree_index);
+	double logProb = 0;
+	for (size_t i = 0; i < blobInfo.reticulation_nodes_per_megablob[megablob_idx].size(); ++i) {
+		logProb += log(blobInfo.reticulation_nodes_per_megablob[megablob_idx][i]->getReticulationData()->getActiveProb(partition_index));
+	}
+	return exp(logProb);
+}
+
 double compute_tree_logl(Network &network, pllmod_treeinfo_t &fake_treeinfo, size_t tree_idx, size_t partition_idx,
 		std::vector<double> *persite_logl) {
 // Create pll_operations_t array for the current displayed tree
@@ -144,6 +156,25 @@ double compute_tree_logl(Network &network, pllmod_treeinfo_t &fake_treeinfo, siz
 			ops_root->getScalerIndex(), rootBack->getClvIndex(), rootBack->getScalerIndex(), ops_root->getLink()->edge->pmatrix_index,
 			fake_treeinfo.param_indices[partition_idx], persite_logl->empty() ? nullptr : persite_logl->data());
 	return tree_partition_logl;
+}
+
+void compute_tree_logl_blobs(Network &network, BlobInformation& blobInfo, const std::vector<Node*>& parent, pllmod_treeinfo_t &fake_treeinfo, size_t megablob_idx, size_t tree_idx, size_t partition_idx,
+		std::vector<double> *persite_logl) {
+// Create pll_operations_t array for the current displayed tree
+	std::vector<pll_operation_t> ops = createOperations(network, parent, blobInfo, megablob_idx, tree_idx);
+	unsigned int ops_count = ops.size();
+
+	Node *ops_root = network.getNodeByClvIndex(ops[ops.size() - 1].parent_clv_index);
+
+// Compute CLVs in pll_update_partials, as specified by the operations array. This needs a pll_partition_t object.
+	pll_update_partials(fake_treeinfo.partitions[partition_idx], ops.data(), ops_count);
+
+	if (persite_logl != nullptr) {
+		Node *rootBack = network.root->getLink()->getTargetNode();
+		double tree_partition_logl = pll_compute_edge_loglikelihood(fake_treeinfo.partitions[partition_idx], ops_root->getClvIndex(),
+				ops_root->getScalerIndex(), rootBack->getClvIndex(), rootBack->getScalerIndex(), ops_root->getLink()->edge->pmatrix_index,
+				fake_treeinfo.param_indices[partition_idx], persite_logl->empty() ? nullptr : persite_logl->data());
+	}
 }
 
 // TODO: Add bool incremental...
@@ -218,6 +249,46 @@ bool update_probs(Network& network, unsigned int partitionIdx, const std::vector
 		network.reticulation_nodes[r]->getReticulationData()->setProb(newProb, partitionIdx);
 	}
 	return reticulationProbsHaveChanged;
+}
+
+// TODO: Implement the Gray Code displayed tree iteration order and intelligent update of the operations array
+// TODO: Add the blobs
+std::vector<double> compute_persite_lh_blobs(unsigned int partitionIdx, Network &network, BlobInformation& blobInfo,
+		const std::vector<Node*>& parent, pllmod_treeinfo_t &fake_treeinfo, bool unlinked_mode, bool update_reticulation_probs,
+		unsigned int numSites, std::vector<BestPersiteLoglikelihoodData> &best_persite_logl_network) {
+
+	throw std::runtime_error("Code is still under construction, implementation not finished yet");
+
+	std::vector<double> persite_lh_network(fake_treeinfo.partitions[partitionIdx]->sites, 0.0);
+	// Iterate over all megablobs in a bottom-up manner
+	for (size_t megablob_idx = 0; megablob_idx < blobInfo.megablob_roots.size(); ++megablob_idx) {
+		size_t n_trees = 1 << blobInfo.reticulation_nodes_per_megablob[megablob_idx].size();
+		// iterate over all displayed trees within the megablob, storing their tree clvs and tree probs
+		std::vector<std::pair<std::vector<double>, double> > tree_clvs;
+		tree_clvs.reserve(n_trees);
+		for (size_t treeIdx = 0; treeIdx < n_trees; ++treeIdx) {
+			double tree_prob = displayed_tree_prob(blobInfo, megablob_idx, treeIdx, partitionIdx);
+			if (tree_prob == 0.0 && !update_reticulation_probs) {
+				continue;
+			}
+			std::vector<double> persite_logl(fake_treeinfo.partitions[partitionIdx]->sites, 0.0);
+			compute_tree_logl_blobs(network, blobInfo, parent, fake_treeinfo, megablob_idx, treeIdx, partitionIdx, &persite_logl);
+			if (update_reticulation_probs) {
+				// TODO: Adapt this function call for the blob trees
+				updateBestPersiteLoglikelihoods(treeIdx, network.num_reticulations(), numSites, best_persite_logl_network, persite_logl);
+			}
+
+			if (megablob_idx == blobInfo.megablob_roots.size() - 1) { // we have reached the overall network root
+				for (size_t s = 0; s < numSites; ++s) {
+					persite_lh_network[s] += exp(persite_logl[s]) * tree_prob;
+				}
+			}
+		}
+		// TODO: merge the tree clvs into the megablob root clv
+		// ...
+	}
+
+	return persite_lh_network;
 }
 
 // TODO: Implement the Gray Code displayed tree iteration order and intelligent update of the operations array
