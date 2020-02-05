@@ -279,6 +279,29 @@ bool update_probs(Network& network, unsigned int partitionIdx, const std::vector
 	return reticulationProbsHaveChanged;
 }
 
+void merge_tree_clvs(const std::vector<std::pair<double, std::vector<double>>>& tree_clvs, pll_partition_t* partition,
+		unsigned int rootCLVIndex) {
+	unsigned int states = partition->states;
+	unsigned int states_padded = partition->states_padded;
+	unsigned int sites = partition->sites;
+	unsigned int rate_cats = partition->rate_cats;
+	unsigned int clv_len = states_padded * sites * rate_cats;
+
+	double* clv = partition->clv[rootCLVIndex];
+
+	for (unsigned int n = 0; n < sites; ++n) {
+		for (unsigned int i = 0; i < rate_cats; ++i) {
+			for (unsigned int j = 0; j < states; ++j) {
+				clv[j] = 0;
+				for (unsigned int k = 0; j < tree_clvs.size(); ++k) {
+					clv[j] += tree_clvs[k].first * tree_clvs[k].second[j];
+				}
+			}
+			clv += states_padded;
+		}
+	}
+}
+
 // TODO: Implement the Gray Code displayed tree iteration order and intelligent update of the operations array
 // TODO: Add the blobs
 std::vector<double> compute_persite_lh_blobs(unsigned int partitionIdx, Network &network, BlobInformation& blobInfo,
@@ -299,6 +322,7 @@ std::vector<double> compute_persite_lh_blobs(unsigned int partitionIdx, Network 
 		// iterate over all displayed trees within the megablob, storing their tree clvs and tree probs
 		std::vector<std::pair<double, std::vector<double>> > tree_clvs;
 		tree_clvs.reserve(n_trees);
+		unsigned int megablobRootClvIdx = blobInfo.megablob_roots[megablob_idx]->clv_index;
 		for (size_t treeIdx = 0; treeIdx < n_trees; ++treeIdx) {
 			double tree_prob = displayed_tree_prob(blobInfo, megablob_idx, treeIdx, partitionIdx);
 			if (tree_prob == 0.0 && !update_reticulation_probs) {
@@ -318,13 +342,12 @@ std::vector<double> compute_persite_lh_blobs(unsigned int partitionIdx, Network 
 
 			// extract the tree root clv vector and put it into tree_clvs together with its displayed tree probability
 			std::vector<double> treeRootCLV;
-			unsigned int megablobRootClvIdx = blobInfo.megablob_roots[megablob_idx]->clv_index;
 			treeRootCLV.assign(fake_treeinfo.partitions[partitionIdx]->clv[megablobRootClvIdx],
 					fake_treeinfo.partitions[partitionIdx]->clv[megablobRootClvIdx] + clv_len);
 			tree_clvs.emplace_back(std::make_pair(tree_prob, treeRootCLV));
 		}
-		// TODO: merge the tree clvs into the megablob root clv
-		// ...
+		// merge the tree clvs into the megablob root clv
+		merge_tree_clvs(tree_clvs, fake_treeinfo.partitions[partitionIdx], megablobRootClvIdx);
 	}
 
 	return persite_lh_network;
