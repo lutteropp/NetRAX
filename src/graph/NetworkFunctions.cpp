@@ -382,7 +382,9 @@ std::vector<std::vector<size_t> > getDtBranchToNetworkBranchMapping(const pll_ut
 }
 
 void grab_current_node_parents_recursive(std::vector<Node*>& parent, Node* actNode) {
+	assert(actNode != nullptr);
 	for (Node* child : actNode->getChildren(parent[actNode->clv_index])){
+		assert(child != nullptr);
 		parent[child->clv_index] = actNode;
 		grab_current_node_parents_recursive(parent, actNode);
 	}
