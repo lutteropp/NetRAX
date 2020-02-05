@@ -352,12 +352,15 @@ TEST_F (LikelihoodTest, likelihoodFunctionsTree) {
 
 	RaxmlWrapper::NetworkParams* params = (RaxmlWrapper::NetworkParams*) network_treeinfo_tree.pll_treeinfo().likelihood_computation_params;
 
-
 	double norep_logl = computeLoglikelihood(treeNetwork, *(params->network_treeinfo), 0, 1);
 	std::cout << "norep_logl: " << norep_logl << "\n";
 
+	double norep_logl_blobs = computeLoglikelihood(treeNetwork, *(params->network_treeinfo), 0, 1, false, true);
+	std::cout << "norep_logl_blobs: " << norep_logl_blobs << "\n";
+
 	EXPECT_EQ(raxml_logl, naive_logl);
 	EXPECT_EQ(naive_logl, norep_logl);
+	EXPECT_EQ(norep_logl_blobs, norep_logl);
 }
 
 TEST_F (LikelihoodTest, likelihoodFunctionsNetwork) {
@@ -370,8 +373,12 @@ TEST_F (LikelihoodTest, likelihoodFunctionsNetwork) {
 	double norep_logl = computeLoglikelihood(smallNetwork, *(params->network_treeinfo), 0, 1);
 	std::cout << "norep_logl: " << norep_logl << "\n";
 
+	double norep_logl_blobs = computeLoglikelihood(smallNetwork, *(params->network_treeinfo), 0, 1, false, true);
+	std::cout << "norep_logl_blobs: " << norep_logl_blobs << "\n";
+
 	EXPECT_NEAR(naive_logl, norep_logl, 0.1);
 	EXPECT_NE(norep_logl, -std::numeric_limits<double>::infinity());
+	EXPECT_EQ(norep_logl_blobs, norep_logl);
 }
 
 TEST_F (LikelihoodTest, updateReticulationProb) {
