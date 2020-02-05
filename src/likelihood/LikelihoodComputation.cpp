@@ -307,9 +307,6 @@ void merge_tree_clvs(const std::vector<std::pair<double, std::vector<double>>>& 
 std::vector<double> compute_persite_lh_blobs(unsigned int partitionIdx, Network &network, BlobInformation& blobInfo,
 		const std::vector<Node*>& parent, pllmod_treeinfo_t &fake_treeinfo, bool unlinked_mode, bool update_reticulation_probs,
 		unsigned int numSites, std::vector<BestPersiteLoglikelihoodData> &best_persite_logl_network) {
-
-	throw std::runtime_error("Code is still under construction, implementation not finished yet");
-
 	unsigned int states_padded = fake_treeinfo.partitions[partitionIdx]->states_padded;
 	unsigned int sites = fake_treeinfo.partitions[partitionIdx]->sites;
 	unsigned int rate_cats = fake_treeinfo.partitions[partitionIdx]->rate_cats;

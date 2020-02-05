@@ -69,15 +69,15 @@ void remove_dead_children(std::vector<Node*>& children, const std::vector<bool>&
 	}), children.end());
 }
 
-
 struct CumulatedChild {
 	const Node* child = nullptr;
 	const Node* direct_parent = nullptr;
 	double cum_brlen = 0.0;
 };
 
-CumulatedChild getCumulatedChild(const Node* parent, const Node* child, const std::vector<bool>& dead_nodes, const std::vector<bool>& skipped_nodes) {
-	CumulatedChild res{child, parent, 0.0};
+CumulatedChild getCumulatedChild(const Node* parent, const Node* child, const std::vector<bool>& dead_nodes,
+		const std::vector<bool>& skipped_nodes) {
+	CumulatedChild res { child, parent, 0.0 };
 	res.cum_brlen += child->getEdgeTo(parent)->length;
 	const Node* act_parent = parent;
 	while (skipped_nodes[res.child->clv_index]) {
@@ -92,7 +92,8 @@ CumulatedChild getCumulatedChild(const Node* parent, const Node* child, const st
 	return res;
 }
 
-std::vector<CumulatedChild> getCumulatedChildren(const Node* parent, const Node* actNode, const std::vector<bool>& dead_nodes, const std::vector<bool>& skipped_nodes) {
+std::vector<CumulatedChild> getCumulatedChildren(const Node* parent, const Node* actNode, const std::vector<bool>& dead_nodes,
+		const std::vector<bool>& skipped_nodes) {
 	assert(actNode);
 	std::vector<CumulatedChild> res;
 	assert(!skipped_nodes[actNode->clv_index]);
@@ -173,7 +174,8 @@ void fill_dead_nodes_recursive(const Node* myParent, const Node* node, std::vect
 	}
 }
 
-void fill_skipped_nodes_recursive(const Node* myParent, const Node* node, const std::vector<bool>& dead_nodes, std::vector<bool>& skipped_nodes) {
+void fill_skipped_nodes_recursive(const Node* myParent, const Node* node, const std::vector<bool>& dead_nodes,
+		std::vector<bool>& skipped_nodes) {
 	if (node->isTip()) {
 		return; // tip nodes never need to be skipped/ contracted
 	}
@@ -192,7 +194,6 @@ void fill_skipped_nodes_recursive(const Node* myParent, const Node* node, const 
 		fill_skipped_nodes_recursive(node, activeChildren[i], dead_nodes, skipped_nodes);
 	}
 }
-
 
 pll_utree_t* displayed_tree_to_utree(Network &network, size_t tree_index) {
 	setReticulationParents(network, tree_index);
@@ -384,7 +385,7 @@ std::vector<std::vector<size_t> > getDtBranchToNetworkBranchMapping(const pll_ut
 void grab_current_node_parents_recursive(std::vector<Node*>& parent, Node* actNode) {
 	assert(actNode != nullptr);
 	std::vector<Node*> children = actNode->getChildren(parent[actNode->clv_index]);
-	for (Node* child : children){
+	for (Node* child : children) {
 		assert(child != nullptr);
 		parent[child->clv_index] = actNode;
 		grab_current_node_parents_recursive(parent, child);
@@ -401,18 +402,18 @@ std::vector<Node*> reversed_topological_sort(const Network& network) {
 	std::vector<Node*> res;
 	res.reserve(network.num_nodes());
 	std::vector<Node*> parent = grab_current_node_parents(network);
-	std::vector<unsigned int> indeg(network.num_nodes(), 0);
+	std::vector<unsigned int> outdeg(network.num_nodes(), 0);
 
 	std::queue<Node*> q;
 
 	// Kahn's algorithm for topological sorting
 
-	// compute indegree of all nodes
+	// compute outdegree of all nodes
 	for (size_t i = 0; i < network.num_nodes(); ++i) {
 		Node* actNode = (Node*) &(network.nodes[i]); // TODO: dirty hack, trying to make pointer non-const
 		size_t act_clv_idx = actNode->clv_index;
-		indeg[act_clv_idx] = actNode->getChildren(parent[act_clv_idx]).size();
-		if (indeg[act_clv_idx] == 0) {
+		outdeg[act_clv_idx] = actNode->getChildren(parent[act_clv_idx]).size();
+		if (outdeg[act_clv_idx] == 0) {
 			q.emplace(actNode);
 		}
 	}
@@ -423,10 +424,21 @@ std::vector<Node*> reversed_topological_sort(const Network& network) {
 		q.pop();
 		res.emplace_back(actNode);
 
-		for (Node* neigh : actNode->getChildren(parent[actNode->clv_index])) {
-			indeg[neigh->clv_index]--;
-			if (indeg[neigh->clv_index] == 0) {
-				q.emplace(neigh);
+		if (actNode->type == NodeType::BASIC_NODE) {
+			if (parent[actNode->clv_index] != nullptr) { // catch special case for root node
+				outdeg[parent[actNode->clv_index]->clv_index]--;
+				if (outdeg[parent[actNode->clv_index]->clv_index] == 0) {
+					q.emplace(parent[actNode->clv_index]);
+				}
+			}
+		} else { // reticulation node. It has 2 parents and 1 child
+			for (Node* neigh : actNode->getNeighbors()) {
+				if (parent[neigh->clv_index] != actNode) {
+					outdeg[neigh->clv_index]--;
+					if (outdeg[neigh->clv_index] == 0) {
+						q.emplace(neigh);
+					}
+				}
 			}
 		}
 		num_visited_vertices++;
@@ -438,6 +450,5 @@ std::vector<Node*> reversed_topological_sort(const Network& network) {
 
 	return res;
 }
-
 
 }
