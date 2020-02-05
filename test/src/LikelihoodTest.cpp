@@ -427,8 +427,12 @@ TEST_F (LikelihoodTest, celineNetwork) {
 	double norep_logl = computeLoglikelihood(network, *(params->network_treeinfo), 0, 1);
 	std::cout << "norep_logl: " << norep_logl << "\n";
 
+	double norep_logl_blobs = computeLoglikelihood(network, *(params->network_treeinfo), 0, 1, false, true);
+	std::cout << "norep_logl_blobs: " << norep_logl_blobs << "\n";
+
 	EXPECT_EQ(naive_logl, -std::numeric_limits<double>::infinity());
 	EXPECT_NE(norep_logl, -std::numeric_limits<double>::infinity());
+	EXPECT_EQ(norep_logl_blobs, norep_logl);
 }
 
 TEST_F (LikelihoodTest, celineNetworkNonzeroBranches) {
