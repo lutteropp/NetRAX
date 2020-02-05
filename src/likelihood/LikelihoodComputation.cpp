@@ -294,7 +294,7 @@ void merge_tree_clvs(const std::vector<std::pair<double, std::vector<double>>>& 
 			for (unsigned int j = 0; j < states; ++j) {
 				clv[j] = 0;
 				for (unsigned int k = 0; k < tree_clvs.size(); ++k) {
-					clv[j] += tree_clvs[k].first * tree_clvs[k].second[j]; // TODO: This is not the correct index in teh tree clv!
+					clv[j] += tree_clvs[k].first * tree_clvs[k].second[j + i * states_padded];
 				}
 			}
 			clv += states_padded;
