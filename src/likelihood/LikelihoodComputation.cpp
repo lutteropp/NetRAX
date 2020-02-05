@@ -340,14 +340,18 @@ std::vector<double> compute_persite_lh_blobs(unsigned int partitionIdx, Network 
 				}
 			}
 
-			// extract the tree root clv vector and put it into tree_clvs together with its displayed tree probability
-			std::vector<double> treeRootCLV;
-			treeRootCLV.assign(fake_treeinfo.partitions[partitionIdx]->clv[megablobRootClvIdx],
-					fake_treeinfo.partitions[partitionIdx]->clv[megablobRootClvIdx] + clv_len);
-			tree_clvs.emplace_back(std::make_pair(tree_prob, treeRootCLV));
+			if (n_trees > 1) {
+				// extract the tree root clv vector and put it into tree_clvs together with its displayed tree probability
+				std::vector<double> treeRootCLV;
+				treeRootCLV.assign(fake_treeinfo.partitions[partitionIdx]->clv[megablobRootClvIdx],
+						fake_treeinfo.partitions[partitionIdx]->clv[megablobRootClvIdx] + clv_len);
+				tree_clvs.emplace_back(std::make_pair(tree_prob, treeRootCLV));
+			}
 		}
-		// merge the tree clvs into the megablob root clv
-		merge_tree_clvs(tree_clvs, fake_treeinfo.partitions[partitionIdx], megablobRootClvIdx);
+		if (n_trees > 1) {
+			// merge the tree clvs into the megablob root clv
+			merge_tree_clvs(tree_clvs, fake_treeinfo.partitions[partitionIdx], megablobRootClvIdx);
+		}
 	}
 
 	return persite_lh_network;
