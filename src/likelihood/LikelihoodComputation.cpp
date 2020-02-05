@@ -389,7 +389,7 @@ std::vector<double> compute_persite_lh(unsigned int partitionIdx, Network &netwo
 // TODO: Add bool incremental...
 double processPartition(unsigned int partitionIdx, Network &network, pllmod_treeinfo_t &fake_treeinfo, int incremental,
 		bool update_reticulation_probs, std::vector<unsigned int> &totalTaken, std::vector<unsigned int> &totalNotTaken, bool unlinked_mode,
-		bool &reticulationProbsHaveChanged) {
+		bool &reticulationProbsHaveChanged, bool useBlobs = false) {
 	unsigned int numSites = fake_treeinfo.partitions[partitionIdx]->sites;
 	std::vector<BestPersiteLoglikelihoodData> best_persite_logl_network;
 	if (update_reticulation_probs) {
@@ -398,8 +398,16 @@ double processPartition(unsigned int partitionIdx, Network &network, pllmod_tree
 		reticulationProbsHaveChanged = false;
 	}
 
-	std::vector<double> persite_lh_network = compute_persite_lh(partitionIdx, network, fake_treeinfo, unlinked_mode,
+	std::vector<double> persite_lh_network;
+	if (!useBlobs) {
+		persite_lh_network = compute_persite_lh(partitionIdx, network, fake_treeinfo, unlinked_mode,
 			update_reticulation_probs, numSites, best_persite_logl_network);
+	} else {
+		BlobInformation blobInfo = partitionNetworkIntoBlobs(network);
+		std::vector<Node*> parent = grab_current_node_parents(network);
+		persite_lh_network = compute_persite_lh_blobs(partitionIdx, network, blobInfo, parent, fake_treeinfo, unlinked_mode,
+					update_reticulation_probs, numSites, best_persite_logl_network);
+	}
 
 	double network_partition_logl = 0.0;
 	for (size_t s = 0; s < numSites; ++s) {
@@ -419,7 +427,7 @@ double processPartition(unsigned int partitionIdx, Network &network, pllmod_tree
 }
 
 double computeLoglikelihood(Network &network, pllmod_treeinfo_t &fake_treeinfo, int incremental, int update_pmatrices,
-		bool update_reticulation_probs) {
+		bool update_reticulation_probs, bool useBlobs) {
 	setup_pmatrices(network, fake_treeinfo, incremental, update_pmatrices);
 	const int old_active_partition = fake_treeinfo.active_partition;
 	fake_treeinfo.active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
@@ -434,7 +442,7 @@ double computeLoglikelihood(Network &network, pllmod_treeinfo_t &fake_treeinfo, 
 	for (size_t partitionIdx = 0; partitionIdx < fake_treeinfo.partition_count; ++partitionIdx) {
 		fake_treeinfo.active_partition = partitionIdx;
 		double network_partition_logl = processPartition(partitionIdx, network, fake_treeinfo, incremental, update_reticulation_probs,
-				totalTaken, totalNotTaken, unlinked_mode, reticulationProbsHaveChanged);
+				totalTaken, totalNotTaken, unlinked_mode, reticulationProbsHaveChanged, useBlobs);
 		network_logl += network_partition_logl;
 	}
 
@@ -446,7 +454,7 @@ double computeLoglikelihood(Network &network, pllmod_treeinfo_t &fake_treeinfo, 
 	fake_treeinfo.active_partition = old_active_partition;
 
 	if (update_reticulation_probs && reticulationProbsHaveChanged) {
-		return computeLoglikelihood(network, fake_treeinfo, incremental, false, false);
+		return computeLoglikelihood(network, fake_treeinfo, incremental, false, false, useBlobs);
 	} else {
 		return network_logl;
 	}
