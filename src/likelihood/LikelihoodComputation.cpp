@@ -222,8 +222,9 @@ void updateBestPersiteLoglikelihoods(unsigned int treeIdx, unsigned int num_reti
 	}
 }
 
-void updateBestPersiteLoglikelihoodsBlobs(Network& network, const BlobInformation& blobInfo, unsigned int megablob_idx, unsigned int treeIdx,
-		unsigned int numSites, std::vector<BestPersiteLoglikelihoodData>& best_persite_logl_network, const std::vector<double> &persite_logl) {
+void updateBestPersiteLoglikelihoodsBlobs(Network& network, const BlobInformation& blobInfo, unsigned int megablob_idx,
+		unsigned int treeIdx, unsigned int numSites, std::vector<BestPersiteLoglikelihoodData>& best_persite_logl_network,
+		const std::vector<double> &persite_logl) {
 	for (size_t s = 0; s < numSites; ++s) {
 		if (best_persite_logl_network[s].best_site_logl < persite_logl[s]) {
 			std::fill(best_persite_logl_network[s].first_parent_taken_for_best_cnt.begin(),
@@ -286,12 +287,17 @@ std::vector<double> compute_persite_lh_blobs(unsigned int partitionIdx, Network 
 
 	throw std::runtime_error("Code is still under construction, implementation not finished yet");
 
+	unsigned int states_padded = fake_treeinfo.partitions[partitionIdx]->states_padded;
+	unsigned int sites = fake_treeinfo.partitions[partitionIdx]->sites;
+	unsigned int rate_cats = fake_treeinfo.partitions[partitionIdx]->rate_cats;
+	unsigned int clv_len = states_padded * sites * rate_cats;
+
 	std::vector<double> persite_lh_network(fake_treeinfo.partitions[partitionIdx]->sites, 0.0);
 	// Iterate over all megablobs in a bottom-up manner
 	for (size_t megablob_idx = 0; megablob_idx < blobInfo.megablob_roots.size(); ++megablob_idx) {
 		size_t n_trees = 1 << blobInfo.reticulation_nodes_per_megablob[megablob_idx].size();
 		// iterate over all displayed trees within the megablob, storing their tree clvs and tree probs
-		std::vector<std::pair<std::vector<double>, double> > tree_clvs;
+		std::vector<std::pair<double, std::vector<double>> > tree_clvs;
 		tree_clvs.reserve(n_trees);
 		for (size_t treeIdx = 0; treeIdx < n_trees; ++treeIdx) {
 			double tree_prob = displayed_tree_prob(blobInfo, megablob_idx, treeIdx, partitionIdx);
@@ -304,12 +310,18 @@ std::vector<double> compute_persite_lh_blobs(unsigned int partitionIdx, Network 
 				updateBestPersiteLoglikelihoodsBlobs(network, blobInfo, megablob_idx, treeIdx, numSites, best_persite_logl_network,
 						persite_logl);
 			}
-
 			if (megablob_idx == blobInfo.megablob_roots.size() - 1) { // we have reached the overall network root
 				for (size_t s = 0; s < numSites; ++s) {
 					persite_lh_network[s] += exp(persite_logl[s]) * tree_prob;
 				}
 			}
+
+			// extract the tree root clv vector and put it into tree_clvs together with its displayed tree probability
+			std::vector<double> treeRootCLV;
+			unsigned int megablobRootClvIdx = blobInfo.megablob_roots[megablob_idx]->clv_index;
+			treeRootCLV.assign(fake_treeinfo.partitions[partitionIdx]->clv[megablobRootClvIdx],
+					fake_treeinfo.partitions[partitionIdx]->clv[megablobRootClvIdx] + clv_len);
+			tree_clvs.emplace_back(std::make_pair(tree_prob, treeRootCLV));
 		}
 		// TODO: merge the tree clvs into the megablob root clv
 		// ...
