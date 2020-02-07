@@ -136,12 +136,12 @@ TEST_F (LikelihoodTest, displayedTreeOfTreeToUtree) {
 	}
 }
 
-int cb_trav_all(pll_unode_t* node) {
+int cb_trav_all(pll_unode_t *node) {
 	(pll_unode_t*) node;
 	return 1;
 }
 
-std::unordered_set<std::string> collect_tip_labels_utree(pll_utree_t* utree) {
+std::unordered_set<std::string> collect_tip_labels_utree(pll_utree_t *utree) {
 	std::unordered_set<std::string> labels;
 
 	std::vector<pll_unode_t*> outbuffer(utree->inner_count + utree->tip_count);
@@ -156,7 +156,7 @@ std::unordered_set<std::string> collect_tip_labels_utree(pll_utree_t* utree) {
 	return labels;
 }
 
-bool no_clv_indices_equal(pll_utree_t* utree) {
+bool no_clv_indices_equal(pll_utree_t *utree) {
 	std::unordered_set<unsigned int> clv_idx;
 
 	std::vector<pll_unode_t*> outbuffer(utree->inner_count + utree->tip_count);
@@ -205,7 +205,7 @@ TEST_F (LikelihoodTest, simpleTreeNoRepeatsNormalRaxml) {
 	EXPECT_NE(network_logl, -std::numeric_limits<double>::infinity());
 }
 
-void compare_clv(double* clv_raxml, double* clv_network, size_t clv_size) {
+void compare_clv(double *clv_raxml, double *clv_network, size_t clv_size) {
 	for (size_t i = 0; i < clv_size; ++i) {
 		EXPECT_EQ(clv_raxml[i], clv_network[i]);
 	}
@@ -341,7 +341,7 @@ TEST_F (LikelihoodTest, simpleTreeNoRepeats) {
 }
 
 TEST_F (LikelihoodTest, likelihoodFunctionsTree) {
-	pll_utree_t* utree = displayed_tree_to_utree(treeNetwork, 0);
+	pll_utree_t *utree = displayed_tree_to_utree(treeNetwork, 0);
 	TreeInfo raxml_treeinfo_tree = treeWrapper->createRaxmlTreeinfo(utree);
 	double raxml_logl = raxml_treeinfo_tree.loglh(0);
 	std::cout << "raxml logl: " << raxml_logl << "\n";
@@ -350,7 +350,8 @@ TEST_F (LikelihoodTest, likelihoodFunctionsTree) {
 	double naive_logl = computeLoglikelihoodNaiveUtree(*(treeWrapper.get()), treeNetwork, 0, 1);
 	std::cout << "naive logl: " << naive_logl << "\n";
 
-	RaxmlWrapper::NetworkParams* params = (RaxmlWrapper::NetworkParams*) network_treeinfo_tree.pll_treeinfo().likelihood_computation_params;
+	RaxmlWrapper::NetworkParams *params =
+			(RaxmlWrapper::NetworkParams*) network_treeinfo_tree.pll_treeinfo().likelihood_computation_params;
 
 	double norep_logl = computeLoglikelihood(treeNetwork, *(params->network_treeinfo), 0, 1);
 	std::cout << "norep_logl: " << norep_logl << "\n";
@@ -365,7 +366,8 @@ TEST_F (LikelihoodTest, likelihoodFunctionsTree) {
 
 TEST_F (LikelihoodTest, likelihoodFunctionsNetwork) {
 	TreeInfo network_treeinfo_small = smallWrapper->createRaxmlTreeinfo(smallNetwork);
-	RaxmlWrapper::NetworkParams* params = (RaxmlWrapper::NetworkParams*) network_treeinfo_small.pll_treeinfo().likelihood_computation_params;
+	RaxmlWrapper::NetworkParams *params =
+			(RaxmlWrapper::NetworkParams*) network_treeinfo_small.pll_treeinfo().likelihood_computation_params;
 
 	double naive_logl = computeLoglikelihoodNaiveUtree(*(smallWrapper.get()), smallNetwork, 0, 1);
 	std::cout << "naive logl: " << naive_logl << "\n";
@@ -381,9 +383,40 @@ TEST_F (LikelihoodTest, likelihoodFunctionsNetwork) {
 	EXPECT_EQ(norep_logl_blobs, norep_logl);
 }
 
+TEST_F (LikelihoodTest, likelihoodFunctionsNetworkTiny) {
+	std::string tinyNetworkPath = "examples/sample_networks/tiny.nw";
+	std::string tinyMsaPath = "examples/sample_networks/tiny_fake_alignment.nw";
+	Network tinyNetwork = netrax::readNetworkFromFile(tinyNetworkPath);
+
+	NetraxOptions tinyOptions;
+	tinyOptions.network_file = tinyNetworkPath;
+	tinyOptions.msa_file = tinyMsaPath;
+	tinyOptions.use_repeats = false;
+
+	RaxmlWrapper tinyWrapper(tinyOptions);
+
+	TreeInfo network_treeinfo_tiny = tinyWrapper.createRaxmlTreeinfo(tinyNetwork);
+	RaxmlWrapper::NetworkParams *params =
+			(RaxmlWrapper::NetworkParams*) network_treeinfo_tiny.pll_treeinfo().likelihood_computation_params;
+
+	double naive_logl = computeLoglikelihoodNaiveUtree(tinyWrapper, tinyNetwork, 0, 1);
+	std::cout << "naive logl: " << naive_logl << "\n";
+
+	double norep_logl = computeLoglikelihood(tinyNetwork, *(params->network_treeinfo), 0, 1);
+	std::cout << "norep_logl: " << norep_logl << "\n";
+
+	double norep_logl_blobs = computeLoglikelihood(tinyNetwork, *(params->network_treeinfo), 0, 1, false, true);
+	std::cout << "norep_logl_blobs: " << norep_logl_blobs << "\n";
+
+	EXPECT_NEAR(naive_logl, norep_logl, 0.1);
+	EXPECT_NE(norep_logl, -std::numeric_limits<double>::infinity());
+	EXPECT_EQ(norep_logl_blobs, norep_logl);
+}
+
 TEST_F (LikelihoodTest, updateReticulationProb) {
 	TreeInfo network_treeinfo_small = smallWrapper->createRaxmlTreeinfo(smallNetwork);
-	RaxmlWrapper::NetworkParams* params = (RaxmlWrapper::NetworkParams*) network_treeinfo_small.pll_treeinfo().likelihood_computation_params;
+	RaxmlWrapper::NetworkParams *params =
+			(RaxmlWrapper::NetworkParams*) network_treeinfo_small.pll_treeinfo().likelihood_computation_params;
 
 	double norep_logl = computeLoglikelihood(smallNetwork, *(params->network_treeinfo), 0, 1, true);
 	std::cout << "norep_logl: " << norep_logl << "\n";
@@ -426,7 +459,8 @@ TEST_F (LikelihoodTest, celineNetwork) {
 	RaxmlWrapper wrapper(options);
 	TreeInfo treeInfo = wrapper.createRaxmlTreeinfo(network);
 
-	RaxmlWrapper::NetworkParams* params = (RaxmlWrapper::NetworkParams*) treeInfo.pll_treeinfo().likelihood_computation_params;
+	RaxmlWrapper::NetworkParams *params =
+			(RaxmlWrapper::NetworkParams*) treeInfo.pll_treeinfo().likelihood_computation_params;
 
 	double naive_logl = computeLoglikelihoodNaiveUtree(wrapper, network, 0, 1);
 	std::cout << "naive logl: " << naive_logl << "\n";
@@ -452,7 +486,8 @@ TEST_F (LikelihoodTest, celineNetworkNonzeroBranches) {
 	RaxmlWrapper wrapper(options);
 	TreeInfo treeInfo = wrapper.createRaxmlTreeinfo(network);
 
-	RaxmlWrapper::NetworkParams* params = (RaxmlWrapper::NetworkParams*) treeInfo.pll_treeinfo().likelihood_computation_params;
+	RaxmlWrapper::NetworkParams *params =
+			(RaxmlWrapper::NetworkParams*) treeInfo.pll_treeinfo().likelihood_computation_params;
 
 	double norep_logl = computeLoglikelihood(network, *(params->network_treeinfo), 0, 1);
 	std::cout << "norep_logl: " << norep_logl << "\n";
