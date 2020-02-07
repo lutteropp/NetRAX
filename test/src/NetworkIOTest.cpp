@@ -150,6 +150,14 @@ TEST_F (NetworkIOTest, readSimpleNetwork2) {
 	sanity_checks(network);
 }
 
+TEST_F (NetworkIOTest, reticulationHasLeafChild) {
+	std::string input = "((A:2,(B:1)X#H1)Q:2,(D:2,X#H1)R:2);";
+	Network network = readNetworkFromString(input);
+	ASSERT_EQ(3, network.num_tips());
+	sanity_checks(network);
+}
+
+
 TEST_F (NetworkIOTest, readSimpleNetworkReticulationNoExtra) {
 	std::string input = "((A:2,((B:1,C:1)P:1)X#H1)Q:2,(D:2,X#H1)R:2);";
 	Network network = readNetworkFromString(input);
