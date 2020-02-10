@@ -44,6 +44,12 @@ void createOperationsPostorder(Node *parent, Node *actNode, std::vector<pll_oper
 			createOperationsPostorder(actNode, activeChildren[i], ops, fake_clv_index, fake_pmatrix_index, dead_nodes);
 		}
 	}
+
+	// If both children are dead nodes, do not create this operation
+	if (dead_nodes[activeChildren[0]->getClvIndex()] && dead_nodes[activeChildren[1]->getClvIndex()]) {
+		return;
+	}
+
 	pll_operation_t operation;
 	operation.parent_clv_index = actNode->getClvIndex();
 	operation.parent_scaler_index = actNode->getScalerIndex();
@@ -184,7 +190,6 @@ double compute_tree_logl(Network &network, pllmod_treeinfo_t &fake_treeinfo, siz
 						fake_treeinfo.param_indices[partition_idx], persite_logl->empty() ? nullptr : persite_logl->data());
 		std::cout << "tree_partition_logl for subnetwork root clv index " << node->clv_index << ", tree_idx " << tree_idx << ": " << l << "\n";
 	}
-
 	// just for debug 2: print all clv vectors
 	for (size_t i = 0; i < network.nodes.size(); ++i) {
 		print_clv_vector(fake_treeinfo, tree_idx, partition_idx, i);
