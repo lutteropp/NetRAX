@@ -164,6 +164,10 @@ void compute_tree_logl_blobs(Network &network, BlobInformation& blobInfo, const 
 	std::vector<pll_operation_t> ops = createOperations(network, parent, blobInfo, megablob_idx, tree_idx);
 	unsigned int ops_count = ops.size();
 
+	if (ops_count == 0) {
+		return;
+	}
+
 	Node *ops_root = network.getNodeByClvIndex(ops[ops.size() - 1].parent_clv_index);
 
 // Compute CLVs in pll_update_partials, as specified by the operations array. This needs a pll_partition_t object.
