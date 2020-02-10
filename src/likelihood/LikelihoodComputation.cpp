@@ -177,7 +177,12 @@ void compute_tree_logl_blobs(Network &network, BlobInformation& blobInfo, const 
 	pll_update_partials(fake_treeinfo.partitions[partition_idx], ops.data(), ops_count);
 
 	if (persite_logl != nullptr) {
-		Node *rootBack = ops_root->getLink()->getTargetNode();
+		Node* rootBack;
+		if (ops_root == network.root) {
+			rootBack = ops_root->getLink()->getTargetNode();
+		} else {
+			rootBack = parent[ops_root->clv_index];
+		}
 		double tree_partition_logl = pll_compute_edge_loglikelihood(fake_treeinfo.partitions[partition_idx], ops_root->getClvIndex(),
 				ops_root->getScalerIndex(), rootBack->getClvIndex(), rootBack->getScalerIndex(), ops_root->getLink()->edge->pmatrix_index,
 				fake_treeinfo.param_indices[partition_idx], persite_logl->empty() ? nullptr : persite_logl->data());
