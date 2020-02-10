@@ -393,6 +393,9 @@ std::vector<double> compute_persite_lh_blobs(unsigned int partitionIdx, Network 
 		std::vector<std::pair<double, std::vector<double>> > tree_clvs;
 		tree_clvs.reserve(n_trees);
 		unsigned int megablobRootClvIdx = blobInfo.megablob_roots[megablob_idx]->clv_index;
+
+		std::vector<double> persite_lh_debug(fake_treeinfo.partitions[partitionIdx]->sites, 0.0);
+
 		for (size_t treeIdx = 0; treeIdx < n_trees; ++treeIdx) {
 			double tree_prob = displayed_tree_prob(blobInfo, megablob_idx, treeIdx, partitionIdx);
 			if (tree_prob == 0.0 && !update_reticulation_probs) {
@@ -410,6 +413,10 @@ std::vector<double> compute_persite_lh_blobs(unsigned int partitionIdx, Network 
 				for (size_t s = 0; s < numSites; ++s) {
 					persite_lh_network[s] += exp(persite_logl[s]) * tree_prob;
 				}
+			} else {
+				for (size_t s = 0; s < numSites; ++s) {
+					persite_lh_debug[s] += exp(persite_logl[s]) * tree_prob;
+				}
 			}
 
 			if (n_trees > 1) {
@@ -420,9 +427,22 @@ std::vector<double> compute_persite_lh_blobs(unsigned int partitionIdx, Network 
 				tree_clvs.emplace_back(std::make_pair(tree_prob, treeRootCLV));
 			}
 		}
+
+		std::cout << "persite_lh_debug for megablob root clv idx " << megablobRootClvIdx << ":\n";
+		for (size_t s = 0; s < numSites; ++s) {
+			std::cout << persite_lh_debug[s] << ",";
+		}
+		std::cout << "\n";
+
 		if (n_trees > 1) {
 			// merge the tree clvs into the megablob root clv
 			merge_tree_clvs(tree_clvs, fake_treeinfo.partitions[partitionIdx], megablobRootClvIdx);
+
+			std::cout << "clv vector after merging at index " << megablobRootClvIdx << ":\n";
+			for (size_t x = 0; x < tree_clvs[0].second.size(); ++x) {
+				std::cout << fake_treeinfo.partitions[partitionIdx]->clv[megablobRootClvIdx][x] << ",";
+			}
+			std::cout << "\n";
 		}
 	}
 
@@ -497,13 +517,6 @@ double processPartition(unsigned int partitionIdx, Network &network, pllmod_tree
 		persite_lh_network = compute_persite_lh_blobs(partitionIdx, network, blobInfo, parent, fake_treeinfo,
 				unlinked_mode, update_reticulation_probs, numSites, best_persite_logl_network);
 	}
-
-	// just for debug: printing persite_l_network again
-	std::cout << "persite lh network again:\n";
-	for (size_t i = 0; i < numSites; ++i) {
-		std::cout << persite_lh_network[i] << ",";
-	}
-	std::cout << "\n";
 
 	double network_partition_logl = 0.0;
 	for (size_t s = 0; s < numSites; ++s) {

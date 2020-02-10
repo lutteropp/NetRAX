@@ -156,6 +156,14 @@ std::unordered_set<std::string> collect_tip_labels_utree(pll_utree_t *utree) {
 	return labels;
 }
 
+void print_clv_index_by_label(const Network& network) {
+	std::cout << "clv_index by node label:\n";
+	for (size_t i = 0; i < network.nodes.size(); ++i) {
+		std::cout << network.nodes[i].label << ": " << network.nodes[i].clv_index << "\n";
+	}
+	std::cout << "\n";
+}
+
 bool no_clv_indices_equal(pll_utree_t *utree) {
 	std::unordered_set<unsigned int> clv_idx;
 
@@ -388,6 +396,8 @@ TEST_F (LikelihoodTest, likelihoodFunctionsNetworkTiny) {
 	std::string tinyMsaPath = "examples/sample_networks/tiny_fake_alignment.nw";
 	Network tinyNetwork = netrax::readNetworkFromFile(tinyNetworkPath);
 
+	print_clv_index_by_label(tinyNetwork);
+
 	NetraxOptions tinyOptions;
 	tinyOptions.network_file = tinyNetworkPath;
 	tinyOptions.msa_file = tinyMsaPath;
@@ -418,6 +428,8 @@ TEST_F (LikelihoodTest, likelihoodFunctionsNetworkCLVAveraging) {
 	std::string tinyMsaPath = "examples/sample_networks/5_taxa_fake_alignment.nw";
 	Network tinyNetwork = netrax::readNetworkFromFile(tinyNetworkPath);
 
+	print_clv_index_by_label(tinyNetwork);
+
 	NetraxOptions tinyOptions;
 	tinyOptions.network_file = tinyNetworkPath;
 	tinyOptions.msa_file = tinyMsaPath;
@@ -447,6 +459,8 @@ TEST_F (LikelihoodTest, likelihoodFunctionsNetwork2Reticulations) {
 	std::string tinyNetworkPath = "examples/sample_networks/two_reticulations.nw";
 	std::string tinyMsaPath = "examples/sample_networks/5_taxa_fake_alignment.nw";
 	Network tinyNetwork = netrax::readNetworkFromFile(tinyNetworkPath);
+
+	print_clv_index_by_label(tinyNetwork);
 
 	NetraxOptions tinyOptions;
 	tinyOptions.network_file = tinyNetworkPath;
