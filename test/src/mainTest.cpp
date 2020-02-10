@@ -24,7 +24,7 @@ int main(int argc, char** argv)
   //::testing::GTEST_FLAG(filter) = "*SystemTest.allTree";
   //::testing::GTEST_FLAG(filter) = "*LikelihoodTest.celineNetwork:*LikelihoodTest.likelihoodFunctions*";
   //::testing::GTEST_FLAG(filter) = "*NetworkIOTest.reticulationHasLeafChild"*;
-  ::testing::GTEST_FLAG(filter) = "*LikelihoodTest.likelihoodFunctionsNetwork2Reticulations";
+  ::testing::GTEST_FLAG(filter) = "*LikelihoodTest.likelihoodFunctionsNetwork*";
 
   auto result = RUN_ALL_TESTS();
 //  MPI_FINALIZE();
