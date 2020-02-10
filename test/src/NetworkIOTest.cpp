@@ -120,6 +120,12 @@ TEST_F (NetworkIOTest, readNetworkFromFile) {
 	EXPECT_TRUE(true);
 }
 
+TEST_F (NetworkIOTest, read2Reticulations) {
+	Network network = readNetworkFromFile("examples/sample_networks/two_reticulations.nw");
+	EXPECT_EQ(5, network.num_tips());
+	sanity_checks(network);
+}
+
 TEST_F (NetworkIOTest, readRootedTree) {
 	std::string input = "((A:0.1,B:0.2):0.1,(C:0.3,D:0.4):0.5);";
 	Network network = readNetworkFromString(input);
