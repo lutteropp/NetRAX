@@ -156,7 +156,18 @@ double compute_tree_logl(Network &network, pllmod_treeinfo_t &fake_treeinfo, siz
 			ops_root->getScalerIndex(), rootBack->getClvIndex(), rootBack->getScalerIndex(), ops_root->getLink()->edge->pmatrix_index,
 			fake_treeinfo.param_indices[partition_idx], persite_logl->empty() ? nullptr : persite_logl->data());
 
-	std::cout << "tree_partition_logl: " << tree_partition_logl << "\n";
+	std::cout << "tree_partition_logl for subnetwork root clv index " << ops_root->clv_index << ", tree_idx " << tree_idx << ": " << tree_partition_logl << "\n";
+
+
+	// just for debug: compute tree partition logl for all nodes:
+	for (size_t i = 0; i < network.nodes.size(); ++i) {
+		Node* node = &network.nodes[i];
+		Node* nodeBack = node->getLink()->getTargetNode();
+		double l = pll_compute_edge_loglikelihood(fake_treeinfo.partitions[partition_idx], node->getClvIndex(),
+						node->getScalerIndex(), nodeBack->getClvIndex(), nodeBack->getScalerIndex(), node->getLink()->edge->pmatrix_index,
+						fake_treeinfo.param_indices[partition_idx], persite_logl->empty() ? nullptr : persite_logl->data());
+		std::cout << "tree_partition_logl for subnetwork root clv index " << node->clv_index << ", tree_idx " << tree_idx << ": " << l << "\n";
+	}
 
 	return tree_partition_logl;
 }
@@ -186,7 +197,17 @@ void compute_tree_logl_blobs(Network &network, BlobInformation& blobInfo, const 
 		double tree_partition_logl = pll_compute_edge_loglikelihood(fake_treeinfo.partitions[partition_idx], ops_root->getClvIndex(),
 				ops_root->getScalerIndex(), rootBack->getClvIndex(), rootBack->getScalerIndex(), ops_root->getLink()->edge->pmatrix_index,
 				fake_treeinfo.param_indices[partition_idx], persite_logl->empty() ? nullptr : persite_logl->data());
-		std::cout << "tree_partition_logl: " << tree_partition_logl << "\n";
+		std::cout << "tree_partition_logl for megablob root clv index " << ops_root->clv_index << ", tree_idx " << tree_idx << ": " << tree_partition_logl << "\n";
+	}
+
+	// just for debug: compute tree partition logl for all nodes:
+	for (size_t i = 0; i < network.nodes.size(); ++i) {
+		Node* node = &network.nodes[i];
+		Node* nodeBack = node->getLink()->getTargetNode();
+		double l = pll_compute_edge_loglikelihood(fake_treeinfo.partitions[partition_idx], node->getClvIndex(),
+						node->getScalerIndex(), nodeBack->getClvIndex(), nodeBack->getScalerIndex(), node->getLink()->edge->pmatrix_index,
+						fake_treeinfo.param_indices[partition_idx], persite_logl->empty() ? nullptr : persite_logl->data());
+		std::cout << "tree_partition_logl for subnetwork root clv index " << node->clv_index << ", tree_idx " << tree_idx << ": " << l << "\n";
 	}
 }
 
