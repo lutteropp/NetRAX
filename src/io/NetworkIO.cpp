@@ -481,9 +481,6 @@ Network convertNetwork(const RootedNetwork &rnetwork) {
 		assert(network.edges[i].length != 0);
 	}
 
-	// ensure that the network still has all nodes
-	assert(network.nodes.size() == rnetwork.nodes.size());
-
 	return network;
 }
 

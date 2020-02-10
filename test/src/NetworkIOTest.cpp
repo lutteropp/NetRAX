@@ -131,7 +131,7 @@ TEST_F (NetworkIOTest, readTinyNetwork) {
 	std::string input = "((A:2,(B:1)X#H1:0::0.3)Q:2,(D:2,X#H1:0::0.7)R:2);";
 	Network network = readNetworkFromString(input);
 	EXPECT_EQ(3, network.num_tips());
-	EXPECT_EQ(7, network.num_nodes());
+	EXPECT_EQ(6, network.num_nodes());
 	sanity_checks(network);
 }
 
