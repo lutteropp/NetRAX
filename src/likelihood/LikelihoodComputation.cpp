@@ -521,10 +521,18 @@ double processPartition(unsigned int partitionIdx, Network &network, pllmod_tree
 				unlinked_mode, update_reticulation_probs, numSites, best_persite_logl_network);
 	}
 
+	// just for debug: printing persite_l_network again
+	std::cout << "persite lh network again:\n";
+	for (size_t i = 0; i < numSites; ++i) {
+		std::cout << persite_lh_network[i] << ",";
+	}
+	std::cout << "\n";
+
 	double network_partition_logl = 0.0;
 	for (size_t s = 0; s < numSites; ++s) {
 		network_partition_logl += log(persite_lh_network[s]);
 	}
+	std::cout << "network_partition_logl: " << network_partition_logl << "\n";
 
 	fake_treeinfo.partition_loglh[partitionIdx] = network_partition_logl;
 
