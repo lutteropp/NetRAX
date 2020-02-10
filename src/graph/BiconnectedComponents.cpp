@@ -97,22 +97,31 @@ BlobInformation partitionNetworkIntoBlobs(const Network& network) {
 	std::vector<Node*> parent = grab_current_node_parents(network);
 	// fill the megablob roots now.
 	// also, put the reticulation nodes into their megablobs
+
+	// A node is a megablob root, if and only if:
+	// 1.) It is the root node, or
+	// 2.) The parent has another blob id with blob size > 1
+
 	std::vector<Node*> travbuffer = netrax::reversed_topological_sort(network);
-	unsigned int lastBlobId = std::numeric_limits<unsigned int>::infinity();
 	blob_info.reticulation_nodes_per_megablob.emplace_back(std::vector<Node*>());
+	std::vector<unsigned int> node_blob_id(network.num_nodes());
 	for (size_t i = 0; i < travbuffer.size(); ++i) {
+		node_blob_id[travbuffer[i]->clv_index] = get_node_blob_id(travbuffer[i], blob_info, parent);
+	}
+
+	for (size_t i = 0; i < travbuffer.size() - 1; ++i) {
 		Node* node = travbuffer[i];
-		unsigned int blobId = get_node_blob_id(node, blob_info, parent);
-		if (blobId != lastBlobId && i > 0) {
-			if (blob_size[lastBlobId] == 1 && blob_size[blobId] > 1) {
-				blob_info.megablob_roots.emplace_back(travbuffer[i - 1]);
-				blob_info.reticulation_nodes_per_megablob.emplace_back(std::vector<Node*>());
-			}
+		unsigned int blobId = node_blob_id[travbuffer[i]->clv_index];
+		unsigned int parentBlobId = node_blob_id[parent[travbuffer[i]->clv_index]->clv_index];
+		unsigned int parentBlobSize = blob_size[parentBlobId];
+
+		if (blobId != parentBlobId && parentBlobSize > 1) {
+			blob_info.megablob_roots.emplace_back(travbuffer[i]);
+			blob_info.reticulation_nodes_per_megablob.emplace_back(std::vector<Node*>());
 		}
 		if (node->type == NodeType::RETICULATION_NODE) {
 			blob_info.reticulation_nodes_per_megablob[blob_info.reticulation_nodes_per_megablob.size() - 1].emplace_back(node);
 		}
-		lastBlobId = blobId;
 	}
 	blob_info.megablob_roots.emplace_back(network.root);
 
