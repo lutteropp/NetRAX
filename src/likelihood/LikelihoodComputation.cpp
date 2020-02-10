@@ -139,6 +139,22 @@ double displayed_tree_prob(BlobInformation& blobInfo, size_t megablob_idx, size_
 	return exp(logProb);
 }
 
+void print_clv_vector(pllmod_treeinfo_t& fake_treeinfo, size_t tree_idx, size_t partition_idx, size_t clv_index) {
+	pll_partition_t* partition = fake_treeinfo.partitions[partition_idx];
+	unsigned int states = partition->states;
+	unsigned int states_padded = partition->states_padded;
+	unsigned int sites = partition->sites;
+	unsigned int rate_cats = partition->rate_cats;
+	unsigned int clv_len = states_padded * sites * rate_cats;
+
+	double* clv = partition->clv[clv_index];
+	std::cout << "clv vector for tree_idx " << tree_idx << " and clv_index " << clv_index << ":\n";
+	for (size_t i = 0; i < clv_len; ++i) {
+		std::cout << clv[i] << ",";
+	}
+	std::cout << "\n";
+}
+
 double compute_tree_logl(Network &network, pllmod_treeinfo_t &fake_treeinfo, size_t tree_idx, size_t partition_idx,
 		std::vector<double> *persite_logl) {
 // Create pll_operations_t array for the current displayed tree
@@ -167,6 +183,11 @@ double compute_tree_logl(Network &network, pllmod_treeinfo_t &fake_treeinfo, siz
 						node->getScalerIndex(), nodeBack->getClvIndex(), nodeBack->getScalerIndex(), node->getLink()->edge->pmatrix_index,
 						fake_treeinfo.param_indices[partition_idx], persite_logl->empty() ? nullptr : persite_logl->data());
 		std::cout << "tree_partition_logl for subnetwork root clv index " << node->clv_index << ", tree_idx " << tree_idx << ": " << l << "\n";
+	}
+
+	// just for debug 2: print all clv vectors
+	for (size_t i = 0; i < network.nodes.size(); ++i) {
+		print_clv_vector(fake_treeinfo, tree_idx, partition_idx, i);
 	}
 
 	return tree_partition_logl;
@@ -208,6 +229,11 @@ void compute_tree_logl_blobs(Network &network, BlobInformation& blobInfo, const 
 						node->getScalerIndex(), nodeBack->getClvIndex(), nodeBack->getScalerIndex(), node->getLink()->edge->pmatrix_index,
 						fake_treeinfo.param_indices[partition_idx], persite_logl->empty() ? nullptr : persite_logl->data());
 		std::cout << "tree_partition_logl for subnetwork root clv index " << node->clv_index << ", tree_idx " << tree_idx << ": " << l << "\n";
+	}
+
+	// just for debug 2: print all clv vectors
+	for (size_t i = 0; i < network.nodes.size(); ++i) {
+		print_clv_vector(fake_treeinfo, tree_idx, partition_idx, i);
 	}
 }
 
