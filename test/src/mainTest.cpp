@@ -23,8 +23,8 @@ int main(int argc, char** argv)
   //testing::GTEST_FLAG(filter) = "-NetworkIOTest.*";
   //::testing::GTEST_FLAG(filter) = "*SystemTest.allTree";
   //::testing::GTEST_FLAG(filter) = "*LikelihoodTest.celineNetwork:*LikelihoodTest.likelihoodFunctions*";
-  //::testing::GTEST_FLAG(filter) = "*NetworkIOTest.reticulationHasLeafChild";
-  ::testing::GTEST_FLAG(filter) = "*LikelihoodTest.likelihoodFunctionsNetwork";
+  //::testing::GTEST_FLAG(filter) = "*NetworkIOTest.reticulationHasLeafChild"*;
+  ::testing::GTEST_FLAG(filter) = "*LikelihoodTest.celineNetwork";
 
   auto result = RUN_ALL_TESTS();
 //  MPI_FINALIZE();
