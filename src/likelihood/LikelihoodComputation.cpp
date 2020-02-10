@@ -150,11 +150,14 @@ double compute_tree_logl(Network &network, pllmod_treeinfo_t &fake_treeinfo, siz
 // Compute CLVs in pll_update_partials, as specified by the operations array. This needs a pll_partition_t object.
 	pll_update_partials(fake_treeinfo.partitions[partition_idx], ops.data(), ops_count);
 
-	Node *rootBack = network.root->getLink()->getTargetNode();
+	Node *rootBack = ops_root->getLink()->getTargetNode();
 
 	double tree_partition_logl = pll_compute_edge_loglikelihood(fake_treeinfo.partitions[partition_idx], ops_root->getClvIndex(),
 			ops_root->getScalerIndex(), rootBack->getClvIndex(), rootBack->getScalerIndex(), ops_root->getLink()->edge->pmatrix_index,
 			fake_treeinfo.param_indices[partition_idx], persite_logl->empty() ? nullptr : persite_logl->data());
+
+	std::cout << "tree_partition_logl: " << tree_partition_logl << "\n";
+
 	return tree_partition_logl;
 }
 
@@ -174,10 +177,11 @@ void compute_tree_logl_blobs(Network &network, BlobInformation& blobInfo, const 
 	pll_update_partials(fake_treeinfo.partitions[partition_idx], ops.data(), ops_count);
 
 	if (persite_logl != nullptr) {
-		Node *rootBack = network.root->getLink()->getTargetNode();
+		Node *rootBack = ops_root->getLink()->getTargetNode();
 		double tree_partition_logl = pll_compute_edge_loglikelihood(fake_treeinfo.partitions[partition_idx], ops_root->getClvIndex(),
 				ops_root->getScalerIndex(), rootBack->getClvIndex(), rootBack->getScalerIndex(), ops_root->getLink()->edge->pmatrix_index,
 				fake_treeinfo.param_indices[partition_idx], persite_logl->empty() ? nullptr : persite_logl->data());
+		std::cout << "tree_partition_logl: " << tree_partition_logl << "\n";
 	}
 }
 
