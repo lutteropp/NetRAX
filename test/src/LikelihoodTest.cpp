@@ -432,6 +432,10 @@ TEST_F (LikelihoodTest, celineNetwork) {
 	compareLikelihoodFunctions("examples/sample_networks/celine.nw", "examples/sample_networks/celine_fake_alignment.txt", false);
 }
 
+TEST_F (LikelihoodTest, celineNetworkSmaller) {
+	compareLikelihoodFunctions("examples/sample_networks/celine_smaller_1.nw", "examples/sample_networks/celine_fake_alignment.txt", false);
+}
+
 TEST_F (LikelihoodTest, celineNetworkRepeats) {
 	compareLikelihoodFunctions("examples/sample_networks/celine.nw", "examples/sample_networks/celine_fake_alignment.txt", true);
 }

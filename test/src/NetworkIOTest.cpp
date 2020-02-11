@@ -351,3 +351,10 @@ TEST_F (NetworkIOTest, readSimpleNetworkReticulationLengthAndProbAndSupport) {
 	EXPECT_EQ(4, network.num_tips());
 	sanity_checks(network);
 }
+
+TEST_F (NetworkIOTest, readCelineNetworkSmaller) {
+	std::string input = "((((((Anolis,(Podarcis)#H1),(((#H1,Taeniopygia),(alligator,Caiman)),(phrynops,(Emys,(Chelonoidi,(Caretta)#H2))))),(#H2,Monodelphis)),Xenopus),protopterus));";
+	Network network = readNetworkFromString(input);
+	sanity_checks(network);
+}
+
