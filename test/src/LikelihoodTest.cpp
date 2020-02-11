@@ -27,7 +27,7 @@ class LikelihoodTest: public ::testing::Test {
 protected:
 	std::string treePath = "examples/sample_networks/tree.nw";
 	std::string networkPath = "examples/sample_networks/small.nw";
-	std::string msaPath = "examples/sample_networks/small_fake_alignment.nw";
+	std::string msaPath = "examples/sample_networks/small_fake_alignment.txt";
 
 	Network treeNetwork;
 	Network smallNetwork;
@@ -348,7 +348,7 @@ TEST_F (LikelihoodTest, simpleTreeNoRepeats) {
 	EXPECT_NE(network_logl, -std::numeric_limits<double>::infinity());
 }
 
-TEST_F (LikelihoodTest, likelihoodFunctionsTree) {
+TEST_F (LikelihoodTest, tree) {
 	pll_utree_t *utree = displayed_tree_to_utree(treeNetwork, 0);
 	TreeInfo raxml_treeinfo_tree = treeWrapper->createRaxmlTreeinfo(utree);
 	double raxml_logl = raxml_treeinfo_tree.loglh(0);
@@ -372,183 +372,72 @@ TEST_F (LikelihoodTest, likelihoodFunctionsTree) {
 	EXPECT_EQ(norep_logl_blobs, norep_logl);
 }
 
-TEST_F (LikelihoodTest, likelihoodFunctionsNetwork) {
-	TreeInfo network_treeinfo_small = smallWrapper->createRaxmlTreeinfo(smallNetwork);
+void compareLikelihoodFunctions(const std::string& networkPath, const std::string& msaPath, bool useRepeats) {
+	Network network = netrax::readNetworkFromFile(networkPath);
+	print_clv_index_by_label(network);
+	NetraxOptions options;
+	options.network_file = networkPath;
+	options.msa_file = msaPath;
+	options.use_repeats = false;
+	RaxmlWrapper wrapper(options);
+	TreeInfo network_treeinfo = wrapper.createRaxmlTreeinfo(network);
 	RaxmlWrapper::NetworkParams *params =
-			(RaxmlWrapper::NetworkParams*) network_treeinfo_small.pll_treeinfo().likelihood_computation_params;
+				(RaxmlWrapper::NetworkParams*) network_treeinfo.pll_treeinfo().likelihood_computation_params;
+	pllmod_treeinfo_t treeinfo = *(params->network_treeinfo);
 
-	double naive_logl = computeLoglikelihoodNaiveUtree(*(smallWrapper.get()), smallNetwork, 0, 1);
+	double naive_logl = computeLoglikelihoodNaiveUtree(wrapper, network, 0, 1);
 	std::cout << "naive logl: " << naive_logl << "\n";
-
-	double norep_logl = computeLoglikelihood(smallNetwork, *(params->network_treeinfo), 0, 1);
+	double norep_logl = computeLoglikelihood(network, treeinfo, 0, 1);
 	std::cout << "norep_logl: " << norep_logl << "\n";
-
-	double norep_logl_blobs = computeLoglikelihood(smallNetwork, *(params->network_treeinfo), 0, 1, false, true);
+	double norep_logl_blobs = computeLoglikelihood(network, treeinfo, 0, 1, false, true);
 	std::cout << "norep_logl_blobs: " << norep_logl_blobs << "\n";
 
-	EXPECT_NEAR(naive_logl, norep_logl, 0.1);
+	if (naive_logl != -std::numeric_limits<double>::infinity()) {
+		EXPECT_NEAR(naive_logl, norep_logl, 5);
+	}
+
 	EXPECT_NE(norep_logl, -std::numeric_limits<double>::infinity());
-	EXPECT_EQ(norep_logl_blobs, norep_logl);
+	EXPECT_NEAR(norep_logl_blobs, norep_logl, 1);
 }
 
-TEST_F (LikelihoodTest, likelihoodFunctionsNetworkTiny) {
-	std::string tinyNetworkPath = "examples/sample_networks/tiny.nw";
-	std::string tinyMsaPath = "examples/sample_networks/tiny_fake_alignment.nw";
-	Network tinyNetwork = netrax::readNetworkFromFile(tinyNetworkPath);
-
-	print_clv_index_by_label(tinyNetwork);
-
-	NetraxOptions tinyOptions;
-	tinyOptions.network_file = tinyNetworkPath;
-	tinyOptions.msa_file = tinyMsaPath;
-	tinyOptions.use_repeats = false;
-
-	RaxmlWrapper tinyWrapper(tinyOptions);
-
-	TreeInfo network_treeinfo_tiny = tinyWrapper.createRaxmlTreeinfo(tinyNetwork);
-	RaxmlWrapper::NetworkParams *params =
-			(RaxmlWrapper::NetworkParams*) network_treeinfo_tiny.pll_treeinfo().likelihood_computation_params;
-
-	double naive_logl = computeLoglikelihoodNaiveUtree(tinyWrapper, tinyNetwork, 0, 1);
-	std::cout << "naive logl: " << naive_logl << "\n";
-
-	double norep_logl = computeLoglikelihood(tinyNetwork, *(params->network_treeinfo), 0, 1);
-	std::cout << "norep_logl: " << norep_logl << "\n";
-
-	double norep_logl_blobs = computeLoglikelihood(tinyNetwork, *(params->network_treeinfo), 0, 1, false, true);
-	std::cout << "norep_logl_blobs: " << norep_logl_blobs << "\n";
-
-	EXPECT_NEAR(naive_logl, norep_logl, 0.1);
-	EXPECT_NE(norep_logl, -std::numeric_limits<double>::infinity());
-	EXPECT_EQ(norep_logl_blobs, norep_logl);
+TEST_F (LikelihoodTest, smallNetwork) {
+	compareLikelihoodFunctions("examples/sample_networks/small.nw", "examples/sample_networks/small_fake_alignment.txt", false);
 }
 
-TEST_F (LikelihoodTest, likelihoodFunctionsNetworkCLVAveraging) {
-	std::string tinyNetworkPath = "examples/sample_networks/clv_averaging.nw";
-	std::string tinyMsaPath = "examples/sample_networks/5_taxa_fake_alignment.nw";
-	Network tinyNetwork = netrax::readNetworkFromFile(tinyNetworkPath);
-
-	print_clv_index_by_label(tinyNetwork);
-
-	NetraxOptions tinyOptions;
-	tinyOptions.network_file = tinyNetworkPath;
-	tinyOptions.msa_file = tinyMsaPath;
-	tinyOptions.use_repeats = false;
-
-	RaxmlWrapper tinyWrapper(tinyOptions);
-
-	TreeInfo network_treeinfo_tiny = tinyWrapper.createRaxmlTreeinfo(tinyNetwork);
-	RaxmlWrapper::NetworkParams *params =
-			(RaxmlWrapper::NetworkParams*) network_treeinfo_tiny.pll_treeinfo().likelihood_computation_params;
-
-	double naive_logl = computeLoglikelihoodNaiveUtree(tinyWrapper, tinyNetwork, 0, 1);
-	std::cout << "naive logl: " << naive_logl << "\n";
-
-	double norep_logl = computeLoglikelihood(tinyNetwork, *(params->network_treeinfo), 0, 1);
-	std::cout << "norep_logl: " << norep_logl << "\n";
-
-	double norep_logl_blobs = computeLoglikelihood(tinyNetwork, *(params->network_treeinfo), 0, 1, false, true);
-	std::cout << "norep_logl_blobs: " << norep_logl_blobs << "\n";
-
-	EXPECT_NEAR(naive_logl, norep_logl, 2);
-	EXPECT_NE(norep_logl, -std::numeric_limits<double>::infinity());
-	EXPECT_EQ(norep_logl_blobs, norep_logl);
+TEST_F (LikelihoodTest, tinyNetwork) {
+	compareLikelihoodFunctions("examples/sample_networks/tiny.nw", "examples/sample_networks/tiny_fake_alignment.txt", false);
 }
 
-TEST_F (LikelihoodTest, likelihoodFunctionsNetwork2Reticulations) {
-	std::string tinyNetworkPath = "examples/sample_networks/two_reticulations.nw";
-	std::string tinyMsaPath = "examples/sample_networks/5_taxa_fake_alignment.nw";
-	Network tinyNetwork = netrax::readNetworkFromFile(tinyNetworkPath);
-
-	print_clv_index_by_label(tinyNetwork);
-
-	NetraxOptions tinyOptions;
-	tinyOptions.network_file = tinyNetworkPath;
-	tinyOptions.msa_file = tinyMsaPath;
-	tinyOptions.use_repeats = false;
-
-	RaxmlWrapper tinyWrapper(tinyOptions);
-
-	TreeInfo network_treeinfo_tiny = tinyWrapper.createRaxmlTreeinfo(tinyNetwork);
-	RaxmlWrapper::NetworkParams *params =
-			(RaxmlWrapper::NetworkParams*) network_treeinfo_tiny.pll_treeinfo().likelihood_computation_params;
-
-	double naive_logl = computeLoglikelihoodNaiveUtree(tinyWrapper, tinyNetwork, 0, 1);
-	std::cout << "naive logl: " << naive_logl << "\n";
-
-	double norep_logl = computeLoglikelihood(tinyNetwork, *(params->network_treeinfo), 0, 1);
-	std::cout << "norep_logl: " << norep_logl << "\n";
-
-	double norep_logl_blobs = computeLoglikelihood(tinyNetwork, *(params->network_treeinfo), 0, 1, false, true);
-	std::cout << "norep_logl_blobs: " << norep_logl_blobs << "\n";
-
-	EXPECT_NEAR(naive_logl, norep_logl, 0.1);
-	EXPECT_NE(norep_logl, -std::numeric_limits<double>::infinity());
-	EXPECT_EQ(norep_logl_blobs, norep_logl);
+TEST_F (LikelihoodTest, clvAveraging) {
+	compareLikelihoodFunctions("examples/sample_networks/clv_averaging.nw", "examples/sample_networks/5_taxa_fake_alignment.txt", false);
 }
 
-TEST_F (LikelihoodTest, likelihoodFunctionsNetworkReticulationInReticulation) {
-	std::string tinyNetworkPath = "examples/sample_networks/reticulation_in_reticulation.nw";
-	std::string tinyMsaPath = "examples/sample_networks/small_fake_alignment.nw";
-	Network tinyNetwork = netrax::readNetworkFromFile(tinyNetworkPath);
-
-	print_clv_index_by_label(tinyNetwork);
-
-	NetraxOptions tinyOptions;
-	tinyOptions.network_file = tinyNetworkPath;
-	tinyOptions.msa_file = tinyMsaPath;
-	tinyOptions.use_repeats = false;
-
-	RaxmlWrapper tinyWrapper(tinyOptions);
-
-	TreeInfo network_treeinfo_tiny = tinyWrapper.createRaxmlTreeinfo(tinyNetwork);
-	RaxmlWrapper::NetworkParams *params =
-			(RaxmlWrapper::NetworkParams*) network_treeinfo_tiny.pll_treeinfo().likelihood_computation_params;
-
-	double naive_logl = computeLoglikelihoodNaiveUtree(tinyWrapper, tinyNetwork, 0, 1);
-	std::cout << "naive logl: " << naive_logl << "\n";
-
-	double norep_logl = computeLoglikelihood(tinyNetwork, *(params->network_treeinfo), 0, 1);
-	std::cout << "norep_logl: " << norep_logl << "\n";
-
-	double norep_logl_blobs = computeLoglikelihood(tinyNetwork, *(params->network_treeinfo), 0, 1, false, true);
-	std::cout << "norep_logl_blobs: " << norep_logl_blobs << "\n";
-
-	EXPECT_NEAR(naive_logl, norep_logl, 0.1);
-	EXPECT_NE(norep_logl, -std::numeric_limits<double>::infinity());
-	EXPECT_EQ(norep_logl_blobs, norep_logl);
+TEST_F (LikelihoodTest, twoReticulations) {
+	compareLikelihoodFunctions("examples/sample_networks/two_reticulations.nw", "examples/sample_networks/5_taxa_fake_alignment.txt", false);
 }
 
-TEST_F (LikelihoodTest, likelihoodFunctionsNetwork3Reticulations) {
-	std::string tinyNetworkPath = "examples/sample_networks/three_reticulations.nw";
-	std::string tinyMsaPath = "examples/sample_networks/7_taxa_fake_alignment.nw";
-	Network tinyNetwork = netrax::readNetworkFromFile(tinyNetworkPath);
+TEST_F (LikelihoodTest, threeReticulations) {
+	compareLikelihoodFunctions("examples/sample_networks/three_reticulations.nw", "examples/sample_networks/7_taxa_fake_alignment.txt", false);
+}
 
-	print_clv_index_by_label(tinyNetwork);
+TEST_F (LikelihoodTest, reticulationInReticulation) {
+	compareLikelihoodFunctions("examples/sample_networks/reticulation_in_reticulation.nw", "examples/sample_networks/small_fake_alignment.txt", false);
+}
 
-	NetraxOptions tinyOptions;
-	tinyOptions.network_file = tinyNetworkPath;
-	tinyOptions.msa_file = tinyMsaPath;
-	tinyOptions.use_repeats = false;
+TEST_F (LikelihoodTest, smallNetworkWithRepeats) {
+	compareLikelihoodFunctions("examples/sample_networks/small.nw", "examples/sample_networks/small_fake_alignment.txt", true);
+}
 
-	RaxmlWrapper tinyWrapper(tinyOptions);
+TEST_F (LikelihoodTest, celineNetwork) {
+	compareLikelihoodFunctions("examples/sample_networks/celine.nw", "examples/sample_networks/celine_fake_alignment.txt", false);
+}
 
-	TreeInfo network_treeinfo_tiny = tinyWrapper.createRaxmlTreeinfo(tinyNetwork);
-	RaxmlWrapper::NetworkParams *params =
-			(RaxmlWrapper::NetworkParams*) network_treeinfo_tiny.pll_treeinfo().likelihood_computation_params;
+TEST_F (LikelihoodTest, celineNetworkRepeats) {
+	compareLikelihoodFunctions("examples/sample_networks/celine.nw", "examples/sample_networks/celine_fake_alignment.txt", true);
+}
 
-	double naive_logl = computeLoglikelihoodNaiveUtree(tinyWrapper, tinyNetwork, 0, 1);
-	std::cout << "naive logl: " << naive_logl << "\n";
-
-	double norep_logl = computeLoglikelihood(tinyNetwork, *(params->network_treeinfo), 0, 1);
-	std::cout << "norep_logl: " << norep_logl << "\n";
-
-	double norep_logl_blobs = computeLoglikelihood(tinyNetwork, *(params->network_treeinfo), 0, 1, false, true);
-	std::cout << "norep_logl_blobs: " << norep_logl_blobs << "\n";
-
-	EXPECT_NEAR(naive_logl, norep_logl, 0.1);
-	EXPECT_NE(norep_logl, -std::numeric_limits<double>::infinity());
-	EXPECT_EQ(norep_logl_blobs, norep_logl);
+TEST_F (LikelihoodTest, celineNetworkNonzeroBranches) {
+	compareLikelihoodFunctions("examples/sample_networks/celine_nonzero_branches.nw", "examples/sample_networks/celine_fake_alignment.txt", false);
 }
 
 
@@ -574,62 +463,3 @@ TEST_F (LikelihoodTest, simpleTreeWithRepeats) {
 	EXPECT_NE(network_logl, -std::numeric_limits<double>::infinity());
 }
 
-TEST_F (LikelihoodTest, simpleNetworkNoRepeats) {
-	TreeInfo network_treeinfo = smallWrapper->createRaxmlTreeinfo(smallNetwork);
-	double network_logl = network_treeinfo.loglh(false);
-	std::cout << "The computed network_logl 6 is: " << network_logl << "\n";
-	EXPECT_NE(network_logl, -std::numeric_limits<double>::infinity());
-}
-
-TEST_F (LikelihoodTest, simpleNetworkWithRepeats) {
-	TreeInfo network_treeinfo = smallWrapperRepeats->createRaxmlTreeinfo(smallNetwork);
-	double network_logl = network_treeinfo.loglh(false);
-	std::cout << "The computed network_logl 7 is: " << network_logl << "\n";
-	EXPECT_NE(network_logl, -std::numeric_limits<double>::infinity());
-}
-
-TEST_F (LikelihoodTest, celineNetwork) {
-	std::string networkPath = "examples/sample_networks/celine.nw";
-	std::string msaPath = "examples/sample_networks/celine_fake_alignment.txt";
-	Network network = netrax::readNetworkFromFile(networkPath);
-	NetraxOptions options;
-	options.network_file = networkPath;
-	options.msa_file = msaPath;
-	RaxmlWrapper wrapper(options);
-	TreeInfo treeInfo = wrapper.createRaxmlTreeinfo(network);
-
-	RaxmlWrapper::NetworkParams *params =
-			(RaxmlWrapper::NetworkParams*) treeInfo.pll_treeinfo().likelihood_computation_params;
-
-	double naive_logl = computeLoglikelihoodNaiveUtree(wrapper, network, 0, 1);
-	std::cout << "naive logl: " << naive_logl << "\n";
-
-	double norep_logl = computeLoglikelihood(network, *(params->network_treeinfo), 0, 1);
-	std::cout << "norep_logl: " << norep_logl << "\n";
-
-	double norep_logl_blobs = computeLoglikelihood(network, *(params->network_treeinfo), 0, 1, false, true);
-	std::cout << "norep_logl_blobs: " << norep_logl_blobs << "\n";
-
-	EXPECT_EQ(naive_logl, -std::numeric_limits<double>::infinity());
-	EXPECT_NE(norep_logl, -std::numeric_limits<double>::infinity());
-	EXPECT_EQ(norep_logl_blobs, norep_logl);
-}
-
-TEST_F (LikelihoodTest, celineNetworkNonzeroBranches) {
-	std::string networkPath = "examples/sample_networks/celine_nonzero_branches.nw";
-	std::string msaPath = "examples/sample_networks/celine_fake_alignment.txt";
-	Network network = netrax::readNetworkFromFile(networkPath);
-	NetraxOptions options;
-	options.network_file = networkPath;
-	options.msa_file = msaPath;
-	RaxmlWrapper wrapper(options);
-	TreeInfo treeInfo = wrapper.createRaxmlTreeinfo(network);
-
-	RaxmlWrapper::NetworkParams *params =
-			(RaxmlWrapper::NetworkParams*) treeInfo.pll_treeinfo().likelihood_computation_params;
-
-	double norep_logl = computeLoglikelihood(network, *(params->network_treeinfo), 0, 1);
-	std::cout << "norep_logl: " << norep_logl << "\n";
-
-	EXPECT_NE(norep_logl, -std::numeric_limits<double>::infinity());
-}
