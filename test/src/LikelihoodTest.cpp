@@ -393,7 +393,7 @@ void compareLikelihoodFunctions(const std::string& networkPath, const std::strin
 	std::cout << "norep_logl_blobs: " << norep_logl_blobs << "\n";
 
 	if (naive_logl != -std::numeric_limits<double>::infinity()) {
-		EXPECT_NEAR(naive_logl, norep_logl, 5);
+		EXPECT_NEAR(naive_logl, norep_logl, 10);
 	}
 
 	EXPECT_NE(norep_logl, -std::numeric_limits<double>::infinity());

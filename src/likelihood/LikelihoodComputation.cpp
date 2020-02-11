@@ -597,11 +597,11 @@ double computeLoglikelihoodNaiveUtree(RaxmlWrapper &wrapper, Network &network, i
 
 		pll_utree_t *displayed_tree = netrax::displayed_tree_to_utree(network, i);
 
-		std::cout << "displayed tree #" << i << " as NEWICK:\n";
+		/*std::cout << "displayed tree #" << i << " as NEWICK:\n";
 		char *text = pll_utree_export_newick(displayed_tree->vroot, NULL);
 		std::string str(text);
 		std::cout << str << "\n";
-		free(text);
+		free(text);*/
 
 		TreeInfo displayedTreeinfo = wrapper.createRaxmlTreeinfo(displayed_tree);
 
