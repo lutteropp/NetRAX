@@ -184,20 +184,21 @@ double compute_tree_logl(Network &network, pllmod_treeinfo_t &fake_treeinfo, siz
 			ops_root->getLink()->edge->pmatrix_index, fake_treeinfo.param_indices[partition_idx],
 			persite_logl->empty() ? nullptr : persite_logl->data());
 
-	std::cout << "tree_partition_logl for subnetwork root clv index " << ops_root->clv_index << ", tree_idx "
-			<< tree_idx << ": " << tree_partition_logl << "\n";
+	/*std::cout << "tree_partition_logl for subnetwork root clv index " << ops_root->clv_index << ", tree_idx "
+			<< tree_idx << ": " << tree_partition_logl << "\n";*/
 
 	// just for debug 2: print all clv vectors
-	for (size_t i = 0; i < network.nodes.size(); ++i) {
+	/*for (size_t i = 0; i < network.nodes.size(); ++i) {
 		print_clv_vector(fake_treeinfo, tree_idx, partition_idx, i);
 	}
+	*/
 	// just for debug 3: print the persite logl
-	std::cout << "persite logl for tree_idx " << tree_idx << ", subnetwork root clv idx " << ops_root->clv_index
+	/*std::cout << "persite logl for tree_idx " << tree_idx << ", subnetwork root clv idx " << ops_root->clv_index
 			<< ":\n";
 	for (size_t i = 0; i < persite_logl->size(); ++i) {
 		std::cout << persite_logl->at(i) << ",";
 	}
-	std::cout << "\n";
+	std::cout << "\n";*/
 
 	return tree_partition_logl;
 }
@@ -229,22 +230,22 @@ void compute_tree_logl_blobs(Network &network, BlobInformation &blobInfo, const 
 				ops_root->getClvIndex(), ops_root->getScalerIndex(), rootBack->getClvIndex(),
 				rootBack->getScalerIndex(), ops_root->getLink()->edge->pmatrix_index,
 				fake_treeinfo.param_indices[partition_idx], persite_logl->empty() ? nullptr : persite_logl->data());
-		std::cout << "tree_partition_logl for megablob root clv index " << ops_root->clv_index << ", tree_idx "
-				<< tree_idx << ": " << tree_partition_logl << "\n";
+		/*std::cout << "tree_partition_logl for megablob root clv index " << ops_root->clv_index << ", tree_idx "
+				<< tree_idx << ": " << tree_partition_logl << "\n";*/
 	}
 
 	// just for debug 2: print all clv vectors
-	for (size_t i = 0; i < network.nodes.size(); ++i) {
+	/*for (size_t i = 0; i < network.nodes.size(); ++i) {
 		print_clv_vector(fake_treeinfo, tree_idx, partition_idx, i);
-	}
+	}*/
 
 	// just for debug 3: print the persite logl
-	std::cout << "persite logl for tree_idx " << tree_idx << ", subnetwork root clv idx " << ops_root->clv_index
+	/*std::cout << "persite logl for tree_idx " << tree_idx << ", subnetwork root clv idx " << ops_root->clv_index
 			<< ":\n";
 	for (size_t i = 0; i < persite_logl->size(); ++i) {
 		std::cout << persite_logl->at(i) << ",";
 	}
-	std::cout << "\n";
+	std::cout << "\n";*/
 }
 
 // TODO: Add bool incremental...
@@ -389,7 +390,7 @@ std::vector<double> compute_persite_lh_blobs(unsigned int partitionIdx, Network 
 		tree_clvs.reserve(n_trees);
 		unsigned int megablobRootClvIdx = blobInfo.megablob_roots[megablob_idx]->clv_index;
 
-		std::vector<double> persite_lh_debug(fake_treeinfo.partitions[partitionIdx]->sites, 0.0);
+		//std::vector<double> persite_lh_debug(fake_treeinfo.partitions[partitionIdx]->sites, 0.0);
 
 		for (size_t treeIdx = 0; treeIdx < n_trees; ++treeIdx) {
 			double tree_prob = displayed_tree_prob(blobInfo, megablob_idx, treeIdx, partitionIdx);
@@ -404,15 +405,15 @@ std::vector<double> compute_persite_lh_blobs(unsigned int partitionIdx, Network 
 						best_persite_logl_network, persite_logl);
 			}
 			if (megablobRootClvIdx == network.root->clv_index) { // we have reached the overall network root
-				std::cout << "tree_prob: " << tree_prob << "\n";
+				//std::cout << "tree_prob: " << tree_prob << "\n";
 				for (size_t s = 0; s < numSites; ++s) {
 					persite_lh_network[s] += exp(persite_logl[s]) * tree_prob;
 				}
-			} else {
+			} /*else {
 				for (size_t s = 0; s < numSites; ++s) {
 					persite_lh_debug[s] += exp(persite_logl[s]) * tree_prob;
 				}
-			}
+			}*/
 
 			if (n_trees > 1) {
 				// extract the tree root clv vector and put it into tree_clvs together with its displayed tree probability
@@ -423,21 +424,21 @@ std::vector<double> compute_persite_lh_blobs(unsigned int partitionIdx, Network 
 			}
 		}
 
-		std::cout << "persite_lh_debug for megablob root clv idx " << megablobRootClvIdx << ":\n";
+		/*std::cout << "persite_lh_debug for megablob root clv idx " << megablobRootClvIdx << ":\n";
 		for (size_t s = 0; s < numSites; ++s) {
 			std::cout << persite_lh_debug[s] << ",";
 		}
-		std::cout << "\n";
+		std::cout << "\n";*/
 
 		if (n_trees > 1) {
 			// merge the tree clvs into the megablob root clv
 			merge_tree_clvs(tree_clvs, fake_treeinfo.partitions[partitionIdx], megablobRootClvIdx);
 
-			std::cout << "clv vector after merging at index " << megablobRootClvIdx << ":\n";
+			/*std::cout << "clv vector after merging at index " << megablobRootClvIdx << ":\n";
 			for (size_t x = 0; x < tree_clvs[0].second.size(); ++x) {
 				std::cout << fake_treeinfo.partitions[partitionIdx]->clv[megablobRootClvIdx][x] << ",";
 			}
-			std::cout << "\n";
+			std::cout << "\n";*/
 
 			std::cout << "loglikelihood we would get from the merged megablob root clv with index "
 					<< megablobRootClvIdx << ": ";
@@ -457,11 +458,11 @@ std::vector<double> compute_persite_lh_blobs(unsigned int partitionIdx, Network 
 	}
 
 	// just for debug: print persite lh network
-	std::cout << "persite lh network:\n";
+	/*std::cout << "persite lh network:\n";
 	for (size_t i = 0; i < numSites; ++i) {
 		std::cout << persite_lh_network[i] << ",";
 	}
-	std::cout << "\n";
+	std::cout << "\n";*/
 
 	return persite_lh_network;
 }
@@ -484,7 +485,7 @@ std::vector<double> compute_persite_lh(unsigned int partitionIdx, Network &netwo
 
 		std::vector<double> persite_logl(fake_treeinfo.partitions[partitionIdx]->sites, 0.0);
 		compute_tree_logl(network, fake_treeinfo, treeIdx, partitionIdx, &persite_logl);
-		std::cout << "tree_prob: " << tree_prob << "\n";
+		//std::cout << "tree_prob: " << tree_prob << "\n";
 		for (size_t s = 0; s < numSites; ++s) {
 			persite_lh_network[s] += exp(persite_logl[s]) * tree_prob;
 		}
@@ -496,11 +497,11 @@ std::vector<double> compute_persite_lh(unsigned int partitionIdx, Network &netwo
 	}
 
 	// just for debug: print persite lh network
-	std::cout << "persite lh network:\n";
+	/*std::cout << "persite lh network:\n";
 	for (size_t i = 0; i < numSites; ++i) {
 		std::cout << persite_lh_network[i] << ",";
 	}
-	std::cout << "\n";
+	std::cout << "\n";*/
 
 	return persite_lh_network;
 }
