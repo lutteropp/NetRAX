@@ -357,19 +357,14 @@ void merge_tree_clvs(const std::vector<std::pair<double, std::vector<double>>> &
 	unsigned int states_padded = partition->states_padded;
 	unsigned int sites = partition->sites;
 	unsigned int rate_cats = partition->rate_cats;
-	//unsigned int clv_len = states_padded * sites * rate_cats;
+	unsigned int clv_len = states_padded * sites * rate_cats;
 
 	double *clv = partition->clv[rootCLVIndex];
 
-	for (unsigned int n = 0; n < sites; ++n) {
-		for (unsigned int i = 0; i < rate_cats; ++i) {
-			for (unsigned int j = 0; j < states; ++j) {
-				clv[j] = 0;
-				for (unsigned int k = 0; k < tree_clvs.size(); ++k) {
-					clv[j] += tree_clvs[k].first * tree_clvs[k].second[j + i * states_padded];
-				}
-			}
-			clv += states_padded;
+	for (unsigned int i = 0; i < clv_len; ++i) {
+		clv[i] = 0;
+		for (unsigned int k = 0; k < tree_clvs.size(); ++k) {
+			clv[i] += tree_clvs[k].first * tree_clvs[k].second[i];
 		}
 	}
 }
