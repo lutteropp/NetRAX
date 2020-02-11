@@ -420,6 +420,10 @@ TEST_F (LikelihoodTest, threeReticulations) {
 	compareLikelihoodFunctions("examples/sample_networks/three_reticulations.nw", "examples/sample_networks/7_taxa_fake_alignment.txt", false);
 }
 
+TEST_F (LikelihoodTest, interleavedReticulations) {
+	compareLikelihoodFunctions("examples/sample_networks/interleaved_reticulations.nw", "examples/sample_networks/5_taxa_fake_alignment.txt", false);
+}
+
 TEST_F (LikelihoodTest, reticulationInReticulation) {
 	compareLikelihoodFunctions("examples/sample_networks/reticulation_in_reticulation.nw", "examples/sample_networks/small_fake_alignment.txt", false);
 }
