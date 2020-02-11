@@ -33,7 +33,11 @@ void printClv(const pllmod_treeinfo_t &treeinfo, size_t clv_index, size_t partit
 }
 
 void createOperationsPostorder(Node *parent, Node *actNode, std::vector<pll_operation_t> &ops, size_t fake_clv_index,
-		size_t fake_pmatrix_index, const std::vector<bool> &dead_nodes, const std::vector<Node*>* stop_nodes = nullptr) {
+		size_t fake_pmatrix_index, const std::vector<bool> &dead_nodes, const std::vector<unsigned int>* stop_indices = nullptr) {
+	if (stop_indices && std::find(stop_indices->begin(), stop_indices->end(), actNode->clv_index) != stop_indices->end()) {
+		return;
+	}
+
 	std::vector<Node*> activeChildren = actNode->getActiveChildren(parent);
 	if (activeChildren.empty()) { // nothing to do if we are at a leaf node
 		return;
@@ -41,9 +45,7 @@ void createOperationsPostorder(Node *parent, Node *actNode, std::vector<pll_oper
 	assert(activeChildren.size() <= 2);
 	for (size_t i = 0; i < activeChildren.size(); ++i) {
 		if (!dead_nodes[activeChildren[i]->getClvIndex()]) {
-			if (!stop_nodes || std::find(stop_nodes->begin(), stop_nodes->end(), activeChildren[i]) == stop_nodes->end()) {
-				createOperationsPostorder(actNode, activeChildren[i], ops, fake_clv_index, fake_pmatrix_index, dead_nodes);
-			}
+			createOperationsPostorder(actNode, activeChildren[i], ops, fake_clv_index, fake_pmatrix_index, dead_nodes, stop_indices);
 		}
 	}
 
@@ -84,18 +86,25 @@ std::vector<pll_operation_t> createOperations(Network &network, const std::vecto
 	std::vector<bool> dead_nodes(network.nodes.size(), false);
 	fill_dead_nodes_recursive(nullptr, network.root, dead_nodes);
 
+	// fill forbidden clv indices
+	std::vector<unsigned int> stopIndices;
+	for (size_t i = 0; i < blobInfo.megablob_roots.size(); ++i) {
+		if (i != megablobIdx) {
+			stopIndices.emplace_back(blobInfo.megablob_roots[i]->clv_index);
+		}
+	}
 
 	if (blobInfo.megablob_roots[megablobIdx] == network.root) {
 		// How to do the operations at the top-level root trifurcation?
 		// First with root->back, then with root...
 		createOperationsPostorder(network.root, network.root->getLink()->getTargetNode(), ops, fake_clv_index,
-				fake_pmatrix_index, dead_nodes, &blobInfo.megablob_roots);
+				fake_pmatrix_index, dead_nodes, &stopIndices);
 		createOperationsPostorder(network.root->getLink()->getTargetNode(), network.root, ops, fake_clv_index,
-				fake_pmatrix_index, dead_nodes);
+				fake_pmatrix_index, dead_nodes, &stopIndices);
 	} else {
 		Node *megablobRoot = blobInfo.megablob_roots[megablobIdx];
 		createOperationsPostorder(parent[megablobRoot->clv_index], megablobRoot, ops, fake_clv_index,
-				fake_pmatrix_index, dead_nodes, &blobInfo.megablob_roots);
+				fake_pmatrix_index, dead_nodes, &stopIndices);
 	}
 	return ops;
 }
