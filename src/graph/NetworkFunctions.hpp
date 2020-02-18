@@ -10,6 +10,7 @@
 #include <stddef.h>
 #include <vector>
 #include <unordered_map>
+#include <string>
 
 extern "C"
 {
@@ -38,4 +39,7 @@ std::vector<Node*> getPossibleRootNodes(Network& network);
 void fill_dead_nodes_recursive(const Node* myParent, const Node* node, std::vector<bool>& dead_nodes);
 std::vector<Node*> grab_current_node_parents(const Network& network);
 std::vector<Node*> reversed_topological_sort(const Network& network);
+
+std::string exportDebugInfo(const Network& network, const BlobInformation& blobInfo);
+
 }

@@ -61,6 +61,18 @@ public:
 		return result;
 	}
 
+	const Node* getNodeByClvIndex(size_t idx) const {
+		const Node* result = nullptr;
+		for (size_t i = 0; i < nodes.size(); ++i) {
+			if (nodes[i].getClvIndex() == idx) {
+				result = &nodes[i];
+				break;
+			}
+		}
+		assert(result);
+		return result;
+	}
+
 	Node* getNodeByClvIndex(size_t idx) {
 		Node* result = nullptr;
 		for (size_t i = 0; i < nodes.size(); ++i) {
