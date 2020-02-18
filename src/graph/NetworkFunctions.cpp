@@ -453,6 +453,21 @@ std::vector<Node*> reversed_topological_sort(const Network& network) {
 	return res;
 }
 
+std::string buildNodeGraphics(const Node* node, const BlobInformation& blobInfo) {
+	std::stringstream ss;
+	ss << "\t\tgraphics\n\t\t[";
+	ss << "\t\t\tfill\t";
+	if (node->type == NodeType::RETICULATION_NODE) {
+		ss << "#00CCFF";
+	} else if (std::find(blobInfo.megablob_roots.begin(), blobInfo.megablob_roots.end(), node) != blobInfo.megablob_roots.end()) { // megablob root
+		ss << "#FF6600";
+	} else { // normal node
+		ss << "#FFCC00";
+	}
+	ss << "\"\n\t\t]\n";
+	return ss.str();
+}
+
 std::string exportDebugInfo(const Network& network, const BlobInformation& blobInfo) {
 	std::stringstream ss;
 	ss << "graph\n[\tdirected\t1\n";
@@ -460,10 +475,11 @@ std::string exportDebugInfo(const Network& network, const BlobInformation& blobI
 	for (size_t i = 0; i < network.num_nodes(); ++i) {
 		ss << "\tnode\n\t[\n\t\tid\t" << network.nodes[i].clv_index << "\n";
 		std::string nodeLabel = std::to_string(network.nodes[i].clv_index);
-		if (std::find(blobInfo.megablob_roots.begin(), blobInfo.megablob_roots.end(), &network.nodes[i]) != blobInfo.megablob_roots.end()) {
+		/*if (std::find(blobInfo.megablob_roots.begin(), blobInfo.megablob_roots.end(), &network.nodes[i]) != blobInfo.megablob_roots.end()) {
 			nodeLabel = "*" + nodeLabel + "*";
-		}
+		}*/
 		ss << "\t\tlabel\t\"" << nodeLabel << "\"\n";
+		ss << buildNodeGraphics(&network.nodes[i], blobInfo);
 		ss << "\t]\n";
 	}
 	for (size_t i = 0; i < network.num_edges(); ++i) {
