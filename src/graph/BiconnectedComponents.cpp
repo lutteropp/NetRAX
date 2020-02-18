@@ -112,6 +112,8 @@ BlobInformation partitionNetworkIntoBlobs(const Network& network) {
 
 	for (size_t i = 0; i < travbuffer.size() - 1; ++i) {
 		Node* node = travbuffer[i];
+		if (node->isTip()) continue; // no need to make a megablob root out of a tip node
+
 		unsigned int blobId = node_blob_id[travbuffer[i]->clv_index];
 		unsigned int parentBlobId = node_blob_id[parent[travbuffer[i]->clv_index]->clv_index];
 		unsigned int parentBlobSize = blob_size[parentBlobId];

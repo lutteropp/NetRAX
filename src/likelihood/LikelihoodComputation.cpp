@@ -404,7 +404,7 @@ std::vector<double> compute_persite_lh_blobs(unsigned int partitionIdx, Network 
 			std::vector<double> persite_logl(fake_treeinfo.partitions[partitionIdx]->sites, 0.0);
 			compute_tree_logl_blobs(network, blobInfo, parent, fake_treeinfo, megablob_idx, treeIdx, partitionIdx,
 					&persite_logl);
-			if (update_reticulation_probs) {
+			if (update_reticulation_probs) { // TODO: Only do this if we weren't at a leaf
 				updateBestPersiteLoglikelihoodsBlobs(network, blobInfo, megablob_idx, treeIdx, numSites,
 						best_persite_logl_network, persite_logl);
 			}
