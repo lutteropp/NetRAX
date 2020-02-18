@@ -456,7 +456,7 @@ std::vector<Node*> reversed_topological_sort(const Network& network) {
 std::string buildNodeGraphics(const Node* node, const BlobInformation& blobInfo) {
 	std::stringstream ss;
 	ss << "\t\tgraphics\n\t\t[\n";
-	ss << "\t\t\tfill\t";
+	ss << "\t\t\tfill\t\"";
 	if (node->type == NodeType::RETICULATION_NODE) {
 		ss << "#00CCFF";
 	} else if (std::find(blobInfo.megablob_roots.begin(), blobInfo.megablob_roots.end(), node) != blobInfo.megablob_roots.end()) { // megablob root
