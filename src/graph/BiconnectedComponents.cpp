@@ -16,6 +16,7 @@
 #include <limits>
 #include <algorithm>
 #include <unordered_set>
+#include <iostream>
 
 namespace netrax {
 
@@ -126,6 +127,9 @@ BlobInformation partitionNetworkIntoBlobs(const Network& network) {
 	blob_info.megablob_roots.emplace_back(network.root);
 
 	assert(blob_info.megablob_roots.size() == blob_info.reticulation_nodes_per_megablob.size());
+
+	std::cout << "Network for debug:\n";
+	std::cout << exportDebugInfo(network, blob_info) << "\n";
 
 	return blob_info;
 }

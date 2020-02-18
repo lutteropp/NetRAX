@@ -497,6 +497,7 @@ std::string exportDebugInfo(const Network& network, const BlobInformation& blobI
 		ss << "\"" << edgeLabel << "\"\n";
 		ss << "\t]\n";
 	}
+	ss << "]\n";
 	return ss.str();
 }
 

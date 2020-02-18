@@ -9,6 +9,8 @@
 #include "src/io/NetworkIO.hpp"
 #include "src/RaxmlWrapper.hpp"
 
+#include "src/graph/NetworkFunctions.hpp"
+
 #include <gtest/gtest.h>
 #include <string>
 #include <mutex>
@@ -378,7 +380,7 @@ void compareLikelihoodFunctions(const std::string& networkPath, const std::strin
 	NetraxOptions options;
 	options.network_file = networkPath;
 	options.msa_file = msaPath;
-	options.use_repeats = false;
+	options.use_repeats = useRepeats;
 	RaxmlWrapper wrapper(options);
 	TreeInfo network_treeinfo = wrapper.createRaxmlTreeinfo(network);
 	RaxmlWrapper::NetworkParams *params =
