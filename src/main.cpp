@@ -21,6 +21,9 @@ int parseOptions(int argc, char** argv, netrax::NetraxOptions* options) {
 }
 
 int main(int argc, char** argv) {
+	std::ios::sync_with_stdio(false);
+	std::cin.tie(NULL);
+
 	netrax::NetraxOptions netraxOptions;
 	parseOptions(argc, argv, &netraxOptions);
 
