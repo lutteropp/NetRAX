@@ -158,7 +158,7 @@ std::unordered_set<std::string> collect_tip_labels_utree(pll_utree_t *utree) {
 	return labels;
 }
 
-void print_clv_index_by_label(const Network& network) {
+void print_clv_index_by_label(const Network &network) {
 	std::cout << "clv_index by node label:\n";
 	for (size_t i = 0; i < network.nodes.size(); ++i) {
 		std::cout << network.nodes[i].label << ": " << network.nodes[i].clv_index << "\n";
@@ -374,7 +374,7 @@ TEST_F (LikelihoodTest, tree) {
 	EXPECT_EQ(norep_logl_blobs, norep_logl);
 }
 
-void compareLikelihoodFunctions(const std::string& networkPath, const std::string& msaPath, bool useRepeats) {
+void compareLikelihoodFunctions(const std::string &networkPath, const std::string &msaPath, bool useRepeats) {
 	Network network = netrax::readNetworkFromFile(networkPath);
 	print_clv_index_by_label(network);
 	NetraxOptions options;
@@ -384,15 +384,15 @@ void compareLikelihoodFunctions(const std::string& networkPath, const std::strin
 	RaxmlWrapper wrapper(options);
 	TreeInfo network_treeinfo = wrapper.createRaxmlTreeinfo(network);
 	RaxmlWrapper::NetworkParams *params =
-				(RaxmlWrapper::NetworkParams*) network_treeinfo.pll_treeinfo().likelihood_computation_params;
+			(RaxmlWrapper::NetworkParams*) network_treeinfo.pll_treeinfo().likelihood_computation_params;
 	pllmod_treeinfo_t treeinfo = *(params->network_treeinfo);
 
-	double naive_logl = computeLoglikelihoodNaiveUtree(wrapper, network, 0, 1);
-	std::cout << "naive logl: " << naive_logl << "\n";
 	double norep_logl = computeLoglikelihood(network, treeinfo, 0, 1);
 	std::cout << "norep_logl: " << norep_logl << "\n";
 	double norep_logl_blobs = computeLoglikelihood(network, treeinfo, 0, 1, false, true);
 	std::cout << "norep_logl_blobs: " << norep_logl_blobs << "\n";
+	double naive_logl = computeLoglikelihoodNaiveUtree(wrapper, network, 0, 1);
+	std::cout << "naive logl: " << naive_logl << "\n";
 
 	if (naive_logl != -std::numeric_limits<double>::infinity()) {
 		EXPECT_NEAR(naive_logl, norep_logl, 10);
@@ -403,53 +403,64 @@ void compareLikelihoodFunctions(const std::string& networkPath, const std::strin
 }
 
 TEST_F (LikelihoodTest, smallNetwork) {
-	compareLikelihoodFunctions("examples/sample_networks/small.nw", "examples/sample_networks/small_fake_alignment.txt", false);
+	compareLikelihoodFunctions("examples/sample_networks/small.nw", "examples/sample_networks/small_fake_alignment.txt",
+			false);
 }
 
 TEST_F (LikelihoodTest, tinyNetwork) {
-	compareLikelihoodFunctions("examples/sample_networks/tiny.nw", "examples/sample_networks/tiny_fake_alignment.txt", false);
+	compareLikelihoodFunctions("examples/sample_networks/tiny.nw", "examples/sample_networks/tiny_fake_alignment.txt",
+			false);
 }
 
 TEST_F (LikelihoodTest, clvAveraging) {
-	compareLikelihoodFunctions("examples/sample_networks/clv_averaging.nw", "examples/sample_networks/5_taxa_fake_alignment.txt", false);
+	compareLikelihoodFunctions("examples/sample_networks/clv_averaging.nw",
+			"examples/sample_networks/5_taxa_fake_alignment.txt", false);
 }
 
 TEST_F (LikelihoodTest, twoReticulations) {
-	compareLikelihoodFunctions("examples/sample_networks/two_reticulations.nw", "examples/sample_networks/5_taxa_fake_alignment.txt", false);
+	compareLikelihoodFunctions("examples/sample_networks/two_reticulations.nw",
+			"examples/sample_networks/5_taxa_fake_alignment.txt", false);
 }
 
 TEST_F (LikelihoodTest, threeReticulations) {
-	compareLikelihoodFunctions("examples/sample_networks/three_reticulations.nw", "examples/sample_networks/7_taxa_fake_alignment.txt", false);
+	compareLikelihoodFunctions("examples/sample_networks/three_reticulations.nw",
+			"examples/sample_networks/7_taxa_fake_alignment.txt", false);
 }
 
 TEST_F (LikelihoodTest, interleavedReticulations) {
-	compareLikelihoodFunctions("examples/sample_networks/interleaved_reticulations.nw", "examples/sample_networks/5_taxa_fake_alignment.txt", false);
+	compareLikelihoodFunctions("examples/sample_networks/interleaved_reticulations.nw",
+			"examples/sample_networks/5_taxa_fake_alignment.txt", false);
 }
 
 TEST_F (LikelihoodTest, reticulationInReticulation) {
-	compareLikelihoodFunctions("examples/sample_networks/reticulation_in_reticulation.nw", "examples/sample_networks/small_fake_alignment.txt", false);
+	compareLikelihoodFunctions("examples/sample_networks/reticulation_in_reticulation.nw",
+			"examples/sample_networks/small_fake_alignment.txt", false);
 }
 
 TEST_F (LikelihoodTest, smallNetworkWithRepeats) {
-	compareLikelihoodFunctions("examples/sample_networks/small.nw", "examples/sample_networks/small_fake_alignment.txt", true);
+	compareLikelihoodFunctions("examples/sample_networks/small.nw", "examples/sample_networks/small_fake_alignment.txt",
+			true);
 }
 
 TEST_F (LikelihoodTest, celineNetwork) {
-	compareLikelihoodFunctions("examples/sample_networks/celine.nw", "examples/sample_networks/celine_fake_alignment.txt", false);
+	compareLikelihoodFunctions("examples/sample_networks/celine.nw",
+			"examples/sample_networks/celine_fake_alignment.txt", false);
 }
 
 TEST_F (LikelihoodTest, celineNetworkSmaller) {
-	compareLikelihoodFunctions("examples/sample_networks/celine_smaller_1.nw", "examples/sample_networks/celine_fake_alignment.txt", false);
+	compareLikelihoodFunctions("examples/sample_networks/celine_smaller_1.nw",
+			"examples/sample_networks/celine_fake_alignment.txt", false);
 }
 
 TEST_F (LikelihoodTest, celineNetworkRepeats) {
-	compareLikelihoodFunctions("examples/sample_networks/celine.nw", "examples/sample_networks/celine_fake_alignment.txt", true);
+	compareLikelihoodFunctions("examples/sample_networks/celine.nw",
+			"examples/sample_networks/celine_fake_alignment.txt", true);
 }
 
 TEST_F (LikelihoodTest, celineNetworkNonzeroBranches) {
-	compareLikelihoodFunctions("examples/sample_networks/celine_nonzero_branches.nw", "examples/sample_networks/celine_fake_alignment.txt", false);
+	compareLikelihoodFunctions("examples/sample_networks/celine_nonzero_branches.nw",
+			"examples/sample_networks/celine_fake_alignment.txt", false);
 }
-
 
 TEST_F (LikelihoodTest, updateReticulationProb) {
 	TreeInfo network_treeinfo_small = smallWrapper->createRaxmlTreeinfo(smallNetwork);
