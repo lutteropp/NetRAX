@@ -55,5 +55,6 @@ struct RootedNetwork {
 
 std::string toNewickString(const RootedNetwork& network);
 RootedNetwork* parseRootedNetworkFromNewickString(const std::string& newick);
+std::string exportDebugInfo(const RootedNetwork& network);
 
 }

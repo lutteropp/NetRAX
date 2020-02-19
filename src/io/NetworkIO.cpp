@@ -10,6 +10,7 @@
 #include <stddef.h>
 #include <cassert>
 #include <fstream>
+#include <iostream>
 #include <limits>
 #include <memory>
 #include <sstream>
@@ -434,6 +435,8 @@ Network convertNetworkToplevelBifurcation(const RootedNetwork &rnetwork, size_t 
 }
 
 Network convertNetwork(const RootedNetwork &rnetwork) {
+	std::cout << exportDebugInfo(rnetwork) << "\n";
+
 	size_t node_count = rnetwork.nodes.size();
 // special case: check if rnetwork.root has only one child... if so, reset the root to its child.
 	size_t branch_count = rnetwork.branchCount;

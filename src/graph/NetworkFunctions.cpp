@@ -420,6 +420,8 @@ std::vector<Node*> reversed_topological_sort(const Network& network) {
 		}
 	}
 
+	std::cout << exportDebugInfo(network, outdeg) << "\n";
+
 	size_t num_visited_vertices = 0;
 	while (!q.empty()) {
 		Node* actNode = q.front();
@@ -494,6 +496,55 @@ std::string exportDebugInfo(const Network& network, const BlobInformation& blobI
 		ss << "\t\ttarget\t" << childId << "\n";
 		ss << "\t\tlabel\t";
 		std::string edgeLabel = std::to_string(network.edges[i].pmatrix_index) + "|" + std::to_string(blobInfo.edge_blob_id[network.edges[i].pmatrix_index]);
+		ss << "\"" << edgeLabel << "\"\n";
+		ss << "\t]\n";
+	}
+	ss << "]\n";
+	return ss.str();
+}
+
+std::string buildNodeGraphics(const Node* node) {
+	std::stringstream ss;
+	ss << "\t\tgraphics\n\t\t[\n";
+	ss << "\t\t\tfill\t\"";
+	if (node->type == NodeType::RETICULATION_NODE) {
+		ss << "#00CCFF";
+	} else { // normal node
+		ss << "#FFCC00";
+	}
+	ss << "\"\n\t\t]\n";
+	return ss.str();
+}
+
+std::string exportDebugInfo(const Network& network, const std::vector<unsigned int>& extra_node_number) {
+	std::stringstream ss;
+	ss << "graph\n[\tdirected\t1\n";
+	std::vector<Node*> parent = grab_current_node_parents(network);
+	for (size_t i = 0; i < network.num_nodes(); ++i) {
+		ss << "\tnode\n\t[\n\t\tid\t" << network.nodes[i].clv_index << "\n";
+		std::string nodeLabel = std::to_string(network.nodes[i].clv_index);
+		if (!extra_node_number.empty()) {
+			nodeLabel += "|" + std::to_string(extra_node_number[network.nodes[i].clv_index]);
+		}
+		/*if (std::find(blobInfo.megablob_roots.begin(), blobInfo.megablob_roots.end(), &network.nodes[i]) != blobInfo.megablob_roots.end()) {
+			nodeLabel = "*" + nodeLabel + "*";
+		}*/
+		ss << "\t\tlabel\t\"" << nodeLabel << "\"\n";
+		ss << buildNodeGraphics(&network.nodes[i]);
+		ss << "\t]\n";
+	}
+	for (size_t i = 0; i < network.num_edges(); ++i) {
+		ss << "\tedge\n\t[\n\t\tsource\t";
+		unsigned int parentId = network.edges[i].link1->node->clv_index;
+		unsigned int childId = network.edges[i].link2->node->clv_index;
+		assert(parentId != childId);
+		if (parent[parentId] == network.getNodeByClvIndex(childId)) {
+			std::swap(parentId, childId);
+		}
+		ss << parentId << "\n";
+		ss << "\t\ttarget\t" << childId << "\n";
+		ss << "\t\tlabel\t";
+		std::string edgeLabel = std::to_string(network.edges[i].pmatrix_index);
 		ss << "\"" << edgeLabel << "\"\n";
 		ss << "\t]\n";
 	}
