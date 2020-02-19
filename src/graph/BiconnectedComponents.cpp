@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <unordered_set>
 #include <iostream>
+#include <queue>
 
 namespace netrax {
 
@@ -80,6 +81,35 @@ unsigned int get_node_blob_id(Node* node, const BlobInformation& blobInfo, const
 	return res;
 }
 
+void gather_reticulations_per_megablob(const Network& network, BlobInformation& blob_info) {
+	// Given the megablob roots at blobInfo.megablob_roots
+	// Fill blobInfo.reticulation_nodes_per_megablob
+	// ... BFS traversal? Always taking the current megablob index with us...
+	std::vector<Node*> parent = grab_current_node_parents(network);
+	std::queue<std::pair<Node*, unsigned int> > q;
+	std::vector<bool> visited(network.num_nodes(), false);
+	q.emplace(std::make_pair(network.root, blob_info.megablob_roots.size() - 1));
+	while (!q.empty()) {
+		auto entry = q.front();
+		q.pop();
+		visited[entry.first->clv_index] = true;
+		unsigned int act_megablob_index = entry.second;
+		if (entry.first->type == NodeType::RETICULATION_NODE) {
+			blob_info.reticulation_nodes_per_megablob[act_megablob_index].emplace_back(entry.first);
+		} else {
+			auto it = std::find(blob_info.megablob_roots.begin(), blob_info.megablob_roots.end(), entry.first);
+			if (it != blob_info.megablob_roots.end()) {
+				act_megablob_index = std::distance(blob_info.megablob_roots.begin(), it);
+			}
+		}
+		for (Node* child : entry.first->getChildren(parent[entry.first->clv_index])) {
+			if (!visited[child->clv_index]) {
+				q.emplace(std::make_pair(child, act_megablob_index));
+			}
+		}
+	}
+}
+
 BlobInformation partitionNetworkIntoBlobs(const Network& network) {
 	BlobInformation blob_info;
 	blob_info.edge_blob_id.resize(network.num_edges());
@@ -122,13 +152,11 @@ BlobInformation partitionNetworkIntoBlobs(const Network& network) {
 			blob_info.megablob_roots.emplace_back(travbuffer[i]);
 			blob_info.reticulation_nodes_per_megablob.emplace_back(std::vector<Node*>());
 		}
-		if (node->type == NodeType::RETICULATION_NODE) {
-			blob_info.reticulation_nodes_per_megablob[blob_info.reticulation_nodes_per_megablob.size() - 1].emplace_back(node);
-		}
 	}
 	blob_info.megablob_roots.emplace_back(network.root);
-
 	assert(blob_info.megablob_roots.size() == blob_info.reticulation_nodes_per_megablob.size());
+
+	gather_reticulations_per_megablob(network, blob_info);
 
 	std::cout << "Network for debug:\n";
 	std::cout << exportDebugInfo(network, blob_info) << "\n";
