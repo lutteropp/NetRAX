@@ -342,117 +342,33 @@ Network convertNetworkToplevelTrifurcation(const RootedNetwork &rnetwork, size_t
 	return network;
 }
 
-Network convertNetworkToplevelBifurcation(const RootedNetwork &rnetwork, size_t node_count, size_t branch_count, RootedNetworkNode *root) {
-	std::unordered_map<const RootedNetworkNode*, Node*> visitedReticulations;
-	assert(root->children.size() == 2);
-
-	size_t tip_count = rnetwork.tipCount;
-	size_t link_count = branch_count * 2;
-
-	Network network;
-	network.nodes.resize(node_count);
-	network.edges.resize(branch_count);
-	network.links.resize(link_count);
-
-	size_t actNodeCount = 0;
-	size_t actEdgeCount = 0;
-	size_t actLinkCount = 0;
-
-// create the uroot node.
-	/* get the first root child that has descendants and make it the new root */
-	RootedNetworkNode *new_root = nullptr;
-	RootedNetworkNode *other_child = nullptr;
-	if (root->children[0]->children.size() == 2) { // we don't want to have a reticulation node as the new root...
-		new_root = root->children[0];
-		other_child = root->children[1];
-	} else {
-		new_root = root->children[1];
-		other_child = root->children[0];
-	}
-// the new 3 neighbors of new_root are now: new_root->children[0], new_root->children[1], and other_child
-	assert(new_root);
-	assert(other_child);
-
-	size_t inner_clv_index = tip_count;
-	size_t inner_scaler_index = 0;
-	size_t inner_pmatrix_index = tip_count;
-	size_t inner_node_index = tip_count;
-
-	Node *uroot = &network.nodes[actNodeCount++];
-	Link *firstLink = &network.links[actLinkCount++];
-	Link *secondLink = &network.links[actLinkCount++];
-	Link *thirdLink = &network.links[actLinkCount++];
-	firstLink->next = secondLink;
-	secondLink->next = thirdLink;
-	thirdLink->next = firstLink;
-	firstLink->node = uroot;
-	secondLink->node = uroot;
-	thirdLink->node = uroot;
-
-	Edge *firstEdge = &network.edges[actEdgeCount++];
-	Edge *secondEdge = &network.edges[actEdgeCount++];
-	Edge *thirdEdge = &network.edges[actEdgeCount++];
-	firstEdge->link1 = firstLink;
-	secondEdge->link1 = secondLink;
-	thirdEdge->link1 = thirdLink;
-
-	firstEdge->length = new_root->children[0]->length;
-	firstEdge->support = new_root->children[0]->support;
-	secondEdge->length = new_root->children[1]->length;
-	secondEdge->support = new_root->children[1]->support;
-	thirdEdge->length = other_child->length + new_root->length;
-	thirdEdge->support = std::min(other_child->support, new_root->support);
-
-	firstLink->edge = firstEdge;
-	secondLink->edge = secondEdge;
-	thirdLink->edge = thirdEdge;
-
-	Link *link1Back = buildBackLink(firstLink, new_root->children[0], new_root, &inner_clv_index, &inner_scaler_index, &inner_pmatrix_index,
-			&inner_node_index, &actNodeCount, &actEdgeCount, &actLinkCount, network, visitedReticulations);
-	Link *link2Back = buildBackLink(secondLink, new_root->children[1], new_root, &inner_clv_index, &inner_scaler_index,
-			&inner_pmatrix_index, &inner_node_index, &actNodeCount, &actEdgeCount, &actLinkCount, network, visitedReticulations);
-	Link *link3Back = buildBackLink(thirdLink, other_child, root, &inner_clv_index, &inner_scaler_index, &inner_pmatrix_index,
-			&inner_node_index, &actNodeCount, &actEdgeCount, &actLinkCount, network, visitedReticulations);
-
-	firstLink->outer = link1Back;
-	secondLink->outer = link2Back;
-	thirdLink->outer = link3Back;
-	firstEdge->link2 = link1Back;
-	secondEdge->link2 = link2Back;
-	thirdEdge->link2 = link3Back;
-
-	uroot->initBasic(inner_clv_index++, inner_scaler_index++, firstLink, new_root->label);
-
-// set the indices now
-	firstLink->node_index = inner_node_index++;
-	secondLink->node_index = inner_node_index++;
-	thirdLink->node_index = inner_node_index++;
-	setPMatrixIndexConditional(firstEdge, &inner_pmatrix_index);
-	setPMatrixIndexConditional(secondEdge, &inner_pmatrix_index);
-	setPMatrixIndexConditional(thirdEdge, &inner_pmatrix_index);
-
-	network.root = uroot;
-	return network;
-}
-
-Network convertNetwork(const RootedNetwork &rnetwork) {
+Network convertNetwork(RootedNetwork &rnetwork) {
 	std::cout << exportDebugInfo(rnetwork) << "\n";
-	assert(rnetwork.root->children.size() == 2 || rnetwork.root->children.size() == 3);
-
 	size_t node_count = rnetwork.nodes.size();
 // special case: check if rnetwork.root has only one child... if so, reset the root to its child.
 	size_t branch_count = rnetwork.branchCount;
 	RootedNetworkNode *root = rnetwork.root;
-	if (root->children.size() == 1) {
+	while (root->children.size() == 1) {
 		root = root->children[0];
 		node_count--;
 		branch_count--;
 	}
 	// now, the root has either 2 children (top-level bifurcation), or 3 children (top-level trifurcation).
+	if (root->children.size() == 2) { // make it trifurcating
+		unsigned int newRootChildIdx = 0;
+		if (root->children[0]->children.size() == 0) {
+			newRootChildIdx = 1;
+		}
+		RootedNetworkNode* new_root = root->children[newRootChildIdx];
+		new_root->children.push_back(root->children[!newRootChildIdx]);
+		root->children[!newRootChildIdx]->length += new_root->length;
+		node_count--;
+		branch_count--;
+		root = new_root;
+	}
+
 	Network network;
-	if (root->children.size() == 2) {
-		network = convertNetworkToplevelBifurcation(rnetwork, node_count - 1, branch_count - 1, root);
-	} else if (root->children.size() == 3) {
+	if (root->children.size() == 3) {
 		network = convertNetworkToplevelTrifurcation(rnetwork, node_count, branch_count, root);
 	} else {
 		throw std::runtime_error("The network is not bifurcating");
@@ -489,44 +405,8 @@ Network convertNetwork(const RootedNetwork &rnetwork) {
 	return network;
 }
 
-std::string stripNewick(const std::string& newick) {
-	// remove extra parentheses leading to monofurcation
-	std::stack<unsigned int> s;
-	unsigned int lastPos = newick.find(';') - 1;
-	unsigned int extra_outer_count = 0;
-	for (size_t i = 0; i <= lastPos; ++i) {
-		if (newick[i] == '(') {
-			s.emplace(i);
-		} else if (newick[i] == ')') {
-			unsigned int pos = s.top();
-			if (pos == lastPos - i) {
-				extra_outer_count = s.size();
-				break;
-			}
-			s.pop();
-		}
-	}
-	if (extra_outer_count > 0) { // one outer bracket around root node is fine and normal
-		extra_outer_count--;
-	}
-	std::string res = newick.substr(extra_outer_count, newick.size());
-	std::string ending;
-	while (res[res.size() - 1] != ')') {
-		ending += res[res.size() - 1];
-		res.pop_back();
-	}
-	for (size_t i = 0; i < extra_outer_count; ++i) {
-		assert(res[res.size() - 1] == ')');
-		res.pop_back();
-	}
-	std::reverse(ending.begin(), ending.end());
-	res += ending;
-	return res;
-}
-
 Network readNetworkFromString(const std::string &newick) {
-	std::string strippedNewick = stripNewick(newick);
-	RootedNetwork *rnetwork = parseRootedNetworkFromNewickString(strippedNewick);
+	RootedNetwork *rnetwork = parseRootedNetworkFromNewickString(newick);
 	Network network = convertNetwork(*rnetwork);
 	delete rnetwork;
 	return network;
