@@ -20,6 +20,7 @@
 #include <unordered_set>
 #include <utility>
 #include <vector>
+#include <stack>
 
 #include "../graph/Direction.hpp"
 #include "../graph/Edge.hpp"
@@ -488,8 +489,44 @@ Network convertNetwork(const RootedNetwork &rnetwork) {
 	return network;
 }
 
+std::string stripNewick(const std::string& newick) {
+	// remove extra parentheses leading to monofurcation
+	std::stack<unsigned int> s;
+	unsigned int lastPos = newick.find(';') - 1;
+	unsigned int extra_outer_count = 0;
+	for (size_t i = 0; i <= lastPos; ++i) {
+		if (newick[i] == '(') {
+			s.emplace(i);
+		} else if (newick[i] == ')') {
+			unsigned int pos = s.top();
+			if (pos == lastPos - i) {
+				extra_outer_count = s.size();
+				break;
+			}
+			s.pop();
+		}
+	}
+	if (extra_outer_count > 0) { // one outer bracket around root node is fine and normal
+		extra_outer_count--;
+	}
+	std::string res = newick.substr(extra_outer_count, newick.size());
+	std::string ending;
+	while (res[res.size() - 1] != ')') {
+		ending += res[res.size() - 1];
+		res.pop_back();
+	}
+	for (size_t i = 0; i < extra_outer_count; ++i) {
+		assert(res[res.size() - 1] == ')');
+		res.pop_back();
+	}
+	std::reverse(ending.begin(), ending.end());
+	res += ending;
+	return res;
+}
+
 Network readNetworkFromString(const std::string &newick) {
-	RootedNetwork *rnetwork = parseRootedNetworkFromNewickString(newick);
+	std::string strippedNewick = stripNewick(newick);
+	RootedNetwork *rnetwork = parseRootedNetworkFromNewickString(strippedNewick);
 	Network network = convertNetwork(*rnetwork);
 	delete rnetwork;
 	return network;
