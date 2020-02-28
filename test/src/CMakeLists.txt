@@ -1,11 +1,3 @@
-find_package (GTest)
-include_directories(${GTEST_INCLUDE_DIRS})
-
-if(NOT GTEST_FOUND)
-    message (STATUS "GTest not found")
-    message (WARNING "Skipping building tests.")
-    return()
-endif()
 
 message (STATUS "Building tests")
 
@@ -22,7 +14,7 @@ add_executable        (netrax_test_module ${NETRAX_TEST_SOURCES})
 
 target_link_libraries(netrax_test_module "${PROJECT_BINARY_DIR}/../libs/raxml-ng/bin/raxml-ng.a" ${NETRAX_LIBS})
 
-target_link_libraries (netrax_test_module ${GTEST_BOTH_LIBRARIES} -pthread)
+target_link_libraries (netrax_test_module gtest_main -pthread)
 
 target_link_libraries (netrax_test_module ${MPI_CXX_LIBRARIES})
 
