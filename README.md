@@ -3,7 +3,7 @@ Phylogenetic Network Inference without ILS
 
 1. **Install the dependencies.** On Ubuntu (and other Debian-based systems), you can simply run:
 ```
-sudo apt-get install flex bison libgmp3-dev
+sudo apt-get install flex bison libgmp3-dev cmake
 ```
 For other systems, please make sure you have following packages/libraries installed:  
 [`GNU Bison`](http://www.gnu.org/software/bison/) [`Flex`](http://flex.sourceforge.net/) [`GMP`](https://gmplib.org/)
