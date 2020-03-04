@@ -396,7 +396,9 @@ std::vector<double> compute_persite_lh_blobs(unsigned int partitionIdx, Network 
 
 		//std::vector<double> persite_lh_debug(fake_treeinfo.partitions[partitionIdx]->sites, 0.0);
 
-		for (size_t treeIdx = 0; treeIdx < n_trees; ++treeIdx) {
+		for (size_t i = 0; i < n_trees; ++i) {
+			size_t treeIdx = i ^ (i >> 1); // graycode iteration order
+
 			double tree_prob = displayed_tree_prob(blobInfo, megablob_idx, treeIdx, partitionIdx);
 			if (tree_prob == 0.0 && !update_reticulation_probs) {
 				continue;
