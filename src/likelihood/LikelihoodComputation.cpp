@@ -139,8 +139,7 @@ double displayed_tree_prob(Network &network, size_t tree_index, size_t partition
 	return exp(logProb);
 }
 
-double displayed_tree_prob(BlobInformation &blobInfo, size_t megablob_idx, size_t tree_index, size_t partition_index) {
-	setReticulationParents(blobInfo, megablob_idx, tree_index);
+double displayed_tree_prob(BlobInformation &blobInfo, size_t megablob_idx, size_t partition_index) {
 	double logProb = 0;
 	for (size_t i = 0; i < blobInfo.reticulation_nodes_per_megablob[megablob_idx].size(); ++i) {
 		logProb += log(
@@ -365,10 +364,18 @@ std::vector<double> compute_persite_lh_blobs(unsigned int partitionIdx, Network 
 		tree_clvs.reserve(n_trees);
 		unsigned int megablobRootClvIdx = blobInfo.megablob_roots[megablob_idx]->clv_index;
 
+		setReticulationParents(blobInfo, megablob_idx, 0);
 		for (size_t i = 0; i < n_trees; ++i) {
 			size_t treeIdx = i ^ (i >> 1); // graycode iteration order
-
-			double tree_prob = displayed_tree_prob(blobInfo, megablob_idx, treeIdx, partitionIdx);
+			if (i > 0) {
+				size_t lastI = i - 1;
+				size_t lastTreeIdx = lastI ^ (lastI >> 1);
+				size_t onlyChangedBit = treeIdx ^ lastTreeIdx;
+				size_t changedBitPos = log2(onlyChangedBit);
+				bool changedBitIsSet = treeIdx & onlyChangedBit;
+				blobInfo.reticulation_nodes_per_megablob[megablob_idx][changedBitPos]->getReticulationData()->setActiveParent(changedBitIsSet);
+			}
+			double tree_prob = displayed_tree_prob(blobInfo, megablob_idx, partitionIdx);
 			if (tree_prob == 0.0 && !update_reticulation_probs) {
 				continue;
 			}
