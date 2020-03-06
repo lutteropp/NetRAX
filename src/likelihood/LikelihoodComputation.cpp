@@ -128,7 +128,12 @@ std::vector<pll_operation_t> createOperationsTowardsRoot(Network& network, const
 	std::vector<pll_operation_t> ops;
 	size_t fake_clv_index = network.nodes.size();
 	size_t fake_pmatrix_index = network.edges.size();
-	Node* actParent = parent[actNode->clv_index];
+	Node* actParent;
+	if (actNode->type == NodeType::RETICULATION_NODE) {
+		actParent = actNode->getReticulationData()->getLinkToActiveParent()->getTargetNode();
+	} else {
+		actParent = parent[actNode->clv_index];
+	}
 	while (actParent != nullptr) {
 		std::vector<Node*> activeChildren = actParent->getActiveChildren(parent[actParent->clv_index]);
 		assert(activeChildren.size() <= 2 && activeChildren.size() > 0);
@@ -139,7 +144,11 @@ std::vector<pll_operation_t> createOperationsTowardsRoot(Network& network, const
 		}
 		ops.emplace_back(buildOperation(actParent, child1, child2, fake_clv_index, fake_pmatrix_index));
 		actNode = actParent;
-		actParent = parent[actNode->clv_index];
+		if (actNode->type == NodeType::RETICULATION_NODE) {
+			actParent = actNode->getReticulationData()->getLinkToActiveParent()->getTargetNode();
+		} else {
+			actParent = parent[actNode->clv_index];
+		}
 	}
 	std::reverse(ops.begin(), ops.end());
 	return ops;
@@ -223,6 +232,7 @@ double compute_tree_logl(Network &network, pllmod_treeinfo_t &fake_treeinfo, siz
 void compute_tree_logl_blobs(Network &network, BlobInformation &blobInfo, const std::vector<Node*> &parent,
 		pllmod_treeinfo_t &fake_treeinfo, size_t megablob_idx, size_t tree_idx, size_t partition_idx,
 		std::vector<double> *persite_logl, Node* startNode = nullptr) {
+	setReticulationParents(network, tree_idx);
 // Create pll_operations_t array for the current displayed tree
 	std::vector<pll_operation_t> ops;
 	if (startNode) {
