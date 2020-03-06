@@ -23,13 +23,15 @@
 
 using namespace netrax;
 
+const std::string DATA_PATH = "../../examples/sample_networks/";
+
 std::mutex g_singleThread;
 
 class LikelihoodTest: public ::testing::Test {
 protected:
-	std::string treePath = "examples/sample_networks/tree.nw";
-	std::string networkPath = "examples/sample_networks/small.nw";
-	std::string msaPath = "examples/sample_networks/small_fake_alignment.txt";
+	std::string treePath = DATA_PATH + "tree.nw";
+	std::string networkPath = DATA_PATH + "small.nw";
+	std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
 
 	Network treeNetwork;
 	Network smallNetwork;
@@ -403,63 +405,63 @@ void compareLikelihoodFunctions(const std::string &networkPath, const std::strin
 }
 
 TEST_F (LikelihoodTest, smallNetwork) {
-	compareLikelihoodFunctions("examples/sample_networks/small.nw", "examples/sample_networks/small_fake_alignment.txt",
+	compareLikelihoodFunctions(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt",
 			false);
 }
 
 TEST_F (LikelihoodTest, tinyNetwork) {
-	compareLikelihoodFunctions("examples/sample_networks/tiny.nw", "examples/sample_networks/tiny_fake_alignment.txt",
+	compareLikelihoodFunctions(DATA_PATH + "tiny.nw", DATA_PATH + "tiny_fake_alignment.txt",
 			false);
 }
 
 TEST_F (LikelihoodTest, clvAveraging) {
-	compareLikelihoodFunctions("examples/sample_networks/clv_averaging.nw",
-			"examples/sample_networks/5_taxa_fake_alignment.txt", false);
+	compareLikelihoodFunctions(DATA_PATH + "clv_averaging.nw",
+			DATA_PATH + "5_taxa_fake_alignment.txt", false);
 }
 
 TEST_F (LikelihoodTest, twoReticulations) {
-	compareLikelihoodFunctions("examples/sample_networks/two_reticulations.nw",
-			"examples/sample_networks/5_taxa_fake_alignment.txt", false);
+	compareLikelihoodFunctions(DATA_PATH + "two_reticulations.nw",
+			DATA_PATH + "5_taxa_fake_alignment.txt", false);
 }
 
 TEST_F (LikelihoodTest, threeReticulations) {
-	compareLikelihoodFunctions("examples/sample_networks/three_reticulations.nw",
-			"examples/sample_networks/7_taxa_fake_alignment.txt", false);
+	compareLikelihoodFunctions(DATA_PATH + "three_reticulations.nw",
+			DATA_PATH + "7_taxa_fake_alignment.txt", false);
 }
 
 TEST_F (LikelihoodTest, interleavedReticulations) {
-	compareLikelihoodFunctions("examples/sample_networks/interleaved_reticulations.nw",
-			"examples/sample_networks/5_taxa_fake_alignment.txt", false);
+	compareLikelihoodFunctions(DATA_PATH + "interleaved_reticulations.nw",
+			DATA_PATH + "5_taxa_fake_alignment.txt", false);
 }
 
 TEST_F (LikelihoodTest, reticulationInReticulation) {
-	compareLikelihoodFunctions("examples/sample_networks/reticulation_in_reticulation.nw",
-			"examples/sample_networks/small_fake_alignment.txt", false);
+	compareLikelihoodFunctions(DATA_PATH + "reticulation_in_reticulation.nw",
+			DATA_PATH + "small_fake_alignment.txt", false);
 }
 
 TEST_F (LikelihoodTest, smallNetworkWithRepeats) {
-	compareLikelihoodFunctions("examples/sample_networks/small.nw", "examples/sample_networks/small_fake_alignment.txt",
+	compareLikelihoodFunctions(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt",
 			true);
 }
 
 TEST_F (LikelihoodTest, celineNetwork) {
-	compareLikelihoodFunctions("examples/sample_networks/celine.nw",
-			"examples/sample_networks/celine_fake_alignment.txt", false);
+	compareLikelihoodFunctions(DATA_PATH + "celine.nw",
+			DATA_PATH + "celine_fake_alignment.txt", false);
 }
 
 TEST_F (LikelihoodTest, celineNetworkSmaller) {
-	compareLikelihoodFunctions("examples/sample_networks/celine_smaller_1.nw",
-			"examples/sample_networks/celine_fake_alignment.txt", false);
+	compareLikelihoodFunctions(DATA_PATH + "celine_smaller_1.nw",
+			DATA_PATH + "celine_fake_alignment.txt", false);
 }
 
 TEST_F (LikelihoodTest, celineNetworkRepeats) {
-	compareLikelihoodFunctions("examples/sample_networks/celine.nw",
-			"examples/sample_networks/celine_fake_alignment.txt", true);
+	compareLikelihoodFunctions(DATA_PATH + "celine.nw",
+			DATA_PATH + "celine_fake_alignment.txt", true);
 }
 
 TEST_F (LikelihoodTest, celineNetworkNonzeroBranches) {
-	compareLikelihoodFunctions("examples/sample_networks/celine_nonzero_branches.nw",
-			"examples/sample_networks/celine_fake_alignment.txt", false);
+	compareLikelihoodFunctions(DATA_PATH + "celine_nonzero_branches.nw",
+			DATA_PATH + "celine_fake_alignment.txt", false);
 }
 
 TEST_F (LikelihoodTest, updateReticulationProb) {

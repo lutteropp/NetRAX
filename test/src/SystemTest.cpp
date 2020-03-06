@@ -21,14 +21,16 @@
 
 using namespace netrax;
 
+const std::string DATA_PATH = "../../examples/sample_networks/";
+
 TEST (SystemTest, testTheTest) {
 	ASSERT_TRUE(true);
 }
 
 TEST (SystemTest, allTreeOldRaxml) {
 	// initial setup
-	std::string treePath = "examples/sample_networks/tree.nw";
-	std::string msaPath = "examples/sample_networks/small_fake_alignment.nw";
+	std::string treePath = DATA_PATH + "tree.nw";
+	std::string msaPath = DATA_PATH + "small_fake_alignment.nw";
 
 	Tree normalTree = Tree::loadFromFile(treePath);
 	NetraxOptions treeOptions;
@@ -68,8 +70,8 @@ TEST (SystemTest, allTreeOldRaxml) {
 
 TEST (SystemTest, allTree) {
 	// initial setup
-	std::string treePath = "examples/sample_networks/tree.nw";
-	std::string msaPath = "examples/sample_networks/small_fake_alignment.nw";
+	std::string treePath = DATA_PATH + "tree.nw";
+	std::string msaPath = DATA_PATH + "small_fake_alignment.nw";
 	Network treeNetwork = readNetworkFromFile(treePath);
 	NetraxOptions treeOptions;
 	treeOptions.network_file = treePath;
@@ -110,8 +112,8 @@ TEST (SystemTest, allTree) {
 
 TEST (SystemTest, allNetwork) {
 	// initial setup
-	std::string smallPath = "examples/sample_networks/small.nw";
-	std::string msaPath = "examples/sample_networks/small_fake_alignment.nw";
+	std::string smallPath = DATA_PATH + "small.nw";
+	std::string msaPath = DATA_PATH + "small_fake_alignment.nw";
 	Network smallNetwork = readNetworkFromFile(smallPath);
 	NetraxOptions smallOptions;
 	smallOptions.network_file = smallPath;

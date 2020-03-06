@@ -22,14 +22,16 @@
 
 using namespace netrax;
 
+const std::string DATA_PATH = "../../examples/sample_networks/";
+
 TEST (BrlenOptTest, testTheTest) {
 	ASSERT_TRUE(true);
 }
 
 TEST (BrlenOptTest, tree) {
 	// initial setup
-	std::string treePath = "examples/sample_networks/tree.nw";
-	std::string msaPath = "examples/sample_networks/small_fake_alignment.nw";
+	std::string treePath = DATA_PATH + "tree.nw";
+	std::string msaPath = DATA_PATH + "small_fake_alignment.nw";
 	NetraxOptions treeOptions;
 	treeOptions.network_file = treePath;
 	treeOptions.msa_file = msaPath;
@@ -115,8 +117,8 @@ TEST (BrlenOptTest, tree) {
 
 TEST (BrlenOptTest, small) {
 	// initial setup
-	std::string smallPath = "examples/sample_networks/small.nw";
-	std::string msaPath = "examples/sample_networks/small_fake_alignment.nw";
+	std::string smallPath = DATA_PATH + "small.nw";
+	std::string msaPath = DATA_PATH + "small_fake_alignment.nw";
 	NetraxOptions smallOptions;
 	smallOptions.network_file = smallPath;
 	smallOptions.msa_file = msaPath;
@@ -143,8 +145,8 @@ TEST (BrlenOptTest, small) {
 
 TEST (BrlenOptTest, celineFake) {
 	// initial setup
-	std::string celinePath = "examples/sample_networks/celine.nw";
-	std::string msaPath = "examples/sample_networks/celine_fake_alignment.txt";
+	std::string celinePath = DATA_PATH + "celine.nw";
+	std::string msaPath = DATA_PATH + "celine_fake_alignment.txt";
 	NetraxOptions celineOptions;
 	celineOptions.network_file = celinePath;
 	celineOptions.msa_file = msaPath;
@@ -171,8 +173,8 @@ TEST (BrlenOptTest, celineFake) {
 
 TEST (BrlenOptTest, celineFakeWithModelopt) {
 	// initial setup
-	std::string celinePath = "examples/sample_networks/celine.nw";
-	std::string msaPath = "examples/sample_networks/celine_fake_alignment.txt";
+	std::string celinePath = DATA_PATH + "celine.nw";
+	std::string msaPath = DATA_PATH + "celine_fake_alignment.txt";
 	NetraxOptions celineOptions;
 	celineOptions.network_file = celinePath;
 	celineOptions.msa_file = msaPath;

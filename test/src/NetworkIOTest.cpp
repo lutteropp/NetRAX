@@ -19,11 +19,13 @@
 
 using namespace netrax;
 
+const std::string DATA_PATH = "../../examples/sample_networks/";
+
 class NetworkIOTest: public ::testing::Test {
 protected:
-	std::string treePath = "examples/sample_networks/tree.nw";
-	std::string networkPath = "examples/sample_networks/small.nw";
-	std::string msaPath = "examples/sample_networks/small_fake_alignment.nw";
+	std::string treePath = DATA_PATH + "tree.nw";
+	std::string networkPath = DATA_PATH + "small.nw";
+	std::string msaPath = DATA_PATH + "small_fake_alignment.nw";
 
 	virtual void SetUp() {
 		g_singleThread.lock();
@@ -121,7 +123,7 @@ TEST_F (NetworkIOTest, readNetworkFromFile) {
 }
 
 TEST_F (NetworkIOTest, read2Reticulations) {
-	Network network = readNetworkFromFile("examples/sample_networks/two_reticulations.nw");
+	Network network = readNetworkFromFile(DATA_PATH + "two_reticulations.nw");
 	EXPECT_EQ(5, network.num_tips());
 	sanity_checks(network);
 }
