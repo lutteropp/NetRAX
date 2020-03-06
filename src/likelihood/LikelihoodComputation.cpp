@@ -32,6 +32,33 @@ void printClv(const pllmod_treeinfo_t &treeinfo, size_t clv_index, size_t partit
 	}
 }
 
+pll_operation_t buildOperation(Node* parent, Node* child1, Node* child2, size_t fake_clv_index, size_t fake_pmatrix_index) {
+	pll_operation_t operation;
+	assert(parent);
+	assert(child1 || child2);
+	operation.parent_clv_index = parent->getClvIndex();
+	operation.parent_scaler_index = parent->getScalerIndex();
+	if (child1) {
+		operation.child1_clv_index = child1->getClvIndex();
+		operation.child1_scaler_index = child1->getScalerIndex();
+		operation.child1_matrix_index = child1->getEdgeTo(parent)->pmatrix_index;
+	} else {
+		operation.child1_clv_index = fake_clv_index;
+		operation.child1_scaler_index = -1;
+		operation.child1_matrix_index = fake_pmatrix_index;
+	}
+	if (child2) {
+		operation.child2_clv_index = child2->getClvIndex();
+		operation.child2_scaler_index = child2->getScalerIndex();
+		operation.child2_matrix_index = child2->getEdgeTo(parent)->pmatrix_index;
+	} else {
+		operation.child2_clv_index = fake_clv_index;
+		operation.child2_scaler_index = -1;
+		operation.child2_matrix_index = fake_pmatrix_index;
+	}
+	return operation;
+}
+
 void createOperationsPostorder(Node *parent, Node *actNode, std::vector<pll_operation_t> &ops, size_t fake_clv_index,
 		size_t fake_pmatrix_index, const std::vector<bool> &dead_nodes, const std::vector<unsigned int> *stop_indices =
 				nullptr) {
@@ -52,30 +79,15 @@ void createOperationsPostorder(Node *parent, Node *actNode, std::vector<pll_oper
 		}
 	}
 
-	pll_operation_t operation;
-	operation.parent_clv_index = actNode->getClvIndex();
-	operation.parent_scaler_index = actNode->getScalerIndex();
-
+	Node* child1 = nullptr;
 	if (!dead_nodes[activeChildren[0]->getClvIndex()]) {
-		operation.child1_clv_index = activeChildren[0]->getClvIndex();
-		operation.child1_scaler_index = activeChildren[0]->getScalerIndex();
-		operation.child1_matrix_index = activeChildren[0]->getEdgeTo(actNode)->pmatrix_index;
-	} else {
-		operation.child1_clv_index = fake_clv_index;
-		operation.child1_scaler_index = -1;
-		operation.child1_matrix_index = fake_pmatrix_index;
+		child1 = activeChildren[0];
 	}
-
+	Node* child2 = nullptr;
 	if (activeChildren.size() == 2 && !dead_nodes[activeChildren[1]->getClvIndex()]) {
-		operation.child2_clv_index = activeChildren[1]->getClvIndex();
-		operation.child2_scaler_index = activeChildren[1]->getScalerIndex();
-		operation.child2_matrix_index = activeChildren[1]->getEdgeTo(actNode)->pmatrix_index;
-	} else { // activeChildren.size() == 1
-		operation.child2_clv_index = fake_clv_index;
-		operation.child2_scaler_index = -1;
-		operation.child2_matrix_index = fake_pmatrix_index;
+		child2 = activeChildren[1];
 	}
-
+	pll_operation_t operation = buildOperation(actNode, child1, child2, fake_clv_index, fake_pmatrix_index);
 	ops.push_back(operation);
 }
 
@@ -111,6 +123,28 @@ std::vector<pll_operation_t> createOperations(Network &network, const std::vecto
 	}
 	return ops;
 }
+
+std::vector<pll_operation_t> createOperationsTowardsRoot(Network& network, const std::vector<Node*>& parent, Node* actNode) {
+	std::vector<pll_operation_t> ops;
+	size_t fake_clv_index = network.nodes.size();
+	size_t fake_pmatrix_index = network.edges.size();
+	Node* actParent = parent[actNode->clv_index];
+	while (actParent != nullptr) {
+		std::vector<Node*> activeChildren = actParent->getActiveChildren(parent[actParent->clv_index]);
+		assert(activeChildren.size() <= 2 && activeChildren.size() > 0);
+		Node* child1 = activeChildren[0];
+		Node* child2 = nullptr;	
+		if (activeChildren.size() == 2) {
+			child2 = activeChildren[1];
+		}
+		ops.emplace_back(buildOperation(actParent, child1, child2, fake_clv_index, fake_pmatrix_index));
+		actNode = actParent;
+		actParent = parent[actNode->clv_index];
+	}
+	std::reverse(ops.begin(), ops.end());
+	return ops;
+}
+		
 
 std::vector<pll_operation_t> createOperations(Network &network, size_t treeIdx) {
 	std::vector<pll_operation_t> ops;
@@ -188,9 +222,14 @@ double compute_tree_logl(Network &network, pllmod_treeinfo_t &fake_treeinfo, siz
 
 void compute_tree_logl_blobs(Network &network, BlobInformation &blobInfo, const std::vector<Node*> &parent,
 		pllmod_treeinfo_t &fake_treeinfo, size_t megablob_idx, size_t tree_idx, size_t partition_idx,
-		std::vector<double> *persite_logl) {
+		std::vector<double> *persite_logl, Node* startNode = nullptr) {
 // Create pll_operations_t array for the current displayed tree
-	std::vector<pll_operation_t> ops = createOperations(network, parent, blobInfo, megablob_idx, tree_idx);
+	std::vector<pll_operation_t> ops;
+	if (startNode) {
+		ops = createOperationsTowardsRoot(network, parent, startNode);
+	} else {
+		ops = createOperations(network, parent, blobInfo, megablob_idx, tree_idx);
+	}
 	unsigned int ops_count = ops.size();
 
 	if (ops_count == 0) {
@@ -367,13 +406,15 @@ std::vector<double> compute_persite_lh_blobs(unsigned int partitionIdx, Network 
 		setReticulationParents(blobInfo, megablob_idx, 0);
 		for (size_t i = 0; i < n_trees; ++i) {
 			size_t treeIdx = i ^ (i >> 1); // graycode iteration order
+			Node* startNode = nullptr;
 			if (i > 0) {
 				size_t lastI = i - 1;
 				size_t lastTreeIdx = lastI ^ (lastI >> 1);
 				size_t onlyChangedBit = treeIdx ^ lastTreeIdx;
 				size_t changedBitPos = log2(onlyChangedBit);
 				bool changedBitIsSet = treeIdx & onlyChangedBit;
-				blobInfo.reticulation_nodes_per_megablob[megablob_idx][changedBitPos]->getReticulationData()->setActiveParent(changedBitIsSet);
+				startNode = blobInfo.reticulation_nodes_per_megablob[megablob_idx][changedBitPos];
+				startNode->getReticulationData()->setActiveParent(changedBitIsSet);
 			}
 			double tree_prob = displayed_tree_prob(blobInfo, megablob_idx, partitionIdx);
 			if (tree_prob == 0.0 && !update_reticulation_probs) {
@@ -381,7 +422,7 @@ std::vector<double> compute_persite_lh_blobs(unsigned int partitionIdx, Network 
 			}
 			std::vector<double> persite_logl(fake_treeinfo.partitions[partitionIdx]->sites, 0.0);
 			compute_tree_logl_blobs(network, blobInfo, parent, fake_treeinfo, megablob_idx, treeIdx, partitionIdx,
-					&persite_logl);
+					&persite_logl, startNode);
 			if (update_reticulation_probs) { // TODO: Only do this if we weren't at a leaf
 				updateBestPersiteLoglikelihoodsBlobs(network, blobInfo, megablob_idx, treeIdx, numSites,
 						best_persite_logl_network, persite_logl);
