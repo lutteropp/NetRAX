@@ -342,6 +342,25 @@ Network convertNetworkToplevelTrifurcation(const RootedNetwork &rnetwork, size_t
 	return network;
 }
 
+bool networkIsConnected(const Network& network) {
+	unsigned int n_visited;
+	std::vector<bool> visited(network.num_nodes(), false);
+	std::stack<const Node*> s;
+	s.emplace(network.root);
+	while (!s.empty()) {
+		const Node* actNode = s.top();
+		s.pop();
+		visited[actNode->clv_index] = true;
+		n_visited++;
+		for (const Node* neigh : actNode->getNeighbors()) {
+			if (!visited[neigh->clv_index]) {
+				s.emplace(neigh);
+			}
+		}
+	}
+	return (n_visited == network.num_nodes());
+}
+
 Network convertNetwork(RootedNetwork &rnetwork) {
 	std::cout << exportDebugInfo(rnetwork) << "\n";
 	size_t node_count = rnetwork.nodes.size();
@@ -402,6 +421,8 @@ Network convertNetwork(RootedNetwork &rnetwork) {
 		assert(network.edges[i].length != 0);
 	}
 
+	assert(networkIsConnected(network));
+
 	return network;
 }
 
@@ -411,6 +432,7 @@ Network readNetworkFromString(const std::string &newick) {
 	delete rnetwork;
 	return network;
 }
+
 Network readNetworkFromFile(const std::string &filename) {
 	std::ifstream t(filename);
 	std::stringstream buffer;
