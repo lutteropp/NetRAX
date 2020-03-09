@@ -24,6 +24,11 @@ public:
 		this->label = label;
 		this->type = NodeType::BASIC_NODE;
 		this->reticulationData = nullptr;
+		if (scaler_index >= 0) {
+			links.reserve(3);
+		} else {
+			links.reserve(1);
+		}
 	}
 	void initReticulation(size_t index, int scaler_index, const std::string& label, const ReticulationData& retData) {
 		this->clv_index = index;
@@ -31,11 +36,21 @@ public:
 		this->label = label;
 		this->type = NodeType::RETICULATION_NODE;
 		reticulationData = std::make_unique<ReticulationData>(retData);
+		links.reserve(3);
 	}
 
 	bool isTip() const {
 		assert(!links.empty());
 		return (links.size() == 1);
+	}
+
+	Link* getLinkToClvIndex(size_t target_index) {
+		for (size_t i = 0; i < links.size(); ++i) {
+			if (links[i].getTargetNode()->clv_index == target_index) {
+				return &links[i];
+			}
+		}
+		return nullptr;
 	}
 
 	std::vector<Node*> getChildren(const Node* myParent) const {
@@ -120,13 +135,20 @@ public:
 		scaler_index = idx;
 	}
 
-	Link* getLink() const {
+	Link* getLink() {
 		return &links[0];
 	}
 
-	void addLink(Link& link) {
+	Link* addLink(Link& link) {
 		links.emplace_back(link);
 		assert(links.size() <= 3);
+
+		// update the next pointers
+		for (size_t i = 0; i < links.size(); ++i) {
+			links[i].next = &links[i+1 % links.size()];
+		}
+
+		return &(links[links.size() - 1]);
 	}
 
 	const std::string& getLabel() const {

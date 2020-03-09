@@ -23,7 +23,7 @@
 
 using namespace netrax;
 
-const std::string DATA_PATH = "../../examples/sample_networks/";
+const std::string DATA_PATH = "examples/sample_networks/";
 
 std::mutex g_singleThread;
 
