@@ -41,6 +41,9 @@ std::vector<RootedNetworkNode*> collectNodes(RootedNetwork& rnetwork) {
 	while (!s.empty()) {
 		RootedNetworkNode* actNode = s.top();
 		s.pop();
+		if (visited.find(actNode) != visited.end()) {
+			continue;
+		}
 		visited.emplace(actNode);
 		res.emplace_back(actNode);
 		for (RootedNetworkNode* child : actNode->children) {
