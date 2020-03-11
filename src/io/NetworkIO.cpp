@@ -36,13 +36,17 @@ namespace netrax {
 std::vector<RootedNetworkNode*> collectNodes(RootedNetwork& rnetwork) {
 	std::vector<RootedNetworkNode*> res;
 	std::stack<RootedNetworkNode*> s;
+	std::unordered_set<RootedNetworkNode*> visited;
 	s.emplace(rnetwork.root);
 	while (!s.empty()) {
 		RootedNetworkNode* actNode = s.top();
 		s.pop();
+		visited.emplace(actNode);
 		res.emplace_back(actNode);
 		for (RootedNetworkNode* child : actNode->children) {
-			s.emplace(child);
+			if (visited.find(child) == visited.end()) {
+				s.emplace(child);
+			}
 		}
 	}
 	return res;
@@ -251,8 +255,11 @@ std::pair<size_t, size_t> makeToplevelTrifurcation(RootedNetwork& rnetwork) {
 		RootedNetworkNode* new_root = root->children[newRootChildIdx];
 		new_root->children.push_back(root->children[!newRootChildIdx]);
 		root->children[!newRootChildIdx]->length += new_root->length;
+		root->children[!newRootChildIdx]->parent = new_root;
+		node_count--;
 		branch_count--;
 		root = new_root;
+		root->parent = nullptr;
 		rnetwork.root = root;
 	}
 
@@ -262,6 +269,7 @@ std::pair<size_t, size_t> makeToplevelTrifurcation(RootedNetwork& rnetwork) {
 Network convertNetwork(RootedNetwork &rnetwork) {
 	std::cout << exportDebugInfo(rnetwork) << "\n";
 	std::pair<size_t, size_t> node_and_branch_count = makeToplevelTrifurcation(rnetwork);
+	std::cout << exportDebugInfo(rnetwork) << "\n";
 	size_t node_count = node_and_branch_count.first;
 	size_t branch_count = node_and_branch_count.second;
 
