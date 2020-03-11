@@ -38,7 +38,7 @@ std::vector<RootedNetworkNode*> collectNodes(RootedNetwork& rnetwork) {
 	std::stack<RootedNetworkNode*> s;
 	s.emplace(rnetwork.root);
 	while (!s.empty()) {
-	 RootedNetworkNode* actNode = s.top();
+		RootedNetworkNode* actNode = s.top();
 		s.pop();
 		res.emplace_back(actNode);
 		for (RootedNetworkNode* child : actNode->children) {
@@ -159,8 +159,6 @@ Network convertNetworkToplevelTrifurcation(RootedNetwork& rnetwork, size_t node_
 			network.edges[pmatrix_index].link2 = linkFromFirstParent;
 			network.edges[pmatrix_index + 1].link2 = linkFromSecondParent;
 
-			// TODO: Known bug: getLinkToClvIndex can 't be used here, as this will try to use outer which is not set yet
-
 			Link* linkToFirstParent = network.nodes[rnode->clv_index].getLinkToClvIndex(rnode->firstParent->clv_index);
 			Link* linkToSecondParent = network.nodes[rnode->clv_index].getLinkToClvIndex(rnode->secondParent->clv_index);
 
@@ -176,8 +174,6 @@ Network convertNetworkToplevelTrifurcation(RootedNetwork& rnetwork, size_t node_
 			Link* linkFromParent = make_link(n_links, &network.nodes[rnode->parent->clv_index], &network.edges[pmatrix_index], Direction::OUTGOING);
 			network.links[n_links] = linkFromParent;
 			network.edges[pmatrix_index].link2 = linkFromParent;
-
-			// TODO: Known bug: getLinkToClvIndex can 't be used here, as this will try to use outer which is not set yet
 
 			Link* linkToParent = network.nodes[rnode->clv_index].getLinkToClvIndex(rnode->parent->clv_index);
 			linkFromParent->outer = linkToParent;

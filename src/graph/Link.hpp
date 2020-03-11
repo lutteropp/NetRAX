@@ -11,11 +11,11 @@
 #include <cstddef>
 
 #include "Direction.hpp"
+#include "Edge.hpp"
 
 namespace netrax {
 
 struct Node;
-struct Edge;
 struct Link { // subnode in raxml-ng
 	void init(size_t index, Node* node, Edge* edge, Link* next, Link* outer, Direction direction) {
 		this->node_index = index;
@@ -31,8 +31,12 @@ struct Link { // subnode in raxml-ng
 	}
 
 	Node* getTargetNode() const {
-		assert(outer != nullptr);
-		return outer->node;
+		if (edge->link1 == this) {
+			return edge->link2->node;
+		} else {
+			assert(edge->link2 == this);
+			return edge->link1->node;
+		}
 	}
 
 	size_t node_index = 0;
