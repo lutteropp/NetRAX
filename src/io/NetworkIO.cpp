@@ -214,6 +214,14 @@ Network convertNetworkToplevelTrifurcation(RootedNetwork& rnetwork, size_t node_
 			linkToFirstParent->outer = linkFromFirstParent;
 			linkFromSecondParent->outer = linkToSecondParent;
 			linkToSecondParent->outer = linkFromSecondParent;
+
+			network.nodes[rnode->clv_index].getReticulationData()->link_to_first_parent = linkToFirstParent;
+			network.nodes[rnode->clv_index].getReticulationData()->link_to_second_parent = linkToSecondParent;
+
+			// also set the link to the reticulation child node
+			Link* linkToChild = linkToSecondParent->next;
+			assert(linkToChild && linkToChild != linkToFirstParent);
+			network.nodes[rnode->clv_index].getReticulationData()->link_to_child = linkToChild;
 		} else { // 1 parent
 			size_t pmatrix_index = rnode->clv_index;
 			Link* linkFromParent = network.edges[pmatrix_index].link2;
@@ -303,6 +311,9 @@ Network convertNetwork(RootedNetwork &rnetwork) {
 	for (size_t i = 0; i < network.edges.size(); ++i) {
 		assert(network.edges[i].length != 0);
 	}
+
+	std::cout << exportDebugInfo(network) << "\n";
+
 	assert(networkIsConnected(network));
 
 	return network;
