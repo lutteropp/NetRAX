@@ -136,6 +136,8 @@ std::vector<pll_operation_t> createOperationsTowardsRoot(Network& network, const
 	}
 	while (actParent != nullptr) {
 		std::vector<Node*> activeChildren = actParent->getActiveChildren(parent[actParent->clv_index]);
+
+		// failed assertion here occurs because of the unhandled toplevel trifurcation at the root node
 		assert(activeChildren.size() <= 2 && activeChildren.size() > 0);
 		Node* child1 = activeChildren[0];
 		Node* child2 = nullptr;	
