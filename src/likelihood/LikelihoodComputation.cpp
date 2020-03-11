@@ -32,7 +32,7 @@ void printClv(const pllmod_treeinfo_t &treeinfo, size_t clv_index, size_t partit
 	}
 }
 
-pll_operation_t buildOperation(Node* parent, Node* child1, Node* child2, size_t fake_clv_index, size_t fake_pmatrix_index) {
+pll_operation_t buildOperationInternal(Node* parent, Node* child1, Node* child2, size_t fake_clv_index, size_t fake_pmatrix_index) {
 	pll_operation_t operation;
 	assert(parent);
 	assert(child1 || child2);
@@ -59,6 +59,20 @@ pll_operation_t buildOperation(Node* parent, Node* child1, Node* child2, size_t 
 	return operation;
 }
 
+pll_operation_t buildOperation(Node* actNode, Node* parentNode, const std::vector<bool>& dead_nodes, size_t fake_clv_index, size_t fake_pmatrix_index) {
+	std::vector<Node*> activeChildren = actNode->getActiveChildren(parentNode);
+	assert(activeChildren.size() > 0);
+	Node* child1 = nullptr;
+	if (!dead_nodes[activeChildren[0]->clv_index]) {
+		child1 = activeChildren[0];
+	}
+	Node* child2 = nullptr;
+	if (activeChildren.size() == 2 && !dead_nodes[activeChildren[1]->clv_index]) {
+		child2 = activeChildren[1];
+	}
+	return buildOperationInternal(actNode, child1, child2, fake_clv_index, fake_pmatrix_index);
+}
+
 void createOperationsPostorder(Node *parent, Node *actNode, std::vector<pll_operation_t> &ops, size_t fake_clv_index,
 		size_t fake_pmatrix_index, const std::vector<bool> &dead_nodes, const std::vector<unsigned int> *stop_indices =
 				nullptr) {
@@ -79,15 +93,7 @@ void createOperationsPostorder(Node *parent, Node *actNode, std::vector<pll_oper
 		}
 	}
 
-	Node* child1 = nullptr;
-	if (!dead_nodes[activeChildren[0]->getClvIndex()]) {
-		child1 = activeChildren[0];
-	}
-	Node* child2 = nullptr;
-	if (activeChildren.size() == 2 && !dead_nodes[activeChildren[1]->getClvIndex()]) {
-		child2 = activeChildren[1];
-	}
-	pll_operation_t operation = buildOperation(actNode, child1, child2, fake_clv_index, fake_pmatrix_index);
+	pll_operation_t operation = buildOperation(actNode, parent, dead_nodes, fake_clv_index, fake_pmatrix_index);
 	ops.push_back(operation);
 }
 
@@ -124,34 +130,34 @@ std::vector<pll_operation_t> createOperations(Network &network, const std::vecto
 	return ops;
 }
 
-std::vector<pll_operation_t> createOperationsTowardsRoot(Network& network, const std::vector<Node*>& parent, Node* actNode) {
-	std::vector<pll_operation_t> ops;
-	size_t fake_clv_index = network.nodes.size();
-	size_t fake_pmatrix_index = network.edges.size();
+Node* getActiveParent(Node* actNode, const std::vector<Node*>& parent) {
 	Node* actParent;
 	if (actNode->type == NodeType::RETICULATION_NODE) {
 		actParent = actNode->getReticulationData()->getLinkToActiveParent()->getTargetNode();
 	} else {
 		actParent = parent[actNode->clv_index];
 	}
-	while (actParent != nullptr) {
-		std::vector<Node*> activeChildren = actParent->getActiveChildren(parent[actParent->clv_index]);
+	return actParent;
+}
 
-		// failed assertion here occurs because of the unhandled toplevel trifurcation at the root node
-		assert(activeChildren.size() <= 2 && activeChildren.size() > 0);
-		Node* child1 = activeChildren[0];
-		Node* child2 = nullptr;	
-		if (activeChildren.size() == 2) {
-			child2 = activeChildren[1];
-		}
-		ops.emplace_back(buildOperation(actParent, child1, child2, fake_clv_index, fake_pmatrix_index));
-		actNode = actParent;
-		if (actNode->type == NodeType::RETICULATION_NODE) {
-			actParent = actNode->getReticulationData()->getLinkToActiveParent()->getTargetNode();
-		} else {
-			actParent = parent[actNode->clv_index];
-		}
+std::vector<pll_operation_t> createOperationsTowardsRoot(Network& network, const std::vector<Node*>& parent, Node* actNode, const std::vector<bool> &dead_nodes) {
+	std::vector<pll_operation_t> ops;
+	size_t fake_clv_index = network.nodes.size();
+	size_t fake_pmatrix_index = network.edges.size();
+	Node* actParent = getActiveParent(actNode, parent);
+
+	while (actParent != network.root) {
+		std::cout << "act parent has clv index: " << actParent->clv_index << "\n";
+		ops.emplace_back(buildOperation(actParent, parent[actParent->clv_index], dead_nodes, fake_clv_index, fake_pmatrix_index));
+		actParent = getActiveParent(actParent, parent);
 	}
+
+	// now, add the two operations for the root node in reverse order.
+	if (!network.root->getLink()->getTargetNode()->isTip()) {
+		ops.push_back(buildOperation(network.root->getLink()->getTargetNode(), network.root, dead_nodes, fake_clv_index, fake_pmatrix_index));
+	}
+	ops.push_back(buildOperation(network.root, network.root->getLink()->getTargetNode(), dead_nodes, fake_clv_index, fake_pmatrix_index));
+
 	std::reverse(ops.begin(), ops.end());
 	return ops;
 }
@@ -196,7 +202,6 @@ double displayed_tree_prob(BlobInformation &blobInfo, size_t megablob_idx, size_
 
 void print_clv_vector(pllmod_treeinfo_t &fake_treeinfo, size_t tree_idx, size_t partition_idx, size_t clv_index) {
 	pll_partition_t *partition = fake_treeinfo.partitions[partition_idx];
-	unsigned int states = partition->states;
 	unsigned int states_padded = partition->states_padded;
 	unsigned int sites = partition->sites;
 	unsigned int rate_cats = partition->rate_cats;
@@ -235,10 +240,13 @@ void compute_tree_logl_blobs(Network &network, BlobInformation &blobInfo, const 
 		pllmod_treeinfo_t &fake_treeinfo, size_t megablob_idx, size_t tree_idx, size_t partition_idx,
 		std::vector<double> *persite_logl, Node* startNode = nullptr) {
 	setReticulationParents(network, tree_idx);
+
+	std::vector<bool> dead_nodes(network.nodes.size(), false);
+	fill_dead_nodes_recursive(nullptr, network.root, dead_nodes);
 // Create pll_operations_t array for the current displayed tree
 	std::vector<pll_operation_t> ops;
 	if (startNode) {
-		ops = createOperationsTowardsRoot(network, parent, startNode);
+		ops = createOperationsTowardsRoot(network, parent, startNode, dead_nodes);
 	} else {
 		ops = createOperations(network, parent, blobInfo, megablob_idx, tree_idx);
 	}
