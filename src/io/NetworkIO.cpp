@@ -176,7 +176,7 @@ Network convertNetworkToplevelTrifurcation(RootedNetwork& rnetwork, size_t node_
 			Link* linkFromFirstParent = make_link(n_links, &network.nodes[rnode->firstParent->clv_index], &network.edges[pmatrix_index], Direction::OUTGOING);
 			network.links[n_links] = linkFromFirstParent;
 			Link* linkFromSecondParent = make_link(n_links + 1, &network.nodes[rnode->secondParent->clv_index], &network.edges[pmatrix_index + 1], Direction::OUTGOING);
-			network.links[n_links] = linkFromSecondParent;
+			network.links[n_links + 1] = linkFromSecondParent;
 
 			assert(pmatrix_index + 1 < network.edges.size());
 			network.edges[pmatrix_index].link2 = linkFromFirstParent;
