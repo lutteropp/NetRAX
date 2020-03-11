@@ -56,16 +56,20 @@ Link* make_link(size_t link_id, Node* node, Edge* edge, Direction dir) {
 
 Network convertNetworkToplevelTrifurcation(RootedNetwork& rnetwork, size_t node_count, size_t branch_count) {
 	Network network;
+
 	network.nodes.resize(node_count);
+
 	network.edges.resize(branch_count);
 	network.links.resize(2 * branch_count);
 	network.reticulation_nodes.resize(rnetwork.reticulationCount);
 	network.tip_nodes.resize(rnetwork.tipCount);
 	network.inner_nodes.resize(node_count - rnetwork.tipCount);
 
+	network.root = &network.nodes[network.nodes.size() - 1 - rnetwork.reticulationCount];
+
 	std::vector<RootedNetworkNode*> rnetwork_nodes = collectNodes(rnetwork);
 	std::vector<RootedNetworkNode*> rnetwork_tips, rnetwork_inner_tree, rnetwork_reticulations;
-	for (const auto& ptr : rnetwork_nodes) {
+	for (RootedNetworkNode* ptr : rnetwork_nodes) {
 		if (ptr->children.empty()) {
 			rnetwork_tips.emplace_back(ptr);
 		} else {
@@ -83,12 +87,14 @@ Network convertNetworkToplevelTrifurcation(RootedNetwork& rnetwork, size_t node_
 	size_t n_links = 0;
 
 	// 1.) Create all the nodes and edges. Also create all the incoming links.
-	for (const auto& rnode : rnetwork_tips) {
+	for (RootedNetworkNode* rnode : rnetwork_tips) {
 		size_t clv_index = rnode->tip_index;
 		rnode->clv_index = clv_index;
 		int scaler_index = -1;
+		assert(clv_index < network.nodes.size());
 		network.nodes[clv_index].initBasic(clv_index, scaler_index, rnode->label);
 		size_t pmatrix_index = clv_index;
+		assert(pmatrix_index < network.edges.size());
 		network.edges[pmatrix_index].init(pmatrix_index, nullptr, nullptr, rnode->length);
 		network.tip_nodes[clv_index] = &network.nodes[clv_index];
 
@@ -97,17 +103,20 @@ Network convertNetworkToplevelTrifurcation(RootedNetwork& rnetwork, size_t node_
 		network.edges[pmatrix_index].link1 = linkToParent;
 		n_links++;
 	}
+
 	for (size_t i = 0; i < rnetwork_inner_tree.size(); ++i) {
-		const auto& rnode = rnetwork_inner_tree[i];
+		RootedNetworkNode* rnode = rnetwork_inner_tree[i];
 		size_t clv_index = i + rnetwork_tips.size();
 		rnode->clv_index = clv_index;
 		int scaler_index = i;
+
+		assert(clv_index < network.nodes.size());
 		network.nodes[clv_index].initBasic(clv_index, scaler_index, rnode->label);
-		size_t pmatrix_index = clv_index;
-		network.edges[pmatrix_index].init(pmatrix_index, nullptr, nullptr, rnode->length);
-		network.inner_nodes[i] = &network.nodes[clv_index];
 
 		if (rnode != rnetwork.root) {
+			size_t pmatrix_index = clv_index;
+			assert(pmatrix_index < network.edges.size());
+			network.edges[pmatrix_index].init(pmatrix_index, nullptr, nullptr, rnode->length);
 			Link* linkToParent = make_link(n_links, &network.nodes[clv_index], &network.edges[pmatrix_index], Direction::INCOMING);
 			network.links[n_links] = linkToParent;
 			network.edges[pmatrix_index].link1 = linkToParent;
@@ -116,18 +125,23 @@ Network convertNetworkToplevelTrifurcation(RootedNetwork& rnetwork, size_t node_
 		} else {
 			assert(rnode->children.size() == 3);
 		}
+
+		network.inner_nodes[i] = &network.nodes[clv_index];
 	}
+
 	for (size_t i = 0; i < rnetwork_reticulations.size(); ++i) {
-		const auto& rnode = rnetwork_inner_tree[i];
+		RootedNetworkNode* rnode = rnetwork_inner_tree[i];
 		size_t clv_index = i + rnetwork_tips.size() + rnetwork_inner_tree.size();
 		rnode->clv_index = clv_index;
 		rnode->reticulation_index = i;
 		int scaler_index = i + rnetwork_inner_tree.size();
 		ReticulationData retData;
 		retData.init(i, rnode->reticulationName, false, nullptr, nullptr, nullptr, rnode->firstParentProb);
+		assert(clv_index < network.nodes.size());
 		network.nodes[clv_index].initReticulation(clv_index, scaler_index, rnode->label, retData);
 
 		size_t pmatrix_index = rnetwork_tips.size() + rnetwork_inner_tree.size() - 1 + 2 * i;
+		assert(pmatrix_index + 1 < network.edges.size());
 		network.edges[pmatrix_index].init(pmatrix_index, nullptr, nullptr, rnode->firstParentLength);
 		network.edges[pmatrix_index + 1].init(pmatrix_index + 1, nullptr, nullptr, rnode->secondParentLength);
 		network.reticulation_nodes[i] = &network.nodes[clv_index];
@@ -156,6 +170,7 @@ Network convertNetworkToplevelTrifurcation(RootedNetwork& rnetwork, size_t node_
 			Link* linkFromSecondParent = make_link(n_links + 1, &network.nodes[rnode->secondParent->clv_index], &network.edges[pmatrix_index + 1], Direction::OUTGOING);
 			network.links[n_links] = linkFromSecondParent;
 
+			assert(pmatrix_index + 1 < network.edges.size());
 			network.edges[pmatrix_index].link2 = linkFromFirstParent;
 			network.edges[pmatrix_index + 1].link2 = linkFromSecondParent;
 
@@ -236,7 +251,6 @@ std::pair<size_t, size_t> makeToplevelTrifurcation(RootedNetwork& rnetwork) {
 		RootedNetworkNode* new_root = root->children[newRootChildIdx];
 		new_root->children.push_back(root->children[!newRootChildIdx]);
 		root->children[!newRootChildIdx]->length += new_root->length;
-		node_count--;
 		branch_count--;
 		root = new_root;
 		rnetwork.root = root;
