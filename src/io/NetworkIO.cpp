@@ -72,6 +72,7 @@ Network convertNetworkToplevelTrifurcation(RootedNetwork& rnetwork, size_t node_
 	network.root = &network.nodes[network.nodes.size() - 1 - rnetwork.reticulationCount];
 
 	std::vector<RootedNetworkNode*> rnetwork_nodes = collectNodes(rnetwork);
+	assert(rnetwork_nodes.size() == node_count);
 	std::vector<RootedNetworkNode*> rnetwork_tips, rnetwork_inner_tree, rnetwork_reticulations;
 	for (RootedNetworkNode* ptr : rnetwork_nodes) {
 		if (ptr->children.empty()) {

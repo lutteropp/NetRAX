@@ -136,6 +136,16 @@ Node* getActiveParent(Node* actNode, const std::vector<Node*>& parent) {
 	return actParent;
 }
 
+void printOperationArray(const std::vector<pll_operation_t>& ops) {
+	for (size_t i = 0; i < ops.size(); ++i) {
+		size_t c1 = ops[i].child1_clv_index;
+		size_t c2 = ops[i].child2_clv_index;
+		size_t p = ops[i].parent_clv_index;
+
+		std::cout << p << " -> " << c1 << ", " << c2 << "\n";
+	}
+}
+
 std::vector<pll_operation_t> createOperationsTowardsRoot(Network& network, const std::vector<Node*>& parent, Node* actNode, const std::vector<bool> &dead_nodes) {
 	std::vector<pll_operation_t> ops;
 	size_t fake_clv_index = network.nodes.size();
@@ -143,7 +153,6 @@ std::vector<pll_operation_t> createOperationsTowardsRoot(Network& network, const
 	Node* actParent = getActiveParent(actNode, parent);
 
 	while (actParent != network.root) {
-		std::cout << "act parent has clv index: " << actParent->clv_index << "\n";
 		ops.emplace_back(buildOperation(actParent, parent[actParent->clv_index], dead_nodes, fake_clv_index, fake_pmatrix_index));
 		actParent = getActiveParent(actParent, parent);
 	}
@@ -155,6 +164,7 @@ std::vector<pll_operation_t> createOperationsTowardsRoot(Network& network, const
 	ops.push_back(buildOperation(network.root, network.root->getLink()->getTargetNode(), dead_nodes, fake_clv_index, fake_pmatrix_index));
 
 	std::reverse(ops.begin(), ops.end());
+	printOperationArray(ops);
 	return ops;
 }
 		
@@ -523,7 +533,7 @@ std::vector<double> compute_persite_lh(unsigned int partitionIdx, Network &netwo
 // TODO: Add bool incremental...
 double processPartition(unsigned int partitionIdx, Network &network, pllmod_treeinfo_t &fake_treeinfo, int incremental,
 		bool update_reticulation_probs, std::vector<unsigned int> &totalTaken, std::vector<unsigned int> &totalNotTaken,
-		bool unlinked_mode, bool &reticulationProbsHaveChanged, bool useBlobs = false, bool useGrayCode = false) {
+		bool unlinked_mode, bool &reticulationProbsHaveChanged, bool useBlobs = false, bool useGrayCode = true) {
 	unsigned int numSites = fake_treeinfo.partitions[partitionIdx]->sites;
 	std::vector<BestPersiteLoglikelihoodData> best_persite_logl_network;
 	if (update_reticulation_probs) {
