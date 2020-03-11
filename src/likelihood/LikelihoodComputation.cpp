@@ -97,6 +97,16 @@ void createOperationsPostorder(Node *parent, Node *actNode, std::vector<pll_oper
 	ops.push_back(operation);
 }
 
+void printOperationArray(const std::vector<pll_operation_t>& ops) {
+	for (size_t i = 0; i < ops.size(); ++i) {
+		size_t c1 = ops[i].child1_clv_index;
+		size_t c2 = ops[i].child2_clv_index;
+		size_t p = ops[i].parent_clv_index;
+
+		std::cout << p << " -> " << c1 << ", " << c2 << "\n";
+	}
+}
+
 std::vector<pll_operation_t> createOperations(Network &network, const std::vector<Node*> &parent,
 		BlobInformation &blobInfo, unsigned int megablobIdx, size_t treeIdx, const std::vector<bool> &dead_nodes) {
 	std::vector<pll_operation_t> ops;
@@ -123,6 +133,7 @@ std::vector<pll_operation_t> createOperations(Network &network, const std::vecto
 		createOperationsPostorder(parent[megablobRoot->clv_index], megablobRoot, ops, fake_clv_index,
 				fake_pmatrix_index, dead_nodes, &stopIndices);
 	}
+	printOperationArray(ops);
 	return ops;
 }
 
@@ -134,16 +145,6 @@ Node* getActiveParent(Node* actNode, const std::vector<Node*>& parent) {
 		actParent = parent[actNode->clv_index];
 	}
 	return actParent;
-}
-
-void printOperationArray(const std::vector<pll_operation_t>& ops) {
-	for (size_t i = 0; i < ops.size(); ++i) {
-		size_t c1 = ops[i].child1_clv_index;
-		size_t c2 = ops[i].child2_clv_index;
-		size_t p = ops[i].parent_clv_index;
-
-		std::cout << p << " -> " << c1 << ", " << c2 << "\n";
-	}
 }
 
 std::vector<pll_operation_t> createOperationsTowardsRoot(Network& network, const std::vector<Node*>& parent, Node* actNode, const std::vector<bool> &dead_nodes) {
@@ -442,12 +443,9 @@ std::vector<double> compute_persite_lh_blobs(unsigned int partitionIdx, Network 
 					bool changedBitIsSet = treeIdx & onlyChangedBit;
 					startNode = blobInfo.reticulation_nodes_per_megablob[megablob_idx][changedBitPos];
 					startNode->getReticulationData()->setActiveParent(changedBitIsSet);
-				} else {
-					setReticulationParents(network, treeIdx);
 				}
 			} else {
 				setReticulationParents(blobInfo, megablob_idx, treeIdx);
-				//setReticulationParents(network, treeIdx);
 			}
 
 			double tree_prob = displayed_tree_prob(blobInfo, megablob_idx, partitionIdx);
