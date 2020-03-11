@@ -243,13 +243,16 @@ Network convertNetworkToplevelTrifurcation(RootedNetwork& rnetwork, size_t node_
 }
 
 bool networkIsConnected(const Network& network) {
-	unsigned int n_visited;
+	unsigned int n_visited = 0;
 	std::vector<bool> visited(network.num_nodes(), false);
 	std::stack<const Node*> s;
 	s.emplace(network.root);
 	while (!s.empty()) {
 		const Node* actNode = s.top();
 		s.pop();
+		if (visited[actNode->clv_index]) {
+			continue;
+		}
 		visited[actNode->clv_index] = true;
 		n_visited++;
 		for (const Node* neigh : actNode->getNeighbors()) {
