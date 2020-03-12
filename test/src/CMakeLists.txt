@@ -22,3 +22,5 @@ set_target_properties (netrax_test_module PROPERTIES OUTPUT_NAME netrax_test)
 set_target_properties (netrax_test_module PROPERTIES PREFIX "")
 
 add_test (netrax_test ${PROJECT_SOURCE_DIR}/test/bin/netrax_test)
+set_tests_properties(netrax_test PROPERTIES
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../../)

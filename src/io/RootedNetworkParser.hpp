@@ -26,10 +26,13 @@ struct RootedNetworkNode {
 	RootedNetworkNode* parent = nullptr;
 
 	size_t tip_index = std::numeric_limits<size_t>::max(); // this will be used to later on set the clv_index and the pmatrix_index values of tip nodes
+	size_t inner_index = std::numeric_limits<size_t>::max(); // this will be used for the scaler index, the clv index of inner nodes, and the pmatrix indices as well
+
+	size_t clv_index = std::numeric_limits<size_t>::max(); // will be set from outside
 
 	// only relevant for reticulation nodes
 	bool isReticulation = false;
-	int reticulationId = -1;
+	int reticulation_index = -1;
 	double firstParentProb = 0.5;
 	double secondParentProb = 0.5;
 	double firstParentLength = 0.0;

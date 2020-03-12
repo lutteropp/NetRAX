@@ -108,7 +108,7 @@ RootedNetworkNode* buildNewReticulationNodeFromString(const std::string &str, si
 	std::string reticulationName = substring(str, hashtagIndex + 1, firstColonPos);
 	node->reticulationName = reticulationName;
 	assert(!node->reticulationName.empty());
-	node->reticulationId = reticulationId;
+	node->reticulation_index = reticulationId;
 	node->firstParent = firstParent;
 
 	std::array<double, 3> brlen_support_prob = readBrlenSupportProb(str);
@@ -206,7 +206,7 @@ std::vector<std::string> split(const std::string &s) {
 RootedNetworkNode* readSubtree(RootedNetworkNode *parent, const std::string &s,
 		std::vector<std::unique_ptr<RootedNetworkNode> > &nodeList,
 		std::unordered_map<std::string, RootedNetworkNode*> &reticulations_lookup, size_t *num_reticulations,
-		size_t *num_tips) {
+		size_t *num_tips, size_t* num_inner) {
 	size_t leftParen = s.find('(');
 	size_t rightParen = s.rfind(')');
 	if (leftParen != std::string::npos && rightParen != std::string::npos) {
@@ -222,12 +222,15 @@ RootedNetworkNode* readSubtree(RootedNetworkNode *parent, const std::string &s,
 		for (size_t i = 0; i < childrenString.size(); ++i) {
 			assert(std::isprint(childrenString[i][0]));
 			RootedNetworkNode *child = readSubtree(node, childrenString[i], nodeList, reticulations_lookup,
-					num_reticulations, num_tips);
+					num_reticulations, num_tips, num_inner);
 			node->children.push_back(child);
 			if (!child->isReticulation) {
 				child->parent = node;
 			}
 		}
+
+		node->inner_index = *num_inner;
+		(*num_inner)++;
 		return node;
 	} else if (leftParen == rightParen) {
 		RootedNetworkNode *node = buildNodeFromString(s, parent, nodeList, reticulations_lookup, num_reticulations);
@@ -252,10 +255,12 @@ RootedNetwork* parseRootedNetworkFromNewickString(const std::string &newick) {
 
 	assert(std::count(newick.begin(), newick.end(), ';') == 1);
 
+	size_t num_inner = 0;
 	rnetwork->root = readSubtree(nullptr, substring(newick, 0, semicolonPos), rnetwork->nodes, reticulations_lookup,
-			&(rnetwork->reticulationCount), &(rnetwork->tipCount));
+			&(rnetwork->reticulationCount), &(rnetwork->tipCount), &num_inner);
 
 	rnetwork->innerCount = rnetwork->nodes.size() - rnetwork->tipCount;
+	assert(rnetwork->innerCount == num_inner);
 	rnetwork->branchCount = 0;
 	for (size_t i = 0; i < rnetwork->nodes.size(); ++i) {
 		rnetwork->branchCount += rnetwork->nodes[i]->children.size();

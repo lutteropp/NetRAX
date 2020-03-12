@@ -87,7 +87,7 @@ public:
 
 	std::vector<Node> nodes;
 	std::vector<Edge> edges;
-	std::vector<Link> links;
+	std::vector<Link*> links;
 	std::vector<Node*> reticulation_nodes;
 	std::vector<Node*> tip_nodes;
 	std::vector<Node*> inner_nodes;

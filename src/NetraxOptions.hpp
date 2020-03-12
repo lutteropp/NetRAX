@@ -15,6 +15,14 @@ namespace netrax {
 
 class NetraxOptions {
 public:
+	NetraxOptions() {}
+
+	NetraxOptions(const std::string& network_file, const std::string& msa_file, bool use_repeats = false) {
+		this->network_file = network_file;
+		this->msa_file = msa_file;
+		this->use_repeats = use_repeats;
+	}
+
 	bool optimize_brlen = true;
 	bool optimize_model = true;
 	bool use_repeats = false;

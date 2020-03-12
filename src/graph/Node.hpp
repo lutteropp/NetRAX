@@ -18,26 +18,39 @@ namespace netrax {
 
 struct Node {
 public:
-	void initBasic(size_t index, int scaler_index, Link* link, const std::string& label) {
+	void initBasic(size_t index, int scaler_index, const std::string& label) {
 		this->clv_index = index;
 		this->scaler_index = scaler_index;
-		this->link = link;
 		this->label = label;
 		this->type = NodeType::BASIC_NODE;
 		this->reticulationData = nullptr;
+		if (scaler_index >= 0) {
+			links.reserve(3);
+		} else {
+			links.reserve(1);
+		}
 	}
-	void initReticulation(size_t index, int scaler_index, Link* link, const std::string& label, const ReticulationData& retData) {
+	void initReticulation(size_t index, int scaler_index, const std::string& label, const ReticulationData& retData) {
 		this->clv_index = index;
 		this->scaler_index = scaler_index;
-		this->link = link;
 		this->label = label;
 		this->type = NodeType::RETICULATION_NODE;
 		reticulationData = std::make_unique<ReticulationData>(retData);
+		links.reserve(3);
 	}
 
 	bool isTip() const {
-		assert(this->link);
-		return (!this->link->next);
+		assert(!links.empty());
+		return (links.size() == 1);
+	}
+
+	Link* getLinkToClvIndex(size_t target_index) {
+		for (size_t i = 0; i < links.size(); ++i) {
+			if (links[i].getTargetNode()->clv_index == target_index) {
+				return &links[i];
+			}
+		}
+		return nullptr;
 	}
 
 	std::vector<Node*> getChildren(const Node* myParent) const {
@@ -73,19 +86,10 @@ public:
 
 	std::vector<Node*> getNeighbors() const {
 		std::vector<Node*> neighbors;
-		Link* currLink = link;
-		do {
-			Node* target = currLink->getTargetNode();
-			if (std::find(neighbors.begin(), neighbors.end(), target) != neighbors.end()) {
-				throw std::runtime_error("Loop in neighbors list!");
-			}
+		for (const auto& link : links) {
+			Node* target = link.getTargetNode();
 			neighbors.push_back(target);
-			if (!currLink->next) { // leaf node
-				assert(neighbors.size() == 1);
-				break;
-			}
-			currLink = currLink->next;
-		} while (currLink != link);
+		}
 		return neighbors;
 	}
 
@@ -107,14 +111,9 @@ public:
 
 	Edge* getEdgeTo(const Node* target) const {
 		assert(target);
-		Link* currLink = link;
-		while (currLink != nullptr) {
-			if (currLink->outer->node == target) {
-				return currLink->edge;
-			}
-			currLink = currLink->next;
-			if (currLink == link) {
-				break;
+		for (const auto& link : links) {
+			if (link.outer->node == target) {
+				return link.edge;
 			}
 		}
 		throw std::runtime_error("The given target node is not a neighbor of this node");
@@ -128,12 +127,22 @@ public:
 		scaler_index = idx;
 	}
 
-	Link* getLink() const {
-		return link;
+	Link* getLink() {
+		return &links[0];
 	}
-	void setLink(Link* link) {
-		this->link = link;
+
+	Link* addLink(Link& link) {
+		links.emplace_back(link);
+		assert(links.size() <= 3);
+
+		// update the next pointers
+		for (size_t i = 0; i < links.size(); ++i) {
+			links[i].next = &links[i+1 % links.size()];
+		}
+
+		return &(links[links.size() - 1]);
 	}
+
 	const std::string& getLabel() const {
 		return label;
 	}
@@ -152,7 +161,7 @@ public:
 	NodeType type = NodeType::BASIC_NODE;
 	int scaler_index = -1;
 	size_t clv_index = 0;
-	Link* link = nullptr;
+	std::vector<Link> links;
 	std::unique_ptr<ReticulationData> reticulationData = nullptr;
 	std::string label = "";
 };

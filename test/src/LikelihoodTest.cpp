@@ -23,7 +23,7 @@
 
 using namespace netrax;
 
-const std::string DATA_PATH = "../../examples/sample_networks/";
+const std::string DATA_PATH = "examples/sample_networks/";
 
 std::mutex g_singleThread;
 
@@ -33,45 +33,8 @@ protected:
 	std::string networkPath = DATA_PATH + "small.nw";
 	std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
 
-	Network treeNetwork;
-	Network smallNetwork;
-	pll_utree_t *raxml_utree;
-
-	std::unique_ptr<RaxmlWrapper> treeWrapper;
-	std::unique_ptr<RaxmlWrapper> treeWrapperRepeats;
-	std::unique_ptr<RaxmlWrapper> smallWrapper;
-	std::unique_ptr<RaxmlWrapper> smallWrapperRepeats;
-
 	virtual void SetUp() {
 		g_singleThread.lock();
-		NetraxOptions treeOptions;
-		treeOptions.network_file = treePath;
-		treeOptions.msa_file = msaPath;
-		treeOptions.use_repeats = false;
-
-		NetraxOptions treeOptionsRepeats;
-		treeOptionsRepeats.network_file = treePath;
-		treeOptionsRepeats.msa_file = msaPath;
-		treeOptionsRepeats.use_repeats = true;
-
-		NetraxOptions smallOptions;
-		smallOptions.network_file = networkPath;
-		smallOptions.msa_file = msaPath;
-		smallOptions.use_repeats = false;
-
-		NetraxOptions smallOptionsRepeats;
-		smallOptionsRepeats.network_file = networkPath;
-		smallOptionsRepeats.msa_file = msaPath;
-		smallOptionsRepeats.use_repeats = true;
-
-		treeNetwork = readNetworkFromFile(treePath);
-		smallNetwork = readNetworkFromFile(networkPath);
-		raxml_utree = Tree::loadFromFile(treePath).pll_utree_copy();
-
-		treeWrapper = std::make_unique<RaxmlWrapper>(treeOptions);
-		treeWrapperRepeats = std::make_unique<RaxmlWrapper>(treeOptionsRepeats);
-		smallWrapper = std::make_unique<RaxmlWrapper>(smallOptions);
-		smallWrapperRepeats = std::make_unique<RaxmlWrapper>(smallOptionsRepeats);
 	}
 
 	virtual void TearDown() {
@@ -114,7 +77,9 @@ void compareNodes(pll_unode_t *node1, pll_unode_t *node2) {
 }
 
 TEST_F (LikelihoodTest, displayedTreeOfTreeToUtree) {
+	Network treeNetwork = netrax::readNetworkFromFile(treePath);
 	pll_utree_t *network_utree = displayed_tree_to_utree(treeNetwork, 0);
+	pll_utree_t *raxml_utree = Tree::loadFromFile(treePath).pll_utree_copy();
 
 	EXPECT_NE(network_utree, nullptr);
 	// compare the utrees:
@@ -141,7 +106,7 @@ TEST_F (LikelihoodTest, displayedTreeOfTreeToUtree) {
 }
 
 int cb_trav_all(pll_unode_t *node) {
-	(pll_unode_t*) node;
+	(void*) node;
 	return 1;
 }
 
@@ -181,6 +146,7 @@ bool no_clv_indices_equal(pll_utree_t *utree) {
 }
 
 TEST_F (LikelihoodTest, displayedTreeOfNetworkToUtree) {
+	Network smallNetwork = netrax::readNetworkFromFile(networkPath);
 	pll_utree_t *utree = displayed_tree_to_utree(smallNetwork, 0);
 	EXPECT_NE(utree, nullptr);
 
@@ -210,6 +176,9 @@ TEST_F (LikelihoodTest, displayedTreeOfNetworkToUtree) {
 }
 
 TEST_F (LikelihoodTest, simpleTreeNoRepeatsNormalRaxml) {
+	pll_utree_t *raxml_utree = Tree::loadFromFile(treePath).pll_utree_copy();
+	std::unique_ptr<RaxmlWrapper> treeWrapper = std::make_unique<RaxmlWrapper>(NetraxOptions(treePath, msaPath, false));
+
 	TreeInfo raxml_treeinfo = treeWrapper->createRaxmlTreeinfo(raxml_utree);
 
 	double network_logl = raxml_treeinfo.loglh(false);
@@ -251,6 +220,10 @@ void comparePartitions(const pll_partition_t *p_network, const pll_partition_t *
 }
 
 TEST_F (LikelihoodTest, comparePllmodTreeinfo) {
+	Network treeNetwork = netrax::readNetworkFromFile(treePath);
+	pll_utree_t *raxml_utree = Tree::loadFromFile(treePath).pll_utree_copy();
+	std::unique_ptr<RaxmlWrapper> treeWrapper = std::make_unique<RaxmlWrapper>(NetraxOptions(treePath, msaPath, false));
+
 	TreeInfo network_treeinfo_tree = treeWrapper->createRaxmlTreeinfo(treeNetwork);
 	TreeInfo raxml_treeinfo_tree = treeWrapper->createRaxmlTreeinfo(raxml_utree);
 
@@ -291,43 +264,10 @@ bool isLeafNode(const pll_unode_t *node) {
 	return (node->next == NULL);
 }
 
-TEST_F (LikelihoodTest, compareOperationArrays) {
-	pll_utree_t *network_utree = displayed_tree_to_utree(treeNetwork, 0);
-
-	TreeInfo raxml_treeinfo_tree = treeWrapper->createRaxmlTreeinfo(raxml_utree);
-
-	raxml_treeinfo_tree.loglh(false); // to fill the operations array
-
-	std::vector<pll_operation_t> network_ops = createOperations(treeNetwork, 0);
-	pll_operation_t *raxml_ops = raxml_treeinfo_tree.pll_treeinfo().operations;
-
-	pll_utree_t *raxml_utree = raxml_treeinfo_tree.pll_treeinfo().tree;
-
-	std::cout << "Number of operations: " << network_ops.size() << "\n";
-	for (size_t i = 0; i < network_ops.size(); ++i) {
-		pll_unode_t *parent_network = getNodeWithClvIndex(network_ops[i].parent_clv_index, network_utree);
-		pll_unode_t *child1_network = getNodeWithClvIndex(network_ops[i].child1_clv_index, network_utree);
-		pll_unode_t *child2_network = getNodeWithClvIndex(network_ops[i].child2_clv_index, network_utree);
-		pll_unode_t *parent_raxml = getNodeWithClvIndex(raxml_ops[i].parent_clv_index, raxml_utree);
-		pll_unode_t *child1_raxml = getNodeWithClvIndex(raxml_ops[i].child1_clv_index, raxml_utree);
-		pll_unode_t *child2_raxml = getNodeWithClvIndex(raxml_ops[i].child2_clv_index, raxml_utree);
-
-		EXPECT_EQ(isLeafNode(parent_network), isLeafNode(parent_raxml));
-		EXPECT_EQ(isLeafNode(child1_network), isLeafNode(child1_raxml));
-		EXPECT_EQ(isLeafNode(child2_network), isLeafNode(child2_raxml));
-
-		EXPECT_EQ(network_ops[i].parent_clv_index, raxml_ops[i].parent_clv_index);
-		EXPECT_EQ(network_ops[i].child1_clv_index, raxml_ops[i].child1_clv_index);
-		EXPECT_EQ(network_ops[i].child2_clv_index, raxml_ops[i].child2_clv_index);
-		EXPECT_EQ(network_ops[i].parent_scaler_index, raxml_ops[i].parent_scaler_index);
-		EXPECT_EQ(network_ops[i].child1_scaler_index, raxml_ops[i].child1_scaler_index);
-		EXPECT_EQ(network_ops[i].child2_scaler_index, raxml_ops[i].child2_scaler_index);
-		EXPECT_EQ(network_ops[i].child1_matrix_index, raxml_ops[i].child1_matrix_index);
-		EXPECT_EQ(network_ops[i].child2_matrix_index, raxml_ops[i].child2_matrix_index);
-	}
-}
 
 TEST_F (LikelihoodTest, simpleNetworkNoRepeatsOnlyDisplayedTreeWithRaxml) {
+	Network smallNetwork = netrax::readNetworkFromFile(networkPath);
+	std::unique_ptr<RaxmlWrapper> treeWrapper = std::make_unique<RaxmlWrapper>(NetraxOptions(treePath, msaPath, false));
 	TreeInfo raxml_treeinfo = treeWrapper->createRaxmlTreeinfo(displayed_tree_to_utree(smallNetwork, 0));
 
 	double network_logl = raxml_treeinfo.loglh(false);
@@ -336,7 +276,8 @@ TEST_F (LikelihoodTest, simpleNetworkNoRepeatsOnlyDisplayedTreeWithRaxml) {
 }
 
 TEST_F (LikelihoodTest, simpleNetworkWithRepeatsOnlyDisplayedTreeWithRaxml) {
-	pll_utree_t *network_utree = displayed_tree_to_utree(smallNetwork, 0);
+	Network smallNetwork = netrax::readNetworkFromFile(networkPath);
+	std::unique_ptr<RaxmlWrapper> treeWrapperRepeats = std::make_unique<RaxmlWrapper>(NetraxOptions(treePath, msaPath, true));
 
 	TreeInfo raxml_treeinfo = treeWrapperRepeats->createRaxmlTreeinfo(displayed_tree_to_utree(smallNetwork, 0));
 
@@ -346,6 +287,8 @@ TEST_F (LikelihoodTest, simpleNetworkWithRepeatsOnlyDisplayedTreeWithRaxml) {
 }
 
 TEST_F (LikelihoodTest, simpleTreeNoRepeats) {
+	Network treeNetwork = netrax::readNetworkFromFile(treePath);
+	std::unique_ptr<RaxmlWrapper> treeWrapper = std::make_unique<RaxmlWrapper>(NetraxOptions(treePath, msaPath, false));
 	TreeInfo network_treeinfo_tree = treeWrapper->createRaxmlTreeinfo(treeNetwork);
 	double network_logl = network_treeinfo_tree.loglh(false);
 	std::cout << "The computed network_logl 2 is: " << network_logl << "\n";
@@ -353,7 +296,9 @@ TEST_F (LikelihoodTest, simpleTreeNoRepeats) {
 }
 
 TEST_F (LikelihoodTest, tree) {
+	Network treeNetwork = netrax::readNetworkFromFile(treePath);
 	pll_utree_t *utree = displayed_tree_to_utree(treeNetwork, 0);
+	std::unique_ptr<RaxmlWrapper> treeWrapper = std::make_unique<RaxmlWrapper>(NetraxOptions(treePath, msaPath, false));
 	TreeInfo raxml_treeinfo_tree = treeWrapper->createRaxmlTreeinfo(utree);
 	double raxml_logl = raxml_treeinfo_tree.loglh(0);
 	std::cout << "raxml logl: " << raxml_logl << "\n";
@@ -465,6 +410,8 @@ TEST_F (LikelihoodTest, celineNetworkNonzeroBranches) {
 }
 
 TEST_F (LikelihoodTest, updateReticulationProb) {
+	Network smallNetwork = netrax::readNetworkFromFile(networkPath);
+	std::unique_ptr<RaxmlWrapper> smallWrapper = std::make_unique<RaxmlWrapper>(NetraxOptions(networkPath, msaPath, false));
 	TreeInfo network_treeinfo_small = smallWrapper->createRaxmlTreeinfo(smallNetwork);
 	RaxmlWrapper::NetworkParams *params =
 			(RaxmlWrapper::NetworkParams*) network_treeinfo_small.pll_treeinfo().likelihood_computation_params;
@@ -480,6 +427,8 @@ TEST_F (LikelihoodTest, updateReticulationProb) {
 }
 
 TEST_F (LikelihoodTest, simpleTreeWithRepeats) {
+	Network treeNetwork = netrax::readNetworkFromFile(treePath);
+	std::unique_ptr<RaxmlWrapper> treeWrapperRepeats = std::make_unique<RaxmlWrapper>(NetraxOptions(treePath, msaPath, true));
 	TreeInfo network_treeinfo_tree = treeWrapperRepeats->createRaxmlTreeinfo(treeNetwork);
 	double network_logl = network_treeinfo_tree.loglh(false);
 	std::cout << "The computed network_logl 5 is: " << network_logl << "\n";

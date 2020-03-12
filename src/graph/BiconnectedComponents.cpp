@@ -92,6 +92,9 @@ void gather_reticulations_per_megablob(const Network& network, BlobInformation& 
 	while (!q.empty()) {
 		auto entry = q.front();
 		q.pop();
+		if (visited[entry.first->clv_index]) {
+			continue;
+		}
 		visited[entry.first->clv_index] = true;
 		unsigned int act_megablob_index = entry.second;
 		if (entry.first->type == NodeType::RETICULATION_NODE) {
@@ -108,6 +111,13 @@ void gather_reticulations_per_megablob(const Network& network, BlobInformation& 
 			}
 		}
 	}
+
+	// some sanity assertion
+	size_t retsum = 0;
+	for (size_t i = 0; i < blob_info.reticulation_nodes_per_megablob.size(); ++i) {
+		retsum += blob_info.reticulation_nodes_per_megablob[i].size();
+	}
+	assert(retsum == network.num_reticulations());
 }
 
 BlobInformation partitionNetworkIntoBlobs(const Network& network) {
