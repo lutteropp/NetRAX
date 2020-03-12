@@ -36,11 +36,11 @@ pll_operation_t buildOperation(Node* parent, Node* child1, Node* child2, size_t 
 	pll_operation_t operation;
 	assert(parent);
 	assert(child1 || child2);
-	operation.parent_clv_index = parent->getClvIndex();
-	operation.parent_scaler_index = parent->getScalerIndex();
+	operation.parent_clv_index = parent->clv_index;
+	operation.parent_scaler_index = parent->scaler_index;
 	if (child1) {
-		operation.child1_clv_index = child1->getClvIndex();
-		operation.child1_scaler_index = child1->getScalerIndex();
+		operation.child1_clv_index = child1->clv_index;
+		operation.child1_scaler_index = child1->scaler_index;
 		operation.child1_matrix_index = child1->getEdgeTo(parent)->pmatrix_index;
 	} else {
 		operation.child1_clv_index = fake_clv_index;
@@ -48,8 +48,8 @@ pll_operation_t buildOperation(Node* parent, Node* child1, Node* child2, size_t 
 		operation.child1_matrix_index = fake_pmatrix_index;
 	}
 	if (child2) {
-		operation.child2_clv_index = child2->getClvIndex();
-		operation.child2_scaler_index = child2->getScalerIndex();
+		operation.child2_clv_index = child2->clv_index;
+		operation.child2_scaler_index = child2->scaler_index;
 		operation.child2_matrix_index = child2->getEdgeTo(parent)->pmatrix_index;
 	} else {
 		operation.child2_clv_index = fake_clv_index;
@@ -73,18 +73,18 @@ void createOperationsPostorder(Node *parent, Node *actNode, std::vector<pll_oper
 	}
 	assert(activeChildren.size() <= 2);
 	for (size_t i = 0; i < activeChildren.size(); ++i) {
-		if (!dead_nodes[activeChildren[i]->getClvIndex()]) {
+		if (!dead_nodes[activeChildren[i]->clv_index]) {
 			createOperationsPostorder(actNode, activeChildren[i], ops, fake_clv_index, fake_pmatrix_index, dead_nodes,
 					stop_indices);
 		}
 	}
 
 	Node* child1 = nullptr;
-	if (!dead_nodes[activeChildren[0]->getClvIndex()]) {
+	if (!dead_nodes[activeChildren[0]->clv_index]) {
 		child1 = activeChildren[0];
 	}
 	Node* child2 = nullptr;
-	if (activeChildren.size() == 2 && !dead_nodes[activeChildren[1]->getClvIndex()]) {
+	if (activeChildren.size() == 2 && !dead_nodes[activeChildren[1]->clv_index]) {
 		child2 = activeChildren[1];
 	}
 	pll_operation_t operation = buildOperation(actNode, child1, child2, fake_clv_index, fake_pmatrix_index);
@@ -213,16 +213,14 @@ double compute_tree_logl(Network &network, pllmod_treeinfo_t &fake_treeinfo, siz
 // Create pll_operations_t array for the current displayed tree
 	std::vector<pll_operation_t> ops = createOperations(network, tree_idx);
 	unsigned int ops_count = ops.size();
-
 	Node *ops_root = network.getNodeByClvIndex(ops[ops.size() - 1].parent_clv_index);
-
 // Compute CLVs in pll_update_partials, as specified by the operations array. This needs a pll_partition_t object.
 	pll_update_partials(fake_treeinfo.partitions[partition_idx], ops.data(), ops_count);
 
 	Node *rootBack = ops_root->getLink()->getTargetNode();
 
 	double tree_partition_logl = pll_compute_edge_loglikelihood(fake_treeinfo.partitions[partition_idx],
-			ops_root->getClvIndex(), ops_root->getScalerIndex(), rootBack->getClvIndex(), rootBack->getScalerIndex(),
+			ops_root->clv_index, ops_root->scaler_index, rootBack->clv_index, rootBack->scaler_index,
 			ops_root->getLink()->edge->pmatrix_index, fake_treeinfo.param_indices[partition_idx],
 			persite_logl->empty() ? nullptr : persite_logl->data());
 
@@ -241,11 +239,9 @@ void compute_tree_logl_blobs(Network &network, BlobInformation &blobInfo, const 
 		ops = createOperations(network, parent, blobInfo, megablob_idx, tree_idx);
 	}
 	unsigned int ops_count = ops.size();
-
 	if (ops_count == 0) {
 		return;
 	}
-
 	Node *ops_root = network.getNodeByClvIndex(ops[ops.size() - 1].parent_clv_index);
 
 // Compute CLVs in pll_update_partials, as specified by the operations array. This needs a pll_partition_t object.
@@ -257,8 +253,8 @@ void compute_tree_logl_blobs(Network &network, BlobInformation &blobInfo, const 
 		if (ops_root == network.root) {
 			Node *rootBack = ops_root->getLink()->getTargetNode();
 			tree_partition_logl = pll_compute_edge_loglikelihood(fake_treeinfo.partitions[partition_idx],
-					ops_root->getClvIndex(), ops_root->getScalerIndex(), rootBack->getClvIndex(),
-					rootBack->getScalerIndex(), ops_root->getLink()->edge->pmatrix_index,
+					ops_root->clv_index, ops_root->scaler_index, rootBack->clv_index,
+					rootBack->scaler_index, ops_root->getLink()->edge->pmatrix_index,
 					fake_treeinfo.param_indices[partition_idx], persite_logl->empty() ? nullptr : persite_logl->data());
 		} else {
 			tree_partition_logl = pll_compute_root_loglikelihood(fake_treeinfo.partitions[partition_idx],
@@ -466,8 +462,8 @@ std::vector<double> compute_persite_lh_blobs(unsigned int partitionIdx, Network 
 				dbg_back = parent[dbg_root->clv_index];
 			}
 			double dbg_logl = pll_compute_edge_loglikelihood(fake_treeinfo.partitions[partitionIdx],
-					dbg_root->getClvIndex(), dbg_root->getScalerIndex(), dbg_back->getClvIndex(),
-					dbg_back->getScalerIndex(), dbg_root->getLink()->edge->pmatrix_index,
+					dbg_root->clv_index, dbg_root->scaler_index, dbg_back->clv_index,
+					dbg_back->scaler_index, dbg_root->getLink()->edge->pmatrix_index,
 					fake_treeinfo.param_indices[partitionIdx], nullptr);
 			std::cout << dbg_logl << "\n";
 		}

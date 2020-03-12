@@ -120,16 +120,8 @@ public:
 		throw std::runtime_error("The given target node is not a neighbor of this node");
 	}
 
-	size_t getClvIndex() const {
-		return clv_index;
-	}
-
 	void setClvIndex(size_t index) {
 		this->clv_index = index;
-	}
-
-	int getScalerIndex() const {
-		return scaler_index;
 	}
 
 	void setScalerIndex(int idx) {

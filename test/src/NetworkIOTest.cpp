@@ -65,7 +65,7 @@ void check_tip_clvs(const Network &network) {
 	size_t n = network.num_tips();
 	EXPECT_EQ(network.tip_nodes.size(), n);
 	for (size_t i = 0; i < network.tip_nodes.size(); ++i) {
-		EXPECT_TRUE(network.tip_nodes[i]->getClvIndex() < n);
+		EXPECT_TRUE(network.tip_nodes[i]->clv_index < n);
 	}
 }
 

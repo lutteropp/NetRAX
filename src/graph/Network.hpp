@@ -64,7 +64,7 @@ public:
 	const Node* getNodeByClvIndex(size_t idx) const {
 		const Node* result = nullptr;
 		for (size_t i = 0; i < nodes.size(); ++i) {
-			if (nodes[i].getClvIndex() == idx) {
+			if (nodes[i].clv_index == idx) {
 				result = &nodes[i];
 				break;
 			}
@@ -76,7 +76,7 @@ public:
 	Node* getNodeByClvIndex(size_t idx) {
 		Node* result = nullptr;
 		for (size_t i = 0; i < nodes.size(); ++i) {
-			if (nodes[i].getClvIndex() == idx) {
+			if (nodes[i].clv_index == idx) {
 				result = &nodes[i];
 				break;
 			}

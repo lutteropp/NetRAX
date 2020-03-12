@@ -259,9 +259,9 @@ void setReticulationParents(BlobInformation& blobInfo, unsigned int megablob_idx
 }
 
 void forbidSubnetwork(Node *myParent, Node *node, std::vector<bool> &forbidden) {
-	if (forbidden[node->getClvIndex()])
+	if (forbidden[node->clv_index])
 		return;
-	forbidden[node->getClvIndex()] = true;
+	forbidden[node->clv_index] = true;
 	std::vector<Node*> children = node->getChildren(myParent);
 	for (size_t i = 0; i < children.size(); ++i) {
 		forbidSubnetwork(node, children[i], forbidden);
@@ -278,7 +278,7 @@ std::vector<Node*> getPossibleRootNodes(Network &network) {
 	}
 	std::vector<Node*> res;
 	for (size_t i = 0; i < network.nodes.size(); ++i) {
-		if (!forbidden[network.nodes[i].getClvIndex()]) {
+		if (!forbidden[network.nodes[i].clv_index]) {
 			if (network.nodes[i].getType() == NodeType::BASIC_NODE && network.nodes[i].getActiveNeighbors().size() == 3) {
 				res.push_back(&network.nodes[i]);
 			}
