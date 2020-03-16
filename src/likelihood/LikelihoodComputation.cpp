@@ -165,6 +165,7 @@ std::vector<pll_operation_t> createOperationsTowardsRoot(Network& network, const
 	ops.push_back(buildOperation(network.root, network.root->getLink()->getTargetNode(), dead_nodes, fake_clv_index, fake_pmatrix_index));
 
 	std::reverse(ops.begin(), ops.end());
+	assert(ops[0].parent_clv_index == network.root->clv_index);
 	printOperationArray(ops);
 	return ops;
 }
