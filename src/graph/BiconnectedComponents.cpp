@@ -82,8 +82,6 @@ unsigned int get_node_blob_id(Node* node, const BlobInformation& blobInfo, const
 }
 
 void gather_reticulations_per_megablob(const Network& network, BlobInformation& blob_info) {
-	// TODO: We have a bug here!!!
-
 	// Given the megablob roots at blobInfo.megablob_roots
 	// Fill blobInfo.reticulation_nodes_per_megablob
 	// ... BFS traversal? Always taking the current megablob index with us...
