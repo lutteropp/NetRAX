@@ -341,7 +341,7 @@ std::string exportDebugInfo(const RootedNetwork &network) {
 	ss << "graph\n[\tdirected\t1\n";
 	for (size_t i = 0; i < network.nodes.size(); ++i) {
 		ss << "\tnode\n\t[\n\t\tid\t" << i << "\n";
-		std::string nodeLabel = std::to_string(i);
+		std::string nodeLabel = (network.nodes[i]->label.empty()) ? std::to_string(i) : network.nodes[i]->label;
 		ss << "\t\tlabel\t\"" << nodeLabel << "\"\n";
 
 		ss << "\t\tgraphics\n\t\t[\n";

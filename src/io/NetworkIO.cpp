@@ -207,7 +207,7 @@ Network convertNetworkToplevelTrifurcation(RootedNetwork& rnetwork, size_t node_
 			continue;
 		}
 		if (rnode->isReticulation) { // 2 parents
-			size_t pmatrix_index = rnetwork_tips.size() + rnetwork_inner_tree.size() - 1 + 2 * rnode->reticulation_index;
+			size_t pmatrix_index = rnetwork_tips.size() + rnetwork_inner_tree.size() -1 + 2 * rnode->reticulation_index;
 			Link* linkFromFirstParent = network.edges[pmatrix_index].link2;
 			Link* linkFromSecondParent = network.edges[pmatrix_index + 1].link2;
 
@@ -240,6 +240,7 @@ Network convertNetworkToplevelTrifurcation(RootedNetwork& rnetwork, size_t node_
 	for (size_t i = 0; i < network.links.size(); ++i) {
 		assert(network.links[i]);
 		assert(network.links[i]->outer);
+		assert(network.links[i]->outer->outer == network.links[i]);
 		assert(network.links[i] != network.links[i]->outer);
 	}
 

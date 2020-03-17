@@ -476,7 +476,7 @@ std::string exportDebugInfo(const Network& network, const BlobInformation& blobI
 	std::vector<Node*> parent = grab_current_node_parents(network);
 	for (size_t i = 0; i < network.num_nodes(); ++i) {
 		ss << "\tnode\n\t[\n\t\tid\t" << network.nodes[i].clv_index << "\n";
-		std::string nodeLabel = std::to_string(network.nodes[i].clv_index);
+		std::string nodeLabel = (network.nodes[i].label.empty()) ? std::to_string(network.nodes[i].clv_index) : network.nodes[i].label;
 		/*if (std::find(blobInfo.megablob_roots.begin(), blobInfo.megablob_roots.end(), &network.nodes[i]) != blobInfo.megablob_roots.end()) {
 			nodeLabel = "*" + nodeLabel + "*";
 		}*/
@@ -522,7 +522,7 @@ std::string exportDebugInfo(const Network& network, const std::vector<unsigned i
 	std::vector<Node*> parent = grab_current_node_parents(network);
 	for (size_t i = 0; i < network.num_nodes(); ++i) {
 		ss << "\tnode\n\t[\n\t\tid\t" << network.nodes[i].clv_index << "\n";
-		std::string nodeLabel = std::to_string(network.nodes[i].clv_index);
+		std::string nodeLabel = (network.nodes[i].label.empty()) ? std::to_string(network.nodes[i].clv_index) : network.nodes[i].label;
 		if (!extra_node_number.empty()) {
 			nodeLabel += "|" + std::to_string(extra_node_number[network.nodes[i].clv_index]);
 		}
@@ -537,6 +537,9 @@ std::string exportDebugInfo(const Network& network, const std::vector<unsigned i
 		ss << "\tedge\n\t[\n\t\tsource\t";
 		unsigned int parentId = network.edges[i].link1->node->clv_index;
 		unsigned int childId = network.edges[i].link2->node->clv_index;
+		if (network.edges[i].link1->direction == Direction::INCOMING){
+			std::swap(parentId, childId);
+		}
 		assert(parentId != childId);
 		if (parent[parentId] == network.getNodeByClvIndex(childId)) {
 			std::swap(parentId, childId);
