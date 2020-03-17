@@ -153,19 +153,20 @@ std::vector<pll_operation_t> createOperationsTowardsRoot(Network& network, const
 	size_t fake_pmatrix_index = network.edges.size();
 	Node* actParent = getActiveParent(actNode, parent);
 
-	while (actParent != network.root) {
+	Node* rootBack = network.root->getLink()->getTargetNode();
+
+	while (actParent != network.root && actParent != rootBack) {
 		ops.emplace_back(buildOperation(actParent, parent[actParent->clv_index], dead_nodes, fake_clv_index, fake_pmatrix_index));
 		actParent = getActiveParent(actParent, parent);
 	}
 
 	// now, add the two operations for the root node in reverse order.
-	if (!network.root->getLink()->getTargetNode()->isTip()) {
-		ops.push_back(buildOperation(network.root->getLink()->getTargetNode(), network.root, dead_nodes, fake_clv_index, fake_pmatrix_index));
+	if (!rootBack->isTip()) {
+		ops.push_back(buildOperation(rootBack, network.root, dead_nodes, fake_clv_index, fake_pmatrix_index));
 	}
-	ops.push_back(buildOperation(network.root, network.root->getLink()->getTargetNode(), dead_nodes, fake_clv_index, fake_pmatrix_index));
+	ops.push_back(buildOperation(network.root, rootBack, dead_nodes, fake_clv_index, fake_pmatrix_index));
 
-	std::reverse(ops.begin(), ops.end());
-	assert(ops[0].parent_clv_index == network.root->clv_index);
+	assert(ops[ops.size()-1].parent_clv_index == network.root->clv_index);
 	printOperationArray(ops);
 	return ops;
 }
