@@ -331,7 +331,7 @@ void compareLikelihoodFunctions(const std::string &networkPath, const std::strin
 	RaxmlWrapper wrapper(options);
 	std::cout << exportDebugInfo(network) << "\n";
 	ASSERT_TRUE(networkIsConnected(network));
-	TreeInfo network_treeinfo = wrapper.createRaxmlTreeinfo(network); // TOOD: This somehow destroys our network!
+	TreeInfo network_treeinfo = wrapper.createRaxmlTreeinfo(network);
 	std::cout << exportDebugInfo(network) << "\n";
 	ASSERT_TRUE(networkIsConnected(network));
 	RaxmlWrapper::NetworkParams *params =
