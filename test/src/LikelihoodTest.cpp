@@ -329,12 +329,17 @@ void compareLikelihoodFunctions(const std::string &networkPath, const std::strin
 	options.msa_file = msaPath;
 	options.use_repeats = useRepeats;
 	RaxmlWrapper wrapper(options);
-	TreeInfo network_treeinfo = wrapper.createRaxmlTreeinfo(network);
+	std::cout << exportDebugInfo(network) << "\n";
+	ASSERT_TRUE(networkIsConnected(network));
+	TreeInfo network_treeinfo = wrapper.createRaxmlTreeinfo(network); // TOOD: This somehow destroys our network!
+	std::cout << exportDebugInfo(network) << "\n";
+	ASSERT_TRUE(networkIsConnected(network));
 	RaxmlWrapper::NetworkParams *params =
 			(RaxmlWrapper::NetworkParams*) network_treeinfo.pll_treeinfo().likelihood_computation_params;
 	pllmod_treeinfo_t treeinfo = *(params->network_treeinfo);
 
 	double norep_logl = computeLoglikelihood(network, treeinfo, 0, 1);
+	ASSERT_NE(norep_logl, -std::numeric_limits<double>::infinity());
 	std::cout << "norep_logl: " << norep_logl << "\n";
 	double norep_logl_blobs = computeLoglikelihood(network, treeinfo, 0, 1, false, true);
 	std::cout << "norep_logl_blobs: " << norep_logl_blobs << "\n";

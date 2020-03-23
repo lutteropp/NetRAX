@@ -43,4 +43,6 @@ std::vector<Node*> reversed_topological_sort(const Network& network);
 std::string exportDebugInfo(const Network& network, const BlobInformation& blobInfo);
 std::string exportDebugInfo(const Network& network, const std::vector<unsigned int>& extra_node_number = std::vector<unsigned int>());
 
+bool networkIsConnected(const Network& network);
+
 }

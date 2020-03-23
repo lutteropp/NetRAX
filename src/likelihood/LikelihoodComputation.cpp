@@ -181,12 +181,15 @@ std::vector<pll_operation_t> createOperations(Network &network, size_t treeIdx) 
 	std::vector<bool> dead_nodes(network.nodes.size(), false);
 	fill_dead_nodes_recursive(nullptr, network.root, dead_nodes);
 
+	Node* rootBack = network.root->getLink()->getTargetNode();
+
 	// How to do the operations at the top-level root trifurcation?
 	// First with root->back, then with root...
-	createOperationsPostorder(network.root, network.root->getLink()->getTargetNode(), ops, fake_clv_index,
+	createOperationsPostorder(network.root, rootBack, ops, fake_clv_index,
 			fake_pmatrix_index, dead_nodes);
-	createOperationsPostorder(network.root->getLink()->getTargetNode(), network.root, ops, fake_clv_index,
+	createOperationsPostorder(rootBack, network.root, ops, fake_clv_index,
 			fake_pmatrix_index, dead_nodes);
+	printOperationArray(ops);
 	return ops;
 }
 

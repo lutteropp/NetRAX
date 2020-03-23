@@ -29,6 +29,7 @@
 #include "../graph/Node.hpp"
 #include "../graph/NodeType.hpp"
 #include "../graph/ReticulationData.hpp"
+#include "../graph/NetworkFunctions.hpp"
 
 namespace netrax {
 
@@ -245,28 +246,6 @@ Network convertNetworkToplevelTrifurcation(RootedNetwork& rnetwork, size_t node_
 	}
 
 	return network;
-}
-
-bool networkIsConnected(const Network& network) {
-	unsigned int n_visited = 0;
-	std::vector<bool> visited(network.num_nodes(), false);
-	std::stack<const Node*> s;
-	s.emplace(network.root);
-	while (!s.empty()) {
-		const Node* actNode = s.top();
-		s.pop();
-		if (visited[actNode->clv_index]) {
-			continue;
-		}
-		visited[actNode->clv_index] = true;
-		n_visited++;
-		for (const Node* neigh : actNode->getNeighbors()) {
-			if (!visited[neigh->clv_index]) {
-				s.emplace(neigh);
-			}
-		}
-	}
-	return (n_visited == network.num_nodes());
 }
 
 std::pair<size_t, size_t> makeToplevelTrifurcation(RootedNetwork& rnetwork) {
