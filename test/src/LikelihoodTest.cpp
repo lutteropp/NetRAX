@@ -401,7 +401,7 @@ TEST_F (LikelihoodTest, celineNetwork) {
 
 TEST_F (LikelihoodTest, celineNetworkSmaller) {
 	compareLikelihoodFunctions(DATA_PATH + "celine_smaller_1.nw",
-			DATA_PATH + "celine_fake_alignment.txt", false);
+			DATA_PATH + "celine_fake_alignment_smaller.txt", false);
 }
 
 TEST_F (LikelihoodTest, celineNetworkRepeats) {

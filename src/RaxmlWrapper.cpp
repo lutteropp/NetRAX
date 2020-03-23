@@ -141,6 +141,7 @@ TreeInfo RaxmlWrapper::createRaxmlTreeinfo(Network &network) {
 	// Check that the MSA has already been loaded
 	assert(!instance.tip_id_map.empty());
 	reset_tip_ids(network, instance.tip_id_map);
+	assert(networkIsConnected(network));
 	pllmod_treeinfo_t *pllTreeinfo = createNetworkPllTreeinfo(network, network.num_tips(),
 			instance.parted_msa->part_count(), instance.opts.brlen_linkage);
 	return createRaxmlTreeinfo(pllTreeinfo, network_behaviour);
