@@ -147,12 +147,10 @@ Node* getActiveParent(Node* actNode, const std::vector<Node*>& parent) {
 	return actParent;
 }
 
-std::vector<pll_operation_t> createOperationsTowardsRoot(Network& network, const std::vector<Node*>& parent, Node* actNode, const std::vector<bool> &dead_nodes) {
+std::vector<pll_operation_t> createOperationsTowardsRoot(Network& network, const std::vector<Node*>& parent, Node* actParent, const std::vector<bool> &dead_nodes) {
 	std::vector<pll_operation_t> ops;
 	size_t fake_clv_index = network.nodes.size();
 	size_t fake_pmatrix_index = network.edges.size();
-	Node* actParent = getActiveParent(actNode, parent);
-
 	Node* rootBack = network.root->getLink()->getTargetNode();
 
 	while (actParent != network.root && actParent != rootBack) {
@@ -167,10 +165,37 @@ std::vector<pll_operation_t> createOperationsTowardsRoot(Network& network, const
 	ops.push_back(buildOperation(network.root, rootBack, dead_nodes, fake_clv_index, fake_pmatrix_index));
 
 	assert(ops[ops.size()-1].parent_clv_index == network.root->clv_index);
+	//printOperationArray(ops);
+	return ops;
+}
+
+std::vector<pll_operation_t> createOperationsUpdatedReticulation(Network& network, const std::vector<Node*>& parent, Node* actNode, const std::vector<bool> &dead_nodes) {
+	std::vector<pll_operation_t> ops;
+
+	Node* firstParent = actNode->getReticulationData()->getLinkToFirstParent()->getTargetNode();
+	std::vector<pll_operation_t> opsFirst = createOperationsTowardsRoot(network, parent, firstParent, dead_nodes);
+	Node* secondParent = actNode->getReticulationData()->getLinkToSecondParent()->getTargetNode();
+	std::vector<pll_operation_t> opsSecond = createOperationsTowardsRoot(network, parent, secondParent, dead_nodes);
+
+	// find the first entry in opsFirst which also occurs in opsSecond. We will only take opsFirst until this entry, excluding it.
+	std::unordered_set<unsigned int> opsSecondRoots;
+	for (size_t i = 0; i < opsSecond.size(); ++i) {
+		opsSecondRoots.emplace(opsSecond[i].parent_clv_index);
+	}
+	for (size_t i = 0; i < opsFirst.size(); ++i) {
+		if (opsSecondRoots.find(opsFirst[i].parent_clv_index) != opsSecondRoots.end()) {
+			break;
+		}
+		ops.emplace_back(opsFirst[i]);
+	}
+	for (size_t i = 0; i < opsSecond.size(); ++i) {
+		ops.emplace_back(opsSecond[i]);
+	}
+
+	assert(ops[ops.size()-1].parent_clv_index == network.root->clv_index);
 	printOperationArray(ops);
 	return ops;
 }
-		
 
 std::vector<pll_operation_t> createOperations(Network &network, size_t treeIdx) {
 	std::vector<pll_operation_t> ops;
@@ -254,7 +279,7 @@ void compute_tree_logl_blobs(Network &network, BlobInformation &blobInfo, const 
 // Create pll_operations_t array for the current displayed tree
 	std::vector<pll_operation_t> ops;
 	if (startNode) {
-		ops = createOperationsTowardsRoot(network, parent, startNode, dead_nodes);
+		ops = createOperationsUpdatedReticulation(network, parent, startNode, dead_nodes);
 	} else {
 		ops = createOperations(network, parent, blobInfo, megablob_idx, tree_idx, dead_nodes);
 	}
