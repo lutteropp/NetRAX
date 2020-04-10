@@ -9,4 +9,8 @@ USER gitpod
 #
 # More information: https://www.gitpod.io/docs/config-docker/
 
-RUN sudo apt-get install -y flex bison libgmp3-dev cmake
+RUN sudo apt-get update \
+ && sudo apt-get install -y \
+    flex bison libgmp3-dev cmake \
+ && sudo rm -rf /var/lib/apt/lists/*
+ 
