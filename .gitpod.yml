@@ -1,4 +1,4 @@
 tasks:
-  - init: mkdir build && cd build && cmake .. && make && cd ..
+  - init: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Debug .. && make && cd ..
 image:
   file: .gitpod.Dockerfile
