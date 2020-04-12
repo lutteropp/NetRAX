@@ -396,7 +396,10 @@ void grab_current_node_parents_recursive(std::vector<Node*>& parent, Node* actNo
 
 std::vector<Node*> grab_current_node_parents(const Network& network) {
 	std::vector<Node*> parent(network.num_nodes(), nullptr);
-	grab_current_node_parents_recursive(parent, network.root);
+    for (size_t i = 0; i < parent.size(); ++i) {
+        parent[i] = network.getNodeByClvIndex(i)->getActiveParent();
+    }
+	//grab_current_node_parents_recursive(parent, network.root);
 	return parent;
 }
 
