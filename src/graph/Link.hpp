@@ -45,6 +45,6 @@ struct Link { // subnode in raxml-ng
 
 	Link* next = nullptr;
 	Link* outer = nullptr;
-	Direction direction = Direction::UNDEFINED;
+	Direction direction = Direction::INCOMING;
 };
 }
