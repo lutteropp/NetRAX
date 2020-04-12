@@ -20,7 +20,7 @@ public:
 			Link* linkToChild, double prob, size_t num_partitions = 1) {
 		this->reticulation_index = index;
 		this->label = label;
-		this->active_parent = activeParent;
+		this->active_parent_toggle = activeParent;
 		this->link_to_first_parent = linkToFirstParent;
 		this->link_to_second_parent = linkToSecondParent;
 		this->link_to_child = linkToChild;
@@ -34,20 +34,25 @@ public:
 		return label;
 	}
 	Link* getLinkToActiveParent() const {
-		if (active_parent == 0) {
+		if (active_parent_toggle == 0) {
 			return link_to_first_parent;
 		} else {
 			return link_to_second_parent;
 		}
 	}
-	void setActiveParent(bool val) {
-		active_parent = val;
+
+    Node* getActiveParent() const {
+        return getLinkToActiveParent()->getTargetNode();
+    }
+
+	void setActiveParentToggle(bool val) {
+		active_parent_toggle = val;
 	}
 	double getProb(size_t partition = 0) const {
 		return prob[partition];
 	}
 	double getActiveProb(size_t partition = 0) const {
-		if (active_parent == 0) {
+		if (active_parent_toggle == 0) {
 			return prob[partition];
 		} else {
 			return 1.0 - prob[partition];
@@ -82,7 +87,7 @@ public:
 		}
 	}
 
-	bool active_parent = 0; // 0: first_parent, 1: second_parent
+	bool active_parent_toggle = 0; // 0: first_parent, 1: second_parent
 	size_t reticulation_index = 0;
 	Link* link_to_first_parent = nullptr; // The link that has link->outer->node as the first parent
 	Link* link_to_second_parent = nullptr; // The link that has link->outer->node as the second parent

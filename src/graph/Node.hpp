@@ -109,6 +109,18 @@ public:
 		return activeNeighbors;
 	}
 
+    Node* getActiveParent() const {
+        if (type == NodeType::RETICULATION_NODE) {
+            return reticulationData->getActiveParent();
+        }
+        for (const auto& link: links) {
+            if (link.direction == Direction::INCOMING) {
+                return link.getTargetNode();
+            }
+        }
+        return nullptr;
+    }
+
 	Edge* getEdgeTo(const Node* target) const {
 		assert(target);
 		for (const auto& link : links) {

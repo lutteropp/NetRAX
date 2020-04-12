@@ -468,7 +468,7 @@ std::vector<double> compute_persite_lh_blobs(unsigned int partitionIdx, Network 
 					size_t changedBitPos = log2(onlyChangedBit);
 					bool changedBitIsSet = treeIdx & onlyChangedBit;
 					startNode = blobInfo.reticulation_nodes_per_megablob[megablob_idx][changedBitPos];
-					startNode->getReticulationData()->setActiveParent(changedBitIsSet);
+					startNode->getReticulationData()->setActiveParentToggle(changedBitIsSet);
 				}
 			} else {
 				setReticulationParents(blobInfo, megablob_idx, treeIdx);

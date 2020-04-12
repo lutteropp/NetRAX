@@ -246,7 +246,7 @@ void setReticulationParents(Network &network, size_t treeIdx) {
 	for (size_t i = 0; i < network.reticulation_nodes.size(); ++i) {
 		// check if i-th bit is set in treeIdx
 		bool activeParentIdx = treeIdx & (1 << i);
-		network.reticulation_nodes[i]->getReticulationData()->setActiveParent(activeParentIdx);
+		network.reticulation_nodes[i]->getReticulationData()->setActiveParentToggle(activeParentIdx);
 	}
 }
 
@@ -254,7 +254,7 @@ void setReticulationParents(BlobInformation& blobInfo, unsigned int megablob_idx
 	for (size_t i = 0; i < blobInfo.reticulation_nodes_per_megablob[megablob_idx].size(); ++i) {
 		// check if i-th bit is set in treeIdx
 		bool activeParentIdx = treeIdx & (1 << i);
-		blobInfo.reticulation_nodes_per_megablob[megablob_idx][i]->getReticulationData()->setActiveParent(activeParentIdx);
+		blobInfo.reticulation_nodes_per_megablob[megablob_idx][i]->getReticulationData()->setActiveParentToggle(activeParentIdx);
 	}
 }
 
@@ -492,7 +492,7 @@ std::string exportDebugInfo(const Network& network, const BlobInformation& blobI
 		ss << "\tedge\n\t[\n\t\tsource\t";
 		unsigned int parentId = network.edges[i].link1->node->clv_index;
 		unsigned int childId = network.edges[i].link2->node->clv_index;
-		if (network.edges[i].link1->direction == Direction::INCOMING){
+		if (network.edges[i].link1->direction == Direction::INCOMING) {
 			std::swap(parentId, childId);
 		}
 		assert(parentId != childId);
@@ -547,7 +547,7 @@ std::string exportDebugInfo(const Network& network, const std::vector<unsigned i
 		ss << "\tedge\n\t[\n\t\tsource\t";
 		unsigned int parentId = network.edges[i].link1->node->clv_index;
 		unsigned int childId = network.edges[i].link2->node->clv_index;
-		if (network.edges[i].link1->direction == Direction::INCOMING){
+		if (network.edges[i].link1->direction == Direction::INCOMING) {
 			std::swap(parentId, childId);
 		}
 		assert(parentId != childId);
