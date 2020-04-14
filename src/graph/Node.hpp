@@ -121,6 +121,20 @@ public:
         return nullptr;
     }
 
+        std::vector<Node*> getAllParents() const {
+                std::vector<Node*> res;
+                if (type == NodeType::RETICULATION_NODE) {
+                        res.emplace_back(reticulationData->getFirstParent());
+                        res.emplace_back(reticulationData->getSecondParent());
+                } else {
+                        Node* parent = getActiveParent();
+                        if (parent) {
+                                res.emplace_back(parent);
+                        }
+                }
+                return res;
+        }
+
 	Edge* getEdgeTo(const Node* target) const {
 		assert(target);
 		for (const auto& link : links) {
