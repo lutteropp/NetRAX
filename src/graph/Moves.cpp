@@ -13,15 +13,15 @@ namespace netrax {
     bool hasPath(const Network& network, const Node* from, const Node* to) {
         std::vector<bool> visited(network.num_nodes(), false);
         std::queue<const Node*> q;
-        q.emplace(from);
+        q.emplace(to);
         while (!q.empty()) {
             const Node* node = q.front();
-            if (node == to) {
+            if (node == from) {
                 return true;
             }
             q.pop();
             visited[node->clv_index] = true;
-            for (const Node* neigh : node->getActiveChildren(node->getActiveParent())) {
+            for (const Node* neigh : node->getAllPaarents()) {
                 if (!visited[neigh->clv_index]) {
                     q.emplace(neigh);
                 }
