@@ -67,6 +67,12 @@ public:
 	Link* getLinkToSecondParent() const {
 		return link_to_second_parent;
 	}
+        Node* getFirstParent() const {
+                return link_to_first_parent->getTargetNode();
+        }
+        Node* getSecondParent() const {
+                return link_to_second_parent->getTargetNode();
+        }
 	Link* getLinkToChild() const {
 		return link_to_child;
 	}
