@@ -21,7 +21,7 @@ namespace netrax {
             }
             q.pop();
             visited[node->clv_index] = true;
-            for (const Node* neigh : node->getAllPaarents()) {
+            for (const Node* neigh : node->getAllParents()) {
                 if (!visited[neigh->clv_index]) {
                     q.emplace(neigh);
                 }
