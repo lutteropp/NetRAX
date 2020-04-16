@@ -12,12 +12,29 @@
 namespace netrax {
 
 struct Link;
+struct Node;
 struct Edge {
 	void init(size_t index, Link* link1, Link* link2, double length) {
 		this->pmatrix_index = index;
 		this->link1 = link1;
 		this->link2 = link2;
 		this->length = length;
+	}
+
+	Node* getSource() const {
+		if (link1->direction == Direction::OUTGOING) {
+			return link1->node;
+		} else {
+			return link2->node;
+		}
+	}
+
+	Node* getTarget() const {
+		if (link1->direction == Direction::INCOMING) {
+			return link1->node;
+		} else {
+			return link2->node;
+		}
 	}
 
 	size_t pmatrix_index = 0;
