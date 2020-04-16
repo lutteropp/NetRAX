@@ -31,8 +31,8 @@ namespace netrax {
     }
 
 	/*
-	 * we need to choose s and t in a way that there are connections {u,s} and {v,t},
-	 * but there are no connections {u,t} and {v,s}
+	 * we need to choose s and t in a way that there are elementary connections {u,s} and {v,t},
+	 * but there are no elementary connections {u,t} and {v,s}
 	*/
     std::vector<std::pair<Node*, Node*> > getSTChoices(const Edge& edge) {
     	std::vector<std::pair<Node*, Node*> > res;
@@ -65,14 +65,12 @@ namespace netrax {
     	return res;
     }
 
-    void performMove(Network& network, RNNIMove& move, Edge& edge) {
-    	Node* u = edge.getSource();
-    	Node* v = edge.getTarget();
+    void performMove(Network& network, RNNIMove& move) {
 
     	throw std::runtime_error("Not implemented yet");
     }
 
-    void undoMove(Network&network, RNNIMove& move, Edge& edge) {
+    void undoMove(Network&network, RNNIMove& move) {
     	throw std::runtime_error("Not implemented yet");
     }
 }
