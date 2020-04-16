@@ -20,6 +20,12 @@ Node* getTargetNode(const Link *link) {
     }
 }
 
+bool isOutgoing(Node* from, const Node* to) {
+    assert(getLinkToClvIndex(from, to->clv_index));
+    auto children = getChildren(from, getActiveParent(from));
+    return (std::find(children.begin(), children.end(), to) != children.end());
+}
+
 Link* getLinkToClvIndex(Node *node, size_t target_index) {
     assert(node);
     for (size_t i = 0; i < node->links.size(); ++i) {

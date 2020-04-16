@@ -60,11 +60,6 @@ namespace netrax {
     	return res;
     }
 
-    bool isOutgoing(const Node* from, const Node* to) {
-    	auto children = getChildren(from, getActiveParent(from));
-    	return (std::find(children.begin(), children.end(), to) != children.end());
-    }
-
     std::vector<RNNIMove> possibleRNNIMoves(const Network& network, const Edge& edge) {
     	std::vector<RNNIMove> res;
     	Node* u = getSource(edge);
