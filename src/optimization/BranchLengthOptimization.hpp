@@ -15,6 +15,6 @@ extern "C" {
 }
 
 namespace netrax {
-double optimize_branches(const NetraxOptions& options, Network& network, pllmod_treeinfo_t& fake_treeinfo, double min_brlen, double max_brlen, double lh_epsilon,
-		int max_iters, int opt_method, int radius);
+double optimize_branches(const NetraxOptions &options, Network &network, pllmod_treeinfo_t &fake_treeinfo,
+        double min_brlen, double max_brlen, double lh_epsilon, int max_iters, int opt_method, int radius);
 }

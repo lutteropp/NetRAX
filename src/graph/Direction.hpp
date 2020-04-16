@@ -8,5 +8,5 @@
 #pragma once
 
 enum class Direction {
-	INCOMING = 1, OUTGOING = 0
+    INCOMING = 1, OUTGOING = 0
 };
