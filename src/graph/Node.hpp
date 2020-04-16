@@ -53,7 +53,10 @@ public:
 		return nullptr;
 	}
 
-	std::vector<Node*> getChildren(const Node* myParent) const {
+	std::vector<Node*> getChildren(const Node* myParent = nullptr) const {
+		if (myParent == nullptr) {
+			myParent = getActiveParent();
+		}
 		std::vector<Node*> children;
 		if (type == NodeType::RETICULATION_NODE) {
 			children.push_back(reticulationData->getLinkToChild()->getTargetNode());
@@ -68,7 +71,10 @@ public:
 		return children;
 	}
 
-	std::vector<Node*> getActiveChildren(const Node* myParent) const {
+	std::vector<Node*> getActiveChildren(const Node* myParent = nullptr) const {
+		if (myParent == nullptr) {
+			myParent = getActiveParent();
+		}
 		std::vector<Node*> activeChildren;
 		std::vector<Node*> children = getChildren(myParent);
 		for (size_t i = 0; i < children.size(); ++i) {

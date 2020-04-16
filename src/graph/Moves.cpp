@@ -10,20 +10,23 @@
 #include <queue>
 
 namespace netrax {
-    bool hasPath(const Network& network, const Node* from, const Node* to) {
+    bool hasPath(const Network& network, const Node* from, const Node* to, bool nonelementary = false) {
         std::vector<bool> visited(network.num_nodes(), false);
-        std::queue<const Node*> q;
-        q.emplace(to);
+        std::queue<std::pair<const Node*, const Node*> > q;
+        q.emplace(to, nullptr);
         while (!q.empty()) {
-            const Node* node = q.front();
+            const Node* node = q.front().first;
+            const Node* child = q.front().second;
             if (node == from) {
-                return true;
+            	if (!nonelementary || child != to) {
+            		return true;
+            	}
             }
             q.pop();
             visited[node->clv_index] = true;
             for (const Node* neigh : node->getAllParents()) {
                 if (!visited[neigh->clv_index]) {
-                    q.emplace(neigh);
+                    q.emplace(std::make_pair(neigh, node));
                 }
             }
         }
@@ -56,12 +59,55 @@ namespace netrax {
     	return res;
     }
 
+    bool isOutgoing(const Node* from, const Node* to) {
+    	auto children = from->getChildren();
+    	return (std::find(children.begin(), children.end(), to) != children.end());
+    }
+
     std::vector<RNNIMove> possibleRNNIMoves(const Network& network, const Edge& edge) {
     	std::vector<RNNIMove> res;
+    	Node* u = edge.getSource();
+    	Node* v = edge.getTarget();
+    	auto stChoices = getSTChoices(edge);
+    	for (const auto& st : stChoices) {
+    		Node* s = st.first;
+    		Node* t = st.second;
 
-
-
-    	throw std::runtime_error("Not implemented yet");
+    		// check for possible variant and add move from the paper if the move would not create a cycle
+    		if (isOutgoing(u, s) && isOutgoing(v, t)) {
+    			if (!hasPath(network, s, v)) {
+    				// add move 1
+    				res.emplace_back(RNNIMove{u, v, s, t, false});
+    				if (v->type == NodeType::RETICULATION_NODE) {
+						// add move 1*
+    					res.emplace_back(RNNIMove{u, v, s, t, true});
+					}
+    			}
+    		} else if (isOutgoing(s, u) && isOutgoing(t, v)) {
+    			if (!hasPath(network, u, t)) {
+    				// add move 2
+    				res.emplace_back(RNNIMove{u, v, s, t, false});
+    				if (u->type != NodeType::RETICULATION_NODE) {
+						// add move 2*
+    					res.emplace_back(RNNIMove{u, v, s, t, true});
+					}
+    			}
+    		} else if (isOutgoing(s, u) && isOutgoing(v, t)) {
+    			if (u->type == NodeType::RETICULATION_NODE && v->type != NodeType::RETICULATION_NODE) {
+    				// add move 3
+    				res.emplace_back(RNNIMove{u, v, s, t, false});
+    			}
+    			if (!hasPath(network, u, v, true)) {
+    				// add move 3*
+    				res.emplace_back(RNNIMove{u, v, s, t, true});
+    			}
+    		} else if (isOutgoing(u, s) && isOutgoing(t, v)) {
+    			if (!hasPath(network, s, t)) {
+    				// add move 4
+    				res.emplace_back(RNNIMove{u, v, s, t, false});
+    			}
+    		}
+    	}
     	return res;
     }
 
