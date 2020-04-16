@@ -18,6 +18,7 @@ namespace netrax {
 Node* getTargetNode(const Link* link);
 bool isOutgoing(Node* from, Node* to);
 Link* getLinkToClvIndex(Node* node, size_t target_index);
+Link* getLinkToNode(Node *node, Node *target);
 Node* getReticulationChild(const Node* node);
 Node* getReticulationFirstParent(const Node* node);
 Node* getReticulationSecondParent(const Node* node);

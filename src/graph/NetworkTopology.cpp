@@ -22,7 +22,7 @@ Node* getTargetNode(const Link *link) {
     }
 }
 
-bool isOutgoing(Node* from, Node* to) {
+bool isOutgoing(Node *from, Node *to) {
     assert(getLinkToClvIndex(from, to->clv_index));
     auto children = getChildren(from, getActiveParent(from));
     return (std::find(children.begin(), children.end(), to) != children.end());
@@ -32,6 +32,16 @@ Link* getLinkToClvIndex(Node *node, size_t target_index) {
     assert(node);
     for (size_t i = 0; i < node->links.size(); ++i) {
         if (getTargetNode(&(node->links[i]))->clv_index == target_index) {
+            return &(node->links[i]);
+        }
+    }
+    return nullptr;
+}
+
+Link* getLinkToNode(Node *node, Node *target) {
+    assert(node);
+    for (size_t i = 0; i < node->links.size(); ++i) {
+        if (getTargetNode(&(node->links[i])) == target) {
             return &(node->links[i]);
         }
     }
@@ -165,7 +175,7 @@ Edge* getEdgeTo(const Node *node, const Node *target) {
     throw std::runtime_error("The given target node is not a neighbor of this node");
 }
 
-Node* getSource(const Edge& edge) {
+Node* getSource(const Edge &edge) {
     if (edge.link1->direction == Direction::OUTGOING) {
         return edge.link1->node;
     } else {
@@ -173,7 +183,7 @@ Node* getSource(const Edge& edge) {
     }
 }
 
-Node* getTarget(const Edge& edge) {
+Node* getTarget(const Edge &edge) {
     if (edge.link1->direction == Direction::INCOMING) {
         return edge.link1->node;
     } else {
