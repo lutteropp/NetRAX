@@ -83,7 +83,7 @@ std::vector<Node*> getChildrenNoDir(Node *node, const Node *myParent) {
         std::vector<Node*> neighbors = getNeighbors(node);
         for (size_t i = 0; i < neighbors.size(); ++i) {
             if (neighbors[i] != myParent) {
-                 children.push_back(neighbors[i]);
+                children.push_back(neighbors[i]);
             }
         }
     }
@@ -125,8 +125,8 @@ CumulatedChild getCumulatedChild(Node *parent, Node *child, const std::vector<bo
     return res;
 }
 
-std::vector<CumulatedChild> getCumulatedChildren(Node *parent, Node *actNode,
-        const std::vector<bool> &dead_nodes, const std::vector<bool> &skipped_nodes) {
+std::vector<CumulatedChild> getCumulatedChildren(Node *parent, Node *actNode, const std::vector<bool> &dead_nodes,
+        const std::vector<bool> &skipped_nodes) {
     assert(actNode);
     std::vector<CumulatedChild> res;
     assert(!skipped_nodes[actNode->clv_index]);
@@ -234,10 +234,14 @@ pll_utree_t* displayed_tree_to_utree(Network &network, size_t tree_index) {
     setReticulationParents(network, tree_index);
     Node *root = nullptr;
 
-    // find a non-reticulation node with 3 active neighbors. This will be the root of the displayed tree.
-    std::vector<Node*> possibleRoots = getPossibleRootNodes(network);
-    root = possibleRoots[0];
-    assert(root);
+    if (getActiveNeighbors(network.root).size() == 3) {
+        root = network.root;
+    } else {
+        // find a non-reticulation node with 3 active neighbors. This will be the root of the displayed tree.
+        std::vector<Node*> possibleRoots = getPossibleRootNodes(network);
+        assert(!possibleRoots.empty());
+        root = possibleRoots[0];
+    }
 
     std::vector<bool> dead_nodes(network.nodes.size(), false);
     fill_dead_nodes_recursive(nullptr, root, dead_nodes);
