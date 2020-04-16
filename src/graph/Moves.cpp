@@ -7,6 +7,7 @@
 
 #include "Moves.hpp"
 #include "NetworkTopology.hpp"
+#include "Direction.hpp"
 #include <vector>
 #include <queue>
 
@@ -141,12 +142,59 @@ void exchangeEdges(Node *u, Node *v, Node *s, Node *t) {
 void changeEdgeDirection(Node *u, Node *v) {
     Link *from_u_link = getLinkToNode(u, v);
     Link *from_v_link = getLinkToNode(v, u);
-    from_u_link->direction = !from_u_link->direction;
-    from_v_link->direction = !from_v_link->direction;
+    if (from_u_link->direction == Direction::INCOMING) {
+        assert(from_v_link->direction == Direction::OUTGOING);
+        from_u_link->direction = Direction::OUTGOING;
+        from_v_link->direction = Direction::INCOMING;
+    } else {
+        assert(from_v_link->direction == Direction::INCOMING);
+        from_u_link->direction = Direction::INCOMING;
+        from_v_link->direction = Direction::OUTGOING;
+    }
 }
 
-void switchReticulations(Node *u, Node *v) {
-    throw std::runtime_error("Not implemented yet");
+void switchReticulations(Network &network, Node *u, Node *v) {
+    Node *old_ret_node;
+    Node *new_ret_node;
+    if (u->type == NodeType::RETICULATION_NODE) {
+        assert(v->type != NodeType::RETICULATION_NODE);
+        old_ret_node = u;
+        new_ret_node = v;
+    } else {
+        assert(v->type == NodeType::RETICULATION_NODE);
+        old_ret_node = v;
+        new_ret_node = u;
+    }
+    size_t reticulationId = old_ret_node->getReticulationData()->reticulation_index;
+    network.reticulation_nodes[reticulationId] = new_ret_node;
+
+    size_t num_partitions = old_ret_node->reticulationData->prob.size();
+    std::string label = old_ret_node->reticulationData->label;
+    bool active = old_ret_node->reticulationData->active_parent_toggle;
+    old_ret_node->reticulationData.release();
+
+    Link *link_to_first_parent = nullptr;
+    Link *link_to_second_parent = nullptr;
+    Link *link_to_child = nullptr;
+    for (auto &link : new_ret_node->links) {
+        if (link.direction == Direction::OUTGOING) {
+            link_to_child = &link;
+        } else {
+            if (link_to_first_parent == nullptr) {
+                link_to_first_parent = &link;
+            } else {
+                link_to_second_parent = &link;
+            }
+        }
+    }
+
+    ReticulationData retData;
+    retData.init(reticulationId, label, active, link_to_first_parent, link_to_second_parent, link_to_child, 0.5,
+            num_partitions);
+    new_ret_node->reticulationData = std::make_unique<ReticulationData>(retData);
+
+    old_ret_node->type = NodeType::BASIC_NODE;
+    new_ret_node->type = NodeType::RETICULATION_NODE;
 }
 
 void performMove(Network &network, RNNIMove &move) {
@@ -157,7 +205,7 @@ void performMove(Network &network, RNNIMove &move) {
     }
     if (move.type == RNNIMoveType::ONE_STAR || move.type == RNNIMoveType::TWO_STAR
             || move.type == RNNIMoveType::THREE) {
-        switchReticulations(move.u, move.v);
+        switchReticulations(network, move.u, move.v);
     }
 }
 
