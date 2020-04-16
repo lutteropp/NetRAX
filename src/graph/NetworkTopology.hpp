@@ -16,15 +16,15 @@
 namespace netrax {
 
 Node* getTargetNode(const Link* link);
-bool isOutgoing(Node* from, const Node* to);
+bool isOutgoing(Node* from, Node* to);
 Link* getLinkToClvIndex(Node* node, size_t target_index);
 Node* getReticulationChild(const Node* node);
 Node* getReticulationFirstParent(const Node* node);
 Node* getReticulationSecondParent(const Node* node);
 Node* getReticulationActiveParent(const Node *node);
 
-std::vector<Node*> getChildren(const Node* node, const Node* myParent);
-std::vector<Node*> getActiveChildren(const Node* node, const Node* myParent);
+std::vector<Node*> getChildren(Node* node, const Node* myParent);
+std::vector<Node*> getActiveChildren(Node* node, const Node* myParent);
 std::vector<Node*> getNeighbors(const Node* node);
 std::vector<Node*> getActiveNeighbors(const Node* node);
 Node* getActiveParent(const Node* node);

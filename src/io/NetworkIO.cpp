@@ -365,8 +365,8 @@ std::string newickNodeName(const Node *node, const Node *parent) {
     return sb.str();
 }
 
-std::string printNodeNewick(const Node *node, const Node *parent,
-        std::unordered_set<const Node*> &visited_reticulations) {
+std::string printNodeNewick(Node *node, Node *parent,
+        std::unordered_set<Node*> &visited_reticulations) {
     std::stringstream sb("");
     std::vector<Node*> children = getChildren(node, parent);
     if (!children.empty() && visited_reticulations.find(node) == visited_reticulations.end()) {
@@ -385,8 +385,8 @@ std::string printNodeNewick(const Node *node, const Node *parent,
     return sb.str();
 }
 
-std::string toExtendedNewick(const Network &network) {
-    std::unordered_set<const Node*> visited_reticulations;
+std::string toExtendedNewick(Network &network) {
+    std::unordered_set<Node*> visited_reticulations;
     return printNodeNewick(network.root, nullptr, visited_reticulations) + ";";
 }
 

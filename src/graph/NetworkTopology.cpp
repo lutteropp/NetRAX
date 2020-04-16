@@ -7,6 +7,8 @@
 
 #include "NetworkTopology.hpp"
 #include "Node.hpp"
+#include "Link.hpp"
+#include "Edge.hpp"
 
 namespace netrax {
 
@@ -20,7 +22,7 @@ Node* getTargetNode(const Link *link) {
     }
 }
 
-bool isOutgoing(Node* from, const Node* to) {
+bool isOutgoing(Node* from, Node* to) {
     assert(getLinkToClvIndex(from, to->clv_index));
     auto children = getChildren(from, getActiveParent(from));
     return (std::find(children.begin(), children.end(), to) != children.end());
@@ -60,7 +62,7 @@ Node* getReticulationActiveParent(const Node *node) {
     return getTargetNode(node->getReticulationData()->getLinkToActiveParent());
 }
 
-std::vector<Node*> getChildren(const Node *node, const Node *myParent) {
+std::vector<Node*> getChildren(Node *node, const Node *myParent) {
     assert(node);
     std::vector<Node*> children;
     if (node->type == NodeType::RETICULATION_NODE) {
@@ -69,14 +71,18 @@ std::vector<Node*> getChildren(const Node *node, const Node *myParent) {
         std::vector<Node*> neighbors = getNeighbors(node);
         for (size_t i = 0; i < neighbors.size(); ++i) {
             if (neighbors[i] != myParent) {
-                children.push_back(neighbors[i]);
+                // TODO: The following IF destroys the unit test, but it has to be in here in order to correctly return the children
+                if (getLinkToClvIndex(node, neighbors[i]->clv_index)->direction == Direction::OUTGOING) {
+                    children.push_back(neighbors[i]);
+                }
             }
         }
     }
+
     return children;
 }
 
-std::vector<Node*> getActiveChildren(const Node *node, const Node *myParent) {
+std::vector<Node*> getActiveChildren(Node *node, const Node *myParent) {
     assert(node);
     std::vector<Node*> activeChildren;
     std::vector<Node*> children = getChildren(node, myParent);

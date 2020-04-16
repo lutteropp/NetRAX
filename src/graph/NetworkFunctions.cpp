@@ -8,6 +8,7 @@
 #include "NetworkFunctions.hpp"
 #include "NetworkTopology.hpp"
 #include "BiconnectedComponents.hpp"
+#include "Link.hpp"
 
 #include <cassert>
 #include <memory>
@@ -68,16 +69,16 @@ void remove_dead_children(std::vector<Node*> &children, const std::vector<bool> 
 }
 
 struct CumulatedChild {
-    const Node *child = nullptr;
-    const Node *direct_parent = nullptr;
+    Node *child = nullptr;
+    Node *direct_parent = nullptr;
     double cum_brlen = 0.0;
 };
 
-CumulatedChild getCumulatedChild(const Node *parent, const Node *child, const std::vector<bool> &dead_nodes,
+CumulatedChild getCumulatedChild(Node *parent, Node *child, const std::vector<bool> &dead_nodes,
         const std::vector<bool> &skipped_nodes) {
     CumulatedChild res { child, parent, 0.0 };
     res.cum_brlen += getEdgeTo(child, parent)->length;
-    const Node *act_parent = parent;
+    Node *act_parent = parent;
     while (skipped_nodes[res.child->clv_index]) {
         std::vector<Node*> activeChildren = getActiveChildren(res.child, act_parent);
         remove_dead_children(activeChildren, dead_nodes);
@@ -90,7 +91,7 @@ CumulatedChild getCumulatedChild(const Node *parent, const Node *child, const st
     return res;
 }
 
-std::vector<CumulatedChild> getCumulatedChildren(const Node *parent, const Node *actNode,
+std::vector<CumulatedChild> getCumulatedChildren(Node *parent, Node *actNode,
         const std::vector<bool> &dead_nodes, const std::vector<bool> &skipped_nodes) {
     assert(actNode);
     std::vector<CumulatedChild> res;
@@ -102,7 +103,7 @@ std::vector<CumulatedChild> getCumulatedChildren(const Node *parent, const Node 
     return res;
 }
 
-pll_unode_t* connect_subtree_recursive(const Node *networkNode, pll_unode_t *from_parent, const Node *networkParentNode,
+pll_unode_t* connect_subtree_recursive(Node *networkNode, pll_unode_t *from_parent, Node *networkParentNode,
         const std::vector<bool> &dead_nodes, const std::vector<bool> &skipped_nodes) {
     assert(networkNode->getType() == NodeType::BASIC_NODE);
 
@@ -153,7 +154,7 @@ pll_unode_t* connect_subtree_recursive(const Node *networkNode, pll_unode_t *fro
     return unode->next;
 }
 
-void fill_dead_nodes_recursive(const Node *myParent, const Node *node, std::vector<bool> &dead_nodes) {
+void fill_dead_nodes_recursive(Node *myParent, Node *node, std::vector<bool> &dead_nodes) {
     if (node->isTip()) {
         return;
     }
@@ -174,7 +175,7 @@ void fill_dead_nodes_recursive(const Node *myParent, const Node *node, std::vect
     }
 }
 
-void fill_skipped_nodes_recursive(const Node *myParent, const Node *node, const std::vector<bool> &dead_nodes,
+void fill_skipped_nodes_recursive(Node *myParent, Node *node, const std::vector<bool> &dead_nodes,
         std::vector<bool> &skipped_nodes) {
     if (node->isTip()) {
         return; // tip nodes never need to be skipped/ contracted
@@ -197,7 +198,7 @@ void fill_skipped_nodes_recursive(const Node *myParent, const Node *node, const 
 
 pll_utree_t* displayed_tree_to_utree(Network &network, size_t tree_index) {
     setReticulationParents(network, tree_index);
-    const Node *root = nullptr;
+    Node *root = nullptr;
 
     // find a non-reticulation node with 3 active neighbors. This will be the root of the displayed tree.
     std::vector<Node*> possibleRoots = getPossibleRootNodes(network);
