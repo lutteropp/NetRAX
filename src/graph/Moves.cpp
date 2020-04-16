@@ -77,34 +77,34 @@ namespace netrax {
     		if (isOutgoing(u, s) && isOutgoing(v, t)) {
     			if (!hasPath(network, s, v)) {
     				// add move 1
-    				res.emplace_back(RNNIMove{u, v, s, t, false});
+    				res.emplace_back(RNNIMove{u, v, s, t, RNNIMoveType::ONE});
     				if (v->type == NodeType::RETICULATION_NODE) {
 						// add move 1*
-    					res.emplace_back(RNNIMove{u, v, s, t, true});
+    					res.emplace_back(RNNIMove{u, v, s, t, RNNIMoveType::ONE_STAR});
 					}
     			}
     		} else if (isOutgoing(s, u) && isOutgoing(t, v)) {
     			if (!hasPath(network, u, t)) {
     				// add move 2
-    				res.emplace_back(RNNIMove{u, v, s, t, false});
+    				res.emplace_back(RNNIMove{u, v, s, t, RNNIMoveType::TWO});
     				if (u->type != NodeType::RETICULATION_NODE) {
 						// add move 2*
-    					res.emplace_back(RNNIMove{u, v, s, t, true});
+    					res.emplace_back(RNNIMove{u, v, s, t, RNNIMoveType::TWO_STAR});
 					}
     			}
     		} else if (isOutgoing(s, u) && isOutgoing(v, t)) {
     			if (u->type == NodeType::RETICULATION_NODE && v->type != NodeType::RETICULATION_NODE) {
     				// add move 3
-    				res.emplace_back(RNNIMove{u, v, s, t, false});
+    				res.emplace_back(RNNIMove{u, v, s, t, RNNIMoveType::THREE});
     			}
     			if (!hasPath(network, u, v, true)) {
     				// add move 3*
-    				res.emplace_back(RNNIMove{u, v, s, t, true});
+    				res.emplace_back(RNNIMove{u, v, s, t, RNNIMoveType::THREE_STAR});
     			}
     		} else if (isOutgoing(u, s) && isOutgoing(t, v)) {
     			if (!hasPath(network, s, t)) {
     				// add move 4
-    				res.emplace_back(RNNIMove{u, v, s, t, false});
+    				res.emplace_back(RNNIMove{u, v, s, t, RNNIMoveType::FOUR});
     			}
     		}
     	}
