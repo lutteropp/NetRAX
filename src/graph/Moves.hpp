@@ -17,6 +17,6 @@ namespace netrax {
 
 	std::vector<RNNIMove> possibleRNNIMoves(const Network& network, const Edge& edge);
 	void performRNNIMove(Network& network, RNNIMove& move);
+	void undoRNNIMove(Network&network, RNNIMove& move, Edge& edge);
 
-    bool hasPath(const Network& network, const Node* from, const Node* to);
 }

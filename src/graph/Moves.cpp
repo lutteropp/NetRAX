@@ -29,4 +29,18 @@ namespace netrax {
         }
         return false;
     }
+
+    std::vector<RNNIMove> possibleRNNIMoves(const Network& network, const Edge& edge) {
+    	std::vector<RNNIMove> res;
+    	throw std::runtime_error("Not implemented yet");
+    	return res;
+    }
+
+    void performRNNIMove(Network& network, RNNIMove& move) {
+    	throw std::runtime_error("Not implemented yet");
+    }
+
+    void undoRNNIMove(Network&network, RNNIMove& move, Edge& edge) {
+    	throw std::runtime_error("Not implemented yet");
+    }
 }
