@@ -74,13 +74,47 @@ struct CumulatedChild {
     double cum_brlen = 0.0;
 };
 
+std::vector<Node*> getChildrenNoDir(Node *node, const Node *myParent) {
+    assert(node);
+    std::vector<Node*> children;
+    if (node->type == NodeType::RETICULATION_NODE) {
+        children.push_back(getReticulationChild(node));
+    } else { // normal node
+        std::vector<Node*> neighbors = getNeighbors(node);
+        for (size_t i = 0; i < neighbors.size(); ++i) {
+            if (neighbors[i] != myParent) {
+                 children.push_back(neighbors[i]);
+            }
+        }
+    }
+
+    return children;
+}
+
+std::vector<Node*> getActiveChildrenNoDir(Node *node, const Node *myParent) {
+    assert(node);
+    std::vector<Node*> activeChildren;
+    std::vector<Node*> children = getChildrenNoDir(node, myParent);
+    for (size_t i = 0; i < children.size(); ++i) {
+        if (children[i]->getType() == NodeType::RETICULATION_NODE) {
+            // we need to check if the child is active, this is, if we are currently the selected parent
+            if (getActiveParent(children[i]) != node) {
+                continue;
+            }
+        }
+        activeChildren.push_back(children[i]);
+    }
+    assert(activeChildren.size() <= 2 || (myParent == nullptr && activeChildren.size() == 3));
+    return activeChildren;
+}
+
 CumulatedChild getCumulatedChild(Node *parent, Node *child, const std::vector<bool> &dead_nodes,
         const std::vector<bool> &skipped_nodes) {
     CumulatedChild res { child, parent, 0.0 };
     res.cum_brlen += getEdgeTo(child, parent)->length;
     Node *act_parent = parent;
     while (skipped_nodes[res.child->clv_index]) {
-        std::vector<Node*> activeChildren = getActiveChildren(res.child, act_parent);
+        std::vector<Node*> activeChildren = getActiveChildrenNoDir(res.child, act_parent);
         remove_dead_children(activeChildren, dead_nodes);
         assert(activeChildren.size() == 1);
         act_parent = res.child;
@@ -96,7 +130,7 @@ std::vector<CumulatedChild> getCumulatedChildren(Node *parent, Node *actNode,
     assert(actNode);
     std::vector<CumulatedChild> res;
     assert(!skipped_nodes[actNode->clv_index]);
-    std::vector<Node*> activeChildren = getActiveChildren(actNode, parent);
+    std::vector<Node*> activeChildren = getActiveChildrenNoDir(actNode, parent);
     for (size_t i = 0; i < activeChildren.size(); ++i) {
         res.push_back(getCumulatedChild(actNode, activeChildren[i], dead_nodes, skipped_nodes));
     }
@@ -180,7 +214,7 @@ void fill_skipped_nodes_recursive(Node *myParent, Node *node, const std::vector<
     if (node->isTip()) {
         return; // tip nodes never need to be skipped/ contracted
     }
-    std::vector<Node*> activeChildren = getActiveChildren(node, myParent);
+    std::vector<Node*> activeChildren = getActiveChildrenNoDir(node, myParent);
     remove_dead_children(activeChildren, dead_nodes);
 
     if (activeChildren.size() < 2) {
