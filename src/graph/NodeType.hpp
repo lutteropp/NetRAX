@@ -10,7 +10,7 @@
 namespace netrax {
 
 enum class NodeType {
-	BASIC_NODE, RETICULATION_NODE
+    BASIC_NODE, RETICULATION_NODE
 };
 
 }

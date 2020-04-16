@@ -11,6 +11,8 @@
 #include "optimization/BranchLengthOptimization.hpp"
 #include "graph/Common.hpp"
 #include "utils.hpp"
+#include "graph/Network.hpp"
+#include "graph/NetworkFunctions.hpp"
 
 #include <raxml-ng/log.hpp>
 
@@ -22,7 +24,7 @@ void reset_tip_ids(Network &network, const std::unordered_map<std::string, size_
 
 	for (auto &node : network.tip_nodes) {
 		const unsigned int tip_id = label_id_map.at(node->label);
-		node->clv_index = tip_id;
+        node->clv_index = tip_id;
 		node->getLink()->node_index = tip_id;
 	}
 }

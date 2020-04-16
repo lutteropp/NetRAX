@@ -14,3 +14,4 @@
 #include "Node.hpp"
 #include "NodeType.hpp"
 #include "ReticulationData.hpp"
+#include "NetworkTopology.hpp"

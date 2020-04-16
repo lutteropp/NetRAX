@@ -8,14 +8,13 @@
 #pragma once
 
 #include <vector>
-extern "C"
-{
+extern "C" {
 #include <libpll/pll.h>
 }
 #include "../graph/Common.hpp"
 
 namespace netrax {
 
-std::vector<Node*> postorderTraversal(const Network& network, size_t tree_index);
+std::vector<Node*> postorderTraversal(const Network &network, size_t tree_index);
 
 }
