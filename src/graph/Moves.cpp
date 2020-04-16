@@ -6,6 +6,7 @@
  */
 
 #include "Moves.hpp"
+#include "NetworkTopology.hpp"
 #include <vector>
 #include <queue>
 
@@ -39,8 +40,8 @@ namespace netrax {
 	*/
     std::vector<std::pair<Node*, Node*> > getSTChoices(const Edge& edge) {
     	std::vector<std::pair<Node*, Node*> > res;
-    	Node* u = edge.getSource();
-    	Node* v = edge.getTarget();
+    	Node* u = getSource(edge);
+    	Node* v = getTarget(edge);
 
     	auto uNeighbors = u->getNeighbors();
     	auto vNeighbors = v->getNeighbors();
@@ -66,8 +67,8 @@ namespace netrax {
 
     std::vector<RNNIMove> possibleRNNIMoves(const Network& network, const Edge& edge) {
     	std::vector<RNNIMove> res;
-    	Node* u = edge.getSource();
-    	Node* v = edge.getTarget();
+    	Node* u = getSource(edge);
+    	Node* v = getTarget(edge);
     	auto stChoices = getSTChoices(edge);
     	for (const auto& st : stChoices) {
     		Node* s = st.first;

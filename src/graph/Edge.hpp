@@ -21,22 +21,6 @@ struct Edge {
 		this->length = length;
 	}
 
-	Node* getSource() const {
-		if (link1->direction == Direction::OUTGOING) {
-			return link1->node;
-		} else {
-			return link2->node;
-		}
-	}
-
-	Node* getTarget() const {
-		if (link1->direction == Direction::INCOMING) {
-			return link1->node;
-		} else {
-			return link2->node;
-		}
-	}
-
 	size_t pmatrix_index = 0;
 	Link* link1 = nullptr;
 	Link* link2 = nullptr;
