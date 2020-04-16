@@ -25,7 +25,7 @@ namespace netrax {
             }
             q.pop();
             visited[node->clv_index] = true;
-            for (const Node* neigh : node->getAllParents()) {
+            for (const Node* neigh : getAllParents(node)) {
                 if (!visited[neigh->clv_index]) {
                     q.emplace(std::make_pair(neigh, node));
                 }
@@ -43,8 +43,8 @@ namespace netrax {
     	Node* u = getSource(edge);
     	Node* v = getTarget(edge);
 
-    	auto uNeighbors = u->getNeighbors();
-    	auto vNeighbors = v->getNeighbors();
+    	auto uNeighbors = getNeighbors(u);
+    	auto vNeighbors = getNeighbors(v);
 
     	for (const auto& s : uNeighbors) {
     		if (s == v) continue;
@@ -61,7 +61,7 @@ namespace netrax {
     }
 
     bool isOutgoing(const Node* from, const Node* to) {
-    	auto children = from->getChildren();
+    	auto children = getChildren(from, getActiveParent(from));
     	return (std::find(children.begin(), children.end(), to) != children.end());
     }
 
