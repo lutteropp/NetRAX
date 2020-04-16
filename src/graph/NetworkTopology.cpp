@@ -56,9 +56,6 @@ Node* getReticulationActiveParent(const Node *node) {
 
 std::vector<Node*> getChildren(const Node *node, const Node *myParent) {
     assert(node);
-    if (myParent == nullptr) {
-        myParent = getActiveParent(node);
-    }
     std::vector<Node*> children;
     if (node->type == NodeType::RETICULATION_NODE) {
         children.push_back(getReticulationChild(node));
@@ -75,9 +72,6 @@ std::vector<Node*> getChildren(const Node *node, const Node *myParent) {
 
 std::vector<Node*> getActiveChildren(const Node *node, const Node *myParent) {
     assert(node);
-    if (myParent == nullptr) {
-        myParent = getActiveParent(node);
-    }
     std::vector<Node*> activeChildren;
     std::vector<Node*> children = getChildren(node, myParent);
     for (size_t i = 0; i < children.size(); ++i) {
