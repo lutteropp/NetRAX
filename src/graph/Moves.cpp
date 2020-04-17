@@ -301,11 +301,6 @@ void performMove(Network &network, RSPRMove &move) {
     x_prime_z_edge->link2 = z_in_link;
     z_y_prime_edge->link1 = z_out_link;
     z_y_prime_edge->link2 = y_prime_in_link;
-
-    // TODO: Maybe some reticulation nodes changed? This can be the case if some of the nodes are the same.
-
-
-    throw std::runtime_error("Not implemented yet");
 }
 
 void undoMove(Network &network, RSPRMove &move) {
