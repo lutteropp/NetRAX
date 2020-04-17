@@ -122,8 +122,8 @@ void exchangeEdges(Node *u, Node *v, Node *s, Node *t) {
 
     from_u_link->outer = from_t_link;
     from_t_link->outer = from_u_link;
-    from_s_link->outer = from_t_link;
-    from_t_link->outer = from_s_link;
+    from_v_link->outer = from_s_link;
+    from_s_link->outer = from_v_link;
 
     // u_s_edge now becomes u_t edge
     Edge *u_t_edge = u_s_edge;
