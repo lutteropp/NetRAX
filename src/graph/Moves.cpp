@@ -219,7 +219,7 @@ void resetReticulationLinks(Node *node) {
     assert(retData->link_to_child);
 }
 
-void addRepairCandidates(std::unordered_set<Node*> &repair_candidates, Node* node) {
+void addRepairCandidates(std::unordered_set<Node*> &repair_candidates, Node *node) {
     repair_candidates.emplace(node);
     for (Node *neigh : getNeighbors(node)) {
         repair_candidates.emplace(neigh);
@@ -267,7 +267,16 @@ void performMove(Network &network, RNNIMove &move) {
 }
 
 void undoMove(Network &network, RNNIMove &move) {
-    throw std::runtime_error("Not implemented yet");
+    exchangeEdges(move.u, move.v, move.t, move.s); // note that s and t are exchanged here
+    if (move.type == RNNIMoveType::ONE_STAR || move.type == RNNIMoveType::TWO_STAR
+            || move.type == RNNIMoveType::THREE_STAR) {
+        changeEdgeDirection(move.u, move.v);
+    }
+    if (move.type == RNNIMoveType::ONE_STAR || move.type == RNNIMoveType::TWO_STAR
+            || move.type == RNNIMoveType::THREE) {
+        switchReticulations(network, move.u, move.v);
+    }
+    fixReticulations(move);
 }
 
 std::vector<std::pair<Node*, Node*> > getZYChoices(Node *x_prime, Node *y_prime, Node *x) {
@@ -329,7 +338,7 @@ std::vector<RSPRMove> possibleRSPRMoves(Network &network, const Edge &edge) {
     return res;
 }
 
-void performMove(Network &, RSPRMove &move) {
+void performMove(Network&, RSPRMove &move) {
     Link *x_out_link = getLinkToNode(move.x, move.z);
     Link *z_in_link = getLinkToNode(move.z, move.x);
     Link *z_out_link = getLinkToNode(move.z, move.y);
