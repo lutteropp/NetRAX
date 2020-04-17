@@ -10,6 +10,7 @@
 #include "Direction.hpp"
 #include <vector>
 #include <queue>
+#include <unordered_set>
 
 namespace netrax {
 
@@ -198,6 +199,60 @@ void switchReticulations(Network &network, Node *u, Node *v) {
     new_ret_node->type = NodeType::RETICULATION_NODE;
 }
 
+void resetReticulationLinks(Node *node) {
+    assert(node->type == NodeType::RETICULATION_NODE);
+    auto retData = node->getReticulationData().get();
+    retData->link_to_first_parent = nullptr;
+    retData->link_to_second_parent = nullptr;
+    retData->link_to_child = nullptr;
+    for (Link &link : node->links) {
+        if (link.direction == Direction::OUTGOING) {
+            retData->link_to_child = &link;
+        } else if (retData->link_to_first_parent == nullptr) {
+            retData->link_to_first_parent = &link;
+        } else {
+            retData->link_to_second_parent = &link;
+        }
+    }
+    assert(retData->link_to_first_parent);
+    assert(retData->link_to_second_parent);
+    assert(retData->link_to_child);
+}
+
+void addRepairCandidates(std::unordered_set<Node*> &repair_candidates, Node* node) {
+    repair_candidates.emplace(node);
+    for (Node *neigh : getNeighbors(node)) {
+        repair_candidates.emplace(neigh);
+    }
+}
+
+void fixReticulations(RNNIMove &move) {
+    std::unordered_set<Node*> repair_candidates;
+    addRepairCandidates(repair_candidates, move.s);
+    addRepairCandidates(repair_candidates, move.t);
+    addRepairCandidates(repair_candidates, move.u);
+    addRepairCandidates(repair_candidates, move.v);
+    for (Node *node : repair_candidates) {
+        if (node->type == NodeType::RETICULATION_NODE) {
+            resetReticulationLinks(node);
+        }
+    }
+}
+
+void fixReticulations(RSPRMove &move) {
+    std::unordered_set<Node*> repair_candidates;
+    addRepairCandidates(repair_candidates, move.x);
+    addRepairCandidates(repair_candidates, move.x_prime);
+    addRepairCandidates(repair_candidates, move.y);
+    addRepairCandidates(repair_candidates, move.y_prime);
+    addRepairCandidates(repair_candidates, move.z);
+    for (Node *node : repair_candidates) {
+        if (node->type == NodeType::RETICULATION_NODE) {
+            resetReticulationLinks(node);
+        }
+    }
+}
+
 void performMove(Network &network, RNNIMove &move) {
     exchangeEdges(move.u, move.v, move.s, move.t);
     if (move.type == RNNIMoveType::ONE_STAR || move.type == RNNIMoveType::TWO_STAR
@@ -208,8 +263,7 @@ void performMove(Network &network, RNNIMove &move) {
             || move.type == RNNIMoveType::THREE) {
         switchReticulations(network, move.u, move.v);
     }
-
-    // TODO: fix reticulation parent pointers
+    fixReticulations(move);
 }
 
 void undoMove(Network &network, RNNIMove &move) {
@@ -275,28 +329,28 @@ std::vector<RSPRMove> possibleRSPRMoves(Network &network, const Edge &edge) {
     return res;
 }
 
-void performMove(Network &network, RSPRMove &move) {
-    Link* x_out_link = getLinkToNode(move.x, move.z);
-    Link* z_in_link = getLinkToNode(move.z, move.x);
-    Link* z_out_link = getLinkToNode(move.z, move.y);
-    Link* x_prime_out_link = getLinkToNode(move.x_prime, move.y_prime);
-    Link* y_prime_in_link = getLinkToNode(move.y_prime, move.x_prime);
-    Link* y_in_link = getLinkToNode(move.y, move.z);
+void performMove(Network &, RSPRMove &move) {
+    Link *x_out_link = getLinkToNode(move.x, move.z);
+    Link *z_in_link = getLinkToNode(move.z, move.x);
+    Link *z_out_link = getLinkToNode(move.z, move.y);
+    Link *x_prime_out_link = getLinkToNode(move.x_prime, move.y_prime);
+    Link *y_prime_in_link = getLinkToNode(move.y_prime, move.x_prime);
+    Link *y_in_link = getLinkToNode(move.y, move.z);
 
     x_out_link->outer = y_in_link;
-    y_in_link->outer= x_out_link;
+    y_in_link->outer = x_out_link;
     x_prime_out_link->outer = z_in_link;
     z_in_link->outer = x_prime_out_link;
     z_out_link->outer = y_prime_in_link;
     y_prime_in_link->outer = z_out_link;
 
-    Edge* x_z_edge = getEdgeTo(move.x, move.z);
-    Edge* z_y_edge = getEdgeTo(move.z, move.y);
-    Edge* x_prime_y_prime_edge = getEdgeTo(move.x_prime, move.y_prime);
+    Edge *x_z_edge = getEdgeTo(move.x, move.z);
+    Edge *z_y_edge = getEdgeTo(move.z, move.y);
+    Edge *x_prime_y_prime_edge = getEdgeTo(move.x_prime, move.y_prime);
 
-    Edge* x_y_edge = x_prime_y_prime_edge;
-    Edge* x_prime_z_edge = x_z_edge;
-    Edge* z_y_prime_edge = z_y_edge;
+    Edge *x_y_edge = x_prime_y_prime_edge;
+    Edge *x_prime_z_edge = x_z_edge;
+    Edge *z_y_prime_edge = z_y_edge;
     x_y_edge->link1 = x_out_link;
     x_y_edge->link2 = y_in_link;
     x_prime_z_edge->link1 = x_prime_out_link;
@@ -304,7 +358,7 @@ void performMove(Network &network, RSPRMove &move) {
     z_y_prime_edge->link1 = z_out_link;
     z_y_prime_edge->link2 = y_prime_in_link;
 
-    // TODO: fix reticulation parent pointers
+    fixReticulations(move);
 }
 
 void undoMove(Network &network, RSPRMove &move) {
