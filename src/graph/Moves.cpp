@@ -274,6 +274,37 @@ std::vector<RSPRMove> possibleRSPRMoves(Network &network, const Edge &edge) {
 }
 
 void performMove(Network &network, RSPRMove &move) {
+    Link* x_out_link = getLinkToNode(move.x, move.z);
+    Link* z_in_link = getLinkToNode(move.z, move.x);
+    Link* z_out_link = getLinkToNode(move.z, move.y);
+    Link* x_prime_out_link = getLinkToNode(move.x_prime, move.y_prime);
+    Link* y_prime_in_link = getLinkToNode(move.y_prime, move.x_prime);
+    Link* y_in_link = getLinkToNode(move.y, move.z);
+
+    x_out_link->outer = y_in_link;
+    y_in_link->outer= x_out_link;
+    x_prime_out_link->outer = z_in_link;
+    z_in_link->outer = x_prime_out_link;
+    z_out_link->outer = y_prime_in_link;
+    y_prime_in_link->outer = z_out_link;
+
+    Edge* x_z_edge = getEdgeTo(move.x, move.z);
+    Edge* z_y_edge = getEdgeTo(move.z, move.y);
+    Edge* x_prime_y_prime_edge = getEdgeTo(move.x_prime, move.y_prime);
+
+    Edge* x_y_edge = x_prime_y_prime_edge;
+    Edge* x_prime_z_edge = x_z_edge;
+    Edge* z_y_prime_edge = z_y_edge;
+    x_y_edge->link1 = x_out_link;
+    x_y_edge->link2 = y_in_link;
+    x_prime_z_edge->link1 = x_prime_out_link;
+    x_prime_z_edge->link2 = z_in_link;
+    z_y_prime_edge->link1 = z_out_link;
+    z_y_prime_edge->link2 = y_prime_in_link;
+
+    // TODO: Maybe some reticulation nodes changed? This can be the case if some of the nodes are the same.
+
+
     throw std::runtime_error("Not implemented yet");
 }
 
