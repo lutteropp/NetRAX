@@ -64,7 +64,7 @@ std::vector<std::pair<Node*, Node*> > getSTChoices(const Edge &edge) {
     return res;
 }
 
-std::vector<RNNIMove> possibleRNNIMoves(const Network &network, const Edge &edge) {
+std::vector<RNNIMove> possibleRNNIMoves(Network &network, const Edge &edge) {
     std::vector<RNNIMove> res;
     Node *u = getSource(edge);
     Node *v = getTarget(edge);
@@ -214,8 +214,63 @@ void undoMove(Network &network, RNNIMove &move) {
     throw std::runtime_error("Not implemented yet");
 }
 
-std::vector<RSPRMove> possibleRSPRMoves(const Network &network, const Edge &edge) {
-    throw std::runtime_error("Not implemented yet");
+std::vector<std::pair<Node*, Node*> > getZYChoices(Node *x_prime, Node *y_prime, Node *x) {
+    std::vector<std::pair<Node*, Node*> > res;
+    auto x_prime_children = getChildren(x_prime, getActiveParent(x_prime));
+    auto x_children = getChildren(x, getActiveParent(x));
+    for (Node *z : x_children) {
+        if (std::find(x_prime_children.begin(), x_prime_children.end(), z) != x_prime_children.end()) {
+            continue;
+        }
+        auto z_children = getChildren(z, x);
+        if (std::find(z_children.begin(), z_children.end(), y_prime) != z_children.end()) {
+            continue;
+        }
+        for (Node *y : z_children) {
+            if (std::find(x_children.begin(), x_children.end(), y) != x_children.end()) {
+                continue;
+            }
+            res.emplace_back(std::make_pair(z, y));
+        }
+    }
+    return res;
+}
+
+std::vector<RSPRMove> possibleRSPRMoves(Network &network, const Edge &edge) {
+    std::vector<RSPRMove> res;
+    Node *x_prime = getSource(edge);
+    Node *y_prime = getTarget(edge);
+
+    for (size_t i = 0; i < network.num_nodes(); ++i) {
+        Node *x = &network.nodes[i];
+        auto zy = getZYChoices(x_prime, y_prime, x);
+        for (const auto &entry : zy) {
+            Node *z = entry.first;
+            Node *y = entry.second;
+
+            Node *w = nullptr;
+            auto zNeighbors = getNeighbors(z);
+            assert(zNeighbors.size() == 3);
+            for (size_t j = 0; j < zNeighbors.size(); ++j) {
+                if (zNeighbors[j] != x && zNeighbors[j] != y) {
+                    w = zNeighbors[j];
+                    break;
+                }
+            }
+            assert(w);
+
+            if (z->type == NodeType::RETICULATION_NODE) { // head-moving rSPR move
+                if (!hasPath(network, y_prime, w)) {
+                    res.emplace_back(RSPRMove { x_prime, y_prime, x, z, y });
+                }
+            } else { // tail-moving rSPR move
+                if (!hasPath(network, w, x_prime)) {
+                    res.emplace_back(RSPRMove { x_prime, y_prime, x, z, y });
+                }
+            }
+        }
+    }
+    return res;
 }
 
 void performMove(Network &network, RSPRMove &move) {
