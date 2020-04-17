@@ -384,7 +384,7 @@ void performMove(Network&, RSPRMove &move) {
     fixReticulations(move);
 }
 
-void undoMove(Network &network, RSPRMove &move) {
+void undoMove(Network &, RSPRMove &move) {
     Link *x_out_link = getLinkToNode(move.x, move.y);
     Link *z_in_link = getLinkToNode(move.z, move.x_prime);
     Link *z_out_link = getLinkToNode(move.z, move.y_prime);

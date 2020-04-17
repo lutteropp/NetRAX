@@ -37,8 +37,8 @@ struct RSPRMove {
 std::vector<RNNIMove> possibleRNNIMoves(Network &network, const Edge &edge);
 std::vector<RSPRMove> possibleRSPRMoves(Network &network, const Edge &edge);
 void performMove(Network &network, RNNIMove &move);
-void performMove(Network &network, RSPRMove& move);
+void performMove(Network &, RSPRMove& move);
 void undoMove(Network &network, RNNIMove &move);
-void undoMove(Network &network, RSPRMove &move);
+void undoMove(Network &, RSPRMove &move);
 
 }
