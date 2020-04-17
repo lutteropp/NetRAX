@@ -208,6 +208,8 @@ void performMove(Network &network, RNNIMove &move) {
             || move.type == RNNIMoveType::THREE) {
         switchReticulations(network, move.u, move.v);
     }
+
+    // TODO: fix reticulation parent pointers
 }
 
 void undoMove(Network &network, RNNIMove &move) {
@@ -301,6 +303,8 @@ void performMove(Network &network, RSPRMove &move) {
     x_prime_z_edge->link2 = z_in_link;
     z_y_prime_edge->link1 = z_out_link;
     z_y_prime_edge->link2 = y_prime_in_link;
+
+    // TODO: fix reticulation parent pointers
 }
 
 void undoMove(Network &network, RSPRMove &move) {
