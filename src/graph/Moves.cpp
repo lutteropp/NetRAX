@@ -27,7 +27,7 @@ bool hasPath(const Network &network, const Node *from, const Node *to, bool none
         q.pop();
         visited[node->clv_index] = true;
         for (const Node *neigh : getAllParents(node)) {
-            if (!visited[neigh->clv_index]) {
+            if (!visited[neigh->clv_index] || (nonelementary && neigh == from)) {
                 q.emplace(std::make_pair(neigh, node));
             }
         }
