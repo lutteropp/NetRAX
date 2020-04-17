@@ -346,16 +346,23 @@ void performMove(Network&, RSPRMove &move) {
     Link *y_prime_in_link = getLinkToNode(move.y_prime, move.x_prime);
     Link *y_in_link = getLinkToNode(move.y, move.z);
 
+    Edge *x_z_edge = getEdgeTo(move.x, move.z);
+    Edge *z_y_edge = getEdgeTo(move.z, move.y);
+    Edge *x_prime_y_prime_edge = getEdgeTo(move.x_prime, move.y_prime);
+
+    assert(x_prime_out_link->edge == x_prime_y_prime_edge);
+    assert(y_prime_in_link->edge == x_prime_y_prime_edge);
+    assert(x_out_link->edge == x_z_edge);
+    assert(z_in_link->edge == x_z_edge);
+    assert(z_out_link->edge == z_y_edge);
+    assert(y_in_link->edge == z_y_edge);
+
     x_out_link->outer = y_in_link;
     y_in_link->outer = x_out_link;
     x_prime_out_link->outer = z_in_link;
     z_in_link->outer = x_prime_out_link;
     z_out_link->outer = y_prime_in_link;
     y_prime_in_link->outer = z_out_link;
-
-    Edge *x_z_edge = getEdgeTo(move.x, move.z);
-    Edge *z_y_edge = getEdgeTo(move.z, move.y);
-    Edge *x_prime_y_prime_edge = getEdgeTo(move.x_prime, move.y_prime);
 
     Edge *x_y_edge = x_prime_y_prime_edge;
     Edge *x_prime_z_edge = x_z_edge;
@@ -367,11 +374,60 @@ void performMove(Network&, RSPRMove &move) {
     z_y_prime_edge->link1 = z_out_link;
     z_y_prime_edge->link2 = y_prime_in_link;
 
+    assert(x_out_link->edge == x_y_edge);
+    assert(y_in_link->edge == x_y_edge);
+    assert(x_prime_out_link->edge == x_prime_z_edge);
+    assert(z_in_link->edge == x_prime_z_edge);
+    assert(z_out_link->edge == z_y_prime_edge);
+    assert(y_prime_in_link->edge == z_y_prime_edge);
+
     fixReticulations(move);
 }
 
 void undoMove(Network &network, RSPRMove &move) {
-    throw std::runtime_error("Not implemented yet");
+    Link *x_out_link = getLinkToNode(move.x, move.y);
+    Link *z_in_link = getLinkToNode(move.z, move.x_prime);
+    Link *z_out_link = getLinkToNode(move.z, move.y_prime);
+    Link *x_prime_out_link = getLinkToNode(move.x_prime, move.z);
+    Link *y_prime_in_link = getLinkToNode(move.y_prime, move.z);
+    Link *y_in_link = getLinkToNode(move.y, move.x);
+
+    Edge *x_y_edge = getEdgeTo(move.x, move.y);
+    Edge *x_prime_z_edge = getEdgeTo(move.x_prime, move.z);
+    Edge *z_y_prime_edge = getEdgeTo(move.z, move.y_prime);
+
+    assert(x_out_link->edge == x_y_edge);
+    assert(y_in_link->edge == x_y_edge);
+    assert(x_prime_out_link->edge == x_prime_z_edge);
+    assert(z_in_link->edge == x_prime_z_edge);
+    assert(z_out_link->edge == z_y_prime_edge);
+    assert(y_prime_in_link->edge == z_y_prime_edge);
+
+    x_out_link->outer = z_in_link;
+    z_in_link->outer = x_out_link;
+    x_prime_out_link->outer = y_prime_in_link;
+    y_prime_in_link->outer = x_prime_out_link;
+    z_out_link->outer = y_in_link;
+    y_in_link->outer = z_out_link;
+
+    Edge *x_prime_y_prime_edge = x_y_edge;
+    Edge *x_z_edge = x_prime_z_edge;
+    Edge *z_y_edge = z_y_prime_edge;
+    x_prime_y_prime_edge->link1 = x_prime_out_link;
+    x_prime_y_prime_edge->link2 = y_prime_in_link;
+    x_z_edge->link1 = x_out_link;
+    x_z_edge->link2 = z_in_link;
+    z_y_edge->link1 = z_out_link;
+    z_y_edge->link2 = y_in_link;
+
+    assert(x_prime_out_link->edge == x_prime_y_prime_edge);
+    assert(y_prime_in_link->edge == x_prime_y_prime_edge);
+    assert(x_out_link->edge == x_z_edge);
+    assert(z_in_link->edge == x_z_edge);
+    assert(z_out_link->edge == z_y_edge);
+    assert(y_in_link->edge == z_y_edge);
+
+    fixReticulations(move);
 }
 
 }
