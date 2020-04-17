@@ -12,7 +12,7 @@
 
 namespace netrax {
 struct Network;
-// The moves correspond to the rNNI moves in this paper: https://doi.org/10.1371/journal.pcbi.1005611
+// The moves correspond to the rNNI moves and rSPR moves from this paper: https://doi.org/10.1371/journal.pcbi.1005611
 
 enum class RNNIMoveType {
     ONE, ONE_STAR, TWO, TWO_STAR, THREE, THREE_STAR, FOUR
