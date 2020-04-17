@@ -212,4 +212,17 @@ void performMove(Network &network, RNNIMove &move) {
 void undoMove(Network &network, RNNIMove &move) {
     throw std::runtime_error("Not implemented yet");
 }
+
+std::vector<RSPRMove> possibleRSPRMoves(const Network& network, const Edge &edge) {
+    throw std::runtime_error("Not implemented yet");
+}
+
+void performMove(Network &network, RSPRMove& move) {
+    throw std::runtime_error("Not implemented yet");
+}
+
+void undoMove(Network &network, RSPRMove &move) {
+    throw std::runtime_error("Not implemented yet");
+}
+
 }

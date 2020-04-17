@@ -26,8 +26,19 @@ struct RNNIMove {
     RNNIMoveType type;
 };
 
+struct RSPRMove {
+    Node *x_prime = nullptr;
+    Node* y_prime = nullptr;
+    Node *x = nullptr;
+    Node *y = nullptr;
+    Node *z = nullptr;
+};
+
 std::vector<RNNIMove> possibleRNNIMoves(const Network &network, const Edge &edge);
+std::vector<RSPRMove> possibleRSPRMoves(const Network& network, const Edge &edge);
 void performMove(Network &network, RNNIMove &move);
+void performMove(Network &network, RSPRMove& move);
 void undoMove(Network &network, RNNIMove &move);
+void undoMove(Network &network, RSPRMove &move);
 
 }
