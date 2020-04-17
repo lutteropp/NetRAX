@@ -12,6 +12,7 @@
 #include <queue>
 
 namespace netrax {
+
 bool hasPath(const Network &network, const Node *from, const Node *to, bool nonelementary = false) {
     std::vector<bool> visited(network.num_nodes(), false);
     std::queue<std::pair<const Node*, const Node*> > q;
@@ -111,7 +112,7 @@ std::vector<RNNIMove> possibleRNNIMoves(const Network &network, const Edge &edge
 }
 
 void exchangeEdges(Node *u, Node *v, Node *s, Node *t) {
-    // The edge between {u,s} will now be between {u, t} and the edge between {v,t} will now be between {s,t}. The edge directions stay the same.
+    // The edge between {u,s} will now be between {u, t} and the edge between {v,t} will now be between {v,s}. The edge directions stay the same.
     Link *from_u_link = getLinkToNode(u, s);
     Link *from_s_link = getLinkToNode(s, u);
     Link *from_v_link = getLinkToNode(v, t);
@@ -131,12 +132,12 @@ void exchangeEdges(Node *u, Node *v, Node *s, Node *t) {
     from_u_link->edge = u_t_edge;
     from_t_link->edge = u_t_edge;
 
-    // v_t_edge now becomes s_t_edge
-    Edge *s_t_edge = v_t_edge;
-    s_t_edge->link1 = from_s_link;
-    s_t_edge->link2 = from_t_link;
-    from_s_link->edge = s_t_edge;
-    from_t_link->edge = s_t_edge;
+    // v_t_edge now becomes v_s_edge
+    Edge *v_s_edge = v_t_edge;
+    v_s_edge->link1 = from_v_link;
+    v_s_edge->link2 = from_s_link;
+    from_v_link->edge = v_s_edge;
+    from_s_link->edge = v_s_edge;
 }
 
 void changeEdgeDirection(Node *u, Node *v) {
@@ -213,11 +214,11 @@ void undoMove(Network &network, RNNIMove &move) {
     throw std::runtime_error("Not implemented yet");
 }
 
-std::vector<RSPRMove> possibleRSPRMoves(const Network& network, const Edge &edge) {
+std::vector<RSPRMove> possibleRSPRMoves(const Network &network, const Edge &edge) {
     throw std::runtime_error("Not implemented yet");
 }
 
-void performMove(Network &network, RSPRMove& move) {
+void performMove(Network &network, RSPRMove &move) {
     throw std::runtime_error("Not implemented yet");
 }
 
