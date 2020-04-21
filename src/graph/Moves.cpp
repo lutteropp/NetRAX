@@ -12,6 +12,7 @@
 #include <queue>
 #include <unordered_set>
 #include <sstream>
+#include <iostream>
 
 namespace netrax {
 
@@ -140,20 +141,6 @@ void exchangeEdges(Node *u, Node *v, Node *s, Node *t) {
     v_s_edge->link2 = from_s_link;
     from_v_link->edge = v_s_edge;
     from_s_link->edge = v_s_edge;
-}
-
-void changeEdgeDirection(Node *u, Node *v) {
-    Link *from_u_link = getLinkToNode(u, v);
-    Link *from_v_link = getLinkToNode(v, u);
-    if (from_u_link->direction == Direction::INCOMING) {
-        assert(from_v_link->direction == Direction::OUTGOING);
-        from_u_link->direction = Direction::OUTGOING;
-        from_v_link->direction = Direction::INCOMING;
-    } else {
-        assert(from_v_link->direction == Direction::INCOMING);
-        from_u_link->direction = Direction::INCOMING;
-        from_v_link->direction = Direction::OUTGOING;
-    }
 }
 
 void switchReticulations(Network &network, Node *u, Node *v) {
@@ -300,13 +287,111 @@ void assertAfterMove(RNNIMove &move) {
     checkReticulationProperties(notReticulation, reticulation);
 }
 
+void changeEdgeDirection(Node *u, Node *v) {
+    Link *from_u_link = getLinkToNode(u, v);
+    Link *from_v_link = getLinkToNode(v, u);
+    if (from_u_link->direction == Direction::INCOMING) {
+        assert(from_v_link->direction == Direction::OUTGOING);
+        from_u_link->direction = Direction::OUTGOING;
+        from_v_link->direction = Direction::INCOMING;
+    } else {
+        assert(from_v_link->direction == Direction::INCOMING);
+        from_u_link->direction = Direction::INCOMING;
+        from_v_link->direction = Direction::OUTGOING;
+    }
+}
+
+void setLinkDirections(Node *u, Node *v) {
+    Link *from_u_link = getLinkToNode(u, v);
+    Link *from_v_link = getLinkToNode(v, u);
+    from_u_link->direction = Direction::OUTGOING;
+    from_v_link->direction = Direction::INCOMING;
+}
+
+void updateLinkDirections(RNNIMove &move) {
+    switch (move.type) {
+    case RNNIMoveType::ONE:
+        setLinkDirections(move.u, move.v);
+        setLinkDirections(move.u, move.t);
+        setLinkDirections(move.v, move.s);
+        break;
+    case RNNIMoveType::ONE_STAR:
+        setLinkDirections(move.v, move.u);
+        setLinkDirections(move.u, move.t);
+        setLinkDirections(move.v, move.s);
+        break;
+    case RNNIMoveType::TWO:
+        setLinkDirections(move.u, move.v);
+        setLinkDirections(move.t, move.u);
+        setLinkDirections(move.s, move.v);
+        break;
+    case RNNIMoveType::TWO_STAR:
+        setLinkDirections(move.v, move.u);
+        setLinkDirections(move.t, move.u);
+        setLinkDirections(move.s, move.v);
+        break;
+    case RNNIMoveType::THREE:
+        setLinkDirections(move.u, move.v);
+        setLinkDirections(move.u, move.t);
+        setLinkDirections(move.s, move.v);
+        break;
+    case RNNIMoveType::THREE_STAR:
+        setLinkDirections(move.v, move.u);
+        setLinkDirections(move.u, move.t);
+        setLinkDirections(move.s, move.v);
+        break;
+    case RNNIMoveType::FOUR:
+        setLinkDirections(move.u, move.v);
+        setLinkDirections(move.t, move.u);
+        setLinkDirections(move.v, move.s);
+        break;
+    }
+}
+
+void updateLinkDirectionsReverse(RNNIMove &move) {
+    switch (move.type) {
+    case RNNIMoveType::ONE:
+        setLinkDirections(move.u, move.s);
+        setLinkDirections(move.u, move.v);
+        setLinkDirections(move.v, move.t);
+        break;
+    case RNNIMoveType::ONE_STAR:
+        setLinkDirections(move.u, move.s);
+        setLinkDirections(move.u, move.v);
+        setLinkDirections(move.v, move.t);
+        break;
+    case RNNIMoveType::TWO:
+        setLinkDirections(move.s, move.u);
+        setLinkDirections(move.u, move.v);
+        setLinkDirections(move.t, move.v);
+        break;
+    case RNNIMoveType::TWO_STAR:
+        setLinkDirections(move.s, move.u);
+        setLinkDirections(move.u, move.v);
+        setLinkDirections(move.t, move.v);
+        break;
+    case RNNIMoveType::THREE:
+        setLinkDirections(move.s, move.u);
+        setLinkDirections(move.u, move.v);
+        setLinkDirections(move.v, move.t);
+        break;
+    case RNNIMoveType::THREE_STAR:
+        setLinkDirections(move.s, move.u);
+        setLinkDirections(move.u, move.v);
+        setLinkDirections(move.v, move.t);
+        break;
+    case RNNIMoveType::FOUR:
+        setLinkDirections(move.u, move.s);
+        setLinkDirections(move.u, move.v);
+        setLinkDirections(move.t, move.v);
+        break;
+    }
+}
+
 void performMove(Network &network, RNNIMove &move) {
     assertBeforeMove(move);
     exchangeEdges(move.u, move.v, move.s, move.t);
-    if (move.type == RNNIMoveType::ONE_STAR || move.type == RNNIMoveType::TWO_STAR
-            || move.type == RNNIMoveType::THREE_STAR) {
-        changeEdgeDirection(move.u, move.v);
-    }
+    updateLinkDirections(move);
     if (move.type == RNNIMoveType::ONE_STAR || move.type == RNNIMoveType::TWO_STAR
             || move.type == RNNIMoveType::THREE) {
         switchReticulations(network, move.u, move.v);
@@ -317,10 +402,7 @@ void performMove(Network &network, RNNIMove &move) {
 
 void undoMove(Network &network, RNNIMove &move) {
     exchangeEdges(move.u, move.v, move.t, move.s); // note that s and t are exchanged here
-    if (move.type == RNNIMoveType::ONE_STAR || move.type == RNNIMoveType::TWO_STAR
-            || move.type == RNNIMoveType::THREE_STAR) {
-        changeEdgeDirection(move.u, move.v);
-    }
+    updateLinkDirectionsReverse(move);
     if (move.type == RNNIMoveType::ONE_STAR || move.type == RNNIMoveType::TWO_STAR
             || move.type == RNNIMoveType::THREE) {
         switchReticulations(network, move.u, move.v);
