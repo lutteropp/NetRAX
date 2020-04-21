@@ -591,7 +591,7 @@ double processPartition(unsigned int partitionIdx, Network &network, pllmod_tree
     for (size_t s = 0; s < numSites; ++s) {
         network_partition_logl += log(persite_lh_network[s]);
     }
-    std::cout << "network_partition_logl: " << network_partition_logl << "\n";
+    //std::cout << "network_partition_logl: " << network_partition_logl << "\n";
 
     fake_treeinfo.partition_loglh[partitionIdx] = network_partition_logl;
 

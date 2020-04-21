@@ -11,6 +11,7 @@
 #include <vector>
 #include <queue>
 #include <unordered_set>
+#include <sstream>
 
 namespace netrax {
 
@@ -253,7 +254,54 @@ void fixReticulations(RSPRMove &move) {
     }
 }
 
+void checkReticulationProperties(Node *notReticulation, Node *reticulation) {
+    if (notReticulation) {
+        assert(notReticulation->type == NodeType::BASIC_NODE);
+        assert(notReticulation->reticulationData == nullptr);
+    }
+
+    if (reticulation) {
+        assert(reticulation->type == NodeType::RETICULATION_NODE);
+        assert(reticulation->reticulationData->link_to_first_parent);
+        assert(reticulation->reticulationData->link_to_second_parent);
+        assert(reticulation->reticulationData->link_to_child);
+    }
+}
+
+void assertBeforeMove(RNNIMove &move) {
+    Node *notReticulation = nullptr;
+    Node *reticulation = nullptr;
+    if (move.type == RNNIMoveType::ONE_STAR) {
+        notReticulation = move.u;
+        reticulation = move.v;
+    } else if (move.type == RNNIMoveType::TWO_STAR) {
+        notReticulation = move.u;
+        reticulation = move.v;
+    } else if (move.type == RNNIMoveType::THREE) {
+        notReticulation = move.v;
+        reticulation = move.u;
+    }
+    checkReticulationProperties(notReticulation, reticulation);
+}
+
+void assertAfterMove(RNNIMove &move) {
+    Node *notReticulation = nullptr;
+    Node *reticulation = nullptr;
+    if (move.type == RNNIMoveType::ONE_STAR) {
+        notReticulation = move.v;
+        reticulation = move.u;
+    } else if (move.type == RNNIMoveType::TWO_STAR) {
+        notReticulation = move.u;
+        reticulation = move.v;
+    } else if (move.type == RNNIMoveType::THREE) {
+        notReticulation = move.u;
+        reticulation = move.v;
+    }
+    checkReticulationProperties(notReticulation, reticulation);
+}
+
 void performMove(Network &network, RNNIMove &move) {
+    assertBeforeMove(move);
     exchangeEdges(move.u, move.v, move.s, move.t);
     if (move.type == RNNIMoveType::ONE_STAR || move.type == RNNIMoveType::TWO_STAR
             || move.type == RNNIMoveType::THREE_STAR) {
@@ -264,6 +312,7 @@ void performMove(Network &network, RNNIMove &move) {
         switchReticulations(network, move.u, move.v);
     }
     fixReticulations(move);
+    assertAfterMove(move);
 }
 
 void undoMove(Network &network, RNNIMove &move) {
@@ -384,7 +433,7 @@ void performMove(Network&, RSPRMove &move) {
     fixReticulations(move);
 }
 
-void undoMove(Network &, RSPRMove &move) {
+void undoMove(Network&, RSPRMove &move) {
     Link *x_out_link = getLinkToNode(move.x, move.y);
     Link *z_in_link = getLinkToNode(move.z, move.x_prime);
     Link *z_out_link = getLinkToNode(move.z, move.y_prime);
@@ -428,6 +477,35 @@ void undoMove(Network &, RSPRMove &move) {
     assert(y_in_link->edge == z_y_edge);
 
     fixReticulations(move);
+}
+
+std::string toString(RNNIMove &move) {
+    std::stringstream ss;
+    std::unordered_map<RNNIMoveType, std::string> lookup;
+    lookup[RNNIMoveType::ONE] = "ONE";
+    lookup[RNNIMoveType::ONE_STAR] = "ONE_STAR";
+    lookup[RNNIMoveType::TWO] = "TWO";
+    lookup[RNNIMoveType::TWO_STAR] = "TWO_STAR";
+    lookup[RNNIMoveType::THREE] = "THREE";
+    lookup[RNNIMoveType::THREE_STAR] = "THREE_STAR";
+    lookup[RNNIMoveType::FOUR] = "FOUR";
+    ss << lookup[move.type] << ":\n";
+    ss << "  u = (" << move.u->label << "," << move.u->clv_index << ")" << "\n";
+    ss << "  v = (" << move.v->label << "," << move.v->clv_index << ")" << "\n";
+    ss << "  s = (" << move.s->label << "," << move.s->clv_index << ")" << "\n";
+    ss << "  t = (" << move.t->label << "," << move.t->clv_index << ")" << "\n";
+    return ss.str();
+}
+
+std::string toString(RSPRMove &move) {
+    std::stringstream ss;
+    ss << "rSPR move:\n";
+    ss << "  x_prime = (" << move.x_prime->label << "," << move.x_prime->clv_index << ")" << "\n";
+    ss << "  y_prime = (" << move.y_prime->label << "," << move.y_prime->clv_index << ")" << "\n";
+    ss << "  x = (" << move.x->label << "," << move.x->clv_index << ")" << "\n";
+    ss << "  y = (" << move.y->label << "," << move.y->clv_index << ")" << "\n";
+    ss << "  z = (" << move.z->label << "," << move.z->clv_index << ")" << "\n";
+    return ss.str();
 }
 
 }

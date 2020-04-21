@@ -41,4 +41,7 @@ void performMove(Network &, RSPRMove& move);
 void undoMove(Network &network, RNNIMove &move);
 void undoMove(Network &, RSPRMove &move);
 
+std::string toString(RNNIMove& move);
+std::string toString(RSPRMove& move);
+
 }
