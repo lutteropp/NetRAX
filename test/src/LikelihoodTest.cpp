@@ -76,7 +76,7 @@ void compareNodes(pll_unode_t *node1, pll_unode_t *node2) {
     EXPECT_EQ(node1->length, node2->length);
 }
 
-TEST_F (LikelihoodTest, DISABLED_displayedTreeOfTreeToUtree) {
+TEST_F (LikelihoodTest, displayedTreeOfTreeToUtree) {
     Network treeNetwork = netrax::readNetworkFromFile(treePath);
     pll_utree_t *network_utree = displayed_tree_to_utree(treeNetwork, 0);
     pll_utree_t *raxml_utree = Tree::loadFromFile(treePath).pll_utree_copy();
@@ -219,7 +219,7 @@ void comparePartitions(const pll_partition_t *p_network, const pll_partition_t *
     }
 }
 
-TEST_F (LikelihoodTest, simpleTreeCompareNaive) {
+TEST_F (LikelihoodTest, comparePllmodTreeinfo) {
     Network treeNetwork = netrax::readNetworkFromFile(treePath);
     pll_utree_t *raxml_utree = Tree::loadFromFile(treePath).pll_utree_copy();
     std::unique_ptr<RaxmlWrapper> treeWrapper = std::make_unique<RaxmlWrapper>(NetraxOptions(treePath, msaPath, false));
@@ -227,8 +227,26 @@ TEST_F (LikelihoodTest, simpleTreeCompareNaive) {
     TreeInfo network_treeinfo_tree = treeWrapper->createRaxmlTreeinfo(treeNetwork);
     TreeInfo raxml_treeinfo_tree = treeWrapper->createRaxmlTreeinfo(raxml_utree);
 
+    const pllmod_treeinfo_t &network_treeinfo = network_treeinfo_tree.pll_treeinfo();
+    const pllmod_treeinfo_t &raxml_treeinfo = raxml_treeinfo_tree.pll_treeinfo();
+
+    EXPECT_EQ(network_treeinfo.active_partition, raxml_treeinfo.active_partition);
+    EXPECT_EQ(network_treeinfo.brlen_linkage, raxml_treeinfo.brlen_linkage);
+    EXPECT_EQ(network_treeinfo.init_partition_count, raxml_treeinfo.init_partition_count);
+    EXPECT_EQ(network_treeinfo.partition_count, raxml_treeinfo.partition_count);
+    EXPECT_EQ(network_treeinfo.subnode_count, raxml_treeinfo.subnode_count + 3);
+    EXPECT_EQ(network_treeinfo.tip_count, raxml_treeinfo.tip_count);
+
+    for (size_t i = 0; i < raxml_treeinfo.partition_count; ++i) {
+        comparePartitions(network_treeinfo.partitions[i], raxml_treeinfo.partitions[i]);
+    }
+
     double network_logl = network_treeinfo_tree.loglh();
     double raxml_logl = raxml_treeinfo_tree.loglh();
+
+    for (size_t i = 0; i < raxml_treeinfo.partition_count; ++i) {
+        comparePartitions(network_treeinfo.partitions[i], raxml_treeinfo.partitions[i]);
+    }
 
     EXPECT_EQ(network_logl, raxml_logl);
 }
@@ -311,10 +329,10 @@ void compareLikelihoodFunctions(const std::string &networkPath, const std::strin
     options.msa_file = msaPath;
     options.use_repeats = useRepeats;
     RaxmlWrapper wrapper(options);
-    //std::cout << exportDebugInfo(network) << "\n";
+    std::cout << exportDebugInfo(network) << "\n";
     ASSERT_TRUE(networkIsConnected(network));
     TreeInfo network_treeinfo = wrapper.createRaxmlTreeinfo(network);
-    //std::cout << exportDebugInfo(network) << "\n";
+    std::cout << exportDebugInfo(network) << "\n";
     ASSERT_TRUE(networkIsConnected(network));
     RaxmlWrapper::NetworkParams *params =
             (RaxmlWrapper::NetworkParams*) network_treeinfo.pll_treeinfo().likelihood_computation_params;
