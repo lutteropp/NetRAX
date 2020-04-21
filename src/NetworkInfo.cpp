@@ -24,13 +24,16 @@ extern "C" {
 namespace netrax {
 
 NetworkInfo buildNetworkInfo(const NetraxOptions &options) {
-    NetworkInfo clump;
-    clump.network = readNetworkFromFile(options.network_file);
+    Network network = readNetworkFromFile(options.network_file);
     RaxmlWrapper wrapper(options);
-    clump.raxml_treeinfo = wrapper.createRaxmlTreeinfo(clump.network);
+    TreeInfo network_treeinfo = wrapper.createRaxmlTreeinfo(network);
     RaxmlWrapper::NetworkParams *params =
-            (RaxmlWrapper::NetworkParams*) clump.raxml_treeinfo.pll_treeinfo().likelihood_computation_params;
-    clump.treeinfo = *(params->network_treeinfo);
+            (RaxmlWrapper::NetworkParams*) network_treeinfo.pll_treeinfo().likelihood_computation_params;
+    pllmod_treeinfo_t treeinfo = *(params->network_treeinfo);
+    NetworkInfo clump;
+    clump.network = network;
+    clump.treeinfo = treeinfo;
+    clump.raxml_treeinfo = network_treeinfo;
     return clump;
 }
 
@@ -42,11 +45,11 @@ NetworkInfo buildNetworkInfo(const std::string &networkPath, const std::string &
     return buildNetworkInfo(options);
 }
 
-double loglh(NetworkInfo &networkinfo, bool incremental, bool use_blobs, bool use_graycode) {
+double loglh(NetworkInfo& networkinfo, bool incremental, bool use_blobs, bool use_graycode) {
     return netrax::computeLoglikelihood(networkinfo, incremental, true, false, use_blobs, use_graycode);
 }
 
-double update_reticulation_probs(NetworkInfo &networkinfo, bool incremental, bool use_blobs, bool use_graycode) {
+double update_reticulation_probs(NetworkInfo& networkinfo, bool incremental, bool use_blobs, bool use_graycode) {
     return netrax::computeLoglikelihood(networkinfo, incremental, true, true, use_blobs, use_graycode);
 }
 
@@ -54,7 +57,7 @@ double optimize_model(NetworkInfo &networkinfo, double lh_epsilon) {
     return networkinfo.raxml_treeinfo.optimize_model(lh_epsilon);
 }
 
-double optimize_branches(NetworkInfo &networkinfo, double lh_epsilon, double brlen_smooth_factor) {
+double optimize_branches(NetworkInfo& networkinfo, double lh_epsilon, double brlen_smooth_factor) {
     return networkinfo.raxml_treeinfo.optimize_branches(lh_epsilon, brlen_smooth_factor);
 }
 
