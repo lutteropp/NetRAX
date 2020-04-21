@@ -136,7 +136,7 @@ std::vector<pll_operation_t> createOperations(Network &network, const std::vecto
         createOperationsPostorder(parent[megablobRoot->clv_index], megablobRoot, ops, fake_clv_index,
                 fake_pmatrix_index, dead_nodes, &stopIndices);
     }
-    printOperationArray(ops);
+    //printOperationArray(ops);
     return ops;
 }
 
@@ -200,7 +200,7 @@ std::vector<pll_operation_t> createOperationsUpdatedReticulation(Network &networ
     }
 
     assert(ops[ops.size() - 1].parent_clv_index == network.root->clv_index);
-    printOperationArray(ops);
+    //printOperationArray(ops);
     return ops;
 }
 
@@ -219,7 +219,7 @@ std::vector<pll_operation_t> createOperations(Network &network, size_t treeIdx) 
     // First with root->back, then with root...
     createOperationsPostorder(network.root, rootBack, ops, fake_clv_index, fake_pmatrix_index, dead_nodes);
     createOperationsPostorder(rootBack, network.root, ops, fake_clv_index, fake_pmatrix_index, dead_nodes);
-    printOperationArray(ops);
+    //printOperationArray(ops);
     return ops;
 }
 
@@ -311,8 +311,7 @@ void compute_tree_logl_blobs(Network &network, BlobInformation &blobInfo, const 
                     persite_logl->empty() ? nullptr : persite_logl->data());
         }
 
-        std::cout << "tree_partition_logl for megablob root clv index " << ops_root->clv_index << ", tree_idx "
-                << tree_idx << ": " << tree_partition_logl << "\n";
+        //std::cout << "tree_partition_logl for megablob root clv index " << ops_root->clv_index << ", tree_idx " << tree_idx << ": " << tree_partition_logl << "\n";
     }
 }
 
@@ -509,8 +508,7 @@ std::vector<double> compute_persite_lh_blobs(unsigned int partitionIdx, Network 
             // merge the tree clvs into the megablob root clv
             merge_tree_clvs(tree_clvs, fake_treeinfo.partitions[partitionIdx], megablobRootClvIdx);
 
-            std::cout << "loglikelihood we would get from the merged megablob root clv with index "
-                    << megablobRootClvIdx << ": ";
+            // std::cout << "loglikelihood we would get from the merged megablob root clv with index " << megablobRootClvIdx << ": ";
             Node *dbg_root = blobInfo.megablob_roots[megablob_idx];
             Node *dbg_back;
             if (dbg_root == network.root) {
@@ -521,7 +519,7 @@ std::vector<double> compute_persite_lh_blobs(unsigned int partitionIdx, Network 
             double dbg_logl = pll_compute_edge_loglikelihood(fake_treeinfo.partitions[partitionIdx],
                     dbg_root->clv_index, dbg_root->scaler_index, dbg_back->clv_index, dbg_back->scaler_index,
                     dbg_root->getLink()->edge->pmatrix_index, fake_treeinfo.param_indices[partitionIdx], nullptr);
-            std::cout << dbg_logl << "\n";
+            //std::cout << dbg_logl << "\n";
         }
     }
     return persite_lh_network;

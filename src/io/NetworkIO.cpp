@@ -295,9 +295,9 @@ std::pair<size_t, size_t> makeToplevelTrifurcation(RootedNetwork &rnetwork) {
 }
 
 Network convertNetwork(RootedNetwork &rnetwork) {
-    std::cout << exportDebugInfo(rnetwork) << "\n";
+    //std::cout << exportDebugInfo(rnetwork) << "\n";
     std::pair<size_t, size_t> node_and_branch_count = makeToplevelTrifurcation(rnetwork);
-    std::cout << exportDebugInfo(rnetwork) << "\n";
+    //std::cout << exportDebugInfo(rnetwork) << "\n";
     size_t node_count = node_and_branch_count.first;
     size_t branch_count = node_and_branch_count.second;
 
@@ -310,7 +310,7 @@ Network convertNetwork(RootedNetwork &rnetwork) {
         assert(network.edges[i].length != 0);
     }
 
-    std::cout << exportDebugInfo(network) << "\n";
+    //std::cout << exportDebugInfo(network) << "\n";
 
     assert(networkIsConnected(network));
 

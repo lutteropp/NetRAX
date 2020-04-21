@@ -453,7 +453,7 @@ std::vector<Node*> reversed_topological_sort(const Network &network) {
         }
     }
 
-    std::cout << exportDebugInfo(network, outdeg) << "\n";
+    //std::cout << exportDebugInfo(network, outdeg) << "\n";
 
     size_t num_visited_vertices = 0;
     while (!q.empty()) {

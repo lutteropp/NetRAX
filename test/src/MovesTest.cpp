@@ -84,16 +84,20 @@ void randomSPRMoves(const std::string &networkPath, const std::string &msaPath, 
     }
 }
 
-TEST (MovesTest, nniCeline) {
-    randomNNIMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false);
-}
 TEST (MovesTest, nniSmall) {
     randomNNIMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
 }
-TEST (MovesTest, sprCeline) {
-    randomSPRMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false);
+
+TEST (MovesTest, nniCeline) {
+    randomNNIMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false);
 }
+
 TEST (MovesTest, sprSmall) {
     randomSPRMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
 }
+
+TEST (MovesTest, sprCeline) {
+    randomSPRMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false);
+}
+
 
