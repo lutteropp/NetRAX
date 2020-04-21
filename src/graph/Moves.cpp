@@ -241,52 +241,6 @@ void fixReticulations(RSPRMove &move) {
     }
 }
 
-void checkReticulationProperties(Node *notReticulation, Node *reticulation) {
-    if (notReticulation) {
-        assert(notReticulation->type == NodeType::BASIC_NODE);
-        assert(notReticulation->reticulationData == nullptr);
-    }
-
-    if (reticulation) {
-        assert(reticulation->type == NodeType::RETICULATION_NODE);
-        assert(reticulation->reticulationData->link_to_first_parent);
-        assert(reticulation->reticulationData->link_to_second_parent);
-        assert(reticulation->reticulationData->link_to_child);
-    }
-}
-
-void assertBeforeMove(RNNIMove &move) {
-    Node *notReticulation = nullptr;
-    Node *reticulation = nullptr;
-    if (move.type == RNNIMoveType::ONE_STAR) {
-        notReticulation = move.u;
-        reticulation = move.v;
-    } else if (move.type == RNNIMoveType::TWO_STAR) {
-        notReticulation = move.u;
-        reticulation = move.v;
-    } else if (move.type == RNNIMoveType::THREE) {
-        notReticulation = move.v;
-        reticulation = move.u;
-    }
-    checkReticulationProperties(notReticulation, reticulation);
-}
-
-void assertAfterMove(RNNIMove &move) {
-    Node *notReticulation = nullptr;
-    Node *reticulation = nullptr;
-    if (move.type == RNNIMoveType::ONE_STAR) {
-        notReticulation = move.v;
-        reticulation = move.u;
-    } else if (move.type == RNNIMoveType::TWO_STAR) {
-        notReticulation = move.u;
-        reticulation = move.v;
-    } else if (move.type == RNNIMoveType::THREE) {
-        notReticulation = move.u;
-        reticulation = move.v;
-    }
-    checkReticulationProperties(notReticulation, reticulation);
-}
-
 void changeEdgeDirection(Node *u, Node *v) {
     Link *from_u_link = getLinkToNode(u, v);
     Link *from_v_link = getLinkToNode(v, u);
@@ -388,6 +342,52 @@ void updateLinkDirectionsReverse(RNNIMove &move) {
     }
 }
 
+void checkReticulationProperties(Node *notReticulation, Node *reticulation) {
+    if (notReticulation) {
+        assert(notReticulation->type == NodeType::BASIC_NODE);
+        assert(notReticulation->reticulationData == nullptr);
+    }
+
+    if (reticulation) {
+        assert(reticulation->type == NodeType::RETICULATION_NODE);
+        assert(reticulation->reticulationData->link_to_first_parent);
+        assert(reticulation->reticulationData->link_to_second_parent);
+        assert(reticulation->reticulationData->link_to_child);
+    }
+}
+
+void assertBeforeMove(RNNIMove &move) {
+    Node *notReticulation = nullptr;
+    Node *reticulation = nullptr;
+    if (move.type == RNNIMoveType::ONE_STAR) {
+        notReticulation = move.u;
+        reticulation = move.v;
+    } else if (move.type == RNNIMoveType::TWO_STAR) {
+        notReticulation = move.u;
+        reticulation = move.v;
+    } else if (move.type == RNNIMoveType::THREE) {
+        notReticulation = move.v;
+        reticulation = move.u;
+    }
+    checkReticulationProperties(notReticulation, reticulation);
+}
+
+void assertAfterMove(RNNIMove &move) {
+    Node *notReticulation = nullptr;
+    Node *reticulation = nullptr;
+    if (move.type == RNNIMoveType::ONE_STAR) {
+        notReticulation = move.v;
+        reticulation = move.u;
+    } else if (move.type == RNNIMoveType::TWO_STAR) {
+        notReticulation = move.u;
+        reticulation = move.v;
+    } else if (move.type == RNNIMoveType::THREE) {
+        notReticulation = move.u;
+        reticulation = move.v;
+    }
+    checkReticulationProperties(notReticulation, reticulation);
+}
+
 void performMove(Network &network, RNNIMove &move) {
     assertBeforeMove(move);
     exchangeEdges(move.u, move.v, move.s, move.t);
@@ -401,6 +401,7 @@ void performMove(Network &network, RNNIMove &move) {
 }
 
 void undoMove(Network &network, RNNIMove &move) {
+    assertAfterMove(move);
     exchangeEdges(move.u, move.v, move.t, move.s); // note that s and t are exchanged here
     updateLinkDirectionsReverse(move);
     if (move.type == RNNIMoveType::ONE_STAR || move.type == RNNIMoveType::TWO_STAR
@@ -408,6 +409,7 @@ void undoMove(Network &network, RNNIMove &move) {
         switchReticulations(network, move.u, move.v);
     }
     fixReticulations(move);
+    assertBeforeMove(move);
 }
 
 std::vector<std::pair<Node*, Node*> > getZYChoices(Node *x_prime, Node *y_prime, Node *x) {

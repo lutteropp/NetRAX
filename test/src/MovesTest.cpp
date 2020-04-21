@@ -28,7 +28,9 @@ const std::string DATA_PATH = "examples/sample_networks/";
 
 void randomNNIMoves(const std::string &networkPath, const std::string &msaPath, bool useRepeats) {
     Network network = netrax::readNetworkFromFile(networkPath);
-    std::cout << exportDebugInfo(network);
+
+    std::string initialDebugInfo = exportDebugInfo(network);
+    std::cout << initialDebugInfo;
     NetraxOptions options;
     options.network_file = networkPath;
     options.msa_file = msaPath;
@@ -60,6 +62,8 @@ void randomNNIMoves(const std::string &networkPath, const std::string &msaPath, 
             std::cout << "logl after move: " << moved_logl << "\n";
             std::cout << "undo " << toString(candidates[j]) << "\n";
             undoMove(network, candidates[j]);
+            std::string debugInfoAfterUndo = exportDebugInfo(network);
+            EXPECT_EQ(initialDebugInfo, debugInfoAfterUndo);
             double back_logl = computeLoglikelihood(network, treeinfo, 0, 1);
             ASSERT_DOUBLE_EQ(initial_logl, back_logl);
         }
