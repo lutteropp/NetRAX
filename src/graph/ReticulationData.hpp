@@ -45,7 +45,7 @@ public:
     void setActiveParentToggle(bool val) {
         active_parent_toggle = val;
     }
-    double getProb(size_t partition = 0) const {
+    double getFirstParentProb(size_t partition = 0) const {
         return prob[partition];
     }
     double getActiveProb(size_t partition = 0) const {

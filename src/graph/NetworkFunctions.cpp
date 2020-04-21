@@ -17,6 +17,7 @@
 #include <queue>
 #include <stdexcept>
 #include <sstream>
+#include <utility>
 
 namespace netrax {
 

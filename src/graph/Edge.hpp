@@ -26,5 +26,6 @@ struct Edge {
     Link *link2 = nullptr;
     double length = 0.0;
     double support = 0.0;
+    double prob = 1.0;
 };
 }

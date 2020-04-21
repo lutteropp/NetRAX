@@ -13,6 +13,8 @@
 #include "Network.hpp"
 #include "ReticulationData.hpp"
 
+#include <vector>
+
 namespace netrax {
 
 Node* getTargetNode(const Link* link);
@@ -31,6 +33,7 @@ std::vector<Node*> getActiveNeighbors(const Node* node);
 Node* getActiveParent(const Node* node);
 std::vector<Node*> getAllParents(const Node* node);
 Edge* getEdgeTo(const Node* node, const Node* target);
+std::vector<Edge*> getAdjacentEdges(const Node* node);
 
 Node* getSource(const Edge& edge);
 Node* getTarget(const Edge& edge);

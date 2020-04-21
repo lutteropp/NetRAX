@@ -248,6 +248,16 @@ Network convertNetworkToplevelTrifurcation(RootedNetwork &rnetwork, size_t node_
         }
     }
 
+    // set the reticulation branch probabilities
+    for (size_t i = 0; i < network.reticulation_nodes.size(); ++i) {
+        Edge *firstParentEdge = getEdgeTo(network.reticulation_nodes[i],
+                getReticulationFirstParent(network.reticulation_nodes[i]));
+        Edge *secondParentEdge = getEdgeTo(network.reticulation_nodes[i],
+                getReticulationSecondParent(network.reticulation_nodes[i]));
+        firstParentEdge->prob = network.reticulation_nodes[i]->getReticulationData()->getFirstParentProb();
+        secondParentEdge->prob = 1.0 - (network.reticulation_nodes[i]->getReticulationData()->getFirstParentProb());
+    }
+
     // check that all links are sane
     for (size_t i = 0; i < network.links.size(); ++i) {
         assert(network.links[i]);
@@ -341,7 +351,7 @@ std::string newickNodeName(const Node *node, const Node *parent) {
         assert(parent);
         sb << "#" << node->getReticulationData()->getLabel();
         Link *link = node->getReticulationData()->getLinkToFirstParent();
-        double prob = node->getReticulationData()->getProb(0);
+        double prob = node->getReticulationData()->getFirstParentProb(0);
         if (getReticulationSecondParent(node) == parent) {
             link = node->getReticulationData()->getLinkToSecondParent();
             prob = 1.0 - prob;
@@ -365,8 +375,7 @@ std::string newickNodeName(const Node *node, const Node *parent) {
     return sb.str();
 }
 
-std::string printNodeNewick(Node *node, Node *parent,
-        std::unordered_set<Node*> &visited_reticulations) {
+std::string printNodeNewick(Node *node, Node *parent, std::unordered_set<Node*> &visited_reticulations) {
     std::stringstream sb("");
     std::vector<Node*> children = getChildren(node, parent);
     if (!children.empty() && visited_reticulations.find(node) == visited_reticulations.end()) {

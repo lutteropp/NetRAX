@@ -175,6 +175,16 @@ Edge* getEdgeTo(const Node *node, const Node *target) {
     throw std::runtime_error("The given target node is not a neighbor of this node");
 }
 
+std::vector<Edge*> getAdjacentEdges(const Node* node) {
+    std::vector<Edge*> res;
+    std::vector<Node*> neighs = getNeighbors(node);
+    for (size_t i = 0; i < neighs.size(); ++i) {
+        res.emplace_back(getEdgeTo(node, neighs[i]));
+    }
+    assert(res.size() <= 3);
+    return res;
+}
+
 Node* getSource(const Edge &edge) {
     if (edge.link1->direction == Direction::OUTGOING) {
         return edge.link1->node;

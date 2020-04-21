@@ -410,7 +410,7 @@ bool update_probs(Network &network, unsigned int partitionIdx, const std::vector
     bool reticulationProbsHaveChanged = false;
     for (size_t r = 0; r < network.num_reticulations(); ++r) {
         double newProb = (double) totalTaken[r] / (totalTaken[r] + totalNotTaken[r]); // Percentage of sites that were maximized when taking this reticulation
-        double oldProb = network.reticulation_nodes[r]->getReticulationData()->getProb(partitionIdx);
+        double oldProb = network.reticulation_nodes[r]->getReticulationData()->getFirstParentProb(partitionIdx);
         if (newProb != oldProb) {
             reticulationProbsHaveChanged = true;
         }
