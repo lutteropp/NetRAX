@@ -1,5 +1,5 @@
 /*
- * LikelihoodTest.cpp
+ * NetworkIOTest.cpp
  *
  *  Created on: Sep 3, 2019
  *      Author: Sarah Lutteropp

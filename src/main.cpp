@@ -11,8 +11,6 @@
 #include "io/NetworkIO.hpp"
 #include "likelihood/LikelihoodComputation.hpp"
 
-#include "NetworkInfo.hpp"
-
 int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
     CLI::App app { "NetRAX: Phylogenetic Network Inference without Incomplete Lineage Sorting" };
     app.add_option("--msa", options->msa_file, "The Multiple Sequence Alignment File")->required();
@@ -29,16 +27,25 @@ int main(int argc, char **argv) {
     netrax::NetraxOptions netraxOptions;
     parseOptions(argc, argv, &netraxOptions);
 
-    netrax::NetworkInfo networkinfo = buildNetworkInfo(netraxOptions);
+    netrax::Network network = netrax::readNetworkFromFile(netraxOptions.network_file);
+    netrax::RaxmlWrapper wrapper(netraxOptions);
+    Options raxmlOptions = wrapper.getRaxmlOptions();
+    TreeInfo treeinfo = wrapper.createRaxmlTreeinfo(network);
+    netrax::RaxmlWrapper::NetworkParams *params =
+            (netrax::RaxmlWrapper::NetworkParams*) treeinfo.pll_treeinfo().likelihood_computation_params;
+    pllmod_treeinfo_t *fake_treeinfo = params->network_treeinfo;
 
     std::cout << "The current Likelihood model being used is the DNA model from raxml-ng\n\n";
-    std::cout << "Initial network loglikelihood: " << loglh(networkinfo, false) << "\n";
-    std::cout << "After updating reticulation probs: " << update_reticulation_probs(networkinfo) << "\n";
-    std::cout << "After doing model optimization: " << optimize_model(networkinfo) << "\n";
-    std::cout << "After updating reticulation probs again: " << update_reticulation_probs(networkinfo) << "\n";
+    std::cout << "Initial network loglikelihood: " << treeinfo.loglh(false) << "\n";
+    std::cout << "After updating reticulation probs: "
+            << netrax::computeLoglikelihood(network, *fake_treeinfo, 0, 1, true) << "\n";
+    std::cout << "After doing model optimization: " << treeinfo.optimize_model(raxmlOptions.lh_epsilon) << "\n";
+    std::cout << "After updating reticulation probs again: "
+            << netrax::computeLoglikelihood(network, *fake_treeinfo, 0, 1, true) << "\n";
     std::cout << "After branch length optimization (by averaging over per-tree optimized brlens in easy cases): "
-            << optimize_branches(networkinfo) << "\n";
-    std::cout << "After updating reticulation probs again again: " << update_reticulation_probs(networkinfo) << "\n";
+            << treeinfo.optimize_branches(raxmlOptions.lh_epsilon, 1) << "\n";
+    std::cout << "After updating reticulation probs again again: "
+            << netrax::computeLoglikelihood(network, *fake_treeinfo, 0, 1, true) << "\n";
     std::cout << "(Topology optimization not implemented yet) \n";
     return 0;
 }

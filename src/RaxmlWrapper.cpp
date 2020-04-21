@@ -7,8 +7,6 @@
 
 #include "RaxmlWrapper.hpp"
 
-#include "io/NetworkIO.hpp"
-
 #include "likelihood/LikelihoodComputation.hpp"
 #include "optimization/BranchLengthOptimization.hpp"
 #include "graph/Common.hpp"
