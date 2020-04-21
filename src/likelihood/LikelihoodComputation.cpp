@@ -601,7 +601,7 @@ double processPartition(unsigned int partitionIdx, Network &network, pllmod_tree
 }
 
 double computeLoglikelihood(Network &network, pllmod_treeinfo_t &fake_treeinfo, int incremental, int update_pmatrices,
-        bool update_reticulation_probs, bool useBlobs) {
+        bool update_reticulation_probs, bool useBlobs, bool useGrayCode) {
     setup_pmatrices(network, fake_treeinfo, incremental, update_pmatrices);
     const int old_active_partition = fake_treeinfo.active_partition;
     fake_treeinfo.active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
@@ -617,7 +617,7 @@ double computeLoglikelihood(Network &network, pllmod_treeinfo_t &fake_treeinfo, 
         fake_treeinfo.active_partition = partitionIdx;
         double network_partition_logl = processPartition(partitionIdx, network, fake_treeinfo, incremental,
                 update_reticulation_probs, totalTaken, totalNotTaken, unlinked_mode, reticulationProbsHaveChanged,
-                useBlobs);
+                useBlobs, useGrayCode);
         network_logl += network_partition_logl;
     }
 
@@ -629,10 +629,16 @@ double computeLoglikelihood(Network &network, pllmod_treeinfo_t &fake_treeinfo, 
     fake_treeinfo.active_partition = old_active_partition;
 
     if (update_reticulation_probs && reticulationProbsHaveChanged) {
-        return computeLoglikelihood(network, fake_treeinfo, incremental, false, false, useBlobs);
+        return computeLoglikelihood(network, fake_treeinfo, incremental, false, false, useBlobs, useGrayCode);
     } else {
         return network_logl;
     }
+}
+
+double computeLoglikelihood(NetworkInfo &networkInfo, int incremental, int update_pmatrices,
+        bool update_reticulation_probs, bool useBlobs, bool useGrayCode) {
+    return computeLoglikelihood(networkInfo.network, networkInfo.treeinfo, incremental, update_pmatrices,
+            update_reticulation_probs, useBlobs, useGrayCode);
 }
 
 double computeLoglikelihoodNaiveUtree(RaxmlWrapper &wrapper, Network &network, int incremental, int update_pmatrices) {
