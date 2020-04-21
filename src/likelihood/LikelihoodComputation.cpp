@@ -227,7 +227,7 @@ double displayed_tree_prob(Network &network, size_t tree_index, size_t partition
     setReticulationParents(network, tree_index);
     double logProb = 0;
     for (size_t i = 0; i < network.reticulation_nodes.size(); ++i) {
-        logProb += log(network.reticulation_nodes[i]->getReticulationData()->getActiveProb(partition_index));
+        logProb += log(network.reticulation_nodes[i]->reticulationData.getActiveProb(partition_index));
     }
     return exp(logProb);
 }
@@ -236,7 +236,7 @@ double displayed_tree_prob(BlobInformation &blobInfo, size_t megablob_idx, size_
     double logProb = 0;
     for (size_t i = 0; i < blobInfo.reticulation_nodes_per_megablob[megablob_idx].size(); ++i) {
         logProb += log(
-                blobInfo.reticulation_nodes_per_megablob[megablob_idx][i]->getReticulationData()->getActiveProb(
+                blobInfo.reticulation_nodes_per_megablob[megablob_idx][i]->reticulationData.getActiveProb(
                         partition_index));
     }
     return exp(logProb);
@@ -412,11 +412,11 @@ bool update_probs(Network &network, unsigned int partitionIdx, const std::vector
     bool reticulationProbsHaveChanged = false;
     for (size_t r = 0; r < network.num_reticulations(); ++r) {
         double newProb = (double) totalTaken[r] / (totalTaken[r] + totalNotTaken[r]); // Percentage of sites that were maximized when taking this reticulation
-        double oldProb = network.reticulation_nodes[r]->getReticulationData()->getProb(partitionIdx);
+        double oldProb = network.reticulation_nodes[r]->reticulationData.getProb(partitionIdx);
         if (newProb != oldProb) {
             reticulationProbsHaveChanged = true;
         }
-        network.reticulation_nodes[r]->getReticulationData()->setProb(newProb, partitionIdx);
+        network.reticulation_nodes[r]->reticulationData.setProb(newProb, partitionIdx);
     }
     return reticulationProbsHaveChanged;
 }
@@ -473,7 +473,7 @@ std::vector<double> compute_persite_lh_blobs(unsigned int partitionIdx, Network 
                     size_t changedBitPos = log2(onlyChangedBit);
                     bool changedBitIsSet = treeIdx & onlyChangedBit;
                     startNode = blobInfo.reticulation_nodes_per_megablob[megablob_idx][changedBitPos];
-                    startNode->getReticulationData()->setActiveParentToggle(changedBitIsSet);
+                    startNode->reticulationData.setActiveParentToggle(changedBitIsSet);
                 }
             } else {
                 setReticulationParents(blobInfo, megablob_idx, treeIdx);

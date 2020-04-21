@@ -84,6 +84,16 @@ public:
         }
     }
 
+    void reset() {
+        active_parent_toggle = 0;
+        reticulation_index = 0;
+        link_to_first_parent = nullptr;
+        link_to_second_parent = nullptr;
+        link_to_child = nullptr;
+        label = "";
+        prob = { 0.5 };
+    }
+
     bool active_parent_toggle = 0; // 0: first_parent, 1: second_parent
     size_t reticulation_index = 0;
     Link *link_to_first_parent = nullptr; // The link that has link->outer->node as the first parent

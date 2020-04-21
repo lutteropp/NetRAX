@@ -412,7 +412,7 @@ pllmod_treeinfo_t* RaxmlWrapper::createNetworkPllTreeinfo(Network &network, unsi
 
 	if (partitions > 1) {
 		for (size_t i = 0; i < network.reticulation_nodes.size(); ++i) {
-			network.reticulation_nodes[i]->getReticulationData()->setNumPartitions(partitions);
+			network.reticulation_nodes[i]->reticulationData.setNumPartitions(partitions);
 		}
 	}
 

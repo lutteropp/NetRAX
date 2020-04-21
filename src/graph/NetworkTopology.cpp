@@ -51,25 +51,25 @@ Link* getLinkToNode(Node *node, Node *target) {
 Node* getReticulationChild(const Node *node) {
     assert(node);
     assert(node->type == NodeType::RETICULATION_NODE);
-    return getTargetNode(node->getReticulationData()->getLinkToChild());
+    return getTargetNode(node->reticulationData.getLinkToChild());
 }
 
 Node* getReticulationFirstParent(const Node *node) {
     assert(node);
     assert(node->type == NodeType::RETICULATION_NODE);
-    return getTargetNode(node->getReticulationData()->link_to_first_parent);
+    return getTargetNode(node->reticulationData.link_to_first_parent);
 }
 
 Node* getReticulationSecondParent(const Node *node) {
     assert(node);
     assert(node->type == NodeType::RETICULATION_NODE);
-    return getTargetNode(node->getReticulationData()->link_to_second_parent);
+    return getTargetNode(node->reticulationData.link_to_second_parent);
 }
 
 Node* getReticulationActiveParent(const Node *node) {
     assert(node);
     assert(node->type == NodeType::RETICULATION_NODE);
-    return getTargetNode(node->getReticulationData()->getLinkToActiveParent());
+    return getTargetNode(node->reticulationData.getLinkToActiveParent());
 }
 
 std::vector<Node*> getChildren(Node *node, const Node *myParent) {
