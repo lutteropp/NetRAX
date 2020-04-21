@@ -31,9 +31,9 @@ NetworkInfo buildNetworkInfo(const NetraxOptions &options) {
             (RaxmlWrapper::NetworkParams*) network_treeinfo.pll_treeinfo().likelihood_computation_params;
     pllmod_treeinfo_t treeinfo = *(params->network_treeinfo);
     NetworkInfo clump;
-    clump.network = network;
-    clump.treeinfo = treeinfo;
-    clump.raxml_treeinfo = network_treeinfo;
+    clump.network = std::move(network);
+    clump.treeinfo = std::move(treeinfo);
+    clump.raxml_treeinfo = std::move(network_treeinfo);
     return clump;
 }
 

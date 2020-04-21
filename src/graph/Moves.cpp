@@ -167,13 +167,13 @@ void switchReticulations(Network &network, Node *u, Node *v) {
         old_ret_node = v;
         new_ret_node = u;
     }
-    size_t reticulationId = old_ret_node->reticulationData.reticulation_index;
+    size_t reticulationId = old_ret_node->getReticulationData()->reticulation_index;
     network.reticulation_nodes[reticulationId] = new_ret_node;
 
-    size_t num_partitions = old_ret_node->reticulationData.prob.size();
-    std::string label = old_ret_node->reticulationData.label;
-    bool active = old_ret_node->reticulationData.active_parent_toggle;
-    old_ret_node->reticulationData.reset();
+    size_t num_partitions = old_ret_node->reticulationData->prob.size();
+    std::string label = old_ret_node->reticulationData->label;
+    bool active = old_ret_node->reticulationData->active_parent_toggle;
+    old_ret_node->reticulationData.release();
 
     Link *link_to_first_parent = nullptr;
     Link *link_to_second_parent = nullptr;
@@ -193,7 +193,7 @@ void switchReticulations(Network &network, Node *u, Node *v) {
     ReticulationData retData;
     retData.init(reticulationId, label, active, link_to_first_parent, link_to_second_parent, link_to_child, 0.5,
             num_partitions);
-    new_ret_node->reticulationData = retData;
+    new_ret_node->reticulationData = std::make_unique<ReticulationData>(retData);
 
     old_ret_node->type = NodeType::BASIC_NODE;
     new_ret_node->type = NodeType::RETICULATION_NODE;
@@ -201,22 +201,22 @@ void switchReticulations(Network &network, Node *u, Node *v) {
 
 void resetReticulationLinks(Node *node) {
     assert(node->type == NodeType::RETICULATION_NODE);
-    ReticulationData& retData = node->reticulationData;
-    retData.link_to_first_parent = nullptr;
-    retData.link_to_second_parent = nullptr;
-    retData.link_to_child = nullptr;
+    auto retData = node->getReticulationData().get();
+    retData->link_to_first_parent = nullptr;
+    retData->link_to_second_parent = nullptr;
+    retData->link_to_child = nullptr;
     for (Link &link : node->links) {
         if (link.direction == Direction::OUTGOING) {
-            retData.link_to_child = &link;
-        } else if (retData.link_to_first_parent == nullptr) {
-            retData.link_to_first_parent = &link;
+            retData->link_to_child = &link;
+        } else if (retData->link_to_first_parent == nullptr) {
+            retData->link_to_first_parent = &link;
         } else {
-            retData.link_to_second_parent = &link;
+            retData->link_to_second_parent = &link;
         }
     }
-    assert(retData.link_to_first_parent);
-    assert(retData.link_to_second_parent);
-    assert(retData.link_to_child);
+    assert(retData->link_to_first_parent);
+    assert(retData->link_to_second_parent);
+    assert(retData->link_to_child);
 }
 
 void addRepairCandidates(std::unordered_set<Node*> &repair_candidates, Node *node) {

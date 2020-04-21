@@ -23,6 +23,7 @@ public:
         this->scaler_index = scaler_index;
         this->label = label;
         this->type = NodeType::BASIC_NODE;
+        this->reticulationData = nullptr;
         if (scaler_index >= 0) {
             links.reserve(3);
         } else {
@@ -34,7 +35,7 @@ public:
         this->scaler_index = scaler_index;
         this->label = label;
         this->type = NodeType::RETICULATION_NODE;
-        reticulationData = retData;
+        reticulationData = std::make_unique<ReticulationData>(retData);
         links.reserve(3);
     }
 
@@ -77,11 +78,16 @@ public:
         return type;
     }
 
+    const std::unique_ptr<ReticulationData>& getReticulationData() const {
+        assert(type == NodeType::RETICULATION_NODE);
+        return reticulationData;
+    }
+
     NodeType type = NodeType::BASIC_NODE;
     int scaler_index = -1;
     size_t clv_index = 0;
     std::vector<Link> links;
-    ReticulationData reticulationData;
+    std::unique_ptr<ReticulationData> reticulationData = nullptr;
     std::string label = "";
 };
 

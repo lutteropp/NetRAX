@@ -231,13 +231,13 @@ Network convertNetworkToplevelTrifurcation(RootedNetwork &rnetwork, size_t node_
             linkFromSecondParent->outer = linkToSecondParent;
             linkToSecondParent->outer = linkFromSecondParent;
 
-            network.nodes[rnode->clv_index].reticulationData.link_to_first_parent = linkToFirstParent;
-            network.nodes[rnode->clv_index].reticulationData.link_to_second_parent = linkToSecondParent;
+            network.nodes[rnode->clv_index].getReticulationData()->link_to_first_parent = linkToFirstParent;
+            network.nodes[rnode->clv_index].getReticulationData()->link_to_second_parent = linkToSecondParent;
 
             // also set the link to the reticulation child node
             Link *linkToChild = linkToSecondParent->next;
             assert(linkToChild && linkToChild != linkToFirstParent);
-            network.nodes[rnode->clv_index].reticulationData.link_to_child = linkToChild;
+            network.nodes[rnode->clv_index].getReticulationData()->link_to_child = linkToChild;
         } else { // 1 parent
             size_t pmatrix_index = rnode->clv_index;
             Link *linkFromParent = network.edges[pmatrix_index].link2;
@@ -339,11 +339,11 @@ std::string newickNodeName(const Node *node, const Node *parent) {
     sb << node->label;
     if (node->getType() == NodeType::RETICULATION_NODE) {
         assert(parent);
-        sb << "#" << node->reticulationData.getLabel();
-        Link *link = node->reticulationData.getLinkToFirstParent();
-        double prob = node->reticulationData.getProb(0);
+        sb << "#" << node->getReticulationData()->getLabel();
+        Link *link = node->getReticulationData()->getLinkToFirstParent();
+        double prob = node->getReticulationData()->getProb(0);
         if (getReticulationSecondParent(node) == parent) {
-            link = node->reticulationData.getLinkToSecondParent();
+            link = node->getReticulationData()->getLinkToSecondParent();
             prob = 1.0 - prob;
         } else {
             assert(getReticulationFirstParent(node) == parent);
