@@ -151,6 +151,7 @@ TreeInfo RaxmlWrapper::createRaxmlTreeinfo(AnnotatedNetwork &ann_network) {
     assert(networkIsConnected(network));
     pllmod_treeinfo_t *pllTreeinfo = createNetworkPllTreeinfo(ann_network, network.num_tips(),
             instance.parted_msa->part_count(), instance.opts.brlen_linkage);
+    ann_network.fake_treeinfo = pllTreeinfo;
     return createRaxmlTreeinfo(pllTreeinfo, network_behaviour);
 }
 

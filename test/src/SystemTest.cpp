@@ -80,7 +80,7 @@ TEST (SystemTest, allTree) {
     treeOptions.use_repeats = true;
 
     AnnotatedNetwork ann_network = build_annotated_network(treeOptions);
-    pllmod_treeinfo_t* treeinfo = ann_network.raxml_treeinfo._pll_treeinfo;
+    pllmod_treeinfo_t* treeinfo = ann_network.fake_treeinfo;
 
     // initial logl computation
     double initial_logl = computeLoglikelihood(ann_network);

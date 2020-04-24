@@ -197,7 +197,7 @@ TEST (BrlenOptTest, celineFakeWithModelopt) {
     std::cout << "Loglikelihood after model optimization: " << modelopt_logl << "\n";
 
     std::cout << "The entire network would like these model params:\n";
-    print_model_params(*annTreeNetwork.raxml_treeinfo._pll_treeinfo);
+    print_model_params(*annTreeNetwork.fake_treeinfo);
     std::cout << "\n";
 
     // branch length optimization

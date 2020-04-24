@@ -57,7 +57,7 @@ double optimize_branches(AnnotatedNetwork &ann_network, double min_brlen, double
         int max_iters, int opt_method, int radius) {
     NetraxOptions &options = ann_network.options;
     Network &network = ann_network.network;
-    pllmod_treeinfo_t &fake_treeinfo = *ann_network.raxml_treeinfo._pll_treeinfo;
+    pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
 
     // for now, optimize branches on each of the displayed trees, exported as a pll_utree_t data structure.
     // Keep track of which branch in the exported pll_utree_t corresponds to which branch of the network data structure.

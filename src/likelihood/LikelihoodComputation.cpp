@@ -609,7 +609,7 @@ double processPartition(unsigned int partitionIdx, Network &network, pllmod_tree
 double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices,
         bool update_reticulation_probs, std::vector<double> *treewise_logl) {
     Network& network = ann_network.network;
-    pllmod_treeinfo_t fake_treeinfo = *ann_network.raxml_treeinfo._pll_treeinfo;
+    pllmod_treeinfo_t fake_treeinfo = *ann_network.fake_treeinfo;
     bool useBlobs = ann_network.options.use_blobs;
     bool useGrayCode = ann_network.options.use_graycode;
 

@@ -40,7 +40,7 @@ AnnotatedNetwork build_annotated_network(const NetraxOptions &options) {
         ann_network.branch_probs = std::vector<std::vector<double> >(1,
                 std::vector<double>(ann_network.network.num_edges(), 1.0));
     } else { // each partition has extra branch properties
-        ann_network.branch_probs = std::vector<std::vector<double> >(ann_network.raxml_treeinfo._pll_treeinfo->partition_count,
+        ann_network.branch_probs = std::vector<std::vector<double> >(ann_network.fake_treeinfo->partition_count,
                 std::vector<double>(ann_network.network.num_edges(), 1.0));
     }
     for (size_t p = 0; p < ann_network.branch_probs.size(); ++p) {
