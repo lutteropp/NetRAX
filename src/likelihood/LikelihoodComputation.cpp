@@ -153,6 +153,14 @@ Node* getActiveParent(Node *actNode, const std::vector<Node*> &parent) {
 std::vector<pll_operation_t> createOperationsTowardsRoot(Network &network, const std::vector<Node*> &parent,
         Node *actParent, const std::vector<bool> &dead_nodes) {
     std::vector<pll_operation_t> ops;
+    if (actParent == nullptr) {
+        return ops;
+    }
+
+    if (dead_nodes[actParent->clv_index]) {
+        return createOperationsTowardsRoot(network, parent, parent[actParent->clv_index], dead_nodes);
+    }
+
     size_t fake_clv_index = network.nodes.size();
     size_t fake_pmatrix_index = network.edges.size();
     Node *rootBack = getTargetNode(network.root->getLink());
@@ -289,6 +297,9 @@ void compute_tree_logl_blobs(Network &network, BlobInformation &blobInfo, const 
 // Create pll_operations_t array for the current displayed tree
     std::vector<pll_operation_t> ops;
     if (startNode) {
+        if (tree_idx == 2) {
+            cout << "hi\n";
+        }
         ops = createOperationsUpdatedReticulation(network, parent, startNode, dead_nodes);
     } else {
         ops = createOperations(network, parent, blobInfo, megablob_idx, dead_nodes);
@@ -412,7 +423,7 @@ void update_total_taken(std::vector<unsigned int> &totalTaken, std::vector<unsig
 
 bool update_probs(AnnotatedNetwork &ann_network, unsigned int partitionIdx, const std::vector<unsigned int> &totalTaken,
         const std::vector<unsigned int> &totalNotTaken) {
-    Network& network = ann_network.network;
+    Network &network = ann_network.network;
     bool reticulationProbsHaveChanged = false;
     for (size_t r = 0; r < network.num_reticulations(); ++r) {
         double newProb = (double) totalTaken[r] / (totalTaken[r] + totalNotTaken[r]); // Percentage of sites that were maximized when taking this reticulation

@@ -131,6 +131,11 @@ void exchangeEdges(Node *u, Node *v, Node *s, Node *t) {
     from_v_link->outer = from_s_link;
     from_s_link->outer = from_v_link;
 
+    assert(from_u_link->node->clv_index != from_u_link->outer->node->clv_index);
+    assert(from_t_link->node->clv_index != from_t_link->outer->node->clv_index);
+    assert(from_v_link->node->clv_index != from_v_link->outer->node->clv_index);
+    assert(from_s_link->node->clv_index != from_s_link->outer->node->clv_index);
+
     // u_s_edge now becomes u_t edge
     Edge *u_t_edge = u_s_edge;
     u_t_edge->link1 = from_u_link;
