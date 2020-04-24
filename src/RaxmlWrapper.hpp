@@ -18,11 +18,9 @@ namespace netrax {
 class RaxmlWrapper {
 public:
     struct NetworkParams {
-        Network *network;
-        pllmod_treeinfo_t *network_treeinfo;
-        RaxmlWrapper *raxml_wrapper;
-        NetworkParams(Network *network, pllmod_treeinfo_t *network_treeinfo, RaxmlWrapper *raxml_wrapper) :
-                network(network), network_treeinfo(network_treeinfo), raxml_wrapper(raxml_wrapper) {
+        AnnotatedNetwork *ann_network;
+        NetworkParams(AnnotatedNetwork *ann_network) :
+                ann_network(ann_network) {
         }
     };
 
@@ -30,7 +28,7 @@ public:
 
     Options getRaxmlOptions() const;
 
-    TreeInfo createRaxmlTreeinfo(Network &network); // Creates a network treeinfo
+    TreeInfo createRaxmlTreeinfo(AnnotatedNetwork &ann_network); // Creates a network treeinfo
     TreeInfo createRaxmlTreeinfo(pll_utree_t *utree); // Creates a tree treeinfo
     TreeInfo createRaxmlTreeinfo(pll_utree_t *utree, const pllmod_treeinfo_t &model_treeinfo); // Creates a tree treeinfo, taking the model from the given treeinfo
 
@@ -38,8 +36,8 @@ public:
 
     TreeInfo createRaxmlTreeinfo(pllmod_treeinfo_t *treeinfo, TreeInfo::tinfo_behaviour &behaviour);
     pllmod_treeinfo_t* createStandardPllTreeinfo(const pll_utree_t *utree, unsigned int partitions, int brlen_linkage);
-    pllmod_treeinfo_t* createNetworkPllTreeinfo(Network &network, unsigned int tips, unsigned int partitions,
-            int brlen_linkage);
+    pllmod_treeinfo_t* createNetworkPllTreeinfo(AnnotatedNetwork &ann_network, unsigned int tips,
+            unsigned int partitions, int brlen_linkage);
     void destroy_network_treeinfo(pllmod_treeinfo_t *treeinfo);
 
     void enableRaxmlDebugOutput();

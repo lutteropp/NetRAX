@@ -18,6 +18,7 @@
 #include "../likelihood/LikelihoodComputation.hpp"
 #include "../RaxmlWrapper.hpp"
 #include "../utils.hpp"
+#include "../graph/AnnotatedNetwork.hpp"
 
 namespace netrax {
 
@@ -52,8 +53,12 @@ double computeVariance(const std::vector<OptimizedBranchLength> &brlens) {
     return var;
 }
 
-double optimize_branches(const NetraxOptions &options, Network &network, pllmod_treeinfo_t &fake_treeinfo,
-        double min_brlen, double max_brlen, double lh_epsilon, int max_iters, int opt_method, int radius) {
+double optimize_branches(AnnotatedNetwork &ann_network, double min_brlen, double max_brlen, double lh_epsilon,
+        int max_iters, int opt_method, int radius) {
+    NetraxOptions &options = ann_network.options;
+    Network &network = ann_network.network;
+    pllmod_treeinfo_t &fake_treeinfo = *ann_network.raxml_treeinfo._pll_treeinfo;
+
     // for now, optimize branches on each of the displayed trees, exported as a pll_utree_t data structure.
     // Keep track of which branch in the exported pll_utree_t corresponds to which branch of the network data structure.
     // Run br-length optimization on each of the displayed trees.
@@ -168,7 +173,7 @@ double optimize_branches(const NetraxOptions &options, Network &network, pllmod_
         }
     }
 
-    return -1 * computeLoglikelihood(network, fake_treeinfo, 0, 1, false);
+    return -1 * computeLoglikelihood(ann_network, 0, 1, false);
 }
 
 }

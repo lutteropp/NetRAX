@@ -606,8 +606,13 @@ double processPartition(unsigned int partitionIdx, Network &network, pllmod_tree
     return network_partition_logl;
 }
 
-double computeLoglikelihood(Network &network, pllmod_treeinfo_t &fake_treeinfo, int incremental, int update_pmatrices,
-        bool update_reticulation_probs, bool useBlobs, bool useGrayCode, std::vector<double> *treewise_logl) {
+double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices,
+        bool update_reticulation_probs, std::vector<double> *treewise_logl) {
+    Network& network = ann_network.network;
+    pllmod_treeinfo_t fake_treeinfo = *ann_network.raxml_treeinfo._pll_treeinfo;
+    bool useBlobs = ann_network.options.use_blobs;
+    bool useGrayCode = ann_network.options.use_graycode;
+
     setup_pmatrices(network, fake_treeinfo, incremental, update_pmatrices);
     const int old_active_partition = fake_treeinfo.active_partition;
     fake_treeinfo.active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
@@ -662,22 +667,19 @@ double computeLoglikelihood(Network &network, pllmod_treeinfo_t &fake_treeinfo, 
     fake_treeinfo.active_partition = old_active_partition;
 
     if (update_reticulation_probs && reticulationProbsHaveChanged) {
-        return computeLoglikelihood(network, fake_treeinfo, incremental, false, false, useBlobs);
+        return computeLoglikelihood(ann_network, incremental, false, false);
     } else {
         return network_logl;
     }
 }
 
-double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices,
-        bool update_reticulation_probs, bool useBlobs, bool useGrayCode, std::vector<double> *treewise_logl) {
-    return computeLoglikelihood(ann_network.network, *ann_network.fake_treeinfo, incremental, update_pmatrices,
-            update_reticulation_probs, useBlobs, useGrayCode, treewise_logl);
-}
-
-double computeLoglikelihoodNaiveUtree(RaxmlWrapper &wrapper, Network &network, int incremental, int update_pmatrices,
+double computeLoglikelihoodNaiveUtree(AnnotatedNetwork& ann_network, int incremental, int update_pmatrices,
         std::vector<double> *treewise_logl) {
     (void) incremental;
     (void) update_pmatrices;
+
+    Network& network = ann_network.network;
+    RaxmlWrapper wrapper(ann_network.options);
 
     assert(wrapper.num_partitions() == 1);
 

@@ -9,6 +9,7 @@
 #include "src/graph/Moves.hpp"
 #include "src/io/NetworkIO.hpp"
 #include "src/RaxmlWrapper.hpp"
+#include "src/Api.hpp"
 
 #include "src/graph/NetworkFunctions.hpp"
 
@@ -27,21 +28,16 @@ using namespace netrax;
 const std::string DATA_PATH = "examples/sample_networks/";
 
 void randomNNIMoves(const std::string &networkPath, const std::string &msaPath, bool useRepeats) {
-    Network network = netrax::readNetworkFromFile(networkPath);
-
-    std::string initialDebugInfo = exportDebugInfo(network);
-    std::cout << initialDebugInfo;
     NetraxOptions options;
     options.network_file = networkPath;
     options.msa_file = msaPath;
     options.use_repeats = useRepeats;
-    RaxmlWrapper wrapper(options);
-    TreeInfo network_treeinfo = wrapper.createRaxmlTreeinfo(network);
-    RaxmlWrapper::NetworkParams *params =
-            (RaxmlWrapper::NetworkParams*) network_treeinfo.pll_treeinfo().likelihood_computation_params;
-    pllmod_treeinfo_t treeinfo = *(params->network_treeinfo);
+    AnnotatedNetwork ann_network = build_annotated_network(options);
+    Network& network = ann_network.network;
+    std::string initialDebugInfo = exportDebugInfo(network);
+    std::cout << initialDebugInfo;
 
-    double initial_logl = computeLoglikelihood(network, treeinfo, 0, 1);
+    double initial_logl = computeLoglikelihood(ann_network);
     ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
     std::cout << "initial_logl: " << initial_logl << "\n";
 
@@ -57,32 +53,28 @@ void randomNNIMoves(const std::string &networkPath, const std::string &msaPath, 
 
             std::cout << "perform " << toString(candidates[j]);
             performMove(network, candidates[j]);
-            double moved_logl = computeLoglikelihood(network, treeinfo, 0, 1);
+            double moved_logl = computeLoglikelihood(ann_network);
             ASSERT_NE(moved_logl, -std::numeric_limits<double>::infinity());
             std::cout << "logl after move: " << moved_logl << "\n";
             std::cout << "undo " << toString(candidates[j]) << "\n";
             undoMove(network, candidates[j]);
             std::string debugInfoAfterUndo = exportDebugInfo(network);
             EXPECT_EQ(initialDebugInfo, debugInfoAfterUndo);
-            double back_logl = computeLoglikelihood(network, treeinfo, 0, 1);
+            double back_logl = computeLoglikelihood(ann_network);
             ASSERT_DOUBLE_EQ(initial_logl, back_logl);
         }
     }
 }
 
 void randomSPRMoves(const std::string &networkPath, const std::string &msaPath, bool useRepeats) {
-    Network network = netrax::readNetworkFromFile(networkPath);
     NetraxOptions options;
     options.network_file = networkPath;
     options.msa_file = msaPath;
     options.use_repeats = useRepeats;
-    RaxmlWrapper wrapper(options);
-    TreeInfo network_treeinfo = wrapper.createRaxmlTreeinfo(network);
-    RaxmlWrapper::NetworkParams *params =
-            (RaxmlWrapper::NetworkParams*) network_treeinfo.pll_treeinfo().likelihood_computation_params;
-    pllmod_treeinfo_t treeinfo = *(params->network_treeinfo);
+    AnnotatedNetwork ann_network = build_annotated_network(options);
+    Network& network = ann_network.network;
 
-    double initial_logl = computeLoglikelihood(network, treeinfo, 0, 1);
+    double initial_logl = computeLoglikelihood(ann_network);
     ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
     std::cout << "initial_logl: " << initial_logl << "\n";
 
@@ -90,10 +82,10 @@ void randomSPRMoves(const std::string &networkPath, const std::string &msaPath, 
         std::vector<RSPRMove> candidates = possibleRSPRMoves(network, network.edges[i]);
         for (size_t j = 0; j < candidates.size(); ++j) {
             performMove(network, candidates[j]);
-            double moved_logl = computeLoglikelihood(network, treeinfo, 0, 1);
+            double moved_logl = computeLoglikelihood(ann_network);
             ASSERT_NE(moved_logl, -std::numeric_limits<double>::infinity());
             undoMove(network, candidates[j]);
-            double back_logl = computeLoglikelihood(network, treeinfo, 0, 1);
+            double back_logl = computeLoglikelihood(ann_network);
             ASSERT_DOUBLE_EQ(initial_logl, back_logl);
         }
     }
@@ -104,15 +96,15 @@ TEST (MovesTest, nniSmall) {
 }
 
 /*
-TEST (MovesTest, nniCeline) {
-    randomNNIMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false);
-}
+ TEST (MovesTest, nniCeline) {
+ randomNNIMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false);
+ }
 
-TEST (MovesTest, sprSmall) {
-    randomSPRMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
-}
+ TEST (MovesTest, sprSmall) {
+ randomSPRMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
+ }
 
-TEST (MovesTest, sprCeline) {
-    randomSPRMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false);
-}
-*/
+ TEST (MovesTest, sprCeline) {
+ randomSPRMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false);
+ }
+ */

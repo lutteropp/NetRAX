@@ -8,7 +8,7 @@
 #include "src/likelihood/LikelihoodComputation.hpp"
 #include "src/io/NetworkIO.hpp"
 #include "src/RaxmlWrapper.hpp"
-
+#include "src/Api.hpp"
 #include "src/graph/NetworkFunctions.hpp"
 
 #include <gtest/gtest.h>
@@ -176,18 +176,15 @@ TEST_F (LikelihoodTest, DISABLED_displayedTreeOfNetworkToUtree) {
 }
 
 TEST_F (LikelihoodTest, simpleTreeNaiveVersusNormalRaxml) {
-    Network network = netrax::readNetworkFromFile(treePath);
-    print_clv_index_by_label(network);
     NetraxOptions options;
     options.network_file = treePath;
     options.msa_file = msaPath;
     options.use_repeats = true;
-    RaxmlWrapper wrapper(options);
-    TreeInfo network_treeinfo = wrapper.createRaxmlTreeinfo(network);
-    RaxmlWrapper::NetworkParams *params =
-            (RaxmlWrapper::NetworkParams*) network_treeinfo.pll_treeinfo().likelihood_computation_params;
-    pllmod_treeinfo_t treeinfo = *(params->network_treeinfo);
-    double naive_logl = computeLoglikelihoodNaiveUtree(wrapper, network, 0, 1);
+    AnnotatedNetwork ann_network = build_annotated_network(options);
+    Network& network = ann_network.network;
+    print_clv_index_by_label(network);
+
+    double naive_logl = computeLoglikelihoodNaiveUtree(ann_network, 0, 1);
 
     pll_utree_t *raxml_utree = Tree::loadFromFile(treePath).pll_utree_copy();
     std::unique_ptr<RaxmlWrapper> treeWrapper = std::make_unique<RaxmlWrapper>(NetraxOptions(treePath, msaPath, false));
@@ -245,33 +242,39 @@ bool isLeafNode(const pll_unode_t *node) {
 }
 
 void compareLikelihoodFunctions(const std::string &networkPath, const std::string &msaPath, bool useRepeats) {
-    Network network = netrax::readNetworkFromFile(networkPath);
-    print_clv_index_by_label(network);
     NetraxOptions options;
     options.network_file = networkPath;
     options.msa_file = msaPath;
     options.use_repeats = useRepeats;
-    RaxmlWrapper wrapper(options);
+    AnnotatedNetwork ann_network = build_annotated_network(options);
+    Network &network = ann_network.network;
+    print_clv_index_by_label(network);
     //std::cout << exportDebugInfo(network) << "\n";
     ASSERT_TRUE(networkIsConnected(network));
-    TreeInfo network_treeinfo = wrapper.createRaxmlTreeinfo(network);
+
     //std::cout << exportDebugInfo(network) << "\n";
     ASSERT_TRUE(networkIsConnected(network));
-    RaxmlWrapper::NetworkParams *params =
-            (RaxmlWrapper::NetworkParams*) network_treeinfo.pll_treeinfo().likelihood_computation_params;
-    pllmod_treeinfo_t treeinfo = *(params->network_treeinfo);
 
     std::vector<double> treewise_logl_norep;
     std::vector<double> treewise_logl_naive;
-    double norep_logl = computeLoglikelihood(network, treeinfo, 0, 1, false, false, false, &treewise_logl_norep);
+
+    ann_network.options.use_blobs = false;
+    ann_network.options.use_graycode = false;
+    double norep_logl = computeLoglikelihood(ann_network, 0, 1, false, &treewise_logl_norep);
     ASSERT_NE(norep_logl, -std::numeric_limits<double>::infinity());
-    double norep_logl_graycode = computeLoglikelihood(network, treeinfo, 0, 1, false, false, true);
+    ann_network.options.use_blobs = false;
+    ann_network.options.use_graycode = true;
+    double norep_logl_graycode = computeLoglikelihood(ann_network, 0, 1, false);
     ASSERT_NE(norep_logl, -std::numeric_limits<double>::infinity());
-    double norep_logl_blobs = computeLoglikelihood(network, treeinfo, 0, 1, false, true, false);
+    ann_network.options.use_blobs = true;
+    ann_network.options.use_graycode = false;
+    double norep_logl_blobs = computeLoglikelihood(ann_network, 0, 1, false);
     ASSERT_NE(norep_logl_blobs, -std::numeric_limits<double>::infinity());
-    double norep_logl_blobs_graycode = computeLoglikelihood(network, treeinfo, 0, 1, false, true, true);
+    ann_network.options.use_blobs = true;
+    ann_network.options.use_graycode = true;
+    double norep_logl_blobs_graycode = computeLoglikelihood(ann_network, 0, 1, false);
     ASSERT_NE(norep_logl_blobs_graycode, -std::numeric_limits<double>::infinity());
-    double naive_logl = computeLoglikelihoodNaiveUtree(wrapper, network, 0, 1, &treewise_logl_naive);
+    double naive_logl = computeLoglikelihoodNaiveUtree(ann_network, 0, 1, &treewise_logl_naive);
 
     EXPECT_DOUBLE_EQ(norep_logl_graycode, norep_logl);
     EXPECT_DOUBLE_EQ(norep_logl_blobs, norep_logl);
@@ -349,29 +352,20 @@ TEST_F (LikelihoodTest, celineNetworkNonzeroBranches) {
 }
 
 TEST_F (LikelihoodTest, updateReticulationProb) {
-    Network smallNetwork = netrax::readNetworkFromFile(networkPath);
-    std::unique_ptr<RaxmlWrapper> smallWrapper = std::make_unique<RaxmlWrapper>(
-            NetraxOptions(networkPath, msaPath, false));
-    TreeInfo network_treeinfo_small = smallWrapper->createRaxmlTreeinfo(smallNetwork);
-    RaxmlWrapper::NetworkParams *params =
-            (RaxmlWrapper::NetworkParams*) network_treeinfo_small.pll_treeinfo().likelihood_computation_params;
-
-    double norep_logl = computeLoglikelihood(smallNetwork, *(params->network_treeinfo), 0, 1, true);
+    AnnotatedNetwork ann_network = build_annotated_network(NetraxOptions(networkPath, msaPath, false));
+    double norep_logl = updateReticulationProbs(ann_network);
     std::cout << "norep_logl: " << norep_logl << "\n";
-    double norep_logl_2 = computeLoglikelihood(smallNetwork, *(params->network_treeinfo), 0, 1, true);
+    double norep_logl_2 = updateReticulationProbs(ann_network);
     std::cout << "norep logl_2: " << norep_logl_2 << "\n";
-    double norep_logl_3 = computeLoglikelihood(smallNetwork, *(params->network_treeinfo), 0, 1, false);
+    double norep_logl_3 = computeLoglikelihood(ann_network);
     std::cout << "norep logl_3: " << norep_logl_3 << "\n";
 
     EXPECT_EQ(norep_logl_2, norep_logl_3);
 }
 
 TEST_F (LikelihoodTest, simpleTreeWithRepeats) {
-    Network treeNetwork = netrax::readNetworkFromFile(treePath);
-    std::unique_ptr<RaxmlWrapper> treeWrapperRepeats = std::make_unique<RaxmlWrapper>(
-            NetraxOptions(treePath, msaPath, true));
-    TreeInfo network_treeinfo_tree = treeWrapperRepeats->createRaxmlTreeinfo(treeNetwork);
-    double network_logl = network_treeinfo_tree.loglh(false);
+    AnnotatedNetwork ann_network = build_annotated_network(NetraxOptions(treePath, msaPath, true));
+    double network_logl = computeLoglikelihood(ann_network);
     std::cout << "The computed network_logl 5 is: " << network_logl << "\n";
     EXPECT_NE(network_logl, -std::numeric_limits<double>::infinity());
 }

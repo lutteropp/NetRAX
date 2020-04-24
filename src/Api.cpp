@@ -30,10 +30,7 @@ AnnotatedNetwork build_annotated_network(const NetraxOptions &options) {
     ann_network.options = options;
 
     netrax::RaxmlWrapper wrapper(options);
-    ann_network.raxml_treeinfo = wrapper.createRaxmlTreeinfo(ann_network.network);
-    netrax::RaxmlWrapper::NetworkParams *params =
-            (netrax::RaxmlWrapper::NetworkParams*) ann_network.raxml_treeinfo.pll_treeinfo().likelihood_computation_params;
-    ann_network.fake_treeinfo = params->network_treeinfo;
+    ann_network.raxml_treeinfo = wrapper.createRaxmlTreeinfo(ann_network);
 
     ann_network.topoTrav = netrax::reversed_topological_sort(ann_network.network);
     ann_network.blobInfo = netrax::partitionNetworkIntoBlobs(ann_network.network);
@@ -43,7 +40,7 @@ AnnotatedNetwork build_annotated_network(const NetraxOptions &options) {
         ann_network.branch_probs = std::vector<std::vector<double> >(1,
                 std::vector<double>(1.0, ann_network.network.num_edges()));
     } else { // each partition has extra branch properties
-        ann_network.branch_probs = std::vector<std::vector<double> >(ann_network.fake_treeinfo->partition_count,
+        ann_network.branch_probs = std::vector<std::vector<double> >(ann_network.raxml_treeinfo._pll_treeinfo->partition_count,
                 std::vector<double>(1.0, ann_network.network.num_edges()));
     }
     for (size_t p = 0; p < ann_network.branch_probs.size(); ++p) {
@@ -65,7 +62,7 @@ double computeLoglikelihood(AnnotatedNetwork &ann_network) {
     return ann_network.raxml_treeinfo.loglh(false);
 }
 double updateReticulationProbs(AnnotatedNetwork &ann_network) {
-    return netrax::computeLoglikelihood(ann_network.network, *ann_network.fake_treeinfo, 0, 1, true);
+    return netrax::computeLoglikelihood(ann_network, 0, 1, true);
 }
 double optimizeModel(AnnotatedNetwork &ann_network) {
     return ann_network.raxml_treeinfo.optimize_model(ann_network.options.lh_epsilon);
