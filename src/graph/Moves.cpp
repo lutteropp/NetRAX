@@ -391,8 +391,8 @@ void assertAfterMove(RNNIMove &move) {
         notReticulation = move.v;
         reticulation = move.u;
     } else if (move.type == RNNIMoveType::TWO_STAR) {
-        notReticulation = move.u;
-        reticulation = move.v;
+        notReticulation = move.v;
+        reticulation = move.u;
     } else if (move.type == RNNIMoveType::THREE) {
         notReticulation = move.u;
         reticulation = move.v;
