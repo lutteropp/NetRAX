@@ -423,7 +423,7 @@ void undoMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
     exchangeEdges(move.u, move.v, move.t, move.s); // note that s and t are exchanged here
     updateLinkDirectionsReverse(move);
     if (move.type == RNNIMoveType::ONE_STAR || move.type == RNNIMoveType::TWO_STAR
-            || move.type == RNNIMoveType::THREE) {
+            || move.type == RNNIMoveType::THREE || move.type == RNNIMoveType::FOUR) {
         switchReticulations(network, move.u, move.v);
     }
     fixReticulations(move);

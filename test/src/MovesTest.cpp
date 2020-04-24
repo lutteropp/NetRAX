@@ -44,6 +44,10 @@ void randomNNIMoves(const std::string &networkPath, const std::string &msaPath, 
     for (size_t i = 0; i < network.edges.size(); ++i) {
         std::vector<RNNIMove> candidates = possibleRNNIMoves(ann_network, network.edges[i]);
         for (size_t j = 0; j < candidates.size(); ++j) {
+            //std::cout << i << ", " << j << "\n";
+            //if (i != 35 || j != 3) {
+            //    continue;
+            //}
             std::cout << "perform " << toString(candidates[j]);
             performMove(ann_network, candidates[j]);
             double moved_logl = computeLoglikelihood(ann_network);
