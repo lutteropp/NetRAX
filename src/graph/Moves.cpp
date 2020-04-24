@@ -158,7 +158,6 @@ void switchReticulations(Network &network, Node *u, Node *v) {
     size_t reticulationId = old_ret_node->getReticulationData()->reticulation_index;
     network.reticulation_nodes[reticulationId] = new_ret_node;
 
-    size_t num_partitions = old_ret_node->reticulationData->prob.size();
     std::string label = old_ret_node->reticulationData->label;
     bool active = old_ret_node->reticulationData->active_parent_toggle;
     old_ret_node->reticulationData.release();
@@ -179,8 +178,7 @@ void switchReticulations(Network &network, Node *u, Node *v) {
     }
 
     ReticulationData retData;
-    retData.init(reticulationId, label, active, link_to_first_parent, link_to_second_parent, link_to_child, 0.5,
-            num_partitions);
+    retData.init(reticulationId, label, active, link_to_first_parent, link_to_second_parent, link_to_child);
     new_ret_node->reticulationData = std::make_unique<ReticulationData>(retData);
 
     old_ret_node->type = NodeType::BASIC_NODE;

@@ -416,13 +416,6 @@ pllmod_treeinfo_t* RaxmlWrapper::createNetworkPllTreeinfo(AnnotatedNetwork &ann_
     Network &network = ann_network.network;
 
     assert(partitions > 0);
-
-    if (partitions > 1) {
-        for (size_t i = 0; i < network.reticulation_nodes.size(); ++i) {
-            network.reticulation_nodes[i]->getReticulationData()->setNumPartitions(partitions);
-        }
-    }
-
     /* create treeinfo instance */
     pllmod_treeinfo_t *treeinfo;
 

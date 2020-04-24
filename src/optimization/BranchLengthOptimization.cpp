@@ -58,6 +58,7 @@ double optimize_branches(AnnotatedNetwork &ann_network, double min_brlen, double
     NetraxOptions &options = ann_network.options;
     Network &network = ann_network.network;
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
+    bool unlinked_mode = (fake_treeinfo.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
 
     // for now, optimize branches on each of the displayed trees, exported as a pll_utree_t data structure.
     // Keep track of which branch in the exported pll_utree_t corresponds to which branch of the network data structure.
@@ -79,7 +80,7 @@ double optimize_branches(AnnotatedNetwork &ann_network, double min_brlen, double
     size_t n_trees = 1 << network.reticulation_nodes.size();
 
     for (size_t tree_idx = 0; tree_idx < n_trees; tree_idx++) {
-        if (displayed_tree_prob(network, tree_idx, partitionIdx) == 0.0) {
+        if (displayed_tree_prob(ann_network, tree_idx, unlinked_mode ? 0 : partitionIdx) == 0.0) {
             continue;
         }
 
@@ -109,7 +110,7 @@ double optimize_branches(AnnotatedNetwork &ann_network, double min_brlen, double
             if (dtBranchToNetworkBranch[i].size() == 1) {
                 size_t networkBranchIdx = dtBranchToNetworkBranch[i][0];
                 double new_brlen = pllmod_tInfo.branch_lengths[partitionIdx][i];
-                double tree_prob = displayed_tree_prob(network, tree_idx, partitionIdx);
+                double tree_prob = displayed_tree_prob(ann_network, tree_idx, unlinked_mode ? 0 : partitionIdx);
                 opt_brlens[networkBranchIdx].push_back(OptimizedBranchLength { tree_idx, new_brlen, tree_prob });
             }
         }

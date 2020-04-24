@@ -147,7 +147,7 @@ Network convertNetworkToplevelTrifurcation(RootedNetwork &rnetwork, size_t node_
         rnode->reticulation_index = i;
         int scaler_index = i + rnetwork_inner_tree.size();
         ReticulationData retData;
-        retData.init(i, rnode->reticulationName, false, nullptr, nullptr, nullptr, rnode->firstParentProb);
+        retData.init(i, rnode->reticulationName, false, nullptr, nullptr, nullptr);
         assert(clv_index < network.nodes.size());
         network.nodes[clv_index].initReticulation(clv_index, scaler_index, rnode->label, retData);
 
@@ -248,16 +248,6 @@ Network convertNetworkToplevelTrifurcation(RootedNetwork &rnetwork, size_t node_
             linkFromParent->outer = linkToParent;
             linkToParent->outer = linkFromParent;
         }
-    }
-
-    // set the reticulation branch probabilities
-    for (size_t i = 0; i < network.reticulation_nodes.size(); ++i) {
-        Edge *firstParentEdge = getEdgeTo(network.reticulation_nodes[i],
-                getReticulationFirstParent(network.reticulation_nodes[i]));
-        Edge *secondParentEdge = getEdgeTo(network.reticulation_nodes[i],
-                getReticulationSecondParent(network.reticulation_nodes[i]));
-        firstParentEdge->prob = network.reticulation_nodes[i]->getReticulationData()->getFirstParentProb();
-        secondParentEdge->prob = 1.0 - (network.reticulation_nodes[i]->getReticulationData()->getFirstParentProb());
     }
 
     // check that all links are sane
