@@ -11,7 +11,7 @@
 #include <vector>
 
 namespace netrax {
-struct Network;
+struct AnnotatedNetwork;
 // The moves correspond to the rNNI moves and rSPR moves from this paper: https://doi.org/10.1371/journal.pcbi.1005611
 
 enum class RNNIMoveType {
@@ -28,20 +28,20 @@ struct RNNIMove {
 
 struct RSPRMove {
     Node *x_prime = nullptr;
-    Node* y_prime = nullptr;
+    Node *y_prime = nullptr;
     Node *x = nullptr;
     Node *y = nullptr;
     Node *z = nullptr;
 };
 
-std::vector<RNNIMove> possibleRNNIMoves(Network &network, const Edge &edge);
-std::vector<RSPRMove> possibleRSPRMoves(Network &network, const Edge &edge);
-void performMove(Network &network, RNNIMove &move);
-void performMove(Network &, RSPRMove& move);
-void undoMove(Network &network, RNNIMove &move);
-void undoMove(Network &, RSPRMove &move);
+std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network, const Edge &edge);
+std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, const Edge &edge);
+void performMove(AnnotatedNetwork &ann_network, RNNIMove &move);
+void performMove(AnnotatedNetwork &ann_network, RSPRMove &move);
+void undoMove(AnnotatedNetwork &ann_network, RNNIMove &move);
+void undoMove(AnnotatedNetwork &ann_network, RSPRMove &move);
 
-std::string toString(RNNIMove& move);
-std::string toString(RSPRMove& move);
+std::string toString(RNNIMove &move);
+std::string toString(RSPRMove &move);
 
 }

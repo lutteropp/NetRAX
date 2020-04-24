@@ -8,6 +8,8 @@
 #include "Moves.hpp"
 #include "NetworkTopology.hpp"
 #include "Direction.hpp"
+#include "AnnotatedNetwork.hpp"
+#include "BiconnectedComponents.hpp"
 #include <vector>
 #include <queue>
 #include <unordered_set>
@@ -67,7 +69,8 @@ std::vector<std::pair<Node*, Node*> > getSTChoices(const Edge &edge) {
     return res;
 }
 
-std::vector<RNNIMove> possibleRNNIMoves(Network &network, const Edge &edge) {
+std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network, const Edge &edge) {
+    Network &network = ann_network.network;
     std::vector<RNNIMove> res;
     Node *u = getSource(edge);
     Node *v = getTarget(edge);
@@ -386,7 +389,8 @@ void assertAfterMove(RNNIMove &move) {
     checkReticulationProperties(notReticulation, reticulation);
 }
 
-void performMove(Network &network, RNNIMove &move) {
+void performMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
+    Network &network = ann_network.network;
     assertBeforeMove(move);
     exchangeEdges(move.u, move.v, move.s, move.t);
     updateLinkDirections(move);
@@ -396,9 +400,11 @@ void performMove(Network &network, RNNIMove &move) {
     }
     fixReticulations(move);
     assertAfterMove(move);
+    ann_network.blobInfo = partitionNetworkIntoBlobs(ann_network.network);
 }
 
-void undoMove(Network &network, RNNIMove &move) {
+void undoMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
+    Network &network = ann_network.network;
     assertAfterMove(move);
     exchangeEdges(move.u, move.v, move.t, move.s); // note that s and t are exchanged here
     updateLinkDirectionsReverse(move);
@@ -408,6 +414,7 @@ void undoMove(Network &network, RNNIMove &move) {
     }
     fixReticulations(move);
     assertBeforeMove(move);
+    ann_network.blobInfo = partitionNetworkIntoBlobs(ann_network.network);
 }
 
 std::vector<std::pair<Node*, Node*> > getZYChoices(Node *x_prime, Node *y_prime, Node *x) {
@@ -432,7 +439,8 @@ std::vector<std::pair<Node*, Node*> > getZYChoices(Node *x_prime, Node *y_prime,
     return res;
 }
 
-std::vector<RSPRMove> possibleRSPRMoves(Network &network, const Edge &edge) {
+std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, const Edge &edge) {
+    Network &network = ann_network.network;
     std::vector<RSPRMove> res;
     Node *x_prime = getSource(edge);
     Node *y_prime = getTarget(edge);
@@ -469,7 +477,7 @@ std::vector<RSPRMove> possibleRSPRMoves(Network &network, const Edge &edge) {
     return res;
 }
 
-void performMove(Network&, RSPRMove &move) {
+void performMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
     Link *x_out_link = getLinkToNode(move.x, move.z);
     Link *z_in_link = getLinkToNode(move.z, move.x);
     Link *z_out_link = getLinkToNode(move.z, move.y);
@@ -513,9 +521,10 @@ void performMove(Network&, RSPRMove &move) {
     assert(y_prime_in_link->edge == z_y_prime_edge);
 
     fixReticulations(move);
+    ann_network.blobInfo = partitionNetworkIntoBlobs(ann_network.network);
 }
 
-void undoMove(Network&, RSPRMove &move) {
+void undoMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
     Link *x_out_link = getLinkToNode(move.x, move.y);
     Link *z_in_link = getLinkToNode(move.z, move.x_prime);
     Link *z_out_link = getLinkToNode(move.z, move.y_prime);
@@ -559,6 +568,7 @@ void undoMove(Network&, RSPRMove &move) {
     assert(y_in_link->edge == z_y_edge);
 
     fixReticulations(move);
+    ann_network.blobInfo = partitionNetworkIntoBlobs(ann_network.network);
 }
 
 std::string toString(RNNIMove &move) {
