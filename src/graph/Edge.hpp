@@ -14,11 +14,12 @@ namespace netrax {
 struct Link;
 struct Node;
 struct Edge {
-    void init(size_t index, Link *link1, Link *link2, double length) {
+    void init(size_t index, Link *link1, Link *link2, double length, double prob = 1.0) {
         this->pmatrix_index = index;
         this->link1 = link1;
         this->link2 = link2;
         this->length = length;
+        this->prob = prob;
     }
 
     size_t pmatrix_index = 0;

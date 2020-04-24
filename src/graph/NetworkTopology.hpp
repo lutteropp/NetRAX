@@ -25,6 +25,12 @@ Node* getReticulationChild(const Node* node);
 Node* getReticulationFirstParent(const Node* node);
 Node* getReticulationSecondParent(const Node* node);
 Node* getReticulationActiveParent(const Node *node);
+double getReticulationFirstParentProb(const Node* node);
+double getReticulationSecondParentProb(const Node* node);
+double getReticulationActiveProb(const Node* node);
+size_t getReticulationFirstParentPmatrixIndex(const Node* node);
+size_t getReticulationSecondParentPmatrixIndex(const Node* node);
+size_t getReticulationActiveParentPmatrixIndex(const Node* node);
 
 std::vector<Node*> getChildren(Node* node, const Node* myParent);
 std::vector<Node*> getActiveChildren(Node* node, const Node* myParent);

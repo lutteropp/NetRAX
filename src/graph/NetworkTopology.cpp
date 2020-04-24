@@ -72,6 +72,50 @@ Node* getReticulationActiveParent(const Node *node) {
     return getTargetNode(node->getReticulationData()->getLinkToActiveParent());
 }
 
+double getReticulationFirstParentProb(const Node *node) {
+    assert(node);
+    assert(node->type == NodeType::RETICULATION_NODE);
+    assert(
+            node->getReticulationData()->link_to_first_parent->edge->prob
+                    + node->getReticulationData()->link_to_second_parent->edge->prob == 1.0);
+    return node->getReticulationData()->link_to_first_parent->edge->prob;
+}
+double getReticulationSecondParentProb(const Node *node) {
+    assert(node);
+    assert(node->type == NodeType::RETICULATION_NODE);
+    assert(
+            node->getReticulationData()->link_to_first_parent->edge->prob
+                    + node->getReticulationData()->link_to_second_parent->edge->prob == 1.0);
+    return node->getReticulationData()->link_to_second_parent->edge->prob;
+}
+
+double getReticulationActiveProb(const Node *node) {
+    assert(node);
+    assert(node->type == NodeType::RETICULATION_NODE);
+    assert(
+            node->getReticulationData()->link_to_first_parent->edge->prob
+                    + node->getReticulationData()->link_to_second_parent->edge->prob == 1.0);
+    return node->getReticulationData()->getLinkToActiveParent()->edge->prob;
+}
+
+size_t getReticulationFirstParentPmatrixIndex(const Node *node) {
+    assert(node);
+    assert(node->type == NodeType::RETICULATION_NODE);
+    return node->getReticulationData()->getLinkToFirstParent()->edge->pmatrix_index;
+}
+
+size_t getReticulationSecondParentPmatrixIndex(const Node *node) {
+    assert(node);
+    assert(node->type == NodeType::RETICULATION_NODE);
+    return node->getReticulationData()->getLinkToSecondParent()->edge->pmatrix_index;
+}
+
+size_t getReticulationActiveParentPmatrixIndex(const Node *node) {
+    assert(node);
+    assert(node->type == NodeType::RETICULATION_NODE);
+    return node->getReticulationData()->getLinkToActiveParent()->edge->pmatrix_index;
+}
+
 std::vector<Node*> getChildren(Node *node, const Node *myParent) {
     assert(node);
     std::vector<Node*> children;
@@ -175,7 +219,7 @@ Edge* getEdgeTo(const Node *node, const Node *target) {
     throw std::runtime_error("The given target node is not a neighbor of this node");
 }
 
-std::vector<Edge*> getAdjacentEdges(const Node* node) {
+std::vector<Edge*> getAdjacentEdges(const Node *node) {
     std::vector<Edge*> res;
     std::vector<Node*> neighs = getNeighbors(node);
     for (size_t i = 0; i < neighs.size(); ++i) {

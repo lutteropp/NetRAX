@@ -153,8 +153,10 @@ Network convertNetworkToplevelTrifurcation(RootedNetwork &rnetwork, size_t node_
 
         size_t pmatrix_index = rnetwork_tips.size() + rnetwork_inner_tree.size() - 1 + 2 * i;
         assert(pmatrix_index + 1 < network.edges.size());
-        network.edges[pmatrix_index].init(pmatrix_index, nullptr, nullptr, rnode->firstParentLength);
-        network.edges[pmatrix_index + 1].init(pmatrix_index + 1, nullptr, nullptr, rnode->secondParentLength);
+        network.edges[pmatrix_index].init(pmatrix_index, nullptr, nullptr, rnode->firstParentLength,
+                rnode->firstParentProb);
+        network.edges[pmatrix_index + 1].init(pmatrix_index + 1, nullptr, nullptr, rnode->secondParentLength,
+                rnode->secondParentProb);
         network.reticulation_nodes[i] = &network.nodes[clv_index];
         network.inner_nodes[i + rnetwork_inner_tree.size()] = &network.nodes[clv_index];
 
@@ -351,7 +353,7 @@ std::string newickNodeName(const Node *node, const Node *parent) {
         assert(parent);
         sb << "#" << node->getReticulationData()->getLabel();
         Link *link = node->getReticulationData()->getLinkToFirstParent();
-        double prob = node->getReticulationData()->getFirstParentProb(0);
+        double prob = getReticulationFirstParentProb(node);
         if (getReticulationSecondParent(node) == parent) {
             link = node->getReticulationData()->getLinkToSecondParent();
             prob = 1.0 - prob;
