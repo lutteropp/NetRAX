@@ -28,7 +28,6 @@ struct AnnotatedNetwork {
     pllmod_treeinfo_t* fake_treeinfo = nullptr;
     NetraxOptions options;
     BlobInformation blobInfo; // mapping of edges to blobs, megablob roots, mapping of megablob roots to set of reticulation nodes within the megablob
-    std::vector<Node*> topoTrav; // traversal in topological order
     std::vector<std::vector<double> > branch_probs; // for each partition, the branch length probs
 };
 

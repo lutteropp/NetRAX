@@ -32,7 +32,6 @@ AnnotatedNetwork build_annotated_network(const NetraxOptions &options) {
 
     netrax::RaxmlWrapper wrapper(options);
     ann_network.raxml_treeinfo = std::unique_ptr<TreeInfo>(wrapper.createRaxmlTreeinfo(ann_network));
-    ann_network.topoTrav = netrax::reversed_topological_sort(ann_network.network);
     ann_network.blobInfo = netrax::partitionNetworkIntoBlobs(ann_network.network);
 
     // init branch probs...
