@@ -41,23 +41,16 @@ void randomNNIMoves(const std::string &networkPath, const std::string &msaPath, 
     ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
     std::cout << "initial_logl: " << initial_logl << "\n";
 
-    bool skipme = true;
-
     for (size_t i = 0; i < network.edges.size(); ++i) {
-        std::vector<RNNIMove> candidates = possibleRNNIMoves(network, network.edges[i]);
+        std::vector<RNNIMove> candidates = possibleRNNIMoves(ann_network, network.edges[i]);
         for (size_t j = 0; j < candidates.size(); ++j) {
-            if (skipme) {
-                skipme = false;
-                continue;
-            }
-
             std::cout << "perform " << toString(candidates[j]);
-            performMove(network, candidates[j]);
+            performMove(ann_network, candidates[j]);
             double moved_logl = computeLoglikelihood(ann_network);
             ASSERT_NE(moved_logl, -std::numeric_limits<double>::infinity());
             std::cout << "logl after move: " << moved_logl << "\n";
             std::cout << "undo " << toString(candidates[j]) << "\n";
-            undoMove(network, candidates[j]);
+            undoMove(ann_network, candidates[j]);
             std::string debugInfoAfterUndo = exportDebugInfo(network);
             EXPECT_EQ(initialDebugInfo, debugInfoAfterUndo);
             double back_logl = computeLoglikelihood(ann_network);
@@ -79,12 +72,12 @@ void randomSPRMoves(const std::string &networkPath, const std::string &msaPath, 
     std::cout << "initial_logl: " << initial_logl << "\n";
 
     for (size_t i = 0; i < network.edges.size(); ++i) {
-        std::vector<RSPRMove> candidates = possibleRSPRMoves(network, network.edges[i]);
+        std::vector<RSPRMove> candidates = possibleRSPRMoves(ann_network, network.edges[i]);
         for (size_t j = 0; j < candidates.size(); ++j) {
-            performMove(network, candidates[j]);
+            performMove(ann_network, candidates[j]);
             double moved_logl = computeLoglikelihood(ann_network);
             ASSERT_NE(moved_logl, -std::numeric_limits<double>::infinity());
-            undoMove(network, candidates[j]);
+            undoMove(ann_network, candidates[j]);
             double back_logl = computeLoglikelihood(ann_network);
             ASSERT_DOUBLE_EQ(initial_logl, back_logl);
         }
@@ -95,7 +88,6 @@ TEST (MovesTest, nniSmall) {
     randomNNIMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
 }
 
-/*
  TEST (MovesTest, nniCeline) {
  randomNNIMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false);
  }
@@ -107,4 +99,3 @@ TEST (MovesTest, nniSmall) {
  TEST (MovesTest, sprCeline) {
  randomSPRMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false);
  }
- */
