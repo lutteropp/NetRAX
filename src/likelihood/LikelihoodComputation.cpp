@@ -482,8 +482,8 @@ std::vector<double> compute_persite_lh_blobs(unsigned int partitionIdx, Network 
                 continue;
             }
             std::vector<double> persite_logl(fake_treeinfo.partitions[partitionIdx]->sites, 0.0);
-            compute_tree_logl_blobs(network, blobInfo, parent, fake_treeinfo, megablob_idx, treeIdx,
-                    partitionIdx, &persite_logl, startNode);
+            compute_tree_logl_blobs(network, blobInfo, parent, fake_treeinfo, megablob_idx, treeIdx, partitionIdx,
+                    &persite_logl, startNode);
 
             if (update_reticulation_probs) { // TODO: Only do this if we weren't at a leaf
                 updateBestPersiteLoglikelihoodsBlobs(network, blobInfo, megablob_idx, treeIdx, numSites,
@@ -638,12 +638,12 @@ double computeLoglikelihood(Network &network, pllmod_treeinfo_t &fake_treeinfo, 
         double network_partition_logl;
         if (treewise_logl) {
             network_partition_logl = processPartition(partitionIdx, network, fake_treeinfo, incremental,
-                            update_reticulation_probs, totalTaken, totalNotTaken, unlinked_mode, reticulationProbsHaveChanged,
-                            useBlobs, useGrayCode, &treewise_partition_logl);
+                    update_reticulation_probs, totalTaken, totalNotTaken, unlinked_mode, reticulationProbsHaveChanged,
+                    useBlobs, useGrayCode, &treewise_partition_logl);
         } else {
             network_partition_logl = processPartition(partitionIdx, network, fake_treeinfo, incremental,
-                            update_reticulation_probs, totalTaken, totalNotTaken, unlinked_mode, reticulationProbsHaveChanged,
-                            useBlobs, useGrayCode, nullptr);
+                    update_reticulation_probs, totalTaken, totalNotTaken, unlinked_mode, reticulationProbsHaveChanged,
+                    useBlobs, useGrayCode, nullptr);
         }
 
         network_logl += network_partition_logl;
@@ -666,6 +666,12 @@ double computeLoglikelihood(Network &network, pllmod_treeinfo_t &fake_treeinfo, 
     } else {
         return network_logl;
     }
+}
+
+double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices,
+        bool update_reticulation_probs, bool useBlobs, bool useGrayCode, std::vector<double> *treewise_logl) {
+    return computeLoglikelihood(ann_network.network, *ann_network.fake_treeinfo, incremental, update_pmatrices,
+            update_reticulation_probs, useBlobs, useGrayCode, treewise_logl);
 }
 
 double computeLoglikelihoodNaiveUtree(RaxmlWrapper &wrapper, Network &network, int incremental, int update_pmatrices,

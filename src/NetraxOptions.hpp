@@ -28,12 +28,16 @@ public:
     bool optimize_model = true;
     bool use_repeats = false;
 
+    bool use_blobs = true;
+    bool use_graycode = true;
+
     unsigned int num_reticulations = 0;
 
     int brlen_linkage = PLLMOD_COMMON_BRLEN_SCALED;
     int brlen_opt_method = PLLMOD_OPT_BLO_NEWTON_FAST;
     double brlen_min = RAXML_BRLEN_MIN;
     double brlen_max = RAXML_BRLEN_MAX;
+    double lh_epsilon = DEF_LH_EPSILON;
 
     std::string msa_file = "";
     std::string network_file = "";

@@ -292,6 +292,10 @@ void compareLikelihoodFunctions(const std::string &networkPath, const std::strin
     std::cout << "naive logl: " << naive_logl << "\n";
 }
 
+TEST_F (LikelihoodTest, smallTree) {
+    compareLikelihoodFunctions(DATA_PATH + "tree.nw", DATA_PATH + "small_fake_alignment.txt", false);
+}
+
 TEST_F (LikelihoodTest, smallNetwork) {
     compareLikelihoodFunctions(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
 }

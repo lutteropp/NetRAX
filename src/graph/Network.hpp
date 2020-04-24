@@ -12,12 +12,11 @@
 #include <string>
 #include <vector>
 
+#include "Edge.hpp"
+#include "Link.hpp"
 #include "Node.hpp"
 
 namespace netrax {
-
-struct Edge;
-struct Link;
 
 class Network {
 public:
