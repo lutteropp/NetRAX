@@ -179,6 +179,9 @@ void switchReticulations(Network &network, Node *u, Node *v) {
             }
         }
     }
+    assert(link_to_first_parent);
+    assert(link_to_second_parent);
+    assert(link_to_child);
 
     ReticulationData retData;
     retData.init(reticulationId, label, active, link_to_first_parent, link_to_second_parent, link_to_child);
@@ -369,6 +372,9 @@ void assertBeforeMove(RNNIMove &move) {
     } else if (move.type == RNNIMoveType::THREE) {
         notReticulation = move.v;
         reticulation = move.u;
+    } else if (move.type == RNNIMoveType::FOUR) {
+        notReticulation = move.u;
+        reticulation = move.v;
     }
     checkReticulationProperties(notReticulation, reticulation);
 }
@@ -385,6 +391,9 @@ void assertAfterMove(RNNIMove &move) {
     } else if (move.type == RNNIMoveType::THREE) {
         notReticulation = move.u;
         reticulation = move.v;
+    } else if (move.type == RNNIMoveType::FOUR) {
+        notReticulation = move.v;
+        reticulation = move.u;
     }
     checkReticulationProperties(notReticulation, reticulation);
 }
@@ -395,7 +404,7 @@ void performMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
     exchangeEdges(move.u, move.v, move.s, move.t);
     updateLinkDirections(move);
     if (move.type == RNNIMoveType::ONE_STAR || move.type == RNNIMoveType::TWO_STAR
-            || move.type == RNNIMoveType::THREE) {
+            || move.type == RNNIMoveType::THREE || move.type == RNNIMoveType::FOUR) {
         switchReticulations(network, move.u, move.v);
     }
     fixReticulations(move);
