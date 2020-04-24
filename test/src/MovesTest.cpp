@@ -33,7 +33,7 @@ void randomNNIMoves(const std::string &networkPath, const std::string &msaPath, 
     options.msa_file = msaPath;
     options.use_repeats = useRepeats;
     AnnotatedNetwork ann_network = build_annotated_network(options);
-    Network& network = ann_network.network;
+    Network &network = ann_network.network;
     std::string initialDebugInfo = exportDebugInfo(network);
     std::cout << initialDebugInfo;
 
@@ -65,7 +65,7 @@ void randomSPRMoves(const std::string &networkPath, const std::string &msaPath, 
     options.msa_file = msaPath;
     options.use_repeats = useRepeats;
     AnnotatedNetwork ann_network = build_annotated_network(options);
-    Network& network = ann_network.network;
+    Network &network = ann_network.network;
 
     double initial_logl = computeLoglikelihood(ann_network);
     ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
@@ -88,14 +88,14 @@ TEST (MovesTest, nniSmall) {
     randomNNIMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
 }
 
- TEST (MovesTest, nniCeline) {
- randomNNIMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false);
- }
+TEST (MovesTest, nniCeline) {
+    randomNNIMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false);
+}
 
- TEST (MovesTest, sprSmall) {
- randomSPRMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
- }
+TEST (MovesTest, sprSmall) {
+    randomSPRMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
+}
 
- TEST (MovesTest, sprCeline) {
- randomSPRMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false);
- }
+TEST (MovesTest, sprCeline) {
+    randomSPRMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false);
+}

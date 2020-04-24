@@ -297,9 +297,6 @@ void compute_tree_logl_blobs(Network &network, BlobInformation &blobInfo, const 
 // Create pll_operations_t array for the current displayed tree
     std::vector<pll_operation_t> ops;
     if (startNode) {
-        if (tree_idx == 2) {
-            cout << "hi\n";
-        }
         ops = createOperationsUpdatedReticulation(network, parent, startNode, dead_nodes);
     } else {
         ops = createOperations(network, parent, blobInfo, megablob_idx, dead_nodes);
