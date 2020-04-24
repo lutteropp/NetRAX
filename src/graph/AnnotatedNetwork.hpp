@@ -8,6 +8,7 @@
 #pragma once
 
 #include <vector>
+#include <memory>
 
 extern "C" {
 #include <libpll/pll.h>
@@ -23,7 +24,7 @@ namespace netrax {
 
 struct AnnotatedNetwork {
     Network network; // The network topology itself
-    TreeInfo* raxml_treeinfo;
+    std::unique_ptr<TreeInfo> raxml_treeinfo = nullptr;
     pllmod_treeinfo_t* fake_treeinfo = nullptr;
     NetraxOptions options;
     BlobInformation blobInfo; // mapping of edges to blobs, megablob roots, mapping of megablob roots to set of reticulation nodes within the megablob

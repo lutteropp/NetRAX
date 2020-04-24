@@ -182,7 +182,6 @@ TEST_F (LikelihoodTest, buildAnnotatedNetworkTest) {
     options.use_repeats = true;
     AnnotatedNetwork ann_network = build_annotated_network(options);
     ASSERT_TRUE(true);
-    delete ann_network.raxml_treeinfo;
 }
 
 TEST_F (LikelihoodTest, simpleTreeNaiveVersusNormalRaxml) {

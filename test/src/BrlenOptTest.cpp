@@ -43,7 +43,7 @@ TEST (BrlenOptTest, tree) {
     Tree normalTree = Tree::loadFromFile(treePath);
     TreeInfo* infoRaxml = treeWrapper.createRaxmlTreeinfo(normalTree.pll_utree_copy());
     AnnotatedNetwork annTreeNetwork = build_annotated_network(treeOptions);
-    TreeInfo* infoNetwork = annTreeNetwork.raxml_treeinfo;
+    TreeInfo* infoNetwork = annTreeNetwork.raxml_treeinfo.get();
 
     // initial logl computation
     double initial_logl_raxml = infoRaxml->loglh(false);
