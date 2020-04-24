@@ -175,12 +175,22 @@ TEST_F (LikelihoodTest, DISABLED_displayedTreeOfNetworkToUtree) {
     // TODO: check the branch lengths!!!
 }
 
+TEST_F (LikelihoodTest, buildAnnotatedNetworkTest) {
+    NetraxOptions options;
+    options.network_file = treePath;
+    options.msa_file = msaPath;
+    options.use_repeats = true;
+    AnnotatedNetwork ann_network = build_annotated_network(options);
+    ASSERT_TRUE(true);
+}
+
 TEST_F (LikelihoodTest, simpleTreeNaiveVersusNormalRaxml) {
     NetraxOptions options;
     options.network_file = treePath;
     options.msa_file = msaPath;
     options.use_repeats = true;
     AnnotatedNetwork ann_network = build_annotated_network(options);
+
     Network& network = ann_network.network;
     print_clv_index_by_label(network);
 
