@@ -84,7 +84,7 @@ std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network, const Edg
             if (!hasPath(network, s, v)) {
                 // add move 1
                 res.emplace_back(RNNIMove { u, v, s, t, RNNIMoveType::ONE });
-                if (v->type == NodeType::RETICULATION_NODE) {
+                if (v->type == NodeType::RETICULATION_NODE && u != network.root) {
                     // add move 1*
                     res.emplace_back(RNNIMove { u, v, s, t, RNNIMoveType::ONE_STAR });
                 }
@@ -108,7 +108,7 @@ std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network, const Edg
                 res.emplace_back(RNNIMove { u, v, s, t, RNNIMoveType::THREE_STAR });
             }
         } else if (isOutgoing(u, s) && isOutgoing(t, v)) {
-            if (!hasPath(network, s, t)) {
+            if (u != network.root && !hasPath(network, s, t)) {
                 // add move 4
                 res.emplace_back(RNNIMove { u, v, s, t, RNNIMoveType::FOUR });
             }
