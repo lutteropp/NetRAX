@@ -28,13 +28,13 @@ public:
 
     Options getRaxmlOptions() const;
 
-    TreeInfo createRaxmlTreeinfo(AnnotatedNetwork &ann_network); // Creates a network treeinfo
-    TreeInfo createRaxmlTreeinfo(pll_utree_t *utree); // Creates a tree treeinfo
-    TreeInfo createRaxmlTreeinfo(pll_utree_t *utree, const pllmod_treeinfo_t &model_treeinfo); // Creates a tree treeinfo, taking the model from the given treeinfo
+    TreeInfo* createRaxmlTreeinfo(AnnotatedNetwork &ann_network); // Creates a network treeinfo
+    TreeInfo* createRaxmlTreeinfo(pll_utree_t *utree); // Creates a tree treeinfo
+    TreeInfo* createRaxmlTreeinfo(pll_utree_t *utree, const pllmod_treeinfo_t &model_treeinfo); // Creates a tree treeinfo, taking the model from the given treeinfo
 
     // and now, the things only neccessary to be visible in this header because of the unit tests...
 
-    TreeInfo createRaxmlTreeinfo(pllmod_treeinfo_t *treeinfo, TreeInfo::tinfo_behaviour &behaviour);
+    TreeInfo* createRaxmlTreeinfo(pllmod_treeinfo_t *treeinfo, TreeInfo::tinfo_behaviour &behaviour);
     pllmod_treeinfo_t* createStandardPllTreeinfo(const pll_utree_t *utree, unsigned int partitions, int brlen_linkage);
     pllmod_treeinfo_t* createNetworkPllTreeinfo(AnnotatedNetwork &ann_network, unsigned int tips,
             unsigned int partitions, int brlen_linkage);

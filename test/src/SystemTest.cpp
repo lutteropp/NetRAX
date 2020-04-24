@@ -41,33 +41,35 @@ TEST (SystemTest, allTreeOldRaxml) {
     treeOptions.use_repeats = true;
     RaxmlWrapper treeWrapper = RaxmlWrapper(treeOptions);
     //treeWrapper.enableRaxmlDebugOutput();
-    TreeInfo info = treeWrapper.createRaxmlTreeinfo(normalTree.pll_utree_copy());
+    TreeInfo* info = treeWrapper.createRaxmlTreeinfo(normalTree.pll_utree_copy());
 
     // initial logl computation
-    double initial_logl = info.loglh(false);
+    double initial_logl = info->loglh(false);
     std::cout << "Initial loglikelihood: " << initial_logl << "\n";
 
     // model parameter optimization
-    double modelopt_logl = info.optimize_model(treeWrapper.getRaxmlOptions().lh_epsilon);
+    double modelopt_logl = info->optimize_model(treeWrapper.getRaxmlOptions().lh_epsilon);
     std::cout << "Loglikelihood after model optimization: " << modelopt_logl << "\n";
 
     std::cout << "The branch lengths before brlen optimization are:\n";
-    for (size_t i = 0; i < info.pll_treeinfo().tree->edge_count; ++i) {
-        std::cout << " " << std::setprecision(17) << info.pll_treeinfo().branch_lengths[0][i] << "\n";
+    for (size_t i = 0; i < info->pll_treeinfo().tree->edge_count; ++i) {
+        std::cout << " " << std::setprecision(17) << info->pll_treeinfo().branch_lengths[0][i] << "\n";
     }
 
     // branch length optimization
-    double brlenopt_logl = info.optimize_branches(treeWrapper.getRaxmlOptions().lh_epsilon, 1);
+    double brlenopt_logl = info->optimize_branches(treeWrapper.getRaxmlOptions().lh_epsilon, 1);
     std::cout << "Loglikelihood after branch length optimization: " << brlenopt_logl << "\n";
 
     std::cout << "The optimized branch lengths are:\n";
-    for (size_t i = 0; i < info.pll_treeinfo().tree->edge_count; ++i) {
-        std::cout << " " << std::setprecision(17) << info.pll_treeinfo().branch_lengths[0][i] << "\n";
+    for (size_t i = 0; i < info->pll_treeinfo().tree->edge_count; ++i) {
+        std::cout << " " << std::setprecision(17) << info->pll_treeinfo().branch_lengths[0][i] << "\n";
     }
 
     // model parameter optimization
-    double modelopt2_logl = info.optimize_model(treeWrapper.getRaxmlOptions().lh_epsilon);
+    double modelopt2_logl = info->optimize_model(treeWrapper.getRaxmlOptions().lh_epsilon);
     std::cout << "Loglikelihood after model optimization again: " << modelopt2_logl << "\n";
+
+    delete info;
 }
 
 TEST (SystemTest, allTree) {

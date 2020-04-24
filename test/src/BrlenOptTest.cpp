@@ -41,57 +41,57 @@ TEST (BrlenOptTest, tree) {
     //treeWrapper.enableRaxmlDebugOutput();
 
     Tree normalTree = Tree::loadFromFile(treePath);
-    TreeInfo infoRaxml = treeWrapper.createRaxmlTreeinfo(normalTree.pll_utree_copy());
+    TreeInfo* infoRaxml = treeWrapper.createRaxmlTreeinfo(normalTree.pll_utree_copy());
     AnnotatedNetwork annTreeNetwork = build_annotated_network(treeOptions);
-    TreeInfo &infoNetwork = annTreeNetwork.raxml_treeinfo;
+    TreeInfo* infoNetwork = annTreeNetwork.raxml_treeinfo;
 
     // initial logl computation
-    double initial_logl_raxml = infoRaxml.loglh(false);
+    double initial_logl_raxml = infoRaxml->loglh(false);
     std::cout << "RAXML - Initial loglikelihood: " << initial_logl_raxml << "\n";
     double initial_logl_network = computeLoglikelihood(annTreeNetwork);
     std::cout << "NETWORK - Initial loglikelihood: " << initial_logl_network << "\n";
     ASSERT_FLOAT_EQ(initial_logl_raxml, initial_logl_network);
 
-    ASSERT_EQ(infoRaxml.pll_treeinfo().tree->edge_count + 1, infoNetwork.pll_treeinfo().tree->edge_count);
+    ASSERT_EQ(infoRaxml->pll_treeinfo().tree->edge_count + 1, infoNetwork->pll_treeinfo().tree->edge_count);
 
     // Compute branch id mapping to check the branch lengths
     std::vector<std::vector<size_t> > utreeIDToNetworkID = getDtBranchToNetworkBranchMapping(
-            *infoRaxml.pll_treeinfo().tree, annTreeNetwork.network, 0);
+            *infoRaxml->pll_treeinfo().tree, annTreeNetwork.network, 0);
 
     std::cout << "utreeIDToNetworkID.size(): " << utreeIDToNetworkID.size() << "\n";
 
     std::cout << "RAXML - The branch lengths before brlen optimization are:\n";
-    for (size_t i = 0; i < infoRaxml.pll_treeinfo().tree->edge_count; ++i) {
-        std::cout << " " << std::setprecision(17) << infoRaxml.pll_treeinfo().branch_lengths[0][i] << "\n";
+    for (size_t i = 0; i < infoRaxml->pll_treeinfo().tree->edge_count; ++i) {
+        std::cout << " " << std::setprecision(17) << infoRaxml->pll_treeinfo().branch_lengths[0][i] << "\n";
     }
     std::cout << "NETWORK - The branch lengths before brlen optimization are:\n";
     for (size_t i = 0; i < utreeIDToNetworkID.size(); ++i) {
         if (utreeIDToNetworkID[i].size() == 1) {
             std::cout << " " << std::setprecision(17)
-                    << infoNetwork.pll_treeinfo().branch_lengths[0][utreeIDToNetworkID[i][0]] << "\n";
+                    << infoNetwork->pll_treeinfo().branch_lengths[0][utreeIDToNetworkID[i][0]] << "\n";
         }
     }
 
     for (size_t i = 0; i < utreeIDToNetworkID.size(); ++i) {
         if (utreeIDToNetworkID[i].size() == 1) {
-            ASSERT_FLOAT_EQ(infoRaxml.pll_treeinfo().branch_lengths[0][i],
-                    infoNetwork.pll_treeinfo().branch_lengths[0][utreeIDToNetworkID[i][0]]);
+            ASSERT_FLOAT_EQ(infoRaxml->pll_treeinfo().branch_lengths[0][i],
+                    infoNetwork->pll_treeinfo().branch_lengths[0][utreeIDToNetworkID[i][0]]);
         }
     }
 
     // branch length optimization
-    double brlenopt_logl_raxml = infoRaxml.optimize_branches(treeWrapper.getRaxmlOptions().lh_epsilon, 1);
+    double brlenopt_logl_raxml = infoRaxml->optimize_branches(treeWrapper.getRaxmlOptions().lh_epsilon, 1);
     std::cout << "RAXML - Loglikelihood after branch length optimization: " << brlenopt_logl_raxml << "\n";
-    double brlenopt_logl_network = infoNetwork.optimize_branches(treeWrapper.getRaxmlOptions().lh_epsilon, 1);
+    double brlenopt_logl_network = infoNetwork->optimize_branches(treeWrapper.getRaxmlOptions().lh_epsilon, 1);
     std::cout << "NETWORK - Loglikelihood after branch length optimization: " << brlenopt_logl_network << "\n";
 
     std::cout << "RAXML - The optimized branch lengths are:\n";
-    for (size_t i = 0; i < infoRaxml.pll_treeinfo().tree->edge_count; ++i) {
-        std::cout << " " << std::setprecision(17) << infoRaxml.pll_treeinfo().branch_lengths[0][i] << "\n";
+    for (size_t i = 0; i < infoRaxml->pll_treeinfo().tree->edge_count; ++i) {
+        std::cout << " " << std::setprecision(17) << infoRaxml->pll_treeinfo().branch_lengths[0][i] << "\n";
     }
     std::cout << "NETWORK - The optimized branch lengths are:\n";
     for (size_t i = 0; i < utreeIDToNetworkID.size(); ++i) {
-        std::cout << " " << std::setprecision(17) << infoNetwork.pll_treeinfo().branch_lengths[0][i] << "\n";
+        std::cout << " " << std::setprecision(17) << infoNetwork->pll_treeinfo().branch_lengths[0][i] << "\n";
     }
     // extract the actual network data structure
     Network *network_ptr = &annTreeNetwork.network;
@@ -103,18 +103,20 @@ TEST (BrlenOptTest, tree) {
 
     for (size_t i = 0; i < utreeIDToNetworkID.size(); ++i) {
         if (utreeIDToNetworkID[i].size() == 1) {
-            ASSERT_FLOAT_EQ(infoRaxml.pll_treeinfo().branch_lengths[0][i],
-                    infoNetwork.pll_treeinfo().branch_lengths[0][utreeIDToNetworkID[i][0]]);
+            ASSERT_FLOAT_EQ(infoRaxml->pll_treeinfo().branch_lengths[0][i],
+                    infoNetwork->pll_treeinfo().branch_lengths[0][utreeIDToNetworkID[i][0]]);
         }
     }
-    double normal_logl_raxml = infoRaxml.loglh(0);
-    double normal_logl_network = infoNetwork.loglh(0);
+    double normal_logl_raxml = infoRaxml->loglh(0);
+    double normal_logl_network = infoNetwork->loglh(0);
     std::cout << "RAXML - Loglikelihood when called normally: " << normal_logl_raxml << "\n";
     std::cout << "NETWORK - Loglikelihood when called normally: " << normal_logl_network << "\n";
 
     ASSERT_FLOAT_EQ(brlenopt_logl_network, normal_logl_network);
 
     ASSERT_FLOAT_EQ(brlenopt_logl_raxml, brlenopt_logl_network);
+
+    delete infoRaxml;
 }
 
 TEST (BrlenOptTest, small) {
@@ -158,7 +160,6 @@ TEST (BrlenOptTest, celineFake) {
 
     Network celineNetwork = readNetworkFromFile(celinePath);
     AnnotatedNetwork annTreeNetwork = build_annotated_network(celineOptions);
-    TreeInfo &infoNetwork = annTreeNetwork.raxml_treeinfo;
 
     // initial logl computation
     double initial_logl_network = computeLoglikelihood(annTreeNetwork);

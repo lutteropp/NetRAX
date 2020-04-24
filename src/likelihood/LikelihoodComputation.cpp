@@ -694,9 +694,11 @@ double computeLoglikelihoodNaiveUtree(AnnotatedNetwork& ann_network, int increme
 
         pll_utree_t *displayed_tree = netrax::displayed_tree_to_utree(network, i);
 
-        TreeInfo displayedTreeinfo = wrapper.createRaxmlTreeinfo(displayed_tree);
+        TreeInfo* displayedTreeinfo = wrapper.createRaxmlTreeinfo(displayed_tree);
 
-        double tree_logl = displayedTreeinfo.loglh(0);
+        double tree_logl = displayedTreeinfo->loglh(0);
+
+        delete displayedTreeinfo;
 
         if (treewise_logl) {
             treewise_logl->emplace_back(tree_logl);

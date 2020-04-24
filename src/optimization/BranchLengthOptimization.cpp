@@ -91,7 +91,7 @@ double optimize_branches(AnnotatedNetwork &ann_network, double min_brlen, double
         // optimize brlens on the tree
         NetraxOptions opts;
         RaxmlWrapper wrapper(options);
-        TreeInfo tInfo = wrapper.createRaxmlTreeinfo(displayed_utree, fake_treeinfo);
+        TreeInfo* tInfo = wrapper.createRaxmlTreeinfo(displayed_utree, fake_treeinfo);
         Options raxmlOptions = wrapper.getRaxmlOptions();
 
         // TODO: Remove this again, it was only here because of the Slack discussion
@@ -101,8 +101,8 @@ double optimize_branches(AnnotatedNetwork &ann_network, double min_brlen, double
          print_model_params(*partition);
          std::cout << "\n";*/
 
-        tInfo.optimize_branches(raxmlOptions.lh_epsilon, 0.25);
-        const pllmod_treeinfo_t &pllmod_tInfo = tInfo.pll_treeinfo();
+        tInfo->optimize_branches(raxmlOptions.lh_epsilon, 0.25);
+        const pllmod_treeinfo_t &pllmod_tInfo = tInfo->pll_treeinfo();
 
         // collect optimized brlens from the tree
         for (size_t i = 0; i < pllmod_tInfo.tree->edge_count; ++i) {
@@ -113,6 +113,8 @@ double optimize_branches(AnnotatedNetwork &ann_network, double min_brlen, double
                 opt_brlens[networkBranchIdx].push_back(OptimizedBranchLength { tree_idx, new_brlen, tree_prob });
             }
         }
+
+        delete tInfo;
 
         // print the displayed tree as NEWICK:
         /*std::cout << "displayed tree #" << tree_idx << " as NEWICK, after brlen opt on this tree:\n";

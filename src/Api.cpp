@@ -26,12 +26,12 @@ namespace netrax {
 
 AnnotatedNetwork build_annotated_network(const NetraxOptions &options) {
     AnnotatedNetwork ann_network;
+
     ann_network.network = netrax::readNetworkFromFile(options.network_file);
     ann_network.options = options;
 
     netrax::RaxmlWrapper wrapper(options);
     ann_network.raxml_treeinfo = wrapper.createRaxmlTreeinfo(ann_network);
-
     ann_network.topoTrav = netrax::reversed_topological_sort(ann_network.network);
     ann_network.blobInfo = netrax::partitionNetworkIntoBlobs(ann_network.network);
 
@@ -54,21 +54,20 @@ AnnotatedNetwork build_annotated_network(const NetraxOptions &options) {
             ann_network.branch_probs[p][secondParentEdgeIndex] = secondParentProb;
         }
     }
-
     return ann_network;
 }
 
 double computeLoglikelihood(AnnotatedNetwork &ann_network) {
-    return ann_network.raxml_treeinfo.loglh(false);
+    return ann_network.raxml_treeinfo->loglh(false);
 }
 double updateReticulationProbs(AnnotatedNetwork &ann_network) {
     return netrax::computeLoglikelihood(ann_network, 0, 1, true);
 }
 double optimizeModel(AnnotatedNetwork &ann_network) {
-    return ann_network.raxml_treeinfo.optimize_model(ann_network.options.lh_epsilon);
+    return ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
 }
 double optimizeBranches(AnnotatedNetwork &ann_network) {
-    return ann_network.raxml_treeinfo.optimize_branches(ann_network.options.lh_epsilon, 1);
+    return ann_network.raxml_treeinfo->optimize_branches(ann_network.options.lh_epsilon, 1);
 }
 double optimizeTopology(AnnotatedNetwork &ann_network) {
     std::cout << "(Topology optimization not implemented yet) \n";

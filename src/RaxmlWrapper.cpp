@@ -143,7 +143,7 @@ RaxmlWrapper::RaxmlWrapper(const NetraxOptions &options) :
     network_behaviour.create_init_partition_function = network_create_init_partition_wrapper;
 }
 
-TreeInfo RaxmlWrapper::createRaxmlTreeinfo(AnnotatedNetwork &ann_network) {
+TreeInfo* RaxmlWrapper::createRaxmlTreeinfo(AnnotatedNetwork &ann_network) {
     Network &network = ann_network.network;
     // Check that the MSA has already been loaded
     assert(!instance.tip_id_map.empty());
@@ -152,6 +152,7 @@ TreeInfo RaxmlWrapper::createRaxmlTreeinfo(AnnotatedNetwork &ann_network) {
     pllmod_treeinfo_t *pllTreeinfo = createNetworkPllTreeinfo(ann_network, network.num_tips(),
             instance.parted_msa->part_count(), instance.opts.brlen_linkage);
     ann_network.fake_treeinfo = pllTreeinfo;
+
     return createRaxmlTreeinfo(pllTreeinfo, network_behaviour);
 }
 
@@ -160,7 +161,7 @@ pllmod_treeinfo_t* RaxmlWrapper::createStandardPllTreeinfo(const pll_utree_t *ut
     return pllmod_treeinfo_create(utree->vroot, utree->tip_count, partitions, brlen_linkage);
 }
 
-TreeInfo RaxmlWrapper::createRaxmlTreeinfo(pll_utree_t *utree) {
+TreeInfo* RaxmlWrapper::createRaxmlTreeinfo(pll_utree_t *utree) {
     // Check that the MSA has already been loaded
     assert(!instance.tip_id_map.empty());
     reset_tip_ids(utree, instance.tip_id_map);
@@ -170,14 +171,14 @@ TreeInfo RaxmlWrapper::createRaxmlTreeinfo(pll_utree_t *utree) {
     return createRaxmlTreeinfo(pllTreeinfo, standard_behaviour);
 }
 
-TreeInfo RaxmlWrapper::createRaxmlTreeinfo(pll_utree_t *utree, const pllmod_treeinfo_t &model_treeinfo) {
+TreeInfo* RaxmlWrapper::createRaxmlTreeinfo(pll_utree_t *utree, const pllmod_treeinfo_t &model_treeinfo) {
     // Check that the MSA has already been loaded
     assert(!instance.tip_id_map.empty());
     reset_tip_ids(utree, instance.tip_id_map);
     pllmod_treeinfo_t *pllTreeinfo = createStandardPllTreeinfo(utree, instance.parted_msa->part_count(),
             instance.opts.brlen_linkage);
     TreeInfo::tinfo_behaviour standard_behaviour;
-    TreeInfo info = createRaxmlTreeinfo(pllTreeinfo, standard_behaviour);
+    TreeInfo* info = createRaxmlTreeinfo(pllTreeinfo, standard_behaviour);
     transfer_model_params(model_treeinfo, pllTreeinfo);
     return info;
 }
@@ -527,9 +528,9 @@ void RaxmlWrapper::destroy_network_treeinfo(pllmod_treeinfo_t *treeinfo) {
     pllmod_treeinfo_destroy(treeinfo);
 }
 
-TreeInfo RaxmlWrapper::createRaxmlTreeinfo(pllmod_treeinfo_t *treeinfo, TreeInfo::tinfo_behaviour &behaviour) {
+TreeInfo* RaxmlWrapper::createRaxmlTreeinfo(pllmod_treeinfo_t *treeinfo, TreeInfo::tinfo_behaviour &behaviour) {
     PartitionAssignment &part_assign = instance.proc_part_assign.at(ParallelContext::proc_id());
-    return TreeInfo(instance.opts, std::vector<doubleVector>(), treeinfo, (*instance.parted_msa.get()),
+    return new TreeInfo(instance.opts, std::vector<doubleVector>(), treeinfo, (*instance.parted_msa.get()),
             instance.tip_msa_idmap, part_assign, std::vector<uintVector>(), behaviour);
 }
 

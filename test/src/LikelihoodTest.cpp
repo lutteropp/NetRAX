@@ -182,6 +182,7 @@ TEST_F (LikelihoodTest, buildAnnotatedNetworkTest) {
     options.use_repeats = true;
     AnnotatedNetwork ann_network = build_annotated_network(options);
     ASSERT_TRUE(true);
+    delete ann_network.raxml_treeinfo;
 }
 
 TEST_F (LikelihoodTest, simpleTreeNaiveVersusNormalRaxml) {
@@ -198,8 +199,10 @@ TEST_F (LikelihoodTest, simpleTreeNaiveVersusNormalRaxml) {
 
     pll_utree_t *raxml_utree = Tree::loadFromFile(treePath).pll_utree_copy();
     std::unique_ptr<RaxmlWrapper> treeWrapper = std::make_unique<RaxmlWrapper>(NetraxOptions(treePath, msaPath, false));
-    TreeInfo raxml_treeinfo = treeWrapper->createRaxmlTreeinfo(raxml_utree);
-    double raxml_logl = raxml_treeinfo.loglh(false);
+    TreeInfo* raxml_treeinfo = treeWrapper->createRaxmlTreeinfo(raxml_utree);
+    double raxml_logl = raxml_treeinfo->loglh(false);
+
+    delete raxml_treeinfo;
 
     EXPECT_NE(raxml_logl, -std::numeric_limits<double>::infinity());
     EXPECT_DOUBLE_EQ(raxml_logl, naive_logl);
