@@ -520,11 +520,11 @@ std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network, const Ed
     std::vector<RSPRMove> case1 = possibleRSPRMoves(ann_network, edge, y_prime, nullptr);
     res.insert(std::end(res), std::begin(case1), std::end(case1));
 
-    // Case 3: x_prime == x
+    // Case 2: x_prime == x
     std::vector<RSPRMove> case2 = possibleRSPRMoves(ann_network, edge, x_prime, nullptr);
     res.insert(std::end(res), std::begin(case2), std::end(case2));
 
-    // Case 2: x_prime == y
+    // Case 3: x_prime == y
     std::vector<RSPRMove> case3 = possibleRSPRMoves(ann_network, edge, nullptr, x_prime);
     res.insert(std::end(res), std::begin(case3), std::end(case3));
 
