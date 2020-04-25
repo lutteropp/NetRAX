@@ -44,7 +44,7 @@ AnnotatedNetwork build_annotated_network(const NetraxOptions &options) {
                 std::vector<double>(ann_network.network.num_edges(), 1.0));
     }
     for (size_t p = 0; p < ann_network.branch_probs.size(); ++p) {
-        for (size_t i = 0; i < ann_network.network.reticulation_nodes.size(); ++i) {
+        for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
             Node *retNode = ann_network.network.reticulation_nodes[i];
             double firstParentProb = netrax::getReticulationFirstParentProb(retNode);
             double secondParentProb = netrax::getReticulationSecondParentProb(retNode);

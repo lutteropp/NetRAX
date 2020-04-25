@@ -231,7 +231,7 @@ double displayed_tree_prob(AnnotatedNetwork &ann_network, size_t tree_index, siz
     Network &network = ann_network.network;
     setReticulationParents(network, tree_index);
     double logProb = 0;
-    for (size_t i = 0; i < network.reticulation_nodes.size(); ++i) {
+    for (size_t i = 0; i < network.num_reticulations(); ++i) {
         size_t active_pmatrix_idx = getReticulationActiveParentPmatrixIndex(network.reticulation_nodes[i]);
         double prob = ann_network.branch_probs[partition_index][active_pmatrix_idx];
         logProb += log(prob);
@@ -393,7 +393,7 @@ void updateBestPersiteLoglikelihoodsBlobs(Network &network, const BlobInformatio
                 if (treeIdx & (1 << r)) {
                     size_t retIdxInNetwork = 0;
                     unsigned int retClVIdx = blobInfo.reticulation_nodes_per_megablob[megablob_idx][r]->clv_index;
-                    for (size_t i = 0; i < network.reticulation_nodes.size(); ++i) {
+                    for (size_t i = 0; i < network.num_reticulations(); ++i) {
                         if (network.reticulation_nodes[i]->clv_index == retClVIdx) {
                             retIdxInNetwork = i;
                             break;
@@ -733,7 +733,7 @@ double computeLoglikelihoodNaiveUtree(AnnotatedNetwork &ann_network, int increme
 
     assert(wrapper.num_partitions() == 1);
 
-    size_t n_trees = 1 << network.reticulation_nodes.size();
+    size_t n_trees = 1 << network.num_reticulations();
     double network_l = 0.0;
 // Iterate over all displayed trees
     for (size_t i = 0; i < n_trees; ++i) {

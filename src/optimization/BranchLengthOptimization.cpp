@@ -77,7 +77,7 @@ double optimize_branches(AnnotatedNetwork &ann_network, double min_brlen, double
     }
 
     std::vector<std::vector<OptimizedBranchLength> > opt_brlens(network.num_branches());
-    size_t n_trees = 1 << network.reticulation_nodes.size();
+    size_t n_trees = 1 << network.num_reticulations();
 
     for (size_t tree_idx = 0; tree_idx < n_trees; tree_idx++) {
         if (displayed_tree_prob(ann_network, tree_idx, unlinked_mode ? 0 : partitionIdx) == 0.0) {

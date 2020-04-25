@@ -281,7 +281,7 @@ void applyBranchLengths(Network &network, const std::vector<double> &branchLengt
     }
 }
 void setReticulationParents(Network &network, size_t treeIdx) {
-    for (size_t i = 0; i < network.reticulation_nodes.size(); ++i) {
+    for (size_t i = 0; i < network.num_reticulations(); ++i) {
         // check if i-th bit is set in treeIdx
         bool activeParentIdx = treeIdx & (1 << i);
         network.reticulation_nodes[i]->getReticulationData()->setActiveParentToggle(activeParentIdx);
@@ -312,7 +312,7 @@ void forbidSubnetwork(Node *myParent, Node *node, std::vector<bool> &forbidden) 
  */
 std::vector<Node*> getPossibleRootNodes(Network &network) {
     std::vector<bool> forbidden(network.nodes.size(), false);
-    for (size_t i = 0; i < network.reticulation_nodes.size(); ++i) {
+    for (size_t i = 0; i < network.num_reticulations(); ++i) {
         forbidSubnetwork(nullptr, network.reticulation_nodes[i], forbidden);
     }
     std::vector<Node*> res;
