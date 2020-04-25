@@ -294,8 +294,8 @@ double compute_tree_logl(Network &network, pllmod_treeinfo_t &fake_treeinfo, siz
 }
 
 void compute_tree_logl_blobs(Network &network, BlobInformation &blobInfo, const std::vector<Node*> &parent,
-        pllmod_treeinfo_t &fake_treeinfo, size_t megablob_idx, size_t partition_idx,
-        std::vector<double> *persite_logl, Node *startNode = nullptr) {
+        pllmod_treeinfo_t &fake_treeinfo, size_t megablob_idx, size_t partition_idx, std::vector<double> *persite_logl,
+        Node *startNode = nullptr) {
     std::vector<bool> dead_nodes(network.nodes.size(), false);
     fill_dead_nodes_recursive(nullptr, network.root, dead_nodes);
 // Create pll_operations_t array for the current displayed tree
@@ -507,8 +507,8 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
                 continue;
             }
             std::vector<double> persite_logl(fake_treeinfo.partitions[partitionIdx]->sites, 0.0);
-            compute_tree_logl_blobs(network, blobInfo, parent, fake_treeinfo, megablob_idx, partitionIdx,
-                    &persite_logl, startNode);
+            compute_tree_logl_blobs(network, blobInfo, parent, fake_treeinfo, megablob_idx, partitionIdx, &persite_logl,
+                    startNode);
 
             if (update_reticulation_probs) { // TODO: Only do this if we weren't at a leaf
                 updateBestPersiteLoglikelihoodsBlobs(network, blobInfo, megablob_idx, treeIdx, numSites,
@@ -551,8 +551,8 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
 }
 
 // TODO: Implement the Gray Code displayed tree iteration order and intelligent update of the operations array
-std::vector<double> compute_persite_lh(AnnotatedNetwork &ann_network, unsigned int partitionIdx, const std::vector<Node*> &parent, bool unlinked_mode,
-        bool update_reticulation_probs, unsigned int numSites,
+std::vector<double> compute_persite_lh(AnnotatedNetwork &ann_network, unsigned int partitionIdx,
+        const std::vector<Node*> &parent, bool unlinked_mode, bool update_reticulation_probs, unsigned int numSites,
         std::vector<BestPersiteLoglikelihoodData> &best_persite_logl_network, std::vector<double> *treewise_logl =
                 nullptr) {
     Network &network = ann_network.network;
@@ -589,7 +589,8 @@ std::vector<double> compute_persite_lh(AnnotatedNetwork &ann_network, unsigned i
         }
 
         std::vector<double> persite_logl(fake_treeinfo.partitions[partitionIdx]->sites, 0.0);
-        double tree_logl = compute_tree_logl(network, fake_treeinfo, treeIdx, partitionIdx, &persite_logl, parent, startNode);
+        double tree_logl = compute_tree_logl(network, fake_treeinfo, treeIdx, partitionIdx, &persite_logl, parent,
+                startNode);
         if (treewise_logl) {
             (*treewise_logl)[treeIdx] = tree_logl;
         }
@@ -613,6 +614,7 @@ double processPartition(AnnotatedNetwork &ann_network, unsigned int partitionIdx
     Network &network = ann_network.network;
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
     bool useBlobs = ann_network.options.use_blobs;
+    bool useGrayCode = ann_network.options.use_graycode;
 
     unsigned int numSites = fake_treeinfo.partitions[partitionIdx]->sites;
     std::vector<BestPersiteLoglikelihoodData> best_persite_logl_network;
@@ -622,12 +624,15 @@ double processPartition(AnnotatedNetwork &ann_network, unsigned int partitionIdx
         reticulationProbsHaveChanged = false;
     }
 
-    std::vector<Node*> parent = grab_current_node_parents(network);
+    std::vector<Node*> parent;
+    if (useBlobs || useGrayCode) {
+        parent = grab_current_node_parents(network);
+    }
 
     std::vector<double> persite_lh_network;
     if (!useBlobs) {
-        persite_lh_network = compute_persite_lh(ann_network, partitionIdx, parent, unlinked_mode, update_reticulation_probs,
-                numSites, best_persite_logl_network, treewise_logl);
+        persite_lh_network = compute_persite_lh(ann_network, partitionIdx, parent, unlinked_mode,
+                update_reticulation_probs, numSites, best_persite_logl_network, treewise_logl);
     } else {
         if (treewise_logl) {
             throw std::runtime_error("Can't compute treewise logl with the blob optimization");
