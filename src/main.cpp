@@ -10,7 +10,8 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
     CLI::App app { "NetRAX: Phylogenetic Network Inference without Incomplete Lineage Sorting" };
     app.add_option("--msa", options->msa_file, "The Multiple Sequence Alignment File")->required();
     app.add_option("--network", options->network_file, "The Network File")->required();
-    //app.add_option("-r,--reticulations", options->num_reticulations, "Number of reticulations");
+    app.add_option("-r,--reticulations", options->max_reticulations,
+            "Maximum number of reticulations to consider (default: 20)");
     CLI11_PARSE(app, argc, argv);
     return 0;
 }

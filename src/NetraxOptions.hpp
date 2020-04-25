@@ -31,7 +31,7 @@ public:
     bool use_blobs = true;
     bool use_graycode = true;
 
-    unsigned int num_reticulations = 0;
+    unsigned int max_reticulations = 20;
 
     int brlen_linkage = PLLMOD_COMMON_BRLEN_SCALED;
     int brlen_opt_method = PLLMOD_OPT_BLO_NEWTON_FAST;
