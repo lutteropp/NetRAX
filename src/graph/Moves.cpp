@@ -408,8 +408,8 @@ void performMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
     assertBeforeMove(move);
     exchangeEdges(move.u, move.v, move.s, move.t);
     updateLinkDirections(move);
-    if (move.type == RNNIMoveType::ONE_STAR || move.type == RNNIMoveType::TWO_STAR
-            || move.type == RNNIMoveType::THREE || move.type == RNNIMoveType::FOUR) {
+    if (move.type == RNNIMoveType::ONE_STAR || move.type == RNNIMoveType::TWO_STAR || move.type == RNNIMoveType::THREE
+            || move.type == RNNIMoveType::FOUR) {
         switchReticulations(network, move.u, move.v);
     }
     fixReticulations(move);
@@ -422,8 +422,8 @@ void undoMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
     assertAfterMove(move);
     exchangeEdges(move.u, move.v, move.t, move.s); // note that s and t are exchanged here
     updateLinkDirectionsReverse(move);
-    if (move.type == RNNIMoveType::ONE_STAR || move.type == RNNIMoveType::TWO_STAR
-            || move.type == RNNIMoveType::THREE || move.type == RNNIMoveType::FOUR) {
+    if (move.type == RNNIMoveType::ONE_STAR || move.type == RNNIMoveType::TWO_STAR || move.type == RNNIMoveType::THREE
+            || move.type == RNNIMoveType::FOUR) {
         switchReticulations(network, move.u, move.v);
     }
     fixReticulations(move);
@@ -431,7 +431,7 @@ void undoMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
     ann_network.blobInfo = partitionNetworkIntoBlobs(ann_network.network);
 }
 
-std::vector<std::pair<Node*, Node*> > getZYChoices(Node *x_prime, Node *y_prime, Node *x) {
+std::vector<std::pair<Node*, Node*> > getZYChoices(Node *x_prime, Node *y_prime, Node *x, Node *fixed_y = nullptr) {
     std::vector<std::pair<Node*, Node*> > res;
     auto x_prime_children = getChildren(x_prime, getActiveParent(x_prime));
     auto x_children = getChildren(x, getActiveParent(x));
@@ -443,7 +443,11 @@ std::vector<std::pair<Node*, Node*> > getZYChoices(Node *x_prime, Node *y_prime,
         if (std::find(z_children.begin(), z_children.end(), y_prime) != z_children.end()) {
             continue;
         }
+
         for (Node *y : z_children) {
+            if (fixed_y && y != fixed_y) {
+                continue;
+            }
             if (std::find(x_children.begin(), x_children.end(), y) != x_children.end()) {
                 continue;
             }
@@ -455,41 +459,79 @@ std::vector<std::pair<Node*, Node*> > getZYChoices(Node *x_prime, Node *y_prime,
     return res;
 }
 
-std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, const Edge &edge) {
+void possibleRSPRMovesInternal(std::vector<RSPRMove> &res, Network &network, Node *x_prime, Node *y_prime, Node *x,
+        Node *fixed_y) {
+    auto zy = getZYChoices(x_prime, y_prime, x, fixed_y);
+    for (const auto &entry : zy) {
+        Node *z = entry.first;
+        Node *y = entry.second;
+
+        Node *w = nullptr;
+        auto zNeighbors = getNeighbors(z);
+        assert(zNeighbors.size() == 3);
+        for (size_t j = 0; j < zNeighbors.size(); ++j) {
+            if (zNeighbors[j] != x && zNeighbors[j] != y) {
+                w = zNeighbors[j];
+                break;
+            }
+        }
+        assert(w);
+
+        if (z->type == NodeType::RETICULATION_NODE) { // head-moving rSPR move
+            if (!hasPath(network, y_prime, w)) {
+                res.emplace_back(RSPRMove { x_prime, y_prime, x, y, z });
+            }
+        } else { // tail-moving rSPR move
+            if (!hasPath(network, w, x_prime)) {
+                res.emplace_back(RSPRMove { x_prime, y_prime, x, y, z });
+            }
+        }
+    }
+}
+
+std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, const Edge &edge, Node *fixed_x, Node *fixed_y) {
     Network &network = ann_network.network;
     std::vector<RSPRMove> res;
     Node *x_prime = getSource(edge);
     Node *y_prime = getTarget(edge);
 
-    for (size_t i = 0; i < network.num_nodes(); ++i) {
-        Node *x = &network.nodes[i];
-        auto zy = getZYChoices(x_prime, y_prime, x);
-        for (const auto &entry : zy) {
-            Node *z = entry.first;
-            Node *y = entry.second;
-
-            Node *w = nullptr;
-            auto zNeighbors = getNeighbors(z);
-            assert(zNeighbors.size() == 3);
-            for (size_t j = 0; j < zNeighbors.size(); ++j) {
-                if (zNeighbors[j] != x && zNeighbors[j] != y) {
-                    w = zNeighbors[j];
-                    break;
-                }
-            }
-            assert(w);
-
-            if (z->type == NodeType::RETICULATION_NODE) { // head-moving rSPR move
-                if (!hasPath(network, y_prime, w)) {
-                    res.emplace_back(RSPRMove { x_prime, y_prime, x, y, z });
-                }
-            } else { // tail-moving rSPR move
-                if (!hasPath(network, w, x_prime)) {
-                    res.emplace_back(RSPRMove { x_prime, y_prime, x, y, z });
-                }
-            }
+    if (fixed_x) {
+        possibleRSPRMovesInternal(res, network, x_prime, y_prime, fixed_x, fixed_y);
+    } else {
+        for (size_t i = 0; i < network.num_nodes(); ++i) {
+            Node *x = &network.nodes[i];
+            possibleRSPRMovesInternal(res, network, x_prime, y_prime, x, fixed_y);
         }
     }
+    return res;
+}
+
+std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, const Edge &edge) {
+    return possibleRSPRMoves(ann_network, edge, nullptr, nullptr);
+}
+
+std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network, const Edge &edge) {
+    // in an rSPR1 move, either y_prime == x, x_prime == y, x_prime == x, or y_prime == y
+    std::vector<RSPRMove> res;
+    Node *x_prime = getSource(edge);
+    Node *y_prime = getTarget(edge);
+
+    // Case 1: y_prime == x
+    std::vector<RSPRMove> case1 = possibleRSPRMoves(ann_network, edge, y_prime, nullptr);
+    res.insert(std::end(res), std::begin(case1), std::end(case1));
+
+    // Case 3: x_prime == x
+    std::vector<RSPRMove> case2 = possibleRSPRMoves(ann_network, edge, x_prime, nullptr);
+    res.insert(std::end(res), std::begin(case2), std::end(case2));
+
+    // Case 2: x_prime == y
+    std::vector<RSPRMove> case3 = possibleRSPRMoves(ann_network, edge, nullptr, y_prime);
+    res.insert(std::end(res), std::begin(case3), std::end(case3));
+
+    // Case 4: y_prime == y
+    std::vector<RSPRMove> case4 = possibleRSPRMoves(ann_network, edge, nullptr, y_prime);
+    res.insert(std::end(res), std::begin(case4), std::end(case4));
+
     return res;
 }
 
