@@ -245,4 +245,16 @@ Node* getTarget(const Edge &edge) {
     }
 }
 
+bool hasNeighbor(Node *node1, Node *node2) {
+    if (!node1 || !node2) {
+        return false;
+    }
+    for (const auto &link : node1->links) {
+        if (link.outer->node == node2) {
+            return true;
+        }
+    }
+    return false;
+}
+
 }

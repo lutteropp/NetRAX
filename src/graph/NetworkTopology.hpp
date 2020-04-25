@@ -44,4 +44,6 @@ std::vector<Edge*> getAdjacentEdges(const Node* node);
 Node* getSource(const Edge& edge);
 Node* getTarget(const Edge& edge);
 
+bool hasNeighbor(Node* node1, Node* node2);
+
 }

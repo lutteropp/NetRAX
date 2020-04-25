@@ -447,6 +447,8 @@ std::vector<std::pair<Node*, Node*> > getZYChoices(Node *x_prime, Node *y_prime,
             if (std::find(x_children.begin(), x_children.end(), y) != x_children.end()) {
                 continue;
             }
+            assert(hasNeighbor(x, z));
+            assert(hasNeighbor(z, y));
             res.emplace_back(std::make_pair(z, y));
         }
     }
@@ -479,11 +481,11 @@ std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, const Edg
 
             if (z->type == NodeType::RETICULATION_NODE) { // head-moving rSPR move
                 if (!hasPath(network, y_prime, w)) {
-                    res.emplace_back(RSPRMove { x_prime, y_prime, x, z, y });
+                    res.emplace_back(RSPRMove { x_prime, y_prime, x, y, z });
                 }
             } else { // tail-moving rSPR move
                 if (!hasPath(network, w, x_prime)) {
-                    res.emplace_back(RSPRMove { x_prime, y_prime, x, z, y });
+                    res.emplace_back(RSPRMove { x_prime, y_prime, x, y, z });
                 }
             }
         }
