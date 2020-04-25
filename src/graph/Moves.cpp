@@ -529,12 +529,12 @@ void performMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
     z_y_prime_edge->link1 = z_out_link;
     z_y_prime_edge->link2 = y_prime_in_link;
 
-    assert(x_out_link->edge == x_y_edge);
-    assert(y_in_link->edge == x_y_edge);
-    assert(x_prime_out_link->edge == x_prime_z_edge);
-    assert(z_in_link->edge == x_prime_z_edge);
-    assert(z_out_link->edge == z_y_prime_edge);
-    assert(y_prime_in_link->edge == z_y_prime_edge);
+    x_out_link->edge = x_y_edge;
+    y_in_link->edge = x_y_edge;
+    x_prime_out_link->edge = x_prime_z_edge;
+    z_in_link->edge = x_prime_z_edge;
+    z_out_link->edge = z_y_prime_edge;
+    y_prime_in_link->edge = z_y_prime_edge;
 
     fixReticulations(move);
     ann_network.blobInfo = partitionNetworkIntoBlobs(ann_network.network);
@@ -576,12 +576,12 @@ void undoMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
     z_y_edge->link1 = z_out_link;
     z_y_edge->link2 = y_in_link;
 
-    assert(x_prime_out_link->edge == x_prime_y_prime_edge);
-    assert(y_prime_in_link->edge == x_prime_y_prime_edge);
-    assert(x_out_link->edge == x_z_edge);
-    assert(z_in_link->edge == x_z_edge);
-    assert(z_out_link->edge == z_y_edge);
-    assert(y_in_link->edge == z_y_edge);
+    x_prime_out_link->edge = x_prime_y_prime_edge;
+    y_prime_in_link->edge = x_prime_y_prime_edge;
+    x_out_link->edge = x_z_edge;
+    z_in_link->edge = x_z_edge;
+    z_out_link->edge = z_y_edge;
+    y_in_link->edge = z_y_edge;
 
     fixReticulations(move);
     ann_network.blobInfo = partitionNetworkIntoBlobs(ann_network.network);
