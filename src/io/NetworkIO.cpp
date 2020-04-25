@@ -367,7 +367,6 @@ std::string newickNodeName(const Node *node, const Node *parent) {
     return sb.str();
 }
 
-// TODO: Add branch lengths and branch probs to the printing
 std::string printNodeNewick(Node *node, Node *parent, std::unordered_set<Node*> &visited_reticulations) {
     std::stringstream sb("");
     std::vector<Node*> children = getChildren(node, parent);
