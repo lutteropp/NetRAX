@@ -74,10 +74,11 @@ double optimizeTopology(AnnotatedNetwork &ann_network) {
     return -1;
 }
 
-void writeNetwork(AnnotatedNetwork &ann_network, const std::string& filepath) {
+void writeNetwork(AnnotatedNetwork &ann_network, const std::string &filepath) {
     std::ofstream outfile(filepath);
     // If we have unlinked branch lenghts/probs, replace the entries in the network by their average
-    if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
+    if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED
+            && ann_network.fake_treeinfo->partition_count > 1) {
         for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
             double lenSum = 0.0;
             double probSum = 0.0;
