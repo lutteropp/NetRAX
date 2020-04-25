@@ -9,6 +9,7 @@
 
 #include <stddef.h>
 #include <iostream>
+#include <fstream>
 #include <vector>
 
 #include <raxml-ng/TreeInfo.hpp>
@@ -71,6 +72,27 @@ double optimizeBranches(AnnotatedNetwork &ann_network) {
 double optimizeTopology(AnnotatedNetwork &ann_network) {
     std::cout << "(Topology optimization not implemented yet) \n";
     return -1;
+}
+
+void writeNetwork(AnnotatedNetwork &ann_network, const std::string& filepath) {
+    std::ofstream outfile(filepath);
+    // If we have unlinked branch lenghts/probs, replace the entries in the network by their average
+    if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
+        for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
+            double lenSum = 0.0;
+            double probSum = 0.0;
+            size_t pmatrix_index = ann_network.network.edges[i].pmatrix_index;
+            for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+                lenSum += ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index];
+                probSum += ann_network.branch_probs[p][pmatrix_index];
+            }
+            ann_network.network.edges[i].length = lenSum / ann_network.fake_treeinfo->partition_count;
+            ann_network.network.edges[i].prob = probSum / ann_network.fake_treeinfo->partition_count;
+        }
+    }
+
+    outfile << netrax::toExtendedNewick(ann_network.network) << "\n";
+    outfile.close();
 }
 
 }

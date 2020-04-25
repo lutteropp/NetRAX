@@ -41,5 +41,6 @@ public:
 
     std::string msa_file = "";
     std::string network_file = "";
+    std::string output_file = "";
 };
 }

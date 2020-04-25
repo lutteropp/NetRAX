@@ -12,6 +12,7 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
     app.add_option("--network", options->network_file, "The Network File")->required();
     app.add_option("-r,--reticulations", options->max_reticulations,
             "Maximum number of reticulations to consider (default: 20)");
+    app.add_option("-o,--output", options->output_file, "File where to write the final network to");
     CLI11_PARSE(app, argc, argv);
     return 0;
 }
@@ -36,5 +37,9 @@ int main(int argc, char **argv) {
     std::cout << "After updating topology: " << netrax::optimizeTopology(ann_network) << "\n";
     std::cout << "After updating reticulation probs again again again: " << netrax::updateReticulationProbs(ann_network)
             << "\n";
+    if (!netraxOptions.output_file.empty()) {
+        netrax::writeNetwork(ann_network, netraxOptions.output_file);
+        std::cout << "Final network written to " << netraxOptions.output_file << "\n";
+    }
     return 0;
 }
