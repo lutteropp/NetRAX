@@ -212,14 +212,10 @@ std::vector<pll_operation_t> createOperationsUpdatedReticulation(Network &networ
     return ops;
 }
 
-std::vector<pll_operation_t> createOperations(Network &network, size_t treeIdx) {
+std::vector<pll_operation_t> createOperations(Network &network, size_t treeIdx, const std::vector<bool> &dead_nodes) {
     std::vector<pll_operation_t> ops;
     size_t fake_clv_index = network.nodes.size();
     size_t fake_pmatrix_index = network.edges.size();
-    setReticulationParents(network, treeIdx);
-
-    std::vector<bool> dead_nodes(network.nodes.size(), false);
-    fill_dead_nodes_recursive(nullptr, network.root, dead_nodes);
 
     Node *rootBack = getTargetNode(network.root->getLink());
 
@@ -271,9 +267,17 @@ void print_clv_vector(pllmod_treeinfo_t &fake_treeinfo, size_t tree_idx, size_t 
 }
 
 double compute_tree_logl(Network &network, pllmod_treeinfo_t &fake_treeinfo, size_t tree_idx, size_t partition_idx,
-        std::vector<double> *persite_logl) {
+        std::vector<double> *persite_logl, const std::vector<Node*> &parent, Node *startNode = nullptr) {
+    std::vector<bool> dead_nodes(network.nodes.size(), false);
+    fill_dead_nodes_recursive(nullptr, network.root, dead_nodes);
+
 // Create pll_operations_t array for the current displayed tree
-    std::vector<pll_operation_t> ops = createOperations(network, tree_idx);
+    std::vector<pll_operation_t> ops;
+    if (startNode) {
+        ops = createOperationsUpdatedReticulation(network, parent, startNode, dead_nodes);
+    } else {
+        ops = createOperations(network, tree_idx, dead_nodes);
+    }
     unsigned int ops_count = ops.size();
     Node *ops_root = network.getNodeByClvIndex(ops[ops.size() - 1].parent_clv_index);
 // Compute CLVs in pll_update_partials, as specified by the operations array. This needs a pll_partition_t object.
@@ -290,7 +294,7 @@ double compute_tree_logl(Network &network, pllmod_treeinfo_t &fake_treeinfo, siz
 }
 
 void compute_tree_logl_blobs(Network &network, BlobInformation &blobInfo, const std::vector<Node*> &parent,
-        pllmod_treeinfo_t &fake_treeinfo, size_t megablob_idx, size_t tree_idx, size_t partition_idx,
+        pllmod_treeinfo_t &fake_treeinfo, size_t megablob_idx, size_t partition_idx,
         std::vector<double> *persite_logl, Node *startNode = nullptr) {
     std::vector<bool> dead_nodes(network.nodes.size(), false);
     fill_dead_nodes_recursive(nullptr, network.root, dead_nodes);
@@ -503,7 +507,7 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
                 continue;
             }
             std::vector<double> persite_logl(fake_treeinfo.partitions[partitionIdx]->sites, 0.0);
-            compute_tree_logl_blobs(network, blobInfo, parent, fake_treeinfo, megablob_idx, treeIdx, partitionIdx,
+            compute_tree_logl_blobs(network, blobInfo, parent, fake_treeinfo, megablob_idx, partitionIdx,
                     &persite_logl, startNode);
 
             if (update_reticulation_probs) { // TODO: Only do this if we weren't at a leaf
@@ -547,8 +551,7 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
 }
 
 // TODO: Implement the Gray Code displayed tree iteration order and intelligent update of the operations array
-// TODO: Add the blobs
-std::vector<double> compute_persite_lh(AnnotatedNetwork &ann_network, unsigned int partitionIdx, bool unlinked_mode,
+std::vector<double> compute_persite_lh(AnnotatedNetwork &ann_network, unsigned int partitionIdx, const std::vector<Node*> &parent, bool unlinked_mode,
         bool update_reticulation_probs, unsigned int numSites,
         std::vector<BestPersiteLoglikelihoodData> &best_persite_logl_network, std::vector<double> *treewise_logl =
                 nullptr) {
@@ -561,14 +564,32 @@ std::vector<double> compute_persite_lh(AnnotatedNetwork &ann_network, unsigned i
     // Iterate over all displayed trees
     unsigned int num_reticulations = network.num_reticulations();
     size_t n_trees = 1 << num_reticulations;
-    for (size_t treeIdx = 0; treeIdx < n_trees; ++treeIdx) {
+
+    setReticulationParents(network, 0);
+    for (size_t i = 0; i < n_trees; ++i) {
+        size_t treeIdx = i;
+        Node *startNode = nullptr;
+        if (useGrayCode) {
+            treeIdx = i ^ (i >> 1); // graycode iteration order
+            if (i > 0) {
+                size_t lastI = i - 1;
+                size_t lastTreeIdx = lastI ^ (lastI >> 1);
+                size_t onlyChangedBit = treeIdx ^ lastTreeIdx;
+                size_t changedBitPos = log2(onlyChangedBit);
+                bool changedBitIsSet = treeIdx & onlyChangedBit;
+                startNode = network.reticulation_nodes[changedBitPos];
+                startNode->getReticulationData()->setActiveParentToggle(changedBitIsSet);
+            }
+        } else {
+            setReticulationParents(network, treeIdx);
+        }
         double tree_prob = displayed_tree_prob(ann_network, treeIdx, unlinked_mode ? 0 : partitionIdx);
         if (tree_prob == 0.0 && !update_reticulation_probs) {
             continue;
         }
 
         std::vector<double> persite_logl(fake_treeinfo.partitions[partitionIdx]->sites, 0.0);
-        double tree_logl = compute_tree_logl(network, fake_treeinfo, treeIdx, partitionIdx, &persite_logl);
+        double tree_logl = compute_tree_logl(network, fake_treeinfo, treeIdx, partitionIdx, &persite_logl, parent, startNode);
         if (treewise_logl) {
             (*treewise_logl)[treeIdx] = tree_logl;
         }
@@ -592,7 +613,6 @@ double processPartition(AnnotatedNetwork &ann_network, unsigned int partitionIdx
     Network &network = ann_network.network;
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
     bool useBlobs = ann_network.options.use_blobs;
-    bool useGrayCode = ann_network.options.use_graycode;
 
     unsigned int numSites = fake_treeinfo.partitions[partitionIdx]->sites;
     std::vector<BestPersiteLoglikelihoodData> best_persite_logl_network;
@@ -602,16 +622,16 @@ double processPartition(AnnotatedNetwork &ann_network, unsigned int partitionIdx
         reticulationProbsHaveChanged = false;
     }
 
+    std::vector<Node*> parent = grab_current_node_parents(network);
+
     std::vector<double> persite_lh_network;
     if (!useBlobs) {
-        persite_lh_network = compute_persite_lh(ann_network, partitionIdx, unlinked_mode, update_reticulation_probs,
+        persite_lh_network = compute_persite_lh(ann_network, partitionIdx, parent, unlinked_mode, update_reticulation_probs,
                 numSites, best_persite_logl_network, treewise_logl);
     } else {
         if (treewise_logl) {
             throw std::runtime_error("Can't compute treewise logl with the blob optimization");
         }
-        std::vector<Node*> parent = grab_current_node_parents(network);
-
         persite_lh_network = compute_persite_lh_blobs(ann_network, partitionIdx, parent, unlinked_mode,
                 update_reticulation_probs, numSites, best_persite_logl_network);
     }
