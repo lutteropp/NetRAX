@@ -39,7 +39,7 @@ protected:
 };
 
 void check_node_types(const Network &network) {
-    for (size_t i = 0; i < network.nodes.size(); ++i) {
+    for (size_t i = 0; i < network.num_nodes(); ++i) {
         if (std::find(network.reticulation_nodes.begin(), network.reticulation_nodes.end(), &network.nodes[i])
                 == network.reticulation_nodes.end()) {
             EXPECT_EQ(network.nodes[i].getType(), NodeType::BASIC_NODE);
@@ -91,7 +91,7 @@ void check_links_edges(const Network &network) {
 
 void check_clv_range(const Network &network) {
     std::vector<size_t> allCLVmatrixIndices;
-    for (size_t i = 0; i < network.nodes.size(); ++i) {
+    for (size_t i = 0; i < network.num_nodes(); ++i) {
         allCLVmatrixIndices.push_back(network.nodes[i].clv_index);
     }
     std::sort(allCLVmatrixIndices.begin(), allCLVmatrixIndices.end());

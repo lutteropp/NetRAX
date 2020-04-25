@@ -90,7 +90,7 @@ TEST_F (LikelihoodTest, DISABLED_displayedTreeOfTreeToUtree) {
     EXPECT_EQ(network_utree->tip_count, raxml_utree->tip_count);
     compareNodes(network_utree->vroot, raxml_utree->vroot);
 
-    for (size_t i = 0; i < treeNetwork.nodes.size(); ++i) {
+    for (size_t i = 0; i < treeNetwork.num_nodes(); ++i) {
         compareNodes(network_utree->nodes[i], raxml_utree->nodes[i]);
         compareNodes(network_utree->nodes[i]->back, raxml_utree->nodes[i]->back);
         if (network_utree->nodes[i]->next) {
@@ -127,7 +127,7 @@ std::unordered_set<std::string> collect_tip_labels_utree(pll_utree_t *utree) {
 
 void print_clv_index_by_label(const Network &network) {
     std::cout << "clv_index by node label:\n";
-    for (size_t i = 0; i < network.nodes.size(); ++i) {
+    for (size_t i = 0; i < network.num_nodes(); ++i) {
         std::cout << network.nodes[i].label << ": " << network.nodes[i].clv_index << "\n";
     }
     std::cout << "\n";

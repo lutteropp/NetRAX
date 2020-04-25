@@ -331,22 +331,22 @@ std::string printNodeNewick(const RootedNetworkNode *node, const RootedNetworkNo
     return sb.str();
 }
 
-std::string toNewickString(const RootedNetwork &network) {
+std::string toNewickString(const RootedNetwork &rnetwork) {
     std::unordered_set<const RootedNetworkNode*> visited_reticulations;
-    return printNodeNewick(network.root, nullptr, visited_reticulations) + ";";
+    return printNodeNewick(rnetwork.root, nullptr, visited_reticulations) + ";";
 }
 
-std::string exportDebugInfo(const RootedNetwork &network) {
+std::string exportDebugInfo(const RootedNetwork &rnetwork) {
     std::stringstream ss;
     ss << "graph\n[\tdirected\t1\n";
-    for (size_t i = 0; i < network.nodes.size(); ++i) {
+    for (size_t i = 0; i < rnetwork.nodes.size(); ++i) {
         ss << "\tnode\n\t[\n\t\tid\t" << i << "\n";
-        std::string nodeLabel = (network.nodes[i]->label.empty()) ? std::to_string(i) : network.nodes[i]->label;
+        std::string nodeLabel = (rnetwork.nodes[i]->label.empty()) ? std::to_string(i) : rnetwork.nodes[i]->label;
         ss << "\t\tlabel\t\"" << nodeLabel << "\"\n";
 
         ss << "\t\tgraphics\n\t\t[\n";
         ss << "\t\t\tfill\t\"";
-        if (network.nodes[i]->isReticulation) {
+        if (rnetwork.nodes[i]->isReticulation) {
             ss << "#00CCFF";
         } else { // normal node
             ss << "#FFCC00";
@@ -354,12 +354,12 @@ std::string exportDebugInfo(const RootedNetwork &network) {
         ss << "\"\n\t\t]\n";
         ss << "\t]\n";
     }
-    for (size_t i = 0; i < network.nodes.size(); ++i) {
-        for (RootedNetworkNode *child : network.nodes[i]->children) {
+    for (size_t i = 0; i < rnetwork.nodes.size(); ++i) {
+        for (RootedNetworkNode *child : rnetwork.nodes[i]->children) {
             ss << "\tedge\n\t[\n\t\tsource\t";
             unsigned int parentId = i;
-            unsigned int childId = std::distance(network.nodes.begin(),
-                    std::find_if(network.nodes.begin(), network.nodes.end(),
+            unsigned int childId = std::distance(rnetwork.nodes.begin(),
+                    std::find_if(rnetwork.nodes.begin(), rnetwork.nodes.end(),
                             [&](const std::unique_ptr<RootedNetworkNode> &x) {
                                 return x.get() == child;
                             }));

@@ -244,9 +244,9 @@ pll_utree_t* displayed_tree_to_utree(Network &network, size_t tree_index) {
         root = possibleRoots[0];
     }
 
-    std::vector<bool> dead_nodes(network.nodes.size(), false);
+    std::vector<bool> dead_nodes(network.num_nodes(), false);
     fill_dead_nodes_recursive(nullptr, root, dead_nodes);
-    std::vector<bool> skipped_nodes(network.nodes.size(), false);
+    std::vector<bool> skipped_nodes(network.num_nodes(), false);
     fill_skipped_nodes_recursive(nullptr, root, dead_nodes, skipped_nodes);
     // now, we already know which nodes are skipped and which nodes are dead.
 
@@ -311,12 +311,12 @@ void forbidSubnetwork(Node *myParent, Node *node, std::vector<bool> &forbidden) 
  * Find possible placements for the root node in a semi-rooted network.
  */
 std::vector<Node*> getPossibleRootNodes(Network &network) {
-    std::vector<bool> forbidden(network.nodes.size(), false);
+    std::vector<bool> forbidden(network.num_nodes(), false);
     for (size_t i = 0; i < network.num_reticulations(); ++i) {
         forbidSubnetwork(nullptr, network.reticulation_nodes[i], forbidden);
     }
     std::vector<Node*> res;
-    for (size_t i = 0; i < network.nodes.size(); ++i) {
+    for (size_t i = 0; i < network.num_nodes(); ++i) {
         if (!forbidden[network.nodes[i].clv_index]) {
             if (network.nodes[i].getType() == NodeType::BASIC_NODE
                     && getActiveNeighbors(&network.nodes[i]).size() == 3) {

@@ -376,10 +376,12 @@ void RaxmlWrapper::network_init_treeinfo_wrapper(const Options &opts, const std:
 
 void fake_init_collect_branch_lengths(pllmod_treeinfo_t *treeinfo, const Network &network) {
     // collect the branch lengths
-    for (size_t i = 0; i < network.edges.size(); ++i) {
+    for (size_t i = 0; i < network.num_branches(); ++i) {
         treeinfo->branch_lengths[0][i] = network.edges[i].length;
     }
-
+    for (size_t i = network.num_branches(); i < network.edges.size(); ++i) {
+        treeinfo->branch_lengths[0][i] = 0.0;
+    }
     treeinfo->branch_lengths[0][network.edges.size()] = 0; // the fake branch length
 
     /* in unlinked branch length mode, copy brlen to other partitions */

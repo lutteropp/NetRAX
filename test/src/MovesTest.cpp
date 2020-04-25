@@ -41,7 +41,7 @@ void randomNNIMoves(const std::string &networkPath, const std::string &msaPath, 
     ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
     std::cout << "initial_logl: " << initial_logl << "\n";
 
-    for (size_t i = 0; i < network.edges.size(); ++i) {
+    for (size_t i = 0; i < network.num_branches(); ++i) {
         std::vector<RNNIMove> candidates = possibleRNNIMoves(ann_network, network.edges[i]);
         for (size_t j = 0; j < candidates.size(); ++j) {
             //std::cout << i << ", " << j << "\n";
@@ -77,7 +77,7 @@ void randomSPRMoves(const std::string &networkPath, const std::string &msaPath, 
     ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
     std::cout << "initial_logl: " << initial_logl << "\n";
 
-    for (size_t i = 0; i < network.edges.size(); ++i) {
+    for (size_t i = 0; i < network.num_branches(); ++i) {
         std::vector<RSPRMove> candidates = possibleRSPRMoves(ann_network, network.edges[i]);
         for (size_t j = 0; j < candidates.size(); ++j) {
             std::cout << "perform " << toString(candidates[j]);
@@ -109,7 +109,7 @@ void randomSPR1Moves(const std::string &networkPath, const std::string &msaPath,
     ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
     std::cout << "initial_logl: " << initial_logl << "\n";
 
-    for (size_t i = 0; i < network.edges.size(); ++i) {
+    for (size_t i = 0; i < network.num_branches(); ++i) {
         std::vector<RSPRMove> candidates = possibleRSPR1Moves(ann_network, network.edges[i]);
         for (size_t j = 0; j < candidates.size(); ++j) {
             std::cout << "perform " << toString(candidates[j]);

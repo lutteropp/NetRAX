@@ -268,7 +268,7 @@ void print_clv_vector(pllmod_treeinfo_t &fake_treeinfo, size_t tree_idx, size_t 
 
 double compute_tree_logl(Network &network, pllmod_treeinfo_t &fake_treeinfo, size_t tree_idx, size_t partition_idx,
         std::vector<double> *persite_logl, const std::vector<Node*> &parent, Node *startNode = nullptr) {
-    std::vector<bool> dead_nodes(network.nodes.size(), false);
+    std::vector<bool> dead_nodes(network.num_nodes(), false);
     fill_dead_nodes_recursive(nullptr, network.root, dead_nodes);
 
 // Create pll_operations_t array for the current displayed tree
@@ -296,7 +296,7 @@ double compute_tree_logl(Network &network, pllmod_treeinfo_t &fake_treeinfo, siz
 void compute_tree_logl_blobs(Network &network, BlobInformation &blobInfo, const std::vector<Node*> &parent,
         pllmod_treeinfo_t &fake_treeinfo, size_t megablob_idx, size_t partition_idx, std::vector<double> *persite_logl,
         Node *startNode = nullptr) {
-    std::vector<bool> dead_nodes(network.nodes.size(), false);
+    std::vector<bool> dead_nodes(network.num_nodes(), false);
     fill_dead_nodes_recursive(nullptr, network.root, dead_nodes);
 // Create pll_operations_t array for the current displayed tree
     std::vector<pll_operation_t> ops;
@@ -338,8 +338,11 @@ void setup_pmatrices(Network &network, pllmod_treeinfo_t &fake_treeinfo, int inc
      * have to be prefetched to treeinfo->branch_lengths[p] !!! */
     bool collect_brlen = (fake_treeinfo.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED ? false : true);
     if (collect_brlen) {
-        for (size_t i = 0; i < network.edges.size(); ++i) {
+        for (size_t i = 0; i < network.num_branches(); ++i) {
             fake_treeinfo.branch_lengths[0][network.edges[i].pmatrix_index] = network.edges[i].length;
+        }
+        for (size_t i = network.num_branches(); i < network.edges.size(); ++i) {
+            fake_treeinfo.branch_lengths[0][i] = 0.0;
         }
         // don't forget the fake entry
         fake_treeinfo.branch_lengths[0][network.edges.size()] = 0.0;
