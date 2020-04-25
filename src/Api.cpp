@@ -38,10 +38,10 @@ AnnotatedNetwork build_annotated_network(const NetraxOptions &options) {
     // init branch probs...
     if (options.brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED) { // common branches
         ann_network.branch_probs = std::vector<std::vector<double> >(1,
-                std::vector<double>(ann_network.network.num_edges(), 1.0));
+                std::vector<double>(ann_network.network.num_branches(), 1.0));
     } else { // each partition has extra branch properties
         ann_network.branch_probs = std::vector<std::vector<double> >(ann_network.fake_treeinfo->partition_count,
-                std::vector<double>(ann_network.network.num_edges(), 1.0));
+                std::vector<double>(ann_network.network.num_branches(), 1.0));
     }
     for (size_t p = 0; p < ann_network.branch_probs.size(); ++p) {
         for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {

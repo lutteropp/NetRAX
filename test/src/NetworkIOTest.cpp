@@ -73,7 +73,7 @@ void check_tip_clvs(const Network &network) {
 
 void check_pmatrix_indices(const Network &network) {
     std::vector<size_t> allPmatrixIndices;
-    for (size_t i = 0; i < network.edges.size(); ++i) {
+    for (size_t i = 0; i < network.num_branches(); ++i) {
         allPmatrixIndices.push_back(network.edges[i].pmatrix_index);
     }
     std::sort(allPmatrixIndices.begin(), allPmatrixIndices.end());
@@ -83,7 +83,7 @@ void check_pmatrix_indices(const Network &network) {
 }
 
 void check_links_edges(const Network &network) {
-    for (size_t i = 0; i < network.edges.size(); ++i) {
+    for (size_t i = 0; i < network.num_branches(); ++i) {
         EXPECT_NE(network.edges[i].link1, nullptr);
         EXPECT_NE(network.edges[i].link2, nullptr);
     }

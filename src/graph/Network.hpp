@@ -44,10 +44,6 @@ public:
         return nodes.size();
     }
 
-    size_t num_edges() const {
-        return edges.size();
-    }
-
     Node* getNodeByLabel(const std::string &label) {
         Node *result = nullptr;
         for (size_t i = 0; i < nodes.size(); ++i) {

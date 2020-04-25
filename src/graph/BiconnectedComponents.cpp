@@ -124,7 +124,7 @@ void gather_reticulations_per_megablob(const Network &network, BlobInformation &
 
 BlobInformation partitionNetworkIntoBlobs(const Network &network) {
     BlobInformation blob_info;
-    blob_info.edge_blob_id.resize(network.num_edges());
+    blob_info.edge_blob_id.resize(network.num_branches());
     unsigned int time = 0;
     unsigned int act_bicomp_id = 0;
     std::stack<Edge*> s;

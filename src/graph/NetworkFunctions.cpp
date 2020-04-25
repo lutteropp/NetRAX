@@ -268,15 +268,15 @@ pll_utree_t* displayed_tree_to_utree(Network &network, size_t tree_index) {
 }
 
 std::vector<double> collectBranchLengths(const Network &network) {
-    std::vector<double> brLengths(network.edges.size());
-    for (size_t i = 0; i < network.edges.size(); ++i) {
+    std::vector<double> brLengths(network.num_branches());
+    for (size_t i = 0; i < network.num_branches(); ++i) {
         brLengths[i] = network.edges[i].length;
     }
     return brLengths;
 }
 void applyBranchLengths(Network &network, const std::vector<double> &branchLengths) {
-    assert(branchLengths.size() == network.edges.size());
-    for (size_t i = 0; i < network.edges.size(); ++i) {
+    assert(branchLengths.size() == network.num_branches());
+    for (size_t i = 0; i < network.num_branches(); ++i) {
         network.edges[i].length = branchLengths[i];
     }
 }
@@ -523,7 +523,7 @@ std::string exportDebugInfo(const Network &network, const BlobInformation &blobI
         ss << buildNodeGraphics(&network.nodes[i], blobInfo);
         ss << "\t]\n";
     }
-    for (size_t i = 0; i < network.num_edges(); ++i) {
+    for (size_t i = 0; i < network.num_branches(); ++i) {
         ss << "\tedge\n\t[\n\t\tsource\t";
         unsigned int parentId = network.edges[i].link1->node->clv_index;
         unsigned int childId = network.edges[i].link2->node->clv_index;
@@ -579,7 +579,7 @@ std::string exportDebugInfo(const Network &network, const std::vector<unsigned i
         ss << buildNodeGraphics(&network.nodes[i]);
         ss << "\t]\n";
     }
-    for (size_t i = 0; i < network.num_edges(); ++i) {
+    for (size_t i = 0; i < network.num_branches(); ++i) {
         ss << "\tedge\n\t[\n\t\tsource\t";
         unsigned int parentId = network.edges[i].link1->node->clv_index;
         unsigned int childId = network.edges[i].link2->node->clv_index;
