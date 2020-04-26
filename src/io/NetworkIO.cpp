@@ -62,18 +62,26 @@ Link* make_link(size_t link_id, Node *node, Edge *edge, Direction dir) {
     return node->addLink(link);
 }
 
-Network convertNetworkToplevelTrifurcation(RootedNetwork &rnetwork, size_t node_count, size_t branch_count) {
+Network convertNetworkToplevelTrifurcation(RootedNetwork &rnetwork, size_t node_count, size_t branch_count,
+        int maxReticulations) {
     Network network;
 
-    network.nodes.resize(node_count);
+    network.branchCount = branch_count;
+    network.nodeCount = node_count;
+    network.tipCount = rnetwork.tipCount;
 
-    network.edges.resize(branch_count);
+    if (maxReticulations >= 0 && (unsigned int) maxReticulations < rnetwork.reticulationCount) {
+        throw std::runtime_error("number of reticulations in the network is higher than maximum reticulation count");
+    }
+    unsigned int maxExtraReticulations = (maxReticulations != -1) ? maxReticulations - rnetwork.reticulationCount : 0;
+    unsigned int maxNodeCount = node_count + maxExtraReticulations * 2;
+    unsigned int maxBranchCount = branch_count + maxExtraReticulations * 3;
+
+    network.nodes.resize(maxNodeCount);
+    network.edges.resize(maxBranchCount);
+
     network.links.resize(2 * branch_count);
     network.reticulation_nodes.resize(rnetwork.reticulationCount);
-    network.tip_nodes.resize(rnetwork.tipCount);
-    network.inner_nodes.resize(node_count - rnetwork.tipCount);
-
-    network.root = &network.nodes[network.num_nodes() - 1 - rnetwork.reticulationCount];
 
     std::vector<RootedNetworkNode*> rnetwork_nodes = collectNodes(rnetwork);
     assert(rnetwork_nodes.size() == node_count);
@@ -105,7 +113,6 @@ Network convertNetworkToplevelTrifurcation(RootedNetwork &rnetwork, size_t node_
         size_t pmatrix_index = clv_index;
         assert(pmatrix_index < network.num_branches());
         network.edges[pmatrix_index].init(pmatrix_index, nullptr, nullptr, rnode->length);
-        network.tip_nodes[clv_index] = &network.nodes[clv_index];
 
         Link *linkToParent = make_link(n_links, &network.nodes[clv_index], &network.edges[pmatrix_index],
                 Direction::INCOMING);
@@ -136,8 +143,6 @@ Network convertNetworkToplevelTrifurcation(RootedNetwork &rnetwork, size_t node_
         } else {
             assert(rnode->children.size() == 3);
         }
-
-        network.inner_nodes[i] = &network.nodes[clv_index];
     }
 
     for (size_t i = 0; i < rnetwork_reticulations.size(); ++i) {
@@ -158,7 +163,6 @@ Network convertNetworkToplevelTrifurcation(RootedNetwork &rnetwork, size_t node_
         network.edges[pmatrix_index + 1].init(pmatrix_index + 1, nullptr, nullptr, rnode->secondParentLength,
                 rnode->secondParentProb);
         network.reticulation_nodes[i] = &network.nodes[clv_index];
-        network.inner_nodes[i + rnetwork_inner_tree.size()] = &network.nodes[clv_index];
 
         Link *linkToFirstParent = make_link(n_links, &network.nodes[clv_index], &network.edges[pmatrix_index],
                 Direction::INCOMING);
@@ -250,6 +254,9 @@ Network convertNetworkToplevelTrifurcation(RootedNetwork &rnetwork, size_t node_
         }
     }
 
+    // TODO: Update changed memory layout in the Google Doc
+    network.root = &network.nodes[network.num_nodes() - 1 - rnetwork.reticulationCount];
+
     // check that all links are sane
     for (size_t i = 0; i < network.links.size(); ++i) {
         assert(network.links[i]);
@@ -296,7 +303,7 @@ std::pair<size_t, size_t> makeToplevelTrifurcation(RootedNetwork &rnetwork) {
     return std::make_pair(node_count, branch_count);
 }
 
-Network convertNetwork(RootedNetwork &rnetwork) {
+Network convertNetwork(RootedNetwork &rnetwork, int maxReticulations) {
     //std::cout << exportDebugInfo(rnetwork) << "\n";
     std::pair<size_t, size_t> node_and_branch_count = makeToplevelTrifurcation(rnetwork);
     //std::cout << exportDebugInfo(rnetwork) << "\n";
@@ -304,7 +311,7 @@ Network convertNetwork(RootedNetwork &rnetwork) {
     size_t branch_count = node_and_branch_count.second;
 
     Network network;
-    network = convertNetworkToplevelTrifurcation(rnetwork, node_count, branch_count);
+    network = convertNetworkToplevelTrifurcation(rnetwork, node_count, branch_count, maxReticulations);
     assert(!network.root->isTip());
 
     // ensure that no branch lengths are zero
@@ -319,19 +326,19 @@ Network convertNetwork(RootedNetwork &rnetwork) {
     return network;
 }
 
-Network readNetworkFromString(const std::string &newick) {
+Network readNetworkFromString(const std::string &newick, int maxReticulations) {
     RootedNetwork *rnetwork = parseRootedNetworkFromNewickString(newick);
-    Network network = convertNetwork(*rnetwork);
+    Network network = convertNetwork(*rnetwork, maxReticulations);
     delete rnetwork;
     return network;
 }
 
-Network readNetworkFromFile(const std::string &filename) {
+Network readNetworkFromFile(const std::string &filename, int maxReticulations) {
     std::ifstream t(filename);
     std::stringstream buffer;
     buffer << t.rdbuf();
     std::string newick = buffer.str();
-    return readNetworkFromString(newick);
+    return readNetworkFromString(newick, maxReticulations);
 }
 
 std::string newickNodeName(const Node *node, const Node *parent) {

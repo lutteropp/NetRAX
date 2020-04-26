@@ -23,10 +23,11 @@ void reset_tip_ids(Network &network, const std::unordered_map<std::string, size_
     if (label_id_map.size() < network.num_tips())
         throw std::invalid_argument("Invalid map size");
 
-    for (auto &node : network.tip_nodes) {
-        const unsigned int tip_id = label_id_map.at(node->label);
-        node->clv_index = tip_id;
-        node->getLink()->node_index = tip_id;
+    for (size_t i = 0; i < network.num_tips(); ++i) {
+        assert(network.nodes[i].isTip());
+        const unsigned int tip_id = label_id_map.at(network.nodes[i].label);
+        network.nodes[i].clv_index = tip_id;
+        network.nodes[i].getLink()->node_index = tip_id;
     }
 }
 
@@ -178,7 +179,7 @@ TreeInfo* RaxmlWrapper::createRaxmlTreeinfo(pll_utree_t *utree, const pllmod_tre
     pllmod_treeinfo_t *pllTreeinfo = createStandardPllTreeinfo(utree, instance.parted_msa->part_count(),
             instance.opts.brlen_linkage);
     TreeInfo::tinfo_behaviour standard_behaviour;
-    TreeInfo* info = createRaxmlTreeinfo(pllTreeinfo, standard_behaviour);
+    TreeInfo *info = createRaxmlTreeinfo(pllTreeinfo, standard_behaviour);
     transfer_model_params(model_treeinfo, pllTreeinfo);
     return info;
 }
@@ -402,8 +403,8 @@ int fake_init_tree(pllmod_treeinfo_t *treeinfo, Network &network) {
     treeinfo->tree = tree;
 
     tree->tip_count = network.num_tips();
-    tree->edge_count = network.num_branches() + 1; // +1 for the fake pmatrix index
-    tree->inner_count = network.num_inner() + 1; // +1 for the fake clv index
+    tree->edge_count = network.edges.size() + 1; // +1 for the fake pmatrix index
+    tree->inner_count = network.nodes.size() - network.num_tips() + 1; // +1 for the fake clv index
 
     tree->nodes = NULL;
     tree->vroot = NULL;
@@ -535,9 +536,8 @@ double RaxmlWrapper::network_logl_wrapper(void *network_params, int incremental,
 }
 double RaxmlWrapper::network_opt_brlen_wrapper(pllmod_treeinfo_t *fake_treeinfo, double min_brlen, double max_brlen,
         double lh_epsilon, int max_iters, int opt_method, int radius) {
-    AnnotatedNetwork* ann_network = ((NetworkParams*) (fake_treeinfo->likelihood_computation_params))->ann_network;
-    return optimize_branches(*ann_network, min_brlen, max_brlen, lh_epsilon, max_iters,
-            opt_method, radius);
+    AnnotatedNetwork *ann_network = ((NetworkParams*) (fake_treeinfo->likelihood_computation_params))->ann_network;
+    return optimize_branches(*ann_network, min_brlen, max_brlen, lh_epsilon, max_iters, opt_method, radius);
 
 }
 double RaxmlWrapper::network_spr_round_wrapper(pllmod_treeinfo_t *treeinfo, unsigned int radius_min,

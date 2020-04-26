@@ -20,20 +20,16 @@ namespace netrax {
 
 class Network {
 public:
-    Network() :
-            root(nullptr) {
-    }
-
     size_t num_tips() const {
-        return tip_nodes.size();
+        return tipCount;
     }
 
     size_t num_inner() const {
-        return nodes.size() - tip_nodes.size();
+        return nodeCount - tipCount;
     }
 
     size_t num_branches() const {
-        return edges.size();
+        return branchCount;
     }
 
     size_t num_reticulations() const {
@@ -41,7 +37,7 @@ public:
     }
 
     size_t num_nodes() const {
-        return nodes.size();
+        return nodeCount;
     }
 
     Node* getNodeByLabel(const std::string &label) {
@@ -80,13 +76,14 @@ public:
         return result;
     }
 
+    unsigned int nodeCount = 0;
+    unsigned int branchCount = 0;
+    unsigned int tipCount = 0;
+    Node *root = nullptr;
     std::vector<Node> nodes;
     std::vector<Edge> edges;
     std::vector<Link*> links;
     std::vector<Node*> reticulation_nodes;
-    std::vector<Node*> tip_nodes;
-    std::vector<Node*> inner_nodes;
-    Node *root;
 };
 
 }

@@ -49,25 +49,26 @@ void check_node_types(const Network &network) {
     }
 }
 
-void check_neighbor_count(const Network &network) {
-    for (size_t i = 0; i < network.tip_nodes.size(); ++i) {
-        EXPECT_EQ(network.tip_nodes[i]->getLink()->next, nullptr);
-        EXPECT_EQ(getNeighbors(network.tip_nodes[i]).size(), 1);
-    }
-    for (size_t i = 0; i < network.inner_nodes.size(); ++i) {
-        EXPECT_NE(network.inner_nodes[i]->getLink()->next, nullptr);
-        EXPECT_NE(network.inner_nodes[i]->getLink()->next->next, nullptr);
-        EXPECT_NE(network.inner_nodes[i]->getLink()->next->next->next, nullptr);
-        EXPECT_EQ(network.inner_nodes[i]->getLink(), network.inner_nodes[i]->getLink()->next->next->next);
-        EXPECT_EQ(getNeighbors(network.inner_nodes[i]).size(), 3);
+void check_neighbor_count(Network &network) {
+    for (size_t i = 0; i < network.num_nodes(); ++i) {
+        if (network.nodes[i].isTip()) {
+            EXPECT_EQ(network.nodes[i].getLink()->next, nullptr);
+            EXPECT_EQ(getNeighbors(&network.nodes[i]).size(), 1);
+        } else {
+            EXPECT_NE(network.nodes[i].getLink()->next, nullptr);
+            EXPECT_NE(network.nodes[i].getLink()->next->next, nullptr);
+            EXPECT_NE(network.nodes[i].getLink()->next->next->next, nullptr);
+            EXPECT_EQ(network.nodes[i].getLink(), network.nodes[i].getLink()->next->next->next);
+            EXPECT_EQ(getNeighbors(&network.nodes[i]).size(), 3);
+        }
     }
 }
 
-void check_tip_clvs(const Network &network) {
+void check_tip_clvs(Network &network) {
     size_t n = network.num_tips();
-    EXPECT_EQ(network.tip_nodes.size(), n);
-    for (size_t i = 0; i < network.tip_nodes.size(); ++i) {
-        EXPECT_TRUE(network.tip_nodes[i]->clv_index < n);
+    EXPECT_EQ(network.num_tips(), n);
+    for (size_t i = 0; i < network.num_tips(); ++i) {
+        EXPECT_TRUE(network.nodes[i].clv_index < n);
     }
 }
 
@@ -100,7 +101,7 @@ void check_clv_range(const Network &network) {
     }
 }
 
-void sanity_checks(const Network &network) {
+void sanity_checks(Network &network) {
     check_node_types(network);
     check_neighbor_count(network);
     check_tip_clvs(network);

@@ -28,7 +28,7 @@ namespace netrax {
 AnnotatedNetwork build_annotated_network(const NetraxOptions &options) {
     AnnotatedNetwork ann_network;
 
-    ann_network.network = netrax::readNetworkFromFile(options.network_file);
+    ann_network.network = netrax::readNetworkFromFile(options.network_file, options.max_reticulations);
     ann_network.options = options;
 
     netrax::RaxmlWrapper wrapper(options);

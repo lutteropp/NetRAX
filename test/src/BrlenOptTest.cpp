@@ -130,7 +130,6 @@ TEST (BrlenOptTest, small) {
     RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
     //smallWrapper.enableRaxmlDebugOutput();
 
-    Network treeNetwork = readNetworkFromFile(smallPath);
     AnnotatedNetwork annTreeNetwork = build_annotated_network(smallOptions);
 
     // initial logl computation
@@ -158,7 +157,6 @@ TEST (BrlenOptTest, celineFake) {
     RaxmlWrapper celineWrapper = RaxmlWrapper(celineOptions);
     //smallWrapper.enableRaxmlDebugOutput();
 
-    Network celineNetwork = readNetworkFromFile(celinePath);
     AnnotatedNetwork annTreeNetwork = build_annotated_network(celineOptions);
 
     // initial logl computation
@@ -185,8 +183,6 @@ TEST (BrlenOptTest, celineFakeWithModelopt) {
     celineOptions.use_repeats = true;
     RaxmlWrapper celineWrapper = RaxmlWrapper(celineOptions);
     //smallWrapper.enableRaxmlDebugOutput();
-
-    Network celineNetwork = readNetworkFromFile(celinePath);
     AnnotatedNetwork annTreeNetwork = build_annotated_network(celineOptions);
 
     // initial logl computation
@@ -211,5 +207,5 @@ TEST (BrlenOptTest, celineFakeWithModelopt) {
     ASSERT_FLOAT_EQ(brlenopt_logl_network, normal_logl_network);
 
     // print the network with brlen variance as branch support values
-    std::cout << "network with brlen variance as branch support values:\n" << toExtendedNewick(celineNetwork) << "\n";
+    std::cout << "network with brlen variance as branch support values:\n" << toExtendedNewick(annTreeNetwork.network) << "\n";
 }

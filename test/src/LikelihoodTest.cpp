@@ -156,14 +156,14 @@ TEST_F (LikelihoodTest, DISABLED_displayedTreeOfNetworkToUtree) {
     // compare tip labels
     std::unordered_set<std::string> tip_labels_utree = collect_tip_labels_utree(utree);
     EXPECT_EQ(tip_labels_utree.size(), smallNetwork.num_tips());
-    for (size_t i = 0; i < smallNetwork.tip_nodes.size(); ++i) {
-        EXPECT_TRUE(tip_labels_utree.find(smallNetwork.tip_nodes[i]->label) != tip_labels_utree.end());
+    for (size_t i = 0; i < smallNetwork.num_tips(); ++i) {
+        EXPECT_TRUE(tip_labels_utree.find(smallNetwork.nodes[i].label) != tip_labels_utree.end());
     }
     // compare tip labels for second tree
     std::unordered_set<std::string> tip_labels_utree2 = collect_tip_labels_utree(utree2);
     EXPECT_EQ(tip_labels_utree2.size(), smallNetwork.num_tips());
-    for (size_t i = 0; i < smallNetwork.tip_nodes.size(); ++i) {
-        EXPECT_TRUE(tip_labels_utree2.find(smallNetwork.tip_nodes[i]->label) != tip_labels_utree2.end());
+    for (size_t i = 0; i < smallNetwork.num_tips(); ++i) {
+        EXPECT_TRUE(tip_labels_utree2.find(smallNetwork.nodes[i].label) != tip_labels_utree2.end());
     }
 
     // check for all different clvs

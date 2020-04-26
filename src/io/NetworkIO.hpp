@@ -13,9 +13,8 @@
 
 namespace netrax {
 
-Network convertNetwork(const RootedNetwork &rnetwork);
-Network readNetworkFromString(const std::string &newick);
-Network readNetworkFromFile(const std::string &filename);
+Network readNetworkFromString(const std::string &newick, int maxReticulations = -1);
+Network readNetworkFromFile(const std::string &filename, int maxReticulations = -1);
 std::string toExtendedNewick(Network &network);
 
 }
