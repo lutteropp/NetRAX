@@ -55,20 +55,18 @@ struct ArcRemovalMove {
 std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network, const Edge &edge);
 std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, const Edge &edge);
 std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network, const Edge &edge);
-
 std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network);
 std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network);
 std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network);
+void performMove(AnnotatedNetwork &ann_network, RNNIMove &move);
+void performMove(AnnotatedNetwork &ann_network, RSPRMove &move);
+void undoMove(AnnotatedNetwork &ann_network, RNNIMove &move);
+void undoMove(AnnotatedNetwork &ann_network, RSPRMove &move);
 
 std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_network);
 std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_network);
-
-void performMove(AnnotatedNetwork &ann_network, RNNIMove &move);
-void performMove(AnnotatedNetwork &ann_network, RSPRMove &move);
 void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move);
 void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move);
-void undoMove(AnnotatedNetwork &ann_network, RNNIMove &move);
-void undoMove(AnnotatedNetwork &ann_network, RSPRMove &move);
 void undoMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move);
 void undoMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move);
 

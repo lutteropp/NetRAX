@@ -535,6 +535,36 @@ std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network, const Ed
     return res;
 }
 
+std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network) {
+    std::vector<RNNIMove> res;
+    Network &network = ann_network.network;
+    for (size_t i = 0; i < network.num_branches(); ++i) {
+        std::vector<RNNIMove> branch_moves = possibleRNNIMoves(ann_network, network.edges[i]);
+        res.insert(std::end(res), std::begin(branch_moves), std::end(branch_moves));
+    }
+    return res;
+}
+
+std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network) {
+    std::vector<RSPRMove> res;
+    Network &network = ann_network.network;
+    for (size_t i = 0; i < network.num_branches(); ++i) {
+        std::vector<RSPRMove> branch_moves = possibleRSPRMoves(ann_network, network.edges[i]);
+        res.insert(std::end(res), std::begin(branch_moves), std::end(branch_moves));
+    }
+    return res;
+}
+
+std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network) {
+    std::vector<RSPRMove> res;
+    Network &network = ann_network.network;
+    for (size_t i = 0; i < network.num_branches(); ++i) {
+        std::vector<RSPRMove> branch_moves = possibleRSPR1Moves(ann_network, network.edges[i]);
+        res.insert(std::end(res), std::begin(branch_moves), std::end(branch_moves));
+    }
+    return res;
+}
+
 void performMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
     Link *x_out_link = getLinkToNode(move.x, move.z);
     Link *z_in_link = getLinkToNode(move.z, move.x);
