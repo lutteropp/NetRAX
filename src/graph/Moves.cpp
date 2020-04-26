@@ -822,6 +822,20 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     Link *from_c_link = getLinkToNode(move.c, move.d);
     Link *to_d_link = getLinkToNode(move.d, move.c);
 
+    Edge *a_b_edge = getEdgeTo(move.a, move.b);
+    Edge *c_d_edge = getEdgeTo(move.c, move.d);
+
+    double a_b_edge_length = a_b_edge->length;
+    double a_b_edge_prob = a_b_edge->prob;
+    double c_d_edge_length = c_d_edge->length;
+    double c_d_edge_prob = c_d_edge->prob;
+
+    Node *u = addInnerNode(network, nullptr);
+    ReticulationData retData;
+    retData.init(network.num_reticulations(), "", 0, nullptr, nullptr, nullptr);
+    Node *v = addInnerNode(network, &retData);
+
+    //make_link()
 
     throw std::runtime_error("Not implemented yet");
 }

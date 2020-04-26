@@ -277,9 +277,9 @@ bool hasNeighbor(Node *node1, Node *node2) {
     return false;
 }
 
-Link* make_link(size_t link_id, Node *node, Edge *edge, Direction dir) {
+Link* make_link(Node *node, Edge *edge, Direction dir) {
     Link link;
-    link.init(link_id, node, edge, nullptr, nullptr, dir);
+    link.init(node, edge, nullptr, nullptr, dir);
     return node->addLink(link);
 }
 

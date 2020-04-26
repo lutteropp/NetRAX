@@ -102,8 +102,6 @@ Network convertNetworkToplevelTrifurcation(RootedNetwork &rnetwork, size_t node_
     }
     rnetwork_inner_tree.emplace_back(rnetwork.root);
 
-    size_t n_links = 0;
-
     // 1.) Create all the nodes and edges. Also create all the incoming links.
     for (RootedNetworkNode *rnode : rnetwork_tips) {
         size_t clv_index = rnode->tip_index;
@@ -115,10 +113,9 @@ Network convertNetworkToplevelTrifurcation(RootedNetwork &rnetwork, size_t node_
         assert(pmatrix_index < network.num_branches());
         network.edges[pmatrix_index].init(pmatrix_index, nullptr, nullptr, rnode->length);
 
-        Link *linkToParent = make_link(n_links, &network.nodes[clv_index], &network.edges[pmatrix_index],
+        Link *linkToParent = make_link(&network.nodes[clv_index], &network.edges[pmatrix_index],
                 Direction::INCOMING);
         network.edges[pmatrix_index].link1 = linkToParent;
-        n_links++;
     }
 
     for (size_t i = 0; i < rnetwork_inner_tree.size(); ++i) {
@@ -134,10 +131,9 @@ Network convertNetworkToplevelTrifurcation(RootedNetwork &rnetwork, size_t node_
             size_t pmatrix_index = clv_index;
             assert(pmatrix_index < network.num_branches());
             network.edges[pmatrix_index].init(pmatrix_index, nullptr, nullptr, rnode->length);
-            Link *linkToParent = make_link(n_links, &network.nodes[clv_index], &network.edges[pmatrix_index],
+            Link *linkToParent = make_link(&network.nodes[clv_index], &network.edges[pmatrix_index],
                     Direction::INCOMING);
             network.edges[pmatrix_index].link1 = linkToParent;
-            n_links++;
             assert(rnode->children.size() == 2);
         } else {
             assert(rnode->children.size() == 3);
@@ -163,14 +159,13 @@ Network convertNetworkToplevelTrifurcation(RootedNetwork &rnetwork, size_t node_
                 rnode->secondParentProb);
         network.reticulation_nodes[i] = &network.nodes[clv_index];
 
-        Link *linkToFirstParent = make_link(n_links, &network.nodes[clv_index], &network.edges[pmatrix_index],
+        Link *linkToFirstParent = make_link(&network.nodes[clv_index], &network.edges[pmatrix_index],
                 Direction::INCOMING);
         network.edges[pmatrix_index].link1 = linkToFirstParent;
 
-        Link *linkToSecondParent = make_link(n_links + 1, &network.nodes[clv_index], &network.edges[pmatrix_index + 1],
+        Link *linkToSecondParent = make_link(&network.nodes[clv_index], &network.edges[pmatrix_index + 1],
                 Direction::INCOMING);
         network.edges[pmatrix_index + 1].link1 = linkToSecondParent;
-        n_links += 2;
     }
 
     // 2.) Create all the outgoing links
@@ -186,27 +181,23 @@ Network convertNetworkToplevelTrifurcation(RootedNetwork &rnetwork, size_t node_
             assert(rnode->secondParent->clv_index < network.num_nodes());
             assert(pmatrix_index + 1 < network.num_branches());
 
-            Link *linkFromFirstParent = make_link(n_links, &network.nodes[rnode->firstParent->clv_index],
+            Link *linkFromFirstParent = make_link(&network.nodes[rnode->firstParent->clv_index],
                     &network.edges[pmatrix_index], Direction::OUTGOING);
-            Link *linkFromSecondParent = make_link(n_links + 1, &network.nodes[rnode->secondParent->clv_index],
+            Link *linkFromSecondParent = make_link(&network.nodes[rnode->secondParent->clv_index],
                     &network.edges[pmatrix_index + 1], Direction::OUTGOING);
 
             assert(pmatrix_index + 1 < network.num_branches());
             network.edges[pmatrix_index].link2 = linkFromFirstParent;
             network.edges[pmatrix_index + 1].link2 = linkFromSecondParent;
-
-            n_links += 2;
         } else { // 1 parent
             size_t pmatrix_index = rnode->clv_index;
 
             assert(rnode->parent->clv_index < network.num_nodes());
             assert(pmatrix_index < network.num_branches());
 
-            Link *linkFromParent = make_link(n_links, &network.nodes[rnode->parent->clv_index],
+            Link *linkFromParent = make_link(&network.nodes[rnode->parent->clv_index],
                     &network.edges[pmatrix_index], Direction::OUTGOING);
             network.edges[pmatrix_index].link2 = linkFromParent;
-
-            n_links++;
         }
     }
 

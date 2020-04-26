@@ -27,7 +27,6 @@ void reset_tip_ids(Network &network, const std::unordered_map<std::string, size_
         assert(network.nodes[i].isTip());
         const unsigned int tip_id = label_id_map.at(network.nodes[i].label);
         network.nodes[i].clv_index = tip_id;
-        network.nodes[i].getLink()->node_index = tip_id;
         network.nodes_by_index[tip_id] = &network.nodes[i];
         // TODO reset pmatrix index
         Edge* edge = network.nodes[i].links[0].edge;

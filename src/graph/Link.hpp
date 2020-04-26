@@ -17,8 +17,7 @@ struct Node;
 struct Edge;
 
 struct Link { // subnode in raxml-ng
-    void init(size_t index, Node *node, Edge *edge, Link *next, Link *outer, Direction direction) {
-        this->node_index = index;
+    void init(Node *node, Edge *edge, Link *next, Link *outer, Direction direction) {
         this->node = node;
         this->edge = edge;
         this->next = next;
@@ -26,11 +25,6 @@ struct Link { // subnode in raxml-ng
         this->direction = direction;
     }
 
-    size_t getNodeIndex() const {
-        return node_index;
-    }
-
-    size_t node_index = 0;
     Node *node = nullptr;
     Edge *edge = nullptr;
 
