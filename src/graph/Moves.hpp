@@ -10,6 +10,8 @@
 #include "Common.hpp"
 #include <vector>
 
+// TODO: Maybe put all moves into a class hierarchy?
+
 namespace netrax {
 struct AnnotatedNetwork;
 // The moves correspond to the rNNI moves and rSPR moves from this paper: https://doi.org/10.1371/journal.pcbi.1005611
@@ -34,15 +36,45 @@ struct RSPRMove {
     Node *z = nullptr;
 };
 
+struct ArcInsertionMove {
+    Node *a = nullptr;
+    Node *b = nullptr;
+    Node *c = nullptr;
+    Node *d = nullptr;
+};
+
+struct ArcRemovalMove {
+    Node *a = nullptr;
+    Node *b = nullptr;
+    Node *c = nullptr;
+    Node *d = nullptr;
+    Node *u = nullptr;
+    Node *v = nullptr;
+};
+
 std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network, const Edge &edge);
 std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, const Edge &edge);
 std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network, const Edge &edge);
+
+std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network);
+std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network);
+std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network);
+
+std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_network);
+std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_network);
+
 void performMove(AnnotatedNetwork &ann_network, RNNIMove &move);
 void performMove(AnnotatedNetwork &ann_network, RSPRMove &move);
+void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move);
+void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move);
 void undoMove(AnnotatedNetwork &ann_network, RNNIMove &move);
 void undoMove(AnnotatedNetwork &ann_network, RSPRMove &move);
+void undoMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move);
+void undoMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move);
 
 std::string toString(RNNIMove &move);
 std::string toString(RSPRMove &move);
+std::string toString(ArcInsertionMove &move);
+std::string toString(ArcRemovalMove &move);
 
 }
