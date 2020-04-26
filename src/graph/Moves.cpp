@@ -734,14 +734,10 @@ void undoMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
 }
 
 void removeEdge(Network &network, Edge *edge) {
-    // TODO: we need to ensure that we don't destroy any pointers to the edges!
     assert(edge);
-    size_t edgePos = 0;
-    for (size_t i = 0; i < network.num_branches(); ++i) {
-
-    }
-
-    throw std::runtime_error("Not implemented yet");
+    std::swap(network._edges[edge->pmatrix_index], network._edges[network.branchCount-1]);
+    std::swap(network.edges[edge->pmatrix_index], network.edges[network.branchCount-1]);
+    network.nodeCount--;
 }
 
 void addEdge(Network &network, Edge &edge) {
@@ -752,11 +748,11 @@ void addEdge(Network &network, Edge &edge) {
 }
 
 void removeNode(Network &network, Node *node) {
-    // TODO: we need to ensure that we don't destroy any pointers to the edges!
     assert(node);
     assert(node != network.root);
-
-    throw std::runtime_error("Not implemented yet");
+    std::swap(network._nodes[node->clv_index], network._nodes[network.nodeCount-1]);
+    std::swap(network.nodes[node->clv_index], network.nodes[network.nodeCount-1]);
+    network.nodeCount--;
 }
 
 void addNode(Network &network, Node& node) {
