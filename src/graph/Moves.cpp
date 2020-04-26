@@ -735,7 +735,6 @@ void undoMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
 
 void removeEdge(Network &network, Edge *edge) {
     assert(edge);
-    assert(!edge->link1->node->isTip() && !edge->link2->node->isTip());
     std::swap(network.edges[edge->pmatrix_index], network.edges[network.branchCount - 1]);
     std::swap(network.edges_by_index[edge->pmatrix_index], network.edges_by_index[network.branchCount - 1]);
     network.edges_by_index[edge->pmatrix_index] = nullptr;
