@@ -565,9 +565,32 @@ std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network) {
     return res;
 }
 
+std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_network, const Edge &edge) {
+    std::vector<ArcInsertionMove> res;
+    Network &network = ann_network.network;
+    // choose two distinct arcs ab, cd (with cd not ancestral to ab -> no a-d-path allowed)
+    Node *a = getSource(edge);
+    Node *b = getTarget(edge);
+    for (size_t i = 0; i < network.num_branches(); ++i) {
+        if (network.edges[i].pmatrix_index == edge.pmatrix_index) {
+            continue;
+        }
+        Node *c = getSource(network.edges[i]);
+        Node *d = getTarget(network.edges[i]);
+        if (!hasPath(network, a, d)) {
+            res.emplace_back(ArcInsertionMove { a, b, c, d });
+        }
+    }
+    return res;
+}
+
 std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_network) {
     std::vector<ArcInsertionMove> res;
-
+    Network &network = ann_network.network;
+    for (size_t i = 0; i < network.num_branches(); ++i) {
+        std::vector<ArcInsertionMove> moves = possibleArcInsertionMoves(ann_network, network.edges[i]);
+        res.insert(std::end(res), std::begin(moves), std::end(moves));
+    }
     return res;
 }
 
