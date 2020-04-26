@@ -590,11 +590,17 @@ std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_networ
         Node *u = ucChoices[i].first;
         Node *c = ucChoices[i].second;
         Node *b = getOtherChild(u, v);
+        if (hasChild(c, d)) { // avoid creating parallel arcs
+            continue;
+        }
         assert(u);
         assert(c);
         assert(b);
         Node *a = getActiveParent(u);
         assert(a);
+        if (hasChild(a, b)) { // avoid creating parallel arcs
+            continue;
+        }
         res.emplace_back(ArcRemovalMove { a, b, c, d, u, v });
     }
     return res;

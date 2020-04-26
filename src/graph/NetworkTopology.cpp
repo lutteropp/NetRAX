@@ -166,6 +166,13 @@ Node* getOtherChild(Node* parent, Node* aChild) {
     return nullptr;
 }
 
+bool hasChild(Node* parent, Node* candidate) {
+    assert(parent);
+    assert(candidate);
+    std::vector<Node*> children = getChildren(parent, getActiveParent(parent));
+    return (std::find(children.begin(), children.end(), candidate) != children.end());
+}
+
 std::vector<Node*> getNeighbors(const Node *node) {
     assert(node);
     std::vector<Node*> neighbors;

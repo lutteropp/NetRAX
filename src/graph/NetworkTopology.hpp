@@ -35,6 +35,7 @@ size_t getReticulationActiveParentPmatrixIndex(const Node* node);
 std::vector<Node*> getChildren(Node* node, const Node* myParent);
 std::vector<Node*> getActiveChildren(Node* node, const Node* myParent);
 Node* getOtherChild(Node* parent, Node* aChild);
+bool hasChild(Node* parent, Node* candidate);
 std::vector<Node*> getNeighbors(const Node* node);
 std::vector<Node*> getActiveNeighbors(const Node* node);
 Node* getActiveParent(const Node* node);
