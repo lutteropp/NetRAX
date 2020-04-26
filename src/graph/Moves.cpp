@@ -821,23 +821,96 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     Link *to_b_link = getLinkToNode(move.b, move.a);
     Link *from_c_link = getLinkToNode(move.c, move.d);
     Link *to_d_link = getLinkToNode(move.d, move.c);
-
     Edge *a_b_edge = getEdgeTo(move.a, move.b);
     Edge *c_d_edge = getEdgeTo(move.c, move.d);
-
-    double a_b_edge_length = a_b_edge->length;
-    double a_b_edge_prob = a_b_edge->prob;
-    double c_d_edge_length = c_d_edge->length;
-    double c_d_edge_prob = c_d_edge->prob;
 
     Node *u = addInnerNode(network, nullptr);
     ReticulationData retData;
     retData.init(network.num_reticulations(), "", 0, nullptr, nullptr, nullptr);
     Node *v = addInnerNode(network, &retData);
 
-    //make_link()
+    Link *to_u_link = make_link(u, nullptr, Direction::INCOMING);
+    Link *u_b_link = make_link(u, nullptr, Direction::OUTGOING);
+    Link *u_v_link = make_link(u, nullptr, Direction::OUTGOING);
+    Link *v_u_link = make_link(v, nullptr, Direction::INCOMING);
+    Link *v_c_link = make_link(v, nullptr, Direction::INCOMING);
+    Link *v_d_link = make_link(v, nullptr, Direction::OUTGOING);
 
-    throw std::runtime_error("Not implemented yet");
+    double u_v_edge_length = 1.0;
+    double c_v_edge_length = c_d_edge->length / 2;
+    double v_d_edge_length = c_d_edge->length / 2;
+    double a_u_edge_length = a_b_edge->length / 2;
+    double u_b_edge_length = a_b_edge->length / 2;
+    double u_v_edge_prob = 0.5;
+    double c_v_edge_prob = 0.5;
+    double v_d_edge_prob = c_d_edge->prob;
+    double a_u_edge_prob = 1.0;
+    double u_b_edge_prob = a_b_edge->prob;
+    Edge *u_v_edge = addEdge(network, u_v_link, v_u_link, u_v_edge_length, u_v_edge_prob);
+    Edge *a_u_edge = addEdge(network, from_a_link, to_u_link, a_u_edge_length, a_u_edge_prob);
+    Edge *u_b_edge = addEdge(network, u_b_link, to_b_link, u_b_edge_length, u_b_edge_prob);
+    Edge *c_v_edge = addEdge(network, from_c_link, v_c_link, c_v_edge_length, c_v_edge_prob);
+    Edge *v_d_edge = addEdge(network, v_d_link, to_d_link, v_d_edge_length, v_d_edge_prob);
+
+    v->getReticulationData()->link_to_first_parent = v_u_link;
+    v->getReticulationData()->link_to_second_parent = v_c_link;
+    v->getReticulationData()->link_to_child = v_d_link;
+
+    from_a_link->edge = a_u_edge;
+    to_u_link->edge = a_u_edge;
+    u_b_link->edge = u_b_edge;
+    to_b_link->edge = u_b_edge;
+    u_v_link->edge = u_v_edge;
+    v_u_link->edge = u_v_edge;
+    v_c_link->edge = c_v_edge;
+    from_c_link->edge = c_v_edge;
+    v_d_link->edge = v_d_edge;
+    to_d_link->edge = v_d_edge;
+
+    from_a_link->outer = to_u_link;
+    to_u_link->outer = from_a_link;
+    u_b_link->outer = to_b_link;
+    to_b_link->outer = u_b_link;
+    u_v_link->outer = v_u_link;
+    v_u_link->outer = u_v_link;
+    v_c_link->outer = from_c_link;
+    from_c_link->outer = v_c_link;
+    v_d_link->outer = to_d_link;
+    to_d_link->outer = v_d_link;
+
+    //  Also update these in the treeinfo and the branch_probs array
+    unsigned int partitions = 1;
+    if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) { // each partition has its branch length
+        partitions = treeinfo->partition_count;
+    }
+    for (size_t p = 0; p < partitions; ++p) {
+        double u_v_branch_length = 1.0;
+        double c_v_branch_length = treeinfo->branch_lengths[p][c_d_edge->pmatrix_index] / 2;
+        double v_d_branch_length = treeinfo->branch_lengths[p][c_d_edge->pmatrix_index] / 2;
+        double a_u_branch_length = treeinfo->branch_lengths[p][a_b_edge->pmatrix_index] / 2;
+        double u_b_branch_length = treeinfo->branch_lengths[p][a_b_edge->pmatrix_index] / 2;
+
+        double u_v_branch_prob = 0.5;
+        double c_v_branch_prob = 0.5;
+        double v_d_branch_prob = ann_network.branch_probs[p][c_d_edge->pmatrix_index];
+        double a_u_branch_prob = 1.0;
+        double u_b_branch_prob = ann_network.branch_probs[p][a_b_edge->pmatrix_index];
+
+        treeinfo->branch_lengths[p][u_v_edge->pmatrix_index] = u_v_branch_length;
+        treeinfo->branch_lengths[p][c_v_edge->pmatrix_index] = c_v_branch_length;
+        treeinfo->branch_lengths[p][v_d_edge->pmatrix_index] = v_d_branch_length;
+        treeinfo->branch_lengths[p][a_u_edge->pmatrix_index] = a_u_branch_length;
+        treeinfo->branch_lengths[p][u_b_edge->pmatrix_index] = u_b_branch_length;
+
+        ann_network.branch_probs[p][u_v_edge->pmatrix_index] = u_v_branch_prob;
+        ann_network.branch_probs[p][c_v_edge->pmatrix_index] = c_v_branch_prob;
+        ann_network.branch_probs[p][v_d_edge->pmatrix_index] = v_d_branch_prob;
+        ann_network.branch_probs[p][a_u_edge->pmatrix_index] = a_u_branch_prob;
+        ann_network.branch_probs[p][u_b_edge->pmatrix_index] = u_b_branch_prob;
+    }
+
+    removeEdge(network, a_b_edge);
+    removeEdge(network, c_d_edge);
 }
 
 void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
