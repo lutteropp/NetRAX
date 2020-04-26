@@ -735,8 +735,8 @@ void undoMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
 
 void removeEdge(Network &network, Edge *edge) {
     assert(edge);
-    std::swap(network.edges[edge->pmatrix_index], network.edges[network.branchCount-1]);
-    std::swap(network.edges_by_index[edge->pmatrix_index], network.edges_by_index[network.branchCount-1]);
+    std::swap(network.edges[edge->pmatrix_index], network.edges[network.branchCount - 1]);
+    std::swap(network.edges_by_index[edge->pmatrix_index], network.edges_by_index[network.branchCount - 1]);
     network.nodeCount--;
 }
 
@@ -750,15 +750,30 @@ void addEdge(Network &network, Edge &edge) {
 void removeNode(Network &network, Node *node) {
     assert(node);
     assert(node != network.root);
-    std::swap(network.nodes[node->clv_index], network.nodes[network.nodeCount-1]);
-    std::swap(network.nodes_by_index[node->clv_index], network.nodes_by_index[network.nodeCount-1]);
+    std::swap(network.nodes[node->clv_index], network.nodes[network.nodeCount - 1]);
+    std::swap(network.nodes_by_index[node->clv_index], network.nodes_by_index[network.nodeCount - 1]);
     network.nodeCount--;
+
+    if (node->type == NodeType::RETICULATION_NODE) {
+        if (network.num_reticulations() > 1) {
+            // update reticulation indices
+            network.reticulation_nodes[network.reticulation_nodes.size() - 1]->getReticulationData()->reticulation_index =
+                    network.reticulation_nodes.size() - 1;
+            std::swap(network.reticulation_nodes[node->getReticulationData()->reticulation_index],
+                    network.reticulation_nodes[network.reticulation_nodes.size() - 1]);
+        }
+        network.reticulation_nodes.resize(network.reticulation_nodes.size() - 1);
+    }
 }
 
-void addNode(Network &network, Node& node) {
+void addNode(Network &network, Node &node) {
     assert(network.num_nodes() < network.nodes.size());
     assert(node.clv_index == network.nodeCount);
     network.nodes[network.nodeCount] = std::move(node);
+    if (node.type == NodeType::RETICULATION_NODE) {
+        network.reticulation_nodes.emplace_back(&network.nodes[network.nodeCount]);
+        node.getReticulationData()->reticulation_index = network.reticulation_nodes.size() - 1;
+    }
     network.nodeCount++;
 }
 
@@ -767,6 +782,22 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
 }
 
 void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
+    Link *from_a_link = getLinkToNode(move.a, move.u);
+    Link *to_b_link = getLinkToNode(move.b, move.u);
+    Link *from_c_link = getLinkToNode(move.c, move.v);
+    Link *to_d_link = getLinkToNode(move.v, move.d);
+
+    // TODO: Also update these in the treeinfo and the branch_probs array
+    double a_b_branch_length = from_a_link->edge->length + to_b_link->edge->length;
+    double a_b_brench_prob = std::min(from_a_link->edge->prob, to_b_link->edge->prob);
+    double c_d_branch_length = from_c_link->edge->length + to_d_link->edge->length;
+    double c_d_brench_prob = std::min(from_c_link->edge->prob, to_d_link->edge->prob);
+
+    from_a_link->outer = to_b_link;
+    to_b_link->outer = from_a_link;
+    from_c_link->outer = to_d_link;
+    to_d_link->outer = from_c_link;
+
     throw std::runtime_error("Not implemented yet");
 }
 
