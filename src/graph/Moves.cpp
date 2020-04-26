@@ -973,11 +973,36 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
 }
 
 void undoMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
-    throw std::runtime_error("Not implemented yet");
+    Node *u = nullptr;
+    Node *v = nullptr;
+    // TODO: find u and v
+    std::vector<Node*> uCandidates = getChildren(move.a, getActiveParent(move.a));
+    std::vector<Node*> vCandidates = getChildren(move.c, getActiveParent(move.c));
+
+    for (size_t i = 0; i < uCandidates.size(); ++i) {
+        if (!hasChild(uCandidates[i], move.b)) {
+            continue;
+        }
+        for (size_t j = 0; j < vCandidates.size(); ++j) {
+            if (hasChild(uCandidates[i], vCandidates[j]) && hasChild(vCandidates[j], move.d)) {
+                u = uCandidates[i];
+                v = vCandidates[j];
+            }
+            break;
+        }
+        if (u != nullptr && v != nullptr) {
+            break;
+        }
+    }
+    assert(u);
+    assert(v);
+    ArcRemovalMove removal { move.a, move.b, move.c, move.d, u, v };
+    performMove(ann_network, removal);
 }
 
 void undoMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
-    throw std::runtime_error("Not implemented yet");
+    ArcInsertionMove insertion { move.a, move.b, move.c, move.d };
+    performMove(ann_network, insertion);
 }
 
 std::string toString(RNNIMove &move) {
