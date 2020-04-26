@@ -742,7 +742,7 @@ void removeEdge(Network &network, Edge *edge) {
     std::swap(network.edges[index_in_edges_array], network.edges[network.branchCount - 1]);
     network.edges_by_index[other_index] = &network.edges[index_in_edges_array];
     network.edges_by_index[index] = nullptr;
-    network.nodeCount--;
+    network.branchCount--;
 }
 
 Edge* addEdge(Network &network, Link *link1, Link *link2, double length, double prob) {
