@@ -688,4 +688,27 @@ std::string toString(RSPRMove &move) {
     return ss.str();
 }
 
+std::string toString(ArcInsertionMove &move) {
+    std::stringstream ss;
+    ss << "arc insertion move:\n";
+    ss << "  a = (" << move.a->label << "," << move.a->clv_index << ")" << "\n";
+    ss << "  b = (" << move.b->label << "," << move.b->clv_index << ")" << "\n";
+    ss << "  c = (" << move.c->label << "," << move.c->clv_index << ")" << "\n";
+    ss << "  d = (" << move.d->label << "," << move.d->clv_index << ")" << "\n";
+    return ss.str();
+
+}
+
+std::string toString(ArcRemovalMove &move) {
+    std::stringstream ss;
+    ss << "arc removal move:\n";
+    ss << "  a = (" << move.a->label << "," << move.a->clv_index << ")" << "\n";
+    ss << "  b = (" << move.b->label << "," << move.b->clv_index << ")" << "\n";
+    ss << "  c = (" << move.c->label << "," << move.c->clv_index << ")" << "\n";
+    ss << "  d = (" << move.d->label << "," << move.d->clv_index << ")" << "\n";
+    ss << "  u = (" << move.u->label << "," << move.u->clv_index << ")" << "\n";
+    ss << "  v = (" << move.v->label << "," << move.v->clv_index << ")" << "\n";
+    return ss.str();
+}
+
 }
