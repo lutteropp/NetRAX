@@ -815,6 +815,14 @@ Node* addInnerNode(Network &network, ReticulationData *retData = nullptr) {
 }
 
 void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
+    Network &network = ann_network.network;
+    pllmod_treeinfo_t *treeinfo = ann_network.fake_treeinfo;
+    Link *from_a_link = getLinkToNode(move.a, move.b);
+    Link *to_b_link = getLinkToNode(move.b, move.a);
+    Link *from_c_link = getLinkToNode(move.c, move.d);
+    Link *to_d_link = getLinkToNode(move.d, move.c);
+
+
     throw std::runtime_error("Not implemented yet");
 }
 
@@ -824,7 +832,7 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     Link *from_a_link = getLinkToNode(move.a, move.u);
     Link *to_b_link = getLinkToNode(move.b, move.u);
     Link *from_c_link = getLinkToNode(move.c, move.v);
-    Link *to_d_link = getLinkToNode(move.v, move.d);
+    Link *to_d_link = getLinkToNode(move.d, move.v);
 
     Edge *a_u_edge = getEdgeTo(move.a, move.u);
     Edge *u_b_edge = getEdgeTo(move.u, move.b);
