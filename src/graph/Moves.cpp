@@ -759,6 +759,7 @@ Edge* addEdge(Network &network, Link *link1, Link *link2, double length, double 
             }
         }
     }
+    assert(network.edges_by_index[pmatrix_index] == nullptr);
     network.edges[network.branchCount].init(pmatrix_index, link1, link2, length, prob);
     network.edges_by_index[pmatrix_index] = &network.edges[network.branchCount];
     network.branchCount++;
@@ -796,6 +797,7 @@ Node* addInnerNode(Network &network, ReticulationData *retData = nullptr) {
             break;
         }
     }
+    assert(network.nodes_by_index[clv_index] == nullptr);
     unsigned int scaler_index = clv_index - network.num_tips();
     network.nodes_by_index[clv_index] = &network.nodes[network.nodeCount];
 
@@ -837,7 +839,6 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
 
     Edge *a_b_edge = addEdge(network, from_a_link, to_b_link, a_b_branch_length, a_b_branch_prob);
     Edge *c_d_edge = addEdge(network, from_c_link, to_d_link, c_d_branch_length, c_d_branch_prob);
-    ;
 
     removeNode(network, move.u);
     removeNode(network, move.v);
