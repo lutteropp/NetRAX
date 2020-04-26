@@ -737,21 +737,33 @@ void removeEdge(Network &network, Edge *edge) {
     assert(edge);
     std::swap(network.edges[edge->pmatrix_index], network.edges[network.branchCount - 1]);
     std::swap(network.edges_by_index[edge->pmatrix_index], network.edges_by_index[network.branchCount - 1]);
+    network.edges_by_index[edge->pmatrix_index] = nullptr;
     network.nodeCount--;
 }
 
-void addEdge(Network &network, Edge &edge) {
+Edge* addEdge(Network &network, Link *link1, Link *link2, double length, double prob) {
     assert(network.num_branches() < network.edges.size());
-    assert(edge.pmatrix_index == network.branchCount);
-    network.edges[network.branchCount] = std::move(edge);
+    unsigned int pmatrix_index = network.branchCount;
+    // try to find a smaller unused pmatrix index
+    for (size_t i = 0; i < pmatrix_index; ++i) {
+        if (network.edges_by_index[i] == nullptr) {
+            pmatrix_index = i;
+            break;
+        }
+    }
+    network.edges[network.branchCount].init(pmatrix_index, link1, link2, length, prob);
+    network.edges_by_index[pmatrix_index] = &network.edges[network.branchCount];
     network.branchCount++;
+    return network.edges_by_index[pmatrix_index];
 }
 
 void removeNode(Network &network, Node *node) {
     assert(node);
     assert(node != network.root);
+    assert(!node->isTip());
     std::swap(network.nodes[node->clv_index], network.nodes[network.nodeCount - 1]);
     std::swap(network.nodes_by_index[node->clv_index], network.nodes_by_index[network.nodeCount - 1]);
+    network.nodes_by_index[node->clv_index] = nullptr;
     network.nodeCount--;
 
     if (node->type == NodeType::RETICULATION_NODE) {
@@ -766,15 +778,30 @@ void removeNode(Network &network, Node *node) {
     }
 }
 
-void addNode(Network &network, Node &node) {
+Node* addInnerNode(Network &network, ReticulationData *retData = nullptr) {
     assert(network.num_nodes() < network.nodes.size());
-    assert(node.clv_index == network.nodeCount);
-    network.nodes[network.nodeCount] = std::move(node);
-    if (node.type == NodeType::RETICULATION_NODE) {
-        network.reticulation_nodes.emplace_back(&network.nodes[network.nodeCount]);
-        node.getReticulationData()->reticulation_index = network.reticulation_nodes.size() - 1;
+    unsigned int clv_index = network.nodeCount;
+    // try to find a smaller unused clv index
+    for (size_t i = 0; i < clv_index; ++i) {
+        if (network.nodes_by_index[i] == nullptr) {
+            clv_index = i;
+            break;
+        }
     }
+    unsigned int scaler_index = clv_index - network.num_tips();
+    network.nodes_by_index[clv_index] = &network.nodes[network.nodeCount];
+
+    if (retData) {
+        network.nodes[network.nodeCount].initReticulation(clv_index, scaler_index, "", *retData);
+        network.reticulation_nodes.emplace_back(network.nodes_by_index[clv_index]);
+        network.nodes[network.nodeCount].getReticulationData()->reticulation_index = network.reticulation_nodes.size()
+                - 1;
+    } else {
+        network.nodes[network.nodeCount].initBasic(clv_index, scaler_index, "");
+    }
+
     network.nodeCount++;
+    return network.nodes_by_index[clv_index];
 }
 
 void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
@@ -782,10 +809,17 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
 }
 
 void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
+    Network &network = ann_network.network;
     Link *from_a_link = getLinkToNode(move.a, move.u);
     Link *to_b_link = getLinkToNode(move.b, move.u);
     Link *from_c_link = getLinkToNode(move.c, move.v);
     Link *to_d_link = getLinkToNode(move.v, move.d);
+
+    Edge *a_u_edge = getEdgeTo(move.a, move.u);
+    Edge *u_b_edge = getEdgeTo(move.u, move.b);
+    Edge *c_v_edge = getEdgeTo(move.c, move.v);
+    Edge *v_d_edge = getEdgeTo(move.v, move.d);
+    Edge *u_v_edge = getEdgeTo(move.u, move.v);
 
     // TODO: Also update these in the treeinfo and the branch_probs array
     double a_b_branch_length = from_a_link->edge->length + to_b_link->edge->length;
@@ -793,10 +827,27 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     double c_d_branch_length = from_c_link->edge->length + to_d_link->edge->length;
     double c_d_brench_prob = std::min(from_c_link->edge->prob, to_d_link->edge->prob);
 
+    Edge *a_b_edge;
+    Edge *c_d_edge;
+    //a_b_edge = addEdge(network, Edge());
+    //c_d_edge = addEdge(network, Edge());
+
+    removeNode(network, move.u);
+    removeNode(network, move.v);
+    removeEdge(network, a_u_edge);
+    removeEdge(network, u_b_edge);
+    removeEdge(network, c_v_edge);
+    removeEdge(network, v_d_edge);
+    removeEdge(network, u_v_edge);
+
     from_a_link->outer = to_b_link;
     to_b_link->outer = from_a_link;
     from_c_link->outer = to_d_link;
     to_d_link->outer = from_c_link;
+    from_a_link->edge = a_b_edge;
+    to_b_link->edge = a_b_edge;
+    from_c_link->edge = c_d_edge;
+    to_d_link->edge = c_d_edge;
 
     throw std::runtime_error("Not implemented yet");
 }

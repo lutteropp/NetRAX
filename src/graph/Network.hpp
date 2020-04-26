@@ -59,7 +59,6 @@ public:
 
     std::vector<Node*> nodes_by_index; // nodes by clv_index
     std::vector<Edge*> edges_by_index; // edges by pmatrix_index
-    std::vector<Link*> links;
     std::vector<Node*> reticulation_nodes;
 
     std::vector<Node> nodes;
