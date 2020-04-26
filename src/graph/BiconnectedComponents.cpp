@@ -131,9 +131,9 @@ BlobInformation partitionNetworkIntoBlobs(const Network &network) {
     std::vector<unsigned int> discovery_time(network.num_nodes(), 0);
     std::vector<unsigned int> lowest(network.num_nodes(), std::numeric_limits<unsigned int>::max());
     std::vector<unsigned int> blob_size;
-    for (const Node &node : network.nodes) {
-        if (discovery_time[node.clv_index] == 0) {
-            bicon(&node, nullptr, time, discovery_time, lowest, s, blob_info.edge_blob_id, act_bicomp_id, blob_size);
+    for (const Node *node : network.nodes) {
+        if (discovery_time[node->clv_index] == 0) {
+            bicon(node, nullptr, time, discovery_time, lowest, s, blob_info.edge_blob_id, act_bicomp_id, blob_size);
         }
     }
 

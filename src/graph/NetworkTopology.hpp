@@ -43,8 +43,8 @@ std::vector<Node*> getAllParents(const Node* node);
 Edge* getEdgeTo(const Node* node, const Node* target);
 std::vector<Edge*> getAdjacentEdges(const Node* node);
 
-Node* getSource(const Edge& edge);
-Node* getTarget(const Edge& edge);
+Node* getSource(const Edge* edge);
+Node* getTarget(const Edge* edge);
 
 bool hasNeighbor(Node* node1, Node* node2);
 

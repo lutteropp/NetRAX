@@ -279,7 +279,7 @@ double compute_tree_logl(Network &network, pllmod_treeinfo_t &fake_treeinfo, siz
         ops = createOperations(network, tree_idx, dead_nodes);
     }
     unsigned int ops_count = ops.size();
-    Node *ops_root = network.getNodeByClvIndex(ops[ops.size() - 1].parent_clv_index);
+    Node *ops_root = network.nodes[ops[ops.size() - 1].parent_clv_index];
 // Compute CLVs in pll_update_partials, as specified by the operations array. This needs a pll_partition_t object.
     pll_update_partials(fake_treeinfo.partitions[partition_idx], ops.data(), ops_count);
 
@@ -309,7 +309,7 @@ void compute_tree_logl_blobs(Network &network, BlobInformation &blobInfo, const 
     if (ops_count == 0) {
         return;
     }
-    Node *ops_root = network.getNodeByClvIndex(ops[ops.size() - 1].parent_clv_index);
+    Node *ops_root = network.nodes[ops[ops.size() - 1].parent_clv_index];
 
 // Compute CLVs in pll_update_partials, as specified by the operations array. This needs a pll_partition_t object.
     pll_update_partials(fake_treeinfo.partitions[partition_idx], ops.data(), ops_count);
@@ -339,7 +339,7 @@ void setup_pmatrices(Network &network, pllmod_treeinfo_t &fake_treeinfo, int inc
     bool collect_brlen = (fake_treeinfo.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED ? false : true);
     if (collect_brlen) {
         for (size_t i = 0; i < network.num_branches(); ++i) {
-            fake_treeinfo.branch_lengths[0][network.edges[i].pmatrix_index] = network.edges[i].length;
+            fake_treeinfo.branch_lengths[0][i] = network.edges[i]->length;
         }
         for (size_t i = network.num_branches(); i < network.edges.size(); ++i) {
             fake_treeinfo.branch_lengths[0][i] = 0.0;

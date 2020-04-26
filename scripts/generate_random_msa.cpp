@@ -60,12 +60,12 @@ int main(int argc, char **argv) {
     std::ofstream outfile(options.msaOutPath);
     std::cout << "Number of network tip nodes: " << network.num_tips() << "\n";
     for (size_t i = 0; i < network.num_tips(); ++i) {
-        const netrax::Node &node = network.nodes[i];
-        outfile << ">" << node.label << "\n";
+        const netrax::Node *node = network.nodes[i];
+        outfile << ">" << node->label << "\n";
         std::string seq = genRandomString(options);
         outfile << seq << "\n";
 
-        std::cout << ">" << node.label << "\n";
+        std::cout << ">" << node->label << "\n";
         std::cout << seq << "\n";
     }
     outfile.close();

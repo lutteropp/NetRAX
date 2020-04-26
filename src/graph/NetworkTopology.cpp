@@ -249,19 +249,19 @@ std::vector<Edge*> getAdjacentEdges(const Node *node) {
     return res;
 }
 
-Node* getSource(const Edge &edge) {
-    if (edge.link1->direction == Direction::OUTGOING) {
-        return edge.link1->node;
+Node* getSource(const Edge *edge) {
+    if (edge->link1->direction == Direction::OUTGOING) {
+        return edge->link1->node;
     } else {
-        return edge.link2->node;
+        return edge->link2->node;
     }
 }
 
-Node* getTarget(const Edge &edge) {
-    if (edge.link1->direction == Direction::INCOMING) {
-        return edge.link1->node;
+Node* getTarget(const Edge *edge) {
+    if (edge->link1->direction == Direction::INCOMING) {
+        return edge->link1->node;
     } else {
-        return edge.link2->node;
+        return edge->link2->node;
     }
 }
 

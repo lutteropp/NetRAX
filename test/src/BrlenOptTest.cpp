@@ -97,8 +97,8 @@ TEST (BrlenOptTest, tree) {
     Network *network_ptr = &annTreeNetwork.network;
     std::cout << "NETWORK - The ACTUAL optimized branch lengths are:\n";
     for (size_t i = 0; i < utreeIDToNetworkID.size(); ++i) {
-        std::cout << std::setprecision(17) << " pmatrix_idx = " << network_ptr->edges[i].pmatrix_index << " -> brlen = "
-                << network_ptr->edges[i].length << "\n";
+        std::cout << std::setprecision(17) << " pmatrix_idx = " << i << " -> brlen = "
+                << network_ptr->edges[i]->length << "\n";
     }
 
     for (size_t i = 0; i < utreeIDToNetworkID.size(); ++i) {

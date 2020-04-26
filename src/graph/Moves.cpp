@@ -45,7 +45,7 @@ bool hasPath(const Network &network, const Node *from, const Node *to, bool none
  * we need to choose s and t in a way that there are elementary connections {u,s} and {v,t},
  * but there are no elementary connections {u,t} and {v,s}
  */
-std::vector<std::pair<Node*, Node*> > getSTChoices(const Edge &edge) {
+std::vector<std::pair<Node*, Node*> > getSTChoices(const Edge *edge) {
     std::vector<std::pair<Node*, Node*> > res;
     Node *u = getSource(edge);
     Node *v = getTarget(edge);
@@ -69,7 +69,7 @@ std::vector<std::pair<Node*, Node*> > getSTChoices(const Edge &edge) {
     return res;
 }
 
-std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network, const Edge &edge) {
+std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network, const Edge *edge) {
     Network &network = ann_network.network;
     std::vector<RNNIMove> res;
     Node *u = getSource(edge);
@@ -489,7 +489,7 @@ void possibleRSPRMovesInternal(std::vector<RSPRMove> &res, Network &network, Nod
     }
 }
 
-std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, const Edge &edge, Node *fixed_x, Node *fixed_y) {
+std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, const Edge *edge, Node *fixed_x, Node *fixed_y) {
     Network &network = ann_network.network;
     std::vector<RSPRMove> res;
     Node *x_prime = getSource(edge);
@@ -499,18 +499,18 @@ std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, const Edg
         possibleRSPRMovesInternal(res, network, x_prime, y_prime, fixed_x, fixed_y);
     } else {
         for (size_t i = 0; i < network.num_nodes(); ++i) {
-            Node *x = &network.nodes[i];
+            Node *x = network.nodes[i];
             possibleRSPRMovesInternal(res, network, x_prime, y_prime, x, fixed_y);
         }
     }
     return res;
 }
 
-std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, const Edge &edge) {
+std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, const Edge *edge) {
     return possibleRSPRMoves(ann_network, edge, nullptr, nullptr);
 }
 
-std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network, const Edge &edge) {
+std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network, const Edge *edge) {
     // in an rSPR1 move, either y_prime == x, x_prime == y, x_prime == x, or y_prime == y
     std::vector<RSPRMove> res;
     Node *x_prime = getSource(edge);
@@ -565,14 +565,14 @@ std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network) {
     return res;
 }
 
-std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_network, const Edge &edge) {
+std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_network, const Edge *edge) {
     std::vector<ArcInsertionMove> res;
     Network &network = ann_network.network;
     // choose two distinct arcs ab, cd (with cd not ancestral to ab -> no a-d-path allowed)
     Node *a = getSource(edge);
     Node *b = getTarget(edge);
     for (size_t i = 0; i < network.num_branches(); ++i) {
-        if (network.edges[i].pmatrix_index == edge.pmatrix_index) {
+        if (i == edge->pmatrix_index) {
             continue;
         }
         Node *c = getSource(network.edges[i]);
@@ -746,7 +746,8 @@ void removeEdge(Network &network, Edge *edge) {
 
 void addEdge(Network &network, Edge &edge) {
     assert(network.num_branches() < network.edges.size());
-    network.edges[network.branchCount] = std::move(edge);
+    assert(edge.pmatrix_index == network.branchCount);
+    network._edges[network.branchCount] = std::move(edge);
     network.branchCount++;
 }
 
@@ -760,7 +761,8 @@ void removeNode(Network &network, Node *node) {
 
 void addNode(Network &network, Node& node) {
     assert(network.num_nodes() < network.nodes.size());
-    network.nodes[network.nodeCount] = std::move(node);
+    assert(node.clv_index == network.nodeCount);
+    network._nodes[network.nodeCount] = std::move(node);
     network.nodeCount++;
 }
 

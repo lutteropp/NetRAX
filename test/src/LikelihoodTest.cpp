@@ -128,7 +128,7 @@ std::unordered_set<std::string> collect_tip_labels_utree(pll_utree_t *utree) {
 void print_clv_index_by_label(const Network &network) {
     std::cout << "clv_index by node label:\n";
     for (size_t i = 0; i < network.num_nodes(); ++i) {
-        std::cout << network.nodes[i].label << ": " << network.nodes[i].clv_index << "\n";
+        std::cout << network.nodes[i]->label << ": " << i << "\n";
     }
     std::cout << "\n";
 }
@@ -157,13 +157,13 @@ TEST_F (LikelihoodTest, DISABLED_displayedTreeOfNetworkToUtree) {
     std::unordered_set<std::string> tip_labels_utree = collect_tip_labels_utree(utree);
     EXPECT_EQ(tip_labels_utree.size(), smallNetwork.num_tips());
     for (size_t i = 0; i < smallNetwork.num_tips(); ++i) {
-        EXPECT_TRUE(tip_labels_utree.find(smallNetwork.nodes[i].label) != tip_labels_utree.end());
+        EXPECT_TRUE(tip_labels_utree.find(smallNetwork.nodes[i]->label) != tip_labels_utree.end());
     }
     // compare tip labels for second tree
     std::unordered_set<std::string> tip_labels_utree2 = collect_tip_labels_utree(utree2);
     EXPECT_EQ(tip_labels_utree2.size(), smallNetwork.num_tips());
     for (size_t i = 0; i < smallNetwork.num_tips(); ++i) {
-        EXPECT_TRUE(tip_labels_utree2.find(smallNetwork.nodes[i].label) != tip_labels_utree2.end());
+        EXPECT_TRUE(tip_labels_utree2.find(smallNetwork.nodes[i]->label) != tip_labels_utree2.end());
     }
 
     // check for all different clvs
