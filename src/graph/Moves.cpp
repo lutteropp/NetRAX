@@ -593,17 +593,9 @@ std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_networ
         assert(u);
         assert(c);
         assert(b);
-        std::vector<Node*> aChoices;
-        if (u->type == NodeType::RETICULATION_NODE) {
-            aChoices.emplace_back(getReticulationFirstParent(u));
-            aChoices.emplace_back(getReticulationSecondParent(u));
-        } else {
-            aChoices.emplace_back(getActiveParent(u));
-        }
-        for (Node *a : aChoices) {
-            assert(a);
-            res.emplace_back(ArcRemovalMove { a, b, c, d, u, v });
-        }
+        Node *a = getActiveParent(u);
+        assert(a);
+        res.emplace_back(ArcRemovalMove { a, b, c, d, u, v });
     }
     return res;
 }
