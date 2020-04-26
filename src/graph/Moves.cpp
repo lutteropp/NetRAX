@@ -737,7 +737,7 @@ void removeEdge(Network &network, Edge *edge) {
     assert(edge);
     size_t index = edge->pmatrix_index;
     size_t other_index = network.edges[network.branchCount - 1].pmatrix_index;
-    size_t index_in_edges_array = (network.edges_by_index[index] - &network.edges[0]) / sizeof(Edge*);
+    size_t index_in_edges_array = network.edges_by_index[index] - &network.edges[0];
     assert(network.edges[index_in_edges_array].pmatrix_index == index);
     std::swap(network.edges[index_in_edges_array], network.edges[network.branchCount - 1]);
     network.edges_by_index[other_index] = &network.edges[index_in_edges_array];
@@ -773,7 +773,7 @@ void removeNode(Network &network, Node *node) {
     assert(node);
     size_t index = node->clv_index;
     size_t other_index = network.nodes[network.nodeCount - 1].clv_index;
-    size_t index_in_nodes_array = (network.nodes_by_index[index] - &network.nodes[0]) / sizeof(Node*);
+    size_t index_in_nodes_array = network.nodes_by_index[index] - &network.nodes[0];
     assert(network.nodes[index_in_nodes_array].clv_index == index);
     std::swap(network.nodes[index_in_nodes_array], network.nodes[network.nodeCount - 1]);
     network.nodes_by_index[other_index] = &network.nodes[index_in_nodes_array];
