@@ -846,6 +846,12 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     double v_d_edge_prob = c_d_edge->prob;
     double a_u_edge_prob = 1.0;
     double u_b_edge_prob = a_b_edge->prob;
+
+    size_t a_b_edge_index = a_b_edge->pmatrix_index;
+    size_t c_d_edge_index = c_d_edge->pmatrix_index;
+    removeEdge(network, a_b_edge);
+    removeEdge(network, c_d_edge);
+
     Edge *u_v_edge = addEdge(network, u_v_link, v_u_link, u_v_edge_length, u_v_edge_prob);
     Edge *a_u_edge = addEdge(network, from_a_link, to_u_link, a_u_edge_length, a_u_edge_prob);
     Edge *u_b_edge = addEdge(network, u_b_link, to_b_link, u_b_edge_length, u_b_edge_prob);
@@ -885,16 +891,16 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     }
     for (size_t p = 0; p < partitions; ++p) {
         double u_v_branch_length = 1.0;
-        double c_v_branch_length = treeinfo->branch_lengths[p][c_d_edge->pmatrix_index] / 2;
-        double v_d_branch_length = treeinfo->branch_lengths[p][c_d_edge->pmatrix_index] / 2;
-        double a_u_branch_length = treeinfo->branch_lengths[p][a_b_edge->pmatrix_index] / 2;
-        double u_b_branch_length = treeinfo->branch_lengths[p][a_b_edge->pmatrix_index] / 2;
+        double c_v_branch_length = treeinfo->branch_lengths[p][c_d_edge_index] / 2;
+        double v_d_branch_length = treeinfo->branch_lengths[p][c_d_edge_index] / 2;
+        double a_u_branch_length = treeinfo->branch_lengths[p][a_b_edge_index] / 2;
+        double u_b_branch_length = treeinfo->branch_lengths[p][a_b_edge_index] / 2;
 
         double u_v_branch_prob = 0.5;
         double c_v_branch_prob = 0.5;
-        double v_d_branch_prob = ann_network.branch_probs[p][c_d_edge->pmatrix_index];
+        double v_d_branch_prob = ann_network.branch_probs[p][c_d_edge_index];
         double a_u_branch_prob = 1.0;
-        double u_b_branch_prob = ann_network.branch_probs[p][a_b_edge->pmatrix_index];
+        double u_b_branch_prob = ann_network.branch_probs[p][a_b_edge_index];
 
         treeinfo->branch_lengths[p][u_v_edge->pmatrix_index] = u_v_branch_length;
         treeinfo->branch_lengths[p][c_v_edge->pmatrix_index] = c_v_branch_length;
@@ -908,9 +914,6 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
         ann_network.branch_probs[p][a_u_edge->pmatrix_index] = a_u_branch_prob;
         ann_network.branch_probs[p][u_b_edge->pmatrix_index] = u_b_branch_prob;
     }
-
-    removeEdge(network, a_b_edge);
-    removeEdge(network, c_d_edge);
 }
 
 void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
