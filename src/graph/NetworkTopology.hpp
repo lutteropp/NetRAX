@@ -48,4 +48,6 @@ Node* getTarget(const Edge* edge);
 
 bool hasNeighbor(Node* node1, Node* node2);
 
+Link* make_link(size_t link_id, Node *node, Edge *edge, Direction dir);
+
 }

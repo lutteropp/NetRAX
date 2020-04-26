@@ -56,12 +56,6 @@ std::vector<RootedNetworkNode*> collectNodes(RootedNetwork &rnetwork) {
     return res;
 }
 
-Link* make_link(size_t link_id, Node *node, Edge *edge, Direction dir) {
-    Link link;
-    link.init(link_id, node, edge, nullptr, nullptr, dir);
-    return node->addLink(link);
-}
-
 Network convertNetworkToplevelTrifurcation(RootedNetwork &rnetwork, size_t node_count, size_t branch_count,
         int maxReticulations) {
     Network network;

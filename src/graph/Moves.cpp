@@ -735,6 +735,7 @@ void undoMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
 
 void removeEdge(Network &network, Edge *edge) {
     assert(edge);
+    assert(!edge->link1->node->isTip() && !edge->link2->node->isTip());
     std::swap(network.edges[edge->pmatrix_index], network.edges[network.branchCount - 1]);
     std::swap(network.edges_by_index[edge->pmatrix_index], network.edges_by_index[network.branchCount - 1]);
     network.edges_by_index[edge->pmatrix_index] = nullptr;
@@ -744,11 +745,18 @@ void removeEdge(Network &network, Edge *edge) {
 Edge* addEdge(Network &network, Link *link1, Link *link2, double length, double prob) {
     assert(network.num_branches() < network.edges.size());
     unsigned int pmatrix_index = network.branchCount;
-    // try to find a smaller unused pmatrix index
-    for (size_t i = 0; i < pmatrix_index; ++i) {
-        if (network.edges_by_index[i] == nullptr) {
-            pmatrix_index = i;
-            break;
+    // Fix pmatrix index issues in case we have a tip
+    if (link1->node->isTip()) {
+        pmatrix_index = link1->node->clv_index;
+    } else if (link2->node->isTip()) {
+        pmatrix_index = link2->node->clv_index;
+    } else {
+        // try to find a smaller unused pmatrix index
+        for (size_t i = 0; i < pmatrix_index; ++i) {
+            if (network.edges_by_index[i] == nullptr) {
+                pmatrix_index = i;
+                break;
+            }
         }
     }
     network.edges[network.branchCount].init(pmatrix_index, link1, link2, length, prob);
@@ -823,14 +831,13 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
 
     // TODO: Also update these in the treeinfo and the branch_probs array
     double a_b_branch_length = from_a_link->edge->length + to_b_link->edge->length;
-    double a_b_brench_prob = std::min(from_a_link->edge->prob, to_b_link->edge->prob);
+    double a_b_branch_prob = std::min(from_a_link->edge->prob, to_b_link->edge->prob);
     double c_d_branch_length = from_c_link->edge->length + to_d_link->edge->length;
-    double c_d_brench_prob = std::min(from_c_link->edge->prob, to_d_link->edge->prob);
+    double c_d_branch_prob = std::min(from_c_link->edge->prob, to_d_link->edge->prob);
 
-    Edge *a_b_edge;
-    Edge *c_d_edge;
-    //a_b_edge = addEdge(network, Edge());
-    //c_d_edge = addEdge(network, Edge());
+    Edge *a_b_edge = addEdge(network, from_a_link, to_b_link, a_b_branch_length, a_b_branch_prob);
+    Edge *c_d_edge = addEdge(network, from_c_link, to_d_link, c_d_branch_length, c_d_branch_prob);
+    ;
 
     removeNode(network, move.u);
     removeNode(network, move.v);

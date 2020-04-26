@@ -28,11 +28,11 @@ void reset_tip_ids(Network &network, const std::unordered_map<std::string, size_
         const unsigned int tip_id = label_id_map.at(network.nodes[i].label);
         network.nodes[i].clv_index = tip_id;
         network.nodes[i].getLink()->node_index = tip_id;
-    }
-
-    for (size_t i = 0; i < network.num_tips(); ++i) {
-        unsigned int clv_index = network.nodes[i].clv_index;
-        network.nodes_by_index[clv_index] = &network.nodes[i];
+        network.nodes_by_index[tip_id] = &network.nodes[i];
+        // TODO reset pmatrix index
+        Edge* edge = network.nodes[i].links[0].edge;
+        edge->pmatrix_index = tip_id;
+        network.edges_by_index[tip_id] = edge;
     }
 }
 
