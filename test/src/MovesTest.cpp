@@ -127,6 +127,68 @@ void randomSPR1Moves(const std::string &networkPath, const std::string &msaPath,
     }
 }
 
+void randomArcInsertionMoves(const std::string &networkPath, const std::string &msaPath, bool useRepeats) {
+    NetraxOptions options;
+    options.network_file = networkPath;
+    options.msa_file = msaPath;
+    options.use_repeats = useRepeats;
+    AnnotatedNetwork ann_network = build_annotated_network(options);
+    Network &network = ann_network.network;
+    std::string initialDebugInfo = exportDebugInfo(network);
+    std::cout << initialDebugInfo;
+
+    double initial_logl = computeLoglikelihood(ann_network);
+    ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
+    std::cout << "initial_logl: " << initial_logl << "\n";
+
+    for (size_t i = 0; i < network.num_branches(); ++i) {
+        std::vector<ArcInsertionMove> candidates = possibleArcInsertionMoves(ann_network, network.edges[i]);
+        for (size_t j = 0; j < candidates.size(); ++j) {
+            std::cout << "perform " << toString(candidates[j]);
+            performMove(ann_network, candidates[j]);
+            double moved_logl = computeLoglikelihood(ann_network);
+            ASSERT_NE(moved_logl, -std::numeric_limits<double>::infinity());
+            std::cout << "logl after move: " << moved_logl << "\n";
+            std::cout << "undo " << toString(candidates[j]) << "\n";
+            undoMove(ann_network, candidates[j]);
+            std::string debugInfoAfterUndo = exportDebugInfo(network);
+            EXPECT_EQ(initialDebugInfo, debugInfoAfterUndo);
+            double back_logl = computeLoglikelihood(ann_network);
+            ASSERT_DOUBLE_EQ(initial_logl, back_logl);
+        }
+    }
+}
+
+void randomArcRemovalMoves(const std::string &networkPath, const std::string &msaPath, bool useRepeats) {
+    NetraxOptions options;
+    options.network_file = networkPath;
+    options.msa_file = msaPath;
+    options.use_repeats = useRepeats;
+    AnnotatedNetwork ann_network = build_annotated_network(options);
+    Network &network = ann_network.network;
+    std::string initialDebugInfo = exportDebugInfo(network);
+    std::cout << initialDebugInfo;
+
+    double initial_logl = computeLoglikelihood(ann_network);
+    ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
+    std::cout << "initial_logl: " << initial_logl << "\n";
+
+    std::vector<ArcRemovalMove> candidates = possibleArcRemovalMoves(ann_network);
+    for (size_t j = 0; j < candidates.size(); ++j) {
+        std::cout << "perform " << toString(candidates[j]);
+        performMove(ann_network, candidates[j]);
+        double moved_logl = computeLoglikelihood(ann_network);
+        ASSERT_NE(moved_logl, -std::numeric_limits<double>::infinity());
+        std::cout << "logl after move: " << moved_logl << "\n";
+        std::cout << "undo " << toString(candidates[j]) << "\n";
+        undoMove(ann_network, candidates[j]);
+        std::string debugInfoAfterUndo = exportDebugInfo(network);
+        EXPECT_EQ(initialDebugInfo, debugInfoAfterUndo);
+        double back_logl = computeLoglikelihood(ann_network);
+        ASSERT_DOUBLE_EQ(initial_logl, back_logl);
+    }
+}
+
 TEST (MovesTest, rnniSmall) {
     randomNNIMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
 }
@@ -149,4 +211,20 @@ TEST (MovesTest, rsprSmall) {
 
 TEST (MovesTest, rsprCeline) {
     randomSPRMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false);
+}
+
+TEST (MovesTest, arcInsertionSmall) {
+    randomArcInsertionMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
+}
+
+TEST (MovesTest, arcInsertionCeline) {
+    randomArcInsertionMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false);
+}
+
+TEST (MovesTest, arcRemovalSmall) {
+    randomArcRemovalMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
+}
+
+TEST (MovesTest, arcRemovalCeline) {
+    randomArcRemovalMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false);
 }

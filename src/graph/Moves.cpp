@@ -733,6 +733,22 @@ void undoMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
     ann_network.blobInfo = partitionNetworkIntoBlobs(ann_network.network);
 }
 
+void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
+    throw std::runtime_error("Not implemented yet");
+}
+
+void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
+    throw std::runtime_error("Not implemented yet");
+}
+
+void undoMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
+    throw std::runtime_error("Not implemented yet");
+}
+
+void undoMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
+    throw std::runtime_error("Not implemented yet");
+}
+
 std::string toString(RNNIMove &move) {
     std::stringstream ss;
     std::unordered_map<RNNIMoveType, std::string> lookup;
