@@ -733,6 +733,37 @@ void undoMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
     ann_network.blobInfo = partitionNetworkIntoBlobs(ann_network.network);
 }
 
+void removeEdge(Network &network, Edge *edge) {
+    // TODO: we need to ensure that we don't destroy any pointers to the edges!
+    assert(edge);
+    size_t edgePos = 0;
+    for (size_t i = 0; i < network.num_branches(); ++i) {
+
+    }
+
+    throw std::runtime_error("Not implemented yet");
+}
+
+void addEdge(Network &network, Edge &edge) {
+    assert(network.num_branches() < network.edges.size());
+    network.edges[network.branchCount] = std::move(edge);
+    network.branchCount++;
+}
+
+void removeNode(Network &network, Node *node) {
+    // TODO: we need to ensure that we don't destroy any pointers to the edges!
+    assert(node);
+    assert(node != network.root);
+
+    throw std::runtime_error("Not implemented yet");
+}
+
+void addNode(Network &network, Node& node) {
+    assert(network.num_nodes() < network.nodes.size());
+    network.nodes[network.nodeCount] = std::move(node);
+    network.nodeCount++;
+}
+
 void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     throw std::runtime_error("Not implemented yet");
 }
