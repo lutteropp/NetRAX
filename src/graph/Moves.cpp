@@ -748,14 +748,14 @@ void removeEdge(Network &network, Edge *edge) {
 
 Edge* addEdge(Network &network, Link *link1, Link *link2, double length, double prob) {
     assert(network.num_branches() < network.edges.size());
-    unsigned int pmatrix_index = network.branchCount;
+    unsigned int pmatrix_index = network.edges.size() - 1;
     // Fix pmatrix index issues in case we have a tip
     if (link1->node->isTip()) {
         pmatrix_index = link1->node->clv_index;
     } else if (link2->node->isTip()) {
         pmatrix_index = link2->node->clv_index;
     } else {
-        // try to find a smaller unused pmatrix index which is not reserverd by a tip
+        // try to find a smaller unused pmatrix index which is not reserved by a tip
         for (size_t i = network.num_tips(); i < pmatrix_index; ++i) {
             if (network.edges_by_index[i] == nullptr) {
                 pmatrix_index = i;
@@ -795,7 +795,7 @@ void removeNode(Network &network, Node *node) {
 
 Node* addInnerNode(Network &network, ReticulationData *retData = nullptr) {
     assert(network.num_nodes() < network.nodes.size());
-    unsigned int clv_index = network.nodeCount;
+    unsigned int clv_index = network.nodes.size() - 1;
     // try to find a smaller unused clv index
     for (size_t i = 0; i < clv_index; ++i) {
         if (network.nodes_by_index[i] == nullptr) {
