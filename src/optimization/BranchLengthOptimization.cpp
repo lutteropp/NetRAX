@@ -73,7 +73,7 @@ double optimize_branches(AnnotatedNetwork &ann_network, double min_brlen, double
 
     std::vector<double> old_brlens(network.num_branches());
     for (size_t i = 0; i < old_brlens.size(); ++i) {
-        old_brlens[i] = network.edges[i]->length;
+        old_brlens[network.edges[i].pmatrix_index] = network.edges[i].length;
     }
 
     std::vector<std::vector<OptimizedBranchLength> > opt_brlens(network.num_branches());
@@ -128,9 +128,8 @@ double optimize_branches(AnnotatedNetwork &ann_network, double min_brlen, double
 
     // set the network brlens to the weighted average of the displayed_tree brlens
     // also set the network brlen support values to the brlen variance in the displayed trees which are having this branch
-    for (size_t i = 0; i < network.edges.size(); ++i) {
-
-        size_t networkBranchIdx = i;
+    for (size_t i = 0; i < network.num_branches(); ++i) {
+        size_t networkBranchIdx = network.edges[i].pmatrix_index;
         if (!opt_brlens[networkBranchIdx].empty()) {
             double treeProbSum = 0;
             for (size_t j = 0; j < opt_brlens[networkBranchIdx].size(); ++j) {
@@ -142,27 +141,28 @@ double optimize_branches(AnnotatedNetwork &ann_network, double min_brlen, double
                 double weight = opt_brlens[networkBranchIdx][j].tree_prob / treeProbSum;
                 newLength += opt_brlens[networkBranchIdx][j].length * weight;
             }
-            network.edges[i]->length = newLength;
+            network.edges[i].length = newLength;
             fake_treeinfo.branch_lengths[partitionIdx][networkBranchIdx] = newLength;
         }
-        network.edges[i]->support = computeVariance(opt_brlens[networkBranchIdx]);
+        network.edges[i].support = computeVariance(opt_brlens[networkBranchIdx]);
     }
 
     if (DO_BRLEN_VARIANCE_EXPERIMENT) {
         // for each network branch length, do the printing
         std::cout << std::setprecision(17) << "\n";
-        for (size_t i = 0; i < network.edges.size(); ++i) {
-            std::cout << "Network branch " << i << ":\n";
-            if (!opt_brlens[i].empty()) {
-                std::cout << " Old brlen before optimization: " << old_brlens[i] << "\n";
-                std::cout << " New brlen from weighted average: " << network.edges[i]->length << "\n";
+        for (size_t i = 0; i < network.num_branches(); ++i) {
+            size_t networkBranchIdx = network.edges[i].pmatrix_index;
+            std::cout << "Network branch " << networkBranchIdx << ":\n";
+            if (!opt_brlens[networkBranchIdx].empty()) {
+                std::cout << " Old brlen before optimization: " << old_brlens[networkBranchIdx] << "\n";
+                std::cout << " New brlen from weighted average: " << network.edges[networkBranchIdx].length << "\n";
                 for (size_t j = 0; j < opt_brlens[i].size(); ++j) {
-                    std::cout << "  Tree #" << opt_brlens[i][j].tree_index << ", prob = " << opt_brlens[i][j].tree_prob
-                            << ", opt_brlen = " << opt_brlens[i][j].length << "\n";
+                    std::cout << "  Tree #" << opt_brlens[networkBranchIdx][j].tree_index << ", prob = " << opt_brlens[networkBranchIdx][j].tree_prob
+                            << ", opt_brlen = " << opt_brlens[networkBranchIdx][j].length << "\n";
                 }
                 assert(
-                        network.edges[i]->length
-                                == fake_treeinfo.branch_lengths[partitionIdx][i]);
+                        network.edges[i].length
+                                == fake_treeinfo.branch_lengths[partitionIdx][networkBranchIdx]);
             } else {
                 std::cout << " This branch is has no exact presence in any displayed tree.\n";
             }
@@ -170,9 +170,9 @@ double optimize_branches(AnnotatedNetwork &ann_network, double min_brlen, double
 
         // just for debug: printing all network branch lengths for the partition 0
         std::cout << "End of BRLEN_OPT function - All network branch lengths for partition 0:\n";
-        for (size_t i = 0; i < network.edges.size(); ++i) {
-            std::cout << " pmatrix_idx = " << i << " -> brlen = "
-                    << network.edges[i]->length << "\n";
+        for (size_t i = 0; i < network.num_branches(); ++i) {
+            std::cout << " pmatrix_idx = " << network.edges[i].pmatrix_index << " -> brlen = "
+                    << network.edges_by_index[network.edges[i].pmatrix_index]->length << "\n";
         }
     }
 

@@ -40,26 +40,26 @@ protected:
 
 void check_node_types(const Network &network) {
     for (size_t i = 0; i < network.num_nodes(); ++i) {
-        if (std::find(network.reticulation_nodes.begin(), network.reticulation_nodes.end(), network.nodes[i])
+        if (std::find(network.reticulation_nodes.begin(), network.reticulation_nodes.end(), &network.nodes[i])
                 == network.reticulation_nodes.end()) {
-            EXPECT_EQ(network.nodes[i]->getType(), NodeType::BASIC_NODE);
+            EXPECT_EQ(network.nodes[i].getType(), NodeType::BASIC_NODE);
         } else {
-            EXPECT_EQ(network.nodes[i]->getType(), NodeType::RETICULATION_NODE);
+            EXPECT_EQ(network.nodes[i].getType(), NodeType::RETICULATION_NODE);
         }
     }
 }
 
 void check_neighbor_count(Network &network) {
     for (size_t i = 0; i < network.num_nodes(); ++i) {
-        if (network.nodes[i]->isTip()) {
-            EXPECT_EQ(network.nodes[i]->getLink()->next, nullptr);
-            EXPECT_EQ(getNeighbors(network.nodes[i]).size(), 1);
+        if (network.nodes[i].isTip()) {
+            EXPECT_EQ(network.nodes[i].getLink()->next, nullptr);
+            EXPECT_EQ(getNeighbors(&network.nodes[i]).size(), 1);
         } else {
-            EXPECT_NE(network.nodes[i]->getLink()->next, nullptr);
-            EXPECT_NE(network.nodes[i]->getLink()->next->next, nullptr);
-            EXPECT_NE(network.nodes[i]->getLink()->next->next->next, nullptr);
-            EXPECT_EQ(network.nodes[i]->getLink(), network.nodes[i]->getLink()->next->next->next);
-            EXPECT_EQ(getNeighbors(network.nodes[i]).size(), 3);
+            EXPECT_NE(network.nodes[i].getLink()->next, nullptr);
+            EXPECT_NE(network.nodes[i].getLink()->next->next, nullptr);
+            EXPECT_NE(network.nodes[i].getLink()->next->next->next, nullptr);
+            EXPECT_EQ(network.nodes[i].getLink(), network.nodes[i].getLink()->next->next->next);
+            EXPECT_EQ(getNeighbors(&network.nodes[i]).size(), 3);
         }
     }
 }
@@ -68,7 +68,7 @@ void check_tip_clvs(Network &network) {
     size_t n = network.num_tips();
     EXPECT_EQ(network.num_tips(), n);
     for (size_t i = 0; i < network.num_tips(); ++i) {
-        EXPECT_TRUE(network.nodes[i]->clv_index < n);
+        EXPECT_TRUE(network.nodes[i].clv_index < n);
     }
 }
 
@@ -85,8 +85,8 @@ void check_pmatrix_indices(const Network &network) {
 
 void check_links_edges(const Network &network) {
     for (size_t i = 0; i < network.num_branches(); ++i) {
-        EXPECT_NE(network.edges[i]->link1, nullptr);
-        EXPECT_NE(network.edges[i]->link2, nullptr);
+        EXPECT_NE(network.edges[i].link1, nullptr);
+        EXPECT_NE(network.edges[i].link2, nullptr);
     }
 }
 

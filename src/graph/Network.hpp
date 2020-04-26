@@ -43,8 +43,8 @@ public:
     Node* getNodeByLabel(const std::string &label) {
         Node *result = nullptr;
         for (size_t i = 0; i < nodes.size(); ++i) {
-            if (nodes[i]->getLabel() == label) {
-                result = nodes[i];
+            if (nodes[i].getLabel() == label) {
+                result = &nodes[i];
                 break;
             }
         }
@@ -57,13 +57,13 @@ public:
     unsigned int tipCount = 0;
     Node *root = nullptr;
 
-    std::vector<Node*> nodes; // nodes by clv_index
-    std::vector<Edge*> edges; // edges by pmatrix_index
+    std::vector<Node*> nodes_by_index; // nodes by clv_index
+    std::vector<Edge*> edges_by_index; // edges by pmatrix_index
     std::vector<Link*> links;
     std::vector<Node*> reticulation_nodes;
 
-    std::vector<Node> _nodes;
-    std::vector<Edge> _edges;
+    std::vector<Node> nodes;
+    std::vector<Edge> edges;
 };
 
 }

@@ -24,15 +24,15 @@ void reset_tip_ids(Network &network, const std::unordered_map<std::string, size_
         throw std::invalid_argument("Invalid map size");
 
     for (size_t i = 0; i < network.num_tips(); ++i) {
-        assert(network._nodes[i].isTip());
-        const unsigned int tip_id = label_id_map.at(network._nodes[i].label);
-        network._nodes[i].clv_index = tip_id;
-        network._nodes[i].getLink()->node_index = tip_id;
+        assert(network.nodes[i].isTip());
+        const unsigned int tip_id = label_id_map.at(network.nodes[i].label);
+        network.nodes[i].clv_index = tip_id;
+        network.nodes[i].getLink()->node_index = tip_id;
     }
 
     for (size_t i = 0; i < network.num_tips(); ++i) {
-        unsigned int clv_index = network._nodes[i].clv_index;
-        network.nodes[clv_index] = &network._nodes[i];
+        unsigned int clv_index = network.nodes[i].clv_index;
+        network.nodes_by_index[clv_index] = &network.nodes[i];
     }
 }
 
@@ -382,13 +382,13 @@ void RaxmlWrapper::network_init_treeinfo_wrapper(const Options &opts, const std:
 
 void fake_init_collect_branch_lengths(pllmod_treeinfo_t *treeinfo, const Network &network) {
     // collect the branch lengths
-    for (size_t i = 0; i < network.num_branches(); ++i) {
-        treeinfo->branch_lengths[0][i] = network.edges[i]->length;
-    }
-    for (size_t i = network.num_branches(); i < network.edges.size(); ++i) {
+    for (size_t i = 0; i < network.edges.size() + 1; ++i) { // +1 for the fake branch length
         treeinfo->branch_lengths[0][i] = 0.0;
     }
-    treeinfo->branch_lengths[0][network.edges.size()] = 0; // the fake branch length
+    for (size_t i = 0; i < network.num_branches(); ++i) {
+        size_t pmatrix_index = network.edges[i].pmatrix_index;
+        treeinfo->branch_lengths[0][pmatrix_index] = network.edges[i].length;
+    }
 
     /* in unlinked branch length mode, copy brlen to other partitions */
     if (treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {

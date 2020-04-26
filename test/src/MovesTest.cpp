@@ -42,7 +42,7 @@ void randomNNIMoves(const std::string &networkPath, const std::string &msaPath, 
     std::cout << "initial_logl: " << initial_logl << "\n";
 
     for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::vector<RNNIMove> candidates = possibleRNNIMoves(ann_network, network.edges[i]);
+        std::vector<RNNIMove> candidates = possibleRNNIMoves(ann_network, &network.edges[i]);
         for (size_t j = 0; j < candidates.size(); ++j) {
             //std::cout << i << ", " << j << "\n";
             //if (i != 35 || j != 3) {
@@ -78,7 +78,7 @@ void randomSPRMoves(const std::string &networkPath, const std::string &msaPath, 
     std::cout << "initial_logl: " << initial_logl << "\n";
 
     for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::vector<RSPRMove> candidates = possibleRSPRMoves(ann_network, network.edges[i]);
+        std::vector<RSPRMove> candidates = possibleRSPRMoves(ann_network, &network.edges[i]);
         for (size_t j = 0; j < candidates.size(); ++j) {
             std::cout << "perform " << toString(candidates[j]);
             performMove(ann_network, candidates[j]);
@@ -110,7 +110,7 @@ void randomSPR1Moves(const std::string &networkPath, const std::string &msaPath,
     std::cout << "initial_logl: " << initial_logl << "\n";
 
     for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::vector<RSPRMove> candidates = possibleRSPR1Moves(ann_network, network.edges[i]);
+        std::vector<RSPRMove> candidates = possibleRSPR1Moves(ann_network, &network.edges[i]);
         for (size_t j = 0; j < candidates.size(); ++j) {
             std::cout << "perform " << toString(candidates[j]);
             performMove(ann_network, candidates[j]);
@@ -142,7 +142,7 @@ void randomArcInsertionMoves(const std::string &networkPath, const std::string &
     std::cout << "initial_logl: " << initial_logl << "\n";
 
     for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::vector<ArcInsertionMove> candidates = possibleArcInsertionMoves(ann_network, network.edges[i]);
+        std::vector<ArcInsertionMove> candidates = possibleArcInsertionMoves(ann_network, &network.edges[i]);
         for (size_t j = 0; j < candidates.size(); ++j) {
             std::cout << "perform " << toString(candidates[j]);
             performMove(ann_network, candidates[j]);

@@ -499,7 +499,7 @@ std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, const Edg
         possibleRSPRMovesInternal(res, network, x_prime, y_prime, fixed_x, fixed_y);
     } else {
         for (size_t i = 0; i < network.num_nodes(); ++i) {
-            Node *x = network.nodes[i];
+            Node *x = &network.nodes[i];
             possibleRSPRMovesInternal(res, network, x_prime, y_prime, x, fixed_y);
         }
     }
@@ -539,7 +539,7 @@ std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network) {
     std::vector<RNNIMove> res;
     Network &network = ann_network.network;
     for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::vector<RNNIMove> branch_moves = possibleRNNIMoves(ann_network, network.edges[i]);
+        std::vector<RNNIMove> branch_moves = possibleRNNIMoves(ann_network, &network.edges[i]);
         res.insert(std::end(res), std::begin(branch_moves), std::end(branch_moves));
     }
     return res;
@@ -549,7 +549,7 @@ std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network) {
     std::vector<RSPRMove> res;
     Network &network = ann_network.network;
     for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::vector<RSPRMove> branch_moves = possibleRSPRMoves(ann_network, network.edges[i]);
+        std::vector<RSPRMove> branch_moves = possibleRSPRMoves(ann_network, &network.edges[i]);
         res.insert(std::end(res), std::begin(branch_moves), std::end(branch_moves));
     }
     return res;
@@ -559,7 +559,7 @@ std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network) {
     std::vector<RSPRMove> res;
     Network &network = ann_network.network;
     for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::vector<RSPRMove> branch_moves = possibleRSPR1Moves(ann_network, network.edges[i]);
+        std::vector<RSPRMove> branch_moves = possibleRSPR1Moves(ann_network, &network.edges[i]);
         res.insert(std::end(res), std::begin(branch_moves), std::end(branch_moves));
     }
     return res;
@@ -575,8 +575,8 @@ std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_ne
         if (i == edge->pmatrix_index) {
             continue;
         }
-        Node *c = getSource(network.edges[i]);
-        Node *d = getTarget(network.edges[i]);
+        Node *c = getSource(&network.edges[i]);
+        Node *d = getTarget(&network.edges[i]);
         if (!hasPath(network, a, d)) {
             res.emplace_back(ArcInsertionMove { a, b, c, d });
         }
@@ -588,7 +588,7 @@ std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_ne
     std::vector<ArcInsertionMove> res;
     Network &network = ann_network.network;
     for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::vector<ArcInsertionMove> moves = possibleArcInsertionMoves(ann_network, network.edges[i]);
+        std::vector<ArcInsertionMove> moves = possibleArcInsertionMoves(ann_network, &network.edges[i]);
         res.insert(std::end(res), std::begin(moves), std::end(moves));
     }
     return res;
@@ -735,30 +735,30 @@ void undoMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
 
 void removeEdge(Network &network, Edge *edge) {
     assert(edge);
-    std::swap(network._edges[edge->pmatrix_index], network._edges[network.branchCount-1]);
     std::swap(network.edges[edge->pmatrix_index], network.edges[network.branchCount-1]);
+    std::swap(network.edges_by_index[edge->pmatrix_index], network.edges_by_index[network.branchCount-1]);
     network.nodeCount--;
 }
 
 void addEdge(Network &network, Edge &edge) {
     assert(network.num_branches() < network.edges.size());
     assert(edge.pmatrix_index == network.branchCount);
-    network._edges[network.branchCount] = std::move(edge);
+    network.edges[network.branchCount] = std::move(edge);
     network.branchCount++;
 }
 
 void removeNode(Network &network, Node *node) {
     assert(node);
     assert(node != network.root);
-    std::swap(network._nodes[node->clv_index], network._nodes[network.nodeCount-1]);
     std::swap(network.nodes[node->clv_index], network.nodes[network.nodeCount-1]);
+    std::swap(network.nodes_by_index[node->clv_index], network.nodes_by_index[network.nodeCount-1]);
     network.nodeCount--;
 }
 
 void addNode(Network &network, Node& node) {
     assert(network.num_nodes() < network.nodes.size());
     assert(node.clv_index == network.nodeCount);
-    network._nodes[network.nodeCount] = std::move(node);
+    network.nodes[network.nodeCount] = std::move(node);
     network.nodeCount++;
 }
 

@@ -270,14 +270,14 @@ pll_utree_t* displayed_tree_to_utree(Network &network, size_t tree_index) {
 std::vector<double> collectBranchLengths(const Network &network) {
     std::vector<double> brLengths(network.num_branches());
     for (size_t i = 0; i < network.num_branches(); ++i) {
-        brLengths[i] = network.edges[i]->length;
+        brLengths[network.edges[i].pmatrix_index] = network.edges[i].length;
     }
     return brLengths;
 }
 void applyBranchLengths(Network &network, const std::vector<double> &branchLengths) {
     assert(branchLengths.size() == network.num_branches());
     for (size_t i = 0; i < network.num_branches(); ++i) {
-        network.edges[i]->length = branchLengths[i];
+        network.edges[i].length = branchLengths[network.edges[i].pmatrix_index];
     }
 }
 void setReticulationParents(Network &network, size_t treeIdx) {
@@ -317,10 +317,10 @@ std::vector<Node*> getPossibleRootNodes(Network &network) {
     }
     std::vector<Node*> res;
     for (size_t i = 0; i < network.num_nodes(); ++i) {
-        if (!forbidden[i]) {
-            if (network.nodes[i]->getType() == NodeType::BASIC_NODE
-                    && getActiveNeighbors(network.nodes[i]).size() == 3) {
-                res.push_back(network.nodes[i]);
+        if (!forbidden[network.nodes[i].clv_index]) {
+            if (network.nodes[i].getType() == NodeType::BASIC_NODE
+                    && getActiveNeighbors(&network.nodes[i]).size() == 3) {
+                res.push_back(&network.nodes[i]);
             }
         }
     }
@@ -429,12 +429,12 @@ std::vector<std::vector<size_t> > getDtBranchToNetworkBranchMapping(const pll_ut
 std::vector<Node*> grab_current_node_parents(const Network &network) {
     std::vector<Node*> parent(network.num_nodes(), nullptr);
     for (size_t i = 0; i < parent.size(); ++i) {
-        parent[i] = getActiveParent(network.nodes[i]);
+        parent[network.nodes[i].clv_index] = getActiveParent(&network.nodes[i]);
     }
     return parent;
 }
 
-std::vector<Node*> reversed_topological_sort(const Network &network) {
+std::vector<Node*> reversed_topological_sort(Network &network) {
     std::vector<Node*> res;
     res.reserve(network.num_nodes());
     std::vector<Node*> parent = grab_current_node_parents(network);
@@ -446,7 +446,7 @@ std::vector<Node*> reversed_topological_sort(const Network &network) {
 
     // compute outdegree of all nodes
     for (size_t i = 0; i < network.num_nodes(); ++i) {
-        Node *actNode = network.nodes[i];
+        Node *actNode = &network.nodes[i];
         size_t act_clv_idx = actNode->clv_index;
         outdeg[act_clv_idx] = getChildren(actNode, parent[act_clv_idx]).size();
         if (outdeg[act_clv_idx] == 0) {
@@ -512,26 +512,26 @@ std::string exportDebugInfo(const Network &network, const BlobInformation &blobI
     for (size_t i = 0; i < network.num_nodes(); ++i) {
         ss << "\tnode\n\t[\n\t\tid\t" << i << "\n";
         std::string nodeLabel = std::to_string(i);
-        if (!network.nodes[i]->label.empty()) {
-            nodeLabel += ": " + network.nodes[i]->label;
+        if (!network.nodes[i].label.empty()) {
+            nodeLabel += ": " + network.nodes[i].label;
         }
 
         /*if (std::find(blobInfo.megablob_roots.begin(), blobInfo.megablob_roots.end(), &network.nodes[i]) != blobInfo.megablob_roots.end()) {
          nodeLabel = "*" + nodeLabel + "*";
          }*/
         ss << "\t\tlabel\t\"" << nodeLabel << "\"\n";
-        ss << buildNodeGraphics(network.nodes[i], blobInfo);
+        ss << buildNodeGraphics(&network.nodes[i], blobInfo);
         ss << "\t]\n";
     }
     for (size_t i = 0; i < network.num_branches(); ++i) {
         ss << "\tedge\n\t[\n\t\tsource\t";
-        unsigned int parentId = network.edges[i]->link1->node->clv_index;
-        unsigned int childId = network.edges[i]->link2->node->clv_index;
-        if (network.edges[i]->link1->direction == Direction::INCOMING) {
+        unsigned int parentId = network.edges[i].link1->node->clv_index;
+        unsigned int childId = network.edges[i].link2->node->clv_index;
+        if (network.edges[i].link1->direction == Direction::INCOMING) {
             std::swap(parentId, childId);
         }
         assert(parentId != childId);
-        if (parent[parentId] == network.nodes[childId]) {
+        if (parent[parentId] == &network.nodes[childId]) {
             std::swap(parentId, childId);
         }
         ss << parentId << "\n";
@@ -566,8 +566,8 @@ std::string exportDebugInfo(const Network &network, const std::vector<unsigned i
     for (size_t i = 0; i < network.num_nodes(); ++i) {
         ss << "\tnode\n\t[\n\t\tid\t" << i << "\n";
         std::string nodeLabel = std::to_string(i);
-        if (!network.nodes[i]->label.empty()) {
-            nodeLabel += ": " + network.nodes[i]->label;
+        if (!network.nodes[i].label.empty()) {
+            nodeLabel += ": " + network.nodes[i].label;
         }
         if (!extra_node_number.empty()) {
             nodeLabel += "|" + std::to_string(extra_node_number[i]);
@@ -576,18 +576,18 @@ std::string exportDebugInfo(const Network &network, const std::vector<unsigned i
          nodeLabel = "*" + nodeLabel + "*";
          }*/
         ss << "\t\tlabel\t\"" << nodeLabel << "\"\n";
-        ss << buildNodeGraphics(network.nodes[i]);
+        ss << buildNodeGraphics(&network.nodes[i]);
         ss << "\t]\n";
     }
     for (size_t i = 0; i < network.num_branches(); ++i) {
         ss << "\tedge\n\t[\n\t\tsource\t";
-        unsigned int parentId = network.edges[i]->link1->node->clv_index;
-        unsigned int childId = network.edges[i]->link2->node->clv_index;
-        if (network.edges[i]->link1->direction == Direction::INCOMING) {
+        unsigned int parentId = network.edges[i].link1->node->clv_index;
+        unsigned int childId = network.edges[i].link2->node->clv_index;
+        if (network.edges[i].link1->direction == Direction::INCOMING) {
             std::swap(parentId, childId);
         }
         assert(parentId != childId);
-        if (parent[parentId] == network.nodes[childId]) {
+        if (parent[parentId] == &network.nodes[childId]) {
             std::swap(parentId, childId);
         }
         ss << parentId << "\n";

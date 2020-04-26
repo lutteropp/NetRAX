@@ -122,7 +122,7 @@ void gather_reticulations_per_megablob(const Network &network, BlobInformation &
     assert(retsum == network.num_reticulations());
 }
 
-BlobInformation partitionNetworkIntoBlobs(const Network &network) {
+BlobInformation partitionNetworkIntoBlobs(Network &network) {
     BlobInformation blob_info;
     blob_info.edge_blob_id.resize(network.num_branches());
     unsigned int time = 0;
@@ -131,7 +131,8 @@ BlobInformation partitionNetworkIntoBlobs(const Network &network) {
     std::vector<unsigned int> discovery_time(network.num_nodes(), 0);
     std::vector<unsigned int> lowest(network.num_nodes(), std::numeric_limits<unsigned int>::max());
     std::vector<unsigned int> blob_size;
-    for (const Node *node : network.nodes) {
+    for (size_t i = 0; i < network.num_nodes(); ++i) {
+        Node* node = &network.nodes[i];
         if (discovery_time[node->clv_index] == 0) {
             bicon(node, nullptr, time, discovery_time, lowest, s, blob_info.edge_blob_id, act_bicomp_id, blob_size);
         }

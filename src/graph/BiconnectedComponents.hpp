@@ -19,5 +19,5 @@ struct BlobInformation {
     std::vector<std::vector<Node*> > reticulation_nodes_per_megablob;
     std::vector<Node*> megablob_roots;
 };
-BlobInformation partitionNetworkIntoBlobs(const Network &network);
+BlobInformation partitionNetworkIntoBlobs(Network &network);
 }
