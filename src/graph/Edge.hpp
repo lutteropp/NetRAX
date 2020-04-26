@@ -22,6 +22,15 @@ struct Edge {
         this->prob = prob;
     }
 
+    void clear() {
+        pmatrix_index = 0;
+        link1 = nullptr;
+        link2 = nullptr;
+        length = 0.0;
+        support = 0.0;
+        prob = 1.0;
+    }
+
     size_t pmatrix_index = 0;
     Link *link1 = nullptr;
     Link *link2 = nullptr;

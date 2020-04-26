@@ -83,6 +83,18 @@ public:
         return reticulationData;
     }
 
+    void clear() {
+        type = NodeType::BASIC_NODE;
+        int scaler_index = -1;
+        clv_index = 0;
+        links.clear();
+        if (reticulationData) {
+            reticulationData.release();
+        }
+        reticulationData = nullptr;
+        label = "";
+    }
+
     NodeType type = NodeType::BASIC_NODE;
     int scaler_index = -1;
     size_t clv_index = 0;
