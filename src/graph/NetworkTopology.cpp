@@ -153,6 +153,19 @@ std::vector<Node*> getActiveChildren(Node *node, const Node *myParent) {
     return activeChildren;
 }
 
+Node* getOtherChild(Node* parent, Node* aChild) {
+    assert(parent && parent->type != NodeType::RETICULATION_NODE);
+    assert(aChild);
+    std::vector<Node*> children = getChildren(parent, getActiveParent(parent));
+    assert(std::find(children.begin(), children.end(), aChild) != children.end());
+    for (Node* child : children) {
+        if (child != aChild) {
+            return child;
+        }
+    }
+    return nullptr;
+}
+
 std::vector<Node*> getNeighbors(const Node *node) {
     assert(node);
     std::vector<Node*> neighbors;

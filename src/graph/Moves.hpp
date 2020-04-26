@@ -64,6 +64,7 @@ void undoMove(AnnotatedNetwork &ann_network, RNNIMove &move);
 void undoMove(AnnotatedNetwork &ann_network, RSPRMove &move);
 
 std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_network);
+std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_network, Node *v);
 std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_network);
 void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move);
 void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move);

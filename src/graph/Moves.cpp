@@ -565,6 +565,59 @@ std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network) {
     return res;
 }
 
+std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_network) {
+    std::vector<ArcInsertionMove> res;
+
+    return res;
+}
+
+std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_network, Node *v) {
+    // v is a reticulation node, u is one parent of v, c is the other parent of v, a is parent of u, d is child of v, b is other child of u
+    std::vector<ArcRemovalMove> res;
+    Network &network = ann_network.network;
+    assert(v->type == NodeType::RETICULATION_NODE);
+    Node *d = getReticulationChild(v);
+    Node *first_parent = getReticulationFirstParent(v);
+    Node *second_parent = getReticulationSecondParent(v);
+    std::vector<std::pair<Node*, Node*> > ucChoices;
+    if (first_parent != network.root && first_parent->type != NodeType::RETICULATION_NODE) {
+        ucChoices.emplace_back(std::make_pair(first_parent, second_parent));
+    }
+    if (second_parent != network.root && second_parent->type != NodeType::RETICULATION_NODE) {
+        ucChoices.emplace_back(std::make_pair(second_parent, first_parent));
+    }
+    for (size_t i = 0; i < ucChoices.size(); ++i) {
+        Node *u = ucChoices[i].first;
+        Node *c = ucChoices[i].second;
+        Node *b = getOtherChild(u, v);
+        assert(u);
+        assert(c);
+        assert(b);
+        std::vector<Node*> aChoices;
+        if (u->type == NodeType::RETICULATION_NODE) {
+            aChoices.emplace_back(getReticulationFirstParent(u));
+            aChoices.emplace_back(getReticulationSecondParent(u));
+        } else {
+            aChoices.emplace_back(getActiveParent(u));
+        }
+        for (Node *a : aChoices) {
+            assert(a);
+            res.emplace_back(ArcRemovalMove { a, b, c, d, u, v });
+        }
+    }
+    return res;
+}
+
+std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_network) {
+    std::vector<ArcRemovalMove> res;
+    Network &network = ann_network.network;
+    for (size_t i = 0; i < network.num_reticulations(); ++i) {
+        auto moves = possibleArcRemovalMoves(ann_network, network.reticulation_nodes[i]);
+        res.insert(std::end(res), std::begin(moves), std::end(moves));
+    }
+    return res;
+}
+
 void performMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
     Link *x_out_link = getLinkToNode(move.x, move.z);
     Link *z_in_link = getLinkToNode(move.z, move.x);
