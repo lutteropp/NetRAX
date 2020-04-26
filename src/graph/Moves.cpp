@@ -755,8 +755,8 @@ Edge* addEdge(Network &network, Link *link1, Link *link2, double length, double 
     } else if (link2->node->isTip()) {
         pmatrix_index = link2->node->clv_index;
     } else {
-        // try to find a smaller unused pmatrix index
-        for (size_t i = 0; i < pmatrix_index; ++i) {
+        // try to find a smaller unused pmatrix index which is not reserverd by a tip
+        for (size_t i = network.num_tips(); i < pmatrix_index; ++i) {
             if (network.edges_by_index[i] == nullptr) {
                 pmatrix_index = i;
                 break;
