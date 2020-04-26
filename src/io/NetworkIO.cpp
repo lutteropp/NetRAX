@@ -74,11 +74,11 @@ Network convertNetworkToplevelTrifurcation(RootedNetwork &rnetwork, size_t node_
     network.nodes.resize(maxNodeCount);
     network.edges.resize(maxBranchCount);
     // initialize the access by clv_index and pmatrix_index
-    network.nodes_by_index.resize(maxNodeCount);
+    network.nodes_by_index.resize(node_count);
     for (size_t i = 0; i < maxNodeCount; ++i) {
         network.nodes_by_index[i] = &network.nodes[i];
     }
-    network.edges_by_index.resize(maxBranchCount);
+    network.edges_by_index.resize(branch_count);
     for (size_t i = 0; i < maxBranchCount; ++i) {
         network.edges_by_index[i] = &network.edges[i];
     }
