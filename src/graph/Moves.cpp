@@ -798,26 +798,14 @@ void removeEdge(Network &network, Edge *edge) {
     network.branchCount--;
 }
 
-Edge* addEdge(Network &network, Link *link1, Link *link2, double length, double prob) {
+Edge* addEdge(Network &network, Link *link1, Link *link2, double length, double prob, size_t pmatrix_index) {
     assert(network.num_branches() < network.edges.size());
     if (link1->direction == Direction::INCOMING) {
         std::swap(link1, link2);
     }
 
-    unsigned int pmatrix_index = network.edges.size() - 1;
-    // Fix pmatrix index issues in case we have a tip
     if (network.nodes_by_index[link1->node_clv_index]->isTip()) {
-        pmatrix_index = link1->node_clv_index;
-    } else if (network.nodes_by_index[link2->node_clv_index]->isTip()) {
-        pmatrix_index = link2->node_clv_index;
-    } else {
-        // try to find a smaller unused pmatrix index which is not reserved by a tip
-        for (size_t i = network.num_tips(); i < pmatrix_index; ++i) {
-            if (network.edges_by_index[i] == nullptr) {
-                pmatrix_index = i;
-                break;
-            }
-        }
+        assert(pmatrix_index < network.num_tips());
     }
     assert(network.edges_by_index[pmatrix_index] == nullptr);
     network.edges[network.branchCount].init(pmatrix_index, link1, link2, length, prob);
@@ -954,14 +942,23 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
 
     size_t a_b_edge_index = a_b_edge->pmatrix_index;
     size_t c_d_edge_index = c_d_edge->pmatrix_index;
+
+    /*removeEdge(network, a_b_edge);
+    Edge *a_u_edge = addEdge(network, from_a_link, to_u_link, a_u_edge_length, a_u_edge_prob);
+    removeEdge(network, c_d_edge);
+    Edge *c_v_edge = addEdge(network, from_c_link, v_c_link, c_v_edge_length, c_v_edge_prob);
+    Edge *u_b_edge = addEdge(network, u_b_link, to_b_link, u_b_edge_length, u_b_edge_prob);
+    Edge *v_d_edge = addEdge(network, v_d_link, to_d_link, v_d_edge_length, v_d_edge_prob);
+    Edge *u_v_edge = addEdge(network, u_v_link, v_u_link, u_v_edge_length, u_v_edge_prob);*/
+
+    size_t actBranchCount = network.num_branches();
     removeEdge(network, a_b_edge);
     removeEdge(network, c_d_edge);
-
-    Edge *u_v_edge = addEdge(network, u_v_link, v_u_link, u_v_edge_length, u_v_edge_prob);
-    Edge *a_u_edge = addEdge(network, from_a_link, to_u_link, a_u_edge_length, a_u_edge_prob);
-    Edge *u_b_edge = addEdge(network, u_b_link, to_b_link, u_b_edge_length, u_b_edge_prob);
-    Edge *c_v_edge = addEdge(network, from_c_link, v_c_link, c_v_edge_length, c_v_edge_prob);
-    Edge *v_d_edge = addEdge(network, v_d_link, to_d_link, v_d_edge_length, v_d_edge_prob);
+    Edge *a_u_edge = addEdge(network, from_a_link, to_u_link, a_u_edge_length, a_u_edge_prob, a_b_edge_index);
+    Edge *c_v_edge = addEdge(network, from_c_link, v_c_link, c_v_edge_length, c_v_edge_prob, c_d_edge_index);
+    Edge *u_b_edge = addEdge(network, u_b_link, to_b_link, u_b_edge_length, u_b_edge_prob, actBranchCount);
+    Edge *v_d_edge = addEdge(network, v_d_link, to_d_link, v_d_edge_length, v_d_edge_prob, actBranchCount+1);
+    Edge *u_v_edge = addEdge(network, u_v_link, v_u_link, u_v_edge_length, u_v_edge_prob, actBranchCount+2);
 
     v->getReticulationData()->link_to_first_parent = v_u_link;
     v->getReticulationData()->link_to_second_parent = v_c_link;
@@ -1052,8 +1049,8 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     removeEdge(network, network.edges_by_index[v_d_edge_index]);
     removeEdge(network, network.edges_by_index[u_v_edge_index]);
 
-    Edge *a_b_edge = addEdge(network, from_a_link, to_b_link, a_b_edge_length, a_b_edge_prob);
-    Edge *c_d_edge = addEdge(network, from_c_link, to_d_link, c_d_edge_length, c_d_edge_prob);
+    Edge *a_b_edge = addEdge(network, from_a_link, to_b_link, a_b_edge_length, a_b_edge_prob, a_u_edge_index);
+    Edge *c_d_edge = addEdge(network, from_c_link, to_d_link, c_d_edge_length, c_d_edge_prob, c_v_edge_index);
 
     //  Also update these in the treeinfo and the branch_probs array
     unsigned int partitions = 1;
