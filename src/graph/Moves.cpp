@@ -747,6 +747,11 @@ void removeEdge(Network &network, Edge *edge) {
     network.edges_by_index[index] = nullptr;
     network.edges[network.branchCount - 1].clear();
     network.branchCount--;
+
+    // check pmatrix indices of edges adjacent to tip nodes
+    for (size_t i = 0; i < network.num_tips(); ++i) {
+        assert(network.nodes_by_index[i]->links[0].edge_pmatrix_index < network.num_tips());
+    }
 }
 
 Edge* addEdge(Network &network, Link *link1, Link *link2, double length, double prob) {
@@ -770,6 +775,12 @@ Edge* addEdge(Network &network, Link *link1, Link *link2, double length, double 
     network.edges[network.branchCount].init(pmatrix_index, link1, link2, length, prob);
     network.edges_by_index[pmatrix_index] = &network.edges[network.branchCount];
     network.branchCount++;
+
+    // check pmatrix indices of edges adjacent to tip nodes
+    for (size_t i = 0; i < network.num_tips(); ++i) {
+        assert(network.nodes_by_index[i]->links[0].edge_pmatrix_index < network.num_tips());
+    }
+
     return network.edges_by_index[pmatrix_index];
 }
 

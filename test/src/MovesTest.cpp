@@ -146,6 +146,10 @@ void randomArcInsertionMoves(const std::string &networkPath, const std::string &
         for (size_t j = 0; j < candidates.size(); ++j) {
             std::cout << "perform " << toString(candidates[j]);
             performMove(ann_network, candidates[j]);
+
+            std::cout << "network after move:\n";
+            std::cout << exportDebugInfo(network) << "\n";
+
             double moved_logl = computeLoglikelihood(ann_network);
             ASSERT_NE(moved_logl, -std::numeric_limits<double>::infinity());
             std::cout << "logl after move: " << moved_logl << "\n";

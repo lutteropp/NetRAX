@@ -511,7 +511,7 @@ std::string exportDebugInfo(Network &network, const BlobInformation &blobInfo) {
     std::vector<Node*> parent = grab_current_node_parents(network);
     for (size_t i = 0; i < network.num_nodes(); ++i) {
         ss << "\tnode\n\t[\n\t\tid\t" << i << "\n";
-        std::string nodeLabel = std::to_string(i);
+        std::string nodeLabel = std::to_string(network.nodes[i].clv_index);
         if (!network.nodes[i].label.empty()) {
             nodeLabel += ": " + network.nodes[i].label;
         }
@@ -537,7 +537,7 @@ std::string exportDebugInfo(Network &network, const BlobInformation &blobInfo) {
         ss << parentId << "\n";
         ss << "\t\ttarget\t" << childId << "\n";
         ss << "\t\tlabel\t";
-        std::string edgeLabel = std::to_string(i) + "|"
+        std::string edgeLabel = std::to_string(network.edges[i].pmatrix_index) + "|"
                 + std::to_string(blobInfo.edge_blob_id[i]);
         ss << "\"" << edgeLabel << "\"\n";
         ss << "\t]\n";
@@ -565,7 +565,7 @@ std::string exportDebugInfo(Network &network, const std::vector<unsigned int> &e
     std::vector<Node*> parent = grab_current_node_parents(network);
     for (size_t i = 0; i < network.num_nodes(); ++i) {
         ss << "\tnode\n\t[\n\t\tid\t" << i << "\n";
-        std::string nodeLabel = std::to_string(i);
+        std::string nodeLabel = std::to_string(network.nodes[i].clv_index);
         if (!network.nodes[i].label.empty()) {
             nodeLabel += ": " + network.nodes[i].label;
         }
@@ -593,12 +593,16 @@ std::string exportDebugInfo(Network &network, const std::vector<unsigned int> &e
         ss << parentId << "\n";
         ss << "\t\ttarget\t" << childId << "\n";
         ss << "\t\tlabel\t";
-        std::string edgeLabel = std::to_string(i);
+        std::string edgeLabel = std::to_string(network.edges[i].pmatrix_index);
         ss << "\"" << edgeLabel << "\"\n";
         ss << "\t]\n";
     }
     ss << "]\n";
     return ss.str();
+}
+
+std::string exportDebugInfo(Network &network) {
+    return exportDebugInfo(network, std::vector<unsigned int>());
 }
 
 bool networkIsConnected(Network &network) {

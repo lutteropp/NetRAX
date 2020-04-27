@@ -40,8 +40,8 @@ std::vector<Node*> grab_current_node_parents(Network &network);
 std::vector<Node*> reversed_topological_sort(Network &network);
 
 std::string exportDebugInfo(Network &network, const BlobInformation &blobInfo);
-std::string exportDebugInfo(Network &network,
-        const std::vector<unsigned int> &extra_node_number = std::vector<unsigned int>());
+std::string exportDebugInfo(Network &network, const std::vector<unsigned int> &extra_node_number);
+std::string exportDebugInfo(Network &network);
 
 bool networkIsConnected(Network &network);
 
