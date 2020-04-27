@@ -23,17 +23,17 @@ void reset_tip_ids(Network &network, const std::unordered_map<std::string, size_
     if (label_id_map.size() < network.num_tips())
         throw std::invalid_argument("Invalid map size");
 
+    // We leave the edges and nodes arrays as they are, and only change the index fields of their entries
     for (size_t i = 0; i < network.num_tips(); ++i) {
         assert(network.nodes[i].isTip());
         const unsigned int tip_id = label_id_map.at(network.nodes[i].label);
         network.nodes[i].clv_index = tip_id;
+        network.edges[i].pmatrix_index = tip_id;
+
         network.nodes_by_index[tip_id] = &network.nodes[i];
-        // TODO reset pmatrix index
-        Edge* edge = network.edges_by_index[network.nodes[i].links[0].edge_pmatrix_index];
-        edge->pmatrix_index = tip_id;
-        network.edges_by_index[tip_id] = edge;
-        edge->link1->edge_pmatrix_index = tip_id;
-        edge->link2->edge_pmatrix_index = tip_id;
+        network.edges_by_index[tip_id] = &network.edges[i];
+        network.edges_by_index[tip_id]->link1->edge_pmatrix_index = tip_id;
+        network.edges_by_index[tip_id]->link2->edge_pmatrix_index = tip_id;
     }
 }
 
