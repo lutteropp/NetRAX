@@ -797,6 +797,14 @@ void removeNode(Network &network, Node *node) {
     network.nodes_by_index[index] = &network.nodes[network.nodeCount - 1];
     if (network.nodes_by_index[other_index]->type == NodeType::RETICULATION_NODE) {
         unsigned int other_ret_index = network.nodes_by_index[other_index]->getReticulationData()->reticulation_index;
+        unsigned int node_ret_index = node->getReticulationData()->reticulation_index;
+        if (node_ret_index < other_ret_index) {
+            network.reticulation_nodes[other_ret_index] = network.nodes_by_index[index];
+            network.reticulation_nodes[node_ret_index] = network.nodes_by_index[other_index];
+            network.reticulation_nodes[other_ret_index]->getReticulationData()->reticulation_index = other_ret_index;
+            network.reticulation_nodes[node_ret_index]->getReticulationData()->reticulation_index = node_ret_index;
+            std::swap(node_ret_index, other_ret_index);
+        }
         network.reticulation_nodes[other_ret_index] = network.nodes_by_index[other_index];
     }
 
