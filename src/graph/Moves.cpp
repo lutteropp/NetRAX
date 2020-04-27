@@ -794,9 +794,10 @@ void removeNode(Network &network, Node *node) {
     assert(network.nodes[index_in_nodes_array].clv_index == index);
     std::swap(network.nodes[index_in_nodes_array], network.nodes[network.nodeCount - 1]);
     network.nodes_by_index[other_index] = &network.nodes[index_in_nodes_array];
+    network.nodes_by_index[index] = &network.nodes[network.nodeCount - 1];
     if (network.nodes_by_index[other_index]->type == NodeType::RETICULATION_NODE) {
-        network.reticulation_nodes[network.nodes_by_index[other_index]->getReticulationData()->reticulation_index] =
-                network.nodes_by_index[other_index];
+        unsigned int other_ret_index = network.nodes_by_index[other_index]->getReticulationData()->reticulation_index;
+        network.reticulation_nodes[other_ret_index] = network.nodes_by_index[other_index];
     }
 
     network.nodes_by_index[index] = nullptr;
