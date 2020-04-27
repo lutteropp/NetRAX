@@ -605,7 +605,7 @@ std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network) {
 std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_network, const Edge *edge) {
     std::vector<ArcInsertionMove> res;
     Network &network = ann_network.network;
-    // choose two distinct arcs ab, cd (with cd not ancestral to ab -> no a-d-path allowed)
+    // choose two distinct arcs ab, cd (with cd not ancestral to ab -> no d-a-path allowed)
     Node *a = getSource(network, edge);
     Node *b = getTarget(network, edge);
     for (size_t i = 0; i < network.num_branches(); ++i) {
@@ -614,7 +614,7 @@ std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_ne
         }
         Node *c = getSource(network, &network.edges[i]);
         Node *d = getTarget(network, &network.edges[i]);
-        if (!hasPath(network, a, d)) {
+        if (!hasPath(network, d, a)) {
             res.emplace_back(ArcInsertionMove { a->clv_index, b->clv_index, c->clv_index, d->clv_index });
         }
     }
