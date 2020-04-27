@@ -934,6 +934,7 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
         ann_network.branch_probs[p][a_u_edge->pmatrix_index] = a_u_branch_prob;
         ann_network.branch_probs[p][u_b_edge->pmatrix_index] = u_b_branch_prob;
     }
+    ann_network.blobInfo = partitionNetworkIntoBlobs(ann_network.network);
 }
 
 void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
@@ -997,6 +998,7 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     to_b_link->edge_pmatrix_index = a_b_edge->pmatrix_index;
     from_c_link->edge_pmatrix_index = c_d_edge->pmatrix_index;
     to_d_link->edge_pmatrix_index = c_d_edge->pmatrix_index;
+    ann_network.blobInfo = partitionNetworkIntoBlobs(ann_network.network);
 }
 
 void undoMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {

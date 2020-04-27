@@ -146,9 +146,6 @@ std::vector<Node*> getActiveChildren(Network &network, Node *node, const Node *m
     assert(node);
     std::vector<Node*> activeChildren;
     std::vector<Node*> children = getChildren(network, node, myParent);
-    if (children.size() == 0) {
-        std::cout << "why\n";
-    }
     for (size_t i = 0; i < children.size(); ++i) {
         if (children[i]->getType() == NodeType::RETICULATION_NODE) {
             // we need to check if the child is active, this is, if we are currently the selected parent
