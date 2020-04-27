@@ -614,7 +614,7 @@ std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_ne
     Node *a = getSource(network, edge);
     Node *b = getTarget(network, edge);
     for (size_t i = 0; i < network.num_branches(); ++i) {
-        if (i == edge->pmatrix_index) {
+        if (network.edges[i].pmatrix_index == edge->pmatrix_index) {
             continue;
         }
         Node *c = getSource(network, &network.edges[i]);
