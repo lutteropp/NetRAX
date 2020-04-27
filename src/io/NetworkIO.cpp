@@ -239,6 +239,13 @@ Network convertNetworkToplevelTrifurcation(RootedNetwork &rnetwork, size_t node_
         }
     }
 
+    // change links from edges such that link1 is the outgoing link and link2 is the incoming link
+    for (size_t i = 0; i < network.num_branches(); ++i) {
+        if (network.edges_by_index[i]->link1->direction == Direction::INCOMING) {
+            std::swap(network.edges_by_index[i]->link1, network.edges_by_index[i]->link2);
+        }
+    }
+
     // TODO: Update changed memory layout in the Google Doc
     network.root = &network.nodes[network.num_nodes() - 1 - rnetwork.reticulationCount];
 

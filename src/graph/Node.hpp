@@ -85,7 +85,7 @@ public:
 
     void clear() {
         type = NodeType::BASIC_NODE;
-        int scaler_index = -1;
+        scaler_index = -1;
         clv_index = 0;
         links.clear();
         if (reticulationData) {

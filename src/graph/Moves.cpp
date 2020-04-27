@@ -149,6 +149,9 @@ void exchangeEdges(Network &network, Node *u, Node *v, Node *s, Node *t) {
     u_t_edge->link2 = from_t_link;
     from_u_link->edge_pmatrix_index = u_t_edge->pmatrix_index;
     from_t_link->edge_pmatrix_index = u_t_edge->pmatrix_index;
+    if (u_t_edge->link1->direction == Direction::INCOMING) {
+        std::swap(u_t_edge->link1, u_t_edge->link2);
+    }
 
     // v_t_edge now becomes v_s_edge
     Edge *v_s_edge = v_t_edge;
@@ -156,6 +159,9 @@ void exchangeEdges(Network &network, Node *u, Node *v, Node *s, Node *t) {
     v_s_edge->link2 = from_s_link;
     from_v_link->edge_pmatrix_index = v_s_edge->pmatrix_index;
     from_s_link->edge_pmatrix_index = v_s_edge->pmatrix_index;
+    if (v_s_edge->link1->direction == Direction::INCOMING) {
+        std::swap(v_s_edge->link1, v_s_edge->link2);
+    }
 }
 
 void switchReticulations(Network &network, Node *u, Node *v) {
@@ -794,6 +800,10 @@ void removeEdge(Network &network, Edge *edge) {
 
 Edge* addEdge(Network &network, Link *link1, Link *link2, double length, double prob) {
     assert(network.num_branches() < network.edges.size());
+    if (link1->direction == Direction::INCOMING) {
+        std::swap(link1, link2);
+    }
+
     unsigned int pmatrix_index = network.edges.size() - 1;
     // Fix pmatrix index issues in case we have a tip
     if (network.nodes_by_index[link1->node_clv_index]->isTip()) {

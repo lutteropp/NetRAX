@@ -25,7 +25,7 @@ Node* getTargetNode(Network &network, const Link *link) {
     }
 }
 
-bool isOutgoing(Network& network, Node *from, Node *to) {
+bool isOutgoing(Network &network, Node *from, Node *to) {
     assert(getLinkToClvIndex(network, from, to->clv_index));
     auto children = getChildren(network, from, getActiveParent(network, from));
     return (std::find(children.begin(), children.end(), to) != children.end());
@@ -264,19 +264,13 @@ std::vector<Edge*> getAdjacentEdges(Network &network, const Node *node) {
 }
 
 Node* getSource(Network &network, const Edge *edge) {
-    if (edge->link1->direction == Direction::OUTGOING) {
-        return network.nodes_by_index[edge->link1->node_clv_index];
-    } else {
-        return network.nodes_by_index[edge->link2->node_clv_index];
-    }
+    assert(edge->link1->direction == Direction::OUTGOING);
+    return network.nodes_by_index[edge->link1->node_clv_index];
 }
 
 Node* getTarget(Network &network, const Edge *edge) {
-    if (edge->link1->direction == Direction::INCOMING) {
-        return network.nodes_by_index[edge->link1->node_clv_index];
-    } else {
-        return network.nodes_by_index[edge->link2->node_clv_index];
-    }
+    assert(edge->link2->direction == Direction::INCOMING);
+    return network.nodes_by_index[edge->link2->node_clv_index];
 }
 
 bool hasNeighbor(Node *node1, Node *node2) {
