@@ -21,6 +21,7 @@ Node* getTargetNode(Network& network, const Link* link);
 bool isOutgoing(Network &network, Node* from, Node* to);
 Link* getLinkToClvIndex(Network &network, Node* node, size_t target_index);
 Link* getLinkToNode(Network &network, Node *node, Node *target);
+Link* getLinkToNode(Network &network, size_t from_clv_index, size_t to_clv_index);
 Node* getReticulationChild(Network &network, const Node* node);
 Node* getReticulationFirstParent(Network &network, const Node* node);
 Node* getReticulationSecondParent(Network &network, const Node* node);
@@ -41,6 +42,7 @@ std::vector<Node*> getActiveNeighbors(Network &network, const Node* node);
 Node* getActiveParent(Network &network, const Node* node);
 std::vector<Node*> getAllParents(Network &network, const Node* node);
 Edge* getEdgeTo(Network &network, const Node* node, const Node* target);
+Edge* getEdgeTo(Network &network, size_t from_clv_index, size_t to_clv_index);
 std::vector<Edge*> getAdjacentEdges(Network &network, const Node* node);
 
 Node* getSource(Network &network, const Edge* edge);

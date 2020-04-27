@@ -51,6 +51,10 @@ Link* getLinkToNode(Network &network, Node *node, Node *target) {
     return nullptr;
 }
 
+Link* getLinkToNode(Network &network, size_t from_clv_index, size_t to_clv_index) {
+    return getLinkToNode(network, network.nodes_by_index[from_clv_index], network.nodes_by_index[to_clv_index]);
+}
+
 Node* getReticulationChild(Network &network, const Node *node) {
     assert(node);
     assert(node->type == NodeType::RETICULATION_NODE);
@@ -243,6 +247,10 @@ Edge* getEdgeTo(Network &network, const Node *node, const Node *target) {
         }
     }
     throw std::runtime_error("The given target node is not a neighbor of this node");
+}
+
+Edge* getEdgeTo(Network &network, size_t from_clv_index, size_t to_clv_index) {
+    return getEdgeTo(network, network.nodes_by_index[from_clv_index], network.nodes_by_index[to_clv_index]);
 }
 
 std::vector<Edge*> getAdjacentEdges(Network &network, const Node *node) {

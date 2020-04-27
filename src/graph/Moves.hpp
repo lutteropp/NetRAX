@@ -21,35 +21,35 @@ enum class RNNIMoveType {
 };
 
 struct RNNIMove {
-    Node *u = nullptr;
-    Node *v = nullptr;
-    Node *s = nullptr;
-    Node *t = nullptr;
+    size_t u_clv_index = 0;
+    size_t v_clv_index = 0;
+    size_t s_clv_index = 0;
+    size_t t_clv_index = 0;
     RNNIMoveType type;
 };
 
 struct RSPRMove {
-    Node *x_prime = nullptr;
-    Node *y_prime = nullptr;
-    Node *x = nullptr;
-    Node *y = nullptr;
-    Node *z = nullptr;
+    size_t x_prime_clv_index = 0;
+    size_t y_prime_clv_index = 0;
+    size_t x_clv_index = 0;
+    size_t y_clv_index = 0;
+    size_t z_clv_index = 0;
 };
 
 struct ArcInsertionMove {
-    Node *a = nullptr;
-    Node *b = nullptr;
-    Node *c = nullptr;
-    Node *d = nullptr;
+    size_t a_clv_index = 0;
+    size_t b_clv_index = 0;
+    size_t c_clv_index = 0;
+    size_t d_clv_index = 0;
 };
 
 struct ArcRemovalMove {
-    Node *a = nullptr;
-    Node *b = nullptr;
-    Node *c = nullptr;
-    Node *d = nullptr;
-    Node *u = nullptr;
-    Node *v = nullptr;
+    size_t a_clv_index = 0;
+    size_t b_clv_index = 0;
+    size_t c_clv_index = 0;
+    size_t d_clv_index = 0;
+    size_t u_clv_index = 0;
+    size_t v_clv_index = 0;
 };
 
 std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network, const Edge *edge);

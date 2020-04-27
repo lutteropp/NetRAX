@@ -83,34 +83,41 @@ std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network, const Edg
         if (isOutgoing(network, u, s) && isOutgoing(network, v, t)) {
             if (!hasPath(network, s, v)) {
                 // add move 1
-                res.emplace_back(RNNIMove { u, v, s, t, RNNIMoveType::ONE });
+                res.emplace_back(
+                        RNNIMove { u->clv_index, v->clv_index, s->clv_index, t->clv_index, RNNIMoveType::ONE });
                 if (v->type == NodeType::RETICULATION_NODE && u != network.root) {
                     // add move 1*
-                    res.emplace_back(RNNIMove { u, v, s, t, RNNIMoveType::ONE_STAR });
+                    res.emplace_back(RNNIMove { u->clv_index, v->clv_index, s->clv_index, t->clv_index,
+                            RNNIMoveType::ONE_STAR });
                 }
             }
         } else if (isOutgoing(network, s, u) && isOutgoing(network, t, v)) {
             if (!hasPath(network, u, t)) {
                 // add move 2
-                res.emplace_back(RNNIMove { u, v, s, t, RNNIMoveType::TWO });
+                res.emplace_back(
+                        RNNIMove { u->clv_index, v->clv_index, s->clv_index, t->clv_index, RNNIMoveType::TWO });
                 if (u->type != NodeType::RETICULATION_NODE) {
                     // add move 2*
-                    res.emplace_back(RNNIMove { u, v, s, t, RNNIMoveType::TWO_STAR });
+                    res.emplace_back(RNNIMove { u->clv_index, v->clv_index, s->clv_index, t->clv_index,
+                            RNNIMoveType::TWO_STAR });
                 }
             }
         } else if (isOutgoing(network, s, u) && isOutgoing(network, v, t)) {
             if (u->type == NodeType::RETICULATION_NODE && v->type != NodeType::RETICULATION_NODE) {
                 // add move 3
-                res.emplace_back(RNNIMove { u, v, s, t, RNNIMoveType::THREE });
+                res.emplace_back(
+                        RNNIMove { u->clv_index, v->clv_index, s->clv_index, t->clv_index, RNNIMoveType::THREE });
             }
             if (!hasPath(network, u, v, true)) {
                 // add move 3*
-                res.emplace_back(RNNIMove { u, v, s, t, RNNIMoveType::THREE_STAR });
+                res.emplace_back(RNNIMove { u->clv_index, v->clv_index, s->clv_index, t->clv_index,
+                        RNNIMoveType::THREE_STAR });
             }
         } else if (isOutgoing(network, u, s) && isOutgoing(network, t, v)) {
             if (u != network.root && !hasPath(network, s, t)) {
                 // add move 4
-                res.emplace_back(RNNIMove { u, v, s, t, RNNIMoveType::FOUR });
+                res.emplace_back(
+                        RNNIMove { u->clv_index, v->clv_index, s->clv_index, t->clv_index, RNNIMoveType::FOUR });
             }
         }
     }
@@ -225,10 +232,10 @@ void addRepairCandidates(Network &network, std::unordered_set<Node*> &repair_can
 
 void fixReticulations(Network &network, RNNIMove &move) {
     std::unordered_set<Node*> repair_candidates;
-    addRepairCandidates(network, repair_candidates, move.s);
-    addRepairCandidates(network, repair_candidates, move.t);
-    addRepairCandidates(network, repair_candidates, move.u);
-    addRepairCandidates(network, repair_candidates, move.v);
+    addRepairCandidates(network, repair_candidates, network.nodes_by_index[move.s_clv_index]);
+    addRepairCandidates(network, repair_candidates, network.nodes_by_index[move.t_clv_index]);
+    addRepairCandidates(network, repair_candidates, network.nodes_by_index[move.u_clv_index]);
+    addRepairCandidates(network, repair_candidates, network.nodes_by_index[move.v_clv_index]);
     for (Node *node : repair_candidates) {
         if (node->type == NodeType::RETICULATION_NODE) {
             resetReticulationLinks(node);
@@ -238,11 +245,11 @@ void fixReticulations(Network &network, RNNIMove &move) {
 
 void fixReticulations(Network &network, RSPRMove &move) {
     std::unordered_set<Node*> repair_candidates;
-    addRepairCandidates(network, repair_candidates, move.x);
-    addRepairCandidates(network, repair_candidates, move.x_prime);
-    addRepairCandidates(network, repair_candidates, move.y);
-    addRepairCandidates(network, repair_candidates, move.y_prime);
-    addRepairCandidates(network, repair_candidates, move.z);
+    addRepairCandidates(network, repair_candidates, network.nodes_by_index[move.x_clv_index]);
+    addRepairCandidates(network, repair_candidates, network.nodes_by_index[move.x_prime_clv_index]);
+    addRepairCandidates(network, repair_candidates, network.nodes_by_index[move.y_clv_index]);
+    addRepairCandidates(network, repair_candidates, network.nodes_by_index[move.y_prime_clv_index]);
+    addRepairCandidates(network, repair_candidates, network.nodes_by_index[move.z_clv_index]);
     for (Node *node : repair_candidates) {
         if (node->type == NodeType::RETICULATION_NODE) {
             resetReticulationLinks(node);
@@ -272,81 +279,89 @@ void setLinkDirections(Network &network, Node *u, Node *v) {
 }
 
 void updateLinkDirections(Network &network, RNNIMove &move) {
+    Node *u = network.nodes_by_index[move.u_clv_index];
+    Node *v = network.nodes_by_index[move.v_clv_index];
+    Node *s = network.nodes_by_index[move.s_clv_index];
+    Node *t = network.nodes_by_index[move.t_clv_index];
     switch (move.type) {
     case RNNIMoveType::ONE:
-        setLinkDirections(network, move.u, move.v);
-        setLinkDirections(network, move.u, move.t);
-        setLinkDirections(network, move.v, move.s);
+        setLinkDirections(network, u, v);
+        setLinkDirections(network, u, t);
+        setLinkDirections(network, v, s);
         break;
     case RNNIMoveType::ONE_STAR:
-        setLinkDirections(network, move.v, move.u);
-        setLinkDirections(network, move.u, move.t);
-        setLinkDirections(network, move.v, move.s);
+        setLinkDirections(network, v, u);
+        setLinkDirections(network, u, t);
+        setLinkDirections(network, v, s);
         break;
     case RNNIMoveType::TWO:
-        setLinkDirections(network, move.u, move.v);
-        setLinkDirections(network, move.t, move.u);
-        setLinkDirections(network, move.s, move.v);
+        setLinkDirections(network, u, v);
+        setLinkDirections(network, t, u);
+        setLinkDirections(network, s, v);
         break;
     case RNNIMoveType::TWO_STAR:
-        setLinkDirections(network, move.v, move.u);
-        setLinkDirections(network, move.t, move.u);
-        setLinkDirections(network, move.s, move.v);
+        setLinkDirections(network, v, u);
+        setLinkDirections(network, t, u);
+        setLinkDirections(network, s, v);
         break;
     case RNNIMoveType::THREE:
-        setLinkDirections(network, move.u, move.v);
-        setLinkDirections(network, move.u, move.t);
-        setLinkDirections(network, move.s, move.v);
+        setLinkDirections(network, u, v);
+        setLinkDirections(network, u, t);
+        setLinkDirections(network, s, v);
         break;
     case RNNIMoveType::THREE_STAR:
-        setLinkDirections(network, move.v, move.u);
-        setLinkDirections(network, move.u, move.t);
-        setLinkDirections(network, move.s, move.v);
+        setLinkDirections(network, v, u);
+        setLinkDirections(network, u, t);
+        setLinkDirections(network, s, v);
         break;
     case RNNIMoveType::FOUR:
-        setLinkDirections(network, move.u, move.v);
-        setLinkDirections(network, move.t, move.u);
-        setLinkDirections(network, move.v, move.s);
+        setLinkDirections(network, u, v);
+        setLinkDirections(network, t, u);
+        setLinkDirections(network, v, s);
         break;
     }
 }
 
 void updateLinkDirectionsReverse(Network &network, RNNIMove &move) {
+    Node *u = network.nodes_by_index[move.u_clv_index];
+    Node *v = network.nodes_by_index[move.v_clv_index];
+    Node *s = network.nodes_by_index[move.s_clv_index];
+    Node *t = network.nodes_by_index[move.t_clv_index];
     switch (move.type) {
     case RNNIMoveType::ONE:
-        setLinkDirections(network, move.u, move.s);
-        setLinkDirections(network, move.u, move.v);
-        setLinkDirections(network, move.v, move.t);
+        setLinkDirections(network, u, s);
+        setLinkDirections(network, u, v);
+        setLinkDirections(network, v, t);
         break;
     case RNNIMoveType::ONE_STAR:
-        setLinkDirections(network, move.u, move.s);
-        setLinkDirections(network, move.u, move.v);
-        setLinkDirections(network, move.v, move.t);
+        setLinkDirections(network, u, s);
+        setLinkDirections(network, u, v);
+        setLinkDirections(network, v, t);
         break;
     case RNNIMoveType::TWO:
-        setLinkDirections(network, move.s, move.u);
-        setLinkDirections(network, move.u, move.v);
-        setLinkDirections(network, move.t, move.v);
+        setLinkDirections(network, s, u);
+        setLinkDirections(network, u, v);
+        setLinkDirections(network, t, v);
         break;
     case RNNIMoveType::TWO_STAR:
-        setLinkDirections(network, move.s, move.u);
-        setLinkDirections(network, move.u, move.v);
-        setLinkDirections(network, move.t, move.v);
+        setLinkDirections(network, s, u);
+        setLinkDirections(network, u, v);
+        setLinkDirections(network, t, v);
         break;
     case RNNIMoveType::THREE:
-        setLinkDirections(network, move.s, move.u);
-        setLinkDirections(network, move.u, move.v);
-        setLinkDirections(network, move.v, move.t);
+        setLinkDirections(network, s, u);
+        setLinkDirections(network, u, v);
+        setLinkDirections(network, v, t);
         break;
     case RNNIMoveType::THREE_STAR:
-        setLinkDirections(network, move.s, move.u);
-        setLinkDirections(network, move.u, move.v);
-        setLinkDirections(network, move.v, move.t);
+        setLinkDirections(network, s, u);
+        setLinkDirections(network, u, v);
+        setLinkDirections(network, v, t);
         break;
     case RNNIMoveType::FOUR:
-        setLinkDirections(network, move.u, move.s);
-        setLinkDirections(network, move.u, move.v);
-        setLinkDirections(network, move.t, move.v);
+        setLinkDirections(network, u, s);
+        setLinkDirections(network, u, v);
+        setLinkDirections(network, t, v);
         break;
     }
 }
@@ -365,69 +380,81 @@ void checkReticulationProperties(Node *notReticulation, Node *reticulation) {
     }
 }
 
-void assertBeforeMove(RNNIMove &move) {
+void assertBeforeMove(Network &network, RNNIMove &move) {
+    Node *u = network.nodes_by_index[move.u_clv_index];
+    Node *v = network.nodes_by_index[move.v_clv_index];
     Node *notReticulation = nullptr;
     Node *reticulation = nullptr;
     if (move.type == RNNIMoveType::ONE_STAR) {
-        notReticulation = move.u;
-        reticulation = move.v;
+        notReticulation = u;
+        reticulation = v;
     } else if (move.type == RNNIMoveType::TWO_STAR) {
-        notReticulation = move.u;
-        reticulation = move.v;
+        notReticulation = u;
+        reticulation = v;
     } else if (move.type == RNNIMoveType::THREE) {
-        notReticulation = move.v;
-        reticulation = move.u;
+        notReticulation = v;
+        reticulation = u;
     } else if (move.type == RNNIMoveType::FOUR) {
-        notReticulation = move.u;
-        reticulation = move.v;
+        notReticulation = u;
+        reticulation = v;
     }
     checkReticulationProperties(notReticulation, reticulation);
 }
 
-void assertAfterMove(RNNIMove &move) {
+void assertAfterMove(Network &network, RNNIMove &move) {
+    Node *u = network.nodes_by_index[move.u_clv_index];
+    Node *v = network.nodes_by_index[move.v_clv_index];
     Node *notReticulation = nullptr;
     Node *reticulation = nullptr;
     if (move.type == RNNIMoveType::ONE_STAR) {
-        notReticulation = move.v;
-        reticulation = move.u;
+        notReticulation = v;
+        reticulation = u;
     } else if (move.type == RNNIMoveType::TWO_STAR) {
-        notReticulation = move.v;
-        reticulation = move.u;
+        notReticulation = v;
+        reticulation = u;
     } else if (move.type == RNNIMoveType::THREE) {
-        notReticulation = move.u;
-        reticulation = move.v;
+        notReticulation = u;
+        reticulation = v;
     } else if (move.type == RNNIMoveType::FOUR) {
-        notReticulation = move.v;
-        reticulation = move.u;
+        notReticulation = v;
+        reticulation = u;
     }
     checkReticulationProperties(notReticulation, reticulation);
 }
 
 void performMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
     Network &network = ann_network.network;
-    assertBeforeMove(move);
-    exchangeEdges(network, move.u, move.v, move.s, move.t);
+    Node *u = network.nodes_by_index[move.u_clv_index];
+    Node *v = network.nodes_by_index[move.v_clv_index];
+    Node *s = network.nodes_by_index[move.s_clv_index];
+    Node *t = network.nodes_by_index[move.t_clv_index];
+    assertBeforeMove(network, move);
+    exchangeEdges(network, u, v, s, t);
     updateLinkDirections(network, move);
     if (move.type == RNNIMoveType::ONE_STAR || move.type == RNNIMoveType::TWO_STAR || move.type == RNNIMoveType::THREE
             || move.type == RNNIMoveType::FOUR) {
-        switchReticulations(network, move.u, move.v);
+        switchReticulations(network, u, v);
     }
     fixReticulations(network, move);
-    assertAfterMove(move);
+    assertAfterMove(network, move);
     ann_network.blobInfo = partitionNetworkIntoBlobs(ann_network.network);
 }
 
 void undoMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
     Network &network = ann_network.network;
-    assertAfterMove(move);
-    exchangeEdges(network, move.u, move.v, move.t, move.s); // note that s and t are exchanged here
+    Node *u = network.nodes_by_index[move.u_clv_index];
+    Node *v = network.nodes_by_index[move.v_clv_index];
+    Node *s = network.nodes_by_index[move.s_clv_index];
+    Node *t = network.nodes_by_index[move.t_clv_index];
+    assertAfterMove(network, move);
+    exchangeEdges(network, u, v, t, s); // note that s and t are exchanged here
     updateLinkDirectionsReverse(network, move);
     if (move.type == RNNIMoveType::ONE_STAR || move.type == RNNIMoveType::TWO_STAR || move.type == RNNIMoveType::THREE
             || move.type == RNNIMoveType::FOUR) {
-        switchReticulations(network, move.u, move.v);
+        switchReticulations(network, u, v);
     }
     fixReticulations(network, move);
-    assertBeforeMove(move);
+    assertBeforeMove(network, move);
     ann_network.blobInfo = partitionNetworkIntoBlobs(ann_network.network);
 }
 
@@ -480,11 +507,11 @@ void possibleRSPRMovesInternal(std::vector<RSPRMove> &res, Network &network, Nod
 
         if (z->type == NodeType::RETICULATION_NODE) { // head-moving rSPR move
             if (!hasPath(network, y_prime, w)) {
-                res.emplace_back(RSPRMove { x_prime, y_prime, x, y, z });
+                res.emplace_back(RSPRMove { x_prime->clv_index, y_prime->clv_index, x->clv_index, y->clv_index, z->clv_index });
             }
         } else { // tail-moving rSPR move
             if (!hasPath(network, w, x_prime)) {
-                res.emplace_back(RSPRMove { x_prime, y_prime, x, y, z });
+                res.emplace_back(RSPRMove { x_prime->clv_index, y_prime->clv_index, x->clv_index, y->clv_index, z->clv_index });
             }
         }
     }
@@ -580,7 +607,7 @@ std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_ne
         Node *c = getSource(network, &network.edges[i]);
         Node *d = getTarget(network, &network.edges[i]);
         if (!hasPath(network, a, d)) {
-            res.emplace_back(ArcInsertionMove { a, b, c, d });
+            res.emplace_back(ArcInsertionMove { a->clv_index, b->clv_index, c->clv_index, d->clv_index });
         }
     }
     return res;
@@ -626,7 +653,7 @@ std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_networ
         if (hasChild(network, a, b)) { // avoid creating parallel arcs
             continue;
         }
-        res.emplace_back(ArcRemovalMove { a, b, c, d, u, v });
+        res.emplace_back(ArcRemovalMove { a->clv_index, b->clv_index, c->clv_index, d->clv_index, u->clv_index, v->clv_index });
     }
     return res;
 }
@@ -643,16 +670,22 @@ std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_networ
 
 void performMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
     Network &network = ann_network.network;
-    Link *x_out_link = getLinkToNode(network, move.x, move.z);
-    Link *z_in_link = getLinkToNode(network, move.z, move.x);
-    Link *z_out_link = getLinkToNode(network, move.z, move.y);
-    Link *x_prime_out_link = getLinkToNode(network, move.x_prime, move.y_prime);
-    Link *y_prime_in_link = getLinkToNode(network, move.y_prime, move.x_prime);
-    Link *y_in_link = getLinkToNode(network, move.y, move.z);
+    Node *x_prime = network.nodes_by_index[move.x_prime_clv_index];
+    Node *y_prime = network.nodes_by_index[move.y_prime_clv_index];
+    Node *x = network.nodes_by_index[move.x_clv_index];
+    Node *y = network.nodes_by_index[move.y_clv_index];
+    Node *z = network.nodes_by_index[move.z_clv_index];
 
-    Edge *x_z_edge = getEdgeTo(network, move.x, move.z);
-    Edge *z_y_edge = getEdgeTo(network, move.z, move.y);
-    Edge *x_prime_y_prime_edge = getEdgeTo(network, move.x_prime, move.y_prime);
+    Link *x_out_link = getLinkToNode(network, x, z);
+    Link *z_in_link = getLinkToNode(network, z, x);
+    Link *z_out_link = getLinkToNode(network, z, y);
+    Link *x_prime_out_link = getLinkToNode(network, x_prime, y_prime);
+    Link *y_prime_in_link = getLinkToNode(network, y_prime, x_prime);
+    Link *y_in_link = getLinkToNode(network, y, z);
+
+    Edge *x_z_edge = getEdgeTo(network, x, z);
+    Edge *z_y_edge = getEdgeTo(network, z, y);
+    Edge *x_prime_y_prime_edge = getEdgeTo(network, x_prime, y_prime);
 
     assert(x_prime_out_link->edge_pmatrix_index == x_prime_y_prime_edge->pmatrix_index);
     assert(y_prime_in_link->edge_pmatrix_index == x_prime_y_prime_edge->pmatrix_index);
@@ -691,16 +724,22 @@ void performMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
 
 void undoMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
     Network &network = ann_network.network;
-    Link *x_out_link = getLinkToNode(network, move.x, move.y);
-    Link *z_in_link = getLinkToNode(network, move.z, move.x_prime);
-    Link *z_out_link = getLinkToNode(network, move.z, move.y_prime);
-    Link *x_prime_out_link = getLinkToNode(network, move.x_prime, move.z);
-    Link *y_prime_in_link = getLinkToNode(network, move.y_prime, move.z);
-    Link *y_in_link = getLinkToNode(network, move.y, move.x);
+    Node *x_prime = network.nodes_by_index[move.x_prime_clv_index];
+    Node *y_prime = network.nodes_by_index[move.y_prime_clv_index];
+    Node *x = network.nodes_by_index[move.x_clv_index];
+    Node *y = network.nodes_by_index[move.y_clv_index];
+    Node *z = network.nodes_by_index[move.z_clv_index];
 
-    Edge *x_y_edge = getEdgeTo(network, move.x, move.y);
-    Edge *x_prime_z_edge = getEdgeTo(network, move.x_prime, move.z);
-    Edge *z_y_prime_edge = getEdgeTo(network, move.z, move.y_prime);
+    Link *x_out_link = getLinkToNode(network, x, y);
+    Link *z_in_link = getLinkToNode(network, z, x_prime);
+    Link *z_out_link = getLinkToNode(network, z, y_prime);
+    Link *x_prime_out_link = getLinkToNode(network, x_prime, z);
+    Link *y_prime_in_link = getLinkToNode(network, y_prime, z);
+    Link *y_in_link = getLinkToNode(network, y, x);
+
+    Edge *x_y_edge = getEdgeTo(network, x, y);
+    Edge *x_prime_z_edge = getEdgeTo(network, x_prime, z);
+    Edge *z_y_prime_edge = getEdgeTo(network, z, y_prime);
 
     assert(x_out_link->edge_pmatrix_index == x_y_edge->pmatrix_index);
     assert(y_in_link->edge_pmatrix_index == x_y_edge->pmatrix_index);
@@ -861,12 +900,13 @@ Node* addInnerNode(Network &network, ReticulationData *retData = nullptr) {
 void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     Network &network = ann_network.network;
     pllmod_treeinfo_t *treeinfo = ann_network.fake_treeinfo;
-    Link *from_a_link = getLinkToNode(network, move.a, move.b);
-    Link *to_b_link = getLinkToNode(network, move.b, move.a);
-    Link *from_c_link = getLinkToNode(network, move.c, move.d);
-    Link *to_d_link = getLinkToNode(network, move.d, move.c);
-    Edge *a_b_edge = getEdgeTo(network, move.a, move.b);
-    Edge *c_d_edge = getEdgeTo(network, move.c, move.d);
+
+    Link *from_a_link = getLinkToNode(network, move.a_clv_index, move.b_clv_index);
+    Link *to_b_link = getLinkToNode(network, move.b_clv_index, move.a_clv_index);
+    Link *from_c_link = getLinkToNode(network, move.c_clv_index, move.d_clv_index);
+    Link *to_d_link = getLinkToNode(network, move.d_clv_index, move.c_clv_index);
+    Edge *a_b_edge = getEdgeTo(network, move.a_clv_index, move.b_clv_index);
+    Edge *c_d_edge = getEdgeTo(network, move.c_clv_index, move.d_clv_index);
 
     Node *u = addInnerNode(network, nullptr);
     ReticulationData retData;
@@ -964,16 +1004,16 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
 void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     Network &network = ann_network.network;
     pllmod_treeinfo_t *treeinfo = ann_network.fake_treeinfo;
-    Link *from_a_link = getLinkToNode(network, move.a, move.u);
-    Link *to_b_link = getLinkToNode(network, move.b, move.u);
-    Link *from_c_link = getLinkToNode(network, move.c, move.v);
-    Link *to_d_link = getLinkToNode(network, move.d, move.v);
+    Link *from_a_link = getLinkToNode(network, move.a_clv_index, move.u_clv_index);
+    Link *to_b_link = getLinkToNode(network, move.b_clv_index, move.u_clv_index);
+    Link *from_c_link = getLinkToNode(network, move.c_clv_index, move.v_clv_index);
+    Link *to_d_link = getLinkToNode(network, move.d_clv_index, move.v_clv_index);
 
-    Edge *a_u_edge = getEdgeTo(network, move.a, move.u);
-    Edge *u_b_edge = getEdgeTo(network, move.u, move.b);
-    Edge *c_v_edge = getEdgeTo(network, move.c, move.v);
-    Edge *v_d_edge = getEdgeTo(network, move.v, move.d);
-    Edge *u_v_edge = getEdgeTo(network, move.u, move.v);
+    Edge *a_u_edge = getEdgeTo(network, move.a_clv_index, move.u_clv_index);
+    Edge *u_b_edge = getEdgeTo(network, move.u_clv_index, move.b_clv_index);
+    Edge *c_v_edge = getEdgeTo(network, move.c_clv_index, move.v_clv_index);
+    Edge *v_d_edge = getEdgeTo(network, move.v_clv_index, move.d_clv_index);
+    Edge *u_v_edge = getEdgeTo(network, move.u_clv_index, move.v_clv_index);
 
     double a_b_edge_length = network.edges_by_index[from_a_link->edge_pmatrix_index]->length
             + network.edges_by_index[to_b_link->edge_pmatrix_index]->length;
@@ -984,8 +1024,8 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     double c_d_edge_prob = std::min(network.edges_by_index[from_c_link->edge_pmatrix_index]->prob,
             network.edges_by_index[to_d_link->edge_pmatrix_index]->prob);
 
-    removeNode(network, move.u);
-    removeNode(network, move.v);
+    removeNode(network, network.nodes_by_index[move.u_clv_index]);
+    removeNode(network, network.nodes_by_index[move.v_clv_index]);
     removeEdge(network, a_u_edge);
     removeEdge(network, u_b_edge);
     removeEdge(network, c_v_edge);
@@ -1028,17 +1068,22 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
 
 void undoMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     Network &network = ann_network.network;
+    Node *a = network.nodes_by_index[move.a_clv_index];
+    Node *b = network.nodes_by_index[move.b_clv_index];
+    Node *c = network.nodes_by_index[move.c_clv_index];
+    Node *d = network.nodes_by_index[move.d_clv_index];
+
     Node *u = nullptr;
     Node *v = nullptr;
     // Find u and v
-    std::vector<Node*> uCandidates = getChildren(network, move.a, getActiveParent(network, move.a));
-    std::vector<Node*> vCandidates = getChildren(network, move.c, getActiveParent(network, move.c));
+    std::vector<Node*> uCandidates = getChildren(network, a, getActiveParent(network, a));
+    std::vector<Node*> vCandidates = getChildren(network, c, getActiveParent(network, c));
     for (size_t i = 0; i < uCandidates.size(); ++i) {
-        if (!hasChild(network, uCandidates[i], move.b)) {
+        if (!hasChild(network, uCandidates[i], b)) {
             continue;
         }
         for (size_t j = 0; j < vCandidates.size(); ++j) {
-            if (hasChild(network, uCandidates[i], vCandidates[j]) && hasChild(network, vCandidates[j], move.d)) {
+            if (hasChild(network, uCandidates[i], vCandidates[j]) && hasChild(network, vCandidates[j], d)) {
                 u = uCandidates[i];
                 v = vCandidates[j];
                 break;
@@ -1050,12 +1095,12 @@ void undoMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     }
     assert(u);
     assert(v);
-    ArcRemovalMove removal { move.a, move.b, move.c, move.d, u, v };
+    ArcRemovalMove removal { move.a_clv_index, move.b_clv_index, move.c_clv_index, move.d_clv_index, u->clv_index, v->clv_index };
     performMove(ann_network, removal);
 }
 
 void undoMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
-    ArcInsertionMove insertion { move.a, move.b, move.c, move.d };
+    ArcInsertionMove insertion { move.a_clv_index, move.b_clv_index, move.c_clv_index, move.d_clv_index };
     performMove(ann_network, insertion);
 }
 
@@ -1070,31 +1115,31 @@ std::string toString(RNNIMove &move) {
     lookup[RNNIMoveType::THREE_STAR] = "THREE_STAR";
     lookup[RNNIMoveType::FOUR] = "FOUR";
     ss << lookup[move.type] << ":\n";
-    ss << "  u = (" << move.u->label << "," << move.u->clv_index << ")" << "\n";
-    ss << "  v = (" << move.v->label << "," << move.v->clv_index << ")" << "\n";
-    ss << "  s = (" << move.s->label << "," << move.s->clv_index << ")" << "\n";
-    ss << "  t = (" << move.t->label << "," << move.t->clv_index << ")" << "\n";
+    ss << "  u = " << move.u_clv_index << "\n";
+    ss << "  v = " << move.v_clv_index << "\n";
+    ss << "  s = " << move.s_clv_index << "\n";
+    ss << "  t = " << move.t_clv_index << "\n";
     return ss.str();
 }
 
 std::string toString(RSPRMove &move) {
     std::stringstream ss;
     ss << "rSPR move:\n";
-    ss << "  x_prime = (" << move.x_prime->label << "," << move.x_prime->clv_index << ")" << "\n";
-    ss << "  y_prime = (" << move.y_prime->label << "," << move.y_prime->clv_index << ")" << "\n";
-    ss << "  x = (" << move.x->label << "," << move.x->clv_index << ")" << "\n";
-    ss << "  y = (" << move.y->label << "," << move.y->clv_index << ")" << "\n";
-    ss << "  z = (" << move.z->label << "," << move.z->clv_index << ")" << "\n";
+    ss << "  x_prime = " << move.x_prime_clv_index << "\n";
+    ss << "  y_prime = " << move.y_prime_clv_index << "\n";
+    ss << "  x = " << move.x_clv_index << "\n";
+    ss << "  y = " << move.y_clv_index << "\n";
+    ss << "  z = " << move.z_clv_index << "\n";
     return ss.str();
 }
 
 std::string toString(ArcInsertionMove &move) {
     std::stringstream ss;
     ss << "arc insertion move:\n";
-    ss << "  a = (" << move.a->label << "," << move.a->clv_index << ")" << "\n";
-    ss << "  b = (" << move.b->label << "," << move.b->clv_index << ")" << "\n";
-    ss << "  c = (" << move.c->label << "," << move.c->clv_index << ")" << "\n";
-    ss << "  d = (" << move.d->label << "," << move.d->clv_index << ")" << "\n";
+    ss << "  a = " << move.a_clv_index << "\n";
+    ss << "  b = " << move.b_clv_index << "\n";
+    ss << "  c = " << move.c_clv_index << "\n";
+    ss << "  d = " << move.d_clv_index << "\n";
     return ss.str();
 
 }
@@ -1102,12 +1147,12 @@ std::string toString(ArcInsertionMove &move) {
 std::string toString(ArcRemovalMove &move) {
     std::stringstream ss;
     ss << "arc removal move:\n";
-    ss << "  a = (" << move.a->label << "," << move.a->clv_index << ")" << "\n";
-    ss << "  b = (" << move.b->label << "," << move.b->clv_index << ")" << "\n";
-    ss << "  c = (" << move.c->label << "," << move.c->clv_index << ")" << "\n";
-    ss << "  d = (" << move.d->label << "," << move.d->clv_index << ")" << "\n";
-    ss << "  u = (" << move.u->label << "," << move.u->clv_index << ")" << "\n";
-    ss << "  v = (" << move.v->label << "," << move.v->clv_index << ")" << "\n";
+    ss << "  a = " << move.a_clv_index << "\n";
+    ss << "  b = " << move.b_clv_index << "\n";
+    ss << "  c = " << move.c_clv_index << "\n";
+    ss << "  d = " << move.d_clv_index << "\n";
+    ss << "  u = " << move.u_clv_index << "\n";
+    ss << "  v = " << move.v_clv_index << "\n";
     return ss.str();
 }
 
