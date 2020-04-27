@@ -881,7 +881,14 @@ void removeNode(Network &network, Node *node) {
     network.nodes_by_index[other_index] = &network.nodes[index_in_nodes_array];
     network.nodes_by_index[index] = &network.nodes[network.nodeCount - 1];
     node = network.nodes_by_index[index];
-    if (network.nodes_by_index[other_index]->type == NodeType::RETICULATION_NODE && node->type == NodeType::RETICULATION_NODE) {
+
+    if (network.nodes_by_index[other_index]->type == NodeType::RETICULATION_NODE) {
+        network.reticulation_nodes[network.nodes_by_index[other_index]->getReticulationData()->getReticulationIndex()] =
+                &network.nodes[index_in_nodes_array];
+    }
+
+    if (network.nodes_by_index[other_index]->type == NodeType::RETICULATION_NODE
+            && node->type == NodeType::RETICULATION_NODE) {
         unsigned int other_ret_index = network.nodes_by_index[other_index]->getReticulationData()->reticulation_index;
         unsigned int node_ret_index = node->getReticulationData()->reticulation_index;
         if (node_ret_index < other_ret_index) {
