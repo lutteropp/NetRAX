@@ -882,6 +882,11 @@ void removeNode(Network &network, Node *node) {
     network.nodes_by_index[index] = &network.nodes[network.nodeCount - 1];
     node = network.nodes_by_index[index];
 
+    if (node->type == NodeType::RETICULATION_NODE) {
+        network.reticulation_nodes[node->getReticulationData()->reticulation_index] = &network.nodes[network.nodeCount
+                - 1];
+    }
+
     if (network.nodes_by_index[other_index]->type == NodeType::RETICULATION_NODE) {
         network.reticulation_nodes[network.nodes_by_index[other_index]->getReticulationData()->getReticulationIndex()] =
                 &network.nodes[index_in_nodes_array];
@@ -1072,13 +1077,26 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     size_t v_d_edge_index = getEdgeTo(network, move.v_clv_index, move.d_clv_index)->pmatrix_index;
     size_t u_v_edge_index = getEdgeTo(network, move.u_clv_index, move.v_clv_index)->pmatrix_index;
 
+    for (size_t i = 0; i < network.num_reticulations(); ++i) {
+        assert(network.reticulation_nodes[i]->type == NodeType::RETICULATION_NODE);
+    }
     removeNode(network, network.nodes_by_index[move.u_clv_index]);
+    for (size_t i = 0; i < network.num_reticulations(); ++i) {
+        assert(network.reticulation_nodes[i]->type == NodeType::RETICULATION_NODE);
+    }
     removeNode(network, network.nodes_by_index[move.v_clv_index]);
+    for (size_t i = 0; i < network.num_reticulations(); ++i) {
+        assert(network.reticulation_nodes[i]->type == NodeType::RETICULATION_NODE);
+    }
     removeEdge(network, network.edges_by_index[a_u_edge_index]);
     removeEdge(network, network.edges_by_index[u_b_edge_index]);
     removeEdge(network, network.edges_by_index[c_v_edge_index]);
     removeEdge(network, network.edges_by_index[v_d_edge_index]);
     removeEdge(network, network.edges_by_index[u_v_edge_index]);
+
+    for (size_t i = 0; i < network.num_reticulations(); ++i) {
+        assert(network.reticulation_nodes[i]->type == NodeType::RETICULATION_NODE);
+    }
 
     Edge *a_b_edge = addEdge(network, from_a_link, to_b_link, a_b_edge_length, a_b_edge_prob, u_b_edge_index);
     Edge *c_d_edge = addEdge(network, from_c_link, to_d_link, c_d_edge_length, c_d_edge_prob, v_d_edge_index);
