@@ -1033,12 +1033,10 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
 
     double a_b_edge_length = network.edges_by_index[from_a_link->edge_pmatrix_index]->length
             + network.edges_by_index[to_b_link->edge_pmatrix_index]->length;
-    double a_b_edge_prob = std::min(network.edges_by_index[from_a_link->edge_pmatrix_index]->prob,
-            network.edges_by_index[to_b_link->edge_pmatrix_index]->prob);
+    double a_b_edge_prob = network.edges_by_index[to_b_link->edge_pmatrix_index]->prob;
     double c_d_edge_length = network.edges_by_index[from_c_link->edge_pmatrix_index]->length
             + network.edges_by_index[to_d_link->edge_pmatrix_index]->length;
-    double c_d_edge_prob = std::min(network.edges_by_index[from_c_link->edge_pmatrix_index]->prob,
-            network.edges_by_index[to_d_link->edge_pmatrix_index]->prob);
+    double c_d_edge_prob = network.edges_by_index[to_d_link->edge_pmatrix_index]->prob;
 
     size_t a_u_edge_index = getEdgeTo(network, move.a_clv_index, move.u_clv_index)->pmatrix_index;
     size_t u_b_edge_index = getEdgeTo(network, move.u_clv_index, move.b_clv_index)->pmatrix_index;
@@ -1067,10 +1065,8 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
                 + treeinfo->branch_lengths[p][to_b_link->edge_pmatrix_index];
         double c_d_branch_length = treeinfo->branch_lengths[p][from_c_link->edge_pmatrix_index]
                 + treeinfo->branch_lengths[p][to_d_link->edge_pmatrix_index];
-        double a_b_branch_prob = std::min(ann_network.branch_probs[p][from_a_link->edge_pmatrix_index],
-                ann_network.branch_probs[p][to_b_link->edge_pmatrix_index]);
-        double c_d_branch_prob = std::min(ann_network.branch_probs[p][from_c_link->edge_pmatrix_index],
-                ann_network.branch_probs[p][to_d_link->edge_pmatrix_index]);
+        double a_b_branch_prob = ann_network.branch_probs[p][to_b_link->edge_pmatrix_index];
+        double c_d_branch_prob = ann_network.branch_probs[p][to_d_link->edge_pmatrix_index];
         treeinfo->branch_lengths[p][a_b_edge->pmatrix_index] = a_b_branch_length;
         treeinfo->branch_lengths[p][c_d_edge->pmatrix_index] = c_d_branch_length;
         ann_network.branch_probs[p][a_b_edge->pmatrix_index] = a_b_branch_prob;
