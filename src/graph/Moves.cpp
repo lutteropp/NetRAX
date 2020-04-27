@@ -388,6 +388,18 @@ void updateLinkDirectionsReverse(Network &network, RNNIMove &move) {
         setLinkDirections(network, t, v);
         break;
     }
+    Edge *u_s_edge = getEdgeTo(network, u, s);
+    if (u_s_edge->link1->direction == Direction::INCOMING) {
+        std::swap(u_s_edge->link1, u_s_edge->link2);
+    }
+    Edge *u_v_edge = getEdgeTo(network, u, v);
+    if (u_v_edge->link1->direction == Direction::INCOMING) {
+        std::swap(u_v_edge->link1, u_v_edge->link2);
+    }
+    Edge *v_t_edge = getEdgeTo(network, v, t);
+    if (v_t_edge->link1->direction == Direction::INCOMING) {
+        std::swap(v_t_edge->link1, v_t_edge->link2);
+    }
 }
 
 void checkReticulationProperties(Node *notReticulation, Node *reticulation) {
