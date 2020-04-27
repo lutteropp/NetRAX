@@ -34,14 +34,8 @@ void reset_tip_ids(Network &network, const std::unordered_map<std::string, size_
         network.edges_by_index[tip_id] = &network.edges[i];
         network.edges_by_index[tip_id]->link1->edge_pmatrix_index = tip_id;
         network.edges_by_index[tip_id]->link2->edge_pmatrix_index = tip_id;
-    }
-
-    for (size_t i = 0; i < network.num_tips(); ++i) {
-        assert(network.nodes_by_index[i]->clv_index == i);
-        assert(network.edges_by_index[i]->pmatrix_index == i);
-        assert(network.nodes_by_index[i]->links[0].edge_pmatrix_index == i);
-        assert(network.edges_by_index[i]->link1->edge_pmatrix_index == i);
-        assert(network.edges_by_index[i]->link2->edge_pmatrix_index == i);
+        network.edges_by_index[tip_id]->link1->outer->edge_pmatrix_index = tip_id;
+        network.edges_by_index[tip_id]->link2->outer->edge_pmatrix_index = tip_id;
     }
 }
 
