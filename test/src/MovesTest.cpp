@@ -135,15 +135,20 @@ void randomArcInsertionMoves(const std::string &networkPath, const std::string &
     AnnotatedNetwork ann_network = build_annotated_network(options);
     Network &network = ann_network.network;
     std::string initialDebugInfo = exportDebugInfo(network);
-    std::cout << initialDebugInfo;
+    //std::cout << initialDebugInfo;
 
     double initial_logl = computeLoglikelihood(ann_network);
     ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
-    std::cout << "initial_logl: " << initial_logl << "\n";
+    //std::cout << "initial_logl: " << initial_logl << "\n";
 
     for (size_t i = 0; i < network.num_branches(); ++i) {
         std::vector<ArcInsertionMove> candidates = possibleArcInsertionMoves(ann_network, network.edges_by_index[i]);
         for (size_t j = 0; j < candidates.size(); ++j) {
+
+            if (candidates[j].a_clv_index != 6 || candidates[j].b_clv_index != 7 || candidates[j].c_clv_index != 4 || candidates[j].d_clv_index != 3) {
+            //    continue;
+            }
+
             std::cout << "perform " << toString(candidates[j]);
             performMove(ann_network, candidates[j]);
 
@@ -197,20 +202,20 @@ void randomArcRemovalMoves(const std::string &networkPath, const std::string &ms
     }
 }
 
-TEST (MovesTest, arcInsertionCeline) {
-    randomArcInsertionMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false);
-}
-
-TEST (MovesTest, arcInsertionSmall) {
-    randomArcInsertionMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
-}
-
 TEST (MovesTest, arcRemovalSmall) {
     randomArcRemovalMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
 }
 
 TEST (MovesTest, arcRemovalCeline) {
     randomArcRemovalMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false);
+}
+
+TEST (MovesTest, arcInsertionSmall) {
+    randomArcInsertionMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
+}
+
+TEST (MovesTest, arcInsertionCeline) {
+    randomArcInsertionMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false);
 }
 
 TEST (MovesTest, rnniSmall) {
