@@ -959,6 +959,15 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
             + network.edges_by_index[to_d_link->edge_pmatrix_index]->length;
     double c_d_edge_prob = std::min(network.edges_by_index[from_c_link->edge_pmatrix_index]->prob,
             network.edges_by_index[to_d_link->edge_pmatrix_index]->prob);
+
+    removeNode(network, move.u);
+    removeNode(network, move.v);
+    removeEdge(network, a_u_edge);
+    removeEdge(network, u_b_edge);
+    removeEdge(network, c_v_edge);
+    removeEdge(network, v_d_edge);
+    removeEdge(network, u_v_edge);
+
     Edge *a_b_edge = addEdge(network, from_a_link, to_b_link, a_b_edge_length, a_b_edge_prob);
     Edge *c_d_edge = addEdge(network, from_c_link, to_d_link, c_d_edge_length, c_d_edge_prob);
 
@@ -981,14 +990,6 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
         ann_network.branch_probs[p][a_b_edge->pmatrix_index] = a_b_branch_prob;
         ann_network.branch_probs[p][c_d_edge->pmatrix_index] = c_d_branch_prob;
     }
-
-    removeNode(network, move.u);
-    removeNode(network, move.v);
-    removeEdge(network, a_u_edge);
-    removeEdge(network, u_b_edge);
-    removeEdge(network, c_v_edge);
-    removeEdge(network, v_d_edge);
-    removeEdge(network, u_v_edge);
 
     from_a_link->outer = to_b_link;
     to_b_link->outer = from_a_link;
