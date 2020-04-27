@@ -1009,12 +1009,6 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     Link *from_c_link = getLinkToNode(network, move.c_clv_index, move.v_clv_index);
     Link *to_d_link = getLinkToNode(network, move.d_clv_index, move.v_clv_index);
 
-    Edge *a_u_edge = getEdgeTo(network, move.a_clv_index, move.u_clv_index);
-    Edge *u_b_edge = getEdgeTo(network, move.u_clv_index, move.b_clv_index);
-    Edge *c_v_edge = getEdgeTo(network, move.c_clv_index, move.v_clv_index);
-    Edge *v_d_edge = getEdgeTo(network, move.v_clv_index, move.d_clv_index);
-    Edge *u_v_edge = getEdgeTo(network, move.u_clv_index, move.v_clv_index);
-
     double a_b_edge_length = network.edges_by_index[from_a_link->edge_pmatrix_index]->length
             + network.edges_by_index[to_b_link->edge_pmatrix_index]->length;
     double a_b_edge_prob = std::min(network.edges_by_index[from_a_link->edge_pmatrix_index]->prob,
@@ -1024,13 +1018,19 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     double c_d_edge_prob = std::min(network.edges_by_index[from_c_link->edge_pmatrix_index]->prob,
             network.edges_by_index[to_d_link->edge_pmatrix_index]->prob);
 
+    size_t a_u_edge_index = getEdgeTo(network, move.a_clv_index, move.u_clv_index)->pmatrix_index;
+    size_t u_b_edge_index = getEdgeTo(network, move.u_clv_index, move.b_clv_index)->pmatrix_index;
+    size_t c_v_edge_index = getEdgeTo(network, move.c_clv_index, move.v_clv_index)->pmatrix_index;
+    size_t v_d_edge_index = getEdgeTo(network, move.v_clv_index, move.d_clv_index)->pmatrix_index;
+    size_t u_v_edge_index = getEdgeTo(network, move.u_clv_index, move.v_clv_index)->pmatrix_index;
+
     removeNode(network, network.nodes_by_index[move.u_clv_index]);
     removeNode(network, network.nodes_by_index[move.v_clv_index]);
-    removeEdge(network, a_u_edge);
-    removeEdge(network, u_b_edge);
-    removeEdge(network, c_v_edge);
-    removeEdge(network, v_d_edge);
-    removeEdge(network, u_v_edge);
+    removeEdge(network, network.edges_by_index[a_u_edge_index]);
+    removeEdge(network, network.edges_by_index[u_b_edge_index]);
+    removeEdge(network, network.edges_by_index[c_v_edge_index]);
+    removeEdge(network, network.edges_by_index[v_d_edge_index]);
+    removeEdge(network, network.edges_by_index[u_v_edge_index]);
 
     Edge *a_b_edge = addEdge(network, from_a_link, to_b_link, a_b_edge_length, a_b_edge_prob);
     Edge *c_d_edge = addEdge(network, from_c_link, to_d_link, c_d_edge_length, c_d_edge_prob);
