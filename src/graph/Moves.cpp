@@ -1005,10 +1005,9 @@ void undoMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     Network &network = ann_network.network;
     Node *u = nullptr;
     Node *v = nullptr;
-    // TODO: find u and v
+    // Find u and v
     std::vector<Node*> uCandidates = getChildren(network, move.a, getActiveParent(network, move.a));
     std::vector<Node*> vCandidates = getChildren(network, move.c, getActiveParent(network, move.c));
-
     for (size_t i = 0; i < uCandidates.size(); ++i) {
         if (!hasChild(network, uCandidates[i], move.b)) {
             continue;
@@ -1017,8 +1016,8 @@ void undoMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
             if (hasChild(network, uCandidates[i], vCandidates[j]) && hasChild(network, vCandidates[j], move.d)) {
                 u = uCandidates[i];
                 v = vCandidates[j];
+                break;
             }
-            break;
         }
         if (u != nullptr && v != nullptr) {
             break;
