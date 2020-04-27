@@ -828,6 +828,10 @@ void checkSanity(Network &network) {
         assert(network.edges_by_index[i]->link1->edge_pmatrix_index == i);
         assert(network.edges_by_index[i]->link2->edge_pmatrix_index == i);
     }
+    // check node<->links sanity
+    for (size_t i = 0; i < network.num_nodes(); ++i) {
+        assert(network.nodes_by_index[i]->links.size() <= 3);
+    }
 }
 
 void removeNode(Network &network, Node *node) {
@@ -922,6 +926,7 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     Link *to_u_link = make_link(u, nullptr, Direction::INCOMING);
     Link *u_b_link = make_link(u, nullptr, Direction::OUTGOING);
     Link *u_v_link = make_link(u, nullptr, Direction::OUTGOING);
+
     Link *v_u_link = make_link(v, nullptr, Direction::INCOMING);
     Link *v_c_link = make_link(v, nullptr, Direction::INCOMING);
     Link *v_d_link = make_link(v, nullptr, Direction::OUTGOING);
