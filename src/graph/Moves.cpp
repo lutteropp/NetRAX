@@ -880,22 +880,21 @@ void removeNode(Network &network, Node *node) {
     std::swap(network.nodes[index_in_nodes_array], network.nodes[network.nodeCount - 1]);
     network.nodes_by_index[other_index] = &network.nodes[index_in_nodes_array];
     network.nodes_by_index[index] = &network.nodes[network.nodeCount - 1];
-    if (network.nodes_by_index[other_index]->type == NodeType::RETICULATION_NODE) {
+    node = network.nodes_by_index[index];
+    if (network.nodes_by_index[other_index]->type == NodeType::RETICULATION_NODE && node->type == NodeType::RETICULATION_NODE) {
         unsigned int other_ret_index = network.nodes_by_index[other_index]->getReticulationData()->reticulation_index;
         unsigned int node_ret_index = node->getReticulationData()->reticulation_index;
         if (node_ret_index < other_ret_index) {
+            // swap the reticulation indices
+            network.reticulation_nodes[other_ret_index]->getReticulationData()->reticulation_index = node_ret_index;
+            network.reticulation_nodes[node_ret_index]->getReticulationData()->reticulation_index = other_ret_index;
             network.reticulation_nodes[other_ret_index] = network.nodes_by_index[index];
             network.reticulation_nodes[node_ret_index] = network.nodes_by_index[other_index];
-            network.reticulation_nodes[other_ret_index]->getReticulationData()->reticulation_index = other_ret_index;
-            network.reticulation_nodes[node_ret_index]->getReticulationData()->reticulation_index = node_ret_index;
             std::swap(node_ret_index, other_ret_index);
         }
         network.reticulation_nodes[other_ret_index] = network.nodes_by_index[other_index];
     }
 
-    network.nodes_by_index[index] = nullptr;
-    network.nodes[network.nodeCount - 1].clear();
-    network.nodeCount--;
     if (node->type == NodeType::RETICULATION_NODE) {
         if (network.num_reticulations() > 1) {
             // update reticulation indices
@@ -911,7 +910,10 @@ void removeNode(Network &network, Node *node) {
             assert(network.reticulation_nodes[i]->type == NodeType::RETICULATION_NODE);
         }
     }
+    network.nodes_by_index[index] = nullptr;
+    network.nodes[network.nodeCount - 1].clear();
     network.root = network.nodes_by_index[root_idx];
+    network.nodeCount--;
 }
 
 Node* addInnerNode(Network &network, ReticulationData *retData = nullptr) {
