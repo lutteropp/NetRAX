@@ -26,6 +26,8 @@ std::vector<pll_operation_t> createOperations(Network &network, size_t treeIdx);
 
 double displayed_tree_prob(AnnotatedNetwork &ann_network, size_t tree_index, size_t partition_index);
 
+void setup_pmatrices(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices);
+
 double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices,
         bool update_reticulation_probs = false, std::vector<double> *treewise_logl = nullptr);
 

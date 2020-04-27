@@ -41,6 +41,11 @@ struct ArcInsertionMove {
     size_t b_clv_index = 0;
     size_t c_clv_index = 0;
     size_t d_clv_index = 0;
+
+    double u_v_len = 1.0;
+    double c_v_len = 1.0;
+    double u_v_prob = 0.5;
+    double c_v_prob = 0.5;
 };
 
 struct ArcRemovalMove {
@@ -50,6 +55,11 @@ struct ArcRemovalMove {
     size_t d_clv_index = 0;
     size_t u_clv_index = 0;
     size_t v_clv_index = 0;
+
+    double u_v_len = 0.0;
+    double c_v_len = 0.0;
+    double u_v_prob = 0.5;
+    double c_v_prob = 0.5;
 };
 
 std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network, const Edge *edge);

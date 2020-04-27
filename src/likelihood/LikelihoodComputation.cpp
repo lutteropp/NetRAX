@@ -366,16 +366,20 @@ void compute_tree_logl_blobs(Network &network, BlobInformation &blobInfo, const 
 }
 
 // TODO: Add bool incremental...
-void setup_pmatrices(Network &network, pllmod_treeinfo_t &fake_treeinfo, int incremental, int update_pmatrices) {
+void setup_pmatrices(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices) {
+    Network &network = ann_network.network;
+    pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
     /* NOTE: in unlinked brlen mode, up-to-date brlens for partition p
      * have to be prefetched to treeinfo->branch_lengths[p] !!! */
     bool collect_brlen = (fake_treeinfo.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED ? false : true);
     if (collect_brlen) {
         for (size_t i = 0; i < network.edges.size() + 1; ++i) { // +1 for the the fake entry
             fake_treeinfo.branch_lengths[0][i] = 0.0;
+            ann_network.branch_probs[0][i] = 1.0;
         }
         for (size_t i = 0; i < network.num_branches(); ++i) {
             fake_treeinfo.branch_lengths[0][network.edges[i].pmatrix_index] = network.edges[i].length;
+            ann_network.branch_probs[0][network.edges[i].pmatrix_index] = network.edges[i].prob;
         }
         if (update_pmatrices) {
             pllmod_treeinfo_update_prob_matrices(&fake_treeinfo, !incremental);
@@ -701,7 +705,7 @@ double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int 
     Network &network = ann_network.network;
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
 
-    setup_pmatrices(network, fake_treeinfo, incremental, update_pmatrices);
+    setup_pmatrices(ann_network, incremental, update_pmatrices);
     const int old_active_partition = fake_treeinfo.active_partition;
     fake_treeinfo.active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
     bool unlinked_mode = (fake_treeinfo.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);

@@ -90,7 +90,7 @@ void gather_reticulations_per_megablob(Network &network, BlobInformation &blob_i
     // ... BFS traversal? Always taking the current megablob index with us...
     std::vector<Node*> parent = grab_current_node_parents(network);
     std::queue<std::pair<Node*, unsigned int> > q;
-    std::vector<bool> visited(network.num_nodes(), false);
+    std::vector<bool> visited(network.nodes.size(), false);
     q.emplace(std::make_pair(network.root, blob_info.megablob_roots.size() - 1));
     while (!q.empty()) {
         auto entry = q.front();
@@ -125,12 +125,12 @@ void gather_reticulations_per_megablob(Network &network, BlobInformation &blob_i
 
 BlobInformation partitionNetworkIntoBlobs(Network &network) {
     BlobInformation blob_info;
-    blob_info.edge_blob_id.resize(network.num_branches());
+    blob_info.edge_blob_id.resize(network.edges.size());
     unsigned int time = 0;
     unsigned int act_bicomp_id = 0;
     std::stack<Edge*> s;
-    std::vector<unsigned int> discovery_time(network.num_nodes(), 0);
-    std::vector<unsigned int> lowest(network.num_nodes(), std::numeric_limits<unsigned int>::max());
+    std::vector<unsigned int> discovery_time(network.nodes.size(), 0);
+    std::vector<unsigned int> lowest(network.nodes.size(), std::numeric_limits<unsigned int>::max());
     std::vector<unsigned int> blob_size;
     for (size_t i = 0; i < network.num_nodes(); ++i) {
         Node *node = &network.nodes[i];
@@ -149,7 +149,7 @@ BlobInformation partitionNetworkIntoBlobs(Network &network) {
 
     std::vector<Node*> travbuffer = netrax::reversed_topological_sort(network);
     blob_info.reticulation_nodes_per_megablob.emplace_back(std::vector<Node*>());
-    std::vector<unsigned int> node_blob_id(network.num_nodes());
+    std::vector<unsigned int> node_blob_id(network.nodes.size());
     for (size_t i = 0; i < travbuffer.size(); ++i) {
         node_blob_id[travbuffer[i]->clv_index] = get_node_blob_id(network, travbuffer[i], blob_info, parent);
     }

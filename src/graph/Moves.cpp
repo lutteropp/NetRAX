@@ -16,6 +16,11 @@
 #include <sstream>
 #include <iostream>
 
+extern "C" {
+#include <libpll/pll.h>
+#include <libpll/pll_tree.h>
+}
+
 namespace netrax {
 
 bool hasPath(Network &network, const Node *from, const Node *to, bool nonelementary = false) {
@@ -535,7 +540,7 @@ std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, const Edg
         possibleRSPRMovesInternal(res, network, x_prime, y_prime, fixed_x, fixed_y);
     } else {
         for (size_t i = 0; i < network.num_nodes(); ++i) {
-            Node *x = network.nodes_by_index[i];
+            Node *x = &network.nodes[i];
             possibleRSPRMovesInternal(res, network, x_prime, y_prime, x, fixed_y);
         }
     }
@@ -576,7 +581,7 @@ std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network) {
     std::vector<RNNIMove> res;
     Network &network = ann_network.network;
     for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::vector<RNNIMove> branch_moves = possibleRNNIMoves(ann_network, network.edges_by_index[i]);
+        std::vector<RNNIMove> branch_moves = possibleRNNIMoves(ann_network, &network.edges[i]);
         res.insert(std::end(res), std::begin(branch_moves), std::end(branch_moves));
     }
     return res;
@@ -586,7 +591,7 @@ std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network) {
     std::vector<RSPRMove> res;
     Network &network = ann_network.network;
     for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::vector<RSPRMove> branch_moves = possibleRSPRMoves(ann_network, network.edges_by_index[i]);
+        std::vector<RSPRMove> branch_moves = possibleRSPRMoves(ann_network, &network.edges[i]);
         res.insert(std::end(res), std::begin(branch_moves), std::end(branch_moves));
     }
     return res;
@@ -596,7 +601,7 @@ std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network) {
     std::vector<RSPRMove> res;
     Network &network = ann_network.network;
     for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::vector<RSPRMove> branch_moves = possibleRSPR1Moves(ann_network, network.edges_by_index[i]);
+        std::vector<RSPRMove> branch_moves = possibleRSPR1Moves(ann_network, &network.edges[i]);
         res.insert(std::end(res), std::begin(branch_moves), std::end(branch_moves));
     }
     return res;
@@ -612,10 +617,13 @@ std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_ne
         if (i == edge->pmatrix_index) {
             continue;
         }
-        Node *c = getSource(network, network.edges_by_index[i]);
-        Node *d = getTarget(network, network.edges_by_index[i]);
+        Node *c = getSource(network, &network.edges[i]);
+        Node *d = getTarget(network, &network.edges[i]);
         if (!hasPath(network, d, a)) {
-            res.emplace_back(ArcInsertionMove { a->clv_index, b->clv_index, c->clv_index, d->clv_index });
+            double c_d_len = network.edges[i].length;
+            res.emplace_back(
+                    ArcInsertionMove { a->clv_index, b->clv_index, c->clv_index, d->clv_index, 1.0, c_d_len / 2, 0.5,
+                            0.5 });
         }
     }
     return res;
@@ -625,7 +633,7 @@ std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_ne
     std::vector<ArcInsertionMove> res;
     Network &network = ann_network.network;
     for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::vector<ArcInsertionMove> moves = possibleArcInsertionMoves(ann_network, network.edges_by_index[i]);
+        std::vector<ArcInsertionMove> moves = possibleArcInsertionMoves(ann_network, &network.edges[i]);
         res.insert(std::end(res), std::begin(moves), std::end(moves));
     }
     return res;
@@ -662,7 +670,9 @@ std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_networ
             continue;
         }
         res.emplace_back(
-                ArcRemovalMove { a->clv_index, b->clv_index, c->clv_index, d->clv_index, u->clv_index, v->clv_index });
+                ArcRemovalMove { a->clv_index, b->clv_index, c->clv_index, d->clv_index, u->clv_index, v->clv_index,
+                        getEdgeTo(network, u, v)->length, getEdgeTo(network, c, v)->length,
+                        getEdgeTo(network, u, v)->prob, getEdgeTo(network, c, v)->prob });
     }
     return res;
 }
@@ -804,7 +814,8 @@ Edge* addEdge(Network &network, Link *link1, Link *link2, double length, double 
         std::swap(link1, link2);
     }
 
-    if (network.nodes_by_index[link1->node_clv_index]->isTip()) {
+    if (network.nodes_by_index[link1->node_clv_index]->isTip()
+            || network.nodes_by_index[link2->node_clv_index]->isTip()) {
         assert(pmatrix_index < network.num_tips());
     }
     assert(network.edges_by_index[pmatrix_index] == nullptr);
@@ -815,6 +826,28 @@ Edge* addEdge(Network &network, Link *link1, Link *link2, double length, double 
     return network.edges_by_index[pmatrix_index];
 }
 
+Edge* addEdge(Network &network, Link *link1, Link *link2, double length, double prob) {
+    size_t pmatrix_index = network.edges.size() - 1;
+    if (link1->direction == Direction::INCOMING) {
+        std::swap(link1, link2);
+    }
+    if (link1->node_clv_index < network.num_tips()) {
+        pmatrix_index = link1->node_clv_index;
+    } else if (link2->node_clv_index < network.num_tips()) {
+        pmatrix_index = link2->node_clv_index;
+    } else {
+        // find smallest free non-tip pmatrix index
+        for (size_t i = network.num_tips(); i < network.edges.size(); ++i) {
+            if (network.edges_by_index[i] == nullptr) {
+                pmatrix_index = i;
+                break;
+            }
+        }
+    }
+
+    return addEdge(network, link1, link2, length, prob, pmatrix_index);
+}
+
 void checkSanity(Network &network) {
     // check pmatrix indices of edges adjacent to tip nodes
     for (size_t i = 0; i < network.num_tips(); ++i) {
@@ -822,19 +855,24 @@ void checkSanity(Network &network) {
     }
 
     // check edge<->links sanity
-    for (size_t i = 0; i < network.num_branches(); ++i) {
-        assert(network.edges_by_index[i]->link1->edge_pmatrix_index == i);
-        assert(network.edges_by_index[i]->link2->edge_pmatrix_index == i);
+    for (size_t i = 0; i < network.edges.size(); ++i) {
+        if (network.edges_by_index[i]) {
+            assert(network.edges_by_index[i]->link1->edge_pmatrix_index == i);
+            assert(network.edges_by_index[i]->link2->edge_pmatrix_index == i);
+        }
     }
     // check node<->links sanity
-    for (size_t i = 0; i < network.num_nodes(); ++i) {
-        assert(network.nodes_by_index[i]->links.size() <= 3);
+    for (size_t i = 0; i < network.nodes.size(); ++i) {
+        if (network.nodes_by_index[i]) {
+            assert(network.nodes_by_index[i]->links.size() <= 3);
+        }
     }
 }
 
 void removeNode(Network &network, Node *node) {
     assert(node);
     assert(!node->isTip());
+    size_t root_idx = network.root->clv_index;
     size_t index = node->clv_index;
     size_t other_index = network.nodes[network.nodeCount - 1].clv_index;
     size_t index_in_nodes_array = network.nodes_by_index[index] - &network.nodes[0];
@@ -873,6 +911,7 @@ void removeNode(Network &network, Node *node) {
             assert(network.reticulation_nodes[i]->type == NodeType::RETICULATION_NODE);
         }
     }
+    network.root = network.nodes_by_index[root_idx];
 }
 
 Node* addInnerNode(Network &network, ReticulationData *retData = nullptr) {
@@ -905,16 +944,39 @@ Node* addInnerNode(Network &network, ReticulationData *retData = nullptr) {
     return network.nodes_by_index[clv_index];
 }
 
+void reloadBranchLengthsAndBranchProbs(AnnotatedNetwork &ann_network, std::vector<size_t> &affectedPmatrixIndices) {
+    Network &network = ann_network.network;
+    pllmod_treeinfo_t *fake_treeinfo = ann_network.fake_treeinfo;
+    unsigned int partitions = 1;
+    if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) { // each partition has its branch length
+        partitions = fake_treeinfo->partition_count;
+    }
+    for (size_t pmatrix_index : affectedPmatrixIndices) {
+        assert(network.edges_by_index[pmatrix_index]);
+        for (size_t p = 0; p < partitions; ++p) {
+            ann_network.branch_probs[p][pmatrix_index] = network.edges_by_index[pmatrix_index]->prob;
+            fake_treeinfo->branch_lengths[p][pmatrix_index] = network.edges_by_index[pmatrix_index]->prob;
+            fake_treeinfo->pmatrix_valid[p][pmatrix_index] = 0;
+        }
+    }
+    pllmod_treeinfo_update_prob_matrices(fake_treeinfo, 0);
+}
+
 void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     Network &network = ann_network.network;
-    pllmod_treeinfo_t *treeinfo = ann_network.fake_treeinfo;
 
     Link *from_a_link = getLinkToNode(network, move.a_clv_index, move.b_clv_index);
     Link *to_b_link = getLinkToNode(network, move.b_clv_index, move.a_clv_index);
     Link *from_c_link = getLinkToNode(network, move.c_clv_index, move.d_clv_index);
     Link *to_d_link = getLinkToNode(network, move.d_clv_index, move.c_clv_index);
     Edge *a_b_edge = getEdgeTo(network, move.a_clv_index, move.b_clv_index);
+    assert(a_b_edge->link1);
+    assert(a_b_edge->link2);
     Edge *c_d_edge = getEdgeTo(network, move.c_clv_index, move.d_clv_index);
+    assert(c_d_edge->link1);
+    assert(c_d_edge->link2);
+    size_t a_b_edge_index = a_b_edge->pmatrix_index;
+    size_t c_d_edge_index = c_d_edge->pmatrix_index;
 
     Node *u = addInnerNode(network, nullptr);
     ReticulationData retData;
@@ -929,36 +991,24 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     Link *v_c_link = make_link(v, nullptr, Direction::INCOMING);
     Link *v_d_link = make_link(v, nullptr, Direction::OUTGOING);
 
-    double u_v_edge_length = 1.0;
-    double c_v_edge_length = c_d_edge->length / 2;
-    double v_d_edge_length = c_d_edge->length / 2;
+    double u_v_edge_length = move.u_v_len;
+    double c_v_edge_length = move.c_v_len;
+    double v_d_edge_length = c_d_edge->length - c_v_edge_length;
     double a_u_edge_length = a_b_edge->length / 2;
     double u_b_edge_length = a_b_edge->length / 2;
-    double u_v_edge_prob = 0.5;
-    double c_v_edge_prob = 0.5;
+    double u_v_edge_prob = move.u_v_prob;
+    double c_v_edge_prob = move.c_v_prob;
     double v_d_edge_prob = c_d_edge->prob;
     double a_u_edge_prob = 1.0;
     double u_b_edge_prob = a_b_edge->prob;
 
-    size_t a_b_edge_index = a_b_edge->pmatrix_index;
-    size_t c_d_edge_index = c_d_edge->pmatrix_index;
-
-    /*removeEdge(network, a_b_edge);
-     Edge *a_u_edge = addEdge(network, from_a_link, to_u_link, a_u_edge_length, a_u_edge_prob);
-     removeEdge(network, c_d_edge);
-     Edge *c_v_edge = addEdge(network, from_c_link, v_c_link, c_v_edge_length, c_v_edge_prob);
-     Edge *u_b_edge = addEdge(network, u_b_link, to_b_link, u_b_edge_length, u_b_edge_prob);
-     Edge *v_d_edge = addEdge(network, v_d_link, to_d_link, v_d_edge_length, v_d_edge_prob);
-     Edge *u_v_edge = addEdge(network, u_v_link, v_u_link, u_v_edge_length, u_v_edge_prob);*/
-
-    size_t actBranchCount = network.num_branches();
-    removeEdge(network, a_b_edge);
-    removeEdge(network, c_d_edge);
+    removeEdge(network, network.edges_by_index[a_b_edge_index]);
+    removeEdge(network, network.edges_by_index[c_d_edge_index]);
     Edge *u_b_edge = addEdge(network, u_b_link, to_b_link, u_b_edge_length, u_b_edge_prob, a_b_edge_index);
     Edge *v_d_edge = addEdge(network, v_d_link, to_d_link, v_d_edge_length, v_d_edge_prob, c_d_edge_index);
-    Edge *a_u_edge = addEdge(network, from_a_link, to_u_link, a_u_edge_length, a_u_edge_prob, actBranchCount);
-    Edge *c_v_edge = addEdge(network, from_c_link, v_c_link, c_v_edge_length, c_v_edge_prob, actBranchCount + 1);
-    Edge *u_v_edge = addEdge(network, u_v_link, v_u_link, u_v_edge_length, u_v_edge_prob, actBranchCount + 2);
+    Edge *a_u_edge = addEdge(network, from_a_link, to_u_link, a_u_edge_length, a_u_edge_prob);
+    Edge *c_v_edge = addEdge(network, from_c_link, v_c_link, c_v_edge_length, c_v_edge_prob);
+    Edge *u_v_edge = addEdge(network, u_v_link, v_u_link, u_v_edge_length, u_v_edge_prob);
 
     v->getReticulationData()->link_to_first_parent = v_u_link;
     v->getReticulationData()->link_to_second_parent = v_c_link;
@@ -986,43 +1036,15 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     v_d_link->outer = to_d_link;
     to_d_link->outer = v_d_link;
 
-    //  Also update these in the treeinfo and the branch_probs array
-    unsigned int partitions = 1;
-    if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) { // each partition has its branch length
-        partitions = treeinfo->partition_count;
-    }
-    for (size_t p = 0; p < partitions; ++p) {
-        double u_v_branch_length = 1.0;
-        double c_v_branch_length = treeinfo->branch_lengths[p][c_d_edge_index] / 2;
-        double v_d_branch_length = treeinfo->branch_lengths[p][c_d_edge_index] / 2;
-        double a_u_branch_length = treeinfo->branch_lengths[p][a_b_edge_index] / 2;
-        double u_b_branch_length = treeinfo->branch_lengths[p][a_b_edge_index] / 2;
-
-        double u_v_branch_prob = 0.5;
-        double c_v_branch_prob = 0.5;
-        double v_d_branch_prob = ann_network.branch_probs[p][c_d_edge_index];
-        double a_u_branch_prob = 1.0;
-        double u_b_branch_prob = ann_network.branch_probs[p][a_b_edge_index];
-
-        treeinfo->branch_lengths[p][u_v_edge->pmatrix_index] = u_v_branch_length;
-        treeinfo->branch_lengths[p][c_v_edge->pmatrix_index] = c_v_branch_length;
-        treeinfo->branch_lengths[p][v_d_edge->pmatrix_index] = v_d_branch_length;
-        treeinfo->branch_lengths[p][a_u_edge->pmatrix_index] = a_u_branch_length;
-        treeinfo->branch_lengths[p][u_b_edge->pmatrix_index] = u_b_branch_length;
-
-        ann_network.branch_probs[p][u_v_edge->pmatrix_index] = u_v_branch_prob;
-        ann_network.branch_probs[p][c_v_edge->pmatrix_index] = c_v_branch_prob;
-        ann_network.branch_probs[p][v_d_edge->pmatrix_index] = v_d_branch_prob;
-        ann_network.branch_probs[p][a_u_edge->pmatrix_index] = a_u_branch_prob;
-        ann_network.branch_probs[p][u_b_edge->pmatrix_index] = u_b_branch_prob;
-    }
+    std::vector<size_t> updateMe = { c_d_edge_index, a_b_edge_index, u_v_edge->pmatrix_index, c_v_edge->pmatrix_index,
+            v_d_edge->pmatrix_index, a_u_edge->pmatrix_index, u_b_edge->pmatrix_index };
+    reloadBranchLengthsAndBranchProbs(ann_network, updateMe);
     ann_network.blobInfo = partitionNetworkIntoBlobs(ann_network.network);
     checkSanity(network);
 }
 
 void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     Network &network = ann_network.network;
-    pllmod_treeinfo_t *treeinfo = ann_network.fake_treeinfo;
     Link *from_a_link = getLinkToNode(network, move.a_clv_index, move.u_clv_index);
     Link *to_b_link = getLinkToNode(network, move.b_clv_index, move.u_clv_index);
     Link *from_c_link = getLinkToNode(network, move.c_clv_index, move.v_clv_index);
@@ -1052,11 +1074,10 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     Edge *a_b_edge = addEdge(network, from_a_link, to_b_link, a_b_edge_length, a_b_edge_prob, u_b_edge_index);
     Edge *c_d_edge = addEdge(network, from_c_link, to_d_link, c_d_edge_length, c_d_edge_prob, v_d_edge_index);
 
-    Node *a = network.nodes_by_index[move.a_clv_index];
     Node *b = network.nodes_by_index[move.b_clv_index];
     if (b->type == NodeType::RETICULATION_NODE) {
         // u is no longer parent of b, but a is now the parent
-        Link* badToParentLink = nullptr;
+        Link *badToParentLink = nullptr;
         if (getReticulationFirstParentPmatrixIndex(network, b) == u_b_edge_index) {
             badToParentLink = b->getReticulationData()->link_to_first_parent;
         } else {
@@ -1067,11 +1088,10 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
         badToParentLink->outer->outer = badToParentLink;
     }
 
-    Node *c = network.nodes_by_index[move.c_clv_index];
     Node *d = network.nodes_by_index[move.d_clv_index];
     if (d->type == NodeType::RETICULATION_NODE) {
         // v is no longer parent of d, but c is now the parent
-        Link* badToParentLink = nullptr;
+        Link *badToParentLink = nullptr;
         if (getReticulationFirstParentPmatrixIndex(network, d) == v_d_edge_index) {
             badToParentLink = d->getReticulationData()->link_to_first_parent;
         } else {
@@ -1082,23 +1102,8 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
         badToParentLink->outer->outer = badToParentLink;
     }
 
-    //  Also update these in the treeinfo and the branch_probs array
-    unsigned int partitions = 1;
-    if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) { // each partition has its branch length
-        partitions = treeinfo->partition_count;
-    }
-    for (size_t p = 0; p < partitions; ++p) {
-        double a_b_branch_length = treeinfo->branch_lengths[p][from_a_link->edge_pmatrix_index]
-                + treeinfo->branch_lengths[p][to_b_link->edge_pmatrix_index];
-        double c_d_branch_length = treeinfo->branch_lengths[p][from_c_link->edge_pmatrix_index]
-                + treeinfo->branch_lengths[p][to_d_link->edge_pmatrix_index];
-        double a_b_branch_prob = ann_network.branch_probs[p][to_b_link->edge_pmatrix_index];
-        double c_d_branch_prob = ann_network.branch_probs[p][to_d_link->edge_pmatrix_index];
-        treeinfo->branch_lengths[p][a_b_edge->pmatrix_index] = a_b_branch_length;
-        treeinfo->branch_lengths[p][c_d_edge->pmatrix_index] = c_d_branch_length;
-        ann_network.branch_probs[p][a_b_edge->pmatrix_index] = a_b_branch_prob;
-        ann_network.branch_probs[p][c_d_edge->pmatrix_index] = c_d_branch_prob;
-    }
+    std::vector<size_t> updateMe = { a_b_edge->pmatrix_index, c_d_edge->pmatrix_index };
+    reloadBranchLengthsAndBranchProbs(ann_network, updateMe);
 
     from_a_link->outer = to_b_link;
     to_b_link->outer = from_a_link;
@@ -1121,7 +1126,7 @@ void undoMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
 
     Node *u = nullptr;
     Node *v = nullptr;
-    // Find u and v
+// Find u and v
     std::vector<Node*> uCandidates = getChildren(network, a, getActiveParent(network, a));
     std::vector<Node*> vCandidates = getChildren(network, c, getActiveParent(network, c));
     for (size_t i = 0; i < uCandidates.size(); ++i) {
@@ -1129,10 +1134,12 @@ void undoMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
             continue;
         }
         for (size_t j = 0; j < vCandidates.size(); ++j) {
-            if (hasChild(network, uCandidates[i], b) && hasChild(network, uCandidates[i], vCandidates[j]) && hasChild(network, vCandidates[j], d)) {
+            if (hasChild(network, uCandidates[i], b) && hasChild(network, uCandidates[i], vCandidates[j])
+                    && hasChild(network, vCandidates[j], d)) {
                 Node *u_cand = uCandidates[i];
                 Node *v_cand = vCandidates[j];
-                if (u_cand != a && u_cand != b && u_cand != c && u_cand != d && v_cand != a && v_cand != b && v_cand != c && v_cand != d && u_cand != v_cand) {
+                if (u_cand != a && u_cand != b && u_cand != c && u_cand != d && v_cand != a && v_cand != b
+                        && v_cand != c && v_cand != d && u_cand != v_cand) {
                     u = u_cand;
                     v = v_cand;
                     break;
@@ -1146,12 +1153,14 @@ void undoMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     assert(u);
     assert(v);
     ArcRemovalMove removal { move.a_clv_index, move.b_clv_index, move.c_clv_index, move.d_clv_index, u->clv_index,
-            v->clv_index };
+            v->clv_index, getEdgeTo(network, u, v)->length, getEdgeTo(network, c, v)->length,
+            getEdgeTo(network, u, v)->prob, getEdgeTo(network, c, v)->prob };
     performMove(ann_network, removal);
 }
 
 void undoMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
-    ArcInsertionMove insertion { move.a_clv_index, move.b_clv_index, move.c_clv_index, move.d_clv_index };
+    ArcInsertionMove insertion { move.a_clv_index, move.b_clv_index, move.c_clv_index, move.d_clv_index, move.u_v_len,
+            move.c_v_len, move.u_v_prob, move.c_v_prob };
     performMove(ann_network, insertion);
 }
 

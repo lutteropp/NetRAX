@@ -126,8 +126,8 @@ CumulatedChild getCumulatedChild(Network &network, Node *parent, Node *child, co
     return res;
 }
 
-std::vector<CumulatedChild> getCumulatedChildren(Network &network, Node *parent, Node *actNode, const std::vector<bool> &dead_nodes,
-        const std::vector<bool> &skipped_nodes) {
+std::vector<CumulatedChild> getCumulatedChildren(Network &network, Node *parent, Node *actNode,
+        const std::vector<bool> &dead_nodes, const std::vector<bool> &skipped_nodes) {
     assert(actNode);
     std::vector<CumulatedChild> res;
     assert(!skipped_nodes[actNode->clv_index]);
@@ -138,8 +138,8 @@ std::vector<CumulatedChild> getCumulatedChildren(Network &network, Node *parent,
     return res;
 }
 
-pll_unode_t* connect_subtree_recursive(Network &network, Node *networkNode, pll_unode_t *from_parent, Node *networkParentNode,
-        const std::vector<bool> &dead_nodes, const std::vector<bool> &skipped_nodes) {
+pll_unode_t* connect_subtree_recursive(Network &network, Node *networkNode, pll_unode_t *from_parent,
+        Node *networkParentNode, const std::vector<bool> &dead_nodes, const std::vector<bool> &skipped_nodes) {
     assert(networkNode->getType() == NodeType::BASIC_NODE);
 
     assert(!dead_nodes[networkNode->clv_index] && !skipped_nodes[networkNode->clv_index]);
@@ -167,8 +167,8 @@ pll_unode_t* connect_subtree_recursive(Network &network, Node *networkNode, pll_
         toChildren[i] = create_unode(networkNode->getLabel());
         toChildren[i]->clv_index = networkNode->clv_index;
         toChildren[i]->length = cum_children[i].cum_brlen;
-        connect_subtree_recursive(network, cum_children[i].child, toChildren[i], cum_children[i].direct_parent, dead_nodes,
-                skipped_nodes);
+        connect_subtree_recursive(network, cum_children[i].child, toChildren[i], cum_children[i].direct_parent,
+                dead_nodes, skipped_nodes);
     }
 
     // set the next pointers
@@ -427,9 +427,11 @@ std::vector<std::vector<size_t> > getDtBranchToNetworkBranchMapping(const pll_ut
 }
 
 std::vector<Node*> grab_current_node_parents(Network &network) {
-    std::vector<Node*> parent(network.num_nodes(), nullptr);
+    std::vector<Node*> parent(network.nodes.size(), nullptr);
     for (size_t i = 0; i < parent.size(); ++i) {
-        parent[network.nodes[i].clv_index] = getActiveParent(network, &network.nodes[i]);
+        if (network.nodes_by_index[i]) {
+            parent[network.nodes_by_index[i]->clv_index] = getActiveParent(network, network.nodes_by_index[i]);
+        }
     }
     return parent;
 }
@@ -438,7 +440,7 @@ std::vector<Node*> reversed_topological_sort(Network &network) {
     std::vector<Node*> res;
     res.reserve(network.num_nodes());
     std::vector<Node*> parent = grab_current_node_parents(network);
-    std::vector<unsigned int> outdeg(network.num_nodes(), 0);
+    std::vector<unsigned int> outdeg(network.nodes.size(), 0);
 
     std::queue<Node*> q;
 
@@ -510,24 +512,24 @@ std::string exportDebugInfo(Network &network, const BlobInformation &blobInfo) {
     ss << "graph\n[\tdirected\t1\n";
     std::vector<Node*> parent = grab_current_node_parents(network);
     for (size_t i = 0; i < network.num_nodes(); ++i) {
-        ss << "\tnode\n\t[\n\t\tid\t" << i << "\n";
-        std::string nodeLabel = std::to_string(network.nodes_by_index[i]->clv_index);
-        if (!network.nodes_by_index[i]->label.empty()) {
-            nodeLabel += ": " + network.nodes_by_index[i]->label;
+        ss << "\tnode\n\t[\n\t\tid\t" << network.nodes[i].clv_index << "\n";
+        std::string nodeLabel = std::to_string(network.nodes[i].clv_index);
+        if (!network.nodes[i].label.empty()) {
+            nodeLabel += ": " + network.nodes[i].label;
         }
 
         /*if (std::find(blobInfo.megablob_roots.begin(), blobInfo.megablob_roots.end(), &network.nodes[i]) != blobInfo.megablob_roots.end()) {
          nodeLabel = "*" + nodeLabel + "*";
          }*/
         ss << "\t\tlabel\t\"" << nodeLabel << "\"\n";
-        ss << buildNodeGraphics(network.nodes_by_index[i], blobInfo);
+        ss << buildNodeGraphics(&network.nodes[i], blobInfo);
         ss << "\t]\n";
     }
     for (size_t i = 0; i < network.num_branches(); ++i) {
         ss << "\tedge\n\t[\n\t\tsource\t";
-        unsigned int parentId = network.edges_by_index[i]->link1->node_clv_index;
-        unsigned int childId = network.edges_by_index[i]->link2->node_clv_index;
-        if (network.edges_by_index[i]->link1->direction == Direction::INCOMING) {
+        unsigned int parentId = network.edges[i].link1->node_clv_index;
+        unsigned int childId = network.edges[i].link2->node_clv_index;
+        if (network.edges[i].link1->direction == Direction::INCOMING) {
             std::swap(parentId, childId);
         }
         assert(parentId != childId);
@@ -537,7 +539,7 @@ std::string exportDebugInfo(Network &network, const BlobInformation &blobInfo) {
         ss << parentId << "\n";
         ss << "\t\ttarget\t" << childId << "\n";
         ss << "\t\tlabel\t";
-        std::string edgeLabel = std::to_string(network.edges_by_index[i]->pmatrix_index) + "|"
+        std::string edgeLabel = std::to_string(network.edges[i].pmatrix_index) + "|"
                 + std::to_string(blobInfo.edge_blob_id[i]);
         ss << "\"" << edgeLabel << "\"\n";
         ss << "\t]\n";
@@ -564,10 +566,10 @@ std::string exportDebugInfo(Network &network, const std::vector<unsigned int> &e
     ss << "graph\n[\tdirected\t1\n";
     std::vector<Node*> parent = grab_current_node_parents(network);
     for (size_t i = 0; i < network.num_nodes(); ++i) {
-        ss << "\tnode\n\t[\n\t\tid\t" << i << "\n";
-        std::string nodeLabel = std::to_string(network.nodes_by_index[i]->clv_index);
-        if (!network.nodes_by_index[i]->label.empty()) {
-            nodeLabel += ": " + network.nodes_by_index[i]->label;
+        ss << "\tnode\n\t[\n\t\tid\t" << network.nodes[i].clv_index << "\n";
+        std::string nodeLabel = std::to_string(network.nodes[i].clv_index);
+        if (!network.nodes[i].label.empty()) {
+            nodeLabel += ": " + network.nodes[i].label;
         }
         if (!extra_node_number.empty()) {
             nodeLabel += "|" + std::to_string(extra_node_number[i]);
@@ -576,14 +578,14 @@ std::string exportDebugInfo(Network &network, const std::vector<unsigned int> &e
          nodeLabel = "*" + nodeLabel + "*";
          }*/
         ss << "\t\tlabel\t\"" << nodeLabel << "\"\n";
-        ss << buildNodeGraphics(network.nodes_by_index[i]);
+        ss << buildNodeGraphics(&network.nodes[i]);
         ss << "\t]\n";
     }
     for (size_t i = 0; i < network.num_branches(); ++i) {
         ss << "\tedge\n\t[\n\t\tsource\t";
-        unsigned int parentId = network.edges_by_index[i]->link1->node_clv_index;
-        unsigned int childId = network.edges_by_index[i]->link2->node_clv_index;
-        if (network.edges_by_index[i]->link1->direction == Direction::INCOMING) {
+        unsigned int parentId = network.edges[i].link1->node_clv_index;
+        unsigned int childId = network.edges[i].link2->node_clv_index;
+        if (network.edges[i].link1->direction == Direction::INCOMING) {
             std::swap(parentId, childId);
         }
         assert(parentId != childId);
@@ -593,7 +595,7 @@ std::string exportDebugInfo(Network &network, const std::vector<unsigned int> &e
         ss << parentId << "\n";
         ss << "\t\ttarget\t" << childId << "\n";
         ss << "\t\tlabel\t";
-        std::string edgeLabel = std::to_string(network.edges_by_index[i]->pmatrix_index);
+        std::string edgeLabel = std::to_string(network.edges[i].pmatrix_index);
         ss << "\"" << edgeLabel << "\"\n";
         ss << "\t]\n";
     }
