@@ -1063,7 +1063,7 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
             assert(getReticulationSecondParentPmatrixIndex(network, b) == u_b_edge_index);
             badToParentLink = b->getReticulationData()->link_to_second_parent;
         }
-        badToParentLink->outer = getLinkToClvIndex(network, a, move.b_clv_index);
+        badToParentLink->outer = from_a_link;
         badToParentLink->outer->outer = badToParentLink;
     }
 
@@ -1078,7 +1078,7 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
             assert(getReticulationSecondParentPmatrixIndex(network, d) == v_d_edge_index);
             badToParentLink = d->getReticulationData()->link_to_second_parent;
         }
-        badToParentLink->outer = getLinkToClvIndex(network, c, move.d_clv_index);
+        badToParentLink->outer = from_c_link;
         badToParentLink->outer->outer = badToParentLink;
     }
 
