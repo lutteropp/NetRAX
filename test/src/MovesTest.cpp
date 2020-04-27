@@ -147,8 +147,8 @@ void randomArcInsertionMoves(const std::string &networkPath, const std::string &
             std::cout << "perform " << toString(candidates[j]);
             performMove(ann_network, candidates[j]);
 
-            std::cout << "network after move:\n";
-            std::cout << exportDebugInfo(network) << "\n";
+            //std::cout << "network after move:\n";
+            //std::cout << exportDebugInfo(network) << "\n";
 
             double moved_logl = computeLoglikelihood(ann_network);
             ASSERT_NE(moved_logl, -std::numeric_limits<double>::infinity());
@@ -157,8 +157,8 @@ void randomArcInsertionMoves(const std::string &networkPath, const std::string &
             undoMove(ann_network, candidates[j]);
             std::string debugInfoAfterUndo = exportDebugInfo(network);
 
-            std::cout << "network after undo move:\n";
-            std::cout << debugInfoAfterUndo << "\n";
+            //std::cout << "network after undo move:\n";
+            //std::cout << debugInfoAfterUndo << "\n";
 
             ASSERT_EQ(initialDebugInfo, debugInfoAfterUndo);
             double back_logl = computeLoglikelihood(ann_network);
@@ -197,12 +197,12 @@ void randomArcRemovalMoves(const std::string &networkPath, const std::string &ms
     }
 }
 
-TEST (MovesTest, arcInsertionSmall) {
-    randomArcInsertionMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
-}
-
 TEST (MovesTest, arcInsertionCeline) {
     randomArcInsertionMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false);
+}
+
+TEST (MovesTest, arcInsertionSmall) {
+    randomArcInsertionMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
 }
 
 TEST (MovesTest, arcRemovalSmall) {
