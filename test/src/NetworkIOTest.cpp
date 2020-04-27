@@ -53,13 +53,13 @@ void check_neighbor_count(Network &network) {
     for (size_t i = 0; i < network.num_nodes(); ++i) {
         if (network.nodes[i].isTip()) {
             EXPECT_EQ(network.nodes[i].getLink()->next, nullptr);
-            EXPECT_EQ(getNeighbors(&network.nodes[i]).size(), 1);
+            EXPECT_EQ(getNeighbors(network, &network.nodes[i]).size(), 1);
         } else {
             EXPECT_NE(network.nodes[i].getLink()->next, nullptr);
             EXPECT_NE(network.nodes[i].getLink()->next->next, nullptr);
             EXPECT_NE(network.nodes[i].getLink()->next->next->next, nullptr);
             EXPECT_EQ(network.nodes[i].getLink(), network.nodes[i].getLink()->next->next->next);
-            EXPECT_EQ(getNeighbors(&network.nodes[i]).size(), 3);
+            EXPECT_EQ(getNeighbors(network, &network.nodes[i]).size(), 3);
         }
     }
 }

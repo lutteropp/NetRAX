@@ -75,13 +75,13 @@ struct CumulatedChild {
     double cum_brlen = 0.0;
 };
 
-std::vector<Node*> getChildrenNoDir(Node *node, const Node *myParent) {
+std::vector<Node*> getChildrenNoDir(Network &network, Node *node, const Node *myParent) {
     assert(node);
     std::vector<Node*> children;
     if (node->type == NodeType::RETICULATION_NODE) {
-        children.push_back(getReticulationChild(node));
+        children.push_back(getReticulationChild(network, node));
     } else { // normal node
-        std::vector<Node*> neighbors = getNeighbors(node);
+        std::vector<Node*> neighbors = getNeighbors(network, node);
         for (size_t i = 0; i < neighbors.size(); ++i) {
             if (neighbors[i] != myParent) {
                 children.push_back(neighbors[i]);
@@ -92,14 +92,14 @@ std::vector<Node*> getChildrenNoDir(Node *node, const Node *myParent) {
     return children;
 }
 
-std::vector<Node*> getActiveChildrenNoDir(Node *node, const Node *myParent) {
+std::vector<Node*> getActiveChildrenNoDir(Network &network, Node *node, const Node *myParent) {
     assert(node);
     std::vector<Node*> activeChildren;
-    std::vector<Node*> children = getChildrenNoDir(node, myParent);
+    std::vector<Node*> children = getChildrenNoDir(network, node, myParent);
     for (size_t i = 0; i < children.size(); ++i) {
         if (children[i]->getType() == NodeType::RETICULATION_NODE) {
             // we need to check if the child is active, this is, if we are currently the selected parent
-            if (getActiveParent(children[i]) != node) {
+            if (getActiveParent(network, children[i]) != node) {
                 continue;
             }
         }
@@ -109,36 +109,36 @@ std::vector<Node*> getActiveChildrenNoDir(Node *node, const Node *myParent) {
     return activeChildren;
 }
 
-CumulatedChild getCumulatedChild(Node *parent, Node *child, const std::vector<bool> &dead_nodes,
+CumulatedChild getCumulatedChild(Network &network, Node *parent, Node *child, const std::vector<bool> &dead_nodes,
         const std::vector<bool> &skipped_nodes) {
     CumulatedChild res { child, parent, 0.0 };
-    res.cum_brlen += getEdgeTo(child, parent)->length;
+    res.cum_brlen += getEdgeTo(network, child, parent)->length;
     Node *act_parent = parent;
     while (skipped_nodes[res.child->clv_index]) {
-        std::vector<Node*> activeChildren = getActiveChildrenNoDir(res.child, act_parent);
+        std::vector<Node*> activeChildren = getActiveChildrenNoDir(network, res.child, act_parent);
         remove_dead_children(activeChildren, dead_nodes);
         assert(activeChildren.size() == 1);
         act_parent = res.child;
         res.child = activeChildren[0];
-        res.cum_brlen += getEdgeTo(act_parent, res.child)->length;
+        res.cum_brlen += getEdgeTo(network, act_parent, res.child)->length;
     }
     res.direct_parent = act_parent;
     return res;
 }
 
-std::vector<CumulatedChild> getCumulatedChildren(Node *parent, Node *actNode, const std::vector<bool> &dead_nodes,
+std::vector<CumulatedChild> getCumulatedChildren(Network &network, Node *parent, Node *actNode, const std::vector<bool> &dead_nodes,
         const std::vector<bool> &skipped_nodes) {
     assert(actNode);
     std::vector<CumulatedChild> res;
     assert(!skipped_nodes[actNode->clv_index]);
-    std::vector<Node*> activeChildren = getActiveChildrenNoDir(actNode, parent);
+    std::vector<Node*> activeChildren = getActiveChildrenNoDir(network, actNode, parent);
     for (size_t i = 0; i < activeChildren.size(); ++i) {
-        res.push_back(getCumulatedChild(actNode, activeChildren[i], dead_nodes, skipped_nodes));
+        res.push_back(getCumulatedChild(network, actNode, activeChildren[i], dead_nodes, skipped_nodes));
     }
     return res;
 }
 
-pll_unode_t* connect_subtree_recursive(Node *networkNode, pll_unode_t *from_parent, Node *networkParentNode,
+pll_unode_t* connect_subtree_recursive(Network &network, Node *networkNode, pll_unode_t *from_parent, Node *networkParentNode,
         const std::vector<bool> &dead_nodes, const std::vector<bool> &skipped_nodes) {
     assert(networkNode->getType() == NodeType::BASIC_NODE);
 
@@ -158,7 +158,7 @@ pll_unode_t* connect_subtree_recursive(Node *networkNode, pll_unode_t *from_pare
         return to_parent;
     }
 
-    std::vector<CumulatedChild> cum_children = getCumulatedChildren(networkParentNode, networkNode, dead_nodes,
+    std::vector<CumulatedChild> cum_children = getCumulatedChildren(network, networkParentNode, networkNode, dead_nodes,
             skipped_nodes);
     assert(cum_children.size() == 2 || (cum_children.size() == 3 && networkParentNode == nullptr)); // 2 children, or started with root node.
 
@@ -167,7 +167,7 @@ pll_unode_t* connect_subtree_recursive(Node *networkNode, pll_unode_t *from_pare
         toChildren[i] = create_unode(networkNode->getLabel());
         toChildren[i]->clv_index = networkNode->clv_index;
         toChildren[i]->length = cum_children[i].cum_brlen;
-        connect_subtree_recursive(cum_children[i].child, toChildren[i], cum_children[i].direct_parent, dead_nodes,
+        connect_subtree_recursive(network, cum_children[i].child, toChildren[i], cum_children[i].direct_parent, dead_nodes,
                 skipped_nodes);
     }
 
@@ -189,16 +189,16 @@ pll_unode_t* connect_subtree_recursive(Node *networkNode, pll_unode_t *from_pare
     return unode->next;
 }
 
-void fill_dead_nodes_recursive(Node *myParent, Node *node, std::vector<bool> &dead_nodes) {
+void fill_dead_nodes_recursive(Network &network, Node *myParent, Node *node, std::vector<bool> &dead_nodes) {
     if (node->isTip()) {
         return;
     }
-    std::vector<Node*> activeChildren = getActiveChildren(node, myParent);
+    std::vector<Node*> activeChildren = getActiveChildren(network, node, myParent);
     if (activeChildren.empty()) {
         dead_nodes[node->clv_index] = true;
     } else {
         for (size_t i = 0; i < activeChildren.size(); ++i) {
-            fill_dead_nodes_recursive(node, activeChildren[i], dead_nodes);
+            fill_dead_nodes_recursive(network, node, activeChildren[i], dead_nodes);
         }
     }
     // count how many active children are not dead
@@ -210,12 +210,12 @@ void fill_dead_nodes_recursive(Node *myParent, Node *node, std::vector<bool> &de
     }
 }
 
-void fill_skipped_nodes_recursive(Node *myParent, Node *node, const std::vector<bool> &dead_nodes,
+void fill_skipped_nodes_recursive(Network &network, Node *myParent, Node *node, const std::vector<bool> &dead_nodes,
         std::vector<bool> &skipped_nodes) {
     if (node->isTip()) {
         return; // tip nodes never need to be skipped/ contracted
     }
-    std::vector<Node*> activeChildren = getActiveChildrenNoDir(node, myParent);
+    std::vector<Node*> activeChildren = getActiveChildrenNoDir(network, node, myParent);
     remove_dead_children(activeChildren, dead_nodes);
 
     if (activeChildren.size() < 2) {
@@ -227,7 +227,7 @@ void fill_skipped_nodes_recursive(Node *myParent, Node *node, const std::vector<
     }
 
     for (size_t i = 0; i < activeChildren.size(); ++i) {
-        fill_skipped_nodes_recursive(node, activeChildren[i], dead_nodes, skipped_nodes);
+        fill_skipped_nodes_recursive(network, node, activeChildren[i], dead_nodes, skipped_nodes);
     }
 }
 
@@ -235,7 +235,7 @@ pll_utree_t* displayed_tree_to_utree(Network &network, size_t tree_index) {
     setReticulationParents(network, tree_index);
     Node *root = nullptr;
 
-    if (getActiveNeighbors(network.root).size() == 3) {
+    if (getActiveNeighbors(network, network.root).size() == 3) {
         root = network.root;
     } else {
         // find a non-reticulation node with 3 active neighbors. This will be the root of the displayed tree.
@@ -245,12 +245,12 @@ pll_utree_t* displayed_tree_to_utree(Network &network, size_t tree_index) {
     }
 
     std::vector<bool> dead_nodes(network.num_nodes(), false);
-    fill_dead_nodes_recursive(nullptr, root, dead_nodes);
+    fill_dead_nodes_recursive(network, nullptr, root, dead_nodes);
     std::vector<bool> skipped_nodes(network.num_nodes(), false);
-    fill_skipped_nodes_recursive(nullptr, root, dead_nodes, skipped_nodes);
+    fill_skipped_nodes_recursive(network, nullptr, root, dead_nodes, skipped_nodes);
     // now, we already know which nodes are skipped and which nodes are dead.
 
-    pll_unode_t *uroot = connect_subtree_recursive(root, nullptr, nullptr, dead_nodes, skipped_nodes);
+    pll_unode_t *uroot = connect_subtree_recursive(network, root, nullptr, nullptr, dead_nodes, skipped_nodes);
 
     pll_utree_reset_template_indices(uroot, network.num_tips());
     pll_utree_t *utree = pll_utree_wraptree(uroot, network.num_tips());
@@ -297,13 +297,13 @@ void setReticulationParents(BlobInformation &blobInfo, unsigned int megablob_idx
     }
 }
 
-void forbidSubnetwork(Node *myParent, Node *node, std::vector<bool> &forbidden) {
+void forbidSubnetwork(Network &network, Node *myParent, Node *node, std::vector<bool> &forbidden) {
     if (forbidden[node->clv_index])
         return;
     forbidden[node->clv_index] = true;
-    std::vector<Node*> children = getChildren(node, myParent);
+    std::vector<Node*> children = getChildren(network, node, myParent);
     for (size_t i = 0; i < children.size(); ++i) {
-        forbidSubnetwork(node, children[i], forbidden);
+        forbidSubnetwork(network, node, children[i], forbidden);
     }
 }
 
@@ -313,13 +313,13 @@ void forbidSubnetwork(Node *myParent, Node *node, std::vector<bool> &forbidden) 
 std::vector<Node*> getPossibleRootNodes(Network &network) {
     std::vector<bool> forbidden(network.num_nodes(), false);
     for (size_t i = 0; i < network.num_reticulations(); ++i) {
-        forbidSubnetwork(nullptr, network.reticulation_nodes[i], forbidden);
+        forbidSubnetwork(network, nullptr, network.reticulation_nodes[i], forbidden);
     }
     std::vector<Node*> res;
     for (size_t i = 0; i < network.num_nodes(); ++i) {
         if (!forbidden[network.nodes[i].clv_index]) {
             if (network.nodes[i].getType() == NodeType::BASIC_NODE
-                    && getActiveNeighbors(&network.nodes[i]).size() == 3) {
+                    && getActiveNeighbors(network, &network.nodes[i]).size() == 3) {
                 res.push_back(&network.nodes[i]);
             }
         }
@@ -362,26 +362,26 @@ std::vector<bool> getTipVector(const pll_utree_t &utree, size_t pmatrix_idx) {
     return res;
 }
 
-void getTipVectorRecursive(Node *actParent, Node *actNode, size_t pmatrix_idx, bool pmatrix_idx_found,
+void getTipVectorRecursive(Network &network, Node *actParent, Node *actNode, size_t pmatrix_idx, bool pmatrix_idx_found,
         std::vector<bool> &res) {
-    if ((actParent != nullptr) && (getEdgeTo(actNode, actParent)->pmatrix_index == pmatrix_idx)) {
+    if ((actParent != nullptr) && (getEdgeTo(network, actNode, actParent)->pmatrix_index == pmatrix_idx)) {
         pmatrix_idx_found = true;
     }
     if (actNode->isTip() && pmatrix_idx_found) {
         res[actNode->clv_index] = true;
     } else if (!actNode->isTip()) {
-        std::vector<Node*> activeChildren = getActiveChildren(actNode, actParent);
+        std::vector<Node*> activeChildren = getActiveChildren(network, actNode, actParent);
         for (size_t i = 0; i < activeChildren.size(); ++i) {
-            getTipVectorRecursive(actNode, activeChildren[i], pmatrix_idx, pmatrix_idx_found, res);
+            getTipVectorRecursive(network, actNode, activeChildren[i], pmatrix_idx, pmatrix_idx_found, res);
         }
     }
 }
 
-std::vector<bool> getTipVector(const Network &network, size_t pmatrix_idx) {
+std::vector<bool> getTipVector(Network &network, size_t pmatrix_idx) {
     std::vector<bool> res(network.num_tips(), false);
     // do a top-down preorder traversal of the network,
     //	starting to write to the tip vector as soon as we have encountered the wanted pmatrix_idx
-    getTipVectorRecursive(nullptr, network.root, pmatrix_idx, false, res);
+    getTipVectorRecursive(network, nullptr, network.root, pmatrix_idx, false, res);
     return res;
 }
 
@@ -426,10 +426,10 @@ std::vector<std::vector<size_t> > getDtBranchToNetworkBranchMapping(const pll_ut
     return res;
 }
 
-std::vector<Node*> grab_current_node_parents(const Network &network) {
+std::vector<Node*> grab_current_node_parents(Network &network) {
     std::vector<Node*> parent(network.num_nodes(), nullptr);
     for (size_t i = 0; i < parent.size(); ++i) {
-        parent[network.nodes[i].clv_index] = getActiveParent(&network.nodes[i]);
+        parent[network.nodes[i].clv_index] = getActiveParent(network, &network.nodes[i]);
     }
     return parent;
 }
@@ -448,7 +448,7 @@ std::vector<Node*> reversed_topological_sort(Network &network) {
     for (size_t i = 0; i < network.num_nodes(); ++i) {
         Node *actNode = &network.nodes[i];
         size_t act_clv_idx = actNode->clv_index;
-        outdeg[act_clv_idx] = getChildren(actNode, parent[act_clv_idx]).size();
+        outdeg[act_clv_idx] = getChildren(network, actNode, parent[act_clv_idx]).size();
         if (outdeg[act_clv_idx] == 0) {
             q.emplace(actNode);
         }
@@ -470,7 +470,7 @@ std::vector<Node*> reversed_topological_sort(Network &network) {
                 }
             }
         } else { // reticulation node. It has 2 parents and 1 child
-            for (Node *neigh : getNeighbors(actNode)) {
+            for (Node *neigh : getNeighbors(network, actNode)) {
                 if (parent[neigh->clv_index] != actNode) {
                     outdeg[neigh->clv_index]--;
                     if (outdeg[neigh->clv_index] == 0) {
@@ -505,7 +505,7 @@ std::string buildNodeGraphics(const Node *node, const BlobInformation &blobInfo)
     return ss.str();
 }
 
-std::string exportDebugInfo(const Network &network, const BlobInformation &blobInfo) {
+std::string exportDebugInfo(Network &network, const BlobInformation &blobInfo) {
     std::stringstream ss;
     ss << "graph\n[\tdirected\t1\n";
     std::vector<Node*> parent = grab_current_node_parents(network);
@@ -525,8 +525,8 @@ std::string exportDebugInfo(const Network &network, const BlobInformation &blobI
     }
     for (size_t i = 0; i < network.num_branches(); ++i) {
         ss << "\tedge\n\t[\n\t\tsource\t";
-        unsigned int parentId = network.edges[i].link1->node->clv_index;
-        unsigned int childId = network.edges[i].link2->node->clv_index;
+        unsigned int parentId = network.edges[i].link1->node_clv_index;
+        unsigned int childId = network.edges[i].link2->node_clv_index;
         if (network.edges[i].link1->direction == Direction::INCOMING) {
             std::swap(parentId, childId);
         }
@@ -559,7 +559,7 @@ std::string buildNodeGraphics(const Node *node) {
     return ss.str();
 }
 
-std::string exportDebugInfo(const Network &network, const std::vector<unsigned int> &extra_node_number) {
+std::string exportDebugInfo(Network &network, const std::vector<unsigned int> &extra_node_number) {
     std::stringstream ss;
     ss << "graph\n[\tdirected\t1\n";
     std::vector<Node*> parent = grab_current_node_parents(network);
@@ -581,8 +581,8 @@ std::string exportDebugInfo(const Network &network, const std::vector<unsigned i
     }
     for (size_t i = 0; i < network.num_branches(); ++i) {
         ss << "\tedge\n\t[\n\t\tsource\t";
-        unsigned int parentId = network.edges[i].link1->node->clv_index;
-        unsigned int childId = network.edges[i].link2->node->clv_index;
+        unsigned int parentId = network.edges[i].link1->node_clv_index;
+        unsigned int childId = network.edges[i].link2->node_clv_index;
         if (network.edges[i].link1->direction == Direction::INCOMING) {
             std::swap(parentId, childId);
         }
@@ -601,7 +601,7 @@ std::string exportDebugInfo(const Network &network, const std::vector<unsigned i
     return ss.str();
 }
 
-bool networkIsConnected(const Network &network) {
+bool networkIsConnected(Network &network) {
     unsigned int n_visited = 0;
     std::vector<bool> visited(network.num_nodes(), false);
     std::stack<const Node*> s;
@@ -614,7 +614,7 @@ bool networkIsConnected(const Network &network) {
         }
         visited[actNode->clv_index] = true;
         n_visited++;
-        for (const Node *neigh : getNeighbors(actNode)) {
+        for (const Node *neigh : getNeighbors(network, actNode)) {
             if (!visited[neigh->clv_index]) {
                 s.emplace(neigh);
             }

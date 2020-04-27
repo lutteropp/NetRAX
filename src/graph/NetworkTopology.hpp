@@ -17,34 +17,34 @@
 
 namespace netrax {
 
-Node* getTargetNode(const Link* link);
-bool isOutgoing(Node* from, Node* to);
-Link* getLinkToClvIndex(Node* node, size_t target_index);
-Link* getLinkToNode(Node *node, Node *target);
-Node* getReticulationChild(const Node* node);
-Node* getReticulationFirstParent(const Node* node);
-Node* getReticulationSecondParent(const Node* node);
-Node* getReticulationActiveParent(const Node *node);
-double getReticulationFirstParentProb(const Node* node);
-double getReticulationSecondParentProb(const Node* node);
-double getReticulationActiveProb(const Node* node);
-size_t getReticulationFirstParentPmatrixIndex(const Node* node);
-size_t getReticulationSecondParentPmatrixIndex(const Node* node);
-size_t getReticulationActiveParentPmatrixIndex(const Node* node);
+Node* getTargetNode(Network& network, const Link* link);
+bool isOutgoing(Network &network, Node* from, Node* to);
+Link* getLinkToClvIndex(Network &network, Node* node, size_t target_index);
+Link* getLinkToNode(Network &network, Node *node, Node *target);
+Node* getReticulationChild(Network &network, const Node* node);
+Node* getReticulationFirstParent(Network &network, const Node* node);
+Node* getReticulationSecondParent(Network &network, const Node* node);
+Node* getReticulationActiveParent(Network &network, const Node *node);
+double getReticulationFirstParentProb(Network &network, const Node* node);
+double getReticulationSecondParentProb(Network &network, const Node* node);
+double getReticulationActiveProb(Network &network, const Node* node);
+size_t getReticulationFirstParentPmatrixIndex(Network &network, const Node* node);
+size_t getReticulationSecondParentPmatrixIndex(Network &network, const Node* node);
+size_t getReticulationActiveParentPmatrixIndex(Network &network, const Node* node);
 
-std::vector<Node*> getChildren(Node* node, const Node* myParent);
-std::vector<Node*> getActiveChildren(Node* node, const Node* myParent);
-Node* getOtherChild(Node* parent, Node* aChild);
-bool hasChild(Node* parent, Node* candidate);
-std::vector<Node*> getNeighbors(const Node* node);
-std::vector<Node*> getActiveNeighbors(const Node* node);
-Node* getActiveParent(const Node* node);
-std::vector<Node*> getAllParents(const Node* node);
-Edge* getEdgeTo(const Node* node, const Node* target);
-std::vector<Edge*> getAdjacentEdges(const Node* node);
+std::vector<Node*> getChildren(Network &network, Node* node, const Node* myParent);
+std::vector<Node*> getActiveChildren(Network &network, Node* node, const Node* myParent);
+Node* getOtherChild(Network &network, Node* parent, Node* aChild);
+bool hasChild(Network &network, Node* parent, Node* candidate);
+std::vector<Node*> getNeighbors(Network &network, const Node* node);
+std::vector<Node*> getActiveNeighbors(Network &network, const Node* node);
+Node* getActiveParent(Network &network, const Node* node);
+std::vector<Node*> getAllParents(Network &network, const Node* node);
+Edge* getEdgeTo(Network &network, const Node* node, const Node* target);
+std::vector<Edge*> getAdjacentEdges(Network &network, const Node* node);
 
-Node* getSource(const Edge* edge);
-Node* getTarget(const Edge* edge);
+Node* getSource(Network &network, const Edge* edge);
+Node* getTarget(Network &network, const Edge* edge);
 
 bool hasNeighbor(Node* node1, Node* node2);
 

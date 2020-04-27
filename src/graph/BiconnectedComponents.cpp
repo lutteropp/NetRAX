@@ -23,30 +23,31 @@
 namespace netrax {
 
 // Algorithm taken from https://www.cs.cmu.edu/~avrim/451f12/lectures/biconnected.pdf
-void bicon(const Node *v, const Node *u, unsigned int &time, std::vector<unsigned int> &discovery_time,
-        std::vector<unsigned int> &lowest, std::stack<Edge*> &s, std::vector<unsigned int> &edge_component_id,
-        unsigned int &act_bicomp_id, std::vector<unsigned int> &blob_sizes) {
+void bicon(Network &network, const Node *v, const Node *u, unsigned int &time,
+        std::vector<unsigned int> &discovery_time, std::vector<unsigned int> &lowest, std::stack<Edge*> &s,
+        std::vector<unsigned int> &edge_component_id, unsigned int &act_bicomp_id,
+        std::vector<unsigned int> &blob_sizes) {
     time++;
     discovery_time[v->clv_index] = time;
     lowest[v->clv_index] = time;
-    for (Node *neigh : getNeighbors(v)) {
+    for (Node *neigh : getNeighbors(network, v)) {
         if (discovery_time[neigh->clv_index] == 0) {
             // (v, neigh) is a forward edge
-            s.push(getEdgeTo(v, neigh));
-            bicon(neigh, v, time, discovery_time, lowest, s, edge_component_id, act_bicomp_id, blob_sizes);
+            s.push(getEdgeTo(network, v, neigh));
+            bicon(network, neigh, v, time, discovery_time, lowest, s, edge_component_id, act_bicomp_id, blob_sizes);
             lowest[v->clv_index] = std::min(lowest[v->clv_index], lowest[neigh->clv_index]);
             if (lowest[neigh->clv_index] >= discovery_time[v->clv_index]) {
                 // v is either the root of the dfs tree or an articulation point.
                 // Form a biconnected component consisting of all edges on the stack above and including (v, w).
                 // Remove these edges from the stack.
                 unsigned int act_blob_size = 0;
-                while (s.top() != getEdgeTo(v, neigh)) {
+                while (s.top() != getEdgeTo(network, v, neigh)) {
                     Edge *actEdge = s.top();
                     edge_component_id[actEdge->pmatrix_index] = act_bicomp_id;
                     s.pop();
                     act_blob_size++;
                 }
-                assert(s.top() = getEdgeTo(v, neigh));
+                assert(s.top() = getEdgeTo(network, v, neigh));
                 edge_component_id[s.top()->pmatrix_index] = act_bicomp_id;
                 s.pop();
                 act_blob_size++;
@@ -56,17 +57,17 @@ void bicon(const Node *v, const Node *u, unsigned int &time, std::vector<unsigne
             }
         } else if (discovery_time[neigh->clv_index] < discovery_time[v->clv_index] && neigh != u) {
             // (v,neigh) is a back edge
-            s.push(getEdgeTo(v, neigh));
+            s.push(getEdgeTo(network, v, neigh));
             lowest[v->clv_index] = std::min(lowest[v->clv_index], discovery_time[neigh->clv_index]);
         }
     }
 }
 
-unsigned int get_node_blob_id(Node *node, const BlobInformation &blobInfo, const std::vector<Node*> parent) {
+unsigned int get_node_blob_id(Network &network, Node *node, const BlobInformation &blobInfo, const std::vector<Node*> parent) {
     unsigned int res = std::numeric_limits<unsigned int>::infinity();
     std::unordered_set<unsigned int> seen;
-    for (Node *neigh : getNeighbors(node)) {
-        unsigned int actBlobID = blobInfo.edge_blob_id[getEdgeTo(node, neigh)->pmatrix_index];
+    for (Node *neigh : getNeighbors(network, node)) {
+        unsigned int actBlobID = blobInfo.edge_blob_id[getEdgeTo(network, node, neigh)->pmatrix_index];
         if (seen.find(actBlobID) != seen.end()) {
             res = actBlobID;
         }
@@ -76,14 +77,14 @@ unsigned int get_node_blob_id(Node *node, const BlobInformation &blobInfo, const
     if (res == std::numeric_limits<unsigned int>::infinity()) {
         if (parent[node->clv_index] != nullptr) { // catch the network root node
             unsigned int edgeToParentBlobID =
-                    blobInfo.edge_blob_id[getEdgeTo(node, parent[node->clv_index])->pmatrix_index];
+                    blobInfo.edge_blob_id[getEdgeTo(network, node, parent[node->clv_index])->pmatrix_index];
             res = edgeToParentBlobID;
         }
     }
     return res;
 }
 
-void gather_reticulations_per_megablob(const Network &network, BlobInformation &blob_info) {
+void gather_reticulations_per_megablob(Network &network, BlobInformation &blob_info) {
     // Given the megablob roots at blobInfo.megablob_roots
     // Fill blobInfo.reticulation_nodes_per_megablob
     // ... BFS traversal? Always taking the current megablob index with us...
@@ -107,7 +108,7 @@ void gather_reticulations_per_megablob(const Network &network, BlobInformation &
                 act_megablob_index = std::distance(blob_info.megablob_roots.begin(), it);
             }
         }
-        for (Node *child : getChildren(entry.first, parent[entry.first->clv_index])) {
+        for (Node *child : getChildren(network, entry.first, parent[entry.first->clv_index])) {
             if (!visited[child->clv_index]) {
                 q.emplace(std::make_pair(child, act_megablob_index));
             }
@@ -132,9 +133,9 @@ BlobInformation partitionNetworkIntoBlobs(Network &network) {
     std::vector<unsigned int> lowest(network.num_nodes(), std::numeric_limits<unsigned int>::max());
     std::vector<unsigned int> blob_size;
     for (size_t i = 0; i < network.num_nodes(); ++i) {
-        Node* node = &network.nodes[i];
+        Node *node = &network.nodes[i];
         if (discovery_time[node->clv_index] == 0) {
-            bicon(node, nullptr, time, discovery_time, lowest, s, blob_info.edge_blob_id, act_bicomp_id, blob_size);
+            bicon(network, node, nullptr, time, discovery_time, lowest, s, blob_info.edge_blob_id, act_bicomp_id, blob_size);
         }
     }
 
@@ -150,7 +151,7 @@ BlobInformation partitionNetworkIntoBlobs(Network &network) {
     blob_info.reticulation_nodes_per_megablob.emplace_back(std::vector<Node*>());
     std::vector<unsigned int> node_blob_id(network.num_nodes());
     for (size_t i = 0; i < travbuffer.size(); ++i) {
-        node_blob_id[travbuffer[i]->clv_index] = get_node_blob_id(travbuffer[i], blob_info, parent);
+        node_blob_id[travbuffer[i]->clv_index] = get_node_blob_id(network, travbuffer[i], blob_info, parent);
     }
 
     for (size_t i = 0; i < travbuffer.size() - 1; ++i) {

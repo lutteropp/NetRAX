@@ -27,8 +27,8 @@ namespace netrax {
 
 AnnotatedNetwork build_annotated_network(const NetraxOptions &options) {
     AnnotatedNetwork ann_network;
-
     ann_network.network = netrax::readNetworkFromFile(options.network_file, options.max_reticulations);
+    Network &network = ann_network.network;
     ann_network.options = options;
 
     netrax::RaxmlWrapper wrapper(options);
@@ -46,10 +46,10 @@ AnnotatedNetwork build_annotated_network(const NetraxOptions &options) {
     for (size_t p = 0; p < ann_network.branch_probs.size(); ++p) {
         for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
             Node *retNode = ann_network.network.reticulation_nodes[i];
-            double firstParentProb = netrax::getReticulationFirstParentProb(retNode);
-            double secondParentProb = netrax::getReticulationSecondParentProb(retNode);
-            size_t firstParentEdgeIndex = netrax::getReticulationFirstParentPmatrixIndex(retNode);
-            size_t secondParentEdgeIndex = netrax::getReticulationSecondParentPmatrixIndex(retNode);
+            double firstParentProb = netrax::getReticulationFirstParentProb(network, retNode);
+            double secondParentProb = netrax::getReticulationSecondParentProb(network, retNode);
+            size_t firstParentEdgeIndex = netrax::getReticulationFirstParentPmatrixIndex(network, retNode);
+            size_t secondParentEdgeIndex = netrax::getReticulationSecondParentPmatrixIndex(network, retNode);
             ann_network.branch_probs[p][firstParentEdgeIndex] = firstParentProb;
             ann_network.branch_probs[p][secondParentEdgeIndex] = secondParentProb;
         }

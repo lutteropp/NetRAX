@@ -18,7 +18,7 @@
 
 namespace netrax {
 
-bool hasPath(const Network &network, const Node *from, const Node *to, bool nonelementary = false) {
+bool hasPath(Network &network, const Node *from, const Node *to, bool nonelementary = false) {
     std::vector<bool> visited(network.num_nodes(), false);
     std::queue<std::pair<const Node*, const Node*> > q;
     q.emplace(to, nullptr);
@@ -32,7 +32,7 @@ bool hasPath(const Network &network, const Node *from, const Node *to, bool none
         }
         q.pop();
         visited[node->clv_index] = true;
-        for (const Node *neigh : getAllParents(node)) {
+        for (const Node *neigh : getAllParents(network, node)) {
             if (!visited[neigh->clv_index] || (nonelementary && neigh == from)) {
                 q.emplace(std::make_pair(neigh, node));
             }
@@ -45,13 +45,13 @@ bool hasPath(const Network &network, const Node *from, const Node *to, bool none
  * we need to choose s and t in a way that there are elementary connections {u,s} and {v,t},
  * but there are no elementary connections {u,t} and {v,s}
  */
-std::vector<std::pair<Node*, Node*> > getSTChoices(const Edge *edge) {
+std::vector<std::pair<Node*, Node*> > getSTChoices(Network &network, const Edge *edge) {
     std::vector<std::pair<Node*, Node*> > res;
-    Node *u = getSource(edge);
-    Node *v = getTarget(edge);
+    Node *u = getSource(network, edge);
+    Node *v = getTarget(network, edge);
 
-    auto uNeighbors = getNeighbors(u);
-    auto vNeighbors = getNeighbors(v);
+    auto uNeighbors = getNeighbors(network, u);
+    auto vNeighbors = getNeighbors(network, v);
 
     for (const auto &s : uNeighbors) {
         if (s == v)
@@ -72,15 +72,15 @@ std::vector<std::pair<Node*, Node*> > getSTChoices(const Edge *edge) {
 std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network, const Edge *edge) {
     Network &network = ann_network.network;
     std::vector<RNNIMove> res;
-    Node *u = getSource(edge);
-    Node *v = getTarget(edge);
-    auto stChoices = getSTChoices(edge);
+    Node *u = getSource(network, edge);
+    Node *v = getTarget(network, edge);
+    auto stChoices = getSTChoices(network, edge);
     for (const auto &st : stChoices) {
         Node *s = st.first;
         Node *t = st.second;
 
         // check for possible variant and add move from the paper if the move would not create a cycle
-        if (isOutgoing(u, s) && isOutgoing(v, t)) {
+        if (isOutgoing(network, u, s) && isOutgoing(network, v, t)) {
             if (!hasPath(network, s, v)) {
                 // add move 1
                 res.emplace_back(RNNIMove { u, v, s, t, RNNIMoveType::ONE });
@@ -89,7 +89,7 @@ std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network, const Edg
                     res.emplace_back(RNNIMove { u, v, s, t, RNNIMoveType::ONE_STAR });
                 }
             }
-        } else if (isOutgoing(s, u) && isOutgoing(t, v)) {
+        } else if (isOutgoing(network, s, u) && isOutgoing(network, t, v)) {
             if (!hasPath(network, u, t)) {
                 // add move 2
                 res.emplace_back(RNNIMove { u, v, s, t, RNNIMoveType::TWO });
@@ -98,7 +98,7 @@ std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network, const Edg
                     res.emplace_back(RNNIMove { u, v, s, t, RNNIMoveType::TWO_STAR });
                 }
             }
-        } else if (isOutgoing(s, u) && isOutgoing(v, t)) {
+        } else if (isOutgoing(network, s, u) && isOutgoing(network, v, t)) {
             if (u->type == NodeType::RETICULATION_NODE && v->type != NodeType::RETICULATION_NODE) {
                 // add move 3
                 res.emplace_back(RNNIMove { u, v, s, t, RNNIMoveType::THREE });
@@ -107,7 +107,7 @@ std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network, const Edg
                 // add move 3*
                 res.emplace_back(RNNIMove { u, v, s, t, RNNIMoveType::THREE_STAR });
             }
-        } else if (isOutgoing(u, s) && isOutgoing(t, v)) {
+        } else if (isOutgoing(network, u, s) && isOutgoing(network, t, v)) {
             if (u != network.root && !hasPath(network, s, t)) {
                 // add move 4
                 res.emplace_back(RNNIMove { u, v, s, t, RNNIMoveType::FOUR });
@@ -117,38 +117,38 @@ std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network, const Edg
     return res;
 }
 
-void exchangeEdges(Node *u, Node *v, Node *s, Node *t) {
+void exchangeEdges(Network &network, Node *u, Node *v, Node *s, Node *t) {
     // The edge between {u,s} will now be between {u, t} and the edge between {v,t} will now be between {v,s}. The edge directions stay the same.
-    Link *from_u_link = getLinkToNode(u, s);
-    Link *from_s_link = getLinkToNode(s, u);
-    Link *from_v_link = getLinkToNode(v, t);
-    Link *from_t_link = getLinkToNode(t, v);
-    Edge *u_s_edge = getEdgeTo(u, s);
-    Edge *v_t_edge = getEdgeTo(v, t);
+    Link *from_u_link = getLinkToNode(network, u, s);
+    Link *from_s_link = getLinkToNode(network, s, u);
+    Link *from_v_link = getLinkToNode(network, v, t);
+    Link *from_t_link = getLinkToNode(network, t, v);
+    Edge *u_s_edge = getEdgeTo(network, u, s);
+    Edge *v_t_edge = getEdgeTo(network, v, t);
 
     from_u_link->outer = from_t_link;
     from_t_link->outer = from_u_link;
     from_v_link->outer = from_s_link;
     from_s_link->outer = from_v_link;
 
-    assert(from_u_link->node->clv_index != from_u_link->outer->node->clv_index);
-    assert(from_t_link->node->clv_index != from_t_link->outer->node->clv_index);
-    assert(from_v_link->node->clv_index != from_v_link->outer->node->clv_index);
-    assert(from_s_link->node->clv_index != from_s_link->outer->node->clv_index);
+    assert(from_u_link->node_clv_index != from_u_link->outer->node_clv_index);
+    assert(from_t_link->node_clv_index != from_t_link->outer->node_clv_index);
+    assert(from_v_link->node_clv_index != from_v_link->outer->node_clv_index);
+    assert(from_s_link->node_clv_index != from_s_link->outer->node_clv_index);
 
     // u_s_edge now becomes u_t edge
     Edge *u_t_edge = u_s_edge;
     u_t_edge->link1 = from_u_link;
     u_t_edge->link2 = from_t_link;
-    from_u_link->edge = u_t_edge;
-    from_t_link->edge = u_t_edge;
+    from_u_link->edge_pmatrix_index = u_t_edge->pmatrix_index;
+    from_t_link->edge_pmatrix_index = u_t_edge->pmatrix_index;
 
     // v_t_edge now becomes v_s_edge
     Edge *v_s_edge = v_t_edge;
     v_s_edge->link1 = from_v_link;
     v_s_edge->link2 = from_s_link;
-    from_v_link->edge = v_s_edge;
-    from_s_link->edge = v_s_edge;
+    from_v_link->edge_pmatrix_index = v_s_edge->pmatrix_index;
+    from_s_link->edge_pmatrix_index = v_s_edge->pmatrix_index;
 }
 
 void switchReticulations(Network &network, Node *u, Node *v) {
@@ -216,19 +216,19 @@ void resetReticulationLinks(Node *node) {
     assert(retData->link_to_child);
 }
 
-void addRepairCandidates(std::unordered_set<Node*> &repair_candidates, Node *node) {
+void addRepairCandidates(Network &network, std::unordered_set<Node*> &repair_candidates, Node *node) {
     repair_candidates.emplace(node);
-    for (Node *neigh : getNeighbors(node)) {
+    for (Node *neigh : getNeighbors(network, node)) {
         repair_candidates.emplace(neigh);
     }
 }
 
-void fixReticulations(RNNIMove &move) {
+void fixReticulations(Network &network, RNNIMove &move) {
     std::unordered_set<Node*> repair_candidates;
-    addRepairCandidates(repair_candidates, move.s);
-    addRepairCandidates(repair_candidates, move.t);
-    addRepairCandidates(repair_candidates, move.u);
-    addRepairCandidates(repair_candidates, move.v);
+    addRepairCandidates(network, repair_candidates, move.s);
+    addRepairCandidates(network, repair_candidates, move.t);
+    addRepairCandidates(network, repair_candidates, move.u);
+    addRepairCandidates(network, repair_candidates, move.v);
     for (Node *node : repair_candidates) {
         if (node->type == NodeType::RETICULATION_NODE) {
             resetReticulationLinks(node);
@@ -236,13 +236,13 @@ void fixReticulations(RNNIMove &move) {
     }
 }
 
-void fixReticulations(RSPRMove &move) {
+void fixReticulations(Network &network, RSPRMove &move) {
     std::unordered_set<Node*> repair_candidates;
-    addRepairCandidates(repair_candidates, move.x);
-    addRepairCandidates(repair_candidates, move.x_prime);
-    addRepairCandidates(repair_candidates, move.y);
-    addRepairCandidates(repair_candidates, move.y_prime);
-    addRepairCandidates(repair_candidates, move.z);
+    addRepairCandidates(network, repair_candidates, move.x);
+    addRepairCandidates(network, repair_candidates, move.x_prime);
+    addRepairCandidates(network, repair_candidates, move.y);
+    addRepairCandidates(network, repair_candidates, move.y_prime);
+    addRepairCandidates(network, repair_candidates, move.z);
     for (Node *node : repair_candidates) {
         if (node->type == NodeType::RETICULATION_NODE) {
             resetReticulationLinks(node);
@@ -250,9 +250,9 @@ void fixReticulations(RSPRMove &move) {
     }
 }
 
-void changeEdgeDirection(Node *u, Node *v) {
-    Link *from_u_link = getLinkToNode(u, v);
-    Link *from_v_link = getLinkToNode(v, u);
+void changeEdgeDirection(Network &network, Node *u, Node *v) {
+    Link *from_u_link = getLinkToNode(network, u, v);
+    Link *from_v_link = getLinkToNode(network, v, u);
     if (from_u_link->direction == Direction::INCOMING) {
         assert(from_v_link->direction == Direction::OUTGOING);
         from_u_link->direction = Direction::OUTGOING;
@@ -264,89 +264,89 @@ void changeEdgeDirection(Node *u, Node *v) {
     }
 }
 
-void setLinkDirections(Node *u, Node *v) {
-    Link *from_u_link = getLinkToNode(u, v);
-    Link *from_v_link = getLinkToNode(v, u);
+void setLinkDirections(Network &network, Node *u, Node *v) {
+    Link *from_u_link = getLinkToNode(network, u, v);
+    Link *from_v_link = getLinkToNode(network, v, u);
     from_u_link->direction = Direction::OUTGOING;
     from_v_link->direction = Direction::INCOMING;
 }
 
-void updateLinkDirections(RNNIMove &move) {
+void updateLinkDirections(Network &network, RNNIMove &move) {
     switch (move.type) {
     case RNNIMoveType::ONE:
-        setLinkDirections(move.u, move.v);
-        setLinkDirections(move.u, move.t);
-        setLinkDirections(move.v, move.s);
+        setLinkDirections(network, move.u, move.v);
+        setLinkDirections(network, move.u, move.t);
+        setLinkDirections(network, move.v, move.s);
         break;
     case RNNIMoveType::ONE_STAR:
-        setLinkDirections(move.v, move.u);
-        setLinkDirections(move.u, move.t);
-        setLinkDirections(move.v, move.s);
+        setLinkDirections(network, move.v, move.u);
+        setLinkDirections(network, move.u, move.t);
+        setLinkDirections(network, move.v, move.s);
         break;
     case RNNIMoveType::TWO:
-        setLinkDirections(move.u, move.v);
-        setLinkDirections(move.t, move.u);
-        setLinkDirections(move.s, move.v);
+        setLinkDirections(network, move.u, move.v);
+        setLinkDirections(network, move.t, move.u);
+        setLinkDirections(network, move.s, move.v);
         break;
     case RNNIMoveType::TWO_STAR:
-        setLinkDirections(move.v, move.u);
-        setLinkDirections(move.t, move.u);
-        setLinkDirections(move.s, move.v);
+        setLinkDirections(network, move.v, move.u);
+        setLinkDirections(network, move.t, move.u);
+        setLinkDirections(network, move.s, move.v);
         break;
     case RNNIMoveType::THREE:
-        setLinkDirections(move.u, move.v);
-        setLinkDirections(move.u, move.t);
-        setLinkDirections(move.s, move.v);
+        setLinkDirections(network, move.u, move.v);
+        setLinkDirections(network, move.u, move.t);
+        setLinkDirections(network, move.s, move.v);
         break;
     case RNNIMoveType::THREE_STAR:
-        setLinkDirections(move.v, move.u);
-        setLinkDirections(move.u, move.t);
-        setLinkDirections(move.s, move.v);
+        setLinkDirections(network, move.v, move.u);
+        setLinkDirections(network, move.u, move.t);
+        setLinkDirections(network, move.s, move.v);
         break;
     case RNNIMoveType::FOUR:
-        setLinkDirections(move.u, move.v);
-        setLinkDirections(move.t, move.u);
-        setLinkDirections(move.v, move.s);
+        setLinkDirections(network, move.u, move.v);
+        setLinkDirections(network, move.t, move.u);
+        setLinkDirections(network, move.v, move.s);
         break;
     }
 }
 
-void updateLinkDirectionsReverse(RNNIMove &move) {
+void updateLinkDirectionsReverse(Network &network, RNNIMove &move) {
     switch (move.type) {
     case RNNIMoveType::ONE:
-        setLinkDirections(move.u, move.s);
-        setLinkDirections(move.u, move.v);
-        setLinkDirections(move.v, move.t);
+        setLinkDirections(network, move.u, move.s);
+        setLinkDirections(network, move.u, move.v);
+        setLinkDirections(network, move.v, move.t);
         break;
     case RNNIMoveType::ONE_STAR:
-        setLinkDirections(move.u, move.s);
-        setLinkDirections(move.u, move.v);
-        setLinkDirections(move.v, move.t);
+        setLinkDirections(network, move.u, move.s);
+        setLinkDirections(network, move.u, move.v);
+        setLinkDirections(network, move.v, move.t);
         break;
     case RNNIMoveType::TWO:
-        setLinkDirections(move.s, move.u);
-        setLinkDirections(move.u, move.v);
-        setLinkDirections(move.t, move.v);
+        setLinkDirections(network, move.s, move.u);
+        setLinkDirections(network, move.u, move.v);
+        setLinkDirections(network, move.t, move.v);
         break;
     case RNNIMoveType::TWO_STAR:
-        setLinkDirections(move.s, move.u);
-        setLinkDirections(move.u, move.v);
-        setLinkDirections(move.t, move.v);
+        setLinkDirections(network, move.s, move.u);
+        setLinkDirections(network, move.u, move.v);
+        setLinkDirections(network, move.t, move.v);
         break;
     case RNNIMoveType::THREE:
-        setLinkDirections(move.s, move.u);
-        setLinkDirections(move.u, move.v);
-        setLinkDirections(move.v, move.t);
+        setLinkDirections(network, move.s, move.u);
+        setLinkDirections(network, move.u, move.v);
+        setLinkDirections(network, move.v, move.t);
         break;
     case RNNIMoveType::THREE_STAR:
-        setLinkDirections(move.s, move.u);
-        setLinkDirections(move.u, move.v);
-        setLinkDirections(move.v, move.t);
+        setLinkDirections(network, move.s, move.u);
+        setLinkDirections(network, move.u, move.v);
+        setLinkDirections(network, move.v, move.t);
         break;
     case RNNIMoveType::FOUR:
-        setLinkDirections(move.u, move.s);
-        setLinkDirections(move.u, move.v);
-        setLinkDirections(move.t, move.v);
+        setLinkDirections(network, move.u, move.s);
+        setLinkDirections(network, move.u, move.v);
+        setLinkDirections(network, move.t, move.v);
         break;
     }
 }
@@ -406,13 +406,13 @@ void assertAfterMove(RNNIMove &move) {
 void performMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
     Network &network = ann_network.network;
     assertBeforeMove(move);
-    exchangeEdges(move.u, move.v, move.s, move.t);
-    updateLinkDirections(move);
+    exchangeEdges(network, move.u, move.v, move.s, move.t);
+    updateLinkDirections(network, move);
     if (move.type == RNNIMoveType::ONE_STAR || move.type == RNNIMoveType::TWO_STAR || move.type == RNNIMoveType::THREE
             || move.type == RNNIMoveType::FOUR) {
         switchReticulations(network, move.u, move.v);
     }
-    fixReticulations(move);
+    fixReticulations(network, move);
     assertAfterMove(move);
     ann_network.blobInfo = partitionNetworkIntoBlobs(ann_network.network);
 }
@@ -420,26 +420,26 @@ void performMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
 void undoMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
     Network &network = ann_network.network;
     assertAfterMove(move);
-    exchangeEdges(move.u, move.v, move.t, move.s); // note that s and t are exchanged here
-    updateLinkDirectionsReverse(move);
+    exchangeEdges(network, move.u, move.v, move.t, move.s); // note that s and t are exchanged here
+    updateLinkDirectionsReverse(network, move);
     if (move.type == RNNIMoveType::ONE_STAR || move.type == RNNIMoveType::TWO_STAR || move.type == RNNIMoveType::THREE
             || move.type == RNNIMoveType::FOUR) {
         switchReticulations(network, move.u, move.v);
     }
-    fixReticulations(move);
+    fixReticulations(network, move);
     assertBeforeMove(move);
     ann_network.blobInfo = partitionNetworkIntoBlobs(ann_network.network);
 }
 
-std::vector<std::pair<Node*, Node*> > getZYChoices(Node *x_prime, Node *y_prime, Node *x, Node *fixed_y = nullptr) {
+std::vector<std::pair<Node*, Node*> > getZYChoices(Network &network, Node *x_prime, Node *y_prime, Node *x, Node *fixed_y = nullptr) {
     std::vector<std::pair<Node*, Node*> > res;
-    auto x_prime_children = getChildren(x_prime, getActiveParent(x_prime));
-    auto x_children = getChildren(x, getActiveParent(x));
+    auto x_prime_children = getChildren(network, x_prime, getActiveParent(network, x_prime));
+    auto x_children = getChildren(network, x, getActiveParent(network, x));
     for (Node *z : x_children) {
         if (std::find(x_prime_children.begin(), x_prime_children.end(), z) != x_prime_children.end()) {
             continue;
         }
-        auto z_children = getChildren(z, x);
+        auto z_children = getChildren(network, z, x);
         if (std::find(z_children.begin(), z_children.end(), y_prime) != z_children.end()) {
             continue;
         }
@@ -461,13 +461,13 @@ std::vector<std::pair<Node*, Node*> > getZYChoices(Node *x_prime, Node *y_prime,
 
 void possibleRSPRMovesInternal(std::vector<RSPRMove> &res, Network &network, Node *x_prime, Node *y_prime, Node *x,
         Node *fixed_y) {
-    auto zy = getZYChoices(x_prime, y_prime, x, fixed_y);
+    auto zy = getZYChoices(network, x_prime, y_prime, x, fixed_y);
     for (const auto &entry : zy) {
         Node *z = entry.first;
         Node *y = entry.second;
 
         Node *w = nullptr;
-        auto zNeighbors = getNeighbors(z);
+        auto zNeighbors = getNeighbors(network, z);
         assert(zNeighbors.size() == 3);
         for (size_t j = 0; j < zNeighbors.size(); ++j) {
             if (zNeighbors[j] != x && zNeighbors[j] != y) {
@@ -492,8 +492,8 @@ void possibleRSPRMovesInternal(std::vector<RSPRMove> &res, Network &network, Nod
 std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, const Edge *edge, Node *fixed_x, Node *fixed_y) {
     Network &network = ann_network.network;
     std::vector<RSPRMove> res;
-    Node *x_prime = getSource(edge);
-    Node *y_prime = getTarget(edge);
+    Node *x_prime = getSource(network, edge);
+    Node *y_prime = getTarget(network, edge);
 
     if (fixed_x) {
         possibleRSPRMovesInternal(res, network, x_prime, y_prime, fixed_x, fixed_y);
@@ -511,10 +511,11 @@ std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, const Edg
 }
 
 std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network, const Edge *edge) {
+    Network &network = ann_network.network;
     // in an rSPR1 move, either y_prime == x, x_prime == y, x_prime == x, or y_prime == y
     std::vector<RSPRMove> res;
-    Node *x_prime = getSource(edge);
-    Node *y_prime = getTarget(edge);
+    Node *x_prime = getSource(network, edge);
+    Node *y_prime = getTarget(network, edge);
 
     // Case 1: y_prime == x
     std::vector<RSPRMove> case1 = possibleRSPRMoves(ann_network, edge, y_prime, nullptr);
@@ -569,14 +570,14 @@ std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_ne
     std::vector<ArcInsertionMove> res;
     Network &network = ann_network.network;
     // choose two distinct arcs ab, cd (with cd not ancestral to ab -> no a-d-path allowed)
-    Node *a = getSource(edge);
-    Node *b = getTarget(edge);
+    Node *a = getSource(network, edge);
+    Node *b = getTarget(network, edge);
     for (size_t i = 0; i < network.num_branches(); ++i) {
         if (i == edge->pmatrix_index) {
             continue;
         }
-        Node *c = getSource(&network.edges[i]);
-        Node *d = getTarget(&network.edges[i]);
+        Node *c = getSource(network, &network.edges[i]);
+        Node *d = getTarget(network, &network.edges[i]);
         if (!hasPath(network, a, d)) {
             res.emplace_back(ArcInsertionMove { a, b, c, d });
         }
@@ -599,9 +600,9 @@ std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_networ
     std::vector<ArcRemovalMove> res;
     Network &network = ann_network.network;
     assert(v->type == NodeType::RETICULATION_NODE);
-    Node *d = getReticulationChild(v);
-    Node *first_parent = getReticulationFirstParent(v);
-    Node *second_parent = getReticulationSecondParent(v);
+    Node *d = getReticulationChild(network, v);
+    Node *first_parent = getReticulationFirstParent(network, v);
+    Node *second_parent = getReticulationSecondParent(network, v);
     std::vector<std::pair<Node*, Node*> > ucChoices;
     if (first_parent != network.root && first_parent->type != NodeType::RETICULATION_NODE) {
         ucChoices.emplace_back(std::make_pair(first_parent, second_parent));
@@ -612,16 +613,16 @@ std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_networ
     for (size_t i = 0; i < ucChoices.size(); ++i) {
         Node *u = ucChoices[i].first;
         Node *c = ucChoices[i].second;
-        Node *b = getOtherChild(u, v);
-        if (hasChild(c, d)) { // avoid creating parallel arcs
+        Node *b = getOtherChild(network, u, v);
+        if (hasChild(network, c, d)) { // avoid creating parallel arcs
             continue;
         }
         assert(u);
         assert(c);
         assert(b);
-        Node *a = getActiveParent(u);
+        Node *a = getActiveParent(network, u);
         assert(a);
-        if (hasChild(a, b)) { // avoid creating parallel arcs
+        if (hasChild(network, a, b)) { // avoid creating parallel arcs
             continue;
         }
         res.emplace_back(ArcRemovalMove { a, b, c, d, u, v });
@@ -640,23 +641,24 @@ std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_networ
 }
 
 void performMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
-    Link *x_out_link = getLinkToNode(move.x, move.z);
-    Link *z_in_link = getLinkToNode(move.z, move.x);
-    Link *z_out_link = getLinkToNode(move.z, move.y);
-    Link *x_prime_out_link = getLinkToNode(move.x_prime, move.y_prime);
-    Link *y_prime_in_link = getLinkToNode(move.y_prime, move.x_prime);
-    Link *y_in_link = getLinkToNode(move.y, move.z);
+    Network &network = ann_network.network;
+    Link *x_out_link = getLinkToNode(network, move.x, move.z);
+    Link *z_in_link = getLinkToNode(network, move.z, move.x);
+    Link *z_out_link = getLinkToNode(network, move.z, move.y);
+    Link *x_prime_out_link = getLinkToNode(network, move.x_prime, move.y_prime);
+    Link *y_prime_in_link = getLinkToNode(network, move.y_prime, move.x_prime);
+    Link *y_in_link = getLinkToNode(network, move.y, move.z);
 
-    Edge *x_z_edge = getEdgeTo(move.x, move.z);
-    Edge *z_y_edge = getEdgeTo(move.z, move.y);
-    Edge *x_prime_y_prime_edge = getEdgeTo(move.x_prime, move.y_prime);
+    Edge *x_z_edge = getEdgeTo(network, move.x, move.z);
+    Edge *z_y_edge = getEdgeTo(network, move.z, move.y);
+    Edge *x_prime_y_prime_edge = getEdgeTo(network, move.x_prime, move.y_prime);
 
-    assert(x_prime_out_link->edge == x_prime_y_prime_edge);
-    assert(y_prime_in_link->edge == x_prime_y_prime_edge);
-    assert(x_out_link->edge == x_z_edge);
-    assert(z_in_link->edge == x_z_edge);
-    assert(z_out_link->edge == z_y_edge);
-    assert(y_in_link->edge == z_y_edge);
+    assert(x_prime_out_link->edge_pmatrix_index == x_prime_y_prime_edge->pmatrix_index);
+    assert(y_prime_in_link->edge_pmatrix_index == x_prime_y_prime_edge->pmatrix_index);
+    assert(x_out_link->edge_pmatrix_index == x_z_edge->pmatrix_index);
+    assert(z_in_link->edge_pmatrix_index == x_z_edge->pmatrix_index);
+    assert(z_out_link->edge_pmatrix_index == z_y_edge->pmatrix_index);
+    assert(y_in_link->edge_pmatrix_index == z_y_edge->pmatrix_index);
 
     x_out_link->outer = y_in_link;
     y_in_link->outer = x_out_link;
@@ -675,35 +677,36 @@ void performMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
     z_y_prime_edge->link1 = z_out_link;
     z_y_prime_edge->link2 = y_prime_in_link;
 
-    x_out_link->edge = x_y_edge;
-    y_in_link->edge = x_y_edge;
-    x_prime_out_link->edge = x_prime_z_edge;
-    z_in_link->edge = x_prime_z_edge;
-    z_out_link->edge = z_y_prime_edge;
-    y_prime_in_link->edge = z_y_prime_edge;
+    x_out_link->edge_pmatrix_index = x_y_edge->pmatrix_index;
+    y_in_link->edge_pmatrix_index = x_y_edge->pmatrix_index;
+    x_prime_out_link->edge_pmatrix_index = x_prime_z_edge->pmatrix_index;
+    z_in_link->edge_pmatrix_index = x_prime_z_edge->pmatrix_index;
+    z_out_link->edge_pmatrix_index = z_y_prime_edge->pmatrix_index;
+    y_prime_in_link->edge_pmatrix_index = z_y_prime_edge->pmatrix_index;
 
-    fixReticulations(move);
+    fixReticulations(network, move);
     ann_network.blobInfo = partitionNetworkIntoBlobs(ann_network.network);
 }
 
 void undoMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
-    Link *x_out_link = getLinkToNode(move.x, move.y);
-    Link *z_in_link = getLinkToNode(move.z, move.x_prime);
-    Link *z_out_link = getLinkToNode(move.z, move.y_prime);
-    Link *x_prime_out_link = getLinkToNode(move.x_prime, move.z);
-    Link *y_prime_in_link = getLinkToNode(move.y_prime, move.z);
-    Link *y_in_link = getLinkToNode(move.y, move.x);
+    Network &network = ann_network.network;
+    Link *x_out_link = getLinkToNode(network, move.x, move.y);
+    Link *z_in_link = getLinkToNode(network, move.z, move.x_prime);
+    Link *z_out_link = getLinkToNode(network, move.z, move.y_prime);
+    Link *x_prime_out_link = getLinkToNode(network, move.x_prime, move.z);
+    Link *y_prime_in_link = getLinkToNode(network, move.y_prime, move.z);
+    Link *y_in_link = getLinkToNode(network, move.y, move.x);
 
-    Edge *x_y_edge = getEdgeTo(move.x, move.y);
-    Edge *x_prime_z_edge = getEdgeTo(move.x_prime, move.z);
-    Edge *z_y_prime_edge = getEdgeTo(move.z, move.y_prime);
+    Edge *x_y_edge = getEdgeTo(network, move.x, move.y);
+    Edge *x_prime_z_edge = getEdgeTo(network, move.x_prime, move.z);
+    Edge *z_y_prime_edge = getEdgeTo(network, move.z, move.y_prime);
 
-    assert(x_out_link->edge == x_y_edge);
-    assert(y_in_link->edge == x_y_edge);
-    assert(x_prime_out_link->edge == x_prime_z_edge);
-    assert(z_in_link->edge == x_prime_z_edge);
-    assert(z_out_link->edge == z_y_prime_edge);
-    assert(y_prime_in_link->edge == z_y_prime_edge);
+    assert(x_out_link->edge_pmatrix_index == x_y_edge->pmatrix_index);
+    assert(y_in_link->edge_pmatrix_index == x_y_edge->pmatrix_index);
+    assert(x_prime_out_link->edge_pmatrix_index == x_prime_z_edge->pmatrix_index);
+    assert(z_in_link->edge_pmatrix_index == x_prime_z_edge->pmatrix_index);
+    assert(z_out_link->edge_pmatrix_index == z_y_prime_edge->pmatrix_index);
+    assert(y_prime_in_link->edge_pmatrix_index == z_y_prime_edge->pmatrix_index);
 
     x_out_link->outer = z_in_link;
     z_in_link->outer = x_out_link;
@@ -722,14 +725,14 @@ void undoMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
     z_y_edge->link1 = z_out_link;
     z_y_edge->link2 = y_in_link;
 
-    x_prime_out_link->edge = x_prime_y_prime_edge;
-    y_prime_in_link->edge = x_prime_y_prime_edge;
-    x_out_link->edge = x_z_edge;
-    z_in_link->edge = x_z_edge;
-    z_out_link->edge = z_y_edge;
-    y_in_link->edge = z_y_edge;
+    x_prime_out_link->edge_pmatrix_index = x_prime_y_prime_edge->pmatrix_index;
+    y_prime_in_link->edge_pmatrix_index = x_prime_y_prime_edge->pmatrix_index;
+    x_out_link->edge_pmatrix_index = x_z_edge->pmatrix_index;
+    z_in_link->edge_pmatrix_index = x_z_edge->pmatrix_index;
+    z_out_link->edge_pmatrix_index = z_y_edge->pmatrix_index;
+    y_in_link->edge_pmatrix_index = z_y_edge->pmatrix_index;
 
-    fixReticulations(move);
+    fixReticulations(network, move);
     ann_network.blobInfo = partitionNetworkIntoBlobs(ann_network.network);
 }
 
@@ -750,10 +753,10 @@ Edge* addEdge(Network &network, Link *link1, Link *link2, double length, double 
     assert(network.num_branches() < network.edges.size());
     unsigned int pmatrix_index = network.edges.size() - 1;
     // Fix pmatrix index issues in case we have a tip
-    if (link1->node->isTip()) {
-        pmatrix_index = link1->node->clv_index;
-    } else if (link2->node->isTip()) {
-        pmatrix_index = link2->node->clv_index;
+    if (network.nodes_by_index[link1->node_clv_index]->isTip()) {
+        pmatrix_index = link1->node_clv_index;
+    } else if (network.nodes_by_index[link2->node_clv_index]->isTip()) {
+        pmatrix_index = link2->node_clv_index;
     } else {
         // try to find a smaller unused pmatrix index which is not reserved by a tip
         for (size_t i = network.num_tips(); i < pmatrix_index; ++i) {
@@ -823,12 +826,12 @@ Node* addInnerNode(Network &network, ReticulationData *retData = nullptr) {
 void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     Network &network = ann_network.network;
     pllmod_treeinfo_t *treeinfo = ann_network.fake_treeinfo;
-    Link *from_a_link = getLinkToNode(move.a, move.b);
-    Link *to_b_link = getLinkToNode(move.b, move.a);
-    Link *from_c_link = getLinkToNode(move.c, move.d);
-    Link *to_d_link = getLinkToNode(move.d, move.c);
-    Edge *a_b_edge = getEdgeTo(move.a, move.b);
-    Edge *c_d_edge = getEdgeTo(move.c, move.d);
+    Link *from_a_link = getLinkToNode(network, move.a, move.b);
+    Link *to_b_link = getLinkToNode(network, move.b, move.a);
+    Link *from_c_link = getLinkToNode(network, move.c, move.d);
+    Link *to_d_link = getLinkToNode(network, move.d, move.c);
+    Edge *a_b_edge = getEdgeTo(network, move.a, move.b);
+    Edge *c_d_edge = getEdgeTo(network, move.c, move.d);
 
     Node *u = addInnerNode(network, nullptr);
     ReticulationData retData;
@@ -868,16 +871,16 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     v->getReticulationData()->link_to_second_parent = v_c_link;
     v->getReticulationData()->link_to_child = v_d_link;
 
-    from_a_link->edge = a_u_edge;
-    to_u_link->edge = a_u_edge;
-    u_b_link->edge = u_b_edge;
-    to_b_link->edge = u_b_edge;
-    u_v_link->edge = u_v_edge;
-    v_u_link->edge = u_v_edge;
-    v_c_link->edge = c_v_edge;
-    from_c_link->edge = c_v_edge;
-    v_d_link->edge = v_d_edge;
-    to_d_link->edge = v_d_edge;
+    from_a_link->edge_pmatrix_index = a_u_edge->pmatrix_index;
+    to_u_link->edge_pmatrix_index = a_u_edge->pmatrix_index;
+    u_b_link->edge_pmatrix_index = u_b_edge->pmatrix_index;
+    to_b_link->edge_pmatrix_index = u_b_edge->pmatrix_index;
+    u_v_link->edge_pmatrix_index = u_v_edge->pmatrix_index;
+    v_u_link->edge_pmatrix_index = u_v_edge->pmatrix_index;
+    v_c_link->edge_pmatrix_index = c_v_edge->pmatrix_index;
+    from_c_link->edge_pmatrix_index = c_v_edge->pmatrix_index;
+    v_d_link->edge_pmatrix_index = v_d_edge->pmatrix_index;
+    to_d_link->edge_pmatrix_index = v_d_edge->pmatrix_index;
 
     from_a_link->outer = to_u_link;
     to_u_link->outer = from_a_link;
@@ -925,21 +928,25 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
 void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     Network &network = ann_network.network;
     pllmod_treeinfo_t *treeinfo = ann_network.fake_treeinfo;
-    Link *from_a_link = getLinkToNode(move.a, move.u);
-    Link *to_b_link = getLinkToNode(move.b, move.u);
-    Link *from_c_link = getLinkToNode(move.c, move.v);
-    Link *to_d_link = getLinkToNode(move.d, move.v);
+    Link *from_a_link = getLinkToNode(network, move.a, move.u);
+    Link *to_b_link = getLinkToNode(network, move.b, move.u);
+    Link *from_c_link = getLinkToNode(network, move.c, move.v);
+    Link *to_d_link = getLinkToNode(network, move.d, move.v);
 
-    Edge *a_u_edge = getEdgeTo(move.a, move.u);
-    Edge *u_b_edge = getEdgeTo(move.u, move.b);
-    Edge *c_v_edge = getEdgeTo(move.c, move.v);
-    Edge *v_d_edge = getEdgeTo(move.v, move.d);
-    Edge *u_v_edge = getEdgeTo(move.u, move.v);
+    Edge *a_u_edge = getEdgeTo(network, move.a, move.u);
+    Edge *u_b_edge = getEdgeTo(network, move.u, move.b);
+    Edge *c_v_edge = getEdgeTo(network, move.c, move.v);
+    Edge *v_d_edge = getEdgeTo(network, move.v, move.d);
+    Edge *u_v_edge = getEdgeTo(network, move.u, move.v);
 
-    double a_b_edge_length = from_a_link->edge->length + to_b_link->edge->length;
-    double a_b_edge_prob = std::min(from_a_link->edge->prob, to_b_link->edge->prob);
-    double c_d_edge_length = from_c_link->edge->length + to_d_link->edge->length;
-    double c_d_edge_prob = std::min(from_c_link->edge->prob, to_d_link->edge->prob);
+    double a_b_edge_length = network.edges_by_index[from_a_link->edge_pmatrix_index]->length
+            + network.edges_by_index[to_b_link->edge_pmatrix_index]->length;
+    double a_b_edge_prob = std::min(network.edges_by_index[from_a_link->edge_pmatrix_index]->prob,
+            network.edges_by_index[to_b_link->edge_pmatrix_index]->prob);
+    double c_d_edge_length = network.edges_by_index[from_c_link->edge_pmatrix_index]->length
+            + network.edges_by_index[to_d_link->edge_pmatrix_index]->length;
+    double c_d_edge_prob = std::min(network.edges_by_index[from_c_link->edge_pmatrix_index]->prob,
+            network.edges_by_index[to_d_link->edge_pmatrix_index]->prob);
     Edge *a_b_edge = addEdge(network, from_a_link, to_b_link, a_b_edge_length, a_b_edge_prob);
     Edge *c_d_edge = addEdge(network, from_c_link, to_d_link, c_d_edge_length, c_d_edge_prob);
 
@@ -949,14 +956,14 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
         partitions = treeinfo->partition_count;
     }
     for (size_t p = 0; p < partitions; ++p) {
-        double a_b_branch_length = treeinfo->branch_lengths[p][from_a_link->edge->pmatrix_index]
-                + treeinfo->branch_lengths[p][to_b_link->edge->pmatrix_index];
-        double c_d_branch_length = treeinfo->branch_lengths[p][from_c_link->edge->pmatrix_index]
-                + treeinfo->branch_lengths[p][to_d_link->edge->pmatrix_index];
-        double a_b_branch_prob = std::min(ann_network.branch_probs[p][from_a_link->edge->pmatrix_index],
-                ann_network.branch_probs[p][to_b_link->edge->pmatrix_index]);
-        double c_d_branch_prob = std::min(ann_network.branch_probs[p][from_c_link->edge->pmatrix_index],
-                ann_network.branch_probs[p][to_d_link->edge->pmatrix_index]);
+        double a_b_branch_length = treeinfo->branch_lengths[p][from_a_link->edge_pmatrix_index]
+                + treeinfo->branch_lengths[p][to_b_link->edge_pmatrix_index];
+        double c_d_branch_length = treeinfo->branch_lengths[p][from_c_link->edge_pmatrix_index]
+                + treeinfo->branch_lengths[p][to_d_link->edge_pmatrix_index];
+        double a_b_branch_prob = std::min(ann_network.branch_probs[p][from_a_link->edge_pmatrix_index],
+                ann_network.branch_probs[p][to_b_link->edge_pmatrix_index]);
+        double c_d_branch_prob = std::min(ann_network.branch_probs[p][from_c_link->edge_pmatrix_index],
+                ann_network.branch_probs[p][to_d_link->edge_pmatrix_index]);
         treeinfo->branch_lengths[p][a_b_edge->pmatrix_index] = a_b_branch_length;
         treeinfo->branch_lengths[p][c_d_edge->pmatrix_index] = c_d_branch_length;
         ann_network.branch_probs[p][a_b_edge->pmatrix_index] = a_b_branch_prob;
@@ -975,25 +982,26 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     to_b_link->outer = from_a_link;
     from_c_link->outer = to_d_link;
     to_d_link->outer = from_c_link;
-    from_a_link->edge = a_b_edge;
-    to_b_link->edge = a_b_edge;
-    from_c_link->edge = c_d_edge;
-    to_d_link->edge = c_d_edge;
+    from_a_link->edge_pmatrix_index = a_b_edge->pmatrix_index;
+    to_b_link->edge_pmatrix_index = a_b_edge->pmatrix_index;
+    from_c_link->edge_pmatrix_index = c_d_edge->pmatrix_index;
+    to_d_link->edge_pmatrix_index = c_d_edge->pmatrix_index;
 }
 
 void undoMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
+    Network &network = ann_network.network;
     Node *u = nullptr;
     Node *v = nullptr;
     // TODO: find u and v
-    std::vector<Node*> uCandidates = getChildren(move.a, getActiveParent(move.a));
-    std::vector<Node*> vCandidates = getChildren(move.c, getActiveParent(move.c));
+    std::vector<Node*> uCandidates = getChildren(network, move.a, getActiveParent(network, move.a));
+    std::vector<Node*> vCandidates = getChildren(network, move.c, getActiveParent(network, move.c));
 
     for (size_t i = 0; i < uCandidates.size(); ++i) {
-        if (!hasChild(uCandidates[i], move.b)) {
+        if (!hasChild(network, uCandidates[i], move.b)) {
             continue;
         }
         for (size_t j = 0; j < vCandidates.size(); ++j) {
-            if (hasChild(uCandidates[i], vCandidates[j]) && hasChild(vCandidates[j], move.d)) {
+            if (hasChild(network, uCandidates[i], vCandidates[j]) && hasChild(network, vCandidates[j], move.d)) {
                 u = uCandidates[i];
                 v = vCandidates[j];
             }

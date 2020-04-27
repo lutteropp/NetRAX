@@ -13,20 +13,17 @@
 #include "Direction.hpp"
 namespace netrax {
 
-struct Node;
-struct Edge;
-
 struct Link { // subnode in raxml-ng
-    void init(Node *node, Edge *edge, Link *next, Link *outer, Direction direction) {
-        this->node = node;
-        this->edge = edge;
+    void init(unsigned int node_clv_index, unsigned int edge_pmatrix_index, Link *next, Link *outer, Direction direction) {
+        this->node_clv_index = node_clv_index;
+        this->edge_pmatrix_index = edge_pmatrix_index;
         this->next = next;
         this->outer = outer;
         this->direction = direction;
     }
 
-    Node *node = nullptr;
-    Edge *edge = nullptr;
+    unsigned int node_clv_index = 0;
+    unsigned int edge_pmatrix_index = 0;
 
     Link *next = nullptr;
     Link *outer = nullptr;

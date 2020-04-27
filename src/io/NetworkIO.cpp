@@ -212,9 +212,9 @@ Network convertNetworkToplevelTrifurcation(RootedNetwork &rnetwork, size_t node_
             Link *linkFromFirstParent = network.edges[pmatrix_index].link2;
             Link *linkFromSecondParent = network.edges[pmatrix_index + 1].link2;
 
-            Link *linkToFirstParent = getLinkToClvIndex(&network.nodes[rnode->clv_index],
+            Link *linkToFirstParent = getLinkToClvIndex(network, &network.nodes[rnode->clv_index],
                     rnode->firstParent->clv_index);
-            Link *linkToSecondParent = getLinkToClvIndex(&network.nodes[rnode->clv_index],
+            Link *linkToSecondParent = getLinkToClvIndex(network, &network.nodes[rnode->clv_index],
                     rnode->secondParent->clv_index);
 
             linkFromFirstParent->outer = linkToFirstParent;
@@ -233,7 +233,7 @@ Network convertNetworkToplevelTrifurcation(RootedNetwork &rnetwork, size_t node_
             size_t pmatrix_index = rnode->clv_index;
             Link *linkFromParent = network.edges[pmatrix_index].link2;
 
-            Link *linkToParent = getLinkToClvIndex(&network.nodes[rnode->clv_index], rnode->parent->clv_index);
+            Link *linkToParent = getLinkToClvIndex(network, &network.nodes[rnode->clv_index], rnode->parent->clv_index);
             linkFromParent->outer = linkToParent;
             linkToParent->outer = linkFromParent;
         }
@@ -318,7 +318,7 @@ Network readNetworkFromFile(const std::string &filename, int maxReticulations) {
     return readNetworkFromString(newick, maxReticulations);
 }
 
-std::string newickNodeName(const Node *node, const Node *parent) {
+std::string newickNodeName(Network &network, const Node *node, const Node *parent) {
     assert(node);
     std::stringstream sb("");
 
@@ -327,52 +327,52 @@ std::string newickNodeName(const Node *node, const Node *parent) {
         assert(parent);
         sb << "#" << node->getReticulationData()->getLabel();
         Link *link = node->getReticulationData()->getLinkToFirstParent();
-        double prob = getReticulationFirstParentProb(node);
-        if (getReticulationSecondParent(node) == parent) {
+        double prob = getReticulationFirstParentProb(network, node);
+        if (getReticulationSecondParent(network, node) == parent) {
             link = node->getReticulationData()->getLinkToSecondParent();
             prob = 1.0 - prob;
         } else {
-            assert(getReticulationFirstParent(node) == parent);
+            assert(getReticulationFirstParent(network, node) == parent);
         }
 
-        sb << ":" << link->edge->length << ":";
-        if (link->edge->support != 0.0) {
-            sb << link->edge->support;
+        sb << ":" << network.edges_by_index[link->edge_pmatrix_index]->length << ":";
+        if (network.edges_by_index[link->edge_pmatrix_index]->support != 0.0) {
+            sb << network.edges_by_index[link->edge_pmatrix_index]->support;
         }
         sb << ":" << prob;
     } else {
         if (parent != nullptr) {
-            sb << ":" << getEdgeTo(node, parent)->length;
-            if (getEdgeTo(node, parent)->support != 0.0) {
-                sb << ":" << getEdgeTo(node, parent)->support;
+            sb << ":" << getEdgeTo(network, node, parent)->length;
+            if (getEdgeTo(network, node, parent)->support != 0.0) {
+                sb << ":" << getEdgeTo(network, node, parent)->support;
             }
         }
     }
     return sb.str();
 }
 
-std::string printNodeNewick(Node *node, Node *parent, std::unordered_set<Node*> &visited_reticulations) {
+std::string printNodeNewick(Network &network, Node *node, Node *parent, std::unordered_set<Node*> &visited_reticulations) {
     std::stringstream sb("");
-    std::vector<Node*> children = getChildren(node, parent);
+    std::vector<Node*> children = getChildren(network, node, parent);
     if (!children.empty() && visited_reticulations.find(node) == visited_reticulations.end()) {
         sb << "(";
         for (size_t i = 0; i < children.size() - 1; i++) {
-            sb << printNodeNewick(children[i], node, visited_reticulations);
+            sb << printNodeNewick(network, children[i], node, visited_reticulations);
             sb << ",";
         }
-        sb << printNodeNewick(children[children.size() - 1], node, visited_reticulations);
+        sb << printNodeNewick(network, children[children.size() - 1], node, visited_reticulations);
         sb << ")";
         if (node->getType() == NodeType::RETICULATION_NODE) {
             visited_reticulations.insert(node);
         }
     }
-    sb << newickNodeName(node, parent);
+    sb << newickNodeName(network, node, parent);
     return sb.str();
 }
 
 std::string toExtendedNewick(Network &network) {
     std::unordered_set<Node*> visited_reticulations;
-    return printNodeNewick(network.root, nullptr, visited_reticulations) + ";";
+    return printNodeNewick(network, network.root, nullptr, visited_reticulations) + ";";
 }
 
 }
