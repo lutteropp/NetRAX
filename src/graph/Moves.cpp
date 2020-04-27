@@ -1132,7 +1132,9 @@ void undoMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
             if (hasChild(network, uCandidates[i], b) && hasChild(network, uCandidates[i], vCandidates[j]) && hasChild(network, vCandidates[j], d)) {
                 u = uCandidates[i];
                 v = vCandidates[j];
-                break;
+                if (u != a && u != b && u != c && u != d && v != a && v != b && v != c && v != d && u != v) {
+                    break;
+                }
             }
         }
         if (u != nullptr && v != nullptr) {
