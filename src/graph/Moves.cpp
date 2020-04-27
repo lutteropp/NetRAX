@@ -331,6 +331,19 @@ void updateLinkDirections(Network &network, RNNIMove &move) {
         setLinkDirections(network, v, s);
         break;
     }
+
+    Edge *u_v_edge = getEdgeTo(network, u, v);
+    if (u_v_edge->link1->direction == Direction::INCOMING) {
+        std::swap(u_v_edge->link1, u_v_edge->link2);
+    }
+    Edge *u_t_edge = getEdgeTo(network, u, t);
+    if (u_t_edge->link1->direction == Direction::INCOMING) {
+        std::swap(u_t_edge->link1, u_t_edge->link2);
+    }
+    Edge *v_s_edge = getEdgeTo(network, v, s);
+    if (v_s_edge->link1->direction == Direction::INCOMING) {
+        std::swap(v_s_edge->link1, v_s_edge->link2);
+    }
 }
 
 void updateLinkDirectionsReverse(Network &network, RNNIMove &move) {
