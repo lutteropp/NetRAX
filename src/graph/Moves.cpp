@@ -507,11 +507,13 @@ void possibleRSPRMovesInternal(std::vector<RSPRMove> &res, Network &network, Nod
 
         if (z->type == NodeType::RETICULATION_NODE) { // head-moving rSPR move
             if (!hasPath(network, y_prime, w)) {
-                res.emplace_back(RSPRMove { x_prime->clv_index, y_prime->clv_index, x->clv_index, y->clv_index, z->clv_index });
+                res.emplace_back(
+                        RSPRMove { x_prime->clv_index, y_prime->clv_index, x->clv_index, y->clv_index, z->clv_index });
             }
         } else { // tail-moving rSPR move
             if (!hasPath(network, w, x_prime)) {
-                res.emplace_back(RSPRMove { x_prime->clv_index, y_prime->clv_index, x->clv_index, y->clv_index, z->clv_index });
+                res.emplace_back(
+                        RSPRMove { x_prime->clv_index, y_prime->clv_index, x->clv_index, y->clv_index, z->clv_index });
             }
         }
     }
@@ -653,7 +655,8 @@ std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_networ
         if (hasChild(network, a, b)) { // avoid creating parallel arcs
             continue;
         }
-        res.emplace_back(ArcRemovalMove { a->clv_index, b->clv_index, c->clv_index, d->clv_index, u->clv_index, v->clv_index });
+        res.emplace_back(
+                ArcRemovalMove { a->clv_index, b->clv_index, c->clv_index, d->clv_index, u->clv_index, v->clv_index });
     }
     return res;
 }
@@ -787,11 +790,6 @@ void removeEdge(Network &network, Edge *edge) {
     network.edges_by_index[index] = nullptr;
     network.edges[network.branchCount - 1].clear();
     network.branchCount--;
-
-    // check pmatrix indices of edges adjacent to tip nodes
-    for (size_t i = 0; i < network.num_tips(); ++i) {
-        assert(network.nodes_by_index[i]->links[0].edge_pmatrix_index < network.num_tips());
-    }
 }
 
 Edge* addEdge(Network &network, Link *link1, Link *link2, double length, double prob) {
@@ -816,12 +814,20 @@ Edge* addEdge(Network &network, Link *link1, Link *link2, double length, double 
     network.edges_by_index[pmatrix_index] = &network.edges[network.branchCount];
     network.branchCount++;
 
+    return network.edges_by_index[pmatrix_index];
+}
+
+void checkSanity(Network &network) {
     // check pmatrix indices of edges adjacent to tip nodes
     for (size_t i = 0; i < network.num_tips(); ++i) {
         assert(network.nodes_by_index[i]->links[0].edge_pmatrix_index < network.num_tips());
     }
 
-    return network.edges_by_index[pmatrix_index];
+    // check edge<->links sanity
+    for (size_t i = 0; i < network.num_branches(); ++i) {
+        assert(network.edges_by_index[i]->link1->edge_pmatrix_index == i);
+        assert(network.edges_by_index[i]->link2->edge_pmatrix_index == i);
+    }
 }
 
 void removeNode(Network &network, Node *node) {
@@ -999,6 +1005,7 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
         ann_network.branch_probs[p][u_b_edge->pmatrix_index] = u_b_branch_prob;
     }
     ann_network.blobInfo = partitionNetworkIntoBlobs(ann_network.network);
+    checkSanity(network);
 }
 
 void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
@@ -1064,6 +1071,7 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     from_c_link->edge_pmatrix_index = c_d_edge->pmatrix_index;
     to_d_link->edge_pmatrix_index = c_d_edge->pmatrix_index;
     ann_network.blobInfo = partitionNetworkIntoBlobs(ann_network.network);
+    checkSanity(network);
 }
 
 void undoMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
@@ -1095,7 +1103,8 @@ void undoMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     }
     assert(u);
     assert(v);
-    ArcRemovalMove removal { move.a_clv_index, move.b_clv_index, move.c_clv_index, move.d_clv_index, u->clv_index, v->clv_index };
+    ArcRemovalMove removal { move.a_clv_index, move.b_clv_index, move.c_clv_index, move.d_clv_index, u->clv_index,
+            v->clv_index };
     performMove(ann_network, removal);
 }
 

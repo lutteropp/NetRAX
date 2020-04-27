@@ -156,7 +156,11 @@ void randomArcInsertionMoves(const std::string &networkPath, const std::string &
             std::cout << "undo " << toString(candidates[j]) << "\n";
             undoMove(ann_network, candidates[j]);
             std::string debugInfoAfterUndo = exportDebugInfo(network);
-            EXPECT_EQ(initialDebugInfo, debugInfoAfterUndo);
+
+            std::cout << "network after undo move:\n";
+            std::cout << debugInfoAfterUndo << "\n";
+
+            ASSERT_EQ(initialDebugInfo, debugInfoAfterUndo);
             double back_logl = computeLoglikelihood(ann_network);
             ASSERT_DOUBLE_EQ(initial_logl, back_logl);
         }
