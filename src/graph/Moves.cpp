@@ -1130,9 +1130,11 @@ void undoMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
         }
         for (size_t j = 0; j < vCandidates.size(); ++j) {
             if (hasChild(network, uCandidates[i], b) && hasChild(network, uCandidates[i], vCandidates[j]) && hasChild(network, vCandidates[j], d)) {
-                u = uCandidates[i];
-                v = vCandidates[j];
-                if (u != a && u != b && u != c && u != d && v != a && v != b && v != c && v != d && u != v) {
+                Node *u_cand = uCandidates[i];
+                Node *v_cand = vCandidates[j];
+                if (u_cand != a && u_cand != b && u_cand != c && u_cand != d && v_cand != a && v_cand != b && v_cand != c && v_cand != d && u_cand != v_cand) {
+                    u = u_cand;
+                    v = v_cand;
                     break;
                 }
             }
