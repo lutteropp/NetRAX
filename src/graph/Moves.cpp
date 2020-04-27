@@ -431,7 +431,8 @@ void undoMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
     ann_network.blobInfo = partitionNetworkIntoBlobs(ann_network.network);
 }
 
-std::vector<std::pair<Node*, Node*> > getZYChoices(Network &network, Node *x_prime, Node *y_prime, Node *x, Node *fixed_y = nullptr) {
+std::vector<std::pair<Node*, Node*> > getZYChoices(Network &network, Node *x_prime, Node *y_prime, Node *x,
+        Node *fixed_y = nullptr) {
     std::vector<std::pair<Node*, Node*> > res;
     auto x_prime_children = getChildren(network, x_prime, getActiveParent(network, x_prime));
     auto x_children = getChildren(network, x, getActiveParent(network, x));
@@ -786,24 +787,35 @@ Edge* addEdge(Network &network, Link *link1, Link *link2, double length, double 
 
 void removeNode(Network &network, Node *node) {
     assert(node);
+    assert(!node->isTip());
     size_t index = node->clv_index;
     size_t other_index = network.nodes[network.nodeCount - 1].clv_index;
     size_t index_in_nodes_array = network.nodes_by_index[index] - &network.nodes[0];
     assert(network.nodes[index_in_nodes_array].clv_index == index);
     std::swap(network.nodes[index_in_nodes_array], network.nodes[network.nodeCount - 1]);
     network.nodes_by_index[other_index] = &network.nodes[index_in_nodes_array];
+    if (network.nodes_by_index[other_index]->type == NodeType::RETICULATION_NODE) {
+        network.reticulation_nodes[network.nodes_by_index[other_index]->getReticulationData()->reticulation_index] =
+                network.nodes_by_index[other_index];
+    }
+
     network.nodes_by_index[index] = nullptr;
     network.nodes[network.nodeCount - 1].clear();
     network.nodeCount--;
     if (node->type == NodeType::RETICULATION_NODE) {
         if (network.num_reticulations() > 1) {
             // update reticulation indices
+            unsigned int bad_reticulation_index = node->getReticulationData()->reticulation_index;
             network.reticulation_nodes[network.reticulation_nodes.size() - 1]->getReticulationData()->reticulation_index =
-                    network.reticulation_nodes.size() - 1;
-            std::swap(network.reticulation_nodes[node->getReticulationData()->reticulation_index],
+                    bad_reticulation_index;
+            std::swap(network.reticulation_nodes[bad_reticulation_index],
                     network.reticulation_nodes[network.reticulation_nodes.size() - 1]);
         }
         network.reticulation_nodes.resize(network.reticulation_nodes.size() - 1);
+
+        for (size_t i = 0; i < network.reticulation_nodes.size(); ++i) {
+            assert(network.reticulation_nodes[i]->type == NodeType::RETICULATION_NODE);
+        }
     }
 }
 
@@ -826,6 +838,9 @@ Node* addInnerNode(Network &network, ReticulationData *retData = nullptr) {
         network.reticulation_nodes.emplace_back(network.nodes_by_index[clv_index]);
         network.nodes[network.nodeCount].getReticulationData()->reticulation_index = network.reticulation_nodes.size()
                 - 1;
+        for (size_t i = 0; i < network.reticulation_nodes.size(); ++i) {
+            assert(network.reticulation_nodes[i]->type == NodeType::RETICULATION_NODE);
+        }
     } else {
         network.nodes[network.nodeCount].initBasic(clv_index, scaler_index, "");
     }
