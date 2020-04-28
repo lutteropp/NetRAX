@@ -638,6 +638,7 @@ std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_ne
     // choose two distinct arcs ab, cd (with cd not ancestral to ab -> no d-a-path allowed)
     Node *a = getSource(network, edge);
     Node *b = getTarget(network, edge);
+    double a_b_len = edge->length;
     for (size_t i = 0; i < network.num_branches(); ++i) {
         if (network.edges[i].pmatrix_index == edge->pmatrix_index) {
             continue;
@@ -648,7 +649,7 @@ std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_ne
             double c_d_len = network.edges[i].length;
             res.emplace_back(
                     ArcInsertionMove { a->clv_index, b->clv_index, c->clv_index, d->clv_index, 1.0, c_d_len / 2, 0.5,
-                            0.5 });
+                            0.5, a_b_len / 2 });
         }
     }
     return res;
@@ -697,7 +698,7 @@ std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_networ
         res.emplace_back(
                 ArcRemovalMove { a->clv_index, b->clv_index, c->clv_index, d->clv_index, u->clv_index, v->clv_index,
                         getEdgeTo(network, u, v)->length, getEdgeTo(network, c, v)->length,
-                        getEdgeTo(network, u, v)->prob, getEdgeTo(network, c, v)->prob });
+                        getEdgeTo(network, u, v)->prob, getEdgeTo(network, c, v)->prob, getEdgeTo(network, a, u)->length });
     }
     return res;
 }
@@ -1033,8 +1034,8 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     double u_v_edge_length = move.u_v_len;
     double c_v_edge_length = move.c_v_len;
     double v_d_edge_length = c_d_edge->length - c_v_edge_length;
-    double a_u_edge_length = a_b_edge->length / 2;
-    double u_b_edge_length = a_b_edge->length / 2;
+    double a_u_edge_length = move.a_u_length;
+    double u_b_edge_length = a_b_edge->length - a_u_edge_length;
     double u_v_edge_prob = move.u_v_prob;
     double c_v_edge_prob = move.c_v_prob;
     double v_d_edge_prob = c_d_edge->prob;
@@ -1206,13 +1207,13 @@ void undoMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     assert(v);
     ArcRemovalMove removal { move.a_clv_index, move.b_clv_index, move.c_clv_index, move.d_clv_index, u->clv_index,
             v->clv_index, getEdgeTo(network, u, v)->length, getEdgeTo(network, c, v)->length,
-            getEdgeTo(network, u, v)->prob, getEdgeTo(network, c, v)->prob };
+            getEdgeTo(network, u, v)->prob, getEdgeTo(network, c, v)->prob, getEdgeTo(network, a, u)->length };
     performMove(ann_network, removal);
 }
 
 void undoMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     ArcInsertionMove insertion { move.a_clv_index, move.b_clv_index, move.c_clv_index, move.d_clv_index, move.u_v_len,
-            move.c_v_len, move.u_v_prob, move.c_v_prob };
+            move.c_v_len, move.u_v_prob, move.c_v_prob, move.a_u_length };
     performMove(ann_network, insertion);
 }
 

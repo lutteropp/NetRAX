@@ -173,6 +173,14 @@ void randomArcInsertionMoves(const std::string &networkPath, const std::string &
     }
 }
 
+void printBranchLengths(AnnotatedNetwork &ann_network) {
+    Network &network = ann_network.network;
+    std::cout << "branch lengths:\n";
+    for (size_t i = 0; i < network.num_branches(); ++i) {
+        std::cout << "  " << network.edges[i].link1->node_clv_index << " -> " << network.edges[i].link2->node_clv_index << " has branch length: " << network.edges[i].length << "\n";
+    }
+}
+
 void randomArcRemovalMoves(const std::string &networkPath, const std::string &msaPath, bool useRepeats) {
     NetraxOptions options;
     options.network_file = networkPath;
@@ -182,6 +190,7 @@ void randomArcRemovalMoves(const std::string &networkPath, const std::string &ms
     Network &network = ann_network.network;
     std::string initialDebugInfo = exportDebugInfo(network);
     //std::cout << initialDebugInfo;
+    //printBranchLengths(ann_network);
 
     double initial_logl = computeLoglikelihood(ann_network);
     ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
@@ -193,11 +202,14 @@ void randomArcRemovalMoves(const std::string &networkPath, const std::string &ms
         performMove(ann_network, candidates[j]);
         //std::cout << "network after move:\n";
         //std::cout << exportDebugInfo(network);
+        //printBranchLengths(ann_network);
         double moved_logl = computeLoglikelihood(ann_network);
         ASSERT_NE(moved_logl, -std::numeric_limits<double>::infinity());
         std::cout << "logl after move: " << moved_logl << "\n";
         std::cout << "undo " << toString(candidates[j]) << "\n";
         undoMove(ann_network, candidates[j]);
+
+        //printBranchLengths(ann_network);
         //std::string debugInfoAfterUndo = exportDebugInfo(network);
         //std::cout << debugInfoAfterUndo;
         //EXPECT_EQ(initialDebugInfo, debugInfoAfterUndo);
@@ -206,7 +218,7 @@ void randomArcRemovalMoves(const std::string &networkPath, const std::string &ms
     }
 }
 
-TEST (MovesTest, rnniSmall) {
+/*TEST (MovesTest, rnniSmall) {
     randomNNIMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
 }
 
@@ -216,12 +228,13 @@ TEST (MovesTest, rsprSmall) {
 
 TEST (MovesTest, rspr1Small) {
     randomSPR1Moves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
-}
+}*/
 
 TEST (MovesTest, arcRemovalSmall) {
     randomArcRemovalMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
 }
 
+/*
 TEST (MovesTest, arcInsertionSmall) {
     randomArcInsertionMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
 }
@@ -244,4 +257,4 @@ TEST (MovesTest, arcRemovalCeline) {
 
 TEST (MovesTest, arcInsertionCeline) {
     randomArcInsertionMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false);
-}
+}*/
