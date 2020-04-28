@@ -70,6 +70,12 @@ std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network, const Ed
 std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network);
 std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network);
 std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network);
+
+std::vector<RSPRMove> possibleTailMoves(AnnotatedNetwork &ann_network, const Edge *edge);
+std::vector<RSPRMove> possibleTailMoves(AnnotatedNetwork &ann_network);
+std::vector<RSPRMove> possibleHeadMoves(AnnotatedNetwork &ann_network, const Edge *edge);
+std::vector<RSPRMove> possibleHeadMoves(AnnotatedNetwork &ann_network);
+
 void performMove(AnnotatedNetwork &ann_network, RNNIMove &move);
 void performMove(AnnotatedNetwork &ann_network, RSPRMove &move);
 void undoMove(AnnotatedNetwork &ann_network, RNNIMove &move);

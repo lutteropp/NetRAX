@@ -95,6 +95,70 @@ void randomSPRMoves(const std::string &networkPath, const std::string &msaPath, 
     }
 }
 
+void randomHeadMoves(const std::string &networkPath, const std::string &msaPath, bool useRepeats) {
+    NetraxOptions options;
+    options.network_file = networkPath;
+    options.msa_file = msaPath;
+    options.use_repeats = useRepeats;
+    AnnotatedNetwork ann_network = build_annotated_network(options);
+    Network &network = ann_network.network;
+    std::string initialDebugInfo = exportDebugInfo(network);
+    std::cout << initialDebugInfo;
+
+    double initial_logl = computeLoglikelihood(ann_network);
+    ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
+    std::cout << "initial_logl: " << initial_logl << "\n";
+
+    for (size_t i = 0; i < network.num_branches(); ++i) {
+        std::vector<RSPRMove> candidates = possibleHeadMoves(ann_network, network.edges_by_index[i]);
+        for (size_t j = 0; j < candidates.size(); ++j) {
+            std::cout << "perform " << toString(candidates[j]);
+            performMove(ann_network, candidates[j]);
+            double moved_logl = computeLoglikelihood(ann_network);
+            ASSERT_NE(moved_logl, -std::numeric_limits<double>::infinity());
+            std::cout << "logl after move: " << moved_logl << "\n";
+            std::cout << "undo " << toString(candidates[j]) << "\n";
+            undoMove(ann_network, candidates[j]);
+            std::string debugInfoAfterUndo = exportDebugInfo(network);
+            EXPECT_EQ(initialDebugInfo, debugInfoAfterUndo);
+            double back_logl = computeLoglikelihood(ann_network);
+            ASSERT_DOUBLE_EQ(initial_logl, back_logl);
+        }
+    }
+}
+
+void randomTailMoves(const std::string &networkPath, const std::string &msaPath, bool useRepeats) {
+    NetraxOptions options;
+    options.network_file = networkPath;
+    options.msa_file = msaPath;
+    options.use_repeats = useRepeats;
+    AnnotatedNetwork ann_network = build_annotated_network(options);
+    Network &network = ann_network.network;
+    std::string initialDebugInfo = exportDebugInfo(network);
+    std::cout << initialDebugInfo;
+
+    double initial_logl = computeLoglikelihood(ann_network);
+    ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
+    std::cout << "initial_logl: " << initial_logl << "\n";
+
+    for (size_t i = 0; i < network.num_branches(); ++i) {
+        std::vector<RSPRMove> candidates = possibleTailMoves(ann_network, network.edges_by_index[i]);
+        for (size_t j = 0; j < candidates.size(); ++j) {
+            std::cout << "perform " << toString(candidates[j]);
+            performMove(ann_network, candidates[j]);
+            double moved_logl = computeLoglikelihood(ann_network);
+            ASSERT_NE(moved_logl, -std::numeric_limits<double>::infinity());
+            std::cout << "logl after move: " << moved_logl << "\n";
+            std::cout << "undo " << toString(candidates[j]) << "\n";
+            undoMove(ann_network, candidates[j]);
+            std::string debugInfoAfterUndo = exportDebugInfo(network);
+            EXPECT_EQ(initialDebugInfo, debugInfoAfterUndo);
+            double back_logl = computeLoglikelihood(ann_network);
+            ASSERT_DOUBLE_EQ(initial_logl, back_logl);
+        }
+    }
+}
+
 void randomSPR1Moves(const std::string &networkPath, const std::string &msaPath, bool useRepeats) {
     NetraxOptions options;
     options.network_file = networkPath;
@@ -223,7 +287,8 @@ void printBranchLengths(AnnotatedNetwork &ann_network) {
     Network &network = ann_network.network;
     std::cout << "branch lengths:\n";
     for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::cout << "  " << network.edges[i].link1->node_clv_index << " -> " << network.edges[i].link2->node_clv_index << " has branch length: " << network.edges[i].length << "\n";
+        std::cout << "  " << network.edges[i].link1->node_clv_index << " -> " << network.edges[i].link2->node_clv_index
+                << " has branch length: " << network.edges[i].length << "\n";
     }
 }
 
@@ -299,6 +364,22 @@ void randomDeltaMinusMoves(const std::string &networkPath, const std::string &ms
         double back_logl = computeLoglikelihood(ann_network);
         ASSERT_DOUBLE_EQ(initial_logl, back_logl);
     }
+}
+
+TEST (MovesTest, tailSmall) {
+    randomTailMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
+}
+
+TEST (MovesTest, headSmall) {
+    randomHeadMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
+}
+
+TEST (MovesTest, tailCeline) {
+    randomTailMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false);
+}
+
+TEST (MovesTest, headCeline) {
+    randomHeadMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false);
 }
 
 TEST (MovesTest, arcInsertionSmall) {
