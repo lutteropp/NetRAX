@@ -218,7 +218,7 @@ void randomArcRemovalMoves(const std::string &networkPath, const std::string &ms
     }
 }
 
-/*TEST (MovesTest, rnniSmall) {
+TEST (MovesTest, rnniSmall) {
     randomNNIMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
 }
 
@@ -228,13 +228,12 @@ TEST (MovesTest, rsprSmall) {
 
 TEST (MovesTest, rspr1Small) {
     randomSPR1Moves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
-}*/
+}
 
 TEST (MovesTest, arcRemovalSmall) {
     randomArcRemovalMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
 }
 
-/*
 TEST (MovesTest, arcInsertionSmall) {
     randomArcInsertionMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
 }
@@ -257,4 +256,4 @@ TEST (MovesTest, arcRemovalCeline) {
 
 TEST (MovesTest, arcInsertionCeline) {
     randomArcInsertionMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false);
-}*/
+}
