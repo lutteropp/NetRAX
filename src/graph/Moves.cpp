@@ -1350,9 +1350,19 @@ void undoMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
 }
 
 std::vector<SemiRerootMove> possibleSemiRerootMoves(AnnotatedNetwork &ann_network) {
+    Network &network = ann_network.network;
+
+    // TODO: find possible new positions for the virtyal root node, such that we change which node is a reticulation
+
     throw std::runtime_error("Not implemented yet");
 }
 void performMove(AnnotatedNetwork &ann_network, SemiRerootMove &move) {
+    Network &network = ann_network.network;
+
+    // TODO: update link directions and link1/link2 edge assignments
+    // TODO: update branch probs and reticulation nodes/ node types
+
+    network.root = network.nodes_by_index[move.new_root_clv_index];
     throw std::runtime_error("Not implemented yet");
 }
 void undoMove(AnnotatedNetwork &ann_network, SemiRerootMove &move) {
