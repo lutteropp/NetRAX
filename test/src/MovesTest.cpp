@@ -329,6 +329,43 @@ void randomArcRemovalMoves(const std::string &networkPath, const std::string &ms
     }
 }
 
+void randomSemiRerootMoves(const std::string &networkPath, const std::string &msaPath, bool useRepeats) {
+    NetraxOptions options;
+    options.network_file = networkPath;
+    options.msa_file = msaPath;
+    options.use_repeats = useRepeats;
+    AnnotatedNetwork ann_network = build_annotated_network(options);
+    Network &network = ann_network.network;
+    std::string initialDebugInfo = exportDebugInfo(network);
+    //std::cout << initialDebugInfo;
+    //printBranchLengths(ann_network);
+
+    double initial_logl = computeLoglikelihood(ann_network);
+    ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
+    std::cout << "initial_logl: " << initial_logl << "\n";
+
+    std::vector<SemiRerootMove> candidates = possibleSemiRerootMoves(ann_network);
+    for (size_t j = 0; j < candidates.size(); ++j) {
+        std::cout << "perform " << toString(candidates[j]);
+        performMove(ann_network, candidates[j]);
+        //std::cout << "network after move:\n";
+        //std::cout << exportDebugInfo(network);
+        //printBranchLengths(ann_network);
+        double moved_logl = computeLoglikelihood(ann_network);
+        ASSERT_NE(moved_logl, -std::numeric_limits<double>::infinity());
+        std::cout << "logl after move: " << moved_logl << "\n";
+        std::cout << "undo " << toString(candidates[j]) << "\n";
+        undoMove(ann_network, candidates[j]);
+
+        //printBranchLengths(ann_network);
+        //std::string debugInfoAfterUndo = exportDebugInfo(network);
+        //std::cout << debugInfoAfterUndo;
+        //EXPECT_EQ(initialDebugInfo, debugInfoAfterUndo);
+        double back_logl = computeLoglikelihood(ann_network);
+        ASSERT_DOUBLE_EQ(initial_logl, back_logl);
+    }
+}
+
 void randomDeltaMinusMoves(const std::string &networkPath, const std::string &msaPath, bool useRepeats) {
     NetraxOptions options;
     options.network_file = networkPath;
@@ -366,6 +403,10 @@ void randomDeltaMinusMoves(const std::string &networkPath, const std::string &ms
     }
 }
 
+TEST (MovesTest, semiRerootSmall) {
+    randomSemiRerootMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
+}
+
 TEST (MovesTest, tailSmall) {
     randomTailMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
 }
@@ -376,6 +417,10 @@ TEST (MovesTest, headSmall) {
 
 TEST (MovesTest, tailCeline) {
     randomTailMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false);
+}
+
+TEST (MovesTest, semiRerootCeline) {
+    randomSemiRerootMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false);
 }
 
 TEST (MovesTest, headCeline) {

@@ -1349,6 +1349,17 @@ void undoMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     performMove(ann_network, insertion);
 }
 
+std::vector<SemiRerootMove> possibleSemiRerootMoves(AnnotatedNetwork &ann_network) {
+    throw std::runtime_error("Not implemented yet");
+}
+void performMove(AnnotatedNetwork &ann_network, SemiRerootMove &move) {
+    throw std::runtime_error("Not implemented yet");
+}
+void undoMove(AnnotatedNetwork &ann_network, SemiRerootMove &move) {
+    SemiRerootMove undoMove { move.old_root_clv_index, move.new_root_clv_index };
+    performMove(ann_network, undoMove);
+}
+
 std::string toString(RNNIMove &move) {
     std::stringstream ss;
     std::unordered_map<RNNIMoveType, std::string> lookup;
@@ -1398,6 +1409,14 @@ std::string toString(ArcRemovalMove &move) {
     ss << "  d = " << move.d_clv_index << "\n";
     ss << "  u = " << move.u_clv_index << "\n";
     ss << "  v = " << move.v_clv_index << "\n";
+    return ss.str();
+}
+
+std::string toString(SemiRerootMove &move) {
+    std::stringstream ss;
+    ss << "semi reroot move:\n";
+    ss << "  new_root_clv_index = " << move.new_root_clv_index << "\n";
+    ss << "  old_root_clv_index = " << move.old_root_clv_index << "\n";
     return ss.str();
 }
 

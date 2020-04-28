@@ -64,6 +64,11 @@ struct ArcRemovalMove {
     double a_u_length = 1.0;
 };
 
+struct SemiRerootMove {
+    size_t new_root_clv_index = 0;
+    size_t old_root_clv_index = 0;
+};
+
 std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network, const Edge *edge);
 std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, const Edge *edge);
 std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network, const Edge *edge);
@@ -75,6 +80,11 @@ std::vector<RSPRMove> possibleTailMoves(AnnotatedNetwork &ann_network, const Edg
 std::vector<RSPRMove> possibleTailMoves(AnnotatedNetwork &ann_network);
 std::vector<RSPRMove> possibleHeadMoves(AnnotatedNetwork &ann_network, const Edge *edge);
 std::vector<RSPRMove> possibleHeadMoves(AnnotatedNetwork &ann_network);
+
+std::vector<SemiRerootMove> possibleSemiRerootMoves(AnnotatedNetwork &ann_network, const Edge *edge);
+std::vector<SemiRerootMove> possibleSemiRerootMoves(AnnotatedNetwork &ann_network);
+void performMove(AnnotatedNetwork &ann_network, SemiRerootMove &move);
+void undoMove(AnnotatedNetwork &ann_network, SemiRerootMove &move);
 
 void performMove(AnnotatedNetwork &ann_network, RNNIMove &move);
 void performMove(AnnotatedNetwork &ann_network, RSPRMove &move);
@@ -100,5 +110,6 @@ std::string toString(RNNIMove &move);
 std::string toString(RSPRMove &move);
 std::string toString(ArcInsertionMove &move);
 std::string toString(ArcRemovalMove &move);
+std::string toString(SemiRerootMove &move);
 
 }
