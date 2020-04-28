@@ -46,6 +46,7 @@ struct ArcInsertionMove {
     double c_v_len = 1.0;
     double u_v_prob = 0.5;
     double c_v_prob = 0.5;
+    double a_u_len = 1.0;
 };
 
 struct ArcRemovalMove {
@@ -60,6 +61,7 @@ struct ArcRemovalMove {
     double c_v_len = 0.0;
     double u_v_prob = 0.5;
     double c_v_prob = 0.5;
+    double a_u_length = 1.0;
 };
 
 std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network, const Edge *edge);
@@ -77,6 +79,12 @@ std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_ne
 std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_network);
 std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_network, Node *v);
 std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_network);
+
+std::vector<ArcInsertionMove> possibleDeltaPlusMoves(AnnotatedNetwork &ann_network, const Edge* edge);
+std::vector<ArcInsertionMove> possibleDeltaPlusMoves(AnnotatedNetwork &ann_network);
+std::vector<ArcRemovalMove> possibleDeltaMinusMoves(AnnotatedNetwork &ann_network, Node *v);
+std::vector<ArcRemovalMove> possibleDeltaMinusMoves(AnnotatedNetwork &ann_network);
+
 void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move);
 void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move);
 void undoMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move);
