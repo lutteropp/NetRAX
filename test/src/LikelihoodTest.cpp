@@ -307,12 +307,48 @@ void compareLikelihoodFunctions(const std::string &networkPath, const std::strin
     std::cout << "naive logl: " << naive_logl << "\n";
 }
 
+void incrementalTest(const std::string &networkPath, const std::string &msaPath) {
+    NetraxOptions options;
+    options.network_file = networkPath;
+    options.msa_file = msaPath;
+    options.use_repeats = true;
+    options.use_blobs = true;
+    options.use_graycode = true;
+    options.use_incremental_clvs = true;
+    AnnotatedNetwork ann_network = build_annotated_network(options);
+    Network &network = ann_network.network;
+    print_clv_index_by_label(network);
+    //std::cout << exportDebugInfo(network) << "\n";
+    ASSERT_TRUE(networkIsConnected(network));
+
+    double initial_logl = computeLoglikelihood(ann_network, 0, 1, false);
+    ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
+
+    double first_repeat = computeLoglikelihood(ann_network, 0, 1, false);
+    ASSERT_NE(first_repeat, -std::numeric_limits<double>::infinity());
+
+    double second_repeat = computeLoglikelihood(ann_network, 0, 1, false);
+    ASSERT_NE(second_repeat, -std::numeric_limits<double>::infinity());
+
+    EXPECT_DOUBLE_EQ(first_repeat, initial_logl);
+    EXPECT_DOUBLE_EQ(second_repeat, initial_logl);
+}
+
+
 TEST_F (LikelihoodTest, smallTree) {
     compareLikelihoodFunctions(DATA_PATH + "tree.nw", DATA_PATH + "small_fake_alignment.txt", false);
 }
 
+TEST_F (LikelihoodTest, smallTreeIncremental) {
+    incrementalTest(DATA_PATH + "tree.nw", DATA_PATH + "small_fake_alignment.txt");
+}
+
 TEST_F (LikelihoodTest, smallNetwork) {
     compareLikelihoodFunctions(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
+}
+
+TEST_F (LikelihoodTest, smallNetworkIncremental) {
+    incrementalTest(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt");
 }
 
 TEST_F (LikelihoodTest, tinyNetwork) {
