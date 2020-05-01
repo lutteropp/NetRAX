@@ -267,6 +267,8 @@ int pllmod_treeinfo_init_partition_sarah(pllmod_treeinfo_t *treeinfo, unsigned i
     if (!treeinfo->clv_valid[partition_index] || !treeinfo->pmatrix_valid[partition_index]) {
         return PLL_FAILURE;
     }
+    memset(treeinfo->clv_valid[partition_index], 0, utree_count * sizeof(char));
+    memset(treeinfo->pmatrix_valid[partition_index], 0, pmatrix_count * sizeof(char));
 
     /* allocate param_indices array and initialize it to all 0s,
      * i.e. per default, all rate categories will use

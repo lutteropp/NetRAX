@@ -150,7 +150,9 @@ std::vector<pll_operation_t> createOperations(AnnotatedNetwork &ann_network, siz
             // ignore the branch length from the root to its single active child/ treat it as if it had zero branch length
             ops[ops.size() - 1].child1_matrix_index = fake_pmatrix_index;
         }
-        assert(ops[ops.size() - 1].parent_clv_index == network.root->clv_index);
+        if (ops.size() > 0) {
+            assert(ops[ops.size() - 1].parent_clv_index == network.root->clv_index);
+        }
     } else {
         Node *megablobRoot = blobInfo.megablob_roots[megablobIdx];
         createOperationsPostorder(ann_network, partition_idx, megablobRoot, parent[megablobRoot->clv_index], ops,
@@ -260,10 +262,12 @@ std::vector<pll_operation_t> createOperations(AnnotatedNetwork &ann_network, siz
 
     // How to do the operations at the top-level root trifurcation?
     // First with root->back, then with root...
-    createOperationsPostorder(ann_network, partition_idx, rootBack, network.root, ops, fake_clv_index, fake_pmatrix_index, dead_nodes);
+    createOperationsPostorder(ann_network, partition_idx, rootBack, network.root, ops, fake_clv_index,
+            fake_pmatrix_index, dead_nodes);
 
     if (!getActiveChildren(network, network.root, rootBack).empty()) {
-        createOperationsPostorder(ann_network, partition_idx, network.root, rootBack, ops, fake_clv_index, fake_pmatrix_index, dead_nodes);
+        createOperationsPostorder(ann_network, partition_idx, network.root, rootBack, ops, fake_clv_index,
+                fake_pmatrix_index, dead_nodes);
     } else {
         // special case: the root has a single child.
         ops.push_back(
@@ -272,7 +276,9 @@ std::vector<pll_operation_t> createOperations(AnnotatedNetwork &ann_network, siz
         ops[ops.size() - 1].child1_matrix_index = fake_pmatrix_index;
     }
 
-    assert(ops[ops.size() - 1].parent_clv_index == network.root->clv_index);
+    if (ops.size() > 0) {
+        assert(ops[ops.size() - 1].parent_clv_index == network.root->clv_index);
+    }
     //printOperationArray(ops);
     return ops;
 }
@@ -334,17 +340,21 @@ double compute_tree_logl(AnnotatedNetwork &ann_network, size_t tree_idx, size_t 
         ops = createOperations(ann_network, partition_idx, tree_idx, dead_nodes);
     }
     unsigned int ops_count = ops.size();
-    Node *ops_root = network.nodes_by_index[ops[ops.size() - 1].parent_clv_index];
+
+    Node *ops_root;
+    if (ops_count > 0) {
+        ops_root = network.nodes_by_index[ops[ops.size() - 1].parent_clv_index];
+        assert(ops_root == network.root);
 // Compute CLVs in pll_update_partials, as specified by the operations array. This needs a pll_partition_t object.
-    pll_update_partials(fake_treeinfo.partitions[partition_idx], ops.data(), ops_count);
-
-    Node *rootBack = getTargetNode(network, ops_root->getLink());
-
+        pll_update_partials(fake_treeinfo.partitions[partition_idx], ops.data(), ops_count);
+    } else {
+        ops_root = network.root;
+    }
+    Node *rootBack = getTargetNode(network, network.root->getLink());
     double tree_partition_logl = pll_compute_edge_loglikelihood(fake_treeinfo.partitions[partition_idx],
             ops_root->clv_index, ops_root->scaler_index, rootBack->clv_index, rootBack->scaler_index,
             ops_root->getLink()->edge_pmatrix_index, fake_treeinfo.param_indices[partition_idx],
             persite_logl->empty() ? nullptr : persite_logl->data());
-
     return tree_partition_logl;
 }
 
