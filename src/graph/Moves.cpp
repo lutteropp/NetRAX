@@ -933,6 +933,12 @@ void performMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
     y_prime_in_link->edge_pmatrix_index = z_y_prime_edge->pmatrix_index;
 
     fixReticulations(network, move);
+
+    std::vector<bool> visited(network.nodes.size(), false);
+    invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, z);
+    invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, x);
+    invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, x_prime);
+
     ann_network.blobInfo = partitionNetworkIntoBlobs(ann_network.network);
 }
 
@@ -987,6 +993,12 @@ void undoMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
     y_in_link->edge_pmatrix_index = z_y_edge->pmatrix_index;
 
     fixReticulations(network, move);
+
+    std::vector<bool> visited(network.nodes.size(), false);
+    invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, z);
+    invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, x);
+    invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, x_prime);
+
     ann_network.blobInfo = partitionNetworkIntoBlobs(ann_network.network);
 }
 
