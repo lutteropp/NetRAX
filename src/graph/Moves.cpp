@@ -1260,6 +1260,11 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     std::vector<size_t> updateMe = { c_d_edge_index, a_b_edge_index, u_v_edge->pmatrix_index, c_v_edge->pmatrix_index,
             v_d_edge->pmatrix_index, a_u_edge->pmatrix_index, u_b_edge->pmatrix_index };
     reloadBranchLengthsAndBranchProbs(ann_network, updateMe);
+
+    std::vector<bool> visited(network.nodes.size(), false);
+    invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, network.nodes_by_index[move.d_clv_index]);
+    invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, network.nodes_by_index[move.b_clv_index]);
+
     ann_network.blobInfo = partitionNetworkIntoBlobs(ann_network.network);
     checkSanity(network);
 }
@@ -1347,6 +1352,11 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     to_b_link->edge_pmatrix_index = a_b_edge->pmatrix_index;
     from_c_link->edge_pmatrix_index = c_d_edge->pmatrix_index;
     to_d_link->edge_pmatrix_index = c_d_edge->pmatrix_index;
+
+    std::vector<bool> visited(network.nodes.size(), false);
+    invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, network.nodes_by_index[move.d_clv_index]);
+    invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, network.nodes_by_index[move.b_clv_index]);
+
     ann_network.blobInfo = partitionNetworkIntoBlobs(ann_network.network);
     checkSanity(network);
 }
