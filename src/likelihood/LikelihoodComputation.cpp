@@ -807,6 +807,9 @@ double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int 
                 for (size_t i = 0; i < network.nodes.size(); ++i) {
                     ann_network.fake_treeinfo->clv_valid[p][i] = 1;
                 }
+                /// just for debug...
+                ann_network.fake_treeinfo->clv_valid[p][network.root->clv_index] = 0;
+                ann_network.fake_treeinfo->clv_valid[p][getTargetNode(network, network.root->getLink())->clv_index] = 0;
             }
         }
         return network_logl;
