@@ -30,6 +30,7 @@ public:
 
     bool use_blobs = true;
     bool use_graycode = true;
+    bool use_incremental_clvs = true;
 
     unsigned int max_reticulations = 20;
 
