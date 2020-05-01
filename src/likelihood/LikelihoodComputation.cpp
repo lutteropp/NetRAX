@@ -687,7 +687,7 @@ double processPartition(AnnotatedNetwork &ann_network, unsigned int partition_id
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
     bool useBlobs = ann_network.options.use_blobs;
     bool useGrayCode = ann_network.options.use_graycode;
-    bool useIncrementalClv = ann_network.options.use_incremental_clvs;
+    bool useIncrementalClv = incremental && ann_network.options.use_incremental_clvs;
 
     if (useIncrementalClv && fake_treeinfo.clv_valid[partition_idx][network.root->clv_index]) {
         // Shortcut: nothing has changed, directly return the network loglikelihood
@@ -808,8 +808,8 @@ double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int 
                     ann_network.fake_treeinfo->clv_valid[p][i] = 1;
                 }
                 /// just for debug...
-                ann_network.fake_treeinfo->clv_valid[p][network.root->clv_index] = 0;
-                ann_network.fake_treeinfo->clv_valid[p][getTargetNode(network, network.root->getLink())->clv_index] = 0;
+                //ann_network.fake_treeinfo->clv_valid[p][network.root->clv_index] = 0;
+                //ann_network.fake_treeinfo->clv_valid[p][getTargetNode(network, network.root->getLink())->clv_index] = 0;
             }
         }
         return network_logl;
