@@ -687,7 +687,7 @@ double processPartition(AnnotatedNetwork &ann_network, unsigned int partition_id
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
     bool useBlobs = ann_network.options.use_blobs;
     bool useGrayCode = ann_network.options.use_graycode;
-    bool useIncrementalClv = incremental && ann_network.options.use_incremental_clvs;
+    bool useIncrementalClv = ann_network.options.use_incremental_clvs;
 
     if (useIncrementalClv && fake_treeinfo.clv_valid[partition_idx][network.root->clv_index]) {
         // Shortcut: nothing has changed, directly return the network loglikelihood
