@@ -403,7 +403,7 @@ void randomDeltaMinusMoves(const std::string &networkPath, const std::string &ms
     }
 }
 
-TEST (MovesTest, semiRerootSmall) {
+TEST (MovesTest, DISABLED_semiRerootSmall) {
     randomSemiRerootMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
 }
 
@@ -419,7 +419,7 @@ TEST (MovesTest, tailCeline) {
     randomTailMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false);
 }
 
-TEST (MovesTest, semiRerootCeline) {
+TEST (MovesTest, DISABLED_semiRerootCeline) {
     randomSemiRerootMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false);
 }
 
