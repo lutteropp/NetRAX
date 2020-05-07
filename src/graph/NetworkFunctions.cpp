@@ -507,7 +507,7 @@ std::string buildNodeGraphics(const Node *node, const BlobInformation &blobInfo)
     return ss.str();
 }
 
-std::string exportDebugInfo(Network &network, const BlobInformation &blobInfo) {
+std::string exportDebugInfoBlobs(Network &network, const BlobInformation &blobInfo) {
     std::stringstream ss;
     ss << "graph\n[\tdirected\t1\n";
     std::vector<Node*> parent = grab_current_node_parents(network);
@@ -561,7 +561,7 @@ std::string buildNodeGraphics(const Node *node) {
     return ss.str();
 }
 
-std::string exportDebugInfo(Network &network, const std::vector<unsigned int> &extra_node_number) {
+std::string exportDebugInfoExtraNodeNumber(Network &network, const std::vector<unsigned int> &extra_node_number) {
     std::stringstream ss;
     ss << "graph\n[\tdirected\t1\n";
     std::vector<Node*> parent = grab_current_node_parents(network);
@@ -604,7 +604,7 @@ std::string exportDebugInfo(Network &network, const std::vector<unsigned int> &e
 }
 
 std::string exportDebugInfo(Network &network) {
-    return exportDebugInfo(network, std::vector<unsigned int>());
+    return exportDebugInfoExtraNodeNumber(network, std::vector<unsigned int>());
 }
 
 bool networkIsConnected(Network &network) {

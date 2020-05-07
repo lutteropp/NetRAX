@@ -39,8 +39,8 @@ void fill_dead_nodes_recursive(Network &network, Node *myParent, Node *node, std
 std::vector<Node*> grab_current_node_parents(Network &network);
 std::vector<Node*> reversed_topological_sort(Network &network);
 
-std::string exportDebugInfo(Network &network, const BlobInformation &blobInfo);
-std::string exportDebugInfo(Network &network, const std::vector<unsigned int> &extra_node_number);
+std::string exportDebugInfoBlobs(Network &network, const BlobInformation &blobInfo);
+std::string exportDebugInfoExtraNodeNumber(Network &network, const std::vector<unsigned int> &extra_node_number);
 std::string exportDebugInfo(Network &network);
 
 bool networkIsConnected(Network &network);
