@@ -252,7 +252,7 @@ void incrementalTest(const std::string &networkPath, const std::string &msaPath)
     options.use_repeats = true;
     options.use_blobs = true;
     options.use_graycode = true;
-    options.use_incremental_clvs = true;
+    options.use_incremental = true;
     AnnotatedNetwork ann_network = build_annotated_network(options);
     Network &network = ann_network.network;
     print_clv_index_by_label(network);

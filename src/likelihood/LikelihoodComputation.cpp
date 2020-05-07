@@ -726,7 +726,7 @@ double processPartition(AnnotatedNetwork &ann_network, unsigned int partition_id
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
     bool useBlobs = ann_network.options.use_blobs;
     bool useGrayCode = ann_network.options.use_graycode;
-    bool useIncrementalClv = ann_network.options.use_incremental_clvs & incremental;
+    bool useIncrementalClv = ann_network.options.use_incremental & incremental;
 
     unsigned int numSites = fake_treeinfo.partitions[partition_idx]->sites;
     std::vector<BestPersiteLoglikelihoodData> best_persite_logl_network;
@@ -790,11 +790,11 @@ double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int 
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
 
     // special case: root node has a valid merged clv already
-    if (ann_network.options.use_incremental_clvs & incremental & fake_treeinfo.clv_valid[0][network.root->clv_index]
+    if (ann_network.options.use_incremental & incremental & fake_treeinfo.clv_valid[0][network.root->clv_index]
             & !update_reticulation_probs) {
         return ann_network.old_logl;
     }
-    setup_pmatrices(ann_network, incremental, update_pmatrices);
+    setup_pmatrices(ann_network, incremental & ann_network.options.use_incremental, update_pmatrices);
     const int old_active_partition = fake_treeinfo.active_partition;
     fake_treeinfo.active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
     bool unlinked_mode = (fake_treeinfo.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
@@ -852,7 +852,7 @@ double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int 
         }
         return computeLoglikelihood(ann_network, incremental, false, false);
     } else {
-        if (ann_network.options.use_incremental_clvs) { // validate all clvs, for all partitions
+        if (ann_network.options.use_incremental) { // validate all clvs, for all partitions
             for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
                 for (size_t i = 0; i < network.num_nodes(); ++i) {
                     ann_network.fake_treeinfo->clv_valid[p][network.nodes[i].clv_index] = 1;
