@@ -262,7 +262,7 @@ void incrementalTest(const std::string &networkPath, const std::string &msaPath)
     double initial_logl = computeLoglikelihood(ann_network, 0, 1, false);
     ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
 
-    double first_repeat = computeLoglikelihood(ann_network, 0, 1, false);
+    double first_repeat = computeLoglikelihood(ann_network, 1, 0, false);
     ASSERT_NE(first_repeat, -std::numeric_limits<double>::infinity());
 
     EXPECT_DOUBLE_EQ(first_repeat, initial_logl);
