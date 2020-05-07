@@ -250,8 +250,8 @@ void incrementalTest(const std::string &networkPath, const std::string &msaPath)
     options.network_file = networkPath;
     options.msa_file = msaPath;
     options.use_repeats = true;
-    options.use_blobs = false;
-    options.use_graycode = false;
+    options.use_blobs = true;
+    options.use_graycode = true;
     options.use_incremental_clvs = true;
     AnnotatedNetwork ann_network = build_annotated_network(options);
     Network &network = ann_network.network;
@@ -272,8 +272,9 @@ TEST_F (LikelihoodTest, smallNetworkIncremental) {
     incrementalTest(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt");
 }
 
-
-/*
+TEST_F (LikelihoodTest, celineNetworkIncremental) {
+    incrementalTest(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt");
+}
 
 TEST_F (LikelihoodTest, smallNetwork) {
     compareLikelihoodFunctions(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
@@ -415,4 +416,4 @@ TEST_F (LikelihoodTest, simpleTreeNaiveVersusNormalRaxml) {
     EXPECT_NE(raxml_logl, -std::numeric_limits<double>::infinity());
     EXPECT_DOUBLE_EQ(raxml_logl, naive_logl);
 }
-*/
+

@@ -58,7 +58,7 @@ AnnotatedNetwork build_annotated_network(const NetraxOptions &options) {
 }
 
 double computeLoglikelihood(AnnotatedNetwork &ann_network) {
-    return ann_network.raxml_treeinfo->loglh(false);
+    return ann_network.raxml_treeinfo->loglh(true);
 }
 double updateReticulationProbs(AnnotatedNetwork &ann_network) {
     return netrax::computeLoglikelihood(ann_network, 0, 1, true);
