@@ -845,12 +845,8 @@ double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int 
 
     if (update_reticulation_probs && reticulationProbsHaveChanged) {
         // invalidate clv entries ... TODO: Maybe we can invalidate less?
-        if (ann_network.options.use_incremental_clvs) { // validate all clvs, for all partitions
-            for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-                for (size_t i = 0; i < network.nodes.size(); ++i) {
-                    ann_network.fake_treeinfo->clv_valid[p][i] = 0;
-                }
-            }
+        for (size_t i = 0; i < network.num_reticulations(); ++i) {
+            invalidateHigherCLVs(ann_network, network.reticulation_nodes[i]);
         }
         return computeLoglikelihood(ann_network, incremental, false, false);
     } else {
