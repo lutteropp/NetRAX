@@ -46,31 +46,6 @@ bool hasPath(Network &network, const Node *from, const Node *to, bool nonelement
     return false;
 }
 
-void invalidateHigherClvs(Network &network, pllmod_treeinfo_t *treeinfo, std::vector<bool> &visited, Node *node) {
-    if (visited[node->clv_index]) {
-        return;
-    }
-    for (size_t p = 0; p < treeinfo->partition_count; ++p) {
-        treeinfo->clv_valid[p][node->clv_index] = 0;
-    }
-    visited[node->clv_index] = true;
-    if (node->clv_index == network.root->clv_index) {
-        return;
-    }
-    if (node->type == NodeType::RETICULATION_NODE) {
-        invalidateHigherClvs(network, treeinfo, visited, getReticulationFirstParent(network, node));
-        invalidateHigherClvs(network, treeinfo, visited, getReticulationSecondParent(network, node));
-    } else {
-        invalidateHigherClvs(network, treeinfo, visited, getActiveParent(network, node));
-    }
-}
-
-void invalidateHigherCLVs(AnnotatedNetwork &ann_network, Node *node) {
-    pllmod_treeinfo_t *treeinfo = ann_network.fake_treeinfo;
-    std::vector<bool> visited(ann_network.network.nodes.size(), false);
-    invalidateHigherClvs(ann_network.network, treeinfo, visited, node);
-}
-
 /*
  * we need to choose s and t in a way that there are elementary connections {u,s} and {v,t},
  * but there are no elementary connections {u,t} and {v,s}

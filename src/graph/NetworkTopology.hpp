@@ -12,6 +12,7 @@
 #include "Edge.hpp"
 #include "Network.hpp"
 #include "ReticulationData.hpp"
+#include "AnnotatedNetwork.hpp"
 
 #include <vector>
 
@@ -51,5 +52,8 @@ Node* getTarget(Network &network, const Edge* edge);
 bool hasNeighbor(Node* node1, Node* node2);
 
 Link* make_link(Node *node, Edge *edge, Direction dir);
+
+void invalidateHigherClvs(Network &network, pllmod_treeinfo_t *treeinfo, std::vector<bool> &visited, Node *node);
+void invalidateHigherCLVs(AnnotatedNetwork &ann_network, Node *node);
 
 }
