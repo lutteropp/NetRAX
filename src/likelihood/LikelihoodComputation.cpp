@@ -553,7 +553,7 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
     for (size_t megablob_idx = 0; megablob_idx < blobInfo.megablob_roots.size(); ++megablob_idx) {
         unsigned int megablobRootClvIdx = blobInfo.megablob_roots[megablob_idx]->clv_index;
         if (ann_network.options.use_incremental_clvs && megablobRootClvIdx != network.root->clv_index
-                && fake_treeinfo.clv_valid[partitionIdx][megablobRootClvIdx]) {
+                && fake_treeinfo.clv_valid[partitionIdx][megablobRootClvIdx] && !update_reticulation_probs) {
             continue;
         }
 
@@ -787,12 +787,9 @@ double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int 
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
 
     // special case: root node has a valid merged clv already
-    if (ann_network.options.use_incremental_clvs & incremental & fake_treeinfo.clv_valid[0][network.root->clv_index]) {
-        if (!update_reticulation_probs) {
-            return ann_network.old_logl;
-        } else {
-            fake_treeinfo.clv_valid[0][network.root->clv_index] = 0;
-        }
+    if (ann_network.options.use_incremental_clvs & incremental & fake_treeinfo.clv_valid[0][network.root->clv_index]
+            & !update_reticulation_probs) {
+        return ann_network.old_logl;
     }
 
     setup_pmatrices(ann_network, incremental, update_pmatrices);
