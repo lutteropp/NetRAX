@@ -84,10 +84,10 @@ void createOperationsPostorder(AnnotatedNetwork &ann_network, size_t partition_i
         return;
     }
     Network &network = ann_network.network;
-    /*if (ann_network.options.use_incremental_clvs
-     && ann_network.fake_treeinfo->clv_valid[partition_idx][actNode->clv_index]) {
-     return;
-     }*/
+    if (ann_network.options.use_incremental_clvs && ann_network.network.num_reticulations() == 0
+            && ann_network.fake_treeinfo->clv_valid[partition_idx][actNode->clv_index]) {
+        return;
+    }
 
     std::vector<Node*> activeChildren = getActiveChildren(network, actNode, parent);
     if (activeChildren.empty()) { // nothing to do if we are at a leaf node
@@ -155,10 +155,6 @@ std::vector<pll_operation_t> createOperations(AnnotatedNetwork &ann_network, siz
         }
     } else {
         Node *megablobRoot = blobInfo.megablob_roots[megablobIdx];
-        if (ann_network.options.use_incremental_clvs
-                && ann_network.fake_treeinfo->clv_valid[partition_idx][megablobRoot->clv_index]) {
-            return ops;
-        }
         createOperationsPostorder(ann_network, partition_idx, megablobRoot, parent[megablobRoot->clv_index], ops,
                 fake_clv_index, fake_pmatrix_index, dead_nodes, &stopIndices);
     }
@@ -193,9 +189,12 @@ std::vector<pll_operation_t> createOperationsTowardsRoot(AnnotatedNetwork &ann_n
     Node *rootBack = getTargetNode(network, network.root->getLink());
 
     while (actParent != network.root && actParent != rootBack) {
-        ops.emplace_back(
-                buildOperation(network, actParent, parent[actParent->clv_index], dead_nodes, fake_clv_index,
-                        fake_pmatrix_index));
+        if (!ann_network.options.use_incremental_clvs || ann_network.network.num_reticulations() != 0
+                || !ann_network.fake_treeinfo->clv_valid[partition_idx][actParent->clv_index]) {
+            ops.emplace_back(
+                    buildOperation(network, actParent, parent[actParent->clv_index], dead_nodes, fake_clv_index,
+                            fake_pmatrix_index));
+        }
         actParent = getActiveParent(network, actParent, parent);
     }
 
@@ -844,7 +843,7 @@ double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int 
     fake_treeinfo.active_partition = old_active_partition;
 
     if (update_reticulation_probs && reticulationProbsHaveChanged) {
-        // invalidate clv entries ... TODO: Maybe we can invalidate less?
+        // invalidate clv entries
         for (size_t i = 0; i < network.num_reticulations(); ++i) {
             invalidateHigherCLVs(ann_network, network.reticulation_nodes[i]);
         }
