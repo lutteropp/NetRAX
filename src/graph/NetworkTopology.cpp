@@ -319,4 +319,11 @@ void invalidateHigherCLVs(AnnotatedNetwork &ann_network, Node *node, bool invali
     invalidateHigherClvs(ann_network.network, treeinfo, visited, node, invalidate_myself);
 }
 
+void invalidatePmatrixIndex(AnnotatedNetwork &ann_network, size_t pmatrix_index) {
+    pllmod_treeinfo_t *treeinfo = ann_network.fake_treeinfo;
+    for (size_t p = 0; p < treeinfo->partition_count; ++p) {
+        treeinfo->pmatrix_valid[p][pmatrix_index] = 0;
+    }
+}
+
 }

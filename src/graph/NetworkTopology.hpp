@@ -56,4 +56,6 @@ Link* make_link(Node *node, Edge *edge, Direction dir);
 void invalidateHigherClvs(Network &network, pllmod_treeinfo_t *treeinfo, std::vector<bool> &visited, Node *node, bool invalidate_myself = false);
 void invalidateHigherCLVs(AnnotatedNetwork &ann_network, Node *node, bool invalidate_myself = false);
 
+void invalidatePmatrixIndex(AnnotatedNetwork &ann_network, size_t pmatrix_index);
+
 }
