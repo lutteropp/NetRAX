@@ -852,8 +852,8 @@ double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int 
     } else {
         if (ann_network.options.use_incremental_clvs) { // validate all clvs, for all partitions
             for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-                for (size_t i = 0; i < network.nodes.size(); ++i) {
-                    ann_network.fake_treeinfo->clv_valid[p][i] = 1;
+                for (size_t i = 0; i < network.num_nodes(); ++i) {
+                    ann_network.fake_treeinfo->clv_valid[p][network.nodes[i].clv_index] = 1;
                 }
             }
         }
