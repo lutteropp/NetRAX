@@ -145,68 +145,6 @@ bool no_clv_indices_equal(pll_utree_t *utree) {
     return (clv_idx.size() == trav_size);
 }
 
-TEST_F (LikelihoodTest, DISABLED_displayedTreeOfNetworkToUtree) {
-    Network smallNetwork = netrax::readNetworkFromFile(networkPath);
-    pll_utree_t *utree = displayed_tree_to_utree(smallNetwork, 0);
-    EXPECT_NE(utree, nullptr);
-
-    pll_utree_t *utree2 = displayed_tree_to_utree(smallNetwork, 0);
-    EXPECT_NE(utree2, nullptr);
-
-    // compare tip labels
-    std::unordered_set<std::string> tip_labels_utree = collect_tip_labels_utree(utree);
-    EXPECT_EQ(tip_labels_utree.size(), smallNetwork.num_tips());
-    for (size_t i = 0; i < smallNetwork.num_tips(); ++i) {
-        EXPECT_TRUE(tip_labels_utree.find(smallNetwork.nodes[i].label) != tip_labels_utree.end());
-    }
-    // compare tip labels for second tree
-    std::unordered_set<std::string> tip_labels_utree2 = collect_tip_labels_utree(utree2);
-    EXPECT_EQ(tip_labels_utree2.size(), smallNetwork.num_tips());
-    for (size_t i = 0; i < smallNetwork.num_tips(); ++i) {
-        EXPECT_TRUE(tip_labels_utree2.find(smallNetwork.nodes[i].label) != tip_labels_utree2.end());
-    }
-
-    // check for all different clvs
-    EXPECT_TRUE(no_clv_indices_equal(utree));
-
-    // check for all different clvs for second tree
-    EXPECT_TRUE(no_clv_indices_equal(utree2));
-
-    // TODO: check the branch lengths!!!
-}
-
-TEST_F (LikelihoodTest, buildAnnotatedNetworkTest) {
-    NetraxOptions options;
-    options.network_file = treePath;
-    options.msa_file = msaPath;
-    options.use_repeats = true;
-    AnnotatedNetwork ann_network = build_annotated_network(options);
-    ASSERT_TRUE(true);
-}
-
-TEST_F (LikelihoodTest, simpleTreeNaiveVersusNormalRaxml) {
-    NetraxOptions options;
-    options.network_file = treePath;
-    options.msa_file = msaPath;
-    options.use_repeats = true;
-    AnnotatedNetwork ann_network = build_annotated_network(options);
-
-    Network& network = ann_network.network;
-    print_clv_index_by_label(network);
-
-    double naive_logl = computeLoglikelihoodNaiveUtree(ann_network, 0, 1);
-
-    pll_utree_t *raxml_utree = Tree::loadFromFile(treePath).pll_utree_copy();
-    std::unique_ptr<RaxmlWrapper> treeWrapper = std::make_unique<RaxmlWrapper>(NetraxOptions(treePath, msaPath, false));
-    TreeInfo* raxml_treeinfo = treeWrapper->createRaxmlTreeinfo(raxml_utree);
-    double raxml_logl = raxml_treeinfo->loglh(false);
-
-    delete raxml_treeinfo;
-
-    EXPECT_NE(raxml_logl, -std::numeric_limits<double>::infinity());
-    EXPECT_DOUBLE_EQ(raxml_logl, naive_logl);
-}
-
 void compare_clv(double *clv_raxml, double *clv_network, size_t clv_size) {
     for (size_t i = 0; i < clv_size; ++i) {
         EXPECT_EQ(clv_raxml[i], clv_network[i]);
@@ -312,8 +250,8 @@ void incrementalTest(const std::string &networkPath, const std::string &msaPath)
     options.network_file = networkPath;
     options.msa_file = msaPath;
     options.use_repeats = true;
-    options.use_blobs = true;
-    options.use_graycode = true;
+    options.use_blobs = false;
+    options.use_graycode = false;
     options.use_incremental_clvs = true;
     AnnotatedNetwork ann_network = build_annotated_network(options);
     Network &network = ann_network.network;
@@ -327,13 +265,19 @@ void incrementalTest(const std::string &networkPath, const std::string &msaPath)
     double first_repeat = computeLoglikelihood(ann_network, 0, 1, false);
     ASSERT_NE(first_repeat, -std::numeric_limits<double>::infinity());
 
-    double second_repeat = computeLoglikelihood(ann_network, 0, 1, false);
-    ASSERT_NE(second_repeat, -std::numeric_limits<double>::infinity());
-
     EXPECT_DOUBLE_EQ(first_repeat, initial_logl);
-    EXPECT_DOUBLE_EQ(second_repeat, initial_logl);
 }
 
+TEST_F (LikelihoodTest, smallNetworkIncremental) {
+    incrementalTest(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt");
+}
+
+
+/*
+
+TEST_F (LikelihoodTest, smallNetwork) {
+    compareLikelihoodFunctions(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
+}
 
 TEST_F (LikelihoodTest, smallTree) {
     compareLikelihoodFunctions(DATA_PATH + "tree.nw", DATA_PATH + "small_fake_alignment.txt", false);
@@ -341,14 +285,6 @@ TEST_F (LikelihoodTest, smallTree) {
 
 TEST_F (LikelihoodTest, smallTreeIncremental) {
     incrementalTest(DATA_PATH + "tree.nw", DATA_PATH + "small_fake_alignment.txt");
-}
-
-TEST_F (LikelihoodTest, smallNetwork) {
-    compareLikelihoodFunctions(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
-}
-
-TEST_F (LikelihoodTest, smallNetworkIncremental) {
-    incrementalTest(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt");
 }
 
 TEST_F (LikelihoodTest, tinyNetwork) {
@@ -418,3 +354,65 @@ TEST_F (LikelihoodTest, simpleTreeWithRepeats) {
     EXPECT_NE(network_logl, -std::numeric_limits<double>::infinity());
 }
 
+TEST_F (LikelihoodTest, DISABLED_displayedTreeOfNetworkToUtree) {
+    Network smallNetwork = netrax::readNetworkFromFile(networkPath);
+    pll_utree_t *utree = displayed_tree_to_utree(smallNetwork, 0);
+    EXPECT_NE(utree, nullptr);
+
+    pll_utree_t *utree2 = displayed_tree_to_utree(smallNetwork, 0);
+    EXPECT_NE(utree2, nullptr);
+
+    // compare tip labels
+    std::unordered_set<std::string> tip_labels_utree = collect_tip_labels_utree(utree);
+    EXPECT_EQ(tip_labels_utree.size(), smallNetwork.num_tips());
+    for (size_t i = 0; i < smallNetwork.num_tips(); ++i) {
+        EXPECT_TRUE(tip_labels_utree.find(smallNetwork.nodes[i].label) != tip_labels_utree.end());
+    }
+    // compare tip labels for second tree
+    std::unordered_set<std::string> tip_labels_utree2 = collect_tip_labels_utree(utree2);
+    EXPECT_EQ(tip_labels_utree2.size(), smallNetwork.num_tips());
+    for (size_t i = 0; i < smallNetwork.num_tips(); ++i) {
+        EXPECT_TRUE(tip_labels_utree2.find(smallNetwork.nodes[i].label) != tip_labels_utree2.end());
+    }
+
+    // check for all different clvs
+    EXPECT_TRUE(no_clv_indices_equal(utree));
+
+    // check for all different clvs for second tree
+    EXPECT_TRUE(no_clv_indices_equal(utree2));
+
+    // TODO: check the branch lengths!!!
+}
+
+TEST_F (LikelihoodTest, buildAnnotatedNetworkTest) {
+    NetraxOptions options;
+    options.network_file = treePath;
+    options.msa_file = msaPath;
+    options.use_repeats = true;
+    AnnotatedNetwork ann_network = build_annotated_network(options);
+    ASSERT_TRUE(true);
+}
+
+TEST_F (LikelihoodTest, simpleTreeNaiveVersusNormalRaxml) {
+    NetraxOptions options;
+    options.network_file = treePath;
+    options.msa_file = msaPath;
+    options.use_repeats = true;
+    AnnotatedNetwork ann_network = build_annotated_network(options);
+
+    Network& network = ann_network.network;
+    print_clv_index_by_label(network);
+
+    double naive_logl = computeLoglikelihoodNaiveUtree(ann_network, 0, 1);
+
+    pll_utree_t *raxml_utree = Tree::loadFromFile(treePath).pll_utree_copy();
+    std::unique_ptr<RaxmlWrapper> treeWrapper = std::make_unique<RaxmlWrapper>(NetraxOptions(treePath, msaPath, false));
+    TreeInfo* raxml_treeinfo = treeWrapper->createRaxmlTreeinfo(raxml_utree);
+    double raxml_logl = raxml_treeinfo->loglh(false);
+
+    delete raxml_treeinfo;
+
+    EXPECT_NE(raxml_logl, -std::numeric_limits<double>::infinity());
+    EXPECT_DOUBLE_EQ(raxml_logl, naive_logl);
+}
+*/
