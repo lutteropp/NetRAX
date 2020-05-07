@@ -53,7 +53,7 @@ bool hasNeighbor(Node* node1, Node* node2);
 
 Link* make_link(Node *node, Edge *edge, Direction dir);
 
-void invalidateHigherClvs(Network &network, pllmod_treeinfo_t *treeinfo, std::vector<bool> &visited, Node *node);
-void invalidateHigherCLVs(AnnotatedNetwork &ann_network, Node *node);
+void invalidateHigherClvs(Network &network, pllmod_treeinfo_t *treeinfo, std::vector<bool> &visited, Node *node, bool invalidate_myself = false);
+void invalidateHigherCLVs(AnnotatedNetwork &ann_network, Node *node, bool invalidate_myself = false);
 
 }

@@ -291,29 +291,32 @@ Link* make_link(Node *node, Edge *edge, Direction dir) {
     return node->addLink(link);
 }
 
-void invalidateHigherClvs(Network &network, pllmod_treeinfo_t *treeinfo, std::vector<bool> &visited, Node *node) {
+void invalidateHigherClvs(Network &network, pllmod_treeinfo_t *treeinfo, std::vector<bool> &visited, Node *node,
+        bool invalidate_myself) {
     if (visited[node->clv_index]) {
         return;
     }
-    for (size_t p = 0; p < treeinfo->partition_count; ++p) {
-        treeinfo->clv_valid[p][node->clv_index] = 0;
+    if (invalidate_myself) {
+        for (size_t p = 0; p < treeinfo->partition_count; ++p) {
+            treeinfo->clv_valid[p][node->clv_index] = 0;
+        }
     }
     visited[node->clv_index] = true;
     if (node->clv_index == network.root->clv_index) {
         return;
     }
     if (node->type == NodeType::RETICULATION_NODE) {
-        invalidateHigherClvs(network, treeinfo, visited, getReticulationFirstParent(network, node));
-        invalidateHigherClvs(network, treeinfo, visited, getReticulationSecondParent(network, node));
+        invalidateHigherClvs(network, treeinfo, visited, getReticulationFirstParent(network, node), true);
+        invalidateHigherClvs(network, treeinfo, visited, getReticulationSecondParent(network, node), true);
     } else {
-        invalidateHigherClvs(network, treeinfo, visited, getActiveParent(network, node));
+        invalidateHigherClvs(network, treeinfo, visited, getActiveParent(network, node), true);
     }
 }
 
-void invalidateHigherCLVs(AnnotatedNetwork &ann_network, Node *node) {
+void invalidateHigherCLVs(AnnotatedNetwork &ann_network, Node *node, bool invalidate_myself) {
     pllmod_treeinfo_t *treeinfo = ann_network.fake_treeinfo;
     std::vector<bool> visited(ann_network.network.nodes.size(), false);
-    invalidateHigherClvs(ann_network.network, treeinfo, visited, node);
+    invalidateHigherClvs(ann_network.network, treeinfo, visited, node, invalidate_myself);
 }
 
 }

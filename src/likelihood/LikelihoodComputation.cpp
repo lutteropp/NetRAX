@@ -845,8 +845,7 @@ double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int 
     if (update_reticulation_probs && reticulationProbsHaveChanged) {
         // invalidate clv entries
         for (size_t i = 0; i < network.num_reticulations(); ++i) {
-            invalidateHigherCLVs(ann_network, getReticulationFirstParent(network, network.reticulation_nodes[i]));
-            invalidateHigherCLVs(ann_network, getReticulationSecondParent(network, network.reticulation_nodes[i]));
+            invalidateHigherCLVs(ann_network, network.reticulation_nodes[i]);
         }
         return computeLoglikelihood(ann_network, incremental, false, false);
     } else {
