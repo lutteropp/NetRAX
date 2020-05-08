@@ -401,14 +401,14 @@ TEST_F (LikelihoodTest, simpleTreeNaiveVersusNormalRaxml) {
     options.use_repeats = true;
     AnnotatedNetwork ann_network = build_annotated_network(options);
 
-    Network& network = ann_network.network;
+    Network &network = ann_network.network;
     print_clv_index_by_label(network);
 
     double naive_logl = computeLoglikelihoodNaiveUtree(ann_network, 0, 1);
 
     pll_utree_t *raxml_utree = Tree::loadFromFile(treePath).pll_utree_copy();
     std::unique_ptr<RaxmlWrapper> treeWrapper = std::make_unique<RaxmlWrapper>(NetraxOptions(treePath, msaPath, false));
-    TreeInfo* raxml_treeinfo = treeWrapper->createRaxmlTreeinfo(raxml_utree);
+    TreeInfo *raxml_treeinfo = treeWrapper->createRaxmlTreeinfo(raxml_utree);
     double raxml_logl = raxml_treeinfo->loglh(false);
 
     delete raxml_treeinfo;
@@ -423,19 +423,15 @@ TEST_F (LikelihoodTest, convertUtreeToNetwork) {
     options.msa_file = msaPath;
     options.use_repeats = true;
     pll_utree_t *raxml_utree = Tree::loadFromFile(treePath).pll_utree_copy();
+
     AnnotatedNetwork ann_network = build_annotated_network_from_utree(options, raxml_utree);
-
-    Network& network = ann_network.network;
+    Network &network = ann_network.network;
     print_clv_index_by_label(network);
+    double naive_utree_logl = computeLoglikelihoodNaiveUtree(ann_network, 0, 1);
 
-    double naive_logl = computeLoglikelihoodNaiveUtree(ann_network, 0, 1);
+    AnnotatedNetwork ann_network_2 = build_annotated_network(options);
+    double naive_network_logl = computeLoglikelihoodNaiveUtree(ann_network_2, 0, 1);
 
-    std::unique_ptr<RaxmlWrapper> treeWrapper = std::make_unique<RaxmlWrapper>(NetraxOptions(treePath, msaPath, false));
-    TreeInfo* raxml_treeinfo = treeWrapper->createRaxmlTreeinfo(raxml_utree);
-    double raxml_logl = raxml_treeinfo->loglh(false);
-
-    delete raxml_treeinfo;
-
-    EXPECT_NE(raxml_logl, -std::numeric_limits<double>::infinity());
-    EXPECT_DOUBLE_EQ(raxml_logl, naive_logl);
+    EXPECT_NE(naive_utree_logl, -std::numeric_limits<double>::infinity());
+    EXPECT_DOUBLE_EQ(naive_network_logl, naive_utree_logl);
 }

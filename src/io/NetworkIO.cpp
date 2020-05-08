@@ -56,134 +56,6 @@ std::vector<RootedNetworkNode*> collectNodes(RootedNetwork &rnetwork) {
     return res;
 }
 
-void grab_utree_parents(std::vector<pll_unode_t*> &parent, pll_unode_t *unode) {
-    if (!unode || parent[unode->clv_index] == nullptr) {
-        return;
-    }
-    pll_unode_t *act_node = unode;
-    do {
-        if (parent[act_node->clv_index]->clv_index != act_node->back->clv_index) { // we have found a child
-            parent[act_node->back->clv_index] = act_node;
-            grab_utree_parents(parent, act_node);
-        }
-        act_node = unode->next;
-    } while (act_node && act_node != unode);
-}
-
-std::vector<pll_unode_t*> grab_utree_parents(pll_utree_t *utree) {
-    std::vector<pll_unode_t*> parent(utree->inner_count + utree->tip_count, nullptr);
-    grab_utree_parents(parent, utree->vroot);
-    return parent;
-}
-
-Network convertUtreeToNetwork(pll_utree_t *utree, unsigned int maxReticulations) {
-    Network network;
-    assert(utree);
-    std::vector<pll_unode_t*> parent = grab_utree_parents(utree);
-    network.branchCount = utree->edge_count;
-    network.nodeCount = utree->inner_count + utree->tip_count;
-    network.tipCount = utree->tip_count;
-    unsigned int maxNodeCount = network.nodeCount + maxReticulations * 2;
-    unsigned int maxBranchCount = network.branchCount + maxReticulations * 3;
-    network.nodes.resize(maxNodeCount);
-    network.edges.resize(maxBranchCount);
-    // initialize the access by clv_index and pmatrix_index
-    network.nodes_by_index.resize(maxNodeCount);
-    for (size_t i = 0; i < network.nodeCount; ++i) {
-        network.nodes_by_index[i] = &network.nodes[i];
-    }
-    network.edges_by_index.resize(maxBranchCount);
-    for (size_t i = 0; i < network.branchCount; ++i) {
-        network.edges_by_index[i] = &network.edges[i];
-    }
-    network.reticulation_nodes.resize(0);
-
-    std::vector<pll_unode_t*> tip_nodes;
-    std::vector<pll_unode_t*> inner_nodes;
-    for (size_t i = 0; i < network.nodeCount; ++i) {
-        if (utree->nodes[i]->next == nullptr) {
-            tip_nodes.emplace_back(utree->nodes[i]);
-        } else {
-            inner_nodes.emplace_back(utree->nodes[i]);
-        }
-    }
-
-    // 1.) Create all the nodes and edges. Also create all the incoming links.
-    for (pll_unode_t *unode : tip_nodes) {
-        size_t clv_index = unode->clv_index;
-        int scaler_index = -1;
-        assert(clv_index < network.num_nodes());
-        network.nodes[clv_index].initBasic(clv_index, scaler_index, unode->label);
-        size_t pmatrix_index = unode->pmatrix_index;
-        assert(pmatrix_index == clv_index);
-        assert(pmatrix_index < network.num_branches());
-        network.edges[pmatrix_index].init(pmatrix_index, nullptr, nullptr, unode->length);
-
-        Link *linkToParent = make_link(network.nodes_by_index[clv_index], network.edges_by_index[pmatrix_index],
-                Direction::INCOMING);
-        network.edges[pmatrix_index].link1 = linkToParent;
-    }
-
-    for (size_t i = 0; i < inner_nodes.size(); ++i) {
-        pll_unode_t *rnode = inner_nodes[i];
-        size_t clv_index = rnode->clv_index;
-        int scaler_index = rnode->scaler_index;
-
-        assert(clv_index < network.num_nodes());
-        network.nodes[clv_index].initBasic(clv_index, scaler_index, rnode->label);
-
-        if (rnode->clv_index != utree->vroot->clv_index) {
-            size_t pmatrix_index = rnode->pmatrix_index;
-            assert(pmatrix_index < network.num_branches());
-            network.edges[pmatrix_index].init(pmatrix_index, nullptr, nullptr, rnode->length);
-            Link *linkToParent = make_link(network.nodes_by_index[clv_index], network.edges_by_index[pmatrix_index],
-                    Direction::INCOMING);
-            network.edges[pmatrix_index].link1 = linkToParent;
-        }
-    }
-
-    // 2.) Create all the outgoing links
-    for (size_t i = 0; i < network.nodeCount; ++i) {
-        pll_unode_t *unode = utree->nodes[i];
-        if (unode->clv_index == utree->vroot->clv_index) {
-            continue;
-        }
-        size_t pmatrix_index = unode->pmatrix_index;
-        assert(pmatrix_index < network.num_branches());
-
-        Link *linkFromParent = make_link(network.nodes_by_index[parent[unode->clv_index]->clv_index],
-                network.edges_by_index[pmatrix_index], Direction::OUTGOING);
-        network.edges[pmatrix_index].link2 = linkFromParent;
-    }
-
-    // 3.) Create the outer links
-    for (size_t i = 0; i < network.nodeCount; ++i) {
-        pll_unode_t *unode = utree->nodes[i];
-        if (unode->clv_index == utree->vroot->clv_index) {
-            continue;
-        }
-
-        size_t pmatrix_index = unode->pmatrix_index;
-        Link *linkFromParent = network.edges[pmatrix_index].link2;
-
-        Link *linkToParent = getLinkToClvIndex(network, network.nodes_by_index[unode->clv_index],
-                parent[unode->clv_index]->clv_index);
-        linkFromParent->outer = linkToParent;
-        linkToParent->outer = linkFromParent;
-    }
-
-    // change links from edges such that link1 is the outgoing link and link2 is the incoming link
-    for (size_t i = 0; i < network.num_branches(); ++i) {
-        if (network.edges_by_index[i]->link1->direction == Direction::INCOMING) {
-            std::swap(network.edges_by_index[i]->link1, network.edges_by_index[i]->link2);
-        }
-    }
-
-    network.root = network.nodes_by_index[utree->vroot->clv_index];
-
-    return network;
-}
-
 Network convertNetworkToplevelTrifurcation(RootedNetwork &rnetwork, size_t node_count, size_t branch_count,
         int maxReticulations) {
     Network network;
@@ -508,6 +380,11 @@ std::string printNodeNewick(Network &network, Node *node, Node *parent,
 std::string toExtendedNewick(Network &network) {
     std::unordered_set<Node*> visited_reticulations;
     return printNodeNewick(network, network.root, nullptr, visited_reticulations) + ";";
+}
+
+Network convertUtreeToNetwork(pll_utree_t *utree, unsigned int maxReticulations) {
+    std::string newick(pll_utree_export_newick(utree->vroot, nullptr));
+    return readNetworkFromString(newick, maxReticulations);
 }
 
 }
