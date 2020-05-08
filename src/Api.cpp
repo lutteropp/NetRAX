@@ -25,18 +25,15 @@
 
 namespace netrax {
 
-AnnotatedNetwork build_annotated_network(const NetraxOptions &options) {
-    AnnotatedNetwork ann_network;
-    ann_network.network = netrax::readNetworkFromFile(options.network_file, options.max_reticulations);
+void init_annotated_network(AnnotatedNetwork &ann_network) {
     Network &network = ann_network.network;
-    ann_network.options = options;
 
-    netrax::RaxmlWrapper wrapper(options);
+    netrax::RaxmlWrapper wrapper(ann_network.options);
     ann_network.raxml_treeinfo = std::unique_ptr<TreeInfo>(wrapper.createRaxmlTreeinfo(ann_network));
     ann_network.blobInfo = netrax::partitionNetworkIntoBlobs(ann_network.network);
 
     // init branch probs...
-    if (options.brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED) { // common branches
+    if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED) { // common branches
         ann_network.branch_probs = std::vector<std::vector<double> >(1,
                 std::vector<double>(ann_network.network.edges.size() + 1, 1.0));
     } else { // each partition has extra branch properties
@@ -54,6 +51,22 @@ AnnotatedNetwork build_annotated_network(const NetraxOptions &options) {
             ann_network.branch_probs[p][secondParentEdgeIndex] = secondParentProb;
         }
     }
+}
+
+AnnotatedNetwork build_annotated_network(const NetraxOptions &options) {
+    AnnotatedNetwork ann_network;
+    ann_network.options = options;
+    ann_network.network = netrax::readNetworkFromFile(options.network_file, options.max_reticulations);
+    init_annotated_network(ann_network);
+    return ann_network;
+}
+
+AnnotatedNetwork build_annotated_network_from_utree(const NetraxOptions &options, pll_utree_t *utree) {
+    AnnotatedNetwork ann_network;
+    ann_network.options = options;
+    ann_network.network = netrax::convertUtreeToNetwork(utree, options.max_reticulations);
+    pll_utree_destroy(utree, nullptr);
+    init_annotated_network(ann_network);
     return ann_network;
 }
 
