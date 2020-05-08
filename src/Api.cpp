@@ -89,16 +89,16 @@ void add_extra_reticulations(AnnotatedNetwork &ann_network, unsigned int targetC
 
 AnnotatedNetwork build_random_annotated_network(const NetraxOptions &options, unsigned int start_reticulations) {
     RaxmlWrapper wrapper(options);
-    const pll_utree_t &utree = wrapper.generateRandomTree().pll_utree();
-    AnnotatedNetwork ann_network = build_annotated_network_from_utree(options, utree);
+    Tree tree = wrapper.generateRandomTree();
+    AnnotatedNetwork ann_network = build_annotated_network_from_utree(options, tree.pll_utree());
     add_extra_reticulations(ann_network, start_reticulations);
     return ann_network;
 }
 
 AnnotatedNetwork build_parsimony_annotated_network(const NetraxOptions &options, unsigned int start_reticulations) {
     RaxmlWrapper wrapper(options);
-    const pll_utree_t &utree = wrapper.generateParsimonyTree().pll_utree();
-    AnnotatedNetwork ann_network = build_annotated_network_from_utree(options, utree);
+    Tree tree = wrapper.generateParsimonyTree();
+    AnnotatedNetwork ann_network = build_annotated_network_from_utree(options, tree.pll_utree());
     add_extra_reticulations(ann_network, start_reticulations);
     return ann_network;
 }
