@@ -417,3 +417,25 @@ TEST_F (LikelihoodTest, simpleTreeNaiveVersusNormalRaxml) {
     EXPECT_DOUBLE_EQ(raxml_logl, naive_logl);
 }
 
+TEST_F (LikelihoodTest, convertUtreeToNetwork) {
+    NetraxOptions options;
+    options.network_file = treePath;
+    options.msa_file = msaPath;
+    options.use_repeats = true;
+    pll_utree_t *raxml_utree = Tree::loadFromFile(treePath).pll_utree_copy();
+    AnnotatedNetwork ann_network = build_annotated_network_from_utree(options, raxml_utree);
+
+    Network& network = ann_network.network;
+    print_clv_index_by_label(network);
+
+    double naive_logl = computeLoglikelihoodNaiveUtree(ann_network, 0, 1);
+
+    std::unique_ptr<RaxmlWrapper> treeWrapper = std::make_unique<RaxmlWrapper>(NetraxOptions(treePath, msaPath, false));
+    TreeInfo* raxml_treeinfo = treeWrapper->createRaxmlTreeinfo(raxml_utree);
+    double raxml_logl = raxml_treeinfo->loglh(false);
+
+    delete raxml_treeinfo;
+
+    EXPECT_NE(raxml_logl, -std::numeric_limits<double>::infinity());
+    EXPECT_DOUBLE_EQ(raxml_logl, naive_logl);
+}
