@@ -175,7 +175,7 @@ TEST (SystemTest, randomNetwork) {
     std::cout << "Loglikelihood after model optimization again: " << modelopt2_logl << "\n";
 }
 
-TEST (SystemTest, problem1) {
+TEST (SystemTest, problemFillSkippedNodesRecursive) {
     // initial setup
     std::string smallPath = DATA_PATH + "small.nw";
     std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
@@ -186,7 +186,7 @@ TEST (SystemTest, problem1) {
     RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
     unsigned int n_reticulations = 2;
     AnnotatedNetwork ann_network = build_annotated_network_from_string(smallOptions,
-            "((C:0.05,((B:0.025,((A:0.1,D:0.1):0.05)#:1::0.5):0.025)#:1::0.5):0.05,#:0.05::0.5,#:0.05::0.5);");
+            "((C:0.05)#0:0.05::0.5,((B:0.05,#0:1::0.5):0.025)#1:0.025::0.5,(A:0.1,(D:0.05,#1:1::0.5):0.05):0.1);");
     assert(ann_network.network.num_reticulations() == n_reticulations);
     std::cout << exportDebugInfo(ann_network.network) << "\n";
     std::cout << toExtendedNewick(ann_network.network) << "\n";
@@ -209,7 +209,7 @@ TEST (SystemTest, problem1) {
     std::cout << "Loglikelihood after model optimization again: " << modelopt2_logl << "\n";
 }
 
-TEST (SystemTest, problem2) {
+TEST (SystemTest, problemConnectSubtreeRecursive) {
     // initial setup
     std::string smallPath = DATA_PATH + "small.nw";
     std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
@@ -220,7 +220,7 @@ TEST (SystemTest, problem2) {
     RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
     unsigned int n_reticulations = 2;
     AnnotatedNetwork ann_network = build_annotated_network_from_string(smallOptions,
-            "((C:0.05,(B:0.025)#:1::0.5):0.05,(#:0.025::0.5,(D:0.05)#:1::0.5):0.05,(A:0.1,#:0.05::0.5):0.1);");
+            "((C:0.1,((D:0.05,((A:0.025)#1:0.025::0.5)#0:1::0.5):0.025,#1:1::0.5):0.025):0.1,B:0.1,#0:0.05::0.5);");
     assert(ann_network.network.num_reticulations() == n_reticulations);
     std::cout << exportDebugInfo(ann_network.network) << "\n";
     std::cout << toExtendedNewick(ann_network.network) << "\n";
@@ -277,7 +277,7 @@ TEST (SystemTest, problem3) {
     std::cout << "Loglikelihood after model optimization again: " << modelopt2_logl << "\n";
 }
 
-TEST (SystemTest, problem4) {
+TEST (SystemTest, problemCreateOperationsUpdatedReticulation) {
     // initial setup
     std::string smallPath = DATA_PATH + "small.nw";
     std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
@@ -288,7 +288,7 @@ TEST (SystemTest, problem4) {
     RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
     unsigned int n_reticulations = 2;
     AnnotatedNetwork ann_network = build_annotated_network_from_string(smallOptions,
-            "((C:0.1,D:0.1):0.1,((B:0.025)#:0.025::0.5,((A:0.025,#:1::0.5):0.025)#:1::0.5):0.05,#:0.05::0.5);");
+            "(((C:0.05)#0:0.025::0.5,((B:0.1,(D:0.05,#0:1::0.5):0.05):0.05)#1:1::0.5):0.025,#1:0.05::0.5,A:0.1);");
     assert(ann_network.network.num_reticulations() == n_reticulations);
     std::cout << exportDebugInfo(ann_network.network) << "\n";
     std::cout << toExtendedNewick(ann_network.network) << "\n";
@@ -311,7 +311,7 @@ TEST (SystemTest, problem4) {
     std::cout << "Loglikelihood after model optimization again: " << modelopt2_logl << "\n";
 }
 
-TEST (SystemTest, problem5) {
+TEST (SystemTest, problemPllUpdatePartials) {
     // initial setup
     std::string smallPath = DATA_PATH + "small.nw";
     std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
@@ -322,7 +322,7 @@ TEST (SystemTest, problem5) {
     RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
     unsigned int n_reticulations = 2;
     AnnotatedNetwork ann_network = build_annotated_network_from_string(smallOptions,
-            "(C:0.1,(((B:0.1,(D:0.05)#:0.05::0.5):0.05,#:1::0.5):0.025,(A:0.05)#:1::0.5):0.025,#:0.05::0.5);");
+            "(((C:0.05)#0:0.025::0.5)#1:0.025::0.5,(B:0.1,D:0.1):0.1,(A:0.05,(#0:0.5::0.5,#1:1::0.5):0.5):0.05);");
     assert(ann_network.network.num_reticulations() == n_reticulations);
     std::cout << exportDebugInfo(ann_network.network) << "\n";
     std::cout << toExtendedNewick(ann_network.network) << "\n";
