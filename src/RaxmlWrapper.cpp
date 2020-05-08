@@ -593,4 +593,8 @@ void RaxmlWrapper::enableRaxmlDebugOutput() {
     logger().add_log_stream(&cout);
 }
 
+RaxmlInstance& RaxmlWrapper::getRaxmlInstance() {
+    return instance;
+}
+
 }

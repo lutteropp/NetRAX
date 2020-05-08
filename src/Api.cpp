@@ -11,8 +11,10 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <random>
 
 #include <raxml-ng/TreeInfo.hpp>
+#include <raxml-ng/main.hpp>
 #include "graph/AnnotatedNetwork.hpp"
 #include "graph/BiconnectedComponents.hpp"
 #include "graph/Network.hpp"
@@ -22,6 +24,7 @@
 #include "likelihood/LikelihoodComputation.hpp"
 #include "NetraxOptions.hpp"
 #include "RaxmlWrapper.hpp"
+#include "graph/Moves.hpp"
 
 namespace netrax {
 
@@ -61,13 +64,48 @@ AnnotatedNetwork build_annotated_network(const NetraxOptions &options) {
     return ann_network;
 }
 
-AnnotatedNetwork build_annotated_network_from_utree(const NetraxOptions &options, pll_utree_t *utree) {
+AnnotatedNetwork build_annotated_network_from_utree(const NetraxOptions &options, const pll_utree_t &utree) {
     AnnotatedNetwork ann_network;
     ann_network.options = options;
     ann_network.network = netrax::convertUtreeToNetwork(utree, options.max_reticulations);
-    pll_utree_destroy(utree, nullptr);
     init_annotated_network(ann_network);
     return ann_network;
+}
+
+void add_extra_reticulations(AnnotatedNetwork &ann_network, unsigned int targetCount) {
+    Network &network = ann_network.network;
+    std::random_device dev;
+    std::mt19937 rng(dev());
+
+    // TODO: This can be implemented more eficiently than by always re-gathering all candidates
+    while (targetCount > network.num_reticulations()) {
+        std::vector<ArcInsertionMove> candidates = possibleArcInsertionMoves(ann_network);
+        assert(!candidates.empty());
+        std::uniform_int_distribution<std::mt19937::result_type> dist(0, candidates.size() - 1);
+        ArcInsertionMove move = candidates[dist(rng)];
+        performMove(ann_network, move);
+    }
+}
+
+AnnotatedNetwork build_random_annotated_network(const NetraxOptions &options, unsigned int start_reticulations) {
+    RaxmlInstance &raxmlInstance = RaxmlWrapper(options).getRaxmlInstance();
+    const pll_utree_t &utree = generate_tree(raxmlInstance, StartingTree::random).pll_utree();
+    AnnotatedNetwork ann_network = build_annotated_network_from_utree(options, utree);
+    add_extra_reticulations(ann_network, start_reticulations);
+    return ann_network;
+}
+
+AnnotatedNetwork build_parsimony_annotated_network(const NetraxOptions &options, unsigned int start_reticulations) {
+    RaxmlInstance &raxmlInstance = RaxmlWrapper(options).getRaxmlInstance();
+    const pll_utree_t &utree = generate_tree(raxmlInstance, StartingTree::parsimony).pll_utree();
+    AnnotatedNetwork ann_network = build_annotated_network_from_utree(options, utree);
+    add_extra_reticulations(ann_network, start_reticulations);
+    return ann_network;
+}
+
+AnnotatedNetwork build_best_raxml_annotated_network(const NetraxOptions &options,
+        unsigned int start_reticulations) {
+    throw std::runtime_error("Not implemented yet");
 }
 
 double computeLoglikelihood(AnnotatedNetwork &ann_network) {

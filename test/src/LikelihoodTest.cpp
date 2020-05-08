@@ -424,7 +424,7 @@ TEST_F (LikelihoodTest, convertUtreeToNetwork) {
     options.use_repeats = true;
     pll_utree_t *raxml_utree = Tree::loadFromFile(treePath).pll_utree_copy();
 
-    AnnotatedNetwork ann_network = build_annotated_network_from_utree(options, raxml_utree);
+    AnnotatedNetwork ann_network = build_annotated_network_from_utree(options, *raxml_utree);
     Network &network = ann_network.network;
     print_clv_index_by_label(network);
     double naive_utree_logl = computeLoglikelihoodNaiveUtree(ann_network, 0, 1);

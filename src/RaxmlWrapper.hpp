@@ -59,6 +59,8 @@ public:
 
     size_t num_partitions() const;
 
+    RaxmlInstance& getRaxmlInstance();
+
 private:
     RaxmlInstance instance;
     TreeInfo::tinfo_behaviour network_behaviour;

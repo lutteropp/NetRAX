@@ -382,8 +382,8 @@ std::string toExtendedNewick(Network &network) {
     return printNodeNewick(network, network.root, nullptr, visited_reticulations) + ";";
 }
 
-Network convertUtreeToNetwork(pll_utree_t *utree, unsigned int maxReticulations) {
-    std::string newick(pll_utree_export_newick(utree->vroot, nullptr));
+Network convertUtreeToNetwork(const pll_utree_t &utree, unsigned int maxReticulations) {
+    std::string newick(pll_utree_export_newick(utree.vroot, nullptr));
     return readNetworkFromString(newick, maxReticulations);
 }
 
