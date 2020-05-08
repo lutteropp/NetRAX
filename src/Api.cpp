@@ -64,6 +64,14 @@ AnnotatedNetwork build_annotated_network(const NetraxOptions &options) {
     return ann_network;
 }
 
+AnnotatedNetwork build_annotated_network_from_string(const NetraxOptions &options, const std::string& newickString) {
+    AnnotatedNetwork ann_network;
+    ann_network.options = options;
+    ann_network.network = netrax::readNetworkFromString(newickString, options.max_reticulations);
+    init_annotated_network(ann_network);
+    return ann_network;
+}
+
 AnnotatedNetwork build_annotated_network_from_utree(const NetraxOptions &options, const pll_utree_t &utree) {
     AnnotatedNetwork ann_network;
     ann_network.options = options;

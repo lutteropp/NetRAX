@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
     //::testing::GTEST_FLAG(filter) = "*LikelihoodTest.smallNetworkWithRepeats";
     //::testing::GTEST_FLAG(filter) = "*LikelihoodTest.celineNetworkIncremental";
     //::testing::GTEST_FLAG(filter) = "*MovesTest.arc*";
-    ::testing::GTEST_FLAG(filter) = "*SystemTest.randomNetwork*";
+    ::testing::GTEST_FLAG(filter) = "*SystemTest.problem*";
 
     auto result = RUN_ALL_TESTS();
 //  MPI_FINALIZE();

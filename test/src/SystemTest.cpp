@@ -41,7 +41,7 @@ TEST (SystemTest, allTreeOldRaxml) {
     treeOptions.use_repeats = true;
     RaxmlWrapper treeWrapper = RaxmlWrapper(treeOptions);
     //treeWrapper.enableRaxmlDebugOutput();
-    TreeInfo* info = treeWrapper.createRaxmlTreeinfo(normalTree.pll_utree_copy());
+    TreeInfo *info = treeWrapper.createRaxmlTreeinfo(normalTree.pll_utree_copy());
 
     // initial logl computation
     double initial_logl = info->loglh(false);
@@ -82,7 +82,7 @@ TEST (SystemTest, allTree) {
     treeOptions.use_repeats = true;
 
     AnnotatedNetwork ann_network = build_annotated_network(treeOptions);
-    pllmod_treeinfo_t* treeinfo = ann_network.fake_treeinfo;
+    pllmod_treeinfo_t *treeinfo = ann_network.fake_treeinfo;
 
     // initial logl computation
     double initial_logl = computeLoglikelihood(ann_network);
@@ -151,8 +151,11 @@ TEST (SystemTest, randomNetwork) {
     smallOptions.msa_file = msaPath;
     smallOptions.use_repeats = true;
     RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
-    AnnotatedNetwork ann_network = build_random_annotated_network(smallOptions, 5);
-    assert(ann_network.network.num_reticulations() == 5);
+    unsigned int n_reticulations = 2;
+    AnnotatedNetwork ann_network = build_random_annotated_network(smallOptions, n_reticulations);
+    assert(ann_network.network.num_reticulations() == n_reticulations);
+    std::cout << exportDebugInfo(ann_network.network) << "\n";
+    std::cout << toExtendedNewick(ann_network.network) << "\n";
 
     // initial logl computation
     double initial_logl = computeLoglikelihood(ann_network);
@@ -171,3 +174,174 @@ TEST (SystemTest, randomNetwork) {
     double modelopt2_logl = optimizeModel(ann_network);
     std::cout << "Loglikelihood after model optimization again: " << modelopt2_logl << "\n";
 }
+
+TEST (SystemTest, problem1) {
+    // initial setup
+    std::string smallPath = DATA_PATH + "small.nw";
+    std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
+    NetraxOptions smallOptions;
+    smallOptions.network_file = smallPath;
+    smallOptions.msa_file = msaPath;
+    smallOptions.use_repeats = true;
+    RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
+    unsigned int n_reticulations = 2;
+    AnnotatedNetwork ann_network = build_annotated_network_from_string(smallOptions,
+            "((C:0.05,((B:0.025,((A:0.1,D:0.1):0.05)#:1::0.5):0.025)#:1::0.5):0.05,#:0.05::0.5,#:0.05::0.5);");
+    assert(ann_network.network.num_reticulations() == n_reticulations);
+    std::cout << exportDebugInfo(ann_network.network) << "\n";
+    std::cout << toExtendedNewick(ann_network.network) << "\n";
+
+    // initial logl computation
+    double initial_logl = computeLoglikelihood(ann_network);
+    std::cout << "Initial loglikelihood: " << initial_logl << "\n";
+
+    // model parameter optimization
+    double modelopt_logl = optimizeModel(ann_network);
+    std::cout << "Loglikelihood after model optimization: " << modelopt_logl << "\n";
+
+    // branch length optimization
+    // TODO: Why does this give us a positive number???
+    double brlenopt_logl = optimizeBranches(ann_network);
+    std::cout << "Loglikelihood after branch length optimization: " << brlenopt_logl << "\n";
+
+    // model parameter optimization
+    double modelopt2_logl = optimizeModel(ann_network);
+    std::cout << "Loglikelihood after model optimization again: " << modelopt2_logl << "\n";
+}
+
+TEST (SystemTest, problem2) {
+    // initial setup
+    std::string smallPath = DATA_PATH + "small.nw";
+    std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
+    NetraxOptions smallOptions;
+    smallOptions.network_file = smallPath;
+    smallOptions.msa_file = msaPath;
+    smallOptions.use_repeats = true;
+    RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
+    unsigned int n_reticulations = 2;
+    AnnotatedNetwork ann_network = build_annotated_network_from_string(smallOptions,
+            "((C:0.05,(B:0.025)#:1::0.5):0.05,(#:0.025::0.5,(D:0.05)#:1::0.5):0.05,(A:0.1,#:0.05::0.5):0.1);");
+    assert(ann_network.network.num_reticulations() == n_reticulations);
+    std::cout << exportDebugInfo(ann_network.network) << "\n";
+    std::cout << toExtendedNewick(ann_network.network) << "\n";
+
+    // initial logl computation
+    double initial_logl = computeLoglikelihood(ann_network);
+    std::cout << "Initial loglikelihood: " << initial_logl << "\n";
+
+    // model parameter optimization
+    double modelopt_logl = optimizeModel(ann_network);
+    std::cout << "Loglikelihood after model optimization: " << modelopt_logl << "\n";
+
+    // branch length optimization
+    // TODO: Why does this give us a positive number???
+    double brlenopt_logl = optimizeBranches(ann_network);
+    std::cout << "Loglikelihood after branch length optimization: " << brlenopt_logl << "\n";
+
+    // model parameter optimization
+    double modelopt2_logl = optimizeModel(ann_network);
+    std::cout << "Loglikelihood after model optimization again: " << modelopt2_logl << "\n";
+}
+
+TEST (SystemTest, problem3) {
+    // initial setup
+    std::string smallPath = DATA_PATH + "small.nw";
+    std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
+    NetraxOptions smallOptions;
+    smallOptions.network_file = smallPath;
+    smallOptions.msa_file = msaPath;
+    smallOptions.use_repeats = true;
+    RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
+    unsigned int n_reticulations = 2;
+    AnnotatedNetwork ann_network = build_annotated_network_from_string(smallOptions,
+            "(((((C:0.025)#:0.025::0.5)#:0.025::0.5,#:1::0.5):0.025,(D:0.05,#:1::0.5):0.05):0.1,B:0.1,A:0.1);");
+    assert(ann_network.network.num_reticulations() == n_reticulations);
+    std::cout << exportDebugInfo(ann_network.network) << "\n";
+    std::cout << toExtendedNewick(ann_network.network) << "\n";
+
+    // initial logl computation
+    double initial_logl = computeLoglikelihood(ann_network);
+    std::cout << "Initial loglikelihood: " << initial_logl << "\n";
+
+    // model parameter optimization
+    double modelopt_logl = optimizeModel(ann_network);
+    std::cout << "Loglikelihood after model optimization: " << modelopt_logl << "\n";
+
+    // branch length optimization
+    // TODO: Why does this give us a positive number???
+    double brlenopt_logl = optimizeBranches(ann_network);
+    std::cout << "Loglikelihood after branch length optimization: " << brlenopt_logl << "\n";
+
+    // model parameter optimization
+    double modelopt2_logl = optimizeModel(ann_network);
+    std::cout << "Loglikelihood after model optimization again: " << modelopt2_logl << "\n";
+}
+
+TEST (SystemTest, problem4) {
+    // initial setup
+    std::string smallPath = DATA_PATH + "small.nw";
+    std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
+    NetraxOptions smallOptions;
+    smallOptions.network_file = smallPath;
+    smallOptions.msa_file = msaPath;
+    smallOptions.use_repeats = true;
+    RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
+    unsigned int n_reticulations = 2;
+    AnnotatedNetwork ann_network = build_annotated_network_from_string(smallOptions,
+            "((C:0.1,D:0.1):0.1,((B:0.025)#:0.025::0.5,((A:0.025,#:1::0.5):0.025)#:1::0.5):0.05,#:0.05::0.5);");
+    assert(ann_network.network.num_reticulations() == n_reticulations);
+    std::cout << exportDebugInfo(ann_network.network) << "\n";
+    std::cout << toExtendedNewick(ann_network.network) << "\n";
+
+    // initial logl computation
+    double initial_logl = computeLoglikelihood(ann_network);
+    std::cout << "Initial loglikelihood: " << initial_logl << "\n";
+
+    // model parameter optimization
+    double modelopt_logl = optimizeModel(ann_network);
+    std::cout << "Loglikelihood after model optimization: " << modelopt_logl << "\n";
+
+    // branch length optimization
+    // TODO: Why does this give us a positive number???
+    double brlenopt_logl = optimizeBranches(ann_network);
+    std::cout << "Loglikelihood after branch length optimization: " << brlenopt_logl << "\n";
+
+    // model parameter optimization
+    double modelopt2_logl = optimizeModel(ann_network);
+    std::cout << "Loglikelihood after model optimization again: " << modelopt2_logl << "\n";
+}
+
+TEST (SystemTest, problem5) {
+    // initial setup
+    std::string smallPath = DATA_PATH + "small.nw";
+    std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
+    NetraxOptions smallOptions;
+    smallOptions.network_file = smallPath;
+    smallOptions.msa_file = msaPath;
+    smallOptions.use_repeats = true;
+    RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
+    unsigned int n_reticulations = 2;
+    AnnotatedNetwork ann_network = build_annotated_network_from_string(smallOptions,
+            "(C:0.1,(((B:0.1,(D:0.05)#:0.05::0.5):0.05,#:1::0.5):0.025,(A:0.05)#:1::0.5):0.025,#:0.05::0.5);");
+    assert(ann_network.network.num_reticulations() == n_reticulations);
+    std::cout << exportDebugInfo(ann_network.network) << "\n";
+    std::cout << toExtendedNewick(ann_network.network) << "\n";
+
+    // initial logl computation
+    double initial_logl = computeLoglikelihood(ann_network);
+    std::cout << "Initial loglikelihood: " << initial_logl << "\n";
+
+    // model parameter optimization
+    double modelopt_logl = optimizeModel(ann_network);
+    std::cout << "Loglikelihood after model optimization: " << modelopt_logl << "\n";
+
+    // branch length optimization
+    // TODO: Why does this give us a positive number???
+    double brlenopt_logl = optimizeBranches(ann_network);
+    std::cout << "Loglikelihood after branch length optimization: " << brlenopt_logl << "\n";
+
+    // model parameter optimization
+    double modelopt2_logl = optimizeModel(ann_network);
+    std::cout << "Loglikelihood after model optimization again: " << modelopt2_logl << "\n";
+}
+
