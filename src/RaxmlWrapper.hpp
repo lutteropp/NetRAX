@@ -59,7 +59,8 @@ public:
 
     size_t num_partitions() const;
 
-    RaxmlInstance& getRaxmlInstance();
+    Tree generateRandomTree() const;
+    Tree generateParsimonyTree() const;
 
 private:
     RaxmlInstance instance;

@@ -23,7 +23,7 @@
 
 using namespace netrax;
 
-const std::string DATA_PATH = "../../examples/sample_networks/";
+const std::string DATA_PATH = "examples/sample_networks/";
 
 TEST (SystemTest, testTheTest) {
     ASSERT_TRUE(true);
@@ -32,7 +32,7 @@ TEST (SystemTest, testTheTest) {
 TEST (SystemTest, allTreeOldRaxml) {
     // initial setup
     std::string treePath = DATA_PATH + "tree.nw";
-    std::string msaPath = DATA_PATH + "small_fake_alignment.nw";
+    std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
 
     Tree normalTree = Tree::loadFromFile(treePath);
     NetraxOptions treeOptions;
@@ -75,7 +75,7 @@ TEST (SystemTest, allTreeOldRaxml) {
 TEST (SystemTest, allTree) {
     // initial setup
     std::string treePath = DATA_PATH + "tree.nw";
-    std::string msaPath = DATA_PATH + "small_fake_alignment.nw";
+    std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
     NetraxOptions treeOptions;
     treeOptions.network_file = treePath;
     treeOptions.msa_file = msaPath;
@@ -116,13 +116,43 @@ TEST (SystemTest, allTree) {
 TEST (SystemTest, allNetwork) {
     // initial setup
     std::string smallPath = DATA_PATH + "small.nw";
-    std::string msaPath = DATA_PATH + "small_fake_alignment.nw";
+    std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
     NetraxOptions smallOptions;
     smallOptions.network_file = smallPath;
     smallOptions.msa_file = msaPath;
     smallOptions.use_repeats = true;
     RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
     AnnotatedNetwork ann_network = build_annotated_network(smallOptions);
+
+    // initial logl computation
+    double initial_logl = computeLoglikelihood(ann_network);
+    std::cout << "Initial loglikelihood: " << initial_logl << "\n";
+
+    // model parameter optimization
+    double modelopt_logl = optimizeModel(ann_network);
+    std::cout << "Loglikelihood after model optimization: " << modelopt_logl << "\n";
+
+    // branch length optimization
+    // TODO: Why does this give us a positive number???
+    double brlenopt_logl = optimizeBranches(ann_network);
+    std::cout << "Loglikelihood after branch length optimization: " << brlenopt_logl << "\n";
+
+    // model parameter optimization
+    double modelopt2_logl = optimizeModel(ann_network);
+    std::cout << "Loglikelihood after model optimization again: " << modelopt2_logl << "\n";
+}
+
+TEST (SystemTest, randomNetwork) {
+    // initial setup
+    std::string smallPath = DATA_PATH + "small.nw";
+    std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
+    NetraxOptions smallOptions;
+    smallOptions.network_file = smallPath;
+    smallOptions.msa_file = msaPath;
+    smallOptions.use_repeats = true;
+    RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
+    AnnotatedNetwork ann_network = build_random_annotated_network(smallOptions, 5);
+    assert(ann_network.network.num_reticulations() == 5);
 
     // initial logl computation
     double initial_logl = computeLoglikelihood(ann_network);
