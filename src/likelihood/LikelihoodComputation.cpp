@@ -45,8 +45,7 @@ std::vector<bool> fill_dead_pmatrix_indices(Network &network) {
 }
 
 pll_operation_t buildOperationInternal(Network &network, Node *parent, Node *child1, Node *child2,
-        size_t fake_clv_index, size_t fake_pmatrix_index) {
-    std::vector<bool> bad_pmatrix_indices = fill_dead_pmatrix_indices(network);
+        size_t fake_clv_index, size_t fake_pmatrix_index, const std::vector<bool> &bad_pmatrix_indices) {
     pll_operation_t operation;
     assert(parent);
     assert(child1 || child2);
@@ -80,7 +79,7 @@ pll_operation_t buildOperationInternal(Network &network, Node *parent, Node *chi
 }
 
 pll_operation_t buildOperation(Network &network, Node *actNode, Node *actParent, const std::vector<bool> &dead_nodes,
-        size_t fake_clv_index, size_t fake_pmatrix_index) {
+        size_t fake_clv_index, size_t fake_pmatrix_index, const std::vector<bool> &bad_pmatrix_indices) {
     std::vector<Node*> activeChildren = getActiveChildrenIgnoreDirections(network, actNode, actParent);
     assert(activeChildren.size() > 0);
     Node *child1 = nullptr;
@@ -91,12 +90,14 @@ pll_operation_t buildOperation(Network &network, Node *actNode, Node *actParent,
     if (activeChildren.size() == 2 && !dead_nodes[activeChildren[1]->clv_index]) {
         child2 = activeChildren[1];
     }
-    return buildOperationInternal(network, actNode, child1, child2, fake_clv_index, fake_pmatrix_index);
+    return buildOperationInternal(network, actNode, child1, child2, fake_clv_index, fake_pmatrix_index,
+            bad_pmatrix_indices);
 }
 
 void createOperationsPostorder(AnnotatedNetwork &ann_network, bool incremental, size_t partition_idx, Node *actNode,
         Node *parent, std::vector<pll_operation_t> &ops, size_t fake_clv_index, size_t fake_pmatrix_index,
-        const std::vector<bool> &dead_nodes, const std::vector<unsigned int> *stop_indices = nullptr) {
+        const std::vector<bool> &dead_nodes, const std::vector<bool> &bad_pmatrix_indices,
+        const std::vector<unsigned int> *stop_indices = nullptr) {
     if (stop_indices
             && std::find(stop_indices->begin(), stop_indices->end(), actNode->clv_index) != stop_indices->end()) {
         return;
@@ -115,12 +116,12 @@ void createOperationsPostorder(AnnotatedNetwork &ann_network, bool incremental, 
     for (size_t i = 0; i < activeChildren.size(); ++i) {
         if (!dead_nodes[activeChildren[i]->clv_index]) {
             createOperationsPostorder(ann_network, incremental, partition_idx, activeChildren[i], actNode, ops,
-                    fake_clv_index, fake_pmatrix_index, dead_nodes, stop_indices);
+                    fake_clv_index, fake_pmatrix_index, dead_nodes, bad_pmatrix_indices, stop_indices);
         }
     }
 
-    pll_operation_t operation = buildOperation(network, actNode, parent, dead_nodes, fake_clv_index,
-            fake_pmatrix_index);
+    pll_operation_t operation = buildOperation(network, actNode, parent, dead_nodes, fake_clv_index, fake_pmatrix_index,
+            bad_pmatrix_indices);
     ops.push_back(operation);
 }
 
@@ -136,7 +137,7 @@ void printOperationArray(const std::vector<pll_operation_t> &ops) {
 
 std::vector<pll_operation_t> createOperations(AnnotatedNetwork &ann_network, size_t partition_idx,
         const std::vector<Node*> &parent, BlobInformation &blobInfo, unsigned int megablobIdx,
-        const std::vector<bool> &dead_nodes, bool incremental) {
+        const std::vector<bool> &dead_nodes, const std::vector<bool> &bad_pmatrix_indices, bool incremental) {
     Network &network = ann_network.network;
     std::vector<pll_operation_t> ops;
     size_t fake_clv_index = network.nodes.size();
@@ -155,16 +156,16 @@ std::vector<pll_operation_t> createOperations(AnnotatedNetwork &ann_network, siz
         // First with root->back, then with root...
         Node *rootBack = getTargetNode(network, network.root->getLink());
         createOperationsPostorder(ann_network, incremental, partition_idx, rootBack, network.root, ops, fake_clv_index,
-                fake_pmatrix_index, dead_nodes, &stopIndices);
+                fake_pmatrix_index, dead_nodes, bad_pmatrix_indices, &stopIndices);
 
         if (!getActiveChildrenIgnoreDirections(network, network.root, rootBack).empty()) {
             createOperationsPostorder(ann_network, incremental, partition_idx, network.root, rootBack, ops,
-                    fake_clv_index, fake_pmatrix_index, dead_nodes, &stopIndices);
+                    fake_clv_index, fake_pmatrix_index, dead_nodes, bad_pmatrix_indices, &stopIndices);
         } else {
             // special case: the root has a single child.
             ops.push_back(
-                    buildOperationInternal(network, network.root, rootBack, nullptr, fake_clv_index,
-                            fake_pmatrix_index));
+                    buildOperationInternal(network, network.root, rootBack, nullptr, fake_clv_index, fake_pmatrix_index,
+                            bad_pmatrix_indices));
             // ignore the branch length from the root to its single active child/ treat it as if it had zero branch length
             ops[ops.size() - 1].child1_matrix_index = fake_pmatrix_index;
         }
@@ -174,7 +175,8 @@ std::vector<pll_operation_t> createOperations(AnnotatedNetwork &ann_network, siz
     } else {
         Node *megablobRoot = blobInfo.megablob_roots[megablobIdx];
         createOperationsPostorder(ann_network, incremental, partition_idx, megablobRoot,
-                parent[megablobRoot->clv_index], ops, fake_clv_index, fake_pmatrix_index, dead_nodes, &stopIndices);
+                parent[megablobRoot->clv_index], ops, fake_clv_index, fake_pmatrix_index, dead_nodes,
+                bad_pmatrix_indices, &stopIndices);
     }
     //printOperationArray(ops);
     return ops;
@@ -191,7 +193,8 @@ Node* getActiveParent(Network &network, Node *actNode, const std::vector<Node*> 
 }
 
 std::vector<pll_operation_t> createOperationsTowardsRoot(AnnotatedNetwork &ann_network, size_t partition_idx,
-        const std::vector<Node*> &parent, Node *actParent, const std::vector<bool> &dead_nodes, bool incremental) {
+        const std::vector<Node*> &parent, Node *actParent, const std::vector<bool> &dead_nodes,
+        const std::vector<bool> &bad_pmatrix_indices, bool incremental) {
     Network &network = ann_network.network;
 
     std::vector<pll_operation_t> ops;
@@ -200,7 +203,7 @@ std::vector<pll_operation_t> createOperationsTowardsRoot(AnnotatedNetwork &ann_n
     }
     if (dead_nodes[actParent->clv_index]) {
         return createOperationsTowardsRoot(ann_network, partition_idx, parent, parent[actParent->clv_index], dead_nodes,
-                incremental);
+                bad_pmatrix_indices, incremental);
     }
 
     size_t fake_clv_index = network.nodes.size();
@@ -212,22 +215,27 @@ std::vector<pll_operation_t> createOperationsTowardsRoot(AnnotatedNetwork &ann_n
                 || !ann_network.fake_treeinfo->clv_valid[partition_idx][actParent->clv_index]) {
             ops.emplace_back(
                     buildOperation(network, actParent, parent[actParent->clv_index], dead_nodes, fake_clv_index,
-                            fake_pmatrix_index));
+                            fake_pmatrix_index, bad_pmatrix_indices));
         }
         actParent = getActiveParent(network, actParent, parent);
     }
 
     // now, add the two operations for the root node in reverse order.
     if (!rootBack->isTip() && !getActiveChildrenIgnoreDirections(network, rootBack, network.root).empty()) {
-        ops.push_back(buildOperation(network, rootBack, network.root, dead_nodes, fake_clv_index, fake_pmatrix_index));
+        ops.push_back(
+                buildOperation(network, rootBack, network.root, dead_nodes, fake_clv_index, fake_pmatrix_index,
+                        bad_pmatrix_indices));
     }
 
     if (!getActiveChildrenIgnoreDirections(network, network.root, rootBack).empty()) {
-        ops.push_back(buildOperation(network, network.root, rootBack, dead_nodes, fake_clv_index, fake_pmatrix_index));
+        ops.push_back(
+                buildOperation(network, network.root, rootBack, dead_nodes, fake_clv_index, fake_pmatrix_index,
+                        bad_pmatrix_indices));
     } else {
         // special case: the root has a single child.
         ops.push_back(
-                buildOperationInternal(network, network.root, rootBack, nullptr, fake_clv_index, fake_pmatrix_index));
+                buildOperationInternal(network, network.root, rootBack, nullptr, fake_clv_index, fake_pmatrix_index,
+                        bad_pmatrix_indices));
         // ignore the branch length from the root to its single active child/ treat it as if it had zero branch length
         ops[ops.size() - 1].child1_matrix_index = fake_pmatrix_index;
     }
@@ -238,16 +246,17 @@ std::vector<pll_operation_t> createOperationsTowardsRoot(AnnotatedNetwork &ann_n
 }
 
 std::vector<pll_operation_t> createOperationsUpdatedReticulation(AnnotatedNetwork &ann_network, size_t partition_idx,
-        const std::vector<Node*> &parent, Node *actNode, const std::vector<bool> &dead_nodes, bool incremental) {
+        const std::vector<Node*> &parent, Node *actNode, const std::vector<bool> &dead_nodes,
+        const std::vector<bool> &bad_pmatrix_indices, bool incremental) {
     Network &network = ann_network.network;
     std::vector<pll_operation_t> ops;
 
     Node *firstParent = getReticulationFirstParent(network, actNode);
     std::vector<pll_operation_t> opsFirst = createOperationsTowardsRoot(ann_network, partition_idx, parent, firstParent,
-            dead_nodes, incremental);
+            dead_nodes, bad_pmatrix_indices, incremental);
     Node *secondParent = getReticulationSecondParent(network, actNode);
     std::vector<pll_operation_t> opsSecond = createOperationsTowardsRoot(ann_network, partition_idx, parent,
-            secondParent, dead_nodes, incremental);
+            secondParent, dead_nodes, bad_pmatrix_indices, incremental);
 
     // find the first entry in opsFirst which also occurs in opsSecond. We will only take opsFirst until this entry, excluding it.
     std::unordered_set<unsigned int> opsSecondRoots;
@@ -270,7 +279,7 @@ std::vector<pll_operation_t> createOperationsUpdatedReticulation(AnnotatedNetwor
 }
 
 std::vector<pll_operation_t> createOperations(AnnotatedNetwork &ann_network, size_t partition_idx, size_t treeIdx,
-        const std::vector<bool> &dead_nodes, bool incremental) {
+        const std::vector<bool> &dead_nodes, const std::vector<bool> &bad_pmatrix_indices, bool incremental) {
     Network &network = ann_network.network;
 
     std::vector<pll_operation_t> ops;
@@ -282,15 +291,16 @@ std::vector<pll_operation_t> createOperations(AnnotatedNetwork &ann_network, siz
     // How to do the operations at the top-level root trifurcation?
     // First with root->back, then with root...
     createOperationsPostorder(ann_network, incremental, partition_idx, rootBack, network.root, ops, fake_clv_index,
-            fake_pmatrix_index, dead_nodes);
+            fake_pmatrix_index, dead_nodes, bad_pmatrix_indices);
 
     if (!getActiveChildrenIgnoreDirections(network, network.root, rootBack).empty()) {
         createOperationsPostorder(ann_network, incremental, partition_idx, network.root, rootBack, ops, fake_clv_index,
-                fake_pmatrix_index, dead_nodes);
+                fake_pmatrix_index, dead_nodes, bad_pmatrix_indices);
     } else {
         // special case: the root has a single child.
         ops.push_back(
-                buildOperationInternal(network, network.root, rootBack, nullptr, fake_clv_index, fake_pmatrix_index));
+                buildOperationInternal(network, network.root, rootBack, nullptr, fake_clv_index, fake_pmatrix_index,
+                        bad_pmatrix_indices));
         // ignore the branch length from the root to its single active child/ treat it as if it had zero branch length
         ops[ops.size() - 1].child1_matrix_index = fake_pmatrix_index;
     }
@@ -351,14 +361,15 @@ double compute_tree_logl(AnnotatedNetwork &ann_network, size_t tree_idx, size_t 
     std::vector<bool> dead_nodes(network.num_nodes(), false);
 
     fill_dead_nodes_recursive(network, nullptr, network.root, dead_nodes);
+    std::vector<bool> bad_pmatrix_indices = fill_dead_pmatrix_indices(network);
 
 // Create pll_operations_t array for the current displayed tree
     std::vector<pll_operation_t> ops;
     if (startNode) {
         ops = createOperationsUpdatedReticulation(ann_network, partition_idx, parent, startNode, dead_nodes,
-                incremental);
+                bad_pmatrix_indices, incremental);
     } else {
-        ops = createOperations(ann_network, partition_idx, tree_idx, dead_nodes, incremental);
+        ops = createOperations(ann_network, partition_idx, tree_idx, dead_nodes, bad_pmatrix_indices, incremental);
     }
     unsigned int ops_count = ops.size();
 
@@ -387,13 +398,15 @@ void compute_tree_logl_blobs(AnnotatedNetwork &ann_network, bool incremental, co
 
     std::vector<bool> dead_nodes(network.num_nodes(), false);
     fill_dead_nodes_recursive(network, nullptr, network.root, dead_nodes);
+    std::vector<bool> bad_pmatrix_indices = fill_dead_pmatrix_indices(network);
 // Create pll_operations_t array for the current displayed tree
     std::vector<pll_operation_t> ops;
     if (startNode) {
         ops = createOperationsUpdatedReticulation(ann_network, partition_idx, parent, startNode, dead_nodes,
-                incremental);
+                bad_pmatrix_indices, incremental);
     } else {
-        ops = createOperations(ann_network, partition_idx, parent, blobInfo, megablob_idx, dead_nodes, incremental);
+        ops = createOperations(ann_network, partition_idx, parent, blobInfo, megablob_idx, dead_nodes,
+                bad_pmatrix_indices, incremental);
     }
     unsigned int ops_count = ops.size();
     if (ops_count == 0) {
