@@ -79,7 +79,11 @@ std::vector<Node*> getChildrenNoDir(Network &network, Node *node, const Node *my
     assert(node);
     std::vector<Node*> children;
     if (node->type == NodeType::RETICULATION_NODE) {
-        children.push_back(getReticulationChild(network, node));
+        if (getReticulationChild(network, node) == myParent) {
+            children.push_back(getActiveParent(network, node));
+        } else {
+            children.push_back(getReticulationChild(network, node));
+        }
     } else { // normal node
         std::vector<Node*> neighbors = getNeighbors(network, node);
         for (size_t i = 0; i < neighbors.size(); ++i) {
