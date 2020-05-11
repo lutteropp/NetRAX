@@ -33,8 +33,20 @@ void printClv(const pllmod_treeinfo_t &treeinfo, size_t clv_index, size_t partit
     }
 }
 
+std::vector<bool> fill_dead_pmatrix_indices(Network &network) {
+    std::vector<bool> bad_indices(network.edges.size(), false);
+    Node *root = network.root;
+    while (getActiveChildren(network, root).size() == 1) {
+        size_t bad_index = getEdgeTo(network, root, getActiveChildren(network, root)[0])->pmatrix_index;
+        bad_indices[bad_index] = true;
+        root = getActiveChildren(network, root)[0];
+    }
+    return bad_indices;
+}
+
 pll_operation_t buildOperationInternal(Network &network, Node *parent, Node *child1, Node *child2,
         size_t fake_clv_index, size_t fake_pmatrix_index) {
+    std::vector<bool> bad_pmatrix_indices = fill_dead_pmatrix_indices(network);
     pll_operation_t operation;
     assert(parent);
     assert(child1 || child2);
@@ -44,6 +56,9 @@ pll_operation_t buildOperationInternal(Network &network, Node *parent, Node *chi
         operation.child1_clv_index = child1->clv_index;
         operation.child1_scaler_index = child1->scaler_index;
         operation.child1_matrix_index = getEdgeTo(network, child1, parent)->pmatrix_index;
+        if (bad_pmatrix_indices[operation.child1_matrix_index]) {
+            operation.child1_matrix_index = fake_pmatrix_index;
+        }
     } else {
         operation.child1_clv_index = fake_clv_index;
         operation.child1_scaler_index = -1;
@@ -53,6 +68,9 @@ pll_operation_t buildOperationInternal(Network &network, Node *parent, Node *chi
         operation.child2_clv_index = child2->clv_index;
         operation.child2_scaler_index = child2->scaler_index;
         operation.child2_matrix_index = getEdgeTo(network, child2, parent)->pmatrix_index;
+        if (bad_pmatrix_indices[operation.child2_matrix_index]) {
+            operation.child2_matrix_index = fake_pmatrix_index;
+        }
     } else {
         operation.child2_clv_index = fake_clv_index;
         operation.child2_scaler_index = -1;
@@ -61,7 +79,7 @@ pll_operation_t buildOperationInternal(Network &network, Node *parent, Node *chi
     return operation;
 }
 
-pll_operation_t buildOperation(Network &network, Node *actNode, Node* actParent, const std::vector<bool> &dead_nodes,
+pll_operation_t buildOperation(Network &network, Node *actNode, Node *actParent, const std::vector<bool> &dead_nodes,
         size_t fake_clv_index, size_t fake_pmatrix_index) {
     std::vector<Node*> activeChildren = getActiveChildrenIgnoreDirections(network, actNode, actParent);
     assert(activeChildren.size() > 0);
