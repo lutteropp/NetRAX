@@ -209,7 +209,7 @@ TEST (SystemTest, DISABLED_problemFillSkippedNodesRecursive) {
     std::cout << "Loglikelihood after model optimization again: " << modelopt2_logl << "\n";
 }
 
-TEST (SystemTest, problemConnectSubtreeRecursive) {
+TEST (SystemTest, DISABLED_problemConnectSubtreeRecursive) {
     // initial setup
     std::string smallPath = DATA_PATH + "small.nw";
     std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
