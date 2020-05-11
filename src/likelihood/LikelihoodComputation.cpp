@@ -178,7 +178,7 @@ std::vector<pll_operation_t> createOperations(AnnotatedNetwork &ann_network, siz
                 parent[megablobRoot->clv_index], ops, fake_clv_index, fake_pmatrix_index, dead_nodes,
                 bad_pmatrix_indices, &stopIndices);
     }
-    //printOperationArray(ops);
+    // printOperationArray(ops);
     return ops;
 }
 
@@ -421,10 +421,16 @@ void compute_tree_logl_blobs(AnnotatedNetwork &ann_network, bool incremental, co
         double tree_partition_logl;
         if (ops_root == network.root) {
             Node *rootBack = getTargetNode(network, ops_root->getLink());
-            tree_partition_logl = pll_compute_edge_loglikelihood(fake_treeinfo.partitions[partition_idx],
-                    ops_root->clv_index, ops_root->scaler_index, rootBack->clv_index, rootBack->scaler_index,
-                    ops_root->getLink()->edge_pmatrix_index, fake_treeinfo.param_indices[partition_idx],
-                    persite_logl->empty() ? nullptr : persite_logl->data());
+            if (dead_nodes[rootBack->clv_index]) {
+                tree_partition_logl = pll_compute_root_loglikelihood(fake_treeinfo.partitions[partition_idx],
+                        ops_root->clv_index, ops_root->scaler_index, fake_treeinfo.param_indices[partition_idx],
+                        persite_logl->empty() ? nullptr : persite_logl->data());
+            } else {
+                tree_partition_logl = pll_compute_edge_loglikelihood(fake_treeinfo.partitions[partition_idx],
+                        ops_root->clv_index, ops_root->scaler_index, rootBack->clv_index, rootBack->scaler_index,
+                        ops_root->getLink()->edge_pmatrix_index, fake_treeinfo.param_indices[partition_idx],
+                        persite_logl->empty() ? nullptr : persite_logl->data());
+            }
         } else {
             tree_partition_logl = pll_compute_root_loglikelihood(fake_treeinfo.partitions[partition_idx],
                     ops_root->clv_index, ops_root->scaler_index, fake_treeinfo.param_indices[partition_idx],
