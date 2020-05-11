@@ -99,7 +99,9 @@ std::vector<Node*> getActiveChildrenNoDir(Network &network, Node *node, const No
     for (size_t i = 0; i < children.size(); ++i) {
         if (children[i]->getType() == NodeType::RETICULATION_NODE) {
             // we need to check if the child is active, this is, if we are currently the selected parent
-            if (getActiveParent(network, children[i]) != node) {
+            if (((getReticulationFirstParent(network, children[i]) == node
+                    || getReticulationSecondParent(network, children[i]) == node)
+                    && getActiveParent(network, children[i]) != node)) {
                 continue;
             }
         }
@@ -171,7 +173,7 @@ pll_unode_t* connect_subtree_recursive(Network &network, Node *networkNode, pll_
                 dead_nodes, skipped_nodes);
     }
 
-    // set the next pointers
+// set the next pointers
     bool isRoot = false;
     pll_unode_t *unode = to_parent;
     if (!unode) {
@@ -201,7 +203,7 @@ void fill_dead_nodes_recursive(Network &network, Node *myParent, Node *node, std
             fill_dead_nodes_recursive(network, node, activeChildren[i], dead_nodes);
         }
     }
-    // count how many active children are not dead
+// count how many active children are not dead
     size_t num_undead = std::count_if(activeChildren.begin(), activeChildren.end(), [&](Node *actNode) {
         return !dead_nodes[actNode->clv_index];
     });
@@ -263,9 +265,9 @@ pll_utree_t* displayed_tree_to_utree(Network &network, size_t tree_index) {
     std::vector<bool> skipped_nodes(network.num_nodes(), false);
     fill_dead_nodes_recursive(network, nullptr, root, dead_nodes);
     fill_skipped_nodes_recursive(network, nullptr, root, dead_nodes, skipped_nodes);
-    // now, we already know which nodes are skipped and which nodes are dead.
+// now, we already know which nodes are skipped and which nodes are dead.
 
-    // check if the dead nodes have changed which node to use as the new displayed tree root.
+// check if the dead nodes have changed which node to use as the new displayed tree root.
     std::vector<Node*> rootActiveChildren = getActiveChildren(network, root);
     bool needNewRoot = false;
     for (size_t i = 0; i < rootActiveChildren.size(); ++i) {
@@ -302,7 +304,7 @@ pll_utree_t* displayed_tree_to_utree(Network &network, size_t tree_index) {
     pll_utree_reset_template_indices(uroot, network.num_tips());
     pll_utree_t *utree = pll_utree_wraptree(uroot, network.num_tips());
 
-    // ensure that the tip clv indices are the same as in the network
+// ensure that the tip clv indices are the same as in the network
     for (size_t i = 0; i < utree->inner_count + utree->tip_count; ++i) {
         if (utree->nodes[i]->clv_index < utree->tip_count) {
             Node *networkNode = network.getNodeByLabel(utree->nodes[i]->label);
@@ -409,11 +411,11 @@ void getTipVectorRecursive(pll_unode_t *actParent, pll_unode_t *actNode, size_t 
 
 std::vector<bool> getTipVector(const pll_utree_t &utree, size_t pmatrix_idx) {
     std::vector<bool> res(utree.tip_count, false);
-    // do a top-down preorder traversal of the tree,
-    //	starting to write to the tip vector as soon as we have encountered the wanted pmatrix_idx
+// do a top-down preorder traversal of the tree,
+//	starting to write to the tip vector as soon as we have encountered the wanted pmatrix_idx
     getTipVectorRecursive(utree.vroot->back, utree.vroot, pmatrix_idx, false, res);
 
-    // vroot and vroot->back have the same pmatrix index!!!
+// vroot and vroot->back have the same pmatrix index!!!
     if (utree.vroot->pmatrix_index != pmatrix_idx) {
         getTipVectorRecursive(utree.vroot, utree.vroot->back, pmatrix_idx, false, res);
     }
@@ -437,8 +439,8 @@ void getTipVectorRecursive(Network &network, Node *actParent, Node *actNode, siz
 
 std::vector<bool> getTipVector(Network &network, size_t pmatrix_idx) {
     std::vector<bool> res(network.num_tips(), false);
-    // do a top-down preorder traversal of the network,
-    //	starting to write to the tip vector as soon as we have encountered the wanted pmatrix_idx
+// do a top-down preorder traversal of the network,
+//	starting to write to the tip vector as soon as we have encountered the wanted pmatrix_idx
     getTipVectorRecursive(network, nullptr, network.root, pmatrix_idx, false, res);
     return res;
 }
@@ -448,13 +450,13 @@ std::vector<std::vector<size_t> > getDtBranchToNetworkBranchMapping(const pll_ut
     std::vector<std::vector<size_t> > res(utree.edge_count);
     setReticulationParents(network, tree_idx);
 
-    // for each branch, we need to figure out which tips are on one side of the branch, and which tips are on the other side
-    // so essentially, we need to compare bipartitions. That's all!
+// for each branch, we need to figure out which tips are on one side of the branch, and which tips are on the other side
+// so essentially, we need to compare bipartitions. That's all!
 
-    // ... we can easily get the set of tips which are in a subtree!
-    //  (of either of the endpoints of the current branch, we don't really care)!!!
+// ... we can easily get the set of tips which are in a subtree!
+//  (of either of the endpoints of the current branch, we don't really care)!!!
 
-    // and we can use a bool vector for all tips...
+// and we can use a bool vector for all tips...
 
     std::vector<std::vector<bool> > networkTipVectors(network.num_branches());
     for (size_t i = 0; i < network.num_branches(); ++i) {
@@ -502,9 +504,9 @@ std::vector<Node*> reversed_topological_sort(Network &network) {
 
     std::queue<Node*> q;
 
-    // Kahn's algorithm for topological sorting
+// Kahn's algorithm for topological sorting
 
-    // compute outdegree of all nodes
+// compute outdegree of all nodes
     for (size_t i = 0; i < network.num_nodes(); ++i) {
         Node *actNode = &network.nodes[i];
         size_t act_clv_idx = actNode->clv_index;
@@ -514,7 +516,7 @@ std::vector<Node*> reversed_topological_sort(Network &network) {
         }
     }
 
-    //std::cout << exportDebugInfo(network, outdeg) << "\n";
+//std::cout << exportDebugInfo(network, outdeg) << "\n";
 
     size_t num_visited_vertices = 0;
     while (!q.empty()) {
