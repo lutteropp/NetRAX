@@ -244,7 +244,7 @@ pll_utree_t* displayed_tree_to_utree(Network &network, size_t tree_index) {
     }
     root = nullptr;
 
-    std::vector<Node*> possibleRoots = getPossibleRootNodes(network);
+    std::vector<Node*> possibleRoots = getPossibleTreeRootNodes(network);
     if (getActiveNeighbors(network, network.root).size() == 3) {
         root = network.root;
     } else {
@@ -369,6 +369,17 @@ std::vector<Node*> getPossibleRootNodes(Network &network) {
                     && getActiveNeighbors(network, &network.nodes[i]).size() == 3) {
                 res.push_back(&network.nodes[i]);
             }
+        }
+    }
+    return res;
+}
+
+std::vector<Node*> getPossibleTreeRootNodes(Network &network) {
+    std::vector<Node*> res;
+    for (size_t i = 0; i < network.num_nodes(); ++i) {
+        if (network.nodes[i].getType() == NodeType::BASIC_NODE
+                && getActiveNeighbors(network, &network.nodes[i]).size() == 3) {
+            res.push_back(&network.nodes[i]);
         }
     }
     return res;

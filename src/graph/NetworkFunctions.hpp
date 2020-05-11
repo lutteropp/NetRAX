@@ -34,6 +34,7 @@ void setReticulationParents(BlobInformation &blobInfo, unsigned int megablob_idx
  * Find possible placements for the root node in a semi-rooted network.
  */
 std::vector<Node*> getPossibleRootNodes(Network &network);
+std::vector<Node*> getPossibleTreeRootNodes(Network &network);
 
 void fill_dead_nodes_recursive(Network &network, Node *myParent, Node *node, std::vector<bool> &dead_nodes);
 std::vector<Node*> grab_current_node_parents(Network &network);
