@@ -175,7 +175,7 @@ TEST (SystemTest, randomNetwork) {
     std::cout << "Loglikelihood after model optimization again: " << modelopt2_logl << "\n";
 }
 
-TEST (SystemTest, DISABLED_problemFillSkippedNodesRecursive) {
+TEST (SystemTest, problemFillSkippedNodesRecursive) {
     // initial setup
     std::string smallPath = DATA_PATH + "small.nw";
     std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
@@ -209,7 +209,7 @@ TEST (SystemTest, DISABLED_problemFillSkippedNodesRecursive) {
     std::cout << "Loglikelihood after model optimization again: " << modelopt2_logl << "\n";
 }
 
-TEST (SystemTest, DISABLED_problemConnectSubtreeRecursive) {
+TEST (SystemTest, problemConnectSubtreeRecursive) {
     // initial setup
     std::string smallPath = DATA_PATH + "small.nw";
     std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
@@ -243,7 +243,7 @@ TEST (SystemTest, DISABLED_problemConnectSubtreeRecursive) {
     std::cout << "Loglikelihood after model optimization again: " << modelopt2_logl << "\n";
 }
 
-TEST (SystemTest, DISABLED_problemCreateOperationsUpdatedReticulation) {
+TEST (SystemTest, problemCreateOperationsUpdatedReticulation) {
     // initial setup
     std::string smallPath = DATA_PATH + "small.nw";
     std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
@@ -277,7 +277,7 @@ TEST (SystemTest, DISABLED_problemCreateOperationsUpdatedReticulation) {
     std::cout << "Loglikelihood after model optimization again: " << modelopt2_logl << "\n";
 }
 
-TEST (SystemTest, DISABLED_problemPllUpdatePartials) {
+TEST (SystemTest, problemPllUpdatePartials) {
     // initial setup
     std::string smallPath = DATA_PATH + "small.nw";
     std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
