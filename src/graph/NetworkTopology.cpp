@@ -27,7 +27,7 @@ Node* getTargetNode(Network &network, const Link *link) {
 
 bool isOutgoing(Network &network, Node *from, Node *to) {
     assert(getLinkToClvIndex(network, from, to->clv_index));
-    auto children = getChildren(network, from, getActiveParent(network, from));
+    auto children = getChildren(network, from);
     return (std::find(children.begin(), children.end(), to) != children.end());
 }
 
@@ -126,7 +126,23 @@ size_t getReticulationActiveParentPmatrixIndex(Network &network, const Node *nod
     return node->getReticulationData()->getLinkToActiveParent()->edge_pmatrix_index;
 }
 
-std::vector<Node*> getChildren(Network &network, Node *node, const Node *myParent) {
+std::vector<Node*> getChildren(Network &network, Node *node) {
+    assert(node);
+    std::vector<Node*> children;
+    if (node->type == NodeType::RETICULATION_NODE) {
+        children.push_back(getReticulationChild(network, node));
+    } else { // normal node
+        std::vector<Node*> neighbors = getNeighbors(network, node);
+        for (size_t i = 0; i < neighbors.size(); ++i) {
+            if (getLinkToClvIndex(network, node, neighbors[i]->clv_index)->direction == Direction::OUTGOING) {
+                children.push_back(neighbors[i]);
+            }
+        }
+    }
+    return children;
+}
+
+std::vector<Node*> getChildrenIgnoreDirections(Network &network, Node *node, const Node *myParent) {
     assert(node);
     std::vector<Node*> children;
     if (node->type == NodeType::RETICULATION_NODE) {
@@ -135,21 +151,34 @@ std::vector<Node*> getChildren(Network &network, Node *node, const Node *myParen
         std::vector<Node*> neighbors = getNeighbors(network, node);
         for (size_t i = 0; i < neighbors.size(); ++i) {
             if (neighbors[i] != myParent) {
-                // TODO: The following IF destroys the unit test, but it has to be in here in order to correctly return the children
-                if (getLinkToClvIndex(network, node, neighbors[i]->clv_index)->direction == Direction::OUTGOING) {
-                    children.push_back(neighbors[i]);
-                }
+                children.push_back(neighbors[i]);
             }
         }
     }
-
     return children;
 }
 
-std::vector<Node*> getActiveChildren(Network &network, Node *node, const Node *myParent) {
+std::vector<Node*> getActiveChildren(Network &network, Node *node) {
     assert(node);
     std::vector<Node*> activeChildren;
-    std::vector<Node*> children = getChildren(network, node, myParent);
+    std::vector<Node*> children = getChildren(network, node);
+    for (size_t i = 0; i < children.size(); ++i) {
+        if (children[i]->getType() == NodeType::RETICULATION_NODE) {
+            // we need to check if the child is active, this is, if we are currently the selected parent
+            if (getActiveParent(network, children[i]) != node) {
+                continue;
+            }
+        }
+        activeChildren.push_back(children[i]);
+    }
+    assert(activeChildren.size() <= 2 || (node == network.root && activeChildren.size() == 3));
+    return activeChildren;
+}
+
+std::vector<Node*> getActiveChildrenIgnoreDirections(Network &network, Node *node, const Node *myParent) {
+    assert(node);
+    std::vector<Node*> activeChildren;
+    std::vector<Node*> children = getChildrenIgnoreDirections(network, node, myParent);
     for (size_t i = 0; i < children.size(); ++i) {
         if (children[i]->getType() == NodeType::RETICULATION_NODE) {
             // we need to check if the child is active, this is, if we are currently the selected parent
@@ -166,7 +195,7 @@ std::vector<Node*> getActiveChildren(Network &network, Node *node, const Node *m
 Node* getOtherChild(Network &network, Node *parent, Node *aChild) {
     assert(parent && parent->type != NodeType::RETICULATION_NODE);
     assert(aChild);
-    std::vector<Node*> children = getChildren(network, parent, getActiveParent(network, parent));
+    std::vector<Node*> children = getChildren(network, parent);
     assert(std::find(children.begin(), children.end(), aChild) != children.end());
     for (Node *child : children) {
         if (child != aChild) {
@@ -179,7 +208,7 @@ Node* getOtherChild(Network &network, Node *parent, Node *aChild) {
 bool hasChild(Network &network, Node *parent, Node *candidate) {
     assert(parent);
     assert(candidate);
-    std::vector<Node*> children = getChildren(network, parent, getActiveParent(network, parent));
+    std::vector<Node*> children = getChildren(network, parent);
     return (std::find(children.begin(), children.end(), candidate) != children.end());
 }
 

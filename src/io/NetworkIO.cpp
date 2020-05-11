@@ -331,7 +331,11 @@ std::string newickNodeName(Network &network, const Node *node, const Node *paren
     sb << node->label;
     if (node->getType() == NodeType::RETICULATION_NODE) {
         assert(parent);
-        sb << "#" << node->getReticulationData()->getLabel();
+        std::string retLabel = node->getReticulationData()->getLabel();
+        if (retLabel.empty()) {
+            retLabel = std::to_string(node->getReticulationData()->reticulation_index);
+        }
+        sb << "#" << retLabel;
         Link *link = node->getReticulationData()->getLinkToFirstParent();
         double prob = getReticulationFirstParentProb(network, node);
         if (getReticulationSecondParent(network, node) == parent) {
@@ -360,7 +364,7 @@ std::string newickNodeName(Network &network, const Node *node, const Node *paren
 std::string printNodeNewick(Network &network, Node *node, Node *parent,
         std::unordered_set<Node*> &visited_reticulations) {
     std::stringstream sb("");
-    std::vector<Node*> children = getChildren(network, node, parent);
+    std::vector<Node*> children = getChildren(network, node);
     if (!children.empty() && visited_reticulations.find(node) == visited_reticulations.end()) {
         sb << "(";
         for (size_t i = 0; i < children.size() - 1; i++) {

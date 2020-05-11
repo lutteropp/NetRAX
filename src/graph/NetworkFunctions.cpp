@@ -193,7 +193,7 @@ void fill_dead_nodes_recursive(Network &network, Node *myParent, Node *node, std
     if (node->isTip()) {
         return;
     }
-    std::vector<Node*> activeChildren = getActiveChildren(network, node, myParent);
+    std::vector<Node*> activeChildren = getActiveChildrenIgnoreDirections(network, node, myParent);
     if (activeChildren.empty()) {
         dead_nodes[node->clv_index] = true;
     } else {
@@ -238,15 +238,30 @@ pll_utree_t* displayed_tree_to_utree(Network &network, size_t tree_index) {
     if (getActiveNeighbors(network, network.root).size() == 3) {
         root = network.root;
     } else {
+        std::unordered_set<unsigned int> badIndices;
+        root = network.root;
+        while (getActiveChildren(network, root).size() == 1) {
+            badIndices.emplace(root->clv_index);
+            badIndices.emplace(getActiveChildren(network, root)[0]->clv_index);
+            root = getActiveChildren(network, root)[0];
+        }
+        root = nullptr;
+
         // find a non-reticulation node with 3 active neighbors. This will be the root of the displayed tree.
         std::vector<Node*> possibleRoots = getPossibleRootNodes(network);
         assert(!possibleRoots.empty());
-        root = possibleRoots[0];
+        for (size_t i = 0; i < possibleRoots.size(); ++i) {
+            if (badIndices.find(possibleRoots[i]->clv_index) == badIndices.end()) {
+                root = possibleRoots[i];
+                break;
+            }
+        }
     }
+    assert(root);
 
     std::vector<bool> dead_nodes(network.num_nodes(), false);
-    fill_dead_nodes_recursive(network, nullptr, root, dead_nodes);
     std::vector<bool> skipped_nodes(network.num_nodes(), false);
+    fill_dead_nodes_recursive(network, nullptr, root, dead_nodes);
     fill_skipped_nodes_recursive(network, nullptr, root, dead_nodes, skipped_nodes);
     // now, we already know which nodes are skipped and which nodes are dead.
 
@@ -301,7 +316,7 @@ void forbidSubnetwork(Network &network, Node *myParent, Node *node, std::vector<
     if (forbidden[node->clv_index])
         return;
     forbidden[node->clv_index] = true;
-    std::vector<Node*> children = getChildren(network, node, myParent);
+    std::vector<Node*> children = getChildren(network, node);
     for (size_t i = 0; i < children.size(); ++i) {
         forbidSubnetwork(network, node, children[i], forbidden);
     }
@@ -370,7 +385,7 @@ void getTipVectorRecursive(Network &network, Node *actParent, Node *actNode, siz
     if (actNode->isTip() && pmatrix_idx_found) {
         res[actNode->clv_index] = true;
     } else if (!actNode->isTip()) {
-        std::vector<Node*> activeChildren = getActiveChildren(network, actNode, actParent);
+        std::vector<Node*> activeChildren = getActiveChildrenIgnoreDirections(network, actNode, actParent);
         for (size_t i = 0; i < activeChildren.size(); ++i) {
             getTipVectorRecursive(network, actNode, activeChildren[i], pmatrix_idx, pmatrix_idx_found, res);
         }
@@ -450,7 +465,7 @@ std::vector<Node*> reversed_topological_sort(Network &network) {
     for (size_t i = 0; i < network.num_nodes(); ++i) {
         Node *actNode = &network.nodes[i];
         size_t act_clv_idx = actNode->clv_index;
-        outdeg[act_clv_idx] = getChildren(network, actNode, parent[act_clv_idx]).size();
+        outdeg[act_clv_idx] = getChildren(network, actNode).size();
         if (outdeg[act_clv_idx] == 0) {
             q.emplace(actNode);
         }

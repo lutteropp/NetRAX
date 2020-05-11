@@ -88,7 +88,6 @@ void gather_reticulations_per_megablob(Network &network, BlobInformation &blob_i
     // Given the megablob roots at blobInfo.megablob_roots
     // Fill blobInfo.reticulation_nodes_per_megablob
     // ... BFS traversal? Always taking the current megablob index with us...
-    std::vector<Node*> parent = grab_current_node_parents(network);
     std::queue<std::pair<Node*, unsigned int> > q;
     std::vector<bool> visited(network.nodes.size(), false);
     q.emplace(std::make_pair(network.root, blob_info.megablob_roots.size() - 1));
@@ -108,7 +107,7 @@ void gather_reticulations_per_megablob(Network &network, BlobInformation &blob_i
                 act_megablob_index = std::distance(blob_info.megablob_roots.begin(), it);
             }
         }
-        for (Node *child : getChildren(network, entry.first, parent[entry.first->clv_index])) {
+        for (Node *child : getChildren(network, entry.first)) {
             if (!visited[child->clv_index]) {
                 q.emplace(std::make_pair(child, act_megablob_index));
             }

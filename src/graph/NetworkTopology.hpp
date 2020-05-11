@@ -34,8 +34,10 @@ size_t getReticulationFirstParentPmatrixIndex(Network &network, const Node* node
 size_t getReticulationSecondParentPmatrixIndex(Network &network, const Node* node);
 size_t getReticulationActiveParentPmatrixIndex(Network &network, const Node* node);
 
-std::vector<Node*> getChildren(Network &network, Node* node, const Node* myParent);
-std::vector<Node*> getActiveChildren(Network &network, Node* node, const Node* myParent);
+std::vector<Node*> getChildren(Network &network, Node* node);
+std::vector<Node*> getActiveChildren(Network &network, Node* node);
+std::vector<Node*> getChildrenIgnoreDirections(Network &network, Node* node, const Node* myParent);
+std::vector<Node*> getActiveChildrenIgnoreDirections(Network &network, Node* node, const Node* myParent);
 Node* getOtherChild(Network &network, Node* parent, Node* aChild);
 bool hasChild(Network &network, Node* parent, Node* candidate);
 std::vector<Node*> getNeighbors(Network &network, const Node* node);

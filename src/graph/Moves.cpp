@@ -511,8 +511,8 @@ void undoMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
 std::vector<std::pair<Node*, Node*> > getZYChoices(Network &network, Node *x_prime, Node *y_prime, Node *x,
         Node *fixed_y = nullptr, bool returnHead = true, bool returnTail = true) {
     std::vector<std::pair<Node*, Node*> > res;
-    auto x_prime_children = getChildren(network, x_prime, getActiveParent(network, x_prime));
-    auto x_children = getChildren(network, x, getActiveParent(network, x));
+    auto x_prime_children = getChildren(network, x_prime);
+    auto x_children = getChildren(network, x);
     for (Node *z : x_children) {
         if (std::find(x_prime_children.begin(), x_prime_children.end(), z) != x_prime_children.end()) {
             continue;
@@ -523,7 +523,7 @@ std::vector<std::pair<Node*, Node*> > getZYChoices(Network &network, Node *x_pri
         if (!returnTail && z->type != NodeType::RETICULATION_NODE) { // tail-moving rSPR move
             continue;
         }
-        auto z_children = getChildren(network, z, x);
+        auto z_children = getChildren(network, z);
         if (std::find(z_children.begin(), z_children.end(), y_prime) != z_children.end()) {
             continue;
         }
@@ -1355,8 +1355,8 @@ void undoMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     Node *u = nullptr;
     Node *v = nullptr;
 // Find u and v
-    std::vector<Node*> uCandidates = getChildren(network, a, getActiveParent(network, a));
-    std::vector<Node*> vCandidates = getChildren(network, c, getActiveParent(network, c));
+    std::vector<Node*> uCandidates = getChildren(network, a);
+    std::vector<Node*> vCandidates = getChildren(network, c);
     for (size_t i = 0; i < uCandidates.size(); ++i) {
         if (!hasChild(network, uCandidates[i], b)) {
             continue;
@@ -1390,27 +1390,6 @@ void undoMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     ArcInsertionMove insertion { move.a_clv_index, move.b_clv_index, move.c_clv_index, move.d_clv_index, move.u_v_len,
             move.c_v_len, move.u_v_prob, move.c_v_prob, move.a_u_length };
     performMove(ann_network, insertion);
-}
-
-std::vector<SemiRerootMove> possibleSemiRerootMoves(AnnotatedNetwork &ann_network) {
-    Network &network = ann_network.network;
-
-    // TODO: find possible new positions for the virtyal root node, such that we change which node is a reticulation
-
-    throw std::runtime_error("Not implemented yet");
-}
-void performMove(AnnotatedNetwork &ann_network, SemiRerootMove &move) {
-    Network &network = ann_network.network;
-
-    // TODO: update link directions and link1/link2 edge assignments
-    // TODO: update branch probs and reticulation nodes/ node types
-
-    network.root = network.nodes_by_index[move.new_root_clv_index];
-    throw std::runtime_error("Not implemented yet");
-}
-void undoMove(AnnotatedNetwork &ann_network, SemiRerootMove &move) {
-    SemiRerootMove undoMove { move.old_root_clv_index, move.new_root_clv_index };
-    performMove(ann_network, undoMove);
 }
 
 std::string toString(RNNIMove &move) {
@@ -1462,14 +1441,6 @@ std::string toString(ArcRemovalMove &move) {
     ss << "  d = " << move.d_clv_index << "\n";
     ss << "  u = " << move.u_clv_index << "\n";
     ss << "  v = " << move.v_clv_index << "\n";
-    return ss.str();
-}
-
-std::string toString(SemiRerootMove &move) {
-    std::stringstream ss;
-    ss << "semi reroot move:\n";
-    ss << "  new_root_clv_index = " << move.new_root_clv_index << "\n";
-    ss << "  old_root_clv_index = " << move.old_root_clv_index << "\n";
     return ss.str();
 }
 

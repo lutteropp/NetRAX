@@ -61,9 +61,9 @@ pll_operation_t buildOperationInternal(Network &network, Node *parent, Node *chi
     return operation;
 }
 
-pll_operation_t buildOperation(Network &network, Node *actNode, Node *parentNode, const std::vector<bool> &dead_nodes,
+pll_operation_t buildOperation(Network &network, Node *actNode, const std::vector<bool> &dead_nodes,
         size_t fake_clv_index, size_t fake_pmatrix_index) {
-    std::vector<Node*> activeChildren = getActiveChildren(network, actNode, parentNode);
+    std::vector<Node*> activeChildren = getActiveChildren(network, actNode);
     assert(activeChildren.size() > 0);
     Node *child1 = nullptr;
     if (!dead_nodes[activeChildren[0]->clv_index]) {
@@ -89,7 +89,7 @@ void createOperationsPostorder(AnnotatedNetwork &ann_network, bool incremental, 
         return;
     }
 
-    std::vector<Node*> activeChildren = getActiveChildren(network, actNode, parent);
+    std::vector<Node*> activeChildren = getActiveChildren(network, actNode);
     if (activeChildren.empty()) { // nothing to do if we are at a leaf node
         return;
     }
@@ -101,7 +101,7 @@ void createOperationsPostorder(AnnotatedNetwork &ann_network, bool incremental, 
         }
     }
 
-    pll_operation_t operation = buildOperation(network, actNode, parent, dead_nodes, fake_clv_index,
+    pll_operation_t operation = buildOperation(network, actNode, dead_nodes, fake_clv_index,
             fake_pmatrix_index);
     ops.push_back(operation);
 }
@@ -139,7 +139,7 @@ std::vector<pll_operation_t> createOperations(AnnotatedNetwork &ann_network, siz
         createOperationsPostorder(ann_network, incremental, partition_idx, rootBack, network.root, ops, fake_clv_index,
                 fake_pmatrix_index, dead_nodes, &stopIndices);
 
-        if (!getActiveChildren(network, network.root, rootBack).empty()) {
+        if (!getActiveChildrenIgnoreDirections(network, network.root, rootBack).empty()) {
             createOperationsPostorder(ann_network, incremental, partition_idx, network.root, rootBack, ops,
                     fake_clv_index, fake_pmatrix_index, dead_nodes, &stopIndices);
         } else {
@@ -193,19 +193,19 @@ std::vector<pll_operation_t> createOperationsTowardsRoot(AnnotatedNetwork &ann_n
         if (!incremental || ann_network.network.num_reticulations() != 0
                 || !ann_network.fake_treeinfo->clv_valid[partition_idx][actParent->clv_index]) {
             ops.emplace_back(
-                    buildOperation(network, actParent, parent[actParent->clv_index], dead_nodes, fake_clv_index,
+                    buildOperation(network, actParent, dead_nodes, fake_clv_index,
                             fake_pmatrix_index));
         }
         actParent = getActiveParent(network, actParent, parent);
     }
 
     // now, add the two operations for the root node in reverse order.
-    if (!rootBack->isTip() && !getActiveChildren(network, rootBack, network.root).empty()) {
-        ops.push_back(buildOperation(network, rootBack, network.root, dead_nodes, fake_clv_index, fake_pmatrix_index));
+    if (!rootBack->isTip() && !getActiveChildrenIgnoreDirections(network, rootBack, network.root).empty()) {
+        ops.push_back(buildOperation(network, rootBack, dead_nodes, fake_clv_index, fake_pmatrix_index));
     }
 
-    if (!getActiveChildren(network, network.root, rootBack).empty()) {
-        ops.push_back(buildOperation(network, network.root, rootBack, dead_nodes, fake_clv_index, fake_pmatrix_index));
+    if (!getActiveChildrenIgnoreDirections(network, network.root, rootBack).empty()) {
+        ops.push_back(buildOperation(network, network.root, dead_nodes, fake_clv_index, fake_pmatrix_index));
     } else {
         // special case: the root has a single child.
         ops.push_back(
@@ -266,7 +266,7 @@ std::vector<pll_operation_t> createOperations(AnnotatedNetwork &ann_network, siz
     createOperationsPostorder(ann_network, incremental, partition_idx, rootBack, network.root, ops, fake_clv_index,
             fake_pmatrix_index, dead_nodes);
 
-    if (!getActiveChildren(network, network.root, rootBack).empty()) {
+    if (!getActiveChildrenIgnoreDirections(network, network.root, rootBack).empty()) {
         createOperationsPostorder(ann_network, incremental, partition_idx, network.root, rootBack, ops, fake_clv_index,
                 fake_pmatrix_index, dead_nodes);
     } else {
