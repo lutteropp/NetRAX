@@ -33,11 +33,22 @@ void printClv(const pllmod_treeinfo_t &treeinfo, size_t clv_index, size_t partit
     }
 }
 
-std::vector<bool> fill_dead_pmatrix_indices(Network &network) {
+std::vector<Node*> getNondeadActiveChildren(Network& network, const std::vector<bool> &dead_nodes, Node* node) {
+    std::vector<Node*> res;
+    std::vector<Node*> activeChildren = getActiveChildren(network, node);
+    for (size_t i = 0; i < activeChildren.size(); ++i) {
+        if (!dead_nodes[activeChildren[i]->clv_index]) {
+            res.emplace_back(activeChildren[i]);
+        }
+    }
+    return res;
+}
+
+std::vector<bool> fill_dead_pmatrix_indices(Network &network, const std::vector<bool> &dead_nodes) {
     std::vector<bool> bad_indices(network.edges.size(), false);
     Node *root = network.root;
-    while (getActiveChildren(network, root).size() == 1) {
-        size_t bad_index = getEdgeTo(network, root, getActiveChildren(network, root)[0])->pmatrix_index;
+    while (getNondeadActiveChildren(network, dead_nodes, root).size() == 1) {
+        size_t bad_index = getEdgeTo(network, root, getNondeadActiveChildren(network, dead_nodes, root)[0])->pmatrix_index;
         bad_indices[bad_index] = true;
         root = getActiveChildren(network, root)[0];
     }
@@ -361,7 +372,7 @@ double compute_tree_logl(AnnotatedNetwork &ann_network, size_t tree_idx, size_t 
     std::vector<bool> dead_nodes(network.num_nodes(), false);
 
     fill_dead_nodes_recursive(network, nullptr, network.root, dead_nodes);
-    std::vector<bool> bad_pmatrix_indices = fill_dead_pmatrix_indices(network);
+    std::vector<bool> bad_pmatrix_indices = fill_dead_pmatrix_indices(network, dead_nodes);
 
 // Create pll_operations_t array for the current displayed tree
     std::vector<pll_operation_t> ops;
@@ -398,7 +409,7 @@ void compute_tree_logl_blobs(AnnotatedNetwork &ann_network, bool incremental, co
 
     std::vector<bool> dead_nodes(network.num_nodes(), false);
     fill_dead_nodes_recursive(network, nullptr, network.root, dead_nodes);
-    std::vector<bool> bad_pmatrix_indices = fill_dead_pmatrix_indices(network);
+    std::vector<bool> bad_pmatrix_indices = fill_dead_pmatrix_indices(network, dead_nodes);
 // Create pll_operations_t array for the current displayed tree
     std::vector<pll_operation_t> ops;
     if (startNode) {
