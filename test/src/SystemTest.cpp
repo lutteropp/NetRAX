@@ -277,7 +277,7 @@ TEST (SystemTest, problem3) {
     std::cout << "Loglikelihood after model optimization again: " << modelopt2_logl << "\n";
 }
 
-TEST (SystemTest, problemCreateOperationsUpdatedReticulation) {
+TEST (SystemTest, DISABLED_problemCreateOperationsUpdatedReticulation) {
     // initial setup
     std::string smallPath = DATA_PATH + "small.nw";
     std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
