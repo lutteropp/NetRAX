@@ -272,10 +272,11 @@ pll_utree_t* displayed_tree_to_utree(Network &network, size_t tree_index) {
 // now, we already know which nodes are skipped and which nodes are dead.
 
 // check if the dead nodes have changed which node to use as the new displayed tree root.
-    std::vector<Node*> rootActiveChildren = getActiveChildren(network, root);
+    std::vector<Node*> rootActiveNeighbors = getActiveNeighbors(network, root);
+
     bool needNewRoot = false;
-    for (size_t i = 0; i < rootActiveChildren.size(); ++i) {
-        if (dead_nodes[rootActiveChildren[i]->clv_index]) {
+    for (size_t i = 0; i < rootActiveNeighbors.size(); ++i) {
+        if (dead_nodes[rootActiveNeighbors[i]->clv_index]) {
             needNewRoot = true;
             break;
         }
@@ -285,10 +286,10 @@ pll_utree_t* displayed_tree_to_utree(Network &network, size_t tree_index) {
         root = nullptr;
         for (size_t i = 0; i < possibleRoots.size(); ++i) {
             if (badIndices.find(possibleRoots[i]->clv_index) == badIndices.end()) {
-                std::vector<Node*> candActiveChildren = getActiveChildren(network, possibleRoots[i]);
+                std::vector<Node*> rootActiveNeighbors = getActiveNeighbors(network, possibleRoots[i]);
                 bool badCand = false;
-                for (size_t i = 0; i < candActiveChildren.size(); ++i) {
-                    if (dead_nodes[candActiveChildren[i]->clv_index]) {
+                for (size_t i = 0; i < rootActiveNeighbors.size(); ++i) {
+                    if (dead_nodes[rootActiveNeighbors[i]->clv_index]) {
                         badCand = true;
                         break;
                     }
