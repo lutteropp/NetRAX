@@ -59,7 +59,6 @@ pll_operation_t buildOperationInternal(Network &network, Node *parent, Node *chi
         size_t fake_clv_index, size_t fake_pmatrix_index, const std::vector<bool> &bad_pmatrix_indices) {
     pll_operation_t operation;
     assert(parent);
-    assert(child1 || child2);
     operation.parent_clv_index = parent->clv_index;
     operation.parent_scaler_index = parent->scaler_index;
     if (child1) {
