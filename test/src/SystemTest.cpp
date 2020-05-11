@@ -175,7 +175,7 @@ TEST (SystemTest, randomNetwork) {
     std::cout << "Loglikelihood after model optimization again: " << modelopt2_logl << "\n";
 }
 
-TEST (SystemTest, problemFillSkippedNodesRecursive) {
+TEST (SystemTest, DISABLED_problemFillSkippedNodesRecursive) {
     // initial setup
     std::string smallPath = DATA_PATH + "small.nw";
     std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
