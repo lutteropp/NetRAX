@@ -198,7 +198,7 @@ std::vector<pll_operation_t> createOperationsTowardsRoot(AnnotatedNetwork &ann_n
     Network &network = ann_network.network;
 
     std::vector<pll_operation_t> ops;
-    if (actParent == nullptr || actParent == network.root) {
+    if (actParent == nullptr) {
         return ops;
     }
     if (dead_nodes[actParent->clv_index]) {
