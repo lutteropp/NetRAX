@@ -61,9 +61,9 @@ pll_operation_t buildOperationInternal(Network &network, Node *parent, Node *chi
     return operation;
 }
 
-pll_operation_t buildOperation(Network &network, Node *actNode, const std::vector<bool> &dead_nodes,
+pll_operation_t buildOperation(Network &network, Node *actNode, Node* actParent, const std::vector<bool> &dead_nodes,
         size_t fake_clv_index, size_t fake_pmatrix_index) {
-    std::vector<Node*> activeChildren = getActiveChildren(network, actNode);
+    std::vector<Node*> activeChildren = getActiveChildrenIgnoreDirections(network, actNode, actParent);
     assert(activeChildren.size() > 0);
     Node *child1 = nullptr;
     if (!dead_nodes[activeChildren[0]->clv_index]) {
@@ -89,7 +89,7 @@ void createOperationsPostorder(AnnotatedNetwork &ann_network, bool incremental, 
         return;
     }
 
-    std::vector<Node*> activeChildren = getActiveChildren(network, actNode);
+    std::vector<Node*> activeChildren = getActiveChildrenIgnoreDirections(network, actNode, parent);
     if (activeChildren.empty()) { // nothing to do if we are at a leaf node
         return;
     }
@@ -101,7 +101,7 @@ void createOperationsPostorder(AnnotatedNetwork &ann_network, bool incremental, 
         }
     }
 
-    pll_operation_t operation = buildOperation(network, actNode, dead_nodes, fake_clv_index,
+    pll_operation_t operation = buildOperation(network, actNode, parent, dead_nodes, fake_clv_index,
             fake_pmatrix_index);
     ops.push_back(operation);
 }
@@ -193,7 +193,7 @@ std::vector<pll_operation_t> createOperationsTowardsRoot(AnnotatedNetwork &ann_n
         if (!incremental || ann_network.network.num_reticulations() != 0
                 || !ann_network.fake_treeinfo->clv_valid[partition_idx][actParent->clv_index]) {
             ops.emplace_back(
-                    buildOperation(network, actParent, dead_nodes, fake_clv_index,
+                    buildOperation(network, actParent, parent[actParent->clv_index], dead_nodes, fake_clv_index,
                             fake_pmatrix_index));
         }
         actParent = getActiveParent(network, actParent, parent);
@@ -201,11 +201,11 @@ std::vector<pll_operation_t> createOperationsTowardsRoot(AnnotatedNetwork &ann_n
 
     // now, add the two operations for the root node in reverse order.
     if (!rootBack->isTip() && !getActiveChildrenIgnoreDirections(network, rootBack, network.root).empty()) {
-        ops.push_back(buildOperation(network, rootBack, dead_nodes, fake_clv_index, fake_pmatrix_index));
+        ops.push_back(buildOperation(network, rootBack, network.root, dead_nodes, fake_clv_index, fake_pmatrix_index));
     }
 
     if (!getActiveChildrenIgnoreDirections(network, network.root, rootBack).empty()) {
-        ops.push_back(buildOperation(network, network.root, dead_nodes, fake_clv_index, fake_pmatrix_index));
+        ops.push_back(buildOperation(network, network.root, rootBack, dead_nodes, fake_clv_index, fake_pmatrix_index));
     } else {
         // special case: the root has a single child.
         ops.push_back(
