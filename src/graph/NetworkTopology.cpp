@@ -175,6 +175,26 @@ std::vector<Node*> getActiveChildren(Network &network, Node *node) {
     return activeChildren;
 }
 
+std::vector<Node*> getActiveAliveChildren(Network &network, const std::vector<bool> &dead_nodes, Node *node) {
+    assert(node);
+    std::vector<Node*> activeChildren;
+    std::vector<Node*> children = getChildren(network, node);
+    for (size_t i = 0; i < children.size(); ++i) {
+        if (dead_nodes[children[i]->clv_index]) {
+            continue;
+        }
+        if (children[i]->getType() == NodeType::RETICULATION_NODE) {
+            // we need to check if the child is active, this is, if we are currently the selected parent
+            if (getActiveParent(network, children[i]) != node) {
+                continue;
+            }
+        }
+        activeChildren.push_back(children[i]);
+    }
+    assert(activeChildren.size() <= 2 || (node == network.root && activeChildren.size() == 3));
+    return activeChildren;
+}
+
 std::vector<Node*> getActiveChildrenIgnoreDirections(Network &network, Node *node, const Node *myParent) {
     assert(node);
     std::vector<Node*> activeChildren;
@@ -228,6 +248,32 @@ std::vector<Node*> getActiveNeighbors(Network &network, const Node *node) {
     std::vector<Node*> activeNeighbors;
     std::vector<Node*> neighbors = getNeighbors(network, node);
     for (size_t i = 0; i < neighbors.size(); ++i) {
+        if (neighbors[i]->getType() == NodeType::RETICULATION_NODE) {
+            // we need to check if the neighbor is active, this is, if we are currently the selected parent
+            if (node != getReticulationChild(network, neighbors[i])
+                    && getReticulationActiveParent(network, neighbors[i]) != node) {
+                continue;
+            }
+        }
+        if (node->getType() == NodeType::RETICULATION_NODE && neighbors[i] != getReticulationChild(network, node)) {
+            if (neighbors[i] != getReticulationActiveParent(network, node)) {
+                continue;
+            }
+        }
+        activeNeighbors.push_back(neighbors[i]);
+    }
+    assert(activeNeighbors.size() <= 3);
+    return activeNeighbors;
+}
+
+std::vector<Node*> getActiveAliveNeighbors(Network &network, const std::vector<bool> &dead_nodes, const Node *node) {
+    assert(node);
+    std::vector<Node*> activeNeighbors;
+    std::vector<Node*> neighbors = getNeighbors(network, node);
+    for (size_t i = 0; i < neighbors.size(); ++i) {
+        if (dead_nodes[neighbors[i]->clv_index]) {
+            continue;
+        }
         if (neighbors[i]->getType() == NodeType::RETICULATION_NODE) {
             // we need to check if the neighbor is active, this is, if we are currently the selected parent
             if (node != getReticulationChild(network, neighbors[i])

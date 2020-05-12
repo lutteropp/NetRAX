@@ -237,17 +237,20 @@ pll_utree_t* displayed_tree_to_utree(Network &network, size_t tree_index) {
     setReticulationParents(network, tree_index);
     Node *root = nullptr;
 
+    std::vector<bool> dead_nodes = collect_dead_nodes(network);
+
     std::unordered_set<unsigned int> badIndices;
     root = network.root;
-    while (getActiveChildren(network, root).size() == 1) {
+
+    while (getActiveAliveChildren(network, dead_nodes, root).size() == 1) {
         badIndices.emplace(root->clv_index);
-        badIndices.emplace(getActiveChildren(network, root)[0]->clv_index);
-        root = getActiveChildren(network, root)[0];
+        badIndices.emplace(getActiveAliveChildren(network, dead_nodes, root)[0]->clv_index);
+        root = getActiveAliveChildren(network, dead_nodes, root)[0];
     }
     root = nullptr;
 
-    std::vector<Node*> possibleRoots = getPossibleTreeRootNodes(network);
-    if (getActiveNeighbors(network, network.root).size() == 3) {
+    std::vector<Node*> possibleRoots = getPossibleTreeRootNodes(network, dead_nodes);
+    if (getActiveAliveNeighbors(network, dead_nodes, network.root).size() == 3) {
         root = network.root;
     } else {
         // find a non-reticulation node with 3 active neighbors. This will be the root of the displayed tree.
@@ -262,42 +265,7 @@ pll_utree_t* displayed_tree_to_utree(Network &network, size_t tree_index) {
     assert(root);
 
     std::vector<bool> skipped_nodes(network.num_nodes(), false);
-    std::vector<bool> dead_nodes = collect_dead_nodes(network);
     fill_skipped_nodes_recursive(network, nullptr, root, dead_nodes, skipped_nodes);
-// now, we already know which nodes are skipped and which nodes are dead.
-
-// check if the dead nodes have changed which node to use as the new displayed tree root.
-    std::vector<Node*> rootActiveNeighbors = getActiveNeighbors(network, root);
-
-    bool needNewRoot = false;
-    for (size_t i = 0; i < rootActiveNeighbors.size(); ++i) {
-        if (dead_nodes[rootActiveNeighbors[i]->clv_index]) {
-            needNewRoot = true;
-            break;
-        }
-    }
-
-    if (needNewRoot) {
-        root = nullptr;
-        for (size_t i = 0; i < possibleRoots.size(); ++i) {
-            if (badIndices.find(possibleRoots[i]->clv_index) == badIndices.end()) {
-                std::vector<Node*> rootActiveNeighbors = getActiveNeighbors(network, possibleRoots[i]);
-                bool badCand = false;
-                for (size_t i = 0; i < rootActiveNeighbors.size(); ++i) {
-                    if (dead_nodes[rootActiveNeighbors[i]->clv_index]) {
-                        badCand = true;
-                        break;
-                    }
-                }
-                if (!badCand) {
-                    root = possibleRoots[i];
-                    break;
-                }
-            }
-        }
-        assert(root);
-        fill_skipped_nodes_recursive(network, nullptr, root, dead_nodes, skipped_nodes);
-    }
 
     pll_unode_t *uroot = connect_subtree_recursive(network, root, nullptr, nullptr, dead_nodes, skipped_nodes);
 
@@ -376,11 +344,11 @@ std::vector<Node*> getPossibleRootNodes(Network &network) {
     return res;
 }
 
-std::vector<Node*> getPossibleTreeRootNodes(Network &network) {
+std::vector<Node*> getPossibleTreeRootNodes(Network &network, const std::vector<bool> &dead_nodes) {
     std::vector<Node*> res;
     for (size_t i = 0; i < network.num_nodes(); ++i) {
         if (network.nodes[i].getType() == NodeType::BASIC_NODE
-                && getActiveNeighbors(network, &network.nodes[i]).size() == 3) {
+                && getActiveAliveNeighbors(network, dead_nodes, &network.nodes[i]).size() == 3) {
             res.push_back(&network.nodes[i]);
         }
     }
