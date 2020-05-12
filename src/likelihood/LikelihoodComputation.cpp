@@ -113,10 +113,8 @@ void createOperationsPostorder(AnnotatedNetwork &ann_network, bool incremental, 
     }
     assert(activeChildren.size() <= 2);
     for (size_t i = 0; i < activeChildren.size(); ++i) {
-        if (!dead_nodes[activeChildren[i]->clv_index]) {
-            createOperationsPostorder(ann_network, incremental, partition_idx, activeChildren[i], actNode, ops,
-                    fake_clv_index, fake_pmatrix_index, dead_nodes, bad_pmatrix_indices, stop_indices);
-        }
+        createOperationsPostorder(ann_network, incremental, partition_idx, activeChildren[i], actNode, ops,
+                fake_clv_index, fake_pmatrix_index, dead_nodes, bad_pmatrix_indices, stop_indices);
     }
 
     pll_operation_t operation = buildOperation(network, actNode, parent, dead_nodes, fake_clv_index, fake_pmatrix_index,
@@ -273,7 +271,7 @@ std::vector<pll_operation_t> createOperationsUpdatedReticulation(AnnotatedNetwor
     }
 
     assert(ops[ops.size() - 1].parent_clv_index == network.root->clv_index);
-    //printOperationArray(ops);
+    // printOperationArray(ops);
     return ops;
 }
 
