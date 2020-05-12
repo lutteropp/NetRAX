@@ -357,7 +357,7 @@ double compute_tree_logl(AnnotatedNetwork &ann_network, size_t tree_idx, size_t 
     Network &network = ann_network.network;
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
 
-    std::vector<bool> dead_nodes = collect_dead_nodes(network);
+    std::vector<bool> dead_nodes = collect_dead_nodes(network, ann_network.travbuffer);
     std::vector<bool> bad_pmatrix_indices = fill_dead_pmatrix_indices(network, dead_nodes);
 
 // Create pll_operations_t array for the current displayed tree
@@ -393,7 +393,7 @@ void compute_tree_logl_blobs(AnnotatedNetwork &ann_network, bool incremental, co
     Network &network = ann_network.network;
     BlobInformation &blobInfo = ann_network.blobInfo;
 
-    std::vector<bool> dead_nodes = collect_dead_nodes(network);
+    std::vector<bool> dead_nodes = collect_dead_nodes(network, ann_network.travbuffer);
     std::vector<bool> bad_pmatrix_indices = fill_dead_pmatrix_indices(network, dead_nodes);
 // Create pll_operations_t array for the current displayed tree
     std::vector<pll_operation_t> ops;
@@ -916,7 +916,7 @@ double computeLoglikelihoodNaiveUtree(AnnotatedNetwork &ann_network, int increme
             continue;
         }
 
-        pll_utree_t *displayed_tree = netrax::displayed_tree_to_utree(network, i);
+        pll_utree_t *displayed_tree = netrax::displayed_tree_to_utree(network, ann_network.travbuffer, i);
 
         TreeInfo *displayedTreeinfo = wrapper.createRaxmlTreeinfo(displayed_tree);
 

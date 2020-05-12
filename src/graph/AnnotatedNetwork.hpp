@@ -30,6 +30,7 @@ struct AnnotatedNetwork {
     BlobInformation blobInfo; // mapping of edges to blobs, megablob roots, mapping of megablob roots to set of reticulation nodes within the megablob
     std::vector<std::vector<double> > branch_probs; // for each partition, the branch length probs
     double old_logl;
+    std::vector<Node*> travbuffer;
 };
 
 }

@@ -195,9 +195,8 @@ pll_unode_t* connect_subtree_recursive(Network &network, Node *networkNode, pll_
     return unode->next;
 }
 
-std::vector<bool> collect_dead_nodes(Network &network) {
+std::vector<bool> collect_dead_nodes(Network &network, const std::vector<Node*> &travbuffer) {
     std::vector<bool> dead_nodes(network.nodes.size(), false);
-    std::vector<Node*> travbuffer = reversed_topological_sort(network);
 
     bool changed = true;
 
@@ -234,11 +233,11 @@ std::vector<bool> collect_skipped_nodes(Network &network, const std::vector<bool
     return skipped_nodes;
 }
 
-pll_utree_t* displayed_tree_to_utree(Network &network, size_t tree_index) {
+pll_utree_t* displayed_tree_to_utree(Network &network, const std::vector<Node*> &travbuffer, size_t tree_index) {
     setReticulationParents(network, tree_index);
     Node *root = nullptr;
 
-    std::vector<bool> dead_nodes = collect_dead_nodes(network);
+    std::vector<bool> dead_nodes = collect_dead_nodes(network, travbuffer);
 
     std::unordered_set<unsigned int> badIndices;
     root = network.root;

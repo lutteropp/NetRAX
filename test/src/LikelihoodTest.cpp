@@ -78,7 +78,7 @@ void compareNodes(pll_unode_t *node1, pll_unode_t *node2) {
 
 TEST_F (LikelihoodTest, DISABLED_displayedTreeOfTreeToUtree) {
     Network treeNetwork = netrax::readNetworkFromFile(treePath);
-    pll_utree_t *network_utree = displayed_tree_to_utree(treeNetwork, 0);
+    pll_utree_t *network_utree = displayed_tree_to_utree(treeNetwork, reversed_topological_sort(treeNetwork), 0);
     pll_utree_t *raxml_utree = Tree::loadFromFile(treePath).pll_utree_copy();
 
     EXPECT_NE(network_utree, nullptr);
@@ -357,10 +357,10 @@ TEST_F (LikelihoodTest, simpleTreeWithRepeats) {
 
 TEST_F (LikelihoodTest, DISABLED_displayedTreeOfNetworkToUtree) {
     Network smallNetwork = netrax::readNetworkFromFile(networkPath);
-    pll_utree_t *utree = displayed_tree_to_utree(smallNetwork, 0);
+    pll_utree_t *utree = displayed_tree_to_utree(smallNetwork, reversed_topological_sort(smallNetwork), 0);
     EXPECT_NE(utree, nullptr);
 
-    pll_utree_t *utree2 = displayed_tree_to_utree(smallNetwork, 0);
+    pll_utree_t *utree2 = displayed_tree_to_utree(smallNetwork, reversed_topological_sort(smallNetwork), 0);
     EXPECT_NE(utree2, nullptr);
 
     // compare tip labels

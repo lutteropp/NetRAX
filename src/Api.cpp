@@ -33,7 +33,8 @@ void init_annotated_network(AnnotatedNetwork &ann_network) {
 
     netrax::RaxmlWrapper wrapper(ann_network.options);
     ann_network.raxml_treeinfo = std::unique_ptr<TreeInfo>(wrapper.createRaxmlTreeinfo(ann_network));
-    ann_network.blobInfo = netrax::partitionNetworkIntoBlobs(ann_network.network);
+    ann_network.travbuffer = netrax::reversed_topological_sort(ann_network.network);
+    ann_network.blobInfo = netrax::partitionNetworkIntoBlobs(network, ann_network.travbuffer);
 
     // init branch probs...
     if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED) { // common branches
@@ -81,6 +82,10 @@ AnnotatedNetwork build_annotated_network_from_utree(const NetraxOptions &options
 }
 
 void add_extra_reticulations(AnnotatedNetwork &ann_network, unsigned int targetCount) {
+    if (targetCount > ann_network.options.max_reticulations) {
+        throw std::runtime_error("Please increase maximum allowed number of reticulations");
+    }
+
     Network &network = ann_network.network;
     std::random_device dev;
     std::mt19937 rng(dev());

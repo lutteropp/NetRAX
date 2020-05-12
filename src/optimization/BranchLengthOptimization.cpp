@@ -85,7 +85,7 @@ double optimize_branches(AnnotatedNetwork &ann_network, double min_brlen, double
         }
 
         setReticulationParents(network, tree_idx);
-        pll_utree_t *displayed_utree = displayed_tree_to_utree(network, tree_idx);
+        pll_utree_t *displayed_utree = displayed_tree_to_utree(network, ann_network.travbuffer, tree_idx);
         std::vector<std::vector<size_t> > dtBranchToNetworkBranch = getDtBranchToNetworkBranchMapping(*displayed_utree,
                 network, tree_idx);
 

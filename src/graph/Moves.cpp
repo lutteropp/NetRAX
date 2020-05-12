@@ -480,7 +480,8 @@ void performMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
     invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, s);
     invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, t);
 
-    ann_network.blobInfo = partitionNetworkIntoBlobs(ann_network.network);
+    ann_network.travbuffer = reversed_topological_sort(ann_network.network);
+    ann_network.blobInfo = partitionNetworkIntoBlobs(network, ann_network.travbuffer);
 }
 
 void undoMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
@@ -505,7 +506,8 @@ void undoMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
     invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, s);
     invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, t);
 
-    ann_network.blobInfo = partitionNetworkIntoBlobs(ann_network.network);
+    ann_network.travbuffer = reversed_topological_sort(ann_network.network);
+    ann_network.blobInfo = partitionNetworkIntoBlobs(network, ann_network.travbuffer);
 }
 
 std::vector<std::pair<Node*, Node*> > getZYChoices(Network &network, Node *x_prime, Node *y_prime, Node *x,
@@ -916,7 +918,8 @@ void performMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
     invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, x);
     invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, x_prime);
 
-    ann_network.blobInfo = partitionNetworkIntoBlobs(ann_network.network);
+    ann_network.travbuffer = reversed_topological_sort(ann_network.network);
+    ann_network.blobInfo = partitionNetworkIntoBlobs(network, ann_network.travbuffer);
 }
 
 void undoMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
@@ -976,7 +979,8 @@ void undoMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
     invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, x);
     invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, x_prime);
 
-    ann_network.blobInfo = partitionNetworkIntoBlobs(ann_network.network);
+    ann_network.travbuffer = reversed_topological_sort(ann_network.network);
+    ann_network.blobInfo = partitionNetworkIntoBlobs(network, ann_network.travbuffer);
 }
 
 void removeEdge(Network &network, Edge *edge) {
@@ -1247,7 +1251,8 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     invalidatePmatrixIndex(ann_network, c_v_edge->pmatrix_index);
     invalidatePmatrixIndex(ann_network, u_v_edge->pmatrix_index);
 
-    ann_network.blobInfo = partitionNetworkIntoBlobs(ann_network.network);
+    ann_network.travbuffer = reversed_topological_sort(ann_network.network);
+    ann_network.blobInfo = partitionNetworkIntoBlobs(network, ann_network.travbuffer);
     checkSanity(network);
 }
 
@@ -1341,7 +1346,8 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     invalidatePmatrixIndex(ann_network, a_b_edge->pmatrix_index);
     invalidatePmatrixIndex(ann_network, c_d_edge->pmatrix_index);
 
-    ann_network.blobInfo = partitionNetworkIntoBlobs(ann_network.network);
+    ann_network.travbuffer = reversed_topological_sort(ann_network.network);
+    ann_network.blobInfo = partitionNetworkIntoBlobs(network, ann_network.travbuffer);
     checkSanity(network);
 }
 

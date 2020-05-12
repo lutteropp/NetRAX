@@ -122,7 +122,7 @@ void gather_reticulations_per_megablob(Network &network, BlobInformation &blob_i
     assert(retsum == network.num_reticulations());
 }
 
-BlobInformation partitionNetworkIntoBlobs(Network &network) {
+BlobInformation partitionNetworkIntoBlobs(Network &network, const std::vector<Node*> &travbuffer) {
     BlobInformation blob_info;
     blob_info.edge_blob_id.resize(network.edges.size());
     unsigned int time = 0;
@@ -146,7 +146,6 @@ BlobInformation partitionNetworkIntoBlobs(Network &network) {
     // 1.) It is the root node, or
     // 2.) The parent has another blob id with blob size > 1
 
-    std::vector<Node*> travbuffer = netrax::reversed_topological_sort(network);
     blob_info.reticulation_nodes_per_megablob.emplace_back(std::vector<Node*>());
     std::vector<unsigned int> node_blob_id(network.nodes.size());
     for (size_t i = 0; i < travbuffer.size(); ++i) {
