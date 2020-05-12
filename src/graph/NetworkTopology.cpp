@@ -230,7 +230,8 @@ std::vector<Node*> getActiveNeighbors(Network &network, const Node *node) {
     for (size_t i = 0; i < neighbors.size(); ++i) {
         if (neighbors[i]->getType() == NodeType::RETICULATION_NODE) {
             // we need to check if the neighbor is active, this is, if we are currently the selected parent
-            if (getReticulationActiveParent(network, neighbors[i]) != node) {
+            if (node != getReticulationChild(network, neighbors[i])
+                    && getReticulationActiveParent(network, neighbors[i]) != node) {
                 continue;
             }
         }
