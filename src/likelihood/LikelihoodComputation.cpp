@@ -272,7 +272,7 @@ std::vector<pll_operation_t> createOperationsUpdatedReticulation(AnnotatedNetwor
         ops.emplace_back(opsSecond[i]);
     }
 
-    assert(ops[ops.size() - 1].parent_clv_index == network.root->clv_index);
+    assert(ops.empty() || ops[ops.size() - 1].parent_clv_index == network.root->clv_index);
     // printOperationArray(ops);
     return ops;
 }
