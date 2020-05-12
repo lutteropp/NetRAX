@@ -196,41 +196,42 @@ pll_unode_t* connect_subtree_recursive(Network &network, Node *networkNode, pll_
 }
 
 std::vector<bool> collect_dead_nodes(Network &network) {
-    std::vector<bool> dead_nodes(network.num_nodes(), false);
+    std::vector<bool> dead_nodes(network.nodes.size(), false);
     std::vector<Node*> travbuffer = reversed_topological_sort(network);
-    for (size_t i = 0; i < travbuffer.size(); ++i) {
-        Node *node = travbuffer[i];
-        if (node->isTip()) {
-            continue;
+
+    bool changed = true;
+
+    while (changed) {
+        changed = false;
+        for (size_t i = 0; i < travbuffer.size(); ++i) {
+            Node *node = travbuffer[i];
+            if (node->isTip()) { // tips are never dead
+                continue;
+            }
+            size_t num_undead = getActiveAliveNeighbors(network, dead_nodes, node).size();
+            bool isDead = (num_undead <= 1);
+            changed |= (isDead != dead_nodes[node->clv_index]);
+            dead_nodes[node->clv_index] = (num_undead <= 1);
         }
-        std::vector<Node*> activeNeighbors = getActiveNeighbors(network, node);
-        size_t num_undead = std::count_if(activeNeighbors.begin(), activeNeighbors.end(), [&](Node *actNode) {
-            return !dead_nodes[actNode->clv_index];
-        });
-        dead_nodes[node->clv_index] = (num_undead <= 1);
     }
     return dead_nodes;
 }
 
-void fill_skipped_nodes_recursive(Network &network, Node *myParent, Node *node, const std::vector<bool> &dead_nodes,
-        std::vector<bool> &skipped_nodes) {
-    if (node->isTip()) {
-        return; // tip nodes never need to be skipped/ contracted
-    }
-    std::vector<Node*> activeChildren = getActiveChildrenNoDir(network, node, myParent);
-    remove_dead_children(activeChildren, dead_nodes);
+std::vector<bool> collect_skipped_nodes(Network &network, const std::vector<bool> &dead_nodes) {
+    std::vector<bool> skipped_nodes(network.nodes.size(), false);
 
-    if (activeChildren.size() < 2) {
-        skipped_nodes[node->clv_index] = true;
-    }
-
-    if (activeChildren.empty()) {
-        assert(dead_nodes[node->clv_index]);
+    for (size_t i = 0; i < network.num_nodes(); ++i) {
+        if (network.nodes[i].isTip()) {
+            continue; // tips are never skipped
+        }
+        skipped_nodes[network.nodes[i].clv_index] =
+                (getActiveAliveNeighbors(network, dead_nodes, &network.nodes[i]).size() == 2);
+        assert(
+                dead_nodes[network.nodes[i].clv_index]
+                        || getActiveAliveNeighbors(network, dead_nodes, &network.nodes[i]).size() > 1);
     }
 
-    for (size_t i = 0; i < activeChildren.size(); ++i) {
-        fill_skipped_nodes_recursive(network, node, activeChildren[i], dead_nodes, skipped_nodes);
-    }
+    return skipped_nodes;
 }
 
 pll_utree_t* displayed_tree_to_utree(Network &network, size_t tree_index) {
@@ -264,8 +265,7 @@ pll_utree_t* displayed_tree_to_utree(Network &network, size_t tree_index) {
     }
     assert(root);
 
-    std::vector<bool> skipped_nodes(network.num_nodes(), false);
-    fill_skipped_nodes_recursive(network, nullptr, root, dead_nodes, skipped_nodes);
+    std::vector<bool> skipped_nodes = collect_skipped_nodes(network, dead_nodes);
 
     pll_unode_t *uroot = connect_subtree_recursive(network, root, nullptr, nullptr, dead_nodes, skipped_nodes);
 
