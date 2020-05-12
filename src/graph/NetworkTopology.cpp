@@ -182,7 +182,8 @@ std::vector<Node*> getActiveChildrenIgnoreDirections(Network &network, Node *nod
     for (size_t i = 0; i < children.size(); ++i) {
         if (children[i]->getType() == NodeType::RETICULATION_NODE) {
             // we need to check if the child is active, this is, if we are currently the selected parent
-            if (getActiveParent(network, children[i]) != node) {
+            // or we could be the current child...
+            if (node != getReticulationChild(network, children[i]) && getActiveParent(network, children[i]) != node) {
                 continue;
             }
         }
