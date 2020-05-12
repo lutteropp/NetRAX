@@ -235,6 +235,11 @@ std::vector<Node*> getActiveNeighbors(Network &network, const Node *node) {
                 continue;
             }
         }
+        if (node->getType() == NodeType::RETICULATION_NODE && neighbors[i] != getReticulationChild(network, node)) {
+            if (neighbors[i] != getReticulationActiveParent(network, node)) {
+                continue;
+            }
+        }
         activeNeighbors.push_back(neighbors[i]);
     }
     assert(activeNeighbors.size() <= 3);

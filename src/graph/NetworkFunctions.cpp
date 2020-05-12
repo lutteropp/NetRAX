@@ -195,25 +195,21 @@ pll_unode_t* connect_subtree_recursive(Network &network, Node *networkNode, pll_
     return unode->next;
 }
 
-void fill_dead_nodes_recursive(Network &network, Node *myParent, Node *node, std::vector<bool> &dead_nodes) {
-    if (node->isTip()) {
-        return;
-    }
-    std::vector<Node*> activeChildren = getActiveChildrenIgnoreDirections(network, node, myParent);
-    if (activeChildren.empty()) {
-        dead_nodes[node->clv_index] = true;
-    } else {
-        for (size_t i = 0; i < activeChildren.size(); ++i) {
-            fill_dead_nodes_recursive(network, node, activeChildren[i], dead_nodes);
+std::vector<bool> collect_dead_nodes(Network &network) {
+    std::vector<bool> dead_nodes(network.num_nodes(), false);
+    std::vector<Node*> travbuffer = reversed_topological_sort(network);
+    for (size_t i = 0; i < travbuffer.size(); ++i) {
+        Node *node = travbuffer[i];
+        if (node->isTip()) {
+            continue;
         }
+        std::vector<Node*> activeNeighbors = getActiveNeighbors(network, node);
+        size_t num_undead = std::count_if(activeNeighbors.begin(), activeNeighbors.end(), [&](Node *actNode) {
+            return !dead_nodes[actNode->clv_index];
+        });
+        dead_nodes[node->clv_index] = (num_undead <= 1);
     }
-// count how many active children are not dead
-    size_t num_undead = std::count_if(activeChildren.begin(), activeChildren.end(), [&](Node *actNode) {
-        return !dead_nodes[actNode->clv_index];
-    });
-    if (num_undead == 0) {
-        dead_nodes[node->clv_index] = true;
-    }
+    return dead_nodes;
 }
 
 void fill_skipped_nodes_recursive(Network &network, Node *myParent, Node *node, const std::vector<bool> &dead_nodes,
@@ -265,9 +261,8 @@ pll_utree_t* displayed_tree_to_utree(Network &network, size_t tree_index) {
     }
     assert(root);
 
-    std::vector<bool> dead_nodes(network.num_nodes(), false);
     std::vector<bool> skipped_nodes(network.num_nodes(), false);
-    fill_dead_nodes_recursive(network, nullptr, root, dead_nodes);
+    std::vector<bool> dead_nodes = collect_dead_nodes(network);
     fill_skipped_nodes_recursive(network, nullptr, root, dead_nodes, skipped_nodes);
 // now, we already know which nodes are skipped and which nodes are dead.
 
