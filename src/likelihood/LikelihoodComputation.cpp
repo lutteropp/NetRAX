@@ -35,11 +35,13 @@ void printClv(const pllmod_treeinfo_t &treeinfo, size_t clv_index, size_t partit
 
 std::vector<bool> fill_dead_pmatrix_indices(Network &network, const std::vector<bool> &dead_nodes) {
     std::vector<bool> bad_indices(network.edges.size(), false);
-    Node *root = network.root;
-    while (getActiveAliveChildren(network, dead_nodes, root).size() == 1) {
-        size_t bad_index = getEdgeTo(network, root, getActiveAliveChildren(network, dead_nodes, root)[0])->pmatrix_index;
-        bad_indices[bad_index] = true;
-        root = getActiveAliveChildren(network, dead_nodes, root)[0];
+    for (size_t i = 0; i < network.num_nodes(); ++i) {
+        if (dead_nodes[network.nodes[i].clv_index]) {
+            // inactivate pmatrix indices for all incident edges
+            for (size_t j = 0; j < network.nodes[i].links.size(); ++j) {
+                bad_indices[network.nodes[i].links[j].edge_pmatrix_index] = true;
+            }
+        }
     }
     return bad_indices;
 }
