@@ -355,11 +355,9 @@ TEST (SystemTest, problem4) {
     smallOptions.msa_file = msaPath;
     smallOptions.use_repeats = true;
     RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
-    unsigned int n_reticulations = 4;
     AnnotatedNetwork ann_network =
             build_annotated_network_from_string(smallOptions,
                     "(((C:0.05)#1:0.025::0.5,(#1:0.5::0.5)#2:1::0.5):0.025,(((B:0.05,(A:0.05)#0:1::0.5):0.025,#2:0.5::0.5):0.025,D:0.1):0.1,#0:0.05::0.5);");
-    assert(ann_network.network.num_reticulations() == n_reticulations);
     std::cout << exportDebugInfo(ann_network.network) << "\n";
     std::cout << toExtendedNewick(ann_network.network) << "\n";
 
