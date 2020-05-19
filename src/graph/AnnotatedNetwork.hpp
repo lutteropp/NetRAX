@@ -9,6 +9,7 @@
 
 #include <vector>
 #include <memory>
+#include <random>
 
 extern "C" {
 #include <libpll/pll.h>
@@ -33,6 +34,7 @@ struct AnnotatedNetwork {
     std::vector<std::vector<double> > branch_probs; // for each partition, the branch length probs
     double old_logl;
     std::vector<Node*> travbuffer;
+    std::mt19937 rng;
 };
 
 }

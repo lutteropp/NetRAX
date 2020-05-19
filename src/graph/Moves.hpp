@@ -9,6 +9,7 @@
 
 #include "Common.hpp"
 #include <vector>
+#include <random>
 
 // TODO: Maybe put all moves into a class hierarchy?
 
@@ -104,29 +105,5 @@ std::string toString(RNNIMove &move);
 std::string toString(RSPRMove &move);
 std::string toString(ArcInsertionMove &move);
 std::string toString(ArcRemovalMove &move);
-
-template<typename T>
-std::vector<T> possibleMoves(AnnotatedNetwork &ann_network, MoveType &type) {
-    switch (type) {
-    case MoveType::RNNIMove:
-        return possibleRNNIMoves(ann_network);
-    case MoveType::RSPRMove:
-        return possibleRSPRMoves(ann_network);
-    case MoveType::HeadMove:
-        return possibleHeadMoves(ann_network);
-    case MoveType::TailMove:
-        return possibleTailMoves(ann_network);
-    case MoveType::RSPR1Move:
-        return possibleRSPR1Moves(ann_network);
-    case MoveType::ArcInsertionMove:
-        return possibleArcInsertionMoves(ann_network);
-    case MoveType::ArcRemovalMove:
-        return possibleArcRemovalMoves(ann_network);
-    case MoveType::DeltaPlusMove:
-        return possibleDeltaPlusMoves(ann_network);
-    case MoveType::DeltaMinusMove:
-        return possibleDeltaMinusMoves(ann_network);
-    }
-}
 
 }

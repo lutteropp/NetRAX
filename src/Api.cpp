@@ -25,11 +25,15 @@
 #include "NetraxOptions.hpp"
 #include "RaxmlWrapper.hpp"
 #include "graph/Moves.hpp"
+#include "optimization/TopologyOptimization.hpp"
 
 namespace netrax {
 
 void init_annotated_network(AnnotatedNetwork &ann_network) {
     Network &network = ann_network.network;
+    std::random_device dev;
+    std::mt19937 rng(dev());
+    ann_network.rng = rng;
 
     netrax::RaxmlWrapper wrapper(ann_network.options);
     ann_network.raxml_treeinfo = std::unique_ptr<TreeInfo>(wrapper.createRaxmlTreeinfo(ann_network));
@@ -65,7 +69,7 @@ AnnotatedNetwork build_annotated_network(const NetraxOptions &options) {
     return ann_network;
 }
 
-AnnotatedNetwork build_annotated_network_from_string(const NetraxOptions &options, const std::string& newickString) {
+AnnotatedNetwork build_annotated_network_from_string(const NetraxOptions &options, const std::string &newickString) {
     AnnotatedNetwork ann_network;
     ann_network.options = options;
     ann_network.network = netrax::readNetworkFromString(newickString, options.max_reticulations);
@@ -85,10 +89,8 @@ void add_extra_reticulations(AnnotatedNetwork &ann_network, unsigned int targetC
     if (targetCount > ann_network.options.max_reticulations) {
         throw std::runtime_error("Please increase maximum allowed number of reticulations");
     }
-
     Network &network = ann_network.network;
-    std::random_device dev;
-    std::mt19937 rng(dev());
+    std::mt19937 &rng = ann_network.rng;
 
     // TODO: This can be implemented more eficiently than by always re-gathering all candidates
     while (targetCount > network.num_reticulations()) {
@@ -116,8 +118,7 @@ AnnotatedNetwork build_parsimony_annotated_network(const NetraxOptions &options,
     return ann_network;
 }
 
-AnnotatedNetwork build_best_raxml_annotated_network(const NetraxOptions &options,
-        unsigned int start_reticulations) {
+AnnotatedNetwork build_best_raxml_annotated_network(const NetraxOptions &options, unsigned int start_reticulations) {
     throw std::runtime_error("Not implemented yet");
 }
 
@@ -134,8 +135,7 @@ double optimizeBranches(AnnotatedNetwork &ann_network) {
     return ann_network.raxml_treeinfo->optimize_branches(ann_network.options.lh_epsilon, 1);
 }
 double optimizeTopology(AnnotatedNetwork &ann_network) {
-    std::cout << "(Topology optimization not implemented yet) \n";
-    return -1;
+    return searchBetterTopology(ann_network);
 }
 
 void writeNetwork(AnnotatedNetwork &ann_network, const std::string &filepath) {
