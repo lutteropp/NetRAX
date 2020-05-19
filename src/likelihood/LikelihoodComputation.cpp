@@ -375,14 +375,12 @@ void print_clv_vector(pllmod_treeinfo_t &fake_treeinfo, size_t tree_idx, size_t 
     std::cout << "\n";
 }
 
-double compute_tree_logl(AnnotatedNetwork &ann_network, std::vector<bool> &clv_touched, size_t tree_idx,
-        size_t partition_idx, std::vector<double> *persite_logl, const std::vector<Node*> &parent, Node *startNode =
-                nullptr, bool incremental = true) {
+double compute_tree_logl(AnnotatedNetwork &ann_network, std::vector<bool> &clv_touched, std::vector<bool> &dead_nodes,
+        Node *displayed_tree_root, size_t tree_idx, size_t partition_idx, std::vector<double> *persite_logl,
+        const std::vector<Node*> &parent, Node *startNode = nullptr, bool incremental = true) {
     Network &network = ann_network.network;
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
 
-    Node *displayed_tree_root = nullptr;
-    std::vector<bool> dead_nodes = collect_dead_nodes(network, &displayed_tree_root);
     std::vector<bool> bad_pmatrix_indices = fill_dead_pmatrix_indices(network, dead_nodes);
 
 // Create pll_operations_t array for the current displayed tree
@@ -424,14 +422,13 @@ double compute_tree_logl(AnnotatedNetwork &ann_network, std::vector<bool> &clv_t
     return tree_partition_logl;
 }
 
-void compute_tree_logl_blobs(AnnotatedNetwork &ann_network, std::vector<bool> &clv_touched, bool incremental,
-        const std::vector<Node*> &parent, pllmod_treeinfo_t &fake_treeinfo, size_t megablob_idx, size_t partition_idx,
-        std::vector<double> *persite_logl, Node *startNode = nullptr) {
+void compute_tree_logl_blobs(AnnotatedNetwork &ann_network, std::vector<bool> &clv_touched,
+        std::vector<bool> &dead_nodes, Node *displayed_tree_root, bool incremental, const std::vector<Node*> &parent,
+        pllmod_treeinfo_t &fake_treeinfo, size_t megablob_idx, size_t partition_idx, std::vector<double> *persite_logl,
+        Node *startNode = nullptr) {
     Network &network = ann_network.network;
     BlobInformation &blobInfo = ann_network.blobInfo;
 
-    Node *displayed_tree_root = nullptr;
-    std::vector<bool> dead_nodes = collect_dead_nodes(network, &displayed_tree_root);
     std::vector<bool> bad_pmatrix_indices = fill_dead_pmatrix_indices(network, dead_nodes);
 // Create pll_operations_t array for the current displayed tree
     std::vector<pll_operation_t> ops;
@@ -658,9 +655,11 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
             if (tree_prob == 0.0 && !update_reticulation_probs) {
                 continue;
             }
+            Node *displayed_tree_root = nullptr;
+            std::vector<bool> dead_nodes = collect_dead_nodes(network, &displayed_tree_root);
             std::vector<double> persite_logl(fake_treeinfo.partitions[partitionIdx]->sites, 0.0);
-            compute_tree_logl_blobs(ann_network, clv_touched, incremental, parent, fake_treeinfo, megablob_idx,
-                    partitionIdx, &persite_logl, startNode);
+            compute_tree_logl_blobs(ann_network, clv_touched, dead_nodes, displayed_tree_root, incremental, parent,
+                    fake_treeinfo, megablob_idx, partitionIdx, &persite_logl, startNode);
 
             if (update_reticulation_probs) { // TODO: Only do this if we weren't at a leaf
                 updateBestPersiteLoglikelihoodsBlobs(network, blobInfo, megablob_idx, treeIdx, numSites,
@@ -757,9 +756,11 @@ std::vector<double> compute_persite_lh(AnnotatedNetwork &ann_network, unsigned i
             continue;
         }
 
+        Node *displayed_tree_root = nullptr;
+        std::vector<bool> dead_nodes = collect_dead_nodes(network, &displayed_tree_root);
         std::vector<double> persite_logl(fake_treeinfo.partitions[partitionIdx]->sites, 0.0);
-        double tree_logl = compute_tree_logl(ann_network, clv_touched, treeIdx, partitionIdx, &persite_logl, parent,
-                startNode);
+        double tree_logl = compute_tree_logl(ann_network, clv_touched, dead_nodes, displayed_tree_root, treeIdx,
+                partitionIdx, &persite_logl, parent, startNode);
         //std::cout << "tree logl: " << tree_logl << "\n";
         if (treewise_logl) {
             (*treewise_logl)[treeIdx] = tree_logl;
