@@ -21,19 +21,33 @@ enum class MoveType {
     RNNIMove, RSPRMove, TailMove, HeadMove, RSPR1Move, ArcInsertionMove, ArcRemovalMove, DeltaPlusMove, DeltaMinusMove
 };
 
+struct GeneralMove {
+    GeneralMove(MoveType type) :
+            moveType(type) {
+    }
+    MoveType moveType;
+};
+
 enum class RNNIMoveType {
     ONE, ONE_STAR, TWO, TWO_STAR, THREE, THREE_STAR, FOUR
 };
 
-struct RNNIMove {
+struct RNNIMove: public GeneralMove {
+    RNNIMove() :
+            GeneralMove(MoveType::RNNIMove) {
+    }
+
     size_t u_clv_index = 0;
     size_t v_clv_index = 0;
     size_t s_clv_index = 0;
     size_t t_clv_index = 0;
-    RNNIMoveType type;
+    RNNIMoveType type = RNNIMoveType::ONE;
 };
 
-struct RSPRMove {
+struct RSPRMove: public GeneralMove {
+    RSPRMove() :
+            GeneralMove(MoveType::RSPRMove) {
+    }
     size_t x_prime_clv_index = 0;
     size_t y_prime_clv_index = 0;
     size_t x_clv_index = 0;
@@ -41,7 +55,10 @@ struct RSPRMove {
     size_t z_clv_index = 0;
 };
 
-struct ArcInsertionMove {
+struct ArcInsertionMove: public GeneralMove {
+    ArcInsertionMove() :
+            GeneralMove(MoveType::ArcInsertionMove) {
+    }
     size_t a_clv_index = 0;
     size_t b_clv_index = 0;
     size_t c_clv_index = 0;
@@ -54,7 +71,10 @@ struct ArcInsertionMove {
     double a_u_len = 1.0;
 };
 
-struct ArcRemovalMove {
+struct ArcRemovalMove: public GeneralMove {
+    ArcRemovalMove() :
+            GeneralMove(MoveType::ArcRemovalMove) {
+    }
     size_t a_clv_index = 0;
     size_t b_clv_index = 0;
     size_t c_clv_index = 0;
@@ -66,7 +86,7 @@ struct ArcRemovalMove {
     double c_v_len = 0.0;
     double u_v_prob = 0.5;
     double c_v_prob = 0.5;
-    double a_u_length = 1.0;
+    double a_u_len = 1.0;
 };
 
 std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network, const Edge *edge);
@@ -88,7 +108,6 @@ void undoMove(AnnotatedNetwork &ann_network, RSPRMove &move);
 
 std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_network, const Edge *edge);
 std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_network);
-std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_network, Node *v);
 std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_network);
 
 std::vector<ArcInsertionMove> possibleDeltaPlusMoves(AnnotatedNetwork &ann_network, const Edge *edge);
