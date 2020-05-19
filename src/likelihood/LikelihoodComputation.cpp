@@ -646,6 +646,7 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
                     bool changedBitIsSet = treeIdx & onlyChangedBit;
                     startNode = blobInfo.reticulation_nodes_per_megablob[megablob_idx][changedBitPos];
                     startNode->getReticulationData()->setActiveParentToggle(changedBitIsSet);
+                    assert(clv_touched[getReticulationChild(network, startNode)->clv_index]);
                 }
             } else {
                 setReticulationParents(blobInfo, megablob_idx, treeIdx);
@@ -743,6 +744,7 @@ std::vector<double> compute_persite_lh(AnnotatedNetwork &ann_network, unsigned i
                 bool changedBitIsSet = treeIdx & onlyChangedBit;
                 startNode = network.reticulation_nodes[changedBitPos];
                 startNode->getReticulationData()->setActiveParentToggle(changedBitIsSet);
+                assert(clv_touched[getReticulationChild(network, startNode)->clv_index]);
             }
         } else {
             setReticulationParents(network, treeIdx);
