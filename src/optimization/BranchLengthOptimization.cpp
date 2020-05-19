@@ -92,7 +92,7 @@ double optimize_branches(AnnotatedNetwork &ann_network, double min_brlen, double
         // optimize brlens on the tree
         NetraxOptions opts;
         RaxmlWrapper wrapper(options);
-        TreeInfo* tInfo = wrapper.createRaxmlTreeinfo(displayed_utree, fake_treeinfo);
+        TreeInfo *tInfo = wrapper.createRaxmlTreeinfo(displayed_utree, fake_treeinfo);
         Options raxmlOptions = wrapper.getRaxmlOptions();
 
         // TODO: Remove this again, it was only here because of the Slack discussion
@@ -126,6 +126,7 @@ double optimize_branches(AnnotatedNetwork &ann_network, double min_brlen, double
 
     }
 
+    std::vector<bool> visited(network.nodes.size(), false);
     // set the network brlens to the weighted average of the displayed_tree brlens
     // also set the network brlen support values to the brlen variance in the displayed trees which are having this branch
     for (size_t i = 0; i < network.num_branches(); ++i) {
@@ -140,6 +141,10 @@ double optimize_branches(AnnotatedNetwork &ann_network, double min_brlen, double
             for (size_t j = 0; j < opt_brlens[networkBranchIdx].size(); ++j) {
                 double weight = opt_brlens[networkBranchIdx][j].tree_prob / treeProbSum;
                 newLength += opt_brlens[networkBranchIdx][j].length * weight;
+            }
+            if (network.edges[i].length != newLength) {
+                invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, getSource(network, &network.edges[i]),
+                        false);
             }
             network.edges[i].length = newLength;
             fake_treeinfo.branch_lengths[partitionIdx][networkBranchIdx] = newLength;
@@ -157,12 +162,11 @@ double optimize_branches(AnnotatedNetwork &ann_network, double min_brlen, double
                 std::cout << " Old brlen before optimization: " << old_brlens[networkBranchIdx] << "\n";
                 std::cout << " New brlen from weighted average: " << network.edges[networkBranchIdx].length << "\n";
                 for (size_t j = 0; j < opt_brlens[i].size(); ++j) {
-                    std::cout << "  Tree #" << opt_brlens[networkBranchIdx][j].tree_index << ", prob = " << opt_brlens[networkBranchIdx][j].tree_prob
-                            << ", opt_brlen = " << opt_brlens[networkBranchIdx][j].length << "\n";
+                    std::cout << "  Tree #" << opt_brlens[networkBranchIdx][j].tree_index << ", prob = "
+                            << opt_brlens[networkBranchIdx][j].tree_prob << ", opt_brlen = "
+                            << opt_brlens[networkBranchIdx][j].length << "\n";
                 }
-                assert(
-                        network.edges[i].length
-                                == fake_treeinfo.branch_lengths[partitionIdx][networkBranchIdx]);
+                assert(network.edges[i].length == fake_treeinfo.branch_lengths[partitionIdx][networkBranchIdx]);
             } else {
                 std::cout << " This branch is has no exact presence in any displayed tree.\n";
             }
@@ -176,7 +180,7 @@ double optimize_branches(AnnotatedNetwork &ann_network, double min_brlen, double
         }
     }
 
-    return -1 * computeLoglikelihood(ann_network, 0, 1, false);
+    return -1 * computeLoglikelihood(ann_network, 1, 1, false);
 }
 
 }
