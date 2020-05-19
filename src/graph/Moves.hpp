@@ -16,6 +16,10 @@ namespace netrax {
 struct AnnotatedNetwork;
 // The moves correspond to the rNNI moves and rSPR moves from this paper: https://doi.org/10.1371/journal.pcbi.1005611
 
+enum class MoveType {
+    RNNIMove, RSPRMove, TailMove, HeadMove, RSPR1Move, ArcInsertionMove, ArcRemovalMove, DeltaPlusMove, DeltaMinusMove
+};
+
 enum class RNNIMoveType {
     ONE, ONE_STAR, TWO, TWO_STAR, THREE, THREE_STAR, FOUR
 };
@@ -81,12 +85,12 @@ void performMove(AnnotatedNetwork &ann_network, RSPRMove &move);
 void undoMove(AnnotatedNetwork &ann_network, RNNIMove &move);
 void undoMove(AnnotatedNetwork &ann_network, RSPRMove &move);
 
-std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_network, const Edge* edge);
+std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_network, const Edge *edge);
 std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_network);
 std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_network, Node *v);
 std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_network);
 
-std::vector<ArcInsertionMove> possibleDeltaPlusMoves(AnnotatedNetwork &ann_network, const Edge* edge);
+std::vector<ArcInsertionMove> possibleDeltaPlusMoves(AnnotatedNetwork &ann_network, const Edge *edge);
 std::vector<ArcInsertionMove> possibleDeltaPlusMoves(AnnotatedNetwork &ann_network);
 std::vector<ArcRemovalMove> possibleDeltaMinusMoves(AnnotatedNetwork &ann_network, Node *v);
 std::vector<ArcRemovalMove> possibleDeltaMinusMoves(AnnotatedNetwork &ann_network);
@@ -100,5 +104,29 @@ std::string toString(RNNIMove &move);
 std::string toString(RSPRMove &move);
 std::string toString(ArcInsertionMove &move);
 std::string toString(ArcRemovalMove &move);
+
+template<typename T>
+std::vector<T> possibleMoves(AnnotatedNetwork &ann_network, MoveType &type) {
+    switch (type) {
+    case MoveType::RNNIMove:
+        return possibleRNNIMoves(ann_network);
+    case MoveType::RSPRMove:
+        return possibleRSPRMoves(ann_network);
+    case MoveType::HeadMove:
+        return possibleHeadMoves(ann_network);
+    case MoveType::TailMove:
+        return possibleTailMoves(ann_network);
+    case MoveType::RSPR1Move:
+        return possibleRSPR1Moves(ann_network);
+    case MoveType::ArcInsertionMove:
+        return possibleArcInsertionMoves(ann_network);
+    case MoveType::ArcRemovalMove:
+        return possibleArcRemovalMoves(ann_network);
+    case MoveType::DeltaPlusMove:
+        return possibleDeltaPlusMoves(ann_network);
+    case MoveType::DeltaMinusMove:
+        return possibleDeltaMinusMoves(ann_network);
+    }
+}
 
 }
