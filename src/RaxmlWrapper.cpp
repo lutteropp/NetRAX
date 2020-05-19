@@ -173,6 +173,8 @@ TreeInfo* RaxmlWrapper::createRaxmlTreeinfo(AnnotatedNetwork &ann_network) {
             instance.parted_msa->part_count(), instance.opts.brlen_linkage);
     ann_network.fake_treeinfo = pllTreeinfo;
 
+    ann_network.total_num_sites = instance.parted_msa->total_sites();
+    ann_network.total_num_model_parameters = instance.parted_msa->total_free_model_params();
     return createRaxmlTreeinfo(pllTreeinfo, network_behaviour);
 }
 
