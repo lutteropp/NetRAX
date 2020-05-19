@@ -79,6 +79,12 @@ Node* getReticulationActiveParent(Network &network, const Node *node) {
     return getTargetNode(network, node->getReticulationData()->getLinkToActiveParent());
 }
 
+Node* getReticulationNonActiveParent(Network &network, const Node *node) {
+    assert(node);
+    assert(node->type == NodeType::RETICULATION_NODE);
+    return getTargetNode(network, node->getReticulationData()->getLinkToNonActiveParent());
+}
+
 double getReticulationFirstParentProb(Network &network, const Node *node) {
     assert(node);
     assert(node->type == NodeType::RETICULATION_NODE);

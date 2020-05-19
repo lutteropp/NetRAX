@@ -41,6 +41,14 @@ public:
         }
     }
 
+    Link* getLinkToNonActiveParent() const {
+        if (active_parent_toggle == 1) {
+            return link_to_first_parent;
+        } else {
+            return link_to_second_parent;
+        }
+    }
+
     void setActiveParentToggle(bool val) {
         active_parent_toggle = val;
     }

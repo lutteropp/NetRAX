@@ -22,7 +22,7 @@ extern "C" {
 
 namespace netrax {
 
-std::vector<pll_operation_t> createOperations(Network &network, size_t treeIdx, bool incremental);
+std::vector<pll_operation_t> createOperations(Network &network, size_t treeIdx, bool incremental, Node* displayed_tree_root);
 
 double displayed_tree_prob(AnnotatedNetwork &ann_network, size_t tree_index, size_t partition_index);
 
