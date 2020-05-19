@@ -125,4 +125,9 @@ std::string toString(RSPRMove &move);
 std::string toString(ArcInsertionMove &move);
 std::string toString(ArcRemovalMove &move);
 
+std::vector<std::unique_ptr<GeneralMove>> possibleMoves(AnnotatedNetwork &ann_network, MoveType moveType);
+void performMove(AnnotatedNetwork &ann_network, GeneralMove *move);
+void undoMove(AnnotatedNetwork &ann_network, GeneralMove *move);
+std::string toString(GeneralMove *move);
+
 }

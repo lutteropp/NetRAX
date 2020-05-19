@@ -1525,4 +1525,127 @@ std::string toString(ArcRemovalMove &move) {
     return ss.str();
 }
 
+template<typename T>
+std::vector<std::unique_ptr<GeneralMove>> convert(const std::vector<T> &moves) {
+    std::vector<std::unique_ptr<GeneralMove>> res(moves.size());
+    for (size_t i = 0; i < moves.size(); ++i) {
+        res[i] = std::make_unique<GeneralMove>(moves[i]);
+    }
+    return res;
+}
+
+std::vector<std::unique_ptr<GeneralMove>> possibleMoves(AnnotatedNetwork &ann_network, MoveType moveType) {
+    switch (moveType) {
+    case MoveType::RNNIMove:
+        return convert<RNNIMove>(possibleRNNIMoves(ann_network));
+    case MoveType::RSPRMove:
+        return convert<RSPRMove>(possibleRSPRMoves(ann_network));
+    case MoveType::RSPR1Move:
+        return convert<RSPRMove>(possibleRSPR1Moves(ann_network));
+    case MoveType::HeadMove:
+        return convert<RSPRMove>(possibleHeadMoves(ann_network));
+    case MoveType::TailMove:
+        return convert<RSPRMove>(possibleTailMoves(ann_network));
+    case MoveType::ArcInsertionMove:
+        return convert<ArcInsertionMove>(possibleArcInsertionMoves(ann_network));
+    case MoveType::DeltaPlusMove:
+        return convert<ArcInsertionMove>(possibleDeltaPlusMoves(ann_network));
+    case MoveType::ArcRemovalMove:
+        return convert<ArcRemovalMove>(possibleArcRemovalMoves(ann_network));
+    case MoveType::DeltaMinusMove:
+        return convert<ArcRemovalMove>(possibleDeltaMinusMoves(ann_network));
+    }
+    throw std::runtime_error("Invalid move type");
+}
+
+void performMove(AnnotatedNetwork &ann_network, GeneralMove *move) {
+    switch (move->moveType) {
+    case MoveType::RNNIMove:
+        performMove(ann_network, *static_cast<RNNIMove*>(move));
+        break;
+    case MoveType::RSPRMove:
+        performMove(ann_network, *static_cast<RSPRMove*>(move));
+        break;
+    case MoveType::RSPR1Move:
+        performMove(ann_network, *static_cast<RSPRMove*>(move));
+        break;
+    case MoveType::HeadMove:
+        performMove(ann_network, *static_cast<RSPRMove*>(move));
+        break;
+    case MoveType::TailMove:
+        performMove(ann_network, *static_cast<RSPRMove*>(move));
+        break;
+    case MoveType::ArcInsertionMove:
+        performMove(ann_network, *static_cast<ArcInsertionMove*>(move));
+        break;
+    case MoveType::DeltaPlusMove:
+        performMove(ann_network, *static_cast<ArcInsertionMove*>(move));
+        break;
+    case MoveType::ArcRemovalMove:
+        performMove(ann_network, *static_cast<ArcRemovalMove*>(move));
+        break;
+    case MoveType::DeltaMinusMove:
+        performMove(ann_network, *static_cast<ArcRemovalMove*>(move));
+        break;
+    }
+    throw std::runtime_error("Invalid move type");
+}
+
+void undoMove(AnnotatedNetwork &ann_network, GeneralMove *move) {
+    switch (move->moveType) {
+    case MoveType::RNNIMove:
+        undoMove(ann_network, *static_cast<RNNIMove*>(move));
+        break;
+    case MoveType::RSPRMove:
+        undoMove(ann_network, *static_cast<RSPRMove*>(move));
+        break;
+    case MoveType::RSPR1Move:
+        undoMove(ann_network, *static_cast<RSPRMove*>(move));
+        break;
+    case MoveType::HeadMove:
+        undoMove(ann_network, *static_cast<RSPRMove*>(move));
+        break;
+    case MoveType::TailMove:
+        undoMove(ann_network, *static_cast<RSPRMove*>(move));
+        break;
+    case MoveType::ArcInsertionMove:
+        undoMove(ann_network, *static_cast<ArcInsertionMove*>(move));
+        break;
+    case MoveType::DeltaPlusMove:
+        undoMove(ann_network, *static_cast<ArcInsertionMove*>(move));
+        break;
+    case MoveType::ArcRemovalMove:
+        undoMove(ann_network, *static_cast<ArcRemovalMove*>(move));
+        break;
+    case MoveType::DeltaMinusMove:
+        undoMove(ann_network, *static_cast<ArcRemovalMove*>(move));
+        break;
+    }
+    throw std::runtime_error("Invalid move type");
+}
+
+std::string toString(GeneralMove *move) {
+    switch (move->moveType) {
+    case MoveType::RNNIMove:
+        return toString(*static_cast<RNNIMove*>(move));
+    case MoveType::RSPRMove:
+        return toString(*static_cast<RSPRMove*>(move));
+    case MoveType::RSPR1Move:
+        return toString(*static_cast<RSPRMove*>(move));
+    case MoveType::HeadMove:
+        return toString(*static_cast<RSPRMove*>(move));
+    case MoveType::TailMove:
+        return toString(*static_cast<RSPRMove*>(move));
+    case MoveType::ArcInsertionMove:
+        return toString(*static_cast<ArcInsertionMove*>(move));
+    case MoveType::DeltaPlusMove:
+        return toString(*static_cast<ArcInsertionMove*>(move));
+    case MoveType::ArcRemovalMove:
+        return toString(*static_cast<ArcRemovalMove*>(move));
+    case MoveType::DeltaMinusMove:
+        return toString(*static_cast<ArcRemovalMove*>(move));
+    }
+    throw std::runtime_error("Invalid move type");
+}
+
 }
