@@ -614,6 +614,7 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
     unsigned int clv_len = states_padded * sites * rate_cats;
 
     std::vector<double> persite_lh_network(fake_treeinfo.partitions[partitionIdx]->sites, 0.0);
+    std::vector<double> old_persite_logl(fake_treeinfo.partitions[partitionIdx]->sites, 0.0);
     // Iterate over all megablobs in a bottom-up manner
     for (size_t megablob_idx = 0; megablob_idx < blobInfo.megablob_roots.size(); ++megablob_idx) {
         unsigned int megablobRootClvIdx = blobInfo.megablob_roots[megablob_idx]->clv_index;
@@ -653,20 +654,19 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
             }
             Node *displayed_tree_root = nullptr;
             std::vector<bool> dead_nodes = collect_dead_nodes(network, &displayed_tree_root);
-
-            if (startNode && dead_nodes[startNode->clv_index]) {
-                continue; // TODO: Needs special treatment if reticulation probs need to be updated
-            }
-
             std::vector<double> persite_logl(fake_treeinfo.partitions[partitionIdx]->sites, 0.0);
 
-            if (startNode && !clv_touched[startNode->clv_index]) {
-                fill_untouched_clvs(ann_network, clv_touched, dead_nodes, partitionIdx, startNode);
-                assert(clv_touched[startNode->clv_index]);
+            if (startNode && dead_nodes[startNode->clv_index]) {
+                persite_logl = old_persite_logl;
+            } else {
+                if (startNode && !clv_touched[startNode->clv_index]) {
+                    fill_untouched_clvs(ann_network, clv_touched, dead_nodes, partitionIdx, startNode);
+                    assert(clv_touched[startNode->clv_index]);
+                }
+                compute_tree_logl_blobs(ann_network, clv_touched, dead_nodes, displayed_tree_root, incremental, parent,
+                        fake_treeinfo, megablob_idx, partitionIdx, &persite_logl, startNode);
+                old_persite_logl = persite_logl;
             }
-
-            compute_tree_logl_blobs(ann_network, clv_touched, dead_nodes, displayed_tree_root, incremental, parent,
-                    fake_treeinfo, megablob_idx, partitionIdx, &persite_logl, startNode);
 
             if (update_reticulation_probs) { // TODO: Only do this if we weren't at a leaf
                 updateBestPersiteLoglikelihoodsBlobs(network, blobInfo, megablob_idx, treeIdx, numSites,
@@ -719,6 +719,8 @@ std::vector<double> compute_persite_lh(AnnotatedNetwork &ann_network, unsigned i
     bool useGrayCode = ann_network.options.use_graycode;
 
     std::vector<double> persite_lh_network(fake_treeinfo.partitions[partitionIdx]->sites, 0.0);
+    std::vector<double> old_persite_logl(fake_treeinfo.partitions[partitionIdx]->sites, 0.0);
+    double old_tree_logl = 0.0;
 
     // Iterate over all displayed trees
     unsigned int num_reticulations = network.num_reticulations();
@@ -754,17 +756,21 @@ std::vector<double> compute_persite_lh(AnnotatedNetwork &ann_network, unsigned i
         Node *displayed_tree_root = nullptr;
         std::vector<bool> dead_nodes = collect_dead_nodes(network, &displayed_tree_root);
 
-        if (startNode && dead_nodes[startNode->clv_index]) {
-            continue; // TODO: Needs special treatment if reticulation probs need to be updated
-        }
-
         std::vector<double> persite_logl(fake_treeinfo.partitions[partitionIdx]->sites, 0.0);
-        if (startNode && !clv_touched[startNode->clv_index]) {
-            fill_untouched_clvs(ann_network, clv_touched, dead_nodes, partitionIdx, startNode);
-            assert(clv_touched[startNode->clv_index]);
+        double tree_logl;
+        if (startNode && dead_nodes[startNode->clv_index]) {
+            persite_logl = old_persite_logl;
+            tree_logl = old_tree_logl;
+        } else {
+            if (startNode && !clv_touched[startNode->clv_index]) {
+                fill_untouched_clvs(ann_network, clv_touched, dead_nodes, partitionIdx, startNode);
+                assert(clv_touched[startNode->clv_index]);
+            }
+            tree_logl = compute_tree_logl(ann_network, clv_touched, dead_nodes, displayed_tree_root, treeIdx,
+                    partitionIdx, &persite_logl, parent, startNode);
+            old_persite_logl = persite_logl;
+            old_tree_logl = tree_logl;
         }
-        double tree_logl = compute_tree_logl(ann_network, clv_touched, dead_nodes, displayed_tree_root, treeIdx,
-                partitionIdx, &persite_logl, parent, startNode);
         //std::cout << "tree logl: " << tree_logl << "\n";
         if (treewise_logl) {
             (*treewise_logl)[treeIdx] = tree_logl;
