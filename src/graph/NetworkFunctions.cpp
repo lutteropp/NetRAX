@@ -6,18 +6,31 @@
  */
 
 #include "NetworkFunctions.hpp"
-#include "NetworkTopology.hpp"
-#include "BiconnectedComponents.hpp"
-#include "Link.hpp"
 
+#include <stdlib.h>
+#include <algorithm>
 #include <cassert>
+#include <cstdio>
+#include <cstring>
+#include <iterator>
 #include <memory>
-#include <iostream>
-#include <stack>
 #include <queue>
-#include <stdexcept>
 #include <sstream>
+#include <stack>
+#include <stdexcept>
+#include <thread>
+#include <unordered_set>
 #include <utility>
+
+#include "BiconnectedComponents.hpp"
+#include "Direction.hpp"
+#include "Edge.hpp"
+#include "Link.hpp"
+#include "Network.hpp"
+#include "NetworkTopology.hpp"
+#include "Node.hpp"
+#include "NodeType.hpp"
+#include "ReticulationData.hpp"
 
 namespace netrax {
 
