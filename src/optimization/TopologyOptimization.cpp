@@ -38,49 +38,33 @@ double bic(AnnotatedNetwork &ann_network, double logl) {
     return bic(logl, param_count, num_sites);
 }
 
-template<typename T>
-std::vector<T> possibleMoves(AnnotatedNetwork &ann_network, MoveType &type) {
-    switch (type) {
-    case MoveType::RNNIMove:
-        return possibleRNNIMoves(ann_network);
-    case MoveType::RSPRMove:
-        return possibleRSPRMoves(ann_network);
-    case MoveType::HeadMove:
-        return possibleHeadMoves(ann_network);
-    case MoveType::TailMove:
-        return possibleTailMoves(ann_network);
-    case MoveType::RSPR1Move:
-        return possibleRSPR1Moves(ann_network);
-    case MoveType::ArcInsertionMove:
-        return possibleArcInsertionMoves(ann_network);
-    case MoveType::ArcRemovalMove:
-        return possibleArcRemovalMoves(ann_network);
-    case MoveType::DeltaPlusMove:
-        return possibleDeltaPlusMoves(ann_network);
-    case MoveType::DeltaMinusMove:
-        return possibleDeltaMinusMoves(ann_network);
+double greedyHillClimbingStep(AnnotatedNetwork &ann_network, MoveType type, double old_score) {
+    std::vector<std::unique_ptr<GeneralMove>> candidates = possibleMoves(ann_network, type);
+    size_t best_idx = candidates.size();
+    double best_score = old_score;
+    for (size_t i = 0; i < candidates.size(); ++i) {
+        performMove(ann_network, candidates[i].get());
+        double new_logl = ann_network.raxml_treeinfo->loglh(true);
+        double new_bic = bic(ann_network, new_logl);
+        if (new_bic > best_score) {
+            best_score = new_bic;
+            best_idx = i;
+        }
+        undoMove(ann_network, candidates[i].get());
     }
-}
-
-template<typename T>
-T randomMove(AnnotatedNetwork &ann_network, MoveType &type) {
-    std::vector<T> candidates = possibleMoves<T>(ann_network, type);
-    assert(!candidates.empty());
-    std::uniform_int_distribution<std::mt19937::result_type> dist(0, candidates.size() - 1);
-    return candidates[dist(ann_network.rng)];
-}
-
-double greedyHillClimbingStep(AnnotatedNetwork &ann_network, MoveType type) {
-    return -1;
+    if (best_idx < candidates.size()) {
+        performMove(ann_network, candidates[best_idx].get());
+    }
+    return best_score;
 }
 
 double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, MoveType type) {
     double old_logl = ann_network.raxml_treeinfo->loglh(true);
     double old_bic = bic(ann_network, old_logl);
-    double new_bic = greedyHillClimbingStep(ann_network, type);
+    double new_bic = greedyHillClimbingStep(ann_network, type, old_bic);
     while (new_bic > old_bic) {
         old_bic = new_bic;
-        new_bic = greedyHillClimbingStep(ann_network, type);
+        new_bic = greedyHillClimbingStep(ann_network, type, old_bic);
     }
     return ann_network.old_logl;
 }
