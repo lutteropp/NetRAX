@@ -672,7 +672,7 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
                     persite_lh_network[s] += exp(persite_logl[s]) * tree_prob;
                 }
             }
-            if (n_trees > 1) {
+            if (n_trees > 1 && megablobRootClvIdx != network.root->clv_index) {
                 assert(clv_touched[megablobRootClvIdx]);
                 // extract the tree root clv vector and put it into tree_clvs together with its displayed tree probability
                 std::vector<double> treeRootCLV;
@@ -682,7 +682,7 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
             }
         }
 
-        if (n_trees > 1) {
+        if (n_trees > 1 && megablobRootClvIdx != network.root->clv_index) {
             assert(clv_touched[megablobRootClvIdx]);
             // merge the tree clvs into the megablob root clv
             merge_tree_clvs(tree_clvs, fake_treeinfo.partitions[partitionIdx], megablobRootClvIdx);
@@ -717,18 +717,6 @@ std::vector<double> compute_persite_lh(AnnotatedNetwork &ann_network, unsigned i
     // Iterate over all displayed trees
     unsigned int num_reticulations = network.num_reticulations();
     size_t n_trees = 1 << num_reticulations;
-
-    /*if (ann_network.fake_treeinfo->clv_valid[partitionIdx][network.root->clv_index]) {
-     n_trees = 1;
-     }*/
-
-    // iterate over all displayed trees, storing their tree clvs and tree probs
-    std::vector<std::pair<double, std::vector<double>> > tree_clvs;
-    tree_clvs.reserve(n_trees);
-    unsigned int states_padded = fake_treeinfo.partitions[partitionIdx]->states_padded;
-    unsigned int sites = fake_treeinfo.partitions[partitionIdx]->sites;
-    unsigned int rate_cats = fake_treeinfo.partitions[partitionIdx]->rate_cats;
-    unsigned int clv_len = states_padded * sites * rate_cats;
 
     setReticulationParents(network, 0);
     for (size_t i = 0; i < n_trees; ++i) {
@@ -771,25 +759,10 @@ std::vector<double> compute_persite_lh(AnnotatedNetwork &ann_network, unsigned i
             persite_lh_network[s] += exp(persite_logl[s]) * tree_prob;
         }
 
-        if (n_trees > 1) {
-            assert(clv_touched[network.root->clv_index]);
-            // extract the tree root clv vector and put it into tree_clvs together with its displayed tree probability
-            std::vector<double> treeRootCLV;
-            treeRootCLV.assign(fake_treeinfo.partitions[partitionIdx]->clv[network.root->clv_index],
-                    fake_treeinfo.partitions[partitionIdx]->clv[network.root->clv_index] + clv_len);
-            tree_clvs.emplace_back(std::make_pair(tree_prob, treeRootCLV));
-        }
-
         if (update_reticulation_probs) {
             updateBestPersiteLoglikelihoods(treeIdx, network.num_reticulations(), numSites, best_persite_logl_network,
                     persite_logl);
         }
-    }
-
-    if (n_trees > 1) {
-        assert(clv_touched[network.root->clv_index]);
-        // merge the tree clvs into the root clv
-        merge_tree_clvs(tree_clvs, fake_treeinfo.partitions[partitionIdx], network.root->clv_index);
     }
 
     return persite_lh_network;
