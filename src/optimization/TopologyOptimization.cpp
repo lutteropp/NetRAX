@@ -39,6 +39,31 @@ double bic(AnnotatedNetwork &ann_network, double logl) {
 }
 
 template<typename T>
+std::vector<T> possibleMoves(AnnotatedNetwork &ann_network, MoveType moveType) {
+    switch (moveType) {
+    case MoveType::RNNIMove:
+        return possibleRNNIMoves(ann_network);
+    case MoveType::RSPRMove:
+        return possibleRSPRMoves(ann_network);
+    case MoveType::RSPR1Move:
+        return possibleRSPR1Moves(ann_network);
+    case MoveType::HeadMove:
+        return possibleHeadMoves(ann_network);
+    case MoveType::TailMove:
+        return possibleTailMoves(ann_network);
+    case MoveType::ArcInsertionMove:
+        return possibleArcInsertionMoves(ann_network);
+    case MoveType::DeltaPlusMove:
+        return possibleDeltaPlusMoves(ann_network);
+    case MoveType::ArcRemovalMove:
+        return possibleArcRemovalMoves(ann_network);
+    case MoveType::DeltaMinusMove:
+        return possibleDeltaMinusMoves(ann_network);
+    }
+    throw std::runtime_error("Invalid move type");
+}
+
+template<typename T>
 double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> &candidates, double old_score) {
     size_t best_idx = candidates.size();
     double best_score = old_score;
