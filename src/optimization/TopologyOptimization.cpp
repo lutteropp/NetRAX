@@ -38,6 +38,47 @@ double bic(AnnotatedNetwork &ann_network, double logl) {
     return bic(logl, param_count, num_sites);
 }
 
+std::vector<RNNIMove> possibleMovesRNNI(AnnotatedNetwork &ann_network) {
+    return possibleRNNIMoves(ann_network);
+}
+
+std::vector<RSPRMove> possibleMovesRSPR(AnnotatedNetwork &ann_network, MoveType moveType) {
+    switch (moveType) {
+    case MoveType::RSPRMove:
+        return possibleRSPRMoves(ann_network);
+    case MoveType::RSPR1Move:
+        return possibleRSPR1Moves(ann_network);
+    case MoveType::HeadMove:
+        return possibleHeadMoves(ann_network);
+    case MoveType::TailMove:
+        return possibleTailMoves(ann_network);
+    default:
+        throw std::runtime_error("Invalid move type");
+    }
+}
+
+std::vector<ArcInsertionMove> possibleMovesArcInsertion(AnnotatedNetwork &ann_network, MoveType moveType) {
+    switch (moveType) {
+    case MoveType::ArcInsertionMove:
+        return possibleArcInsertionMoves(ann_network);
+    case MoveType::DeltaPlusMove:
+        return possibleDeltaPlusMoves(ann_network);
+    default:
+        throw std::runtime_error("Invalid move type");
+    }
+}
+
+std::vector<ArcRemovalMove> possibleMovesArcRemoval(AnnotatedNetwork &ann_network, MoveType moveType) {
+    switch (moveType) {
+    case MoveType::ArcRemovalMove:
+        return possibleArcRemovalMoves(ann_network);
+    case MoveType::DeltaMinusMove:
+        return possibleDeltaMinusMoves(ann_network);
+    default:
+        throw std::runtime_error("Invalid move type");
+    }
+}
+
 template<typename T>
 std::vector<T> possibleMoves(AnnotatedNetwork &ann_network, MoveType moveType) {
     switch (moveType) {
@@ -59,12 +100,14 @@ std::vector<T> possibleMoves(AnnotatedNetwork &ann_network, MoveType moveType) {
         return possibleArcRemovalMoves(ann_network);
     case MoveType::DeltaMinusMove:
         return possibleDeltaMinusMoves(ann_network);
+    default:
+        throw std::runtime_error("Invalid move type");
     }
-    throw std::runtime_error("Invalid move type");
 }
 
 template<typename T>
-double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> &candidates, double old_score) {
+double greedyHillClimbingStep(AnnotatedNetwork &ann_network, MoveType &type, double old_score) {
+    std::vector<T> candidates = possibleMoves<T>(ann_network, type);
     size_t best_idx = candidates.size();
     double best_score = old_score;
     for (size_t i = 0; i < candidates.size(); ++i) {
@@ -88,12 +131,10 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, MoveType &type)
     double old_logl = ann_network.raxml_treeinfo->loglh(true);
     double old_bic = bic(ann_network, old_logl);
 
-    std::vector<T> candidates = possibleMoves<T>(ann_network, type);
-    double new_bic = greedyHillClimbingStep<T>(ann_network, candidates, old_bic);
+    double new_bic = greedyHillClimbingStep<T>(ann_network, type, old_bic);
     while (new_bic > old_bic) {
         old_bic = new_bic;
-        candidates = possibleMoves<T>(ann_network, type);
-        new_bic = greedyHillClimbingStep<T>(ann_network, candidates, old_bic);
+        new_bic = greedyHillClimbingStep<T>(ann_network, type, old_bic);
     }
     return ann_network.old_logl;
 }
@@ -118,8 +159,9 @@ double searchBetterTopologyGreedy(AnnotatedNetwork &ann_network, MoveType type) 
         return greedyHillClimbingTopology<ArcRemovalMove>(ann_network, type);
     case MoveType::DeltaMinusMove:
         return greedyHillClimbingTopology<ArcRemovalMove>(ann_network, type);
+    default:
+        throw std::runtime_error("Invalid move type");
     }
-    throw std::runtime_error("Ivalid move type");
 }
 
 }
