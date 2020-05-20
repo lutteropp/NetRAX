@@ -38,39 +38,63 @@ double bic(AnnotatedNetwork &ann_network, double logl) {
     return bic(logl, param_count, num_sites);
 }
 
-double greedyHillClimbingStep(AnnotatedNetwork &ann_network, MoveType type, double old_score) {
-    std::vector<std::unique_ptr<GeneralMove>> candidates = possibleMoves(ann_network, type);
+template<typename T>
+double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> &candidates, double old_score) {
     size_t best_idx = candidates.size();
     double best_score = old_score;
     for (size_t i = 0; i < candidates.size(); ++i) {
-        performMove(ann_network, candidates[i].get());
+        performMove(ann_network, candidates[i]);
         double new_logl = ann_network.raxml_treeinfo->loglh(true);
         double new_bic = bic(ann_network, new_logl);
         if (new_bic > best_score) {
             best_score = new_bic;
             best_idx = i;
         }
-        undoMove(ann_network, candidates[i].get());
+        undoMove(ann_network, candidates[i]);
     }
     if (best_idx < candidates.size()) {
-        performMove(ann_network, candidates[best_idx].get());
+        performMove(ann_network, candidates[best_idx]);
     }
     return best_score;
 }
 
-double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, MoveType type) {
+template<typename T>
+double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, MoveType &type) {
     double old_logl = ann_network.raxml_treeinfo->loglh(true);
     double old_bic = bic(ann_network, old_logl);
-    double new_bic = greedyHillClimbingStep(ann_network, type, old_bic);
+
+    std::vector<T> candidates = possibleMoves<T>(ann_network, type);
+    double new_bic = greedyHillClimbingStep<T>(ann_network, candidates, old_bic);
     while (new_bic > old_bic) {
         old_bic = new_bic;
-        new_bic = greedyHillClimbingStep(ann_network, type, old_bic);
+        candidates = possibleMoves<T>(ann_network, type);
+        new_bic = greedyHillClimbingStep<T>(ann_network, candidates, old_bic);
     }
     return ann_network.old_logl;
 }
 
-double searchBetterTopology(AnnotatedNetwork &ann_network) {
-    return greedyHillClimbingTopology(ann_network, MoveType::RNNIMove);
+double searchBetterTopologyGreedy(AnnotatedNetwork &ann_network, MoveType type) {
+    switch (type) {
+    case MoveType::RNNIMove:
+        return greedyHillClimbingTopology<RNNIMove>(ann_network, type);
+    case MoveType::RSPRMove:
+        return greedyHillClimbingTopology<RSPRMove>(ann_network, type);
+    case MoveType::RSPR1Move:
+        return greedyHillClimbingTopology<RSPRMove>(ann_network, type);
+    case MoveType::HeadMove:
+        return greedyHillClimbingTopology<RSPRMove>(ann_network, type);
+    case MoveType::TailMove:
+        return greedyHillClimbingTopology<RSPRMove>(ann_network, type);
+    case MoveType::ArcInsertionMove:
+        return greedyHillClimbingTopology<ArcInsertionMove>(ann_network, type);
+    case MoveType::DeltaPlusMove:
+        return greedyHillClimbingTopology<ArcInsertionMove>(ann_network, type);
+    case MoveType::ArcRemovalMove:
+        return greedyHillClimbingTopology<ArcRemovalMove>(ann_network, type);
+    case MoveType::DeltaMinusMove:
+        return greedyHillClimbingTopology<ArcRemovalMove>(ann_network, type);
+    }
+    throw std::runtime_error("Ivalid move type");
 }
 
 }

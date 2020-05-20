@@ -10,9 +10,10 @@
 namespace netrax {
 
 struct AnnotatedNetwork;
+enum class MoveType;
 
 double aic(AnnotatedNetwork &ann_network, double logl);
 double bic(AnnotatedNetwork &ann_network, double logl);
-double searchBetterTopology(AnnotatedNetwork &ann_network);
+double searchBetterTopologyGreedy(AnnotatedNetwork &ann_network, MoveType type);
 
 }

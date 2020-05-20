@@ -135,7 +135,7 @@ double optimizeBranches(AnnotatedNetwork &ann_network) {
     return ann_network.raxml_treeinfo->optimize_branches(ann_network.options.lh_epsilon, 1);
 }
 double optimizeTopology(AnnotatedNetwork &ann_network) {
-    return searchBetterTopology(ann_network);
+    return searchBetterTopologyGreedy(ann_network, MoveType::RNNIMove);
 }
 
 void writeNetwork(AnnotatedNetwork &ann_network, const std::string &filepath) {

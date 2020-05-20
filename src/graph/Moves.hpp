@@ -125,7 +125,31 @@ std::string toString(RSPRMove &move);
 std::string toString(ArcInsertionMove &move);
 std::string toString(ArcRemovalMove &move);
 
-std::vector<std::unique_ptr<GeneralMove>> possibleMoves(AnnotatedNetwork &ann_network, MoveType moveType);
+template<typename T>
+std::vector<T> possibleMoves(AnnotatedNetwork &ann_network, MoveType moveType) {
+    switch (moveType) {
+    case MoveType::RNNIMove:
+        return possibleRNNIMoves(ann_network);
+    case MoveType::RSPRMove:
+        return possibleRSPRMoves(ann_network);
+    case MoveType::RSPR1Move:
+        return possibleRSPR1Moves(ann_network);
+    case MoveType::HeadMove:
+        return possibleHeadMoves(ann_network);
+    case MoveType::TailMove:
+        return possibleTailMoves(ann_network);
+    case MoveType::ArcInsertionMove:
+        return possibleArcInsertionMoves(ann_network);
+    case MoveType::DeltaPlusMove:
+        return possibleDeltaPlusMoves(ann_network);
+    case MoveType::ArcRemovalMove:
+        return possibleArcRemovalMoves(ann_network);
+    case MoveType::DeltaMinusMove:
+        return possibleDeltaMinusMoves(ann_network);
+    }
+    throw std::runtime_error("Invalid move type");
+}
+
 void performMove(AnnotatedNetwork &ann_network, GeneralMove *move);
 void undoMove(AnnotatedNetwork &ann_network, GeneralMove *move);
 std::string toString(GeneralMove *move);
