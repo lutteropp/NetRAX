@@ -14,6 +14,6 @@ enum class MoveType;
 
 double aic(AnnotatedNetwork &ann_network, double logl);
 double bic(AnnotatedNetwork &ann_network, double logl);
-double searchBetterTopologyGreedy(AnnotatedNetwork &ann_network, MoveType type);
+double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, MoveType type);
 
 }
