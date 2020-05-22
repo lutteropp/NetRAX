@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
     //::testing::GTEST_FLAG(filter) = "*NetworkIOTest.reticulationHasLeafChild"*;
     //::testing::GTEST_FLAG(filter) = "*LikelihoodTest.smallNetworkWithRepeats";
     //::testing::GTEST_FLAG(filter) = "*LikelihoodTest.*";
-    ::testing::GTEST_FLAG(filter) = "*MovesTest.rnni*";
+    ::testing::GTEST_FLAG(filter) = "*MovesTest.*";
     //::testing::GTEST_FLAG(filter) = "*MovesTest.incrementalLoglikelihoodProblem*";
     //::testing::GTEST_FLAG(filter) = "*SystemTest.problem*";
     //::testing::GTEST_FLAG(filter) = "*SystemTest.allNetwork*";
