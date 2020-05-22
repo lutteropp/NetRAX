@@ -38,23 +38,26 @@ double bic(AnnotatedNetwork &ann_network, double logl) {
     return bic(logl, param_count, num_sites);
 }
 
-
 template<typename T>
 double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates, double old_score) {
     size_t best_idx = candidates.size();
     double best_score = old_score;
+    double best_logl;
     for (size_t i = 0; i < candidates.size(); ++i) {
         performMove(ann_network, candidates[i]);
         double new_logl = ann_network.raxml_treeinfo->loglh(true);
         double new_bic = bic(ann_network, new_logl);
         if (new_bic > best_score) {
             best_score = new_bic;
+            best_logl = new_logl;
             best_idx = i;
         }
         undoMove(ann_network, candidates[i]);
     }
     if (best_idx < candidates.size()) {
         performMove(ann_network, candidates[best_idx]);
+        std::cout << "Accepting move " << toString(candidates[best_idx]) << " with old_score= " << old_score
+                << ", best_score= " << best_score << ", best_logl= " << best_logl << "\n";
     }
     return best_score;
 }
@@ -84,20 +87,16 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, MoveType type) 
             new_bic = greedyHillClimbingStep(ann_network, possibleTailMoves(ann_network), old_bic);
             break;
         case MoveType::ArcInsertionMove:
-            new_bic = greedyHillClimbingStep(ann_network, possibleArcInsertionMoves(ann_network),
-                    old_bic);
+            new_bic = greedyHillClimbingStep(ann_network, possibleArcInsertionMoves(ann_network), old_bic);
             break;
         case MoveType::DeltaPlusMove:
-            new_bic = greedyHillClimbingStep(ann_network, possibleDeltaPlusMoves(ann_network),
-                    old_bic);
+            new_bic = greedyHillClimbingStep(ann_network, possibleDeltaPlusMoves(ann_network), old_bic);
             break;
         case MoveType::ArcRemovalMove:
-            new_bic = greedyHillClimbingStep(ann_network, possibleArcRemovalMoves(ann_network),
-                    old_bic);
+            new_bic = greedyHillClimbingStep(ann_network, possibleArcRemovalMoves(ann_network), old_bic);
             break;
         case MoveType::DeltaMinusMove:
-            new_bic = greedyHillClimbingStep(ann_network, possibleDeltaMinusMoves(ann_network),
-                    old_bic);
+            new_bic = greedyHillClimbingStep(ann_network, possibleDeltaMinusMoves(ann_network), old_bic);
             break;
         default:
             throw std::runtime_error("Invalid move type");

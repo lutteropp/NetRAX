@@ -97,6 +97,18 @@ void completeRun(AnnotatedNetwork &ann_network) {
     // topology optimization
     double topo_logl = optimizeTopology(ann_network);
     std::cout << "Loglikelihood after topology optimization: " << topo_logl << "\n";
+
+    // branch length optimization
+    // TODO: Why does this give us a positive number???
+    brlenopt_logl = optimizeBranches(ann_network);
+    std::cout << "Loglikelihood after branch length optimization: " << brlenopt_logl << "\n";
+
+    // model parameter optimization
+    modelopt2_logl = optimizeModel(ann_network);
+    std::cout << "Loglikelihood after model optimization again: " << modelopt2_logl << "\n";
+
+    std::cout << exportDebugInfo(ann_network.network) << "\n";
+    std::cout << toExtendedNewick(ann_network.network) << "\n";
 }
 
 TEST (SystemTest, allTree) {
