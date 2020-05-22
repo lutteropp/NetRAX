@@ -73,19 +73,19 @@ TEST (SystemTest, allTreeOldRaxml) {
 }
 
 void completeRun(AnnotatedNetwork &ann_network) {
-    std::cout << exportDebugInfo(ann_network.network) << "\n";
+    //std::cout << exportDebugInfo(ann_network.network) << "\n";
     std::cout << toExtendedNewick(ann_network.network) << "\n";
 
-    //computeLoglikelihood(ann_network);
-    //updateReticulationProbs(ann_network);
-    //optimizeModel(ann_network);
-    //optimizeBranches(ann_network);
-    //optimizeModel(ann_network);
+    computeLoglikelihood(ann_network);
+    updateReticulationProbs(ann_network);
+    optimizeModel(ann_network);
+    optimizeBranches(ann_network);
+    optimizeModel(ann_network);
     optimizeTopology(ann_network);
-    //optimizeBranches(ann_network);
-    //optimizeModel(ann_network);
+    optimizeBranches(ann_network);
+    optimizeModel(ann_network);
 
-    std::cout << exportDebugInfo(ann_network.network) << "\n";
+    //std::cout << exportDebugInfo(ann_network.network) << "\n";
     std::cout << toExtendedNewick(ann_network.network) << "\n";
 }
 
@@ -125,7 +125,7 @@ TEST (SystemTest, randomNetwork) {
     smallOptions.msa_file = msaPath;
     smallOptions.use_repeats = true;
     RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
-    unsigned int n_reticulations = 10;
+    unsigned int n_reticulations = 7;
     AnnotatedNetwork ann_network = build_random_annotated_network(smallOptions, n_reticulations);
     assert(ann_network.network.num_reticulations() == n_reticulations);
 
