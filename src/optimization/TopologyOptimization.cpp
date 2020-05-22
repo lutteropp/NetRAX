@@ -12,6 +12,7 @@
 #include "../graph/NetworkTopology.hpp"
 #include "../graph/Network.hpp"
 #include "../graph/Moves.hpp"
+#include "../likelihood/LikelihoodComputation.hpp"
 
 namespace netrax {
 
@@ -101,6 +102,10 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
     if (best_idx < candidates.size()) {
         performMove(ann_network, candidates[best_idx]);
         apply_brlens(ann_network, best_brlens);
+        // optimize reticulation probs and model after a move has been accepted
+        netrax::computeLoglikelihood(ann_network, 0, 1, true);
+        best_logl = ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
+
         std::cout << "Accepting move " << toString(candidates[best_idx]) << " with old_score= " << old_score
                 << ", best_score= " << best_score << ", best_logl= " << best_logl << "\n";
     }
