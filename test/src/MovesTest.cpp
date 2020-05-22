@@ -378,6 +378,8 @@ TEST (MovesTest, incrementalLoglikelihoodProblem) {
     ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
     std::cout << "initial_logl: " << initial_logl << "\n";
 
+    std::cout << exportDebugInfo(ann_network.network);
+    std::cout << toExtendedNewick(ann_network.network) << "\n";
     RNNIMove move;
     move.moveType = MoveType::RNNIMove;
     move.u_clv_index = 7;
@@ -386,10 +388,14 @@ TEST (MovesTest, incrementalLoglikelihoodProblem) {
     move.t_clv_index = 2;
     move.type = RNNIMoveType::THREE;
     performMove(ann_network, move);
+    std::cout << exportDebugInfo(ann_network.network);
+    std::cout << toExtendedNewick(ann_network.network) << "\n";
     double moved_logl = computeLoglikelihood(ann_network);
     std::cout << "moved_logl: " << moved_logl << "\n";
     ASSERT_NE(moved_logl, -std::numeric_limits<double>::infinity());
     undoMove(ann_network, move);
+    std::cout << exportDebugInfo(ann_network.network);
+    std::cout << toExtendedNewick(ann_network.network) << "\n";
     double back_logl = computeLoglikelihood(ann_network);
     std::cout << "back_logl: " << back_logl << "\n";
     ASSERT_DOUBLE_EQ(initial_logl, back_logl);
