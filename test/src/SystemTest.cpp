@@ -125,7 +125,7 @@ TEST (SystemTest, randomNetwork) {
     smallOptions.msa_file = msaPath;
     smallOptions.use_repeats = true;
     RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
-    unsigned int n_reticulations = 7;
+    unsigned int n_reticulations = 2;
     AnnotatedNetwork ann_network = build_random_annotated_network(smallOptions, n_reticulations);
     assert(ann_network.network.num_reticulations() == n_reticulations);
 
@@ -200,4 +200,8 @@ TEST (SystemTest, problem9) {
 TEST (SystemTest, problem10) {
     problemTest(
             "(((((C:0.025,(((D:0.05)#2:0.0125::0.5)#4:0.0125::0.5)#3:1::0.5):0.0125,(#3:0.00625::0.5)#6:1::0.5):0.0125,((A:0.025)#1:0.025::0.5)#0:1::0.5):0.025)#5:0.025::0.5,((B:0.05,(#1:0.5::0.5,(#2:0.5::0.5,#5:1::0.5):0.5):0.5):0.05,(#6:0.00625::0.5,#4:1::0.5):0.0125):0.1,#0:0.05::0.5);");
+}
+
+TEST (SystemTest, problem11) {
+    problemTest("(C:0.1,((B:0.05,(((A:0.1,D:0.1):0.025)#1:0.025::0.5)#0:1::0.5):0.025,#1:1::0.5):0.025,#0:0.05::0.5);");
 }
