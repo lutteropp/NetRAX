@@ -513,125 +513,128 @@ void assertAfterMove(Network &network, RNNIMove &move) {
     checkLinkDirections(network);
 }
 
-void fixReticulationProbs(Network &network, Node *u, Node *v, Node *s, Node *t, RNNIMoveType type, bool forward) {
-    if (forward) {
-        Edge *u_v_edge = getEdgeTo(network, u, v);
-        Edge *u_t_edge = getEdgeTo(network, u, t);
-        Edge *v_s_edge = getEdgeTo(network, v, s);
-        Edge *u_other_parent_edge = nullptr;
-        Edge *v_other_parent_edge = nullptr;
-        if (type == RNNIMoveType::ONE_STAR) {
-            v_other_parent_edge = getEdgeTo(network, v, getActiveParent(network, v));
-            u_other_parent_edge = getEdgeTo(network, u, getReticulationOtherParent(network, u, v));
-        }
-        if (type == RNNIMoveType::THREE) {
-            u_other_parent_edge = getEdgeTo(network, u, getActiveParent(network, u));
-        } else if (type == RNNIMoveType::FOUR) {
-            u_other_parent_edge = getEdgeTo(network, u, getReticulationOtherParent(network, u, t));
-        }
-
-        if (type == RNNIMoveType::ONE) {
-            assert(u->type == NodeType::BASIC_NODE);
-            if (t->type == NodeType::RETICULATION_NODE || s->type == NodeType::RETICULATION_NODE) {
-                std::swap(u_t_edge->prob, v_s_edge->prob);
-            }
-        } else if (type == RNNIMoveType::ONE_STAR) {
-            assert(v->type == NodeType::BASIC_NODE);
-            assert(u->type == NodeType::RETICULATION_NODE);
-            std::swap(u_other_parent_edge->prob, v_other_parent_edge->prob);
-            if (t->type == NodeType::RETICULATION_NODE || s->type == NodeType::RETICULATION_NODE) {
-                std::swap(u_t_edge->prob, v_s_edge->prob);
-            }
-        } else if (type == RNNIMoveType::TWO) {
-            // nothing needed to do
-        } else if (type == RNNIMoveType::TWO_STAR) {
-            assert(v->type == NodeType::BASIC_NODE);
-            assert(u->type == NodeType::RETICULATION_NODE);
+void fixReticulationProbsForward(Network &network, Node *u, Node *v, Node *s, Node *t, RNNIMoveType type) {
+    Edge *u_v_edge = getEdgeTo(network, u, v);
+    Edge *u_t_edge = getEdgeTo(network, u, t);
+    Edge *v_s_edge = getEdgeTo(network, v, s);
+    Edge *v_other_parent_edge = nullptr;
+    Edge *u_other_parent_edge = nullptr;
+    switch (type) {
+    case RNNIMoveType::ONE:
+        assert(u->type == NodeType::BASIC_NODE);
+        if (t->type == NodeType::RETICULATION_NODE || s->type == NodeType::RETICULATION_NODE) {
             std::swap(u_t_edge->prob, v_s_edge->prob);
-        } else if (type == RNNIMoveType::THREE) {
-            assert(u->type == NodeType::BASIC_NODE);
-            assert(v->type == NodeType::RETICULATION_NODE);
+        }
+        break;
+    case RNNIMoveType::ONE_STAR:
+        assert(v->type == NodeType::BASIC_NODE);
+        assert(u->type == NodeType::RETICULATION_NODE);
+        v_other_parent_edge = getEdgeTo(network, v, getActiveParent(network, v));
+        u_other_parent_edge = getEdgeTo(network, u, getReticulationOtherParent(network, u, v));
+        std::swap(u_other_parent_edge->prob, v_other_parent_edge->prob);
+        if (t->type == NodeType::RETICULATION_NODE || s->type == NodeType::RETICULATION_NODE) {
             std::swap(u_t_edge->prob, v_s_edge->prob);
-            std::swap(u_v_edge->prob, u_other_parent_edge->prob);
-        } else if (type == RNNIMoveType::THREE_STAR) {
-            if (u->type == NodeType::RETICULATION_NODE) {
+        }
+        break;
+    case RNNIMoveType::TWO_STAR:
+        assert(v->type == NodeType::BASIC_NODE);
+        assert(u->type == NodeType::RETICULATION_NODE);
+        std::swap(u_t_edge->prob, v_s_edge->prob);
+        break;
+    case RNNIMoveType::THREE:
+        assert(u->type == NodeType::BASIC_NODE);
+        assert(v->type == NodeType::RETICULATION_NODE);
+        u_other_parent_edge = getEdgeTo(network, u, getActiveParent(network, u));
+        std::swap(u_t_edge->prob, v_s_edge->prob);
+        std::swap(u_v_edge->prob, u_other_parent_edge->prob);
+        break;
+    case RNNIMoveType::THREE_STAR:
+        if (u->type == NodeType::RETICULATION_NODE) {
+            std::swap(u_v_edge->prob, u_t_edge->prob);
+            if (v->type == NodeType::RETICULATION_NODE || t->type == NodeType::RETICULATION_NODE) {
+                std::swap(v_s_edge->prob, u_t_edge->prob);
+            }
+        } else if (v->type == NodeType::RETICULATION_NODE) {
+            std::swap(v_s_edge->prob, u_v_edge->prob);
+            if (t->type == NodeType::RETICULATION_NODE) {
                 std::swap(u_v_edge->prob, u_t_edge->prob);
-                if (v->type == NodeType::RETICULATION_NODE || t->type == NodeType::RETICULATION_NODE) {
-                    std::swap(v_s_edge->prob, u_t_edge->prob);
-                }
-            } else if (v->type == NodeType::RETICULATION_NODE) {
-                std::swap(v_s_edge->prob, u_v_edge->prob);
-                if (t->type == NodeType::RETICULATION_NODE) {
-                    std::swap(u_v_edge->prob, u_t_edge->prob);
-                }
-            } else if (t->type == NodeType::RETICULATION_NODE) {
-                std::swap(u_t_edge->prob, v_s_edge->prob);
             }
-        } else if (type == RNNIMoveType::FOUR) {
-            assert(v->type == NodeType::BASIC_NODE);
-            assert(u->type == NodeType::RETICULATION_NODE);
+        } else if (t->type == NodeType::RETICULATION_NODE) {
             std::swap(u_t_edge->prob, v_s_edge->prob);
-            std::swap(u_other_parent_edge->prob, u_v_edge->prob);
         }
-    } else {
-        Edge *u_v_edge = getEdgeTo(network, u, v);
-        Edge *u_s_edge = getEdgeTo(network, u, s);
-        Edge *v_t_edge = getEdgeTo(network, v, t);
-        Edge *u_other_parent_edge = nullptr;
-        Edge *v_other_parent_edge = nullptr;
-        if (type == RNNIMoveType::ONE_STAR) {
-            v_other_parent_edge = getEdgeTo(network, v, getReticulationOtherParent(network, v, u));
-            u_other_parent_edge = getEdgeTo(network, u, getActiveParent(network, u));
-        }
-        if (type == RNNIMoveType::THREE) {
-            u_other_parent_edge = getEdgeTo(network, u, getReticulationOtherParent(network, u, s));
-        } else if (type == RNNIMoveType::FOUR) {
-            u_other_parent_edge = getEdgeTo(network, u, getActiveParent(network, u));
-        }
+        break;
+    case RNNIMoveType::FOUR:
+        assert(v->type == NodeType::BASIC_NODE);
+        assert(u->type == NodeType::RETICULATION_NODE);
+        u_other_parent_edge = getEdgeTo(network, u, getReticulationOtherParent(network, u, t));
+        std::swap(u_t_edge->prob, v_s_edge->prob);
+        std::swap(u_other_parent_edge->prob, u_v_edge->prob);
+        break;
+    default:
+        break;
+    }
+    fixReticulationLinks(u, v, s, t);
+}
 
-        if (type == RNNIMoveType::ONE) {
-            assert(u->type == NodeType::BASIC_NODE);
-            if (t->type == NodeType::RETICULATION_NODE || s->type == NodeType::RETICULATION_NODE) {
-                std::swap(u_s_edge->prob, v_t_edge->prob);
-            }
-        } else if (type == RNNIMoveType::ONE_STAR) {
-            assert(u->type == NodeType::BASIC_NODE);
-            assert(v->type == NodeType::RETICULATION_NODE);
-            std::swap(u_other_parent_edge->prob, v_other_parent_edge->prob);
-            if (t->type == NodeType::RETICULATION_NODE || s->type == NodeType::RETICULATION_NODE) {
-                std::swap(u_s_edge->prob, v_t_edge->prob);
-            }
-        } else if (type == RNNIMoveType::TWO) {
-            // nothing needed to do
-        } else if (type == RNNIMoveType::TWO_STAR) {
-            assert(u->type == NodeType::BASIC_NODE);
-            assert(v->type == NodeType::RETICULATION_NODE);
+void fixReticulationProbsBackward(Network &network, Node *u, Node *v, Node *s, Node *t, RNNIMoveType type) {
+    Edge *u_v_edge = getEdgeTo(network, u, v);
+    Edge *u_s_edge = getEdgeTo(network, u, s);
+    Edge *v_t_edge = getEdgeTo(network, v, t);
+    Edge *v_other_parent_edge = nullptr;
+    Edge *u_other_parent_edge = nullptr;
+    switch (type) {
+    case RNNIMoveType::ONE:
+        assert(u->type == NodeType::BASIC_NODE);
+        if (t->type == NodeType::RETICULATION_NODE || s->type == NodeType::RETICULATION_NODE) {
             std::swap(u_s_edge->prob, v_t_edge->prob);
-        } else if (type == RNNIMoveType::THREE) {
-            assert(v->type == NodeType::BASIC_NODE);
-            assert(u->type == NodeType::RETICULATION_NODE);
-            std::swap(u_other_parent_edge->prob, u_v_edge->prob);
-            std::swap(u_s_edge->prob, v_t_edge->prob);
-        } else if (type == RNNIMoveType::THREE_STAR) {
-            if (u->type == NodeType::RETICULATION_NODE) {
-                std::swap(u_s_edge->prob, u_v_edge->prob);
-                if (v->type == NodeType::RETICULATION_NODE || t->type == NodeType::RETICULATION_NODE) {
-                    std::swap(u_v_edge->prob, v_t_edge->prob);
-                }
-            } else if (v->type == NodeType::RETICULATION_NODE) {
-                std::swap(v_t_edge->prob, u_v_edge->prob);
-                if (t->type == NodeType::RETICULATION_NODE) {
-                    std::swap(v_t_edge->prob, u_s_edge->prob);
-                }
-            } else if (t->type == NodeType::RETICULATION_NODE) {
-                std::swap(u_s_edge->prob, v_t_edge->prob);
-            }
-        } else if (type == RNNIMoveType::FOUR) {
-            assert(u->type == NodeType::BASIC_NODE);
-            assert(v->type == NodeType::RETICULATION_NODE);
-            std::swap(u_v_edge->prob, u_other_parent_edge->prob);
-            std::swap(v_t_edge->prob, u_s_edge->prob);
         }
+        break;
+    case RNNIMoveType::ONE_STAR:
+        assert(u->type == NodeType::BASIC_NODE);
+        assert(v->type == NodeType::RETICULATION_NODE);
+        v_other_parent_edge = getEdgeTo(network, v, getReticulationOtherParent(network, v, u));
+        u_other_parent_edge = getEdgeTo(network, u, getActiveParent(network, u));
+        std::swap(u_other_parent_edge->prob, v_other_parent_edge->prob);
+        if (t->type == NodeType::RETICULATION_NODE || s->type == NodeType::RETICULATION_NODE) {
+            std::swap(u_s_edge->prob, v_t_edge->prob);
+        }
+        break;
+    case RNNIMoveType::TWO_STAR:
+        assert(u->type == NodeType::BASIC_NODE);
+        assert(v->type == NodeType::RETICULATION_NODE);
+        std::swap(u_s_edge->prob, v_t_edge->prob);
+        break;
+    case RNNIMoveType::THREE:
+        assert(v->type == NodeType::BASIC_NODE);
+        assert(u->type == NodeType::RETICULATION_NODE);
+        u_other_parent_edge = getEdgeTo(network, u, getReticulationOtherParent(network, u, s));
+        std::swap(u_other_parent_edge->prob, u_v_edge->prob);
+        std::swap(u_s_edge->prob, v_t_edge->prob);
+        break;
+    case RNNIMoveType::THREE_STAR:
+        if (u->type == NodeType::RETICULATION_NODE) {
+            std::swap(u_s_edge->prob, u_v_edge->prob);
+            if (v->type == NodeType::RETICULATION_NODE || t->type == NodeType::RETICULATION_NODE) {
+                std::swap(u_v_edge->prob, v_t_edge->prob);
+            }
+        } else if (v->type == NodeType::RETICULATION_NODE) {
+            std::swap(v_t_edge->prob, u_v_edge->prob);
+            if (t->type == NodeType::RETICULATION_NODE) {
+                std::swap(v_t_edge->prob, u_s_edge->prob);
+            }
+        } else if (t->type == NodeType::RETICULATION_NODE) {
+            std::swap(u_s_edge->prob, v_t_edge->prob);
+        }
+        break;
+    case RNNIMoveType::FOUR:
+        assert(u->type == NodeType::BASIC_NODE);
+        assert(v->type == NodeType::RETICULATION_NODE);
+        u_other_parent_edge = getEdgeTo(network, u, getActiveParent(network, u));
+        std::swap(u_v_edge->prob, u_other_parent_edge->prob);
+        std::swap(v_t_edge->prob, u_s_edge->prob);
+        break;
+    default:
+        break;
     }
     fixReticulationLinks(u, v, s, t);
 }
@@ -649,7 +652,7 @@ void performMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
             || move.type == RNNIMoveType::FOUR) {
         switchReticulations(network, u, v);
     }
-    fixReticulationProbs(network, u, v, s, t, move.type, true);
+    fixReticulationProbsForward(network, u, v, s, t, move.type);
     assertAfterMove(network, move);
 
     std::vector<bool> visited(network.nodes.size(), false);
@@ -676,7 +679,7 @@ void undoMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
             || move.type == RNNIMoveType::FOUR) {
         switchReticulations(network, u, v);
     }
-    fixReticulationProbs(network, u, v, s, t, move.type, false);
+    fixReticulationProbsBackward(network, u, v, s, t, move.type);
     assertBeforeMove(network, move);
 
     std::vector<bool> visited(network.nodes.size(), false);
@@ -1370,7 +1373,7 @@ void removeNode(Network &network, Node *node) {
         unsigned int other_ret_index = network.nodes_by_index[other_index]->getReticulationData()->reticulation_index;
         unsigned int node_ret_index = node->getReticulationData()->reticulation_index;
         if (node_ret_index < other_ret_index) {
-            // swap the reticulation indices
+// swap the reticulation indices
             network.reticulation_nodes[other_ret_index]->getReticulationData()->reticulation_index = node_ret_index;
             network.reticulation_nodes[node_ret_index]->getReticulationData()->reticulation_index = other_ret_index;
             network.reticulation_nodes[other_ret_index] = network.nodes_by_index[index];
@@ -1382,7 +1385,7 @@ void removeNode(Network &network, Node *node) {
 
     if (node->type == NodeType::RETICULATION_NODE) {
         if (network.num_reticulations() > 1) {
-            // update reticulation indices
+// update reticulation indices
             unsigned int bad_reticulation_index = node->getReticulationData()->reticulation_index;
             network.reticulation_nodes[network.reticulation_nodes.size() - 1]->getReticulationData()->reticulation_index =
                     bad_reticulation_index;
