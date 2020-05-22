@@ -126,7 +126,6 @@ double optimize_branches(AnnotatedNetwork &ann_network, double min_brlen, double
 
     }
 
-    std::vector<bool> visited(network.nodes.size(), false);
     // set the network brlens to the weighted average of the displayed_tree brlens
     // also set the network brlen support values to the brlen variance in the displayed trees which are having this branch
     for (size_t i = 0; i < network.num_branches(); ++i) {
@@ -143,8 +142,7 @@ double optimize_branches(AnnotatedNetwork &ann_network, double min_brlen, double
                 newLength += opt_brlens[networkBranchIdx][j].length * weight;
             }
             if (network.edges[i].length != newLength) {
-                invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, getSource(network, &network.edges[i]),
-                        false);
+                invalidateHigherCLVs(ann_network, getSource(network, &network.edges[i]), false);
             }
             network.edges[i].length = newLength;
             fake_treeinfo.branch_lengths[partitionIdx][networkBranchIdx] = newLength;

@@ -655,11 +655,10 @@ void performMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
     fixReticulationProbsForward(network, u, v, s, t, move.type);
     assertAfterMove(network, move);
 
-    std::vector<bool> visited(network.nodes.size(), false);
-    invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, u, true);
-    invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, v, true);
-    invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, s, true);
-    invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, t, true);
+    invalidateHigherCLVs(ann_network, u, true);
+    invalidateHigherCLVs(ann_network, v, true);
+    invalidateHigherCLVs(ann_network, s, true);
+    invalidateHigherCLVs(ann_network, t, true);
 
     ann_network.travbuffer = reversed_topological_sort(ann_network.network);
     ann_network.blobInfo = partitionNetworkIntoBlobs(network, ann_network.travbuffer);
@@ -682,11 +681,10 @@ void undoMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
     fixReticulationProbsBackward(network, u, v, s, t, move.type);
     assertBeforeMove(network, move);
 
-    std::vector<bool> visited(network.nodes.size(), false);
-    invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, u, true);
-    invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, v, true);
-    invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, s, true);
-    invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, t, true);
+    invalidateHigherCLVs(ann_network, u, true);
+    invalidateHigherCLVs(ann_network, v, true);
+    invalidateHigherCLVs(ann_network, s, true);
+    invalidateHigherCLVs(ann_network, t, true);
 
     ann_network.travbuffer = reversed_topological_sort(ann_network.network);
     ann_network.blobInfo = partitionNetworkIntoBlobs(network, ann_network.travbuffer);
@@ -1175,10 +1173,9 @@ void performMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
 
     fixReticulations(network, move);
 
-    std::vector<bool> visited(network.nodes.size(), false);
-    invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, z);
-    invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, x);
-    invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, x_prime);
+    invalidateHigherCLVs(ann_network, z);
+    invalidateHigherCLVs(ann_network, x);
+    invalidateHigherCLVs(ann_network, x_prime);
     invalidatePmatrixIndex(ann_network, x_y_edge->pmatrix_index);
     invalidatePmatrixIndex(ann_network, x_prime_z_edge->pmatrix_index);
     invalidatePmatrixIndex(ann_network, z_y_prime_edge->pmatrix_index);
@@ -1261,10 +1258,9 @@ void undoMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
 
     fixReticulations(network, move);
 
-    std::vector<bool> visited(network.nodes.size(), false);
-    invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, z);
-    invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, x);
-    invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, x_prime);
+    invalidateHigherCLVs(ann_network, z);
+    invalidateHigherCLVs(ann_network, x);
+    invalidateHigherCLVs(ann_network, x_prime);
 
     ann_network.travbuffer = reversed_topological_sort(ann_network.network);
     ann_network.blobInfo = partitionNetworkIntoBlobs(network, ann_network.travbuffer);
@@ -1534,9 +1530,8 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
             v_d_edge->pmatrix_index, a_u_edge->pmatrix_index, u_b_edge->pmatrix_index };
     reloadBranchLengthsAndBranchProbs(ann_network, updateMe);
 
-    std::vector<bool> visited(network.nodes.size(), false);
-    invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, network.nodes_by_index[move.d_clv_index]);
-    invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, network.nodes_by_index[move.b_clv_index]);
+    invalidateHigherCLVs(ann_network, network.nodes_by_index[move.d_clv_index]);
+    invalidateHigherCLVs(ann_network, network.nodes_by_index[move.b_clv_index]);
     invalidatePmatrixIndex(ann_network, u_b_edge->pmatrix_index);
     invalidatePmatrixIndex(ann_network, v_d_edge->pmatrix_index);
     invalidatePmatrixIndex(ann_network, a_u_edge->pmatrix_index);
@@ -1633,9 +1628,8 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     from_c_link->edge_pmatrix_index = c_d_edge->pmatrix_index;
     to_d_link->edge_pmatrix_index = c_d_edge->pmatrix_index;
 
-    std::vector<bool> visited(network.nodes.size(), false);
-    invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, network.nodes_by_index[move.d_clv_index]);
-    invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, network.nodes_by_index[move.b_clv_index]);
+    invalidateHigherCLVs(ann_network, network.nodes_by_index[move.d_clv_index]);
+    invalidateHigherCLVs(ann_network, network.nodes_by_index[move.b_clv_index]);
     invalidatePmatrixIndex(ann_network, a_b_edge->pmatrix_index);
     invalidatePmatrixIndex(ann_network, c_d_edge->pmatrix_index);
 
