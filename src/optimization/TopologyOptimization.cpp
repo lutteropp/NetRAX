@@ -47,7 +47,7 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
         performMove(ann_network, candidates[i]);
         double new_logl = ann_network.raxml_treeinfo->loglh(true);
         double new_bic = bic(ann_network, new_logl);
-        if (new_bic > best_score) {
+        if (new_bic < best_score) {
             best_score = new_bic;
             best_logl = new_logl;
             best_idx = i;
@@ -101,7 +101,7 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, MoveType type) 
         default:
             throw std::runtime_error("Invalid move type");
         }
-    } while (new_bic > old_bic);
+    } while (new_bic < old_bic);
     return ann_network.old_logl;
 }
 
