@@ -663,7 +663,7 @@ void performMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
 
     ann_network.travbuffer = reversed_topological_sort(ann_network.network);
     ann_network.blobInfo = partitionNetworkIntoBlobs(network, ann_network.travbuffer);
-    checkReticulationProbs(ann_network);
+    assertReticulationProbs(ann_network);
 }
 
 void undoMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
@@ -690,7 +690,7 @@ void undoMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
 
     ann_network.travbuffer = reversed_topological_sort(ann_network.network);
     ann_network.blobInfo = partitionNetworkIntoBlobs(network, ann_network.travbuffer);
-    checkReticulationProbs(ann_network);
+    assertReticulationProbs(ann_network);
 }
 
 std::vector<std::pair<Node*, Node*> > getZYChoices(Network &network, Node *x_prime, Node *y_prime, Node *x,
@@ -1185,7 +1185,7 @@ void performMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
 
     ann_network.travbuffer = reversed_topological_sort(ann_network.network);
     ann_network.blobInfo = partitionNetworkIntoBlobs(network, ann_network.travbuffer);
-    checkReticulationProbs(ann_network);
+    assertReticulationProbs(ann_network);
 }
 
 void undoMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
@@ -1268,7 +1268,7 @@ void undoMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
 
     ann_network.travbuffer = reversed_topological_sort(ann_network.network);
     ann_network.blobInfo = partitionNetworkIntoBlobs(network, ann_network.travbuffer);
-    checkReticulationProbs(ann_network);
+    assertReticulationProbs(ann_network);
 }
 
 void removeEdge(Network &network, Edge *edge) {
@@ -1546,7 +1546,7 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     ann_network.travbuffer = reversed_topological_sort(ann_network.network);
     ann_network.blobInfo = partitionNetworkIntoBlobs(network, ann_network.travbuffer);
     checkSanity(network);
-    checkReticulationProbs(ann_network);
+    assertReticulationProbs(ann_network);
 }
 
 void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
@@ -1642,7 +1642,7 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     ann_network.travbuffer = reversed_topological_sort(ann_network.network);
     ann_network.blobInfo = partitionNetworkIntoBlobs(network, ann_network.travbuffer);
     checkSanity(network);
-    checkReticulationProbs(ann_network);
+    assertReticulationProbs(ann_network);
 }
 
 void undoMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {

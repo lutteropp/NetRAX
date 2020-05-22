@@ -64,6 +64,6 @@ void invalidateHigherCLVs(AnnotatedNetwork &ann_network, Node *node, bool invali
 
 void invalidatePmatrixIndex(AnnotatedNetwork &ann_network, size_t pmatrix_index);
 
-void checkReticulationProbs(AnnotatedNetwork &ann_network);
+void assertReticulationProbs(AnnotatedNetwork &ann_network);
 
 }

@@ -920,7 +920,7 @@ double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int 
     /* restore original active partition */
     fake_treeinfo.active_partition = old_active_partition;
 
-    checkReticulationProbs(ann_network);
+    assertReticulationProbs(ann_network);
     if (update_reticulation_probs && reticulationProbsHaveChanged) {
         // invalidate clv entries
         for (size_t i = 0; i < network.num_reticulations(); ++i) {
@@ -959,7 +959,7 @@ double computeLoglikelihoodNaiveUtree(AnnotatedNetwork &ann_network, int increme
             continue;
         }
 
-        pll_utree_t *displayed_tree = netrax::displayed_tree_to_utree(network, ann_network.travbuffer, i);
+        pll_utree_t *displayed_tree = netrax::displayed_tree_to_utree(network, i);
 
         TreeInfo *displayedTreeinfo = wrapper.createRaxmlTreeinfo(displayed_tree);
 

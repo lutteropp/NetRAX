@@ -125,7 +125,7 @@ TEST (SystemTest, randomNetwork) {
     smallOptions.msa_file = msaPath;
     smallOptions.use_repeats = true;
     RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
-    unsigned int n_reticulations = 7;
+    unsigned int n_reticulations = 10;
     AnnotatedNetwork ann_network = build_random_annotated_network(smallOptions, n_reticulations);
     assert(ann_network.network.num_reticulations() == n_reticulations);
 

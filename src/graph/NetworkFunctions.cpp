@@ -266,7 +266,7 @@ std::vector<bool> collect_skipped_nodes(Network &network, const std::vector<bool
     return skipped_nodes;
 }
 
-pll_utree_t* displayed_tree_to_utree(Network &network, const std::vector<Node*> &travbuffer, size_t tree_index) {
+pll_utree_t* displayed_tree_to_utree(Network &network, size_t tree_index) {
     setReticulationParents(network, tree_index);
 
     std::vector<bool> dead_nodes = collect_dead_nodes(network);
@@ -324,13 +324,13 @@ void setReticulationParents(BlobInformation &blobInfo, unsigned int megablob_idx
     }
 }
 
-void forbidSubnetwork(Network &network, Node *myParent, Node *node, std::vector<bool> &forbidden) {
+void forbidSubnetwork(Network &network, Node *node, std::vector<bool> &forbidden) {
     if (forbidden[node->clv_index])
         return;
     forbidden[node->clv_index] = true;
     std::vector<Node*> children = getChildren(network, node);
     for (size_t i = 0; i < children.size(); ++i) {
-        forbidSubnetwork(network, node, children[i], forbidden);
+        forbidSubnetwork(network, children[i], forbidden);
     }
 }
 
@@ -340,7 +340,7 @@ void forbidSubnetwork(Network &network, Node *myParent, Node *node, std::vector<
 std::vector<Node*> getPossibleRootNodes(Network &network) {
     std::vector<bool> forbidden(network.num_nodes(), false);
     for (size_t i = 0; i < network.num_reticulations(); ++i) {
-        forbidSubnetwork(network, nullptr, network.reticulation_nodes[i], forbidden);
+        forbidSubnetwork(network, network.reticulation_nodes[i], forbidden);
     }
     std::vector<Node*> res;
     for (size_t i = 0; i < network.num_nodes(); ++i) {

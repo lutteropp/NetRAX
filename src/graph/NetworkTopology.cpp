@@ -425,7 +425,7 @@ void invalidatePmatrixIndex(AnnotatedNetwork &ann_network, size_t pmatrix_index)
     }
 }
 
-void checkReticulationProbs(AnnotatedNetwork &ann_network) {
+void assertReticulationProbs(AnnotatedNetwork &ann_network) {
     bool unlinkedMode = (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
     size_t n_partitions = 1;
     if (unlinkedMode) {

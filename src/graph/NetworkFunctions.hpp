@@ -25,7 +25,7 @@ struct BlobInformation;
 std::vector<std::vector<size_t> > getDtBranchToNetworkBranchMapping(const pll_utree_t &utree, Network &network,
         size_t tree_idx);
 
-pll_utree_t* displayed_tree_to_utree(Network &network, const std::vector<Node*> &travbuffer, size_t tree_index);
+pll_utree_t* displayed_tree_to_utree(Network &network, size_t tree_index);
 std::vector<double> collectBranchLengths(const Network &network);
 void applyBranchLengths(Network &network, const std::vector<double> &branchLengths);
 void setReticulationParents(Network &network, size_t treeIdx);
