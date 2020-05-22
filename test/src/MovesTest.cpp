@@ -44,20 +44,21 @@ void randomNNIMoves(const std::string &networkPath, const std::string &msaPath, 
     for (size_t i = 0; i < network.num_branches(); ++i) {
         std::vector<RNNIMove> candidates = possibleRNNIMoves(ann_network, network.edges_by_index[i]);
         for (size_t j = 0; j < candidates.size(); ++j) {
-            //std::cout << i << ", " << j << "\n";
-            //if (i != 35 || j != 3) {
-            //    continue;
-            //}
+            std::string newickBeforeMove = toExtendedNewick(network);
             std::cout << "perform " << toString(candidates[j]);
             performMove(ann_network, candidates[j]);
+            std::cout << toExtendedNewick(network) << "\n";
             double moved_logl = computeLoglikelihood(ann_network);
             ASSERT_NE(moved_logl, -std::numeric_limits<double>::infinity());
             std::cout << "logl after move: " << moved_logl << "\n";
             std::cout << "undo " << toString(candidates[j]) << "\n";
             undoMove(ann_network, candidates[j]);
+            std::string newickAfterUndoMove = toExtendedNewick(network);
+            std::cout << toExtendedNewick(network) << "\n";
             std::string debugInfoAfterUndo = exportDebugInfo(network);
             EXPECT_EQ(initialDebugInfo, debugInfoAfterUndo);
             double back_logl = computeLoglikelihood(ann_network);
+            ASSERT_EQ(newickBeforeMove, newickAfterUndoMove);
             ASSERT_DOUBLE_EQ(initial_logl, back_logl);
         }
     }

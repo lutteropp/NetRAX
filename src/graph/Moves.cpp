@@ -221,6 +221,10 @@ void switchReticulations(Network &network, Node *u, Node *v) {
     assert(link_to_second_parent);
     assert(link_to_child);
 
+    if (link_to_first_parent->edge_pmatrix_index > link_to_second_parent->edge_pmatrix_index) {
+        std::swap(link_to_first_parent, link_to_second_parent);
+    }
+
     ReticulationData retData;
     retData.init(reticulationId, label, active, link_to_first_parent, link_to_second_parent, link_to_child);
     new_ret_node->reticulationData = std::make_unique<ReticulationData>(retData);
@@ -247,6 +251,20 @@ void resetReticulationLinks(Node *node) {
     assert(retData->link_to_first_parent);
     assert(retData->link_to_second_parent);
     assert(retData->link_to_child);
+    if (retData->link_to_first_parent->edge_pmatrix_index > retData->link_to_second_parent->edge_pmatrix_index) {
+        std::swap(retData->link_to_first_parent, retData->link_to_second_parent);
+    }
+}
+
+void fixReticulationLinks(Node *u, Node *v, Node *s, Node *t) {
+    if (u->type == NodeType::RETICULATION_NODE)
+        resetReticulationLinks(u);
+    if (v->type == NodeType::RETICULATION_NODE)
+        resetReticulationLinks(v);
+    if (s->type == NodeType::RETICULATION_NODE)
+        resetReticulationLinks(s);
+    if (t->type == NodeType::RETICULATION_NODE)
+        resetReticulationLinks(t);
 }
 
 void addRepairCandidates(Network &network, std::unordered_set<Node*> &repair_candidates, Node *node) {
@@ -431,6 +449,26 @@ void checkReticulationProperties(Node *notReticulation, Node *reticulation) {
     }
 }
 
+void checkLinkDirections(Network &network) {
+    for (size_t i = 0; i < network.num_nodes(); ++i) {
+        unsigned int targetOutgoing = 2;
+        if (network.nodes[i].type == NodeType::RETICULATION_NODE) {
+            targetOutgoing = 1;
+        } else if (network.root == &network.nodes[i]) {
+            targetOutgoing = 3;
+        } else if (network.nodes[i].isTip()) {
+            targetOutgoing = 0;
+        }
+        unsigned int n_out = 0;
+        for (size_t j = 0; j < network.nodes[i].links.size(); ++j) {
+            if (network.nodes[i].links[j].direction == Direction::OUTGOING) {
+                n_out++;
+            }
+        }
+        assert(n_out == targetOutgoing);
+    }
+}
+
 void assertBeforeMove(Network &network, RNNIMove &move) {
     Node *u = network.nodes_by_index[move.u_clv_index];
     Node *v = network.nodes_by_index[move.v_clv_index];
@@ -450,6 +488,7 @@ void assertBeforeMove(Network &network, RNNIMove &move) {
         reticulation = v;
     }
     checkReticulationProperties(notReticulation, reticulation);
+    checkLinkDirections(network);
 }
 
 void assertAfterMove(Network &network, RNNIMove &move) {
@@ -471,15 +510,23 @@ void assertAfterMove(Network &network, RNNIMove &move) {
         reticulation = u;
     }
     checkReticulationProperties(notReticulation, reticulation);
+    checkLinkDirections(network);
 }
 
 void fixReticulationProbs(Network &network, Node *u, Node *v, Node *s, Node *t, RNNIMoveType type, bool forward) {
-    if (type == RNNIMoveType::TWO_STAR) { // nothing to do in this case
-        return;
-    }
-    size_t donor_pmatrix_index;
-    size_t receiver_pmatrix_index;
-    if (type == RNNIMoveType::ONE_STAR) {
+    size_t donor_pmatrix_index = network.nodes.size();
+    size_t receiver_pmatrix_index = network.nodes.size();
+    if (type == RNNIMoveType::ONE) {
+        if (t->type == NodeType::RETICULATION_NODE || s->type == NodeType::RETICULATION_NODE) {
+            if (forward) {
+                donor_pmatrix_index = getEdgeTo(network, v, s)->pmatrix_index;
+                receiver_pmatrix_index = getEdgeTo(network, u, t)->pmatrix_index;
+            } else {
+                donor_pmatrix_index = getEdgeTo(network, u, s)->pmatrix_index;
+                receiver_pmatrix_index = getEdgeTo(network, v, t)->pmatrix_index;
+            }
+        }
+    } else if (type == RNNIMoveType::ONE_STAR) {
         if (forward) {
             donor_pmatrix_index = getEdgeTo(network, v, getActiveParent(network, v))->pmatrix_index;
             receiver_pmatrix_index = getEdgeTo(network, u, getReticulationOtherParent(network, u, v))->pmatrix_index;
@@ -487,26 +534,80 @@ void fixReticulationProbs(Network &network, Node *u, Node *v, Node *s, Node *t, 
             donor_pmatrix_index = getEdgeTo(network, u, getActiveParent(network, u))->pmatrix_index;
             receiver_pmatrix_index = getEdgeTo(network, v, getReticulationOtherParent(network, v, u))->pmatrix_index;
         }
+    } else if (type == RNNIMoveType::TWO_STAR) {
+        if (forward) {
+            donor_pmatrix_index = getEdgeTo(network, s, v)->pmatrix_index;
+            receiver_pmatrix_index = getEdgeTo(network, t, u)->pmatrix_index;
+        } else {
+            donor_pmatrix_index = getEdgeTo(network, s, u)->pmatrix_index;
+            receiver_pmatrix_index = getEdgeTo(network, t, v)->pmatrix_index;
+        }
     } else if (type == RNNIMoveType::THREE) {
+        size_t donor_extra, receiver_extra;
         if (forward) {
             donor_pmatrix_index = getEdgeTo(network, u, getActiveParent(network, u))->pmatrix_index;
             receiver_pmatrix_index = getEdgeTo(network, u, v)->pmatrix_index;
+
+            donor_extra = getEdgeTo(network, u, t)->pmatrix_index;
+            receiver_extra = getEdgeTo(network, s, v)->pmatrix_index;
         } else {
             donor_pmatrix_index = getEdgeTo(network, u, v)->pmatrix_index;
             receiver_pmatrix_index = getEdgeTo(network, u, getReticulationOtherParent(network, u, s))->pmatrix_index;
+
+            donor_extra = getEdgeTo(network, v, t)->pmatrix_index;
+            receiver_extra = getEdgeTo(network, s, u)->pmatrix_index;
+        }
+        std::swap(network.edges_by_index[receiver_extra]->prob, network.edges_by_index[donor_extra]->prob);
+    } else if (type == RNNIMoveType::THREE_STAR) {
+        if (forward) {
+            if (u->type == NodeType::RETICULATION_NODE) {
+                donor_pmatrix_index = getEdgeTo(network, u, t)->pmatrix_index;
+                receiver_pmatrix_index = getEdgeTo(network, v, u)->pmatrix_index;
+            } else if (v->type == NodeType::RETICULATION_NODE) {
+                donor_pmatrix_index = getEdgeTo(network, v, u)->pmatrix_index;
+                receiver_pmatrix_index = getEdgeTo(network, s, v)->pmatrix_index;
+            }
+        } else {
+            if (u->type == NodeType::RETICULATION_NODE) {
+                donor_pmatrix_index = getEdgeTo(network, v, u)->pmatrix_index;
+                receiver_pmatrix_index = getEdgeTo(network, s, u)->pmatrix_index;
+            } else if (v->type == NodeType::RETICULATION_NODE) {
+                donor_pmatrix_index = getEdgeTo(network, t, v)->pmatrix_index;
+                receiver_pmatrix_index = getEdgeTo(network, v, u)->pmatrix_index;
+            }
+        }
+        if (t->type == NodeType::RETICULATION_NODE) {
+            size_t donor_extra, receiver_extra;
+            if (forward) {
+                donor_extra = getEdgeTo(network, s, v)->pmatrix_index;
+                receiver_extra = getEdgeTo(network, u, t)->pmatrix_index;
+            } else {
+                donor_extra = getEdgeTo(network, s, u)->pmatrix_index;
+                receiver_extra = getEdgeTo(network, v, t)->pmatrix_index;
+            }
+            std::swap(network.edges_by_index[receiver_extra]->prob, network.edges_by_index[donor_extra]->prob);
         }
     } else if (type == RNNIMoveType::FOUR) {
+        size_t donor_extra, receiver_extra;
         if (forward) {
             donor_pmatrix_index = getEdgeTo(network, u, v)->pmatrix_index;
             receiver_pmatrix_index = getEdgeTo(network, u, getReticulationOtherParent(network, u, t))->pmatrix_index;
+            donor_extra = getEdgeTo(network, v, s)->pmatrix_index;
+            receiver_extra = getEdgeTo(network, t, u)->pmatrix_index;
         } else {
             donor_pmatrix_index = getEdgeTo(network, u, getActiveParent(network, u))->pmatrix_index;
             receiver_pmatrix_index = getEdgeTo(network, u, v)->pmatrix_index;
+            donor_extra = getEdgeTo(network, u, s)->pmatrix_index;
+            receiver_extra = getEdgeTo(network, t, v)->pmatrix_index;
         }
-    } else {
-        throw std::runtime_error("Invalid move type");
+        std::swap(network.edges_by_index[receiver_extra]->prob, network.edges_by_index[donor_extra]->prob);
     }
-    std::swap(network.edges_by_index[receiver_pmatrix_index]->prob, network.edges_by_index[donor_pmatrix_index]->prob);
+
+    if (donor_pmatrix_index < network.nodes.size() && receiver_pmatrix_index < network.nodes.size()) {
+        std::swap(network.edges_by_index[receiver_pmatrix_index]->prob,
+                network.edges_by_index[donor_pmatrix_index]->prob);
+    }
+    fixReticulationLinks(u, v, s, t);
 }
 
 void performMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
@@ -521,9 +622,8 @@ void performMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
     if (move.type == RNNIMoveType::ONE_STAR || move.type == RNNIMoveType::TWO_STAR || move.type == RNNIMoveType::THREE
             || move.type == RNNIMoveType::FOUR) {
         switchReticulations(network, u, v);
-        fixReticulationProbs(network, u, v, s, t, move.type, true);
     }
-    fixReticulations(network, move);
+    fixReticulationProbs(network, u, v, s, t, move.type, true);
     assertAfterMove(network, move);
 
     std::vector<bool> visited(network.nodes.size(), false);
@@ -549,9 +649,8 @@ void undoMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
     if (move.type == RNNIMoveType::ONE_STAR || move.type == RNNIMoveType::TWO_STAR || move.type == RNNIMoveType::THREE
             || move.type == RNNIMoveType::FOUR) {
         switchReticulations(network, u, v);
-        fixReticulationProbs(network, u, v, s, t, move.type, false);
     }
-    fixReticulations(network, move);
+    fixReticulationProbs(network, u, v, s, t, move.type, false);
     assertBeforeMove(network, move);
 
     std::vector<bool> visited(network.nodes.size(), false);
@@ -1330,6 +1429,10 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     v->getReticulationData()->link_to_first_parent = v_u_link;
     v->getReticulationData()->link_to_second_parent = v_c_link;
     v->getReticulationData()->link_to_child = v_d_link;
+    if (v->getReticulationData()->link_to_first_parent->edge_pmatrix_index
+            > v->getReticulationData()->link_to_second_parent->edge_pmatrix_index) {
+        std::swap(v->getReticulationData()->link_to_first_parent, v->getReticulationData()->link_to_second_parent);
+    }
 
     from_a_link->edge_pmatrix_index = a_u_edge->pmatrix_index;
     to_u_link->edge_pmatrix_index = a_u_edge->pmatrix_index;

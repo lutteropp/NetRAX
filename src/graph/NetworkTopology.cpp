@@ -48,7 +48,7 @@ Link* getLinkToNode(Network &network, Node *node, Node *target) {
             return &(node->links[i]);
         }
     }
-    return nullptr;
+    throw std::runtime_error("the node is not a neighbor");
 }
 
 Link* getLinkToNode(Network &network, size_t from_clv_index, size_t to_clv_index) {
