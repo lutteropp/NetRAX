@@ -367,6 +367,32 @@ void randomDeltaMinusMoves(const std::string &networkPath, const std::string &ms
     }
 }
 
+TEST (MovesTest, incrementalLoglikelihoodProblem) {
+    NetraxOptions options;
+    options.network_file = DATA_PATH + "small.nw";
+    options.msa_file = DATA_PATH + "small_fake_alignment.txt";
+    options.use_repeats = true;
+    AnnotatedNetwork ann_network = build_annotated_network(options);
+
+    double initial_logl = computeLoglikelihood(ann_network);
+    ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
+    std::cout << "initial_logl: " << initial_logl << "\n";
+
+    RNNIMove move;
+    move.moveType = MoveType::RNNIMove;
+    move.u_clv_index = 7;
+    move.v_clv_index = 5;
+    move.s_clv_index = 6;
+    move.t_clv_index = 2;
+    move.type = RNNIMoveType::THREE;
+    performMove(ann_network, move);
+    double moved_logl = computeLoglikelihood(ann_network);
+    ASSERT_NE(moved_logl, -std::numeric_limits<double>::infinity());
+    undoMove(ann_network, move);
+    double back_logl = computeLoglikelihood(ann_network);
+    ASSERT_DOUBLE_EQ(initial_logl, back_logl);
+}
+
 TEST (MovesTest, tailSmall) {
     randomTailMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
 }

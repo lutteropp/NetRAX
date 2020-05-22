@@ -631,6 +631,18 @@ void performMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
     invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, v);
     invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, s);
     invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, t);
+    for (Node *node : getNeighbors(network, u)) {
+        invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, node);
+    }
+    for (Node *node : getNeighbors(network, v)) {
+        invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, node);
+    }
+    for (Node *node : getNeighbors(network, s)) {
+        invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, node);
+    }
+    for (Node *node : getNeighbors(network, t)) {
+        invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, node);
+    }
 
     ann_network.travbuffer = reversed_topological_sort(ann_network.network);
     ann_network.blobInfo = partitionNetworkIntoBlobs(network, ann_network.travbuffer);
@@ -658,6 +670,18 @@ void undoMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
     invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, v);
     invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, s);
     invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, t);
+    for (Node *node : getNeighbors(network, u)) {
+        invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, node);
+    }
+    for (Node *node : getNeighbors(network, v)) {
+        invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, node);
+    }
+    for (Node *node : getNeighbors(network, s)) {
+        invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, node);
+    }
+    for (Node *node : getNeighbors(network, t)) {
+        invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, node);
+    }
 
     ann_network.travbuffer = reversed_topological_sort(ann_network.network);
     ann_network.blobInfo = partitionNetworkIntoBlobs(network, ann_network.travbuffer);
