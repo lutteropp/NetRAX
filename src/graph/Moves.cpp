@@ -1597,10 +1597,10 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     if (b->type == NodeType::RETICULATION_NODE) {
         // u is no longer parent of b, but a is now the parent
         Link *badToParentLink = nullptr;
-        if (getReticulationFirstParentPmatrixIndex(network, b) == u_b_edge_index) {
+        if (getReticulationFirstParentPmatrixIndex(b) == u_b_edge_index) {
             badToParentLink = b->getReticulationData()->link_to_first_parent;
         } else {
-            assert(getReticulationSecondParentPmatrixIndex(network, b) == u_b_edge_index);
+            assert(getReticulationSecondParentPmatrixIndex(b) == u_b_edge_index);
             badToParentLink = b->getReticulationData()->link_to_second_parent;
         }
         badToParentLink->outer = from_a_link;
@@ -1611,10 +1611,10 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     if (d->type == NodeType::RETICULATION_NODE) {
         // v is no longer parent of d, but c is now the parent
         Link *badToParentLink = nullptr;
-        if (getReticulationFirstParentPmatrixIndex(network, d) == v_d_edge_index) {
+        if (getReticulationFirstParentPmatrixIndex(d) == v_d_edge_index) {
             badToParentLink = d->getReticulationData()->link_to_first_parent;
         } else {
-            assert(getReticulationSecondParentPmatrixIndex(network, d) == v_d_edge_index);
+            assert(getReticulationSecondParentPmatrixIndex(d) == v_d_edge_index);
             badToParentLink = d->getReticulationData()->link_to_second_parent;
         }
         badToParentLink->outer = from_c_link;

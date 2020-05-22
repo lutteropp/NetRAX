@@ -114,19 +114,19 @@ double getReticulationActiveProb(Network &network, const Node *node) {
     return network.edges_by_index[node->getReticulationData()->getLinkToActiveParent()->edge_pmatrix_index]->prob;
 }
 
-size_t getReticulationFirstParentPmatrixIndex(Network &network, const Node *node) {
+size_t getReticulationFirstParentPmatrixIndex(const Node *node) {
     assert(node);
     assert(node->type == NodeType::RETICULATION_NODE);
     return node->getReticulationData()->getLinkToFirstParent()->edge_pmatrix_index;
 }
 
-size_t getReticulationSecondParentPmatrixIndex(Network &network, const Node *node) {
+size_t getReticulationSecondParentPmatrixIndex(const Node *node) {
     assert(node);
     assert(node->type == NodeType::RETICULATION_NODE);
     return node->getReticulationData()->getLinkToSecondParent()->edge_pmatrix_index;
 }
 
-size_t getReticulationActiveParentPmatrixIndex(Network &network, const Node *node) {
+size_t getReticulationActiveParentPmatrixIndex(const Node *node) {
     assert(node);
     assert(node->type == NodeType::RETICULATION_NODE);
     return node->getReticulationData()->getLinkToActiveParent()->edge_pmatrix_index;

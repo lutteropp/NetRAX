@@ -32,9 +32,9 @@ Node* getReticulationNonActiveParent(Network &network, const Node *node);
 double getReticulationFirstParentProb(Network &network, const Node* node);
 double getReticulationSecondParentProb(Network &network, const Node* node);
 double getReticulationActiveProb(Network &network, const Node* node);
-size_t getReticulationFirstParentPmatrixIndex(Network &network, const Node* node);
-size_t getReticulationSecondParentPmatrixIndex(Network &network, const Node* node);
-size_t getReticulationActiveParentPmatrixIndex(Network &network, const Node* node);
+size_t getReticulationFirstParentPmatrixIndex(const Node* node);
+size_t getReticulationSecondParentPmatrixIndex(const Node* node);
+size_t getReticulationActiveParentPmatrixIndex(const Node* node);
 
 std::vector<Node*> getChildren(Network &network, Node* node);
 std::vector<Node*> getActiveChildren(Network &network, Node* node);

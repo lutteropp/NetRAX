@@ -53,8 +53,8 @@ void init_annotated_network(AnnotatedNetwork &ann_network) {
             Node *retNode = ann_network.network.reticulation_nodes[i];
             double firstParentProb = netrax::getReticulationFirstParentProb(network, retNode);
             double secondParentProb = netrax::getReticulationSecondParentProb(network, retNode);
-            size_t firstParentEdgeIndex = netrax::getReticulationFirstParentPmatrixIndex(network, retNode);
-            size_t secondParentEdgeIndex = netrax::getReticulationSecondParentPmatrixIndex(network, retNode);
+            size_t firstParentEdgeIndex = netrax::getReticulationFirstParentPmatrixIndex(retNode);
+            size_t secondParentEdgeIndex = netrax::getReticulationSecondParentPmatrixIndex(retNode);
             ann_network.branch_probs[p][firstParentEdgeIndex] = firstParentProb;
             ann_network.branch_probs[p][secondParentEdgeIndex] = secondParentProb;
         }
