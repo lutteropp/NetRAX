@@ -387,9 +387,11 @@ TEST (MovesTest, incrementalLoglikelihoodProblem) {
     move.type = RNNIMoveType::THREE;
     performMove(ann_network, move);
     double moved_logl = computeLoglikelihood(ann_network);
+    std::cout << "moved_logl: " << moved_logl << "\n";
     ASSERT_NE(moved_logl, -std::numeric_limits<double>::infinity());
     undoMove(ann_network, move);
     double back_logl = computeLoglikelihood(ann_network);
+    std::cout << "back_logl: " << back_logl << "\n";
     ASSERT_DOUBLE_EQ(initial_logl, back_logl);
 }
 
