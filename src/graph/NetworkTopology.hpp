@@ -27,6 +27,7 @@ Node* getReticulationChild(Network &network, const Node* node);
 Node* getReticulationFirstParent(Network &network, const Node* node);
 Node* getReticulationSecondParent(Network &network, const Node* node);
 Node* getReticulationActiveParent(Network &network, const Node *node);
+Node* getReticulationOtherParent(Network &network, const Node* node, const Node* parent);
 Node* getReticulationNonActiveParent(Network &network, const Node *node);
 double getReticulationFirstParentProb(Network &network, const Node* node);
 double getReticulationSecondParentProb(Network &network, const Node* node);

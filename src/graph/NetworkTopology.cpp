@@ -132,6 +132,17 @@ size_t getReticulationActiveParentPmatrixIndex(Network &network, const Node *nod
     return node->getReticulationData()->getLinkToActiveParent()->edge_pmatrix_index;
 }
 
+Node* getReticulationOtherParent(Network &network, const Node* node, const Node* parent) {
+    assert(node);
+    assert(node->type == NodeType::RETICULATION_NODE);
+    if (getReticulationFirstParent(network, node) == parent) {
+        return getReticulationSecondParent(network, node);
+    } else {
+        assert(getReticulationSecondParent(network, node) == parent);
+        return getReticulationFirstParent(network, node);
+    }
+}
+
 std::vector<Node*> getChildren(Network &network, Node *node) {
     assert(node);
     std::vector<Node*> children;

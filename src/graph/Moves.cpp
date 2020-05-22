@@ -473,6 +473,42 @@ void assertAfterMove(Network &network, RNNIMove &move) {
     checkReticulationProperties(notReticulation, reticulation);
 }
 
+void fixReticulationProbs(Network &network, Node *u, Node *v, Node *s, Node *t, RNNIMoveType type, bool forward) {
+    if (type == RNNIMoveType::TWO_STAR) { // nothing to do in this case
+        return;
+    }
+    size_t donor_pmatrix_index;
+    size_t receiver_pmatrix_index;
+    if (type == RNNIMoveType::ONE_STAR) {
+        if (forward) {
+            donor_pmatrix_index = getEdgeTo(network, v, getActiveParent(network, v))->pmatrix_index;
+            receiver_pmatrix_index = getEdgeTo(network, u, getReticulationOtherParent(network, u, v))->pmatrix_index;
+        } else {
+            donor_pmatrix_index = getEdgeTo(network, u, getActiveParent(network, u))->pmatrix_index;
+            receiver_pmatrix_index = getEdgeTo(network, v, getReticulationOtherParent(network, v, u))->pmatrix_index;
+        }
+    } else if (type == RNNIMoveType::THREE) {
+        if (forward) {
+            donor_pmatrix_index = getEdgeTo(network, u, getActiveParent(network, u))->pmatrix_index;
+            receiver_pmatrix_index = getEdgeTo(network, u, v)->pmatrix_index;
+        } else {
+            donor_pmatrix_index = getEdgeTo(network, u, v)->pmatrix_index;
+            receiver_pmatrix_index = getEdgeTo(network, u, getReticulationOtherParent(network, u, s))->pmatrix_index;
+        }
+    } else if (type == RNNIMoveType::FOUR) {
+        if (forward) {
+            donor_pmatrix_index = getEdgeTo(network, u, v)->pmatrix_index;
+            receiver_pmatrix_index = getEdgeTo(network, u, getReticulationOtherParent(network, u, t))->pmatrix_index;
+        } else {
+            donor_pmatrix_index = getEdgeTo(network, u, getActiveParent(network, u))->pmatrix_index;
+            receiver_pmatrix_index = getEdgeTo(network, u, v)->pmatrix_index;
+        }
+    } else {
+        throw std::runtime_error("Invalid move type");
+    }
+    std::swap(network.edges_by_index[receiver_pmatrix_index]->prob, network.edges_by_index[donor_pmatrix_index]->prob);
+}
+
 void performMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
     Network &network = ann_network.network;
     Node *u = network.nodes_by_index[move.u_clv_index];
@@ -485,6 +521,7 @@ void performMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
     if (move.type == RNNIMoveType::ONE_STAR || move.type == RNNIMoveType::TWO_STAR || move.type == RNNIMoveType::THREE
             || move.type == RNNIMoveType::FOUR) {
         switchReticulations(network, u, v);
+        fixReticulationProbs(network, u, v, s, t, move.type, true);
     }
     fixReticulations(network, move);
     assertAfterMove(network, move);
@@ -512,6 +549,7 @@ void undoMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
     if (move.type == RNNIMoveType::ONE_STAR || move.type == RNNIMoveType::TWO_STAR || move.type == RNNIMoveType::THREE
             || move.type == RNNIMoveType::FOUR) {
         switchReticulations(network, u, v);
+        fixReticulationProbs(network, u, v, s, t, move.type, false);
     }
     fixReticulations(network, move);
     assertBeforeMove(network, move);
