@@ -123,19 +123,29 @@ AnnotatedNetwork build_best_raxml_annotated_network(const NetraxOptions &options
 }
 
 double computeLoglikelihood(AnnotatedNetwork &ann_network) {
-    return ann_network.raxml_treeinfo->loglh(true);
+    double logl = ann_network.raxml_treeinfo->loglh(true);
+    std::cout << "Loglikelihood: " << logl << "\n";
+    return logl;
 }
 double updateReticulationProbs(AnnotatedNetwork &ann_network) {
-    return netrax::computeLoglikelihood(ann_network, 0, 1, true);
+    double logl = netrax::computeLoglikelihood(ann_network, 0, 1, true);
+    std::cout << "Loglikelihood after updating reticulation probs: " << logl << "\n";
+    return logl;
 }
 double optimizeModel(AnnotatedNetwork &ann_network) {
-    return ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
+    double logl = ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
+    std::cout << "Loglikelihood after model optimization: " << logl << "\n";
+    return logl;
 }
 double optimizeBranches(AnnotatedNetwork &ann_network) {
-    return ann_network.raxml_treeinfo->optimize_branches(ann_network.options.lh_epsilon, 1);
+    double logl = ann_network.raxml_treeinfo->optimize_branches(ann_network.options.lh_epsilon, 1);
+    std::cout << "Loglikelihood after branch length optimization: " << logl << "\n";
+    return logl;
 }
 double optimizeTopology(AnnotatedNetwork &ann_network) {
-    return greedyHillClimbingTopology(ann_network, MoveType::RNNIMove);
+    double logl = greedyHillClimbingTopology(ann_network, MoveType::RNNIMove);
+    std::cout << "Loglikelihood after topology optimization: " << logl << "\n";
+    return logl;
 }
 
 void writeNetwork(AnnotatedNetwork &ann_network, const std::string &filepath) {

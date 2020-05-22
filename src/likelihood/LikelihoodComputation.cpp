@@ -920,6 +920,7 @@ double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int 
     /* restore original active partition */
     fake_treeinfo.active_partition = old_active_partition;
 
+    checkReticulationProbs(ann_network);
     if (update_reticulation_probs && reticulationProbsHaveChanged) {
         // invalidate clv entries
         for (size_t i = 0; i < network.num_reticulations(); ++i) {

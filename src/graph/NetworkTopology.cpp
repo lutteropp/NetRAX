@@ -414,4 +414,18 @@ void invalidatePmatrixIndex(AnnotatedNetwork &ann_network, size_t pmatrix_index)
     }
 }
 
+void checkReticulationProbs(AnnotatedNetwork &ann_network) {
+    bool unlinkedMode = (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
+    size_t n_partitions = 1;
+    if (unlinkedMode) {
+        n_partitions = ann_network.fake_treeinfo->partition_count;
+    }
+    for (size_t p = 0; p < n_partitions; ++p) {
+        for (size_t i = 0; i < ann_network.network.reticulation_nodes.size(); ++i) {
+            double actProb = getReticulationActiveProb(ann_network.network, ann_network.network.reticulation_nodes[i]);
+            assert(actProb >= 0 && actProb <= 1);
+        }
+    }
+}
+
 }

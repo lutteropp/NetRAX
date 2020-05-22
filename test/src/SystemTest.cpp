@@ -73,39 +73,17 @@ TEST (SystemTest, allTreeOldRaxml) {
 }
 
 void completeRun(AnnotatedNetwork &ann_network) {
-    pllmod_treeinfo_t *treeinfo = ann_network.fake_treeinfo;
     std::cout << exportDebugInfo(ann_network.network) << "\n";
     std::cout << toExtendedNewick(ann_network.network) << "\n";
 
-    // initial logl computation
-    double initial_logl = computeLoglikelihood(ann_network);
-    std::cout << "Initial loglikelihood: " << initial_logl << "\n";
-
-    // model parameter optimization
-    double modelopt_logl = optimizeModel(ann_network);
-    std::cout << "Loglikelihood after model optimization: " << modelopt_logl << "\n";
-
-    // branch length optimization
-    // TODO: Why does this give us a positive number???
-    double brlenopt_logl = optimizeBranches(ann_network);
-    std::cout << "Loglikelihood after branch length optimization: " << brlenopt_logl << "\n";
-
-    // model parameter optimization
-    double modelopt2_logl = optimizeModel(ann_network);
-    std::cout << "Loglikelihood after model optimization again: " << modelopt2_logl << "\n";
-
-    // topology optimization
-    double topo_logl = optimizeTopology(ann_network);
-    std::cout << "Loglikelihood after topology optimization: " << topo_logl << "\n";
-
-    // branch length optimization
-    // TODO: Why does this give us a positive number???
-    brlenopt_logl = optimizeBranches(ann_network);
-    std::cout << "Loglikelihood after branch length optimization: " << brlenopt_logl << "\n";
-
-    // model parameter optimization
-    modelopt2_logl = optimizeModel(ann_network);
-    std::cout << "Loglikelihood after model optimization again: " << modelopt2_logl << "\n";
+    //computeLoglikelihood(ann_network);
+    //updateReticulationProbs(ann_network);
+    //optimizeModel(ann_network);
+    //optimizeBranches(ann_network);
+    //optimizeModel(ann_network);
+    optimizeTopology(ann_network);
+    //optimizeBranches(ann_network);
+    //optimizeModel(ann_network);
 
     std::cout << exportDebugInfo(ann_network.network) << "\n";
     std::cout << toExtendedNewick(ann_network.network) << "\n";
