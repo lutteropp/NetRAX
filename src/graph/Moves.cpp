@@ -1092,6 +1092,20 @@ void performMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
     Edge *z_y_edge = getEdgeTo(network, z, y);
     Edge *x_prime_y_prime_edge = getEdgeTo(network, x_prime, y_prime);
 
+    double x_z_len = x_z_edge->length;
+    double z_y_len = z_y_edge->length;
+    double x_prime_y_prime_len = x_prime_y_prime_edge->length;
+    double x_z_prob = x_z_edge->prob;
+    double z_y_prob = z_y_edge->prob;
+    double x_prime_y_prime_prob = x_prime_y_prime_edge->prob;
+
+    double x_y_len = x_z_len + z_y_len;
+    double x_prime_z_len = x_prime_y_prime_len / 2;
+    double z_y_prime_len = x_prime_y_prime_len / 2;
+    double x_y_prob = z_y_prob;
+    double x_prime_z_prob = x_z_prob;
+    double z_y_prime_prob = x_prime_y_prime_prob;
+
     assert(x_prime_out_link->edge_pmatrix_index == x_prime_y_prime_edge->pmatrix_index);
     assert(y_prime_in_link->edge_pmatrix_index == x_prime_y_prime_edge->pmatrix_index);
     assert(x_out_link->edge_pmatrix_index == x_z_edge->pmatrix_index);
@@ -1116,6 +1130,13 @@ void performMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
     z_y_prime_edge->link1 = z_out_link;
     z_y_prime_edge->link2 = y_prime_in_link;
 
+    x_y_edge->length = x_y_len;
+    x_prime_z_edge->length = x_prime_z_len;
+    z_y_prime_edge->length = z_y_prime_len;
+    x_prime_z_edge->prob = x_y_prob;
+    x_prime_z_edge->prob = x_prime_z_prob;
+    z_y_prime_edge->prob = z_y_prime_prob;
+
     x_out_link->edge_pmatrix_index = x_y_edge->pmatrix_index;
     y_in_link->edge_pmatrix_index = x_y_edge->pmatrix_index;
     x_prime_out_link->edge_pmatrix_index = x_prime_z_edge->pmatrix_index;
@@ -1129,6 +1150,9 @@ void performMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
     invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, z);
     invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, x);
     invalidateHigherClvs(network, ann_network.fake_treeinfo, visited, x_prime);
+    invalidatePmatrixIndex(ann_network, x_y_edge->pmatrix_index);
+    invalidatePmatrixIndex(ann_network, x_prime_z_edge->pmatrix_index);
+    invalidatePmatrixIndex(ann_network, z_y_prime_edge->pmatrix_index);
 
     ann_network.travbuffer = reversed_topological_sort(ann_network.network);
     ann_network.blobInfo = partitionNetworkIntoBlobs(network, ann_network.travbuffer);
@@ -1154,6 +1178,20 @@ void undoMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
     Edge *x_prime_z_edge = getEdgeTo(network, x_prime, z);
     Edge *z_y_prime_edge = getEdgeTo(network, z, y_prime);
 
+    double x_y_len = x_y_edge->length;
+    double x_prime_z_len = x_prime_z_edge->length;
+    double z_y_prime_len = z_y_prime_edge->length;
+    double x_y_prob = x_y_edge->prob;
+    double x_prime_z_prob = x_prime_z_edge->prob;
+    double z_y_prime_prob = z_y_prime_edge->prob;
+
+    double x_z_len = x_y_len / 2;
+    double z_y_len = x_y_len / 2;
+    double x_prime_y_prime_len = x_prime_z_len + z_y_prime_len;
+    double x_z_prob = x_prime_z_prob;
+    double z_y_prob = x_y_prob;
+    double x_prime_y_prime_prob = z_y_prime_prob;
+
     assert(x_out_link->edge_pmatrix_index == x_y_edge->pmatrix_index);
     assert(y_in_link->edge_pmatrix_index == x_y_edge->pmatrix_index);
     assert(x_prime_out_link->edge_pmatrix_index == x_prime_z_edge->pmatrix_index);
@@ -1177,6 +1215,13 @@ void undoMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
     x_z_edge->link2 = z_in_link;
     z_y_edge->link1 = z_out_link;
     z_y_edge->link2 = y_in_link;
+
+    x_prime_y_prime_edge->length = x_prime_y_prime_len;
+    x_prime_y_prime_edge->prob = x_prime_y_prime_prob;
+    x_z_edge->length = x_z_len;
+    x_z_edge->prob = x_z_prob;
+    z_y_edge->length = z_y_len;
+    z_y_edge->prob = z_y_prob;
 
     x_prime_out_link->edge_pmatrix_index = x_prime_y_prime_edge->pmatrix_index;
     y_prime_in_link->edge_pmatrix_index = x_prime_y_prime_edge->pmatrix_index;
