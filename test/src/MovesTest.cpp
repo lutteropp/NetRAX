@@ -367,6 +367,14 @@ void randomDeltaMinusMoves(const std::string &networkPath, const std::string &ms
     }
 }
 
+void printClvValid(AnnotatedNetwork &ann_network) {
+    for (size_t i = 0; i < ann_network.network.num_nodes(); ++i) {
+        std::cout << "clv_valid[" << ann_network.network.nodes[i].clv_index << "] = "
+                << (int) ann_network.fake_treeinfo->clv_valid[0][ann_network.network.nodes[i].clv_index] << "\n";
+    }
+    std::cout << "\n";
+}
+
 TEST (MovesTest, incrementalLoglikelihoodProblem) {
     NetraxOptions options;
     options.network_file = DATA_PATH + "small.nw";
@@ -374,6 +382,7 @@ TEST (MovesTest, incrementalLoglikelihoodProblem) {
     options.use_repeats = true;
     AnnotatedNetwork ann_network = build_annotated_network(options);
 
+    printClvValid(ann_network);
     double initial_logl = computeLoglikelihood(ann_network);
     ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
     std::cout << "initial_logl: " << initial_logl << "\n";
@@ -390,12 +399,14 @@ TEST (MovesTest, incrementalLoglikelihoodProblem) {
     performMove(ann_network, move);
     std::cout << exportDebugInfo(ann_network.network);
     std::cout << toExtendedNewick(ann_network.network) << "\n";
+    printClvValid(ann_network);
     double moved_logl = computeLoglikelihood(ann_network);
     std::cout << "moved_logl: " << moved_logl << "\n";
     ASSERT_NE(moved_logl, -std::numeric_limits<double>::infinity());
     undoMove(ann_network, move);
     std::cout << exportDebugInfo(ann_network.network);
     std::cout << toExtendedNewick(ann_network.network) << "\n";
+    printClvValid(ann_network);
     double back_logl = computeLoglikelihood(ann_network);
     std::cout << "back_logl: " << back_logl << "\n";
     ASSERT_DOUBLE_EQ(initial_logl, back_logl);
