@@ -1,6 +1,6 @@
-#include <gtest/gtest.h>
-#include <string>
+#include <cstddef>
 #include <iostream>
+#include <string>
 
 #include "NetraxTest.hpp"
 
@@ -8,6 +8,8 @@ NetraxTest *env;
 
 int main(int argc, char **argv) {
     env = new NetraxTest();
+    std::ios_base::sync_with_stdio(0);
+    std::cin.tie(0);
 
     // Set data dir using the program path.
     std::string call = argv[0];
