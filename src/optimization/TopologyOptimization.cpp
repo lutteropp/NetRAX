@@ -9,6 +9,7 @@
 #include <cmath>
 
 #include "../graph/AnnotatedNetwork.hpp"
+#include "../graph/NetworkTopology.hpp"
 #include "../graph/Network.hpp"
 #include "../graph/Moves.hpp"
 
@@ -38,26 +39,68 @@ double bic(AnnotatedNetwork &ann_network, double logl) {
     return bic(logl, param_count, num_sites);
 }
 
+std::vector<std::vector<double> > extract_brlens(AnnotatedNetwork &ann_network) {
+    std::vector<std::vector<double> > res;
+    bool unlinkedMode = (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
+    size_t n_partitions = 1;
+    if (unlinkedMode) {
+        n_partitions = ann_network.fake_treeinfo->partition_count;
+    }
+    res.resize(n_partitions);
+    for (size_t p = 0; p < n_partitions; ++p) {
+        res[p].resize(ann_network.network.edges.size());
+        for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
+            size_t pmatrix_index = ann_network.network.edges[i].pmatrix_index;
+            res[p][pmatrix_index] = ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index];
+        }
+    }
+    return res;
+}
+
+void apply_brlens(AnnotatedNetwork &ann_network, const std::vector<std::vector<double> > &old_brlens) {
+    bool unlinkedMode = (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
+    size_t n_partitions = 1;
+    if (unlinkedMode) {
+        n_partitions = ann_network.fake_treeinfo->partition_count;
+    }
+    for (size_t p = 0; p < n_partitions; ++p) {
+        for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
+            size_t pmatrix_index = ann_network.network.edges[i].pmatrix_index;
+            if (ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] != old_brlens[p][pmatrix_index]) {
+                ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] = old_brlens[p][pmatrix_index];
+                ann_network.fake_treeinfo->pmatrix_valid[p][pmatrix_index] = 0;
+                invalidateHigherCLVs(ann_network, getTarget(ann_network.network, &ann_network.network.edges[i]), true);
+            }
+        }
+    }
+}
+
 template<typename T>
 double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates, double old_score) {
     size_t best_idx = candidates.size();
     double best_score = old_score;
     double best_logl;
+    std::vector<std::vector<double> > old_brlens = extract_brlens(ann_network);
+    std::vector<std::vector<double> > best_brlens;
     for (size_t i = 0; i < candidates.size(); ++i) {
         //std::cout << "try move " << toString(candidates[i]) << "\n";
         performMove(ann_network, candidates[i]);
+        ann_network.raxml_treeinfo->optimize_branches(ann_network.options.lh_epsilon, 1);
         double new_logl = ann_network.raxml_treeinfo->loglh(true);
         double new_bic = bic(ann_network, new_logl);
         if (new_bic < best_score) {
             best_score = new_bic;
             best_logl = new_logl;
             best_idx = i;
+            best_brlens = extract_brlens(ann_network);
         }
         //std::cout << "undo move " << toString(candidates[i]) << "\n";
         undoMove(ann_network, candidates[i]);
+        apply_brlens(ann_network, old_brlens);
     }
     if (best_idx < candidates.size()) {
         performMove(ann_network, candidates[best_idx]);
+        apply_brlens(ann_network, best_brlens);
         std::cout << "Accepting move " << toString(candidates[best_idx]) << " with old_score= " << old_score
                 << ", best_score= " << best_score << ", best_logl= " << best_logl << "\n";
     }

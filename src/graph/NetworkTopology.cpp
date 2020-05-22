@@ -395,6 +395,9 @@ void invalidateHigherClvs(Network &network, pllmod_treeinfo_t *treeinfo, std::ve
     if (visited[node->clv_index]) {
         return;
     }
+    if (treeinfo->clv_valid[0][node->clv_index] == 0) { // clv at node is already invalidated
+        return;
+    }
     if (invalidate_myself) {
         for (size_t p = 0; p < treeinfo->partition_count; ++p) {
             treeinfo->clv_valid[p][node->clv_index] = 0;
