@@ -133,6 +133,11 @@ RaxmlInstance createRaxmlInstance(const NetraxOptions &options) {
     instance.opts.num_threads = 1;
     instance.opts.use_repeats = options.use_repeats;
     instance.opts.use_tip_inner = !options.use_repeats;
+    instance.opts.brlen_min = options.brlen_min;
+    instance.opts.brlen_max = options.brlen_max;
+    instance.opts.brlen_linkage = options.brlen_linkage;
+    instance.opts.brlen_opt_method = options.brlen_opt_method;
+    instance.opts.lh_epsilon = options.lh_epsilon;
     load_parted_msa(instance);
     check_options(instance);
     balance_load(instance);

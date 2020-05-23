@@ -13,6 +13,7 @@
 #include "../graph/Network.hpp"
 #include "../graph/Moves.hpp"
 #include "../likelihood/LikelihoodComputation.hpp"
+#include "BranchLengthOptimization.hpp"
 
 namespace netrax {
 
@@ -86,7 +87,10 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
     for (size_t i = 0; i < candidates.size(); ++i) {
         //std::cout << "try move " << toString(candidates[i]) << "\n";
         performMove(ann_network, candidates[i]);
-        ann_network.raxml_treeinfo->optimize_branches(ann_network.options.lh_epsilon, 1);
+        std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, candidates[i]);
+        optimize_branches(ann_network, ann_network.options.brlen_min, ann_network.options.brlen_max,
+                ann_network.options.lh_epsilon,
+                RAXML_BRLEN_SMOOTHINGS, brlen_opt_candidates);
         double new_logl = ann_network.raxml_treeinfo->loglh(true);
         double new_bic = bic(ann_network, new_logl);
         if (new_bic < best_score) {
