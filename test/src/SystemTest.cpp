@@ -77,12 +77,12 @@ void completeRun(AnnotatedNetwork &ann_network) {
     std::cout << toExtendedNewick(ann_network.network) << "\n";
 
     computeLoglikelihood(ann_network);
-    updateReticulationProbs(ann_network);
-    optimizeModel(ann_network);
     optimizeBranches(ann_network);
+    updateReticulationProbs(ann_network);
     optimizeModel(ann_network);
     optimizeTopology(ann_network);
     optimizeBranches(ann_network);
+    updateReticulationProbs(ann_network);
     optimizeModel(ann_network);
 
     //std::cout << exportDebugInfo(ann_network.network) << "\n";
