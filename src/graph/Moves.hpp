@@ -125,6 +125,15 @@ std::string toString(RSPRMove &move);
 std::string toString(ArcInsertionMove &move);
 std::string toString(ArcRemovalMove &move);
 
+std::unordered_set<size_t> brlenOptCandidates(AnnotatedNetwork &ann_network, RNNIMove &move);
+std::unordered_set<size_t> brlenOptCandidates(AnnotatedNetwork &ann_network, RSPRMove &move);
+std::unordered_set<size_t> brlenOptCandidates(AnnotatedNetwork &ann_network, ArcInsertionMove &move);
+std::unordered_set<size_t> brlenOptCandidates(AnnotatedNetwork &ann_network, ArcRemovalMove &move);
+std::unordered_set<size_t> brlenOptCandidatesUndo(AnnotatedNetwork &ann_network, RNNIMove &move);
+std::unordered_set<size_t> brlenOptCandidatesUndo(AnnotatedNetwork &ann_network, RSPRMove &move);
+std::unordered_set<size_t> brlenOptCandidatesUndo(AnnotatedNetwork &ann_network, ArcInsertionMove &move);
+std::unordered_set<size_t> brlenOptCandidatesUndo(AnnotatedNetwork &ann_network, ArcRemovalMove &move);
+
 void performMove(AnnotatedNetwork &ann_network, GeneralMove *move);
 void undoMove(AnnotatedNetwork &ann_network, GeneralMove *move);
 std::string toString(GeneralMove *move);

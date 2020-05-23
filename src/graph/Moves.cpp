@@ -1740,4 +1740,115 @@ std::string toString(ArcRemovalMove &move) {
     return ss.str();
 }
 
+std::unordered_set<size_t> brlenOptCandidates(AnnotatedNetwork &ann_network, RNNIMove &move) {
+    Node *u = ann_network.network.nodes_by_index[move.u_clv_index];
+    Node *v = ann_network.network.nodes_by_index[move.v_clv_index];
+    Node *s = ann_network.network.nodes_by_index[move.s_clv_index];
+    Node *t = ann_network.network.nodes_by_index[move.t_clv_index];
+    Edge *u_v_edge = getEdgeTo(ann_network.network, u, v);
+    Edge *v_s_edge = getEdgeTo(ann_network.network, v, s);
+    Edge *u_t_edge = getEdgeTo(ann_network.network, u, t);
+    return {u_v_edge->pmatrix_index, v_s_edge->pmatrix_index, u_t_edge->pmatrix_index};
+}
+std::unordered_set<size_t> brlenOptCandidatesUndo(AnnotatedNetwork &ann_network, RNNIMove &move) {
+    Node *u = ann_network.network.nodes_by_index[move.u_clv_index];
+    Node *v = ann_network.network.nodes_by_index[move.v_clv_index];
+    Node *s = ann_network.network.nodes_by_index[move.s_clv_index];
+    Node *t = ann_network.network.nodes_by_index[move.t_clv_index];
+    Edge *u_s_edge = getEdgeTo(ann_network.network, u, s);
+    Edge *v_t_edge = getEdgeTo(ann_network.network, v, t);
+    Edge *u_t_edge = getEdgeTo(ann_network.network, u, t);
+    return {u_s_edge->pmatrix_index, v_t_edge->pmatrix_index, u_t_edge->pmatrix_index};
+}
+std::unordered_set<size_t> brlenOptCandidates(AnnotatedNetwork &ann_network, RSPRMove &move) {
+    Node *x = ann_network.network.nodes_by_index[move.x_clv_index];
+    Node *y = ann_network.network.nodes_by_index[move.y_clv_index];
+    Node *x_prime = ann_network.network.nodes_by_index[move.x_prime_clv_index];
+    Node *y_prime = ann_network.network.nodes_by_index[move.y_prime_clv_index];
+    Node *z = ann_network.network.nodes_by_index[move.z_clv_index];
+    Edge *x_y_edge = getEdgeTo(ann_network.network, x, y);
+    Edge *x_prime_z_edge = getEdgeTo(ann_network.network, x_prime, z);
+    Edge *z_y_prime_edge = getEdgeTo(ann_network.network, z, y_prime);
+    return {x_y_edge->pmatrix_index, x_prime_z_edge->pmatrix_index, z_y_prime_edge->pmatrix_index};
+}
+std::unordered_set<size_t> brlenOptCandidatesUndo(AnnotatedNetwork &ann_network, RSPRMove &move) {
+    Node *x = ann_network.network.nodes_by_index[move.x_clv_index];
+    Node *y = ann_network.network.nodes_by_index[move.y_clv_index];
+    Node *x_prime = ann_network.network.nodes_by_index[move.x_prime_clv_index];
+    Node *y_prime = ann_network.network.nodes_by_index[move.y_prime_clv_index];
+    Node *z = ann_network.network.nodes_by_index[move.z_clv_index];
+    Edge *x_prime_y_prime_edge = getEdgeTo(ann_network.network, x_prime, y_prime);
+    Edge *x_z_edge = getEdgeTo(ann_network.network, x, z);
+    Edge *z_y_edge = getEdgeTo(ann_network.network, z, y);
+    return {x_prime_y_prime_edge->pmatrix_index, x_z_edge->pmatrix_index, z_y_edge->pmatrix_index};
+}
+std::unordered_set<size_t> brlenOptCandidates(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
+    Node *a = ann_network.network.nodes_by_index[move.a_clv_index];
+    Node *b = ann_network.network.nodes_by_index[move.b_clv_index];
+    Node *c = ann_network.network.nodes_by_index[move.c_clv_index];
+    Node *d = ann_network.network.nodes_by_index[move.d_clv_index];
+
+    // find u and v
+    Node *u = nullptr;
+    for (size_t i = 0; i < a->links.size(); ++i) {
+        for (size_t j = 0; j < b->links.size(); ++j) {
+            if (a->links[i].outer->node_clv_index == b->links[j].outer->node_clv_index) {
+                u = ann_network.network.nodes_by_index[a->links[i].outer->node_clv_index];
+                break;
+            }
+        }
+    }
+    assert(u);
+    Node *v = nullptr;
+    for (size_t i = 0; i < c->links.size(); ++i) {
+        for (size_t j = 0; j < d->links.size(); ++j) {
+            if (c->links[i].outer->node_clv_index == d->links[j].outer->node_clv_index) {
+                v = ann_network.network.nodes_by_index[c->links[i].outer->node_clv_index];
+                break;
+            }
+        }
+    }
+    assert(v);
+
+    Edge *a_u_edge = getEdgeTo(ann_network.network, a, u);
+    Edge *u_b_edge = getEdgeTo(ann_network.network, u, b);
+    Edge *c_v_edge = getEdgeTo(ann_network.network, c, v);
+    Edge *v_d_edge = getEdgeTo(ann_network.network, v, d);
+    Edge *u_v_edge = getEdgeTo(ann_network.network, u, v);
+    return {a_u_edge->pmatrix_index, u_b_edge->pmatrix_index,c_v_edge->pmatrix_index,v_d_edge->pmatrix_index,u_v_edge->pmatrix_index};
+}
+std::unordered_set<size_t> brlenOptCandidatesUndo(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
+    Node *a = ann_network.network.nodes_by_index[move.a_clv_index];
+    Node *b = ann_network.network.nodes_by_index[move.b_clv_index];
+    Node *c = ann_network.network.nodes_by_index[move.c_clv_index];
+    Node *d = ann_network.network.nodes_by_index[move.d_clv_index];
+    Edge *a_b_edge = getEdgeTo(ann_network.network, a, b);
+    Edge *c_d_edge = getEdgeTo(ann_network.network, c, d);
+    return {a_b_edge->pmatrix_index, c_d_edge->pmatrix_index};
+}
+
+std::unordered_set<size_t> brlenOptCandidates(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
+    Node *a = ann_network.network.nodes_by_index[move.a_clv_index];
+    Node *b = ann_network.network.nodes_by_index[move.b_clv_index];
+    Node *c = ann_network.network.nodes_by_index[move.c_clv_index];
+    Node *d = ann_network.network.nodes_by_index[move.d_clv_index];
+    Edge *a_b_edge = getEdgeTo(ann_network.network, a, b);
+    Edge *c_d_edge = getEdgeTo(ann_network.network, c, d);
+    return {a_b_edge->pmatrix_index, c_d_edge->pmatrix_index};
+}
+std::unordered_set<size_t> brlenOptCandidatesUndo(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
+    Node *a = ann_network.network.nodes_by_index[move.a_clv_index];
+    Node *b = ann_network.network.nodes_by_index[move.b_clv_index];
+    Node *c = ann_network.network.nodes_by_index[move.c_clv_index];
+    Node *d = ann_network.network.nodes_by_index[move.d_clv_index];
+    Node *u = ann_network.network.nodes_by_index[move.u_clv_index];
+    Node *v = ann_network.network.nodes_by_index[move.v_clv_index];
+    Edge *a_u_edge = getEdgeTo(ann_network.network, a, u);
+    Edge *u_b_edge = getEdgeTo(ann_network.network, u, b);
+    Edge *c_v_edge = getEdgeTo(ann_network.network, c, v);
+    Edge *v_d_edge = getEdgeTo(ann_network.network, v, d);
+    Edge *u_v_edge = getEdgeTo(ann_network.network, u, v);
+    return {a_u_edge->pmatrix_index, u_b_edge->pmatrix_index,c_v_edge->pmatrix_index,v_d_edge->pmatrix_index,u_v_edge->pmatrix_index};
+}
+
 }
