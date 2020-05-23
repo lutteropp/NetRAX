@@ -53,6 +53,53 @@ double computeVariance(const std::vector<OptimizedBranchLength> &brlens) {
     return var;
 }
 
+double optimize_branch(AnnotatedNetwork &ann_network, double min_brlen, double max_brlen, double lh_epsilon,
+        int max_iters, int *act_iters, size_t pmatrix_index, std::unordered_set<size_t> &candidates) {
+    if (*act_iters >= max_iters) {
+        return ann_network.old_logl;
+    }
+
+    double best_logl = ann_network.old_logl;
+    std::vector<double> best_lengths;
+    size_t n_partitions = 1;
+    bool unlinkedMode = (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
+    if (unlinkedMode) {
+        n_partitions = ann_network.fake_treeinfo->partition_count;
+    }
+    best_lengths.resize(n_partitions);
+    for (size_t p = 0; p < n_partitions; ++p) {
+        best_lengths[p] = ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index];
+    }
+
+    // TODO: Do Brent's method to find a better branch length for pmatrix_index...
+    throw std::runtime_error("Brent's method not implemented yet");
+
+    (*act_iters)++;
+    return best_logl;
+}
+
+double optimize_branches(AnnotatedNetwork &ann_network, double min_brlen, double max_brlen, double lh_epsilon,
+        int max_iters, std::unordered_set<size_t> &candidates) {
+    double logl = ann_network.old_logl;
+    int act_iters = 0;
+    while (!candidates.empty()) {
+        size_t pmatrix_index = *candidates.begin();
+        candidates.erase(candidates.begin());
+        logl = optimize_branch(ann_network, min_brlen, max_brlen, lh_epsilon, max_iters, &act_iters, pmatrix_index,
+                candidates);
+    }
+    return logl;
+}
+
+double optimize_branches(AnnotatedNetwork &ann_network, double min_brlen, double max_brlen, double lh_epsilon,
+        int max_iters) {
+    std::unordered_set<size_t> candidates;
+    for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
+        candidates.emplace(ann_network.network.edges[i].pmatrix_index);
+    }
+    return optimize_branches(ann_network, min_brlen, max_brlen, lh_epsilon, max_iters, candidates);
+}
+
 double optimize_branches(AnnotatedNetwork &ann_network, double min_brlen, double max_brlen, double lh_epsilon,
         int max_iters, int opt_method, int radius) {
     NetraxOptions &options = ann_network.options;
