@@ -1183,7 +1183,7 @@ void performMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
     ann_network.travbuffer = reversed_topological_sort(ann_network.network);
     ann_network.blobInfo = partitionNetworkIntoBlobs(network, ann_network.travbuffer);
 
-    std::cout << exportDebugInfo(ann_network.network) << "\n";
+    //std::cout << exportDebugInfo(ann_network.network) << "\n";
 
     assertReticulationProbs(ann_network);
 }
