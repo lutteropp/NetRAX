@@ -1797,7 +1797,6 @@ std::unordered_set<size_t> brlenOptCandidatesUndo(AnnotatedNetwork &ann_network,
 }
 std::unordered_set<size_t> brlenOptCandidates(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     Network &network = ann_network.network;
-    std::cout << exportDebugInfo(ann_network.network) << "\n";
     Node *a = network.nodes_by_index[move.a_clv_index];
     Node *b = network.nodes_by_index[move.b_clv_index];
     Node *c = network.nodes_by_index[move.c_clv_index];

@@ -94,7 +94,7 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
         //std::cout << "try move " << toString(candidates[i]) << "\n";
         performMove(ann_network, candidates[i]);
         //std::cout << "logl after perform move: " << ann_network.raxml_treeinfo->loglh(true) <<"\n";
-        std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, candidates[i]);
+        //std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, candidates[i]);
         //optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
         double new_logl = ann_network.raxml_treeinfo->loglh(true);
         double new_bic = bic(ann_network, new_logl);
@@ -184,11 +184,13 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network) {
     unsigned int moves_cnt = 0;
     do {
         //std::cout << toExtendedNewick(ann_network.network) << "\n";
-        std::cout << "Using move type: " << toString(types[type_idx]) << "\n";
-        if (new_bic > old_bic) {
+        if (new_bic < old_bic) {
+            std::cout << "Improved bic from " << old_bic << " to " << new_bic << "\n";
             old_bic = new_bic;
             moves_cnt = 0;
         }
+
+        std::cout << "Using move type: " << toString(types[type_idx]) << "\n";
         new_logl = greedyHillClimbingTopology(ann_network, types[type_idx]);
         new_bic = bic(ann_network, new_logl);
         type_idx = (type_idx + 1) % types.size();
