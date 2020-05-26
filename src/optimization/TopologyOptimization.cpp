@@ -84,8 +84,8 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
     double best_logl;
     std::vector<std::vector<double> > old_brlens = extract_brlens(ann_network);
     std::vector<std::vector<double> > best_brlens;
-    int radius = 1;
-    int max_iters = ann_network.options.brlen_smoothings;
+    //int radius = 1;
+    //int max_iters = ann_network.options.brlen_smoothings;
     for (size_t i = 0; i < candidates.size(); ++i) {
         //std::cout << "try move " << toString(candidates[i]) << "\n";
         performMove(ann_network, candidates[i]);
@@ -106,7 +106,11 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
     if (best_idx < candidates.size()) {
         performMove(ann_network, candidates[best_idx]);
         apply_brlens(ann_network, best_brlens);
+        // optimize reticulation probs and model after a move has been accepted
+        //netrax::computeLoglikelihood(ann_network, 1, 1, true);
         best_logl = netrax::computeLoglikelihood(ann_network, 1, 1, false);
+        //best_logl = ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
+        //best_logl = optimize_branches(ann_network, max_iters, radius);
 
         std::cout << "Accepting move " << toString(candidates[best_idx]) << " with old_score= " << old_score
                 << ", best_score= " << best_score << ", best_logl= " << best_logl << "\n";
