@@ -442,8 +442,8 @@ void compute_tree_logl_blobs(AnnotatedNetwork &ann_network, std::vector<bool> &c
     for (size_t i = 0; i < ops_count; ++i) {
         clv_touched[ops[i].parent_clv_index] = true;
     }
-    //printOperationArray(ops);
-    //std::cout << "\n";
+    printOperationArray(ops);
+    std::cout << "\n";
     std::vector<bool> will_be_touched = clv_touched;
     for (size_t i = 0; i < ops_count; ++i) {
         will_be_touched[ops[i].parent_clv_index] = true;
@@ -634,7 +634,7 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
             continue;
         }
 
-        //std::cout << "megablobRootClvIdx: " << megablobRootClvIdx << "\n";
+        std::cout << "megablobRootClvIdx: " << megablobRootClvIdx << "\n";
 
         size_t n_trees = 1 << blobInfo.reticulation_nodes_per_megablob[megablob_idx].size();
         // iterate over all displayed trees within the megablob, storing their tree clvs and tree probs
@@ -656,11 +656,11 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
                     bool changedBitIsSet = treeIdx & onlyChangedBit;
                     startNode = blobInfo.reticulation_nodes_per_megablob[megablob_idx][changedBitPos];
                     startNode->getReticulationData()->setActiveParentToggle(changedBitIsSet);
-                    //std::cout << "startNode: " << startNode->clv_index << ", tree_idx: " << treeIdx << "\n";
+                    std::cout << "startNode: " << startNode->clv_index << ", tree_idx: " << treeIdx << "\n";
                 } else {
-                    //std::cout << "startNode: nullptr, tree_idx: " << treeIdx << "\n";
+                    std::cout << "startNode: nullptr, tree_idx: " << treeIdx << "\n";
                 }
-                //printReticulationParents(network);
+                printReticulationParents(network);
             } else {
                 setReticulationParents(blobInfo, megablob_idx, treeIdx);
             }
@@ -820,9 +820,14 @@ double processPartition(AnnotatedNetwork &ann_network, unsigned int partition_id
     for (size_t i = 0; i < network.num_tips(); ++i) {
         clv_touched[i] = true;
     }
-    for (size_t i = 0; i < network.nodes.size(); ++i) {
+    /*for (size_t i = 0; i < network.nodes.size(); ++i) {
         if (fake_treeinfo.clv_valid[partition_idx][i]) {
             clv_touched[i] = true;
+        }
+    }*/
+    for (size_t i = 0; i < ann_network.blobInfo.megablob_roots.size(); ++i) {
+        if (fake_treeinfo.clv_valid[partition_idx][ann_network.blobInfo.megablob_roots[i]->clv_index]) {
+            clv_touched[ann_network.blobInfo.megablob_roots[i]->clv_index] = true;
         }
     }
     clv_touched[network.nodes.size()] = true; // the fake clvindex is always touched
