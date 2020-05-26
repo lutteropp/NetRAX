@@ -709,17 +709,6 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
             assert(clv_touched[megablobRootClvIdx]);
             // merge the tree clvs into the megablob root clv
             merge_tree_clvs(tree_clvs, fake_treeinfo.partitions[partitionIdx], megablobRootClvIdx);
-
-            Node *dbg_root = blobInfo.megablob_roots[megablob_idx];
-            Node *dbg_back;
-            if (dbg_root == network.root) {
-                dbg_back = getTargetNode(network, dbg_root->getLink());
-            } else {
-                dbg_back = parent[dbg_root->clv_index];
-            }
-            pll_compute_edge_loglikelihood(fake_treeinfo.partitions[partitionIdx], dbg_root->clv_index,
-                    dbg_root->scaler_index, dbg_back->clv_index, dbg_back->scaler_index,
-                    dbg_root->getLink()->edge_pmatrix_index, fake_treeinfo.param_indices[partitionIdx], nullptr);
         }
     }
     return persite_lh_network;
