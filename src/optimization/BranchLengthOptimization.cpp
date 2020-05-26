@@ -62,6 +62,7 @@ static double brent_target_networks(void *p, double x) {
     size_t pmatrix_index = ((BrentBrlenParams*) p)->pmatrix_index;
     size_t partition_index = ((BrentBrlenParams*) p)->partition_index;
     double old_x = ann_network->fake_treeinfo->branch_lengths[partition_index][pmatrix_index];
+    std::cout << " pmatrix index:" << pmatrix_index << ", x: " << x << ", old_x: " << old_x << "\n";
     double score;
     if (old_x == x) {
         score = -1 * computeLoglikelihood(*ann_network, 1, 1, false);
