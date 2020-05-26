@@ -170,4 +170,32 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, MoveType type) 
     return ann_network.raxml_treeinfo->loglh(true);
 }
 
+double greedyHillClimbingTopology(AnnotatedNetwork &ann_network) {
+    std::vector<MoveType> types = { MoveType::DeltaMinusMove, MoveType::RNNIMove, MoveType::RSPR1Move,
+            MoveType::DeltaPlusMove };
+    unsigned int type_idx = 0;
+    double old_logl = ann_network.raxml_treeinfo->loglh(true);
+    double new_logl = old_logl;
+    double old_bic = bic(ann_network, old_logl);
+    double new_bic = old_bic;
+    unsigned int moves_cnt = 0;
+    do {
+        std::cout << "Using move type: " << toString(types[type_idx]) << "\n";
+        if (new_bic > old_bic) {
+            old_bic = new_bic;
+            moves_cnt = 0;
+        }
+        new_logl = greedyHillClimbingTopology(ann_network, types[type_idx]);
+        new_bic = bic(ann_network, new_logl);
+        type_idx = (type_idx + 1) % types.size();
+        moves_cnt++;
+        if (ann_network.network.num_reticulations() == 0
+                && (types[type_idx] == MoveType::DeltaMinusMove || types[type_idx] == MoveType::ArcRemovalMove)) {
+            type_idx = (type_idx + 1) % types.size();
+            moves_cnt++;
+        }
+    } while ((new_bic < old_bic) || (moves_cnt < types.size()));
+    return new_logl;
+}
+
 }

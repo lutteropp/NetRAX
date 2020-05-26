@@ -129,12 +129,12 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
         std::unordered_set<size_t> &candidates) {
     double lh_epsilon = ann_network.options.lh_epsilon;
     int act_iters = 0;
-    double old_logl = computeLoglikelihood(ann_network, 1, 1, false);
+    double old_logl = ann_network.raxml_treeinfo->loglh(true);
     while (!candidates.empty()) {
         size_t pmatrix_index = *candidates.begin();
         candidates.erase(candidates.begin());
         //std::cout << "\noptimizing branch " << pmatrix_index << "\n";
-        old_logl = computeLoglikelihood(ann_network, 1, 1, false);
+        old_logl = ann_network.raxml_treeinfo->loglh(true);
         double new_logl = optimize_branch(ann_network, max_iters, &act_iters, pmatrix_index);
 
         //std::cout << "old logl: " << old_logl << ", new_logl: " << new_logl << "\n";

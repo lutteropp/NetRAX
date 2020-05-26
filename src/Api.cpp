@@ -143,7 +143,7 @@ double optimizeBranches(AnnotatedNetwork &ann_network) {
     return logl;
 }
 double optimizeTopology(AnnotatedNetwork &ann_network) {
-    double logl = greedyHillClimbingTopology(ann_network, MoveType::RNNIMove);
+    double logl = greedyHillClimbingTopology(ann_network);
     std::cout << "Loglikelihood after topology optimization: " << logl << "\n";
     return logl;
 }
