@@ -72,8 +72,8 @@ static double brent_target_networks(void *p, double x) {
         invalidateHigherCLVs(*ann_network,
                 getSource(ann_network->network, ann_network->network.edges_by_index[pmatrix_index]), true);
         score = -1 * computeLoglikelihood(*ann_network, 1, 1, false);
+        //std::cout << "    score: " << score << ", x: " << x << ", old_x: " << old_x << "\n";
     }
-    std::cout << "    score: " << score << ", x: " << x << ", old_x: " << old_x << "\n";
     return score;
 }
 
@@ -95,18 +95,18 @@ double optimize_branch(AnnotatedNetwork &ann_network, int max_iters, int *act_it
     params.partition_index = partition_index;
     double old_brlen = ann_network.fake_treeinfo->branch_lengths[partition_index][pmatrix_index];
     // Do Brent's method to find a better branch length
-    std::cout << " optimizing branch " << pmatrix_index << ":\n";
+    //std::cout << " optimizing branch " << pmatrix_index << ":\n";
     double score = 0;
     double f2x;
     double new_brlen = pllmod_opt_minimize_brent(min_brlen, old_brlen, max_brlen, tolerance, &score, &f2x,
             (void*) &params, &brent_target_networks);
-    std::cout << "  score: " << score << "\n";
-    std::cout << "  old_brlen: " << old_brlen << ", new_brlen: " << new_brlen << "\n";
+    //std::cout << "  score: " << score << "\n";
+    //std::cout << "  old_brlen: " << old_brlen << ", new_brlen: " << new_brlen << "\n";
     best_logl = computeLoglikelihood(ann_network, 1, 1, false);
-    std::cout << " start logl for branch " << pmatrix_index << " with length " << start_brlen << ": " << start_logl
-            << "\n";
-    std::cout << "   end logl for branch " << pmatrix_index << " with length " << new_brlen << ": " << best_logl << "\n";
-    std::cout << "\n";
+    //std::cout << " start logl for branch " << pmatrix_index << " with length " << start_brlen << ": " << start_logl
+    //        << "\n";
+    //std::cout << "   end logl for branch " << pmatrix_index << " with length " << new_brlen << ": " << best_logl << "\n";
+    //std::cout << "\n";
     (*act_iters)++;
     return best_logl;
 }
@@ -127,16 +127,13 @@ double optimize_branch(AnnotatedNetwork &ann_network, int max_iters, int *act_it
 
 double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radius,
         std::unordered_set<size_t> &candidates) {
-    double old_logl = computeLoglikelihood(ann_network, 1, 1, false);
     double lh_epsilon = ann_network.options.lh_epsilon;
     int act_iters = 0;
+    double old_logl = computeLoglikelihood(ann_network, 1, 1, false);
     while (!candidates.empty()) {
         size_t pmatrix_index = *candidates.begin();
         candidates.erase(candidates.begin());
         double new_logl = optimize_branch(ann_network, max_iters, &act_iters, pmatrix_index);
-        if (new_logl < old_logl) {
-            std::cout << "new_logl: " << new_logl << ", old_logl: " << old_logl << "\n";
-        }
         assert(new_logl >= old_logl);
         if (new_logl - old_logl > lh_epsilon) { // add all neighbors of the branch to the candidates
             std::unordered_set<size_t> neighbor_indices = getNeighborPmatrixIndices(ann_network.network,
