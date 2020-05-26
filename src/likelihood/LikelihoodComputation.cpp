@@ -442,6 +442,10 @@ void compute_tree_logl_blobs(AnnotatedNetwork &ann_network, std::vector<bool> &c
     for (size_t i = 0; i < ops_count; ++i) {
         clv_touched[ops[i].parent_clv_index] = true;
     }
+    for (size_t i = 0; i < ops_count; ++i) {
+        assert(clv_touched[ops[i].child1_clv_index] == true);
+        assert(clv_touched[ops[2].child1_clv_index] == true);
+    }
     Node *ops_root = network.nodes_by_index[ops[ops.size() - 1].parent_clv_index];
 
 // Compute CLVs in pll_update_partials, as specified by the operations array. This needs a pll_partition_t object.
@@ -805,10 +809,11 @@ double processPartition(AnnotatedNetwork &ann_network, unsigned int partition_id
     }
     std::vector<double> persite_lh_network;
 
-    std::vector<bool> clv_touched(network.nodes.size(), false);
+    std::vector<bool> clv_touched(network.nodes.size() + 1, false);
     for (size_t i = 0; i < network.num_tips(); ++i) {
         clv_touched[i] = true;
     }
+    clv_touched[network.nodes.size()] = true; // the fake clvindex is always touched
 
     if (!useBlobs) {
         persite_lh_network = compute_persite_lh(ann_network, partition_idx, parent, unlinked_mode,

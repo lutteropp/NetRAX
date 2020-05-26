@@ -118,7 +118,7 @@ TEST (SystemTest, randomNetwork) {
     smallOptions.msa_file = msaPath;
     smallOptions.use_repeats = true;
     RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
-    unsigned int n_reticulations = 7;
+    unsigned int n_reticulations = 3;
     AnnotatedNetwork ann_network = build_random_annotated_network(smallOptions, n_reticulations);
     assert(ann_network.network.num_reticulations() == n_reticulations);
 
@@ -216,4 +216,8 @@ TEST (SystemTest, problem11) {
 TEST (SystemTest, problem12) {
     //problemTestOptTopology("((A:1.49622e-06,(D:1.43824e-06)#0:1.28508e-06::0.5):10.0005,(#0:83.9918::0.5,B:0.130942):0.0141053,C:0.444893);", MoveType::RSPR1Move);
     problemTest("(C:0.1,(B:0.05,(A:0.05)#0:1::0.5):0.05,(#0:0.05::0.5,D:0.1):0.1);");
+}
+
+TEST (SystemTest, problem13) {
+    problemTest("((C:0.05)#1:0.05::0.5,(B:0.05,#1:1::0.5):0.05,(((A:0.05)#0:0.025::0.5,(D:0.025)#2:1::0.5):0.025,(#2:0.025::0.5,#0:1::0.5):0.05):0.1);");
 }
