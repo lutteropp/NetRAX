@@ -447,8 +447,14 @@ void compute_tree_logl_blobs(AnnotatedNetwork &ann_network, std::vector<bool> &c
     std::vector<bool> will_be_touched = clv_touched;
     for (size_t i = 0; i < ops_count; ++i) {
         will_be_touched[ops[i].parent_clv_index] = true;
-        assert(will_be_touched[ops[i].child1_clv_index] == true);
-        assert(will_be_touched[ops[i].child2_clv_index] == true);
+        if (!will_be_touched[ops[i].child1_clv_index]) {
+            std::cout << "problematic clv index: " << ops[i].child1_clv_index << "\n";
+        }
+        assert(will_be_touched[ops[i].child1_clv_index]);
+        if (!will_be_touched[ops[i].child2_clv_index]) {
+            std::cout << "problematic clv index: " << ops[i].child2_clv_index << "\n";
+        }
+        assert(will_be_touched[ops[i].child2_clv_index]);
     }
     Node *ops_root = network.nodes_by_index[ops[ops.size() - 1].parent_clv_index];
 
@@ -610,6 +616,14 @@ void printReticulationParents(Network &network) {
     }
 }
 
+void printClvTouched(Network &network, const std::vector<bool> &clv_touched) {
+    std::cout << "clv touched:\n";
+    for (size_t i = 0; i < network.num_nodes(); ++i) {
+        std::cout << "  clv_touched[" << network.nodes[i].clv_index << "]= "
+                << clv_touched[network.nodes[i].clv_index] << "\n";
+    }
+}
+
 std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsigned int partitionIdx,
         const std::vector<Node*> &parent, bool update_reticulation_probs, unsigned int numSites,
         std::vector<bool> &clv_touched, std::vector<BestPersiteLoglikelihoodData> &best_persite_logl_network,
@@ -661,6 +675,7 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
                     std::cout << "startNode: nullptr, tree_idx: " << treeIdx << "\n";
                 }
                 printReticulationParents(network);
+                printClvTouched(network, clv_touched);
             } else {
                 setReticulationParents(blobInfo, megablob_idx, treeIdx);
             }
