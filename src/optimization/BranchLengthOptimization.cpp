@@ -72,8 +72,8 @@ static double brent_target_networks(void *p, double x) {
         invalidateHigherCLVs(*ann_network,
                 getSource(ann_network->network, ann_network->network.edges_by_index[pmatrix_index]), true);
         score = -1 * computeLoglikelihood(*ann_network, 1, 1, false);
-        std::cout << "    score: " << score << ", x: " << x << ", old_x: " << old_x << "\n";
     }
+    std::cout << "    score: " << score << ", x: " << x << ", old_x: " << old_x << "\n";
     return score;
 }
 
