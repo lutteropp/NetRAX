@@ -242,8 +242,11 @@ std::vector<pll_operation_t> createOperationsTowardsRoot(AnnotatedNetwork &ann_n
     if (displayed_tree_root == network.root) {
         // now, add the two operations for the root node in reverse order.
         if (!rootBack->isTip() && !getActiveChildrenIgnoreDirections(network, rootBack, network.root).empty()) {
-            ops.push_back(
-                    buildOperation(network, rootBack, network.root, dead_nodes, fake_clv_index, fake_pmatrix_index));
+            if (!incremental || !ann_network.fake_treeinfo->clv_valid[partition_idx][rootBack->clv_index]) {
+                ops.push_back(
+                        buildOperation(network, rootBack, network.root, dead_nodes, fake_clv_index,
+                                fake_pmatrix_index));
+            }
         }
 
         if (!getActiveChildrenIgnoreDirections(network, network.root, rootBack).empty()) {
@@ -619,8 +622,8 @@ void printReticulationParents(Network &network) {
 void printClvTouched(Network &network, const std::vector<bool> &clv_touched) {
     std::cout << "clv touched:\n";
     for (size_t i = 0; i < network.num_nodes(); ++i) {
-        std::cout << "  clv_touched[" << network.nodes[i].clv_index << "]= "
-                << clv_touched[network.nodes[i].clv_index] << "\n";
+        std::cout << "  clv_touched[" << network.nodes[i].clv_index << "]= " << clv_touched[network.nodes[i].clv_index]
+                << "\n";
     }
 }
 
@@ -836,10 +839,10 @@ double processPartition(AnnotatedNetwork &ann_network, unsigned int partition_id
         clv_touched[i] = true;
     }
     /*for (size_t i = 0; i < network.nodes.size(); ++i) {
-        if (fake_treeinfo.clv_valid[partition_idx][i]) {
-            clv_touched[i] = true;
-        }
-    }*/
+     if (fake_treeinfo.clv_valid[partition_idx][i]) {
+     clv_touched[i] = true;
+     }
+     }*/
     for (size_t i = 0; i < ann_network.blobInfo.megablob_roots.size(); ++i) {
         if (fake_treeinfo.clv_valid[partition_idx][ann_network.blobInfo.megablob_roots[i]->clv_index]) {
             clv_touched[ann_network.blobInfo.megablob_roots[i]->clv_index] = true;
