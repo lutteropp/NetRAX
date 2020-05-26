@@ -136,7 +136,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, int max_iters, int *act_it
 
 double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radius,
         std::unordered_set<size_t> &candidates) {
-    double old_logl = ann_network.old_logl;
+    double old_logl = computeLoglikelihood(ann_network, 1, 1, false);
     double lh_epsilon = ann_network.options.lh_epsilon;
     int act_iters = 0;
     while (!candidates.empty()) {
