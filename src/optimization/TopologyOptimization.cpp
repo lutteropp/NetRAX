@@ -79,6 +79,7 @@ void apply_brlens(AnnotatedNetwork &ann_network, const std::vector<std::vector<d
 
 template<typename T>
 double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates, double old_score) {
+    //std::cout << "greedyHillclimbingStep called\n";
     size_t best_idx = candidates.size();
     double best_score = old_score;
     double old_logl = ann_network.raxml_treeinfo->loglh(true);
@@ -90,22 +91,24 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
     for (size_t i = 0; i < candidates.size(); ++i) {
         //std::cout << "try move " << toString(candidates[i]) << "\n";
         performMove(ann_network, candidates[i]);
+        //std::cout << "logl after perform move: " << ann_network.raxml_treeinfo->loglh(true) <<"\n";
         std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, candidates[i]);
         //optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
         double new_logl = ann_network.raxml_treeinfo->loglh(true);
         double new_bic = bic(ann_network, new_logl);
+        //std::cout << "bic after perform move: " << new_bic <<"\n";
         if (new_bic < best_score) {
             best_score = new_bic;
-            old_logl = best_logl;
             best_logl = new_logl;
             best_idx = i;
             best_brlens = extract_brlens(ann_network);
-
-            std::cout << "prev_logl: " << old_logl << ", prev_bic: " << best_score << ", new_logl: " << new_logl << ", new_score: " << new_bic << "\n";
+            //std::cout << "prev_logl: " << old_logl << ", prev_bic: " << best_score << ", new_logl: " << new_logl << ", new_score: " << new_bic << "\n";
             assert(new_logl > old_logl);
+            old_logl = best_logl;
         }
         //std::cout << "undo move " << toString(candidates[i]) << "\n";
         undoMove(ann_network, candidates[i]);
+        //std::cout << "logl after undo move: " << ann_network.raxml_treeinfo->loglh(true) <<"\n";
         apply_brlens(ann_network, old_brlens);
     }
     if (best_idx < candidates.size()) {
@@ -117,8 +120,8 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
         //best_logl = ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
         //best_logl = optimize_branches(ann_network, max_iters, radius);
 
-        std::cout << "Accepting move " << toString(candidates[best_idx]) << " with old_score= " << old_score
-                << ", best_score= " << best_score << ", best_logl= " << best_logl << "\n";
+        //std::cout << "Accepting move " << toString(candidates[best_idx]) << " with old_score= " << old_score
+        //        << ", best_score= " << best_score << ", best_logl= " << best_logl << "\n";
     }
     return best_score;
 }
@@ -126,7 +129,7 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
 double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, MoveType type) {
     double old_logl = ann_network.raxml_treeinfo->loglh(true);
     double old_bic = bic(ann_network, old_logl);
-    std::cout << "start_logl: " << old_logl <<", start_bic: " << old_bic << "\n";
+    //std::cout << "start_logl: " << old_logl <<", start_bic: " << old_bic << "\n";
 
     double new_bic = old_bic;
     do {
