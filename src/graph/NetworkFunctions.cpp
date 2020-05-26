@@ -208,7 +208,7 @@ pll_unode_t* connect_subtree_recursive(Network &network, Node *networkNode, pll_
     return unode->next;
 }
 
-std::vector<bool> collect_dead_nodes(Network &network, Node **displayed_tree_root) {
+std::vector<bool> collect_dead_nodes(Network &network, size_t megablobRootClvIndex, Node **displayed_tree_root) {
     std::vector<bool> dead_nodes(network.nodes.size(), false);
 
     // seed the search with inactive reticulation parents
@@ -236,14 +236,22 @@ std::vector<bool> collect_dead_nodes(Network &network, Node **displayed_tree_roo
     Node* dtroot = network.root;
     std::vector<Node*> children = getActiveAliveChildren(network, dead_nodes, dtroot);
     assert(!children.empty());
+    bool seenMegablobRoot = false;
     while (children.size() == 1) {
+        if (dtroot->clv_index == megablobRootClvIndex) {
+            seenMegablobRoot = true;
+        }
         dead_nodes[dtroot->clv_index] = true;
         dtroot = children[0];
         children = getActiveAliveChildren(network, dead_nodes, dtroot);
         assert(!children.empty());
     }
     if (displayed_tree_root) {
-        *displayed_tree_root = dtroot;
+        if (seenMegablobRoot) {
+            *displayed_tree_root = dtroot;
+        } else {
+            *displayed_tree_root = network.nodes_by_index[megablobRootClvIndex];
+        }
     }
 
     return dead_nodes;
@@ -269,7 +277,7 @@ std::vector<bool> collect_skipped_nodes(Network &network, const std::vector<bool
 pll_utree_t* displayed_tree_to_utree(Network &network, size_t tree_index) {
     setReticulationParents(network, tree_index);
 
-    std::vector<bool> dead_nodes = collect_dead_nodes(network);
+    std::vector<bool> dead_nodes = collect_dead_nodes(network, network.root->clv_index);
     Node *root = nullptr;
 
     root = getPossibleTreeRootNode(network, dead_nodes);

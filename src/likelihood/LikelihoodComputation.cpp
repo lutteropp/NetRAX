@@ -670,7 +670,7 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
                 continue;
             }
             Node *displayed_tree_root = nullptr;
-            std::vector<bool> dead_nodes = collect_dead_nodes(network, &displayed_tree_root);
+            std::vector<bool> dead_nodes = collect_dead_nodes(network, megablobRootClvIdx, &displayed_tree_root);
             std::vector<double> persite_logl(fake_treeinfo.partitions[partitionIdx]->sites, 0.0);
 
             if (startNode && dead_nodes[startNode->clv_index]) {
@@ -769,7 +769,7 @@ std::vector<double> compute_persite_lh(AnnotatedNetwork &ann_network, unsigned i
         }
 
         Node *displayed_tree_root = nullptr;
-        std::vector<bool> dead_nodes = collect_dead_nodes(network, &displayed_tree_root);
+        std::vector<bool> dead_nodes = collect_dead_nodes(network, network.root->clv_index, &displayed_tree_root);
 
         std::vector<double> persite_logl(fake_treeinfo.partitions[partitionIdx]->sites, 0.0);
         double tree_logl;
