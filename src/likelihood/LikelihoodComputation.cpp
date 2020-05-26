@@ -820,6 +820,11 @@ double processPartition(AnnotatedNetwork &ann_network, unsigned int partition_id
     for (size_t i = 0; i < network.num_tips(); ++i) {
         clv_touched[i] = true;
     }
+    for (size_t i = 0; i < network.nodes.size(); ++i) {
+        if (fake_treeinfo.clv_valid[partition_idx][i]) {
+            clv_touched[i] = true;
+        }
+    }
     clv_touched[network.nodes.size()] = true; // the fake clvindex is always touched
 
     if (!useBlobs) {
