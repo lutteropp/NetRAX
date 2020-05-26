@@ -1289,10 +1289,6 @@ Edge* addEdge(Network &network, Link *link1, Link *link2, double length, double 
         std::swap(link1, link2);
     }
 
-    if (network.nodes_by_index[link1->node_clv_index]->isTip()
-            || network.nodes_by_index[link2->node_clv_index]->isTip()) {
-        assert(pmatrix_index < network.num_tips());
-    }
     assert(network.edges_by_index[pmatrix_index] == nullptr);
     network.edges[network.branchCount].init(pmatrix_index, link1, link2, length, prob);
     network.edges_by_index[pmatrix_index] = &network.edges[network.branchCount];
@@ -1306,17 +1302,11 @@ Edge* addEdge(Network &network, Link *link1, Link *link2, double length, double 
     if (link1->direction == Direction::INCOMING) {
         std::swap(link1, link2);
     }
-    if (link1->node_clv_index < network.num_tips()) {
-        pmatrix_index = link1->node_clv_index;
-    } else if (link2->node_clv_index < network.num_tips()) {
-        pmatrix_index = link2->node_clv_index;
-    } else {
-        // find smallest free non-tip pmatrix index
-        for (size_t i = network.num_tips(); i < network.edges.size(); ++i) {
-            if (network.edges_by_index[i] == nullptr) {
-                pmatrix_index = i;
-                break;
-            }
+    // find smallest free non-tip pmatrix index
+    for (size_t i = 0; i < network.edges.size(); ++i) {
+        if (network.edges_by_index[i] == nullptr) {
+            pmatrix_index = i;
+            break;
         }
     }
 
@@ -1324,11 +1314,6 @@ Edge* addEdge(Network &network, Link *link1, Link *link2, double length, double 
 }
 
 void checkSanity(Network &network) {
-// check pmatrix indices of edges adjacent to tip nodes
-    for (size_t i = 0; i < network.num_tips(); ++i) {
-        assert(network.nodes_by_index[i]->links[0].edge_pmatrix_index < network.num_tips());
-    }
-
 // check edge<->links sanity
     for (size_t i = 0; i < network.edges.size(); ++i) {
         if (network.edges_by_index[i]) {
