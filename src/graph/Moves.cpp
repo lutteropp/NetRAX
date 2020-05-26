@@ -1160,7 +1160,7 @@ void performMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
     x_y_edge->length = x_y_len;
     x_prime_z_edge->length = x_prime_z_len;
     z_y_prime_edge->length = z_y_prime_len;
-    x_prime_z_edge->prob = x_y_prob;
+    x_y_edge->prob = x_y_prob;
     x_prime_z_edge->prob = x_prime_z_prob;
     z_y_prime_edge->prob = z_y_prime_prob;
 
@@ -1182,6 +1182,9 @@ void performMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
 
     ann_network.travbuffer = reversed_topological_sort(ann_network.network);
     ann_network.blobInfo = partitionNetworkIntoBlobs(network, ann_network.travbuffer);
+
+    std::cout << exportDebugInfo(ann_network.network) << "\n";
+
     assertReticulationProbs(ann_network);
 }
 
