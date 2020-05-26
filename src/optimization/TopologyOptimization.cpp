@@ -81,6 +81,7 @@ template<typename T>
 double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates, double old_score) {
     size_t best_idx = candidates.size();
     double best_score = old_score;
+    double old_logl = ann_network.raxml_treeinfo->loglh(true);
     double best_logl;
     std::vector<std::vector<double> > old_brlens = extract_brlens(ann_network);
     std::vector<std::vector<double> > best_brlens;
@@ -95,9 +96,13 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
         double new_bic = bic(ann_network, new_logl);
         if (new_bic < best_score) {
             best_score = new_bic;
+            old_logl = best_logl;
             best_logl = new_logl;
             best_idx = i;
             best_brlens = extract_brlens(ann_network);
+
+            std::cout << "prev_logl: " << old_logl << ", prev_bic: " << best_score << ", new_logl: " << new_logl << ", new_score: " << new_bic << "\n";
+            assert(new_logl > old_logl);
         }
         //std::cout << "undo move " << toString(candidates[i]) << "\n";
         undoMove(ann_network, candidates[i]);
@@ -108,7 +113,7 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
         apply_brlens(ann_network, best_brlens);
         // optimize reticulation probs and model after a move has been accepted
         //netrax::computeLoglikelihood(ann_network, 1, 1, true);
-        best_logl = netrax::computeLoglikelihood(ann_network, 1, 1, false);
+        best_logl = ann_network.raxml_treeinfo->loglh(true);
         //best_logl = ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
         //best_logl = optimize_branches(ann_network, max_iters, radius);
 
@@ -121,6 +126,7 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
 double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, MoveType type) {
     double old_logl = ann_network.raxml_treeinfo->loglh(true);
     double old_bic = bic(ann_network, old_logl);
+    std::cout << "start_logl: " << old_logl <<", start_bic: " << old_bic << "\n";
 
     double new_bic = old_bic;
     do {
