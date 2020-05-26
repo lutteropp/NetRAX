@@ -442,9 +442,13 @@ void compute_tree_logl_blobs(AnnotatedNetwork &ann_network, std::vector<bool> &c
     for (size_t i = 0; i < ops_count; ++i) {
         clv_touched[ops[i].parent_clv_index] = true;
     }
+    printOperationArray(ops);
+    std::cout << "\n";
+    std::vector<bool> will_be_touched = clv_touched;
     for (size_t i = 0; i < ops_count; ++i) {
-        assert(clv_touched[ops[i].child1_clv_index] == true);
-        assert(clv_touched[ops[2].child1_clv_index] == true);
+        will_be_touched[ops[i].parent_clv_index] = true;
+        assert(will_be_touched[ops[i].child1_clv_index] == true);
+        assert(will_be_touched[ops[i].child2_clv_index] == true);
     }
     Node *ops_root = network.nodes_by_index[ops[ops.size() - 1].parent_clv_index];
 
@@ -598,6 +602,14 @@ void merge_tree_clvs(const std::vector<std::pair<double, std::vector<double>>> &
     }
 }
 
+void printReticulationParents(Network &network) {
+    std::cout << "reticulation parents:\n";
+    for (size_t i = 0; i < network.num_reticulations(); ++i) {
+        std::cout << "  reticulation " << network.reticulation_nodes[i]->clv_index << " has parent "
+                << getActiveParent(network, network.reticulation_nodes[i])->clv_index << "\n";
+    }
+}
+
 std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsigned int partitionIdx,
         const std::vector<Node*> &parent, bool update_reticulation_probs, unsigned int numSites,
         std::vector<bool> &clv_touched, std::vector<BestPersiteLoglikelihoodData> &best_persite_logl_network,
@@ -622,6 +634,8 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
             continue;
         }
 
+        std::cout << "megablobRootClvIdx: " << megablobRootClvIdx << "\n";
+
         size_t n_trees = 1 << blobInfo.reticulation_nodes_per_megablob[megablob_idx].size();
         // iterate over all displayed trees within the megablob, storing their tree clvs and tree probs
         std::vector<std::pair<double, std::vector<double>> > tree_clvs;
@@ -642,7 +656,11 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
                     bool changedBitIsSet = treeIdx & onlyChangedBit;
                     startNode = blobInfo.reticulation_nodes_per_megablob[megablob_idx][changedBitPos];
                     startNode->getReticulationData()->setActiveParentToggle(changedBitIsSet);
+                    std::cout << "startNode: " << startNode->clv_index << ", tree_idx: " << treeIdx << "\n";
+                } else {
+                    std::cout << "startNode: nullptr, tree_idx: " << treeIdx << "\n";
                 }
+                printReticulationParents(network);
             } else {
                 setReticulationParents(blobInfo, megablob_idx, treeIdx);
             }
@@ -822,8 +840,8 @@ double processPartition(AnnotatedNetwork &ann_network, unsigned int partition_id
         if (treewise_logl) {
             throw std::runtime_error("Can't compute treewise logl with the blob optimization");
         }
-        persite_lh_network = compute_persite_lh_blobs(ann_network, partition_idx, parent,
-                update_reticulation_probs, numSites, clv_touched, best_persite_logl_network, useIncrementalClv);
+        persite_lh_network = compute_persite_lh_blobs(ann_network, partition_idx, parent, update_reticulation_probs,
+                numSites, clv_touched, best_persite_logl_network, useIncrementalClv);
     }
 
     double network_partition_logl = 0.0;
@@ -857,7 +875,7 @@ double processPartition(AnnotatedNetwork &ann_network, unsigned int partition_id
     return network_partition_logl;
 }
 
-void print_brlens(AnnotatedNetwork& ann_network) {
+void print_brlens(AnnotatedNetwork &ann_network) {
     std::cout << "brlens:\n";
     size_t n_partitions = 1;
     if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
@@ -865,7 +883,8 @@ void print_brlens(AnnotatedNetwork& ann_network) {
     }
     for (size_t p = 0; p < n_partitions; ++p) {
         for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
-            std::cout << "brlens[" << p << "][" << ann_network.network.edges[i].pmatrix_index << "]: " << ann_network.network.edges[i].length << "\n";
+            std::cout << "brlens[" << p << "][" << ann_network.network.edges[i].pmatrix_index << "]: "
+                    << ann_network.network.edges[i].length << "\n";
         }
     }
     std::cout << "\n";
@@ -874,6 +893,7 @@ void print_brlens(AnnotatedNetwork& ann_network) {
 double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices,
         bool update_reticulation_probs, std::vector<double> *treewise_logl) {
     Network &network = ann_network.network;
+    std::cout << exportDebugInfo(network) << "\n";
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
 
     //print_brlens(ann_network);
