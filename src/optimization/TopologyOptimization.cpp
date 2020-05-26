@@ -90,7 +90,7 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
         //std::cout << "try move " << toString(candidates[i]) << "\n";
         performMove(ann_network, candidates[i]);
         std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, candidates[i]);
-        optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
+        //optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
         double new_logl = ann_network.raxml_treeinfo->loglh(true);
         double new_bic = bic(ann_network, new_logl);
         if (new_bic < best_score) {
