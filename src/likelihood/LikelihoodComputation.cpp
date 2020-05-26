@@ -852,10 +852,26 @@ double processPartition(AnnotatedNetwork &ann_network, unsigned int partition_id
     return network_partition_logl;
 }
 
+void print_brlens(AnnotatedNetwork& ann_network) {
+    std::cout << "brlens:\n";
+    size_t n_partitions = 1;
+    if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
+        n_partitions = ann_network.fake_treeinfo->partition_count;
+    }
+    for (size_t p = 0; p < n_partitions; ++p) {
+        for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
+            std::cout << "brlens[" << p << "][" << ann_network.network.edges[i].pmatrix_index << "]: " << ann_network.network.edges[i].length << "\n";
+        }
+    }
+    std::cout << "\n";
+}
+
 double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices,
         bool update_reticulation_probs, std::vector<double> *treewise_logl) {
     Network &network = ann_network.network;
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
+
+    print_brlens(ann_network);
 
     // special case: root node has a valid merged clv already
     if (ann_network.options.use_incremental & incremental & fake_treeinfo.clv_valid[0][network.root->clv_index]
