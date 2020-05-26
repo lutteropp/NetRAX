@@ -9,6 +9,8 @@
 #include "src/io/NetworkIO.hpp"
 #include "src/RaxmlWrapper.hpp"
 #include "src/graph/Network.hpp"
+#include "src/graph/Moves.hpp"
+#include "src/optimization/TopologyOptimization.hpp"
 #include "src/Api.hpp"
 
 #include <gtest/gtest.h>
@@ -116,7 +118,7 @@ TEST (SystemTest, randomNetwork) {
     smallOptions.msa_file = msaPath;
     smallOptions.use_repeats = true;
     RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
-    unsigned int n_reticulations = 7;
+    unsigned int n_reticulations = 1;//7;
     AnnotatedNetwork ann_network = build_random_annotated_network(smallOptions, n_reticulations);
     assert(ann_network.network.num_reticulations() == n_reticulations);
 
@@ -135,6 +137,20 @@ void problemTest(const std::string &newick) {
     AnnotatedNetwork ann_network = build_annotated_network_from_string(smallOptions, newick);
 
     completeRun(ann_network);
+}
+
+void problemTestOptTopology(const std::string &newick, MoveType type) {
+    // initial setup
+    std::string smallPath = DATA_PATH + "small.nw";
+    std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
+    NetraxOptions smallOptions;
+    smallOptions.network_file = smallPath;
+    smallOptions.msa_file = msaPath;
+    smallOptions.use_repeats = true;
+    RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
+    AnnotatedNetwork ann_network = build_annotated_network_from_string(smallOptions, newick);
+
+    greedyHillClimbingTopology(ann_network, type);
 }
 
 TEST (SystemTest, problemFillSkippedNodesRecursive) {
@@ -195,4 +211,9 @@ TEST (SystemTest, problem10) {
 
 TEST (SystemTest, problem11) {
     problemTest("(C:0.1,((B:0.05,(((A:0.1,D:0.1):0.025)#1:0.025::0.5)#0:1::0.5):0.025,#1:1::0.5):0.025,#0:0.05::0.5);");
+}
+
+TEST (SystemTest, problem12) {
+    problemTestOptTopology("((A:1.49622e-06,(D:1.43824e-06)#0:1.28508e-06::0.5):10.0005,(#0:83.9918::0.5,B:0.130942):0.0141053,C:0.444893);", MoveType::RSPR1Move);
+    //problemTest("(C:0.1,(B:0.05,(A:0.05)#0:1::0.5):0.05,(#0:0.05::0.5,D:0.1):0.1);");
 }

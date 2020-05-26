@@ -14,6 +14,7 @@
 #include "../graph/Moves.hpp"
 #include "../likelihood/LikelihoodComputation.hpp"
 #include "BranchLengthOptimization.hpp"
+#include "../io/NetworkIO.hpp"
 
 namespace netrax {
 
@@ -120,8 +121,9 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
         //best_logl = ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
         //best_logl = optimize_branches(ann_network, max_iters, radius);
 
-        //std::cout << "Accepting move " << toString(candidates[best_idx]) << " with old_score= " << old_score
-        //        << ", best_score= " << best_score << ", best_logl= " << best_logl << "\n";
+        std::cout << "Accepting move " << toString(candidates[best_idx]) << " with old_score= " << old_score
+                << ", best_score= " << best_score << ", best_logl= " << best_logl << "\n";
+        assertReticulationProbs(ann_network);
     }
     return best_score;
 }
@@ -180,6 +182,7 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network) {
     double new_bic = old_bic;
     unsigned int moves_cnt = 0;
     do {
+        std::cout << toExtendedNewick(ann_network.network) << "\n";
         std::cout << "Using move type: " << toString(types[type_idx]) << "\n";
         if (new_bic > old_bic) {
             old_bic = new_bic;
