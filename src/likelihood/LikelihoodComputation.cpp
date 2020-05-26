@@ -871,7 +871,7 @@ double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int 
     Network &network = ann_network.network;
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
 
-    print_brlens(ann_network);
+    //print_brlens(ann_network);
 
     // special case: root node has a valid merged clv already
     if (ann_network.options.use_incremental & incremental & fake_treeinfo.clv_valid[0][network.root->clv_index]
