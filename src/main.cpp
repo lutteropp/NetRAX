@@ -27,14 +27,7 @@ int main(int argc, char **argv) {
     netrax::AnnotatedNetwork ann_network = netrax::build_annotated_network(netraxOptions);
     std::cout << "The current Likelihood model being used is the DNA model from raxml-ng\n\n";
 
-    computeLoglikelihood(ann_network);
-    optimizeBranches(ann_network);
-    updateReticulationProbs(ann_network);
-    optimizeModel(ann_network);
-    optimizeTopology(ann_network);
-    optimizeBranches(ann_network);
-    updateReticulationProbs(ann_network);
-    optimizeModel(ann_network);
+    optimizeEverything(ann_network);
 
     if (!netraxOptions.output_file.empty()) {
         netrax::writeNetwork(ann_network, netraxOptions.output_file);

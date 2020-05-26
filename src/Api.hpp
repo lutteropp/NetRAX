@@ -30,6 +30,7 @@ double updateReticulationProbs(AnnotatedNetwork &ann_network);
 double optimizeModel(AnnotatedNetwork &ann_network);
 double optimizeBranches(AnnotatedNetwork &ann_network);
 double optimizeTopology(AnnotatedNetwork &ann_network);
+double optimizeEverything(AnnotatedNetwork &ann_network);
 void writeNetwork(AnnotatedNetwork &ann_network, const std::string &filepath);
 
 }

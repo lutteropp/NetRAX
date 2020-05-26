@@ -148,6 +148,23 @@ double optimizeTopology(AnnotatedNetwork &ann_network) {
     return logl;
 }
 
+double optimizeEverything(AnnotatedNetwork &ann_network) {
+    double lh_epsilon = ann_network.options.lh_epsilon;
+    double new_logl = computeLoglikelihood(ann_network);
+    double old_logl;
+    do {
+        old_logl = new_logl;
+        optimizeBranches(ann_network);
+        updateReticulationProbs(ann_network);
+        optimizeModel(ann_network);
+        optimizeTopology(ann_network);
+        optimizeBranches(ann_network);
+        updateReticulationProbs(ann_network);
+        new_logl = optimizeModel(ann_network);
+    } while (new_logl - old_logl > lh_epsilon);
+    return new_logl;
+}
+
 void writeNetwork(AnnotatedNetwork &ann_network, const std::string &filepath) {
     std::ofstream outfile(filepath);
     // If we have unlinked branch lenghts/probs, replace the entries in the network by their average

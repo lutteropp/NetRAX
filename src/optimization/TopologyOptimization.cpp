@@ -158,7 +158,7 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, MoveType type) 
             throw std::runtime_error("Invalid move type");
         }
     } while (new_bic < old_bic);
-    return ann_network.old_logl;
+    return ann_network.raxml_treeinfo->loglh(true);
 }
 
 }

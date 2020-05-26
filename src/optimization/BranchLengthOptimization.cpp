@@ -133,11 +133,11 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
     while (!candidates.empty()) {
         size_t pmatrix_index = *candidates.begin();
         candidates.erase(candidates.begin());
-        std::cout << "\noptimizing branch " << pmatrix_index << "\n";
+        //std::cout << "\noptimizing branch " << pmatrix_index << "\n";
         old_logl = computeLoglikelihood(ann_network, 1, 1, false);
         double new_logl = optimize_branch(ann_network, max_iters, &act_iters, pmatrix_index);
 
-        std::cout << "old logl: " << old_logl << ", new_logl: " << new_logl << "\n";
+        //std::cout << "old logl: " << old_logl << ", new_logl: " << new_logl << "\n";
 
         assert(new_logl >= old_logl);
         if (new_logl - old_logl > lh_epsilon) { // add all neighbors of the branch to the candidates
@@ -146,8 +146,8 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
             for (size_t idx : neighbor_indices) {
                 candidates.emplace(idx);
             }
-            std::cout << "Improved brlen-opt logl: " << new_logl << "\n";
-            std::cout << "(Old logl was: " << old_logl << ")\n";
+            //std::cout << "Improved brlen-opt logl: " << new_logl << "\n";
+            //std::cout << "(Old logl was: " << old_logl << ")\n";
         }
     }
     return old_logl;
