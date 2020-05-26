@@ -15,6 +15,7 @@
 #include "AnnotatedNetwork.hpp"
 
 #include <vector>
+#include <unordered_set>
 
 namespace netrax {
 
@@ -64,5 +65,8 @@ void invalidateHigherCLVs(AnnotatedNetwork &ann_network, Node *node, bool invali
 void invalidatePmatrixIndex(AnnotatedNetwork &ann_network, size_t pmatrix_index);
 
 void assertReticulationProbs(AnnotatedNetwork &ann_network);
+
+std::unordered_set<size_t> getNeighborPmatrixIndices(Network &network, Edge* edge);
+
 
 }

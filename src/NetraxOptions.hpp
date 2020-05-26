@@ -39,6 +39,8 @@ public:
     double brlen_min = RAXML_BRLEN_MIN;
     double brlen_max = RAXML_BRLEN_MAX;
     double lh_epsilon = DEF_LH_EPSILON;
+    double tolerance = RAXML_BRLEN_TOLERANCE;
+    double brlen_smoothings = RAXML_BRLEN_SMOOTHINGS;
 
     std::string msa_file = "";
     std::string network_file = "";

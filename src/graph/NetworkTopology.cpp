@@ -436,4 +436,19 @@ void assertReticulationProbs(AnnotatedNetwork &ann_network) {
     }
 }
 
+std::unordered_set<size_t> getNeighborPmatrixIndices(Network &network, Edge *edge) {
+    assert(edge);
+    std::unordered_set<size_t> res;
+    Node *source = getSource(network, edge);
+    Node *target = getTarget(network, edge);
+    for (size_t i = 0; i < source->links.size(); ++i) {
+        res.emplace(source->links[i].edge_pmatrix_index);
+    }
+    for (size_t i = 0; i < target->links.size(); ++i) {
+        res.emplace(target->links[i].edge_pmatrix_index);
+    }
+    res.erase(edge->pmatrix_index);
+    return res;
+}
+
 }

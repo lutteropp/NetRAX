@@ -139,7 +139,7 @@ double optimizeModel(AnnotatedNetwork &ann_network) {
 }
 double optimizeBranches(AnnotatedNetwork &ann_network) {
     double logl = ann_network.raxml_treeinfo->optimize_branches(ann_network.options.lh_epsilon, 1);
-    std::cout << "Loglikelihood after branch length optimization: " << logl << "\n";
+    std::cout << "Loglikelihood after branch length optimization: " << -logl << "\n";
     return logl;
 }
 double optimizeTopology(AnnotatedNetwork &ann_network) {
