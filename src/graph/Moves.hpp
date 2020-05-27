@@ -69,7 +69,14 @@ struct ArcInsertionMove: public GeneralMove {
     double u_v_prob = 0.5;
     double c_v_prob = 0.5;
     double a_u_len = 1.0;
-    bool create_u_first = true;
+
+    size_t wanted_u_clv_index = std::numeric_limits<size_t>::max();
+    size_t wanted_v_clv_index = std::numeric_limits<size_t>::max();
+    size_t wanted_au_pmatrix_index = std::numeric_limits<size_t>::max();
+    size_t wanted_ub_pmatrix_index = std::numeric_limits<size_t>::max();
+    size_t wanted_cv_pmatrix_index = std::numeric_limits<size_t>::max();
+    size_t wanted_vd_pmatrix_index = std::numeric_limits<size_t>::max();
+    size_t wanted_uv_pmatrix_index = std::numeric_limits<size_t>::max();
 };
 
 struct ArcRemovalMove: public GeneralMove {
@@ -88,6 +95,12 @@ struct ArcRemovalMove: public GeneralMove {
     double u_v_prob = 0.5;
     double c_v_prob = 0.5;
     double a_u_len = 1.0;
+
+    size_t au_pmatrix_index = std::numeric_limits<size_t>::max();
+    size_t ub_pmatrix_index = std::numeric_limits<size_t>::max();
+    size_t cv_pmatric_index = std::numeric_limits<size_t>::max();
+    size_t vd_pmatrix_index = std::numeric_limits<size_t>::max();
+    size_t uv_pmatrix_index = std::numeric_limits<size_t>::max();
 };
 
 std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network, const Edge *edge);

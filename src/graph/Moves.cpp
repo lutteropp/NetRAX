@@ -892,7 +892,6 @@ ArcInsertionMove buildArcInsertionMove(size_t a_clv_index, size_t b_clv_index, s
     move.c_v_prob = c_v_prob;
     move.a_u_len = a_u_len;
     move.moveType = moveType;
-    move.create_u_first = true;
     return move;
 }
 
@@ -1048,11 +1047,19 @@ std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_networ
         if (hasChild(network, a, b)) { // avoid creating parallel arcs
             continue;
         }
-        res.emplace_back(
-                buildArcRemovalMove(a->clv_index, b->clv_index, c->clv_index, d->clv_index, u->clv_index, v->clv_index,
-                        getEdgeTo(network, u, v)->length, getEdgeTo(network, c, v)->length,
-                        getEdgeTo(network, u, v)->prob, getEdgeTo(network, c, v)->prob,
-                        getEdgeTo(network, a, u)->length, moveType));
+
+        ArcRemovalMove move = buildArcRemovalMove(a->clv_index, b->clv_index, c->clv_index, d->clv_index, u->clv_index,
+                v->clv_index, getEdgeTo(network, u, v)->length, getEdgeTo(network, c, v)->length,
+                getEdgeTo(network, u, v)->prob, getEdgeTo(network, c, v)->prob, getEdgeTo(network, a, u)->length,
+                moveType);
+
+        move.au_pmatrix_index = getEdgeTo(network, a, u)->pmatrix_index;
+        move.ub_pmatrix_index = getEdgeTo(network, u, b)->pmatrix_index;
+        move.cv_pmatric_index = getEdgeTo(network, c, v)->pmatrix_index;
+        move.vd_pmatrix_index = getEdgeTo(network, v, d)->pmatrix_index;
+        move.uv_pmatrix_index = getEdgeTo(network, u, v)->pmatrix_index;
+
+        res.emplace_back(move);
     }
     return res;
 }
@@ -1284,7 +1291,7 @@ void removeEdge(Network &network, Edge *edge) {
     network.branchCount--;
 }
 
-Edge* addEdge(Network &network, Link *link1, Link *link2, double length, double prob, size_t pmatrix_index) {
+Edge* addEdgeInternal(Network &network, Link *link1, Link *link2, double length, double prob, size_t pmatrix_index) {
     assert(network.num_branches() < network.edges.size());
     if (link1->direction == Direction::INCOMING) {
         std::swap(link1, link2);
@@ -1298,20 +1305,25 @@ Edge* addEdge(Network &network, Link *link1, Link *link2, double length, double 
     return network.edges_by_index[pmatrix_index];
 }
 
-Edge* addEdge(Network &network, Link *link1, Link *link2, double length, double prob) {
-    size_t pmatrix_index = network.edges.size() - 1;
+Edge* addEdge(Network &network, Link *link1, Link *link2, double length, double prob, size_t wanted_pmatrix_index) {
     if (link1->direction == Direction::INCOMING) {
         std::swap(link1, link2);
     }
-    // find smallest free non-tip pmatrix index
-    for (size_t i = 0; i < network.edges.size(); ++i) {
-        if (network.edges_by_index[i] == nullptr) {
-            pmatrix_index = i;
-            break;
+    size_t pmatrix_index;
+    if (wanted_pmatrix_index < network.edges.size()) {
+        pmatrix_index = wanted_pmatrix_index;
+    } else {
+        // find smallest free non-tip pmatrix index
+        for (size_t i = 0; i < network.edges.size(); ++i) {
+            if (network.edges_by_index[i] == nullptr) {
+                pmatrix_index = i;
+                break;
+            }
         }
     }
+    assert(network.edges_by_index[pmatrix_index] == nullptr);
 
-    return addEdge(network, link1, link2, length, prob, pmatrix_index);
+    return addEdgeInternal(network, link1, link2, length, prob, pmatrix_index);
 }
 
 void checkSanity(Network &network) {
@@ -1389,14 +1401,20 @@ void removeNode(Network &network, Node *node) {
     network.nodeCount--;
 }
 
-Node* addInnerNode(Network &network, ReticulationData *retData = nullptr) {
+Node* addInnerNode(Network &network, ReticulationData *retData, size_t wanted_clv_index) {
     assert(network.num_nodes() < network.nodes.size());
-    unsigned int clv_index = network.nodes.size() - 1;
-// try to find a smaller unused clv index
-    for (size_t i = 0; i < clv_index; ++i) {
-        if (network.nodes_by_index[i] == nullptr) {
-            clv_index = i;
-            break;
+    unsigned int clv_index;
+
+    if (wanted_clv_index < network.nodes.size()) {
+        clv_index = wanted_clv_index;
+    } else {
+        clv_index = network.nodes.size() - 1;
+        // try to find a smaller unused clv index
+        for (size_t i = 0; i < clv_index; ++i) {
+            if (network.nodes_by_index[i] == nullptr) {
+                clv_index = i;
+                break;
+            }
         }
     }
     assert(network.nodes_by_index[clv_index] == nullptr);
@@ -1455,15 +1473,8 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
 
     ReticulationData retData;
     retData.init(network.num_reticulations(), "", 0, nullptr, nullptr, nullptr);
-    Node *u;
-    Node *v;
-    if (move.create_u_first) {
-        u = addInnerNode(network, nullptr);
-        v = addInnerNode(network, &retData);
-    } else {
-        v = addInnerNode(network, &retData);
-        u = addInnerNode(network, nullptr);
-    }
+    Node *u = addInnerNode(network, nullptr, move.wanted_u_clv_index);
+    Node *v = addInnerNode(network, &retData, move.wanted_v_clv_index);
 
     Link *to_u_link = make_link(u, nullptr, Direction::INCOMING);
     Link *u_b_link = make_link(u, nullptr, Direction::OUTGOING);
@@ -1486,11 +1497,16 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
 
     removeEdge(network, network.edges_by_index[a_b_edge_index]);
     removeEdge(network, network.edges_by_index[c_d_edge_index]);
-    Edge *u_b_edge = addEdge(network, u_b_link, to_b_link, u_b_edge_length, u_b_edge_prob, a_b_edge_index);
-    Edge *v_d_edge = addEdge(network, v_d_link, to_d_link, v_d_edge_length, v_d_edge_prob, c_d_edge_index);
-    Edge *a_u_edge = addEdge(network, from_a_link, to_u_link, a_u_edge_length, a_u_edge_prob);
-    Edge *c_v_edge = addEdge(network, from_c_link, v_c_link, c_v_edge_length, c_v_edge_prob);
-    Edge *u_v_edge = addEdge(network, u_v_link, v_u_link, u_v_edge_length, u_v_edge_prob);
+
+    Edge *u_b_edge = addEdge(network, u_b_link, to_b_link, u_b_edge_length, u_b_edge_prob,
+            move.wanted_ub_pmatrix_index);
+    Edge *v_d_edge = addEdge(network, v_d_link, to_d_link, v_d_edge_length, v_d_edge_prob,
+            move.wanted_vd_pmatrix_index);
+    Edge *a_u_edge = addEdge(network, from_a_link, to_u_link, a_u_edge_length, a_u_edge_prob,
+            move.wanted_au_pmatrix_index);
+    Edge *c_v_edge = addEdge(network, from_c_link, v_c_link, c_v_edge_length, c_v_edge_prob,
+            move.wanted_cv_pmatrix_index);
+    Edge *u_v_edge = addEdge(network, u_v_link, v_u_link, u_v_edge_length, u_v_edge_prob, move.wanted_uv_pmatrix_index);
 
     v->getReticulationData()->link_to_first_parent = v_u_link;
     v->getReticulationData()->link_to_second_parent = v_c_link;
@@ -1681,7 +1697,15 @@ void undoMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     ArcInsertionMove insertion = buildArcInsertionMove(move.a_clv_index, move.b_clv_index, move.c_clv_index,
             move.d_clv_index, move.u_v_len, move.c_v_len, move.u_v_prob, move.c_v_prob, move.a_u_len,
             MoveType::ArcInsertionMove);
-    insertion.create_u_first = (move.u_clv_index < move.v_clv_index);
+
+    insertion.wanted_u_clv_index = move.u_clv_index;
+    insertion.wanted_v_clv_index = move.v_clv_index;
+    insertion.wanted_au_pmatrix_index = move.au_pmatrix_index;
+    insertion.wanted_ub_pmatrix_index = move.ub_pmatrix_index;
+    insertion.wanted_cv_pmatrix_index = move.cv_pmatric_index;
+    insertion.wanted_vd_pmatrix_index = move.vd_pmatrix_index;
+    insertion.wanted_uv_pmatrix_index = move.uv_pmatrix_index;
+
     performMove(ann_network, insertion);
 }
 
