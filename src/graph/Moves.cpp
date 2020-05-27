@@ -1544,8 +1544,8 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     v_d_link->outer = to_d_link;
     to_d_link->outer = v_d_link;
 
-    std::vector<size_t> updateMe = { c_d_edge_index, a_b_edge_index, u_v_edge->pmatrix_index, c_v_edge->pmatrix_index,
-            v_d_edge->pmatrix_index, a_u_edge->pmatrix_index, u_b_edge->pmatrix_index };
+    std::vector<size_t> updateMe = { u_v_edge->pmatrix_index, c_v_edge->pmatrix_index, v_d_edge->pmatrix_index,
+            a_u_edge->pmatrix_index, u_b_edge->pmatrix_index };
     reloadBranchLengthsAndBranchProbs(ann_network, updateMe);
 
     invalidateHigherCLVs(ann_network, network.nodes_by_index[move.d_clv_index]);
@@ -1603,8 +1603,10 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
         assert(network.reticulation_nodes[i]->type == NodeType::RETICULATION_NODE);
     }
 
-    Edge *a_b_edge = addEdge(network, from_a_link, to_b_link, a_b_edge_length, a_b_edge_prob, move.wanted_ab_pmatrix_index); // was ub before
-    Edge *c_d_edge = addEdge(network, from_c_link, to_d_link, c_d_edge_length, c_d_edge_prob, move.wanted_cd_pmatrix_index); // was vd before
+    Edge *a_b_edge = addEdge(network, from_a_link, to_b_link, a_b_edge_length, a_b_edge_prob,
+            move.wanted_ab_pmatrix_index); // was ub before
+    Edge *c_d_edge = addEdge(network, from_c_link, to_d_link, c_d_edge_length, c_d_edge_prob,
+            move.wanted_cd_pmatrix_index); // was vd before
 
     Node *b = network.nodes_by_index[move.b_clv_index];
     if (b->type == NodeType::RETICULATION_NODE) {
