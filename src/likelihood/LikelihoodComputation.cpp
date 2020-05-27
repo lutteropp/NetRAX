@@ -250,6 +250,7 @@ std::vector<pll_operation_t> createOperationsTowardsRoot(AnnotatedNetwork &ann_n
         if (!rootBack->isTip() && !getActiveChildrenIgnoreDirections(network, rootBack, network.root).empty()) {
             if (!incremental || !ann_network.fake_treeinfo->clv_valid[partition_idx][rootBack->clv_index]) {
                 if (!useBlobs || !isMegablobRoot(ann_network, rootBack)) {
+                    // TODO: Do we even need this one here?
                     ops.push_back(
                             buildOperation(network, rootBack, network.root, dead_nodes, fake_clv_index,
                                     fake_pmatrix_index));
@@ -287,14 +288,6 @@ std::vector<pll_operation_t> createOperationsUpdatedReticulation(AnnotatedNetwor
     Node *secondParent = getReticulationSecondParent(network, actNode);
     std::vector<pll_operation_t> opsSecond = createOperationsTowardsRoot(ann_network, partition_idx, parent,
             secondParent, dead_nodes, incremental, useBlobs, displayed_tree_root);
-
-    if (actNode->clv_index == 11) {
-        std::cout << "ops first:\n";
-        printOperationArray(opsFirst);
-        std::cout << "ops second:\n";
-        printOperationArray(opsSecond);
-        std::cout << "\n";
-    }
 
     // find the first entry in opsFirst which also occurs in opsSecond. We will only take opsFirst until this entry, excluding it.
     std::unordered_set<unsigned int> opsSecondRoots;
@@ -367,7 +360,6 @@ double displayed_tree_prob(AnnotatedNetwork &ann_network, size_t tree_index, siz
 }
 
 double displayed_tree_blob_prob(AnnotatedNetwork &ann_network, size_t megablob_idx, size_t partition_index) {
-    Network &network = ann_network.network;
     BlobInformation &blobInfo = ann_network.blobInfo;
     double logProb = 0;
     for (size_t i = 0; i < blobInfo.reticulation_nodes_per_megablob[megablob_idx].size(); ++i) {
@@ -395,7 +387,7 @@ void print_clv_vector(pllmod_treeinfo_t &fake_treeinfo, size_t tree_idx, size_t 
 }
 
 double compute_tree_logl(AnnotatedNetwork &ann_network, std::vector<bool> &clv_touched, std::vector<bool> &dead_nodes,
-        Node *displayed_tree_root, size_t tree_idx, size_t partition_idx, std::vector<double> *persite_logl,
+        Node *displayed_tree_root, size_t partition_idx, std::vector<double> *persite_logl,
         const std::vector<Node*> &parent, Node *startNode = nullptr, bool incremental = true) {
     Network &network = ann_network.network;
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
@@ -461,8 +453,8 @@ void compute_tree_logl_blobs(AnnotatedNetwork &ann_network, std::vector<bool> &c
     for (size_t i = 0; i < ops_count; ++i) {
         clv_touched[ops[i].parent_clv_index] = true;
     }
-    printOperationArray(ops);
-    std::cout << "\n";
+    //printOperationArray(ops);
+    //std::cout << "\n";
     std::vector<bool> will_be_touched = clv_touched;
     for (size_t i = 0; i < ops_count; ++i) {
         will_be_touched[ops[i].parent_clv_index] = true;
@@ -667,7 +659,7 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
             continue;
         }
 
-        std::cout << "megablobRootClvIdx: " << megablobRootClvIdx << "\n";
+        //std::cout << "megablobRootClvIdx: " << megablobRootClvIdx << "\n";
 
         size_t n_trees = 1 << blobInfo.reticulation_nodes_per_megablob[megablob_idx].size();
         // iterate over all displayed trees within the megablob, storing their tree clvs and tree probs
@@ -689,12 +681,12 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
                     bool changedBitIsSet = treeIdx & onlyChangedBit;
                     startNode = blobInfo.reticulation_nodes_per_megablob[megablob_idx][changedBitPos];
                     startNode->getReticulationData()->setActiveParentToggle(changedBitIsSet);
-                    std::cout << "startNode: " << startNode->clv_index << ", tree_idx: " << treeIdx << "\n";
+                    //std::cout << "startNode: " << startNode->clv_index << ", tree_idx: " << treeIdx << "\n";
                 } else {
-                    std::cout << "startNode: nullptr, tree_idx: " << treeIdx << "\n";
+                    //std::cout << "startNode: nullptr, tree_idx: " << treeIdx << "\n";
                 }
-                printReticulationParents(network);
-                printClvTouched(network, clv_touched);
+                //printReticulationParents(network);
+                //printClvTouched(network, clv_touched);
             } else {
                 setReticulationParents(blobInfo, megablob_idx, treeIdx);
             }
@@ -804,8 +796,8 @@ std::vector<double> compute_persite_lh(AnnotatedNetwork &ann_network, unsigned i
                 fill_untouched_clvs(ann_network, clv_touched, dead_nodes, partitionIdx, startNode);
                 assert(clv_touched[startNode->clv_index]);
             }
-            tree_logl = compute_tree_logl(ann_network, clv_touched, dead_nodes, displayed_tree_root, treeIdx,
-                    partitionIdx, &persite_logl, parent, startNode);
+            tree_logl = compute_tree_logl(ann_network, clv_touched, dead_nodes, displayed_tree_root, partitionIdx,
+                    &persite_logl, parent, startNode);
             old_persite_logl = persite_logl;
             old_tree_logl = tree_logl;
         }
