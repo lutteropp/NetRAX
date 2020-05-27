@@ -62,7 +62,6 @@ static double brent_target_networks(void *p, double x) {
     size_t pmatrix_index = ((BrentBrlenParams*) p)->pmatrix_index;
     size_t partition_index = ((BrentBrlenParams*) p)->partition_index;
     double old_x = ann_network->fake_treeinfo->branch_lengths[partition_index][pmatrix_index];
-    std::cout << " pmatrix index:" << pmatrix_index << ", x: " << x << ", old_x: " << old_x << "\n";
     double score;
     if (old_x == x) {
         score = -1 * computeLoglikelihood(*ann_network, 1, 1, false);
@@ -73,7 +72,8 @@ static double brent_target_networks(void *p, double x) {
         invalidateHigherCLVs(*ann_network,
                 getSource(ann_network->network, ann_network->network.edges_by_index[pmatrix_index]), true);
         score = -1 * computeLoglikelihood(*ann_network, 1, 1, false);
-        std::cout << "    score: " << score << ", x: " << x << ", old_x: " << old_x << "\n";
+        std::cout << "    score: " << score << ", x: " << x << ", old_x: " << old_x << ", pmatrix index:"
+                << pmatrix_index << "\n";
     }
     return score;
 }
@@ -106,7 +106,8 @@ double optimize_branch(AnnotatedNetwork &ann_network, int max_iters, int *act_it
     best_logl = computeLoglikelihood(ann_network, 1, 1, false);
     std::cout << " start logl for branch " << pmatrix_index << " with length " << start_brlen << ": " << start_logl
             << "\n";
-    std::cout << "   end logl for branch " << pmatrix_index << " with length " << new_brlen << ": " << best_logl << "\n";
+    std::cout << "   end logl for branch " << pmatrix_index << " with length " << new_brlen << ": " << best_logl
+            << "\n";
     std::cout << "\n";
     (*act_iters)++;
     return best_logl;
