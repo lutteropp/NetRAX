@@ -892,6 +892,7 @@ ArcInsertionMove buildArcInsertionMove(size_t a_clv_index, size_t b_clv_index, s
     move.c_v_prob = c_v_prob;
     move.a_u_len = a_u_len;
     move.moveType = moveType;
+    move.create_u_first = true;
     return move;
 }
 
@@ -1452,10 +1453,17 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     size_t a_b_edge_index = a_b_edge->pmatrix_index;
     size_t c_d_edge_index = c_d_edge->pmatrix_index;
 
-    Node *u = addInnerNode(network, nullptr);
     ReticulationData retData;
     retData.init(network.num_reticulations(), "", 0, nullptr, nullptr, nullptr);
-    Node *v = addInnerNode(network, &retData);
+    Node *u;
+    Node *v;
+    if (move.create_u_first) {
+        u = addInnerNode(network, nullptr);
+        v = addInnerNode(network, &retData);
+    } else {
+        v = addInnerNode(network, &retData);
+        u = addInnerNode(network, nullptr);
+    }
 
     Link *to_u_link = make_link(u, nullptr, Direction::INCOMING);
     Link *u_b_link = make_link(u, nullptr, Direction::OUTGOING);
@@ -1673,6 +1681,7 @@ void undoMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     ArcInsertionMove insertion = buildArcInsertionMove(move.a_clv_index, move.b_clv_index, move.c_clv_index,
             move.d_clv_index, move.u_v_len, move.c_v_len, move.u_v_prob, move.c_v_prob, move.a_u_len,
             MoveType::ArcInsertionMove);
+    insertion.create_u_first = (move.u_clv_index < move.v_clv_index);
     performMove(ann_network, insertion);
 }
 

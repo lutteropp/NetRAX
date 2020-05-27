@@ -69,6 +69,7 @@ struct ArcInsertionMove: public GeneralMove {
     double u_v_prob = 0.5;
     double c_v_prob = 0.5;
     double a_u_len = 1.0;
+    bool create_u_first = true;
 };
 
 struct ArcRemovalMove: public GeneralMove {
