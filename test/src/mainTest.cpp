@@ -31,7 +31,7 @@ int main(int argc, char **argv) {
     //::testing::GTEST_FLAG(filter) = "*MovesTest.incrementalLoglikelihoodProblem*";
     //::testing::GTEST_FLAG(filter) = "*SystemTest.allNetwork*";
     //::testing::GTEST_FLAG(filter) = "*SystemTest.random*";
-    ::testing::GTEST_FLAG(filter) = "*SystemTest.problem13*";
+    ::testing::GTEST_FLAG(filter) = "*SystemTest.problem15:*SystemTest.problem16:*SystemTest.problem17";
 
     auto result = RUN_ALL_TESTS();
 //  MPI_FINALIZE();
