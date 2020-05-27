@@ -1555,11 +1555,11 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     for (size_t i = 0; i < network.num_reticulations(); ++i) {
         assert(network.reticulation_nodes[i]->type == NodeType::RETICULATION_NODE);
     }
-    removeNode(network, network.nodes_by_index[move.v_clv_index]);
+    removeNode(network, network.nodes_by_index[move.u_clv_index]);
     for (size_t i = 0; i < network.num_reticulations(); ++i) {
         assert(network.reticulation_nodes[i]->type == NodeType::RETICULATION_NODE);
     }
-    removeNode(network, network.nodes_by_index[move.u_clv_index]);
+    removeNode(network, network.nodes_by_index[move.v_clv_index]);
     for (size_t i = 0; i < network.num_reticulations(); ++i) {
         assert(network.reticulation_nodes[i]->type == NodeType::RETICULATION_NODE);
     }
