@@ -115,6 +115,7 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
         }
         std::cout << "undo move " << toString(candidates[i]) << "\n";
         undoMove(ann_network, candidates[i]);
+        std::cout << exportDebugInfo(ann_network.network);
         //std::cout << "logl after undo move: " << ann_network.raxml_treeinfo->loglh(true) <<"\n";
         //apply_brlens(ann_network, old_brlens);
     }
