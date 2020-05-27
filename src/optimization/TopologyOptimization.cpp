@@ -91,10 +91,11 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
     //int radius = 1;
     //int max_iters = ann_network.options.brlen_smoothings;
     for (size_t i = 0; i < candidates.size(); ++i) {
-        //std::cout << exportDebugInfo(ann_network.network);
+        std::cout << exportDebugInfo(ann_network.network);
+        std::cout << toExtendedNewick(ann_network.network) << "\n";
         std::cout << "try move " << toString(candidates[i]) << "\n";
         performMove(ann_network, candidates[i]);
-        //std::cout << exportDebugInfo(ann_network.network);
+        std::cout << exportDebugInfo(ann_network.network);
         //std::cout << "logl after perform move: " << ann_network.raxml_treeinfo->loglh(true) <<"\n";
         //std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, candidates[i]);
         //optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
