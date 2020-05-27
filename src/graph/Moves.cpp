@@ -918,9 +918,11 @@ std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_ne
             }
             if (!hasPath(network, d_cand, a)) {
                 double c_d_len = network.edges_by_index[c->links[i].edge_pmatrix_index]->length;
-                res.emplace_back(
-                        buildArcInsertionMove(a->clv_index, b->clv_index, c_cand->clv_index, d_cand->clv_index, 1.0,
-                                c_d_len / 2, 0.5, 0.5, a_b_len / 2, moveType));
+                ArcInsertionMove move = buildArcInsertionMove(a->clv_index, b->clv_index, c_cand->clv_index,
+                        d_cand->clv_index, 1.0, c_d_len / 2, 0.5, 0.5, a_b_len / 2, moveType);
+                move.ab_pmatrix_index = getEdgeTo(network, a, b)->pmatrix_index;
+                move.cd_pmatrix_index = getEdgeTo(network, c_cand, d_cand)->pmatrix_index;
+                res.emplace_back(move);
             }
         }
     } else if (d) {
@@ -935,9 +937,11 @@ std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_ne
                     continue;
                 }
                 double c_d_len = network.edges_by_index[d->links[i].edge_pmatrix_index]->length;
-                res.emplace_back(
-                        buildArcInsertionMove(a->clv_index, b->clv_index, c_cand->clv_index, d_cand->clv_index, 1.0,
-                                c_d_len / 2, 0.5, 0.5, a_b_len / 2, moveType));
+                ArcInsertionMove move = buildArcInsertionMove(a->clv_index, b->clv_index, c_cand->clv_index,
+                        d_cand->clv_index, 1.0, c_d_len / 2, 0.5, 0.5, a_b_len / 2, moveType);
+                move.ab_pmatrix_index = getEdgeTo(network, a, b)->pmatrix_index;
+                move.cd_pmatrix_index = getEdgeTo(network, c_cand, d_cand)->pmatrix_index;
+                res.emplace_back(move);
             }
         }
     } else {
@@ -949,9 +953,11 @@ std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_ne
             Node *d_cand = getTarget(network, &network.edges[i]);
             if (!hasPath(network, d_cand, a)) {
                 double c_d_len = network.edges[i].length;
-                res.emplace_back(
-                        buildArcInsertionMove(a->clv_index, b->clv_index, c_cand->clv_index, d_cand->clv_index, 1.0,
-                                c_d_len / 2, 0.5, 0.5, a_b_len / 2, moveType));
+                ArcInsertionMove move = buildArcInsertionMove(a->clv_index, b->clv_index, c_cand->clv_index,
+                        d_cand->clv_index, 1.0, c_d_len / 2, 0.5, 0.5, a_b_len / 2, moveType);
+                move.ab_pmatrix_index = getEdgeTo(network, a, b)->pmatrix_index;
+                move.cd_pmatrix_index = getEdgeTo(network, c_cand, d_cand)->pmatrix_index;
+                res.emplace_back(move);
             }
         }
     }
@@ -1597,8 +1603,8 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
         assert(network.reticulation_nodes[i]->type == NodeType::RETICULATION_NODE);
     }
 
-    Edge *a_b_edge = addEdge(network, from_a_link, to_b_link, a_b_edge_length, a_b_edge_prob, u_b_edge_index);
-    Edge *c_d_edge = addEdge(network, from_c_link, to_d_link, c_d_edge_length, c_d_edge_prob, v_d_edge_index);
+    Edge *a_b_edge = addEdge(network, from_a_link, to_b_link, a_b_edge_length, a_b_edge_prob, move.wanted_ab_pmatrix_index); // was ub before
+    Edge *c_d_edge = addEdge(network, from_c_link, to_d_link, c_d_edge_length, c_d_edge_prob, move.wanted_cd_pmatrix_index); // was vd before
 
     Node *b = network.nodes_by_index[move.b_clv_index];
     if (b->type == NodeType::RETICULATION_NODE) {
@@ -1690,6 +1696,8 @@ void undoMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
             u->clv_index, v->clv_index, getEdgeTo(network, u, v)->length, getEdgeTo(network, c, v)->length,
             getEdgeTo(network, u, v)->prob, getEdgeTo(network, c, v)->prob, getEdgeTo(network, a, u)->length,
             MoveType::ArcRemovalMove);
+    removal.wanted_ab_pmatrix_index = move.ab_pmatrix_index;
+    removal.wanted_cd_pmatrix_index = move.cd_pmatrix_index;
     performMove(ann_network, removal);
 }
 
