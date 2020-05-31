@@ -978,7 +978,7 @@ void print_brlens(AnnotatedNetwork &ann_network) {
 double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices,
         bool update_reticulation_probs, std::vector<double> *treewise_logl) {
     Network &network = ann_network.network;
-    std::cout << exportDebugInfo(network) << "\n";
+    //std::cout << exportDebugInfo(network) << "\n";
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
 
     //print_brlens(ann_network);
@@ -1055,6 +1055,8 @@ double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int 
             }
         }
         ann_network.old_logl = network_logl;
+        assert(network_logl < -1);
+        std::cout << network_logl << '\n';
         return network_logl;
     }
 }
