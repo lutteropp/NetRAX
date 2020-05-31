@@ -303,7 +303,7 @@ std::vector<Node*> getActiveAliveNeighbors(Network &network, const std::vector<b
                 continue;
             }
         }
-        activeNeighbors.push_back(neighbors[i]);
+        activeNeighbors.emplace_back(neighbors[i]);
     }
     assert(activeNeighbors.size() <= 3);
     return activeNeighbors;

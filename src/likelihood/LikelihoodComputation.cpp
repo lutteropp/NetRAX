@@ -188,9 +188,8 @@ std::vector<pll_operation_t> createOperations(AnnotatedNetwork &ann_network, siz
             assert(ops[ops.size() - 1].parent_clv_index == displayed_tree_root->clv_index);
         }
     } else {
-        Node *megablobRoot = blobInfo.megablob_roots[megablobIdx];
-        createOperationsPostorder(ann_network, incremental, partition_idx, megablobRoot,
-                parent[megablobRoot->clv_index], ops, fake_clv_index, fake_pmatrix_index, dead_nodes, &stopIndices);
+        createOperationsPostorder(ann_network, incremental, partition_idx, displayed_tree_root,
+                parent[displayed_tree_root->clv_index], ops, fake_clv_index, fake_pmatrix_index, dead_nodes, &stopIndices);
     }
     // printOperationArray(ops);
     return ops;
@@ -466,9 +465,6 @@ void compute_tree_logl_blobs(AnnotatedNetwork &ann_network, std::vector<bool> &c
     if (ops_count == 0) {
         return;
     }
-    for (size_t i = 0; i < ops_count; ++i) {
-        clv_touched[ops[i].parent_clv_index] = true;
-    }
     //printOperationArray(ops);
     //std::cout << "\n";
     std::vector<bool> will_be_touched = clv_touched;
@@ -483,11 +479,14 @@ void compute_tree_logl_blobs(AnnotatedNetwork &ann_network, std::vector<bool> &c
         }
         assert(will_be_touched[ops[i].child2_clv_index]);
     }
+
     Node *ops_root = network.nodes_by_index[ops[ops.size() - 1].parent_clv_index];
 
 // Compute CLVs in pll_update_partials, as specified by the operations array. This needs a pll_partition_t object.
     pll_update_partials(fake_treeinfo.partitions[partition_idx], ops.data(), ops_count);
-
+    for (size_t i = 0; i < ops_count; ++i) {
+        clv_touched[ops[i].parent_clv_index] = true;
+    }
     if (persite_logl != nullptr) {
         Node *rootBack = getTargetNode(network, ops_root->getLink());
         if (ops_root == network.root && !dead_nodes[rootBack->clv_index]) {
@@ -658,10 +657,16 @@ void print_dead_nodes(Network &network, const std::vector<bool> &dead_nodes) {
     }
 }
 
+//size_t dbg = 0;
 std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsigned int partitionIdx,
         const std::vector<Node*> &parent, bool update_reticulation_probs, unsigned int numSites,
         std::vector<bool> &clv_touched, std::vector<BestPersiteLoglikelihoodData> &best_persite_logl_network,
         bool incremental) {
+    /*if (dbg == 1853) {
+        std::cout << dbg << "\n";
+        std::cout << exportDebugInfo(ann_network.network) << "/n";
+    }
+    dbg++;*/
     Network &network = ann_network.network;
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
     bool useGrayCode = ann_network.options.use_graycode;
@@ -746,11 +751,12 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
                 }
             }
             if (n_trees > 1 && megablobRootClvIdx != network.root->clv_index) {
-                assert(clv_touched[megablobRootClvIdx]);
+                size_t clvIdx = displayed_tree_root->clv_index;
+                assert(clv_touched[clvIdx]);
                 // extract the tree root clv vector and put it into tree_clvs together with its displayed tree probability
                 std::vector<double> treeRootCLV;
-                treeRootCLV.assign(fake_treeinfo.partitions[partitionIdx]->clv[megablobRootClvIdx],
-                        fake_treeinfo.partitions[partitionIdx]->clv[megablobRootClvIdx] + clv_len);
+                treeRootCLV.assign(fake_treeinfo.partitions[partitionIdx]->clv[clvIdx],
+                        fake_treeinfo.partitions[partitionIdx]->clv[clvIdx] + clv_len);
                 tree_clvs.emplace_back(std::make_pair(tree_prob, treeRootCLV));
             }
         }
