@@ -212,23 +212,35 @@ bool isMegablobRoot(AnnotatedNetwork &ann_network, Node *node) {
             != ann_network.blobInfo.megablob_roots.end());
 }
 
+// forward declaration needed for createOperationsTowardsRoot
+std::vector<pll_operation_t> createOperationsUpdatedReticulation(AnnotatedNetwork &ann_network, size_t partition_idx,
+        const std::vector<Node*> &parent, Node *actNode, const std::vector<bool> &dead_nodes, bool incremental,
+        bool useBlobs, Node *displayed_tree_root);
+
 std::vector<pll_operation_t> createOperationsTowardsRoot(AnnotatedNetwork &ann_network, size_t partition_idx,
         const std::vector<Node*> &parent, Node *actParent, const std::vector<bool> &dead_nodes, bool incremental,
         bool useBlobs, Node *displayed_tree_root) {
     Network &network = ann_network.network;
 
     std::vector<pll_operation_t> ops;
-    if (actParent == nullptr) {
+    if (actParent == parent[displayed_tree_root->clv_index]) {
         return ops;
     }
     if (dead_nodes[actParent->clv_index]) {
-        return createOperationsTowardsRoot(ann_network, partition_idx, parent, parent[actParent->clv_index], dead_nodes,
-                incremental, useBlobs, displayed_tree_root);
+        if (actParent == network.root) {
+            return ops;
+        } else if (actParent->type == NodeType::RETICULATION_NODE) {
+            // when our current node is a dead reticulation node, we need to again go up from both its parents, not just from the active parent...
+            return createOperationsUpdatedReticulation(ann_network, partition_idx, parent, actParent,
+                    dead_nodes, incremental, useBlobs, displayed_tree_root);
+        } else {
+            return createOperationsTowardsRoot(ann_network, partition_idx, parent, parent[actParent->clv_index],
+                    dead_nodes, incremental, useBlobs, displayed_tree_root);
+        }
     }
 
     size_t fake_clv_index = network.nodes.size();
     size_t fake_pmatrix_index = network.edges.size();
-    Node *rootBack = getTargetNode(network, network.root->getLink());
 
     Node *lastParent = network.root;
     if (displayed_tree_root != network.root) {
@@ -257,7 +269,7 @@ std::vector<pll_operation_t> createOperationsTowardsRoot(AnnotatedNetwork &ann_n
          }
          }
          }*/
-
+        Node *rootBack = getTargetNode(network, network.root->getLink());
         if (!getActiveChildrenIgnoreDirections(network, network.root, rootBack).empty()) {
             ops.push_back(
                     buildOperation(network, network.root, rootBack, dead_nodes, fake_clv_index, fake_pmatrix_index));
@@ -473,6 +485,7 @@ void compute_tree_logl_blobs(AnnotatedNetwork &ann_network, std::vector<bool> &c
         will_be_touched[ops[i].parent_clv_index] = true;
         if (!will_be_touched[ops[i].child1_clv_index]) {
             std::cout << "problematic clv index: " << ops[i].child1_clv_index << "\n";
+            std::cout << exportDebugInfo(network) << "\n";
         }
         assert(will_be_touched[ops[i].child1_clv_index]);
         if (!will_be_touched[ops[i].child2_clv_index]) {
@@ -663,11 +676,12 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
         const std::vector<Node*> &parent, bool update_reticulation_probs, unsigned int numSites,
         std::vector<bool> &clv_touched, std::vector<BestPersiteLoglikelihoodData> &best_persite_logl_network,
         bool incremental, std::vector<bool> *touched) {
-    /*if (dbg == 1853) {
-     std::cout << dbg << "\n";
-     std::cout << exportDebugInfo(ann_network.network) << "/n";
-     }
-     dbg++;*/
+    //std::cout << dbg << "\n";
+    //dbg++;
+    //if (dbg == 2053) {
+    //    std::cout << exportDebugInfo(ann_network.network) << "\n";
+    //}
+
     Network &network = ann_network.network;
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
     bool useGrayCode = ann_network.options.use_graycode;
