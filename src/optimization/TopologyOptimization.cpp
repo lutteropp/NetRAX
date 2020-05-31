@@ -106,7 +106,8 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
             best_idx = i;
             //best_brlens = extract_brlens(ann_network);
             size_t new_reticulation_count = ann_network.network.num_reticulations();
-            std::cout << "prev_logl: " << old_logl << ", prev_bic: " << best_score << ", new_logl: " << new_logl
+            //std::cout << exportDebugInfo(ann_network.network) << "\n";
+            std::cout << "prev_best_logl: " << old_logl << ", prev_bic: " << best_score << ", new_logl: " << new_logl
                     << ", new_score: " << new_bic << "\n";
             assert(old_reticulation_count > new_reticulation_count || new_logl > old_logl);
             old_logl = best_logl;
@@ -123,7 +124,7 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
         //apply_brlens(ann_network, best_brlens);
         // optimize reticulation probs and model after a move has been accepted
         //netrax::computeLoglikelihood(ann_network, 1, 1, true);
-        best_logl = ann_network.raxml_treeinfo->loglh(true);
+        assert(best_logl == ann_network.raxml_treeinfo->loglh(true));
         //best_logl = ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
         //best_logl = optimize_branches(ann_network, max_iters, radius);
 
