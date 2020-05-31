@@ -27,6 +27,24 @@ using namespace netrax;
 
 const std::string DATA_PATH = "examples/sample_networks/";
 
+std::vector<std::vector<double> > extract_brlens(AnnotatedNetwork &ann_network) {
+    std::vector<std::vector<double> > res;
+    bool unlinkedMode = (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
+    size_t n_partitions = 1;
+    if (unlinkedMode) {
+        n_partitions = ann_network.fake_treeinfo->partition_count;
+    }
+    res.resize(n_partitions);
+    for (size_t p = 0; p < n_partitions; ++p) {
+        res[p].resize(ann_network.network.edges.size());
+        for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
+            size_t pmatrix_index = ann_network.network.edges[i].pmatrix_index;
+            res[p][pmatrix_index] = ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index];
+        }
+    }
+    return res;
+}
+
 void randomNNIMoves(const std::string &networkPath, const std::string &msaPath, bool useRepeats) {
     NetraxOptions options;
     options.network_file = networkPath;
@@ -36,6 +54,8 @@ void randomNNIMoves(const std::string &networkPath, const std::string &msaPath, 
     Network &network = ann_network.network;
     std::string initialDebugInfo = exportDebugInfo(network);
     std::cout << initialDebugInfo;
+
+    std::vector<std::vector<double> > old_brlens = extract_brlens(ann_network);
 
     double initial_logl = computeLoglikelihood(ann_network);
     ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
@@ -53,6 +73,12 @@ void randomNNIMoves(const std::string &networkPath, const std::string &msaPath, 
             std::cout << "logl after move: " << moved_logl << "\n";
             std::cout << "undo " << toString(candidates[j]) << "\n";
             undoMove(ann_network, candidates[j]);
+            std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
+            for (size_t i = 0; i < act_brlens.size(); ++i) {
+                for (size_t j = 0; j < act_brlens[i].size(); ++j) {
+                    assert(act_brlens[i][j] == old_brlens[i][j]);
+                }
+            }
             std::string newickAfterUndoMove = toExtendedNewick(network);
             std::cout << toExtendedNewick(network) << "\n";
             std::string debugInfoAfterUndo = exportDebugInfo(network);
@@ -74,6 +100,8 @@ void randomSPRMoves(const std::string &networkPath, const std::string &msaPath, 
     std::string initialDebugInfo = exportDebugInfo(network);
     std::cout << initialDebugInfo;
 
+    std::vector<std::vector<double> > old_brlens = extract_brlens(ann_network);
+
     double initial_logl = computeLoglikelihood(ann_network);
     ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
     std::cout << "initial_logl: " << initial_logl << "\n";
@@ -88,6 +116,12 @@ void randomSPRMoves(const std::string &networkPath, const std::string &msaPath, 
             std::cout << "logl after move: " << moved_logl << "\n";
             std::cout << "undo " << toString(candidates[j]) << "\n";
             undoMove(ann_network, candidates[j]);
+            std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
+            for (size_t i = 0; i < act_brlens.size(); ++i) {
+                for (size_t j = 0; j < act_brlens[i].size(); ++j) {
+                    assert(act_brlens[i][j] == old_brlens[i][j]);
+                }
+            }
             std::string debugInfoAfterUndo = exportDebugInfo(network);
             EXPECT_EQ(initialDebugInfo, debugInfoAfterUndo);
             double back_logl = computeLoglikelihood(ann_network);
@@ -106,6 +140,8 @@ void randomHeadMoves(const std::string &networkPath, const std::string &msaPath,
     std::string initialDebugInfo = exportDebugInfo(network);
     std::cout << initialDebugInfo;
 
+    std::vector<std::vector<double> > old_brlens = extract_brlens(ann_network);
+
     double initial_logl = computeLoglikelihood(ann_network);
     ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
     std::cout << "initial_logl: " << initial_logl << "\n";
@@ -120,6 +156,12 @@ void randomHeadMoves(const std::string &networkPath, const std::string &msaPath,
             std::cout << "logl after move: " << moved_logl << "\n";
             std::cout << "undo " << toString(candidates[j]) << "\n";
             undoMove(ann_network, candidates[j]);
+            std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
+            for (size_t i = 0; i < act_brlens.size(); ++i) {
+                for (size_t j = 0; j < act_brlens[i].size(); ++j) {
+                    assert(act_brlens[i][j] == old_brlens[i][j]);
+                }
+            }
             std::string debugInfoAfterUndo = exportDebugInfo(network);
             EXPECT_EQ(initialDebugInfo, debugInfoAfterUndo);
             double back_logl = computeLoglikelihood(ann_network);
@@ -138,6 +180,8 @@ void randomTailMoves(const std::string &networkPath, const std::string &msaPath,
     std::string initialDebugInfo = exportDebugInfo(network);
     std::cout << initialDebugInfo;
 
+    std::vector<std::vector<double> > old_brlens = extract_brlens(ann_network);
+
     double initial_logl = computeLoglikelihood(ann_network);
     ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
     std::cout << "initial_logl: " << initial_logl << "\n";
@@ -152,6 +196,12 @@ void randomTailMoves(const std::string &networkPath, const std::string &msaPath,
             std::cout << "logl after move: " << moved_logl << "\n";
             std::cout << "undo " << toString(candidates[j]) << "\n";
             undoMove(ann_network, candidates[j]);
+            std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
+            for (size_t i = 0; i < act_brlens.size(); ++i) {
+                for (size_t j = 0; j < act_brlens[i].size(); ++j) {
+                    assert(act_brlens[i][j] == old_brlens[i][j]);
+                }
+            }
             std::string debugInfoAfterUndo = exportDebugInfo(network);
             EXPECT_EQ(initialDebugInfo, debugInfoAfterUndo);
             double back_logl = computeLoglikelihood(ann_network);
@@ -170,6 +220,8 @@ void randomSPR1Moves(const std::string &networkPath, const std::string &msaPath,
     std::string initialDebugInfo = exportDebugInfo(network);
     std::cout << initialDebugInfo;
 
+    std::vector<std::vector<double> > old_brlens = extract_brlens(ann_network);
+
     double initial_logl = computeLoglikelihood(ann_network);
     ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
     std::cout << "initial_logl: " << initial_logl << "\n";
@@ -184,6 +236,12 @@ void randomSPR1Moves(const std::string &networkPath, const std::string &msaPath,
             std::cout << "logl after move: " << moved_logl << "\n";
             std::cout << "undo " << toString(candidates[j]) << "\n";
             undoMove(ann_network, candidates[j]);
+            std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
+            for (size_t i = 0; i < act_brlens.size(); ++i) {
+                for (size_t j = 0; j < act_brlens[i].size(); ++j) {
+                    assert(act_brlens[i][j] == old_brlens[i][j]);
+                }
+            }
             std::string debugInfoAfterUndo = exportDebugInfo(network);
             EXPECT_EQ(initialDebugInfo, debugInfoAfterUndo);
             double back_logl = computeLoglikelihood(ann_network);
@@ -201,6 +259,8 @@ void randomArcInsertionMoves(const std::string &networkPath, const std::string &
     Network &network = ann_network.network;
     std::string initialDebugInfo = exportDebugInfo(network);
     //std::cout << initialDebugInfo;
+
+    std::vector<std::vector<double> > old_brlens = extract_brlens(ann_network);
 
     double initial_logl = computeLoglikelihood(ann_network);
     ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
@@ -226,6 +286,12 @@ void randomArcInsertionMoves(const std::string &networkPath, const std::string &
             std::cout << "logl after move: " << moved_logl << "\n";
             std::cout << "undo " << toString(candidates[j]) << "\n";
             undoMove(ann_network, candidates[j]);
+            std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
+            for (size_t i = 0; i < act_brlens.size(); ++i) {
+                for (size_t j = 0; j < act_brlens[i].size(); ++j) {
+                    assert(act_brlens[i][j] == old_brlens[i][j]);
+                }
+            }
             //std::string debugInfoAfterUndo = exportDebugInfo(network);
 
             //std::cout << "network after undo move:\n";
@@ -247,6 +313,8 @@ void randomDeltaPlusMoves(const std::string &networkPath, const std::string &msa
     Network &network = ann_network.network;
     std::string initialDebugInfo = exportDebugInfo(network);
     //std::cout << initialDebugInfo;
+
+    std::vector<std::vector<double> > old_brlens = extract_brlens(ann_network);
 
     double initial_logl = computeLoglikelihood(ann_network);
     ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
@@ -272,6 +340,12 @@ void randomDeltaPlusMoves(const std::string &networkPath, const std::string &msa
             std::cout << "logl after move: " << moved_logl << "\n";
             std::cout << "undo " << toString(candidates[j]) << "\n";
             undoMove(ann_network, candidates[j]);
+            std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
+            for (size_t i = 0; i < act_brlens.size(); ++i) {
+                for (size_t j = 0; j < act_brlens[i].size(); ++j) {
+                    assert(act_brlens[i][j] == old_brlens[i][j]);
+                }
+            }
             //std::string debugInfoAfterUndo = exportDebugInfo(network);
 
             //std::cout << "network after undo move:\n";
@@ -304,6 +378,8 @@ void randomArcRemovalMoves(const std::string &networkPath, const std::string &ms
     //std::cout << initialDebugInfo;
     //printBranchLengths(ann_network);
 
+    std::vector<std::vector<double> > old_brlens = extract_brlens(ann_network);
+
     double initial_logl = computeLoglikelihood(ann_network);
     ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
     std::cout << "initial_logl: " << initial_logl << "\n";
@@ -320,6 +396,12 @@ void randomArcRemovalMoves(const std::string &networkPath, const std::string &ms
         std::cout << "logl after move: " << moved_logl << "\n";
         std::cout << "undo " << toString(candidates[j]) << "\n";
         undoMove(ann_network, candidates[j]);
+        std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
+        for (size_t i = 0; i < act_brlens.size(); ++i) {
+            for (size_t j = 0; j < act_brlens[i].size(); ++j) {
+                assert(act_brlens[i][j] == old_brlens[i][j]);
+            }
+        }
 
         //printBranchLengths(ann_network);
         //std::string debugInfoAfterUndo = exportDebugInfo(network);
@@ -341,6 +423,8 @@ void randomDeltaMinusMoves(const std::string &networkPath, const std::string &ms
     //std::cout << initialDebugInfo;
     //printBranchLengths(ann_network);
 
+    std::vector<std::vector<double> > old_brlens = extract_brlens(ann_network);
+
     double initial_logl = computeLoglikelihood(ann_network);
     ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
     std::cout << "initial_logl: " << initial_logl << "\n";
@@ -357,6 +441,12 @@ void randomDeltaMinusMoves(const std::string &networkPath, const std::string &ms
         std::cout << "logl after move: " << moved_logl << "\n";
         std::cout << "undo " << toString(candidates[j]) << "\n";
         undoMove(ann_network, candidates[j]);
+        std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
+        for (size_t i = 0; i < act_brlens.size(); ++i) {
+            for (size_t j = 0; j < act_brlens[i].size(); ++j) {
+                assert(act_brlens[i][j] == old_brlens[i][j]);
+            }
+        }
 
         //printBranchLengths(ann_network);
         //std::string debugInfoAfterUndo = exportDebugInfo(network);
