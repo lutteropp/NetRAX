@@ -148,6 +148,18 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
         std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
         for (size_t i = 0; i < act_brlens.size(); ++i) {
             for (size_t j = 0; j < act_brlens[i].size(); ++j) {
+                if (act_brlens[i][j] != old_brlens[i][j]) {
+                    std::cout << "wanted brlens:\n";
+                    for (size_t k = 0; k < ann_network.network.num_branches(); ++k) {
+                        std::cout << "idx " << ann_network.network.edges[k].pmatrix_index << ": " << old_brlens[i][k] << "\n";
+                    }
+                    std::cout << "\n";
+                    std::cout << "observed brlens:\n";
+                    for (size_t k = 0; k < ann_network.network.num_branches(); ++k) {
+                        std::cout << "idx " << ann_network.network.edges[k].pmatrix_index << ": " << act_brlens[i][k] << "\n";
+                    }
+                    std::cout << "\n";
+                }
                 assert(act_brlens[i][j] == old_brlens[i][j]);
             }
         }
