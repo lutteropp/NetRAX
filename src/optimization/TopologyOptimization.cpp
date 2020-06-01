@@ -7,6 +7,7 @@
 
 #include "TopologyOptimization.hpp"
 #include <cmath>
+#include <limits>
 
 #include "../graph/AnnotatedNetwork.hpp"
 #include "../graph/NetworkTopology.hpp"
@@ -160,11 +161,11 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
                     }
                     std::cout << "\n";
                 }
-                assert(act_brlens[i][j] == old_brlens[i][j]);
+                assert(fabs(act_brlens[i][j] - old_brlens[i][j]) < std::numeric_limits<double>::epsilon());
             }
         }
 
-        assert(ann_network.raxml_treeinfo->loglh(true) == start_logl);
+        assert(fabs(ann_network.raxml_treeinfo->loglh(true) - start_logl) < std::numeric_limits<double>::epsilon());
         //apply_brlens(ann_network, old_brlens);
     }
     if (best_idx < candidates.size()) {
@@ -175,7 +176,7 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
         std::cout << "Accepting move " << toString(candidates[best_idx]) << " with old_score= " << old_score
                 << ", best_score= " << best_score << ", best_logl= " << best_logl << "\n";
 
-        assert(best_logl == ann_network.raxml_treeinfo->loglh(true));
+        assert(fabs(best_logl - ann_network.raxml_treeinfo->loglh(true)) < std::numeric_limits<double>::epsilon());
 
         //best_logl = ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
         //best_logl = optimize_branches(ann_network, max_iters, radius);
