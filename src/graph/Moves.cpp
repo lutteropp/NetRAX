@@ -1205,6 +1205,8 @@ void performMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
     invalidateHigherCLVs(ann_network, z, false, visited);
     invalidateHigherCLVs(ann_network, x, false, visited);
     invalidateHigherCLVs(ann_network, x_prime, false, visited);
+    invalidateHigherCLVs(ann_network, y, false, visited);
+    invalidateHigherCLVs(ann_network, y_prime, false, visited);
     invalidatePmatrixIndex(ann_network, x_y_edge->pmatrix_index, visited);
     invalidatePmatrixIndex(ann_network, x_prime_z_edge->pmatrix_index, visited);
     invalidatePmatrixIndex(ann_network, z_y_prime_edge->pmatrix_index, visited);
@@ -1287,6 +1289,8 @@ void undoMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
     invalidateHigherCLVs(ann_network, z, false, visited);
     invalidateHigherCLVs(ann_network, x, false, visited);
     invalidateHigherCLVs(ann_network, x_prime, false, visited);
+    invalidateHigherCLVs(ann_network, y, false, visited);
+    invalidateHigherCLVs(ann_network, y_prime, false, visited);
     invalidatePmatrixIndex(ann_network, x_prime_y_prime_edge->pmatrix_index, visited);
     invalidatePmatrixIndex(ann_network, x_z_edge->pmatrix_index, visited);
     invalidatePmatrixIndex(ann_network, z_y_edge->pmatrix_index, visited);

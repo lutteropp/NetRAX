@@ -395,12 +395,12 @@ void invalidateHigherClvs(Network &network, pllmod_treeinfo_t *treeinfo, Node *n
     if (!visited.empty() && visited[node->clv_index]) { // clv at node is already invalidated
         return;
     }
-    if (!visited.empty()) {
-        visited[node->clv_index] = true;
-    }
     if (invalidate_myself) {
         for (size_t p = 0; p < treeinfo->partition_count; ++p) {
             treeinfo->clv_valid[p][node->clv_index] = 0;
+        }
+        if (!visited.empty()) {
+            visited[node->clv_index] = true;
         }
     }
     if (node->clv_index == network.root->clv_index) {
