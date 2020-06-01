@@ -132,7 +132,7 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
         //std::cout << exportDebugInfo(ann_network.network) << "\n";
         std::cout << "logl after undo move: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
         double afterlogl = ann_network.raxml_treeinfo->loglh(true);
-        assert(beforelogl != afterlogl);
+        assert(candidates[i].moveType == MoveType::RNNIMove || beforelogl != afterlogl);
 
         std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
         for (size_t i = 0; i < act_brlens.size(); ++i) {
