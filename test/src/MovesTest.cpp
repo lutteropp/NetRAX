@@ -73,10 +73,11 @@ void randomNNIMoves(const std::string &networkPath, const std::string &msaPath, 
             std::cout << "logl after move: " << moved_logl << "\n";
             std::cout << "undo " << toString(candidates[j]) << "\n";
             undoMove(ann_network, candidates[j]);
+            computeLoglikelihood(ann_network);
             std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
             for (size_t i = 0; i < act_brlens.size(); ++i) {
                 for (size_t j = 0; j < act_brlens[i].size(); ++j) {
-                    assert(act_brlens[i][j] == old_brlens[i][j]);
+                    ASSERT_DOUBLE_EQ(act_brlens[i][j], old_brlens[i][j]);
                 }
             }
             std::string newickAfterUndoMove = toExtendedNewick(network);
@@ -116,10 +117,11 @@ void randomSPRMoves(const std::string &networkPath, const std::string &msaPath, 
             std::cout << "logl after move: " << moved_logl << "\n";
             std::cout << "undo " << toString(candidates[j]) << "\n";
             undoMove(ann_network, candidates[j]);
+            computeLoglikelihood(ann_network);
             std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
             for (size_t i = 0; i < act_brlens.size(); ++i) {
                 for (size_t j = 0; j < act_brlens[i].size(); ++j) {
-                    assert(act_brlens[i][j] == old_brlens[i][j]);
+                    ASSERT_DOUBLE_EQ(act_brlens[i][j], old_brlens[i][j]);
                 }
             }
             std::string debugInfoAfterUndo = exportDebugInfo(network);
@@ -156,10 +158,11 @@ void randomHeadMoves(const std::string &networkPath, const std::string &msaPath,
             std::cout << "logl after move: " << moved_logl << "\n";
             std::cout << "undo " << toString(candidates[j]) << "\n";
             undoMove(ann_network, candidates[j]);
+            computeLoglikelihood(ann_network);
             std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
             for (size_t i = 0; i < act_brlens.size(); ++i) {
                 for (size_t j = 0; j < act_brlens[i].size(); ++j) {
-                    assert(act_brlens[i][j] == old_brlens[i][j]);
+                    ASSERT_DOUBLE_EQ(act_brlens[i][j], old_brlens[i][j]);
                 }
             }
             std::string debugInfoAfterUndo = exportDebugInfo(network);
@@ -196,10 +199,11 @@ void randomTailMoves(const std::string &networkPath, const std::string &msaPath,
             std::cout << "logl after move: " << moved_logl << "\n";
             std::cout << "undo " << toString(candidates[j]) << "\n";
             undoMove(ann_network, candidates[j]);
+            computeLoglikelihood(ann_network);
             std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
             for (size_t i = 0; i < act_brlens.size(); ++i) {
                 for (size_t j = 0; j < act_brlens[i].size(); ++j) {
-                    assert(act_brlens[i][j] == old_brlens[i][j]);
+                    ASSERT_DOUBLE_EQ(act_brlens[i][j], old_brlens[i][j]);
                 }
             }
             std::string debugInfoAfterUndo = exportDebugInfo(network);
@@ -236,10 +240,11 @@ void randomSPR1Moves(const std::string &networkPath, const std::string &msaPath,
             std::cout << "logl after move: " << moved_logl << "\n";
             std::cout << "undo " << toString(candidates[j]) << "\n";
             undoMove(ann_network, candidates[j]);
+            computeLoglikelihood(ann_network);
             std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
             for (size_t i = 0; i < act_brlens.size(); ++i) {
                 for (size_t j = 0; j < act_brlens[i].size(); ++j) {
-                    assert(act_brlens[i][j] == old_brlens[i][j]);
+                    ASSERT_DOUBLE_EQ(act_brlens[i][j], old_brlens[i][j]);
                 }
             }
             std::string debugInfoAfterUndo = exportDebugInfo(network);
@@ -286,10 +291,11 @@ void randomArcInsertionMoves(const std::string &networkPath, const std::string &
             std::cout << "logl after move: " << moved_logl << "\n";
             std::cout << "undo " << toString(candidates[j]) << "\n";
             undoMove(ann_network, candidates[j]);
+            computeLoglikelihood(ann_network);
             std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
             for (size_t i = 0; i < act_brlens.size(); ++i) {
                 for (size_t j = 0; j < act_brlens[i].size(); ++j) {
-                    assert(act_brlens[i][j] == old_brlens[i][j]);
+                    ASSERT_DOUBLE_EQ(act_brlens[i][j], old_brlens[i][j]);
                 }
             }
             //std::string debugInfoAfterUndo = exportDebugInfo(network);
@@ -340,10 +346,11 @@ void randomDeltaPlusMoves(const std::string &networkPath, const std::string &msa
             std::cout << "logl after move: " << moved_logl << "\n";
             std::cout << "undo " << toString(candidates[j]) << "\n";
             undoMove(ann_network, candidates[j]);
+            computeLoglikelihood(ann_network);
             std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
             for (size_t i = 0; i < act_brlens.size(); ++i) {
                 for (size_t j = 0; j < act_brlens[i].size(); ++j) {
-                    assert(act_brlens[i][j] == old_brlens[i][j]);
+                    ASSERT_DOUBLE_EQ(act_brlens[i][j], old_brlens[i][j]);
                 }
             }
             //std::string debugInfoAfterUndo = exportDebugInfo(network);
@@ -396,10 +403,11 @@ void randomArcRemovalMoves(const std::string &networkPath, const std::string &ms
         std::cout << "logl after move: " << moved_logl << "\n";
         std::cout << "undo " << toString(candidates[j]) << "\n";
         undoMove(ann_network, candidates[j]);
+        computeLoglikelihood(ann_network);
         std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
         for (size_t i = 0; i < act_brlens.size(); ++i) {
             for (size_t j = 0; j < act_brlens[i].size(); ++j) {
-                assert(act_brlens[i][j] == old_brlens[i][j]);
+                ASSERT_DOUBLE_EQ(act_brlens[i][j], old_brlens[i][j]);
             }
         }
 
@@ -441,10 +449,11 @@ void randomDeltaMinusMoves(const std::string &networkPath, const std::string &ms
         std::cout << "logl after move: " << moved_logl << "\n";
         std::cout << "undo " << toString(candidates[j]) << "\n";
         undoMove(ann_network, candidates[j]);
+        computeLoglikelihood(ann_network);
         std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
         for (size_t i = 0; i < act_brlens.size(); ++i) {
             for (size_t j = 0; j < act_brlens[i].size(); ++j) {
-                assert(act_brlens[i][j] == old_brlens[i][j]);
+                ASSERT_DOUBLE_EQ(act_brlens[i][j], old_brlens[i][j]);
             }
         }
 
