@@ -100,7 +100,7 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
         //std::cout << toExtendedNewick(ann_network.network) << "\n";
         //std::cout << "try move " << toString(candidates[i]) << "\n";
         performMove(ann_network, candidates[i]);
-        //std::cout << exportDebugInfo(ann_network.network) << "\n";
+        std::cout << exportDebugInfo(ann_network.network) << "\n";
         std::cout << "logl after perform move: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
         //std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, candidates[i]);
         //optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
@@ -122,6 +122,7 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
             old_reticulation_count = ann_network.network.num_reticulations();
         }
         //std::cout << "undo move " << toString(candidates[i]) << "\n";
+        double beforelogl = ann_network.raxml_treeinfo->loglh(true);
         std::cout << "logl before undo move: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
 
         std::cout << toString(candidates[i]) << "\n";
@@ -130,6 +131,8 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
         assert(exportDebugInfo(ann_network.network) == before);
         //std::cout << exportDebugInfo(ann_network.network) << "\n";
         std::cout << "logl after undo move: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
+        double afterlogl = ann_network.raxml_treeinfo->loglh(true);
+        assert(beforelogl != afterlogl);
 
         std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
         for (size_t i = 0; i < act_brlens.size(); ++i) {
@@ -223,6 +226,7 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network) {
         }
 
         std::cout << "Using move type: " << toString(types[type_idx]) << "\n";
+        std::cout << exportDebugInfo(ann_network.network) << "\n";
         new_logl = greedyHillClimbingTopology(ann_network, types[type_idx]);
         new_bic = bic(ann_network, new_logl);
         type_idx = (type_idx + 1) % types.size();
