@@ -478,8 +478,8 @@ void compute_tree_logl_blobs(AnnotatedNetwork &ann_network, std::vector<bool> &c
     if (ops_count == 0) {
         return;
     }
-    //printOperationArray(ops);
-    //std::cout << "\n";
+    printOperationArray(ops);
+    std::cout << "\n";
     std::vector<bool> will_be_touched = clv_touched;
     for (size_t i = 0; i < ops_count; ++i) {
         will_be_touched[ops[i].parent_clv_index] = true;
@@ -759,7 +759,8 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
                 updateBestPersiteLoglikelihoodsBlobs(network, blobInfo, megablob_idx, treeIdx, numSites,
                         best_persite_logl_network, persite_logl);
             }
-            if (megablobRootClvIdx == network.root->clv_index && clv_touched[network.root->clv_index]) { // we have reached the overall network root
+            if (megablobRootClvIdx == network.root->clv_index) { // we have reached the overall network root
+                assert(clv_touched[displayed_tree_root->clv_index]);
                 //std::cout << "tree_prob: " << tree_prob << "\n";
                 for (size_t s = 0; s < numSites; ++s) {
                     persite_lh_network[s] += exp(persite_logl[s]) * tree_prob;
