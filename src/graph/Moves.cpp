@@ -1278,6 +1278,9 @@ void undoMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
     invalidateHigherCLVs(ann_network, z);
     invalidateHigherCLVs(ann_network, x);
     invalidateHigherCLVs(ann_network, x_prime);
+    invalidatePmatrixIndex(ann_network, x_prime_y_prime_edge->pmatrix_index);
+    invalidatePmatrixIndex(ann_network, x_z_edge->pmatrix_index);
+    invalidatePmatrixIndex(ann_network, z_y_edge->pmatrix_index);
 
     ann_network.travbuffer = reversed_topological_sort(ann_network.network);
     ann_network.blobInfo = partitionNetworkIntoBlobs(network, ann_network.travbuffer);
