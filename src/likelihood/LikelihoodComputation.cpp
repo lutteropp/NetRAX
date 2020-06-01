@@ -1078,7 +1078,7 @@ double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int 
         if (ann_network.options.use_incremental) { // validate all touched clvs, for all partitions
             for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
                 for (size_t i = 0; i < network.num_nodes(); ++i) {
-                    ann_network.fake_treeinfo->clv_valid[p][network.nodes[i].clv_index] =
+                    ann_network.fake_treeinfo->clv_valid[p][network.nodes[i].clv_index] |=
                             touched[network.nodes[i].clv_index];
                 }
             }

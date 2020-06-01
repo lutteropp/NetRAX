@@ -80,6 +80,17 @@ void apply_brlens(AnnotatedNetwork &ann_network, const std::vector<std::vector<d
 }
 
 template<typename T>
+bool wantedMove(T *move) {
+    if (move->moveType == MoveType::RSPRMove) {
+        RSPRMove *m = (RSPRMove*) move;
+        if (m->x_prime_clv_index == 8 && m->y_prime_clv_index == 11 && m->x_clv_index == 11 && m->y_clv_index == 7 && m->z_clv_index == 9) {
+            return true;
+        }
+    }
+    return false;
+}
+
+template<typename T>
 double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates, double old_score) {
     //std::cout << "greedyHillclimbingStep called\n";
     size_t best_idx = candidates.size();
@@ -129,6 +140,9 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
         undoMove(ann_network, candidates[i]);
         assert(exportDebugInfo(ann_network.network) == before);
         //std::cout << exportDebugInfo(ann_network.network) << "\n";
+        if (wantedMove(&candidates[i])) {
+            std::cout << "reached wanted move\n";
+        }
         std::cout << "logl after undo move: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
 
         std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
