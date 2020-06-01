@@ -121,11 +121,14 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
             old_reticulation_count = ann_network.network.num_reticulations();
         }
         //std::cout << "undo move " << toString(candidates[i]) << "\n";
+        std::cout << "logl before undo move: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
+
+        std::cout << toString(candidates[i]) << "\n";
+
         undoMove(ann_network, candidates[i]);
         assert(exportDebugInfo(ann_network.network) == before);
         //std::cout << exportDebugInfo(ann_network.network) << "\n";
         std::cout << "logl after undo move: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
-        std::cout << toString(candidates[i]) << "\n";
 
         std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
         for (size_t i = 0; i < act_brlens.size(); ++i) {

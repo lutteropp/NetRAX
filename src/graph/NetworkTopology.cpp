@@ -420,6 +420,8 @@ void invalidatePmatrixIndex(AnnotatedNetwork &ann_network, size_t pmatrix_index)
     for (size_t p = 0; p < treeinfo->partition_count; ++p) {
         treeinfo->pmatrix_valid[p][pmatrix_index] = 0;
     }
+    invalidateHigherCLVs(ann_network, getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]),
+            false);
 }
 
 void assertReticulationProbs(AnnotatedNetwork &ann_network) {
