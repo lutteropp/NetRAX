@@ -103,8 +103,8 @@ template<typename T>
 bool wantedMove(T *move) {
     if (move->moveType == MoveType::ArcRemovalMove) {
         ArcRemovalMove *m = (ArcRemovalMove*) move;
-        if (m->a_clv_index == 4 && m->b_clv_index == 7 && m->c_clv_index == 9 && m->d_clv_index == 6
-                && m->u_clv_index == 5 && m->v_clv_index == 12) {
+        if (m->a_clv_index == 9 && m->b_clv_index == 1 && m->c_clv_index == 9 && m->d_clv_index == 2
+                && m->u_clv_index == 8 && m->v_clv_index == 10) {
             return true;
         }
     }
