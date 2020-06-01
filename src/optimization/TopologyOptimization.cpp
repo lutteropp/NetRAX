@@ -90,11 +90,11 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
     size_t old_reticulation_count = ann_network.network.num_reticulations();
     double best_logl;
     std::vector<std::vector<double> > old_brlens = extract_brlens(ann_network);
+    std::string before = exportDebugInfo(ann_network.network);
     //std::vector<std::vector<double> > best_brlens;
     //int radius = 1;
     //int max_iters = ann_network.options.brlen_smoothings;
     for (size_t i = 0; i < candidates.size(); ++i) {
-        std::string before = exportDebugInfo(ann_network.network);
         //std::cout << exportDebugInfo(ann_network.network);
         //std::cout << toExtendedNewick(ann_network.network) << "\n";
         //std::cout << "try move " << toString(candidates[i]) << "\n";

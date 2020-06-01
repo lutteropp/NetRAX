@@ -53,6 +53,13 @@ struct RSPRMove: public GeneralMove {
     size_t x_clv_index = 0;
     size_t y_clv_index = 0;
     size_t z_clv_index = 0;
+
+    double x_z_len = 0;
+    double z_y_len = 0;
+    double x_prime_y_prime_len = 0;
+    double x_z_prob = 0.5;
+    double z_y_prob = 0.5;
+    double x_prime_y_prime_prob = 0.5;
 };
 
 struct ArcInsertionMove: public GeneralMove {

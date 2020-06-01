@@ -758,15 +758,27 @@ void possibleRSPRMovesInternal(std::vector<RSPRMove> &res, Network &network, Nod
 
         if (z->type == NodeType::RETICULATION_NODE) { // head-moving rSPR move
             if (!hasPath(network, y_prime, w)) {
-                res.emplace_back(
-                        buildRSPRMove(x_prime->clv_index, y_prime->clv_index, x->clv_index, y->clv_index, z->clv_index,
-                                moveType));
+                RSPRMove move = buildRSPRMove(x_prime->clv_index, y_prime->clv_index, x->clv_index, y->clv_index,
+                        z->clv_index, moveType);
+                move.x_z_len = getEdgeTo(network, x, z)->length;
+                move.z_y_len = getEdgeTo(network, z, y)->length;
+                move.x_prime_y_prime_len = getEdgeTo(network, x_prime, y_prime)->length;
+                move.x_z_prob = getEdgeTo(network, x, z)->prob;
+                move.z_y_prob = getEdgeTo(network, z, y)->prob;
+                move.x_prime_y_prime_prob = getEdgeTo(network, x_prime, y_prime)->prob;
+                res.emplace_back(move);
             }
         } else { // tail-moving rSPR move
             if (!hasPath(network, w, x_prime)) {
-                res.emplace_back(
-                        buildRSPRMove(x_prime->clv_index, y_prime->clv_index, x->clv_index, y->clv_index, z->clv_index,
-                                moveType));
+                RSPRMove move = buildRSPRMove(x_prime->clv_index, y_prime->clv_index, x->clv_index, y->clv_index,
+                        z->clv_index, moveType);
+                move.x_z_len = getEdgeTo(network, x, z)->length;
+                move.z_y_len = getEdgeTo(network, z, y)->length;
+                move.x_prime_y_prime_len = getEdgeTo(network, x_prime, y_prime)->length;
+                move.x_z_prob = getEdgeTo(network, x, z)->prob;
+                move.z_y_prob = getEdgeTo(network, z, y)->prob;
+                move.x_prime_y_prime_prob = getEdgeTo(network, x_prime, y_prime)->prob;
+                res.emplace_back(move);
             }
         }
     }
@@ -1221,19 +1233,12 @@ void undoMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
     Edge *x_prime_z_edge = getEdgeTo(network, x_prime, z);
     Edge *z_y_prime_edge = getEdgeTo(network, z, y_prime);
 
-    double x_y_len = x_y_edge->length;
-    double x_prime_z_len = x_prime_z_edge->length;
-    double z_y_prime_len = z_y_prime_edge->length;
-    double x_y_prob = x_y_edge->prob;
-    double x_prime_z_prob = x_prime_z_edge->prob;
-    double z_y_prime_prob = z_y_prime_edge->prob;
-
-    double x_z_len = x_y_len / 2;
-    double z_y_len = x_y_len / 2;
-    double x_prime_y_prime_len = x_prime_z_len + z_y_prime_len;
-    double x_z_prob = x_prime_z_prob;
-    double z_y_prob = x_y_prob;
-    double x_prime_y_prime_prob = z_y_prime_prob;
+    double x_z_len = move.x_z_len;
+    double z_y_len = move.z_y_len;
+    double x_prime_y_prime_len = move.x_prime_y_prime_len;
+    double x_z_prob = move.x_z_prob;
+    double z_y_prob = move.z_y_prob;
+    double x_prime_y_prime_prob = move.x_prime_y_prime_prob;
 
     assert(x_out_link->edge_pmatrix_index == x_y_edge->pmatrix_index);
     assert(y_in_link->edge_pmatrix_index == x_y_edge->pmatrix_index);
