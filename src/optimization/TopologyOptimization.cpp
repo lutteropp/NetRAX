@@ -122,7 +122,6 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
             old_reticulation_count = ann_network.network.num_reticulations();
         }
         //std::cout << "undo move " << toString(candidates[i]) << "\n";
-        double beforelogl = ann_network.raxml_treeinfo->loglh(true);
         std::cout << "logl before undo move: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
 
         std::cout << toString(candidates[i]) << "\n";
@@ -131,8 +130,6 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
         assert(exportDebugInfo(ann_network.network) == before);
         //std::cout << exportDebugInfo(ann_network.network) << "\n";
         std::cout << "logl after undo move: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
-        double afterlogl = ann_network.raxml_treeinfo->loglh(true);
-        assert(candidates[i].moveType == MoveType::RNNIMove || beforelogl != afterlogl);
 
         std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
         for (size_t i = 0; i < act_brlens.size(); ++i) {
