@@ -391,7 +391,7 @@ Link* make_link(Node *node, Edge *edge, Direction dir) {
 }
 
 void invalidateHigherClvs(Network &network, pllmod_treeinfo_t *treeinfo, Node *node, bool invalidate_myself) {
-    if (treeinfo->clv_valid[0][node->clv_index] == 0) { // clv at node is already invalidated
+    if (treeinfo->clv_valid[0][node->clv_index] == 0 && invalidate_myself) { // clv at node is already invalidated
         return;
     }
     if (invalidate_myself) {
@@ -420,8 +420,8 @@ void invalidatePmatrixIndex(AnnotatedNetwork &ann_network, size_t pmatrix_index)
     for (size_t p = 0; p < treeinfo->partition_count; ++p) {
         treeinfo->pmatrix_valid[p][pmatrix_index] = 0;
     }
-    invalidateHigherCLVs(ann_network, getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]),
-            false);
+    invalidateHigherCLVs(ann_network, getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]),
+            true);
 }
 
 void assertReticulationProbs(AnnotatedNetwork &ann_network) {
