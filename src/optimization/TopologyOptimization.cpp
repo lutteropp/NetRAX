@@ -61,6 +61,7 @@ std::vector<std::vector<double> > extract_brlens(AnnotatedNetwork &ann_network) 
 }
 
 void apply_brlens(AnnotatedNetwork &ann_network, const std::vector<std::vector<double> > &old_brlens) {
+    std::vector<bool> visited(ann_network.network.nodes.size(), false);
     bool unlinkedMode = (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
     size_t n_partitions = 1;
     if (unlinkedMode) {
@@ -72,7 +73,7 @@ void apply_brlens(AnnotatedNetwork &ann_network, const std::vector<std::vector<d
             if (ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] != old_brlens[p][pmatrix_index]) {
                 ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] = old_brlens[p][pmatrix_index];
                 ann_network.fake_treeinfo->pmatrix_valid[p][pmatrix_index] = 0;
-                invalidateHigherCLVs(ann_network, getTarget(ann_network.network, &ann_network.network.edges[i]), true);
+                invalidateHigherCLVs(ann_network, getTarget(ann_network.network, &ann_network.network.edges[i]), true, visited);
             }
         }
     }

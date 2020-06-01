@@ -1069,8 +1069,9 @@ double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int 
     assertReticulationProbs(ann_network);
     if (update_reticulation_probs && reticulationProbsHaveChanged) {
         // invalidate clv entries
+        std::vector<bool> visited(network.nodes.size(), false);
         for (size_t i = 0; i < network.num_reticulations(); ++i) {
-            invalidateHigherCLVs(ann_network, network.reticulation_nodes[i]);
+            invalidateHigherCLVs(ann_network, network.reticulation_nodes[i], false, visited);
         }
         return computeLoglikelihood(ann_network, incremental, false, false);
     } else {
