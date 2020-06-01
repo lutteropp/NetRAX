@@ -1565,8 +1565,12 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     reloadBranchLengthsAndBranchProbs(ann_network, updateMe);
 
     std::vector<bool> visited(network.nodes.size(), false);
-    invalidateHigherCLVs(ann_network, network.nodes_by_index[move.d_clv_index], false, visited);
+    invalidateHigherCLVs(ann_network, network.nodes_by_index[move.a_clv_index], false, visited);
     invalidateHigherCLVs(ann_network, network.nodes_by_index[move.b_clv_index], false, visited);
+    invalidateHigherCLVs(ann_network, network.nodes_by_index[move.c_clv_index], false, visited);
+    invalidateHigherCLVs(ann_network, network.nodes_by_index[move.d_clv_index], false, visited);
+    invalidateHigherCLVs(ann_network, u, false, visited);
+    invalidateHigherCLVs(ann_network, v, false, visited);
     invalidatePmatrixIndex(ann_network, u_b_edge->pmatrix_index, visited);
     invalidatePmatrixIndex(ann_network, v_d_edge->pmatrix_index, visited);
     invalidatePmatrixIndex(ann_network, a_u_edge->pmatrix_index, visited);
@@ -1666,8 +1670,10 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     to_d_link->edge_pmatrix_index = c_d_edge->pmatrix_index;
 
     std::vector<bool> visited(network.nodes.size(), false);
-    invalidateHigherCLVs(ann_network, network.nodes_by_index[move.d_clv_index], false, visited);
+    invalidateHigherCLVs(ann_network, network.nodes_by_index[move.a_clv_index], false, visited);
     invalidateHigherCLVs(ann_network, network.nodes_by_index[move.b_clv_index], false, visited);
+    invalidateHigherCLVs(ann_network, network.nodes_by_index[move.c_clv_index], false, visited);
+    invalidateHigherCLVs(ann_network, network.nodes_by_index[move.d_clv_index], false, visited);
     invalidatePmatrixIndex(ann_network, a_b_edge->pmatrix_index, visited);
     invalidatePmatrixIndex(ann_network, c_d_edge->pmatrix_index, visited);
 
