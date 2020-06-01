@@ -138,8 +138,8 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
         std::cout << toString(candidates[i]) << "\n";
 
         undoMove(ann_network, candidates[i]);
+        std::cout << exportDebugInfo(ann_network.network) << "\n";
         assert(exportDebugInfo(ann_network.network) == before);
-        //std::cout << exportDebugInfo(ann_network.network) << "\n";
         if (wantedMove(&candidates[i])) {
             std::cout << "reached wanted move\n";
         }
