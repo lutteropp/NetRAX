@@ -102,12 +102,12 @@ void apply_brlens(AnnotatedNetwork &ann_network, const std::vector<std::vector<d
 template<typename T>
 bool wantedMove(T *move) {
     /*if (move->moveType == MoveType::ArcRemovalMove) {
-        ArcRemovalMove *m = (ArcRemovalMove*) move;
-        if (m->a_clv_index == 9 && m->b_clv_index == 1 && m->c_clv_index == 9 && m->d_clv_index == 2
-                && m->u_clv_index == 8 && m->v_clv_index == 10) {
-            return true;
-        }
-    }*/
+     ArcRemovalMove *m = (ArcRemovalMove*) move;
+     if (m->a_clv_index == 9 && m->b_clv_index == 1 && m->c_clv_index == 9 && m->d_clv_index == 2
+     && m->u_clv_index == 8 && m->v_clv_index == 10) {
+     return true;
+     }
+     }*/
     return false;
 }
 
@@ -138,8 +138,8 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
     //int max_iters = ann_network.options.brlen_smoothings;
     for (size_t i = 0; i < candidates.size(); ++i) {
         /*if (wantedMove(&candidates[i])) {
-            std::cout << "reached wanted move\n";
-        }*/
+         std::cout << "reached wanted move\n";
+         }*/
 
         //std::cout << exportDebugInfo(ann_network.network);
         //std::cout << toExtendedNewick(ann_network.network) << "\n";
@@ -183,7 +183,7 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
         std::vector<std::vector<double> > act_brprobs = extract_brprobs(ann_network);
         for (size_t i = 0; i < act_brlens.size(); ++i) {
             for (size_t j = 0; j < act_brlens[i].size(); ++j) {
-                if (fabs(act_brlens[i][j] - old_brlens[i][j]) >= 1E-13) {
+                if (fabs(act_brlens[i][j] - old_brlens[i][j]) >= 1E-7) {
                     std::cout << "wanted brlens:\n";
                     for (size_t k = 0; k < ann_network.network.num_branches(); ++k) {
                         std::cout << "idx " << ann_network.network.edges[k].pmatrix_index << ": " << old_brlens[i][k]
@@ -197,12 +197,12 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
                     }
                     std::cout << "\n";
                 }
-                assert(fabs(act_brlens[i][j] - old_brlens[i][j]) < 1E-13);
+                assert(fabs(act_brlens[i][j] - old_brlens[i][j]) < 1E-5);
             }
         }
         for (size_t i = 0; i < act_brprobs.size(); ++i) {
             for (size_t j = 0; j < act_brprobs[i].size(); ++j) {
-                if (fabs(act_brprobs[i][j] - old_brprobs[i][j]) >= 1E-13) {
+                if (fabs(act_brprobs[i][j] - old_brprobs[i][j]) >= 1E-5) {
                     std::cout << "wanted brprobs:\n";
                     for (size_t k = 0; k < ann_network.network.num_branches(); ++k) {
                         std::cout << "idx " << ann_network.network.edges[k].pmatrix_index << ": " << old_brprobs[i][k]
@@ -216,11 +216,15 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
                     }
                     std::cout << "\n";
                 }
-                assert(fabs(act_brprobs[i][j] - old_brprobs[i][j]) < 1E-13);
+                assert(fabs(act_brprobs[i][j] - old_brprobs[i][j]) < 1E-5);
             }
         }
 
-        assert(fabs(ann_network.raxml_treeinfo->loglh(true) - start_logl) < 1E-13);
+        if (fabs(ann_network.raxml_treeinfo->loglh(true) - start_logl) >= 1E-5) {
+            std::cout << "wanted: " << start_logl << "\n";
+            std::cout << "observed: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
+        }
+        assert(fabs(ann_network.raxml_treeinfo->loglh(true) - start_logl) < 1E-5);
         //apply_brlens(ann_network, old_brlens);
     }
     if (best_idx < candidates.size()) {
@@ -231,7 +235,7 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
         //std::cout << "Accepting move " << toString(candidates[best_idx]) << " with old_score= " << old_score
         //        << ", best_score= " << best_score << ", best_logl= " << best_logl << "\n";
 
-        assert(fabs(best_logl - ann_network.raxml_treeinfo->loglh(true)) < 1E-13);
+        assert(fabs(best_logl - ann_network.raxml_treeinfo->loglh(true)) < 1E-5);
 
         //best_logl = ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
         //best_logl = optimize_branches(ann_network, max_iters, radius);
