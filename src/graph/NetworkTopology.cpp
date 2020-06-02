@@ -392,6 +392,9 @@ Link* make_link(Node *node, Edge *edge, Direction dir) {
 
 void invalidateHigherClvs(Network &network, pllmod_treeinfo_t *treeinfo, Node *node, bool invalidate_myself,
         std::vector<bool> &visited) {
+    if (!node) {
+        return;
+    }
     if (!visited.empty() && visited[node->clv_index]) { // clv at node is already invalidated
         return;
     }
