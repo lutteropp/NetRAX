@@ -152,6 +152,8 @@ BlobInformation partitionNetworkIntoBlobs(Network &network, const std::vector<No
         node_blob_id[travbuffer[i]->clv_index] = get_node_blob_id(network, travbuffer[i], blob_info, parent);
     }
 
+    blob_info.node_blob_id = node_blob_id;
+
     for (size_t i = 0; i < travbuffer.size() - 1; ++i) {
         Node *node = travbuffer[i];
         if (node->isTip())
@@ -171,8 +173,8 @@ BlobInformation partitionNetworkIntoBlobs(Network &network, const std::vector<No
 
     gather_reticulations_per_megablob(network, blob_info);
 
-    //std::cout << "Network for debug:\n";
-    //std::cout << exportDebugInfo(network, blob_info) << "\n";
+    std::cout << "Network for debug:\n";
+    std::cout << exportDebugInfoBlobs(network, blob_info) << "\n";
 
     return blob_info;
 }

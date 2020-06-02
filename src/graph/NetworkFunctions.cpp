@@ -233,7 +233,7 @@ std::vector<bool> collect_dead_nodes(Network &network, size_t megablobRootClvInd
         }
     }
 
-    Node* dtroot = network.root;
+    Node *dtroot = network.root;
     std::vector<Node*> children = getActiveAliveChildren(network, dead_nodes, dtroot);
     assert(!children.empty());
     bool seenMegablobRoot = false;
@@ -569,6 +569,7 @@ std::string exportDebugInfoBlobs(Network &network, const BlobInformation &blobIn
         if (!network.nodes_by_index[i]->label.empty()) {
             nodeLabel += ": " + network.nodes_by_index[i]->label;
         }
+        nodeLabel += "|" + std::to_string(blobInfo.node_blob_id[i]);
 
         /*if (std::find(blobInfo.megablob_roots.begin(), blobInfo.megablob_roots.end(), &network.nodes[i]) != blobInfo.megablob_roots.end()) {
          nodeLabel = "*" + nodeLabel + "*";
@@ -594,8 +595,7 @@ std::string exportDebugInfoBlobs(Network &network, const BlobInformation &blobIn
         ss << parentId << "\n";
         ss << "\t\ttarget\t" << childId << "\n";
         ss << "\t\tlabel\t";
-        std::string edgeLabel = std::to_string(i) + "|"
-                + std::to_string(blobInfo.edge_blob_id[i]);
+        std::string edgeLabel = std::to_string(i) + "|" + std::to_string(blobInfo.edge_blob_id[i]);
         ss << "\"" << edgeLabel << "\"\n";
         ss << "\t]\n";
     }
