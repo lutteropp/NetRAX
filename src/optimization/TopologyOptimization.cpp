@@ -126,7 +126,7 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
     double best_score = old_score;
     double start_logl = ann_network.raxml_treeinfo->loglh(true);
     //std::cout << exportDebugInfo(ann_network.network) << "\n";
-    std::cout << "start logl: " << start_logl << "\n";
+    //std::cout << "start logl: " << start_logl << "\n";
     double old_logl = ann_network.raxml_treeinfo->loglh(true);
     size_t old_reticulation_count = ann_network.network.num_reticulations();
     double best_logl = old_logl;
@@ -143,13 +143,13 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
 
         //std::cout << exportDebugInfo(ann_network.network);
         //std::cout << toExtendedNewick(ann_network.network) << "\n";
-        std::cout << "try move " << toString(candidates[i]) << "\n";
+        //std::cout << "try move " << toString(candidates[i]) << "\n";
         performMove(ann_network, candidates[i]);
-        std::cout << exportDebugInfo(ann_network.network) << "\n";
+        //std::cout << exportDebugInfo(ann_network.network) << "\n";
         //std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, candidates[i]);
         //optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
         double new_logl = ann_network.raxml_treeinfo->loglh(true);
-        std::cout << "logl after perform move: " << new_logl << "\n";
+        //std::cout << "logl after perform move: " << new_logl << "\n";
         double new_bic = bic(ann_network, new_logl);
         //std::cout << "bic after perform move: " << new_bic <<"\n";
         if (new_bic < best_score) {
@@ -166,24 +166,24 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
             old_logl = best_logl;
             old_reticulation_count = ann_network.network.num_reticulations();
         }
-        std::cout << "undo move " << toString(candidates[i]) << "\n";
-        std::cout << "logl before undo move: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
+        //std::cout << "undo move " << toString(candidates[i]) << "\n";
+        //std::cout << "logl before undo move: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
 
-        std::cout << toString(candidates[i]) << "\n";
+        //std::cout << toString(candidates[i]) << "\n";
 
         undoMove(ann_network, candidates[i]);
-        std::cout << "clv_valid after undo move: \n";
-        printClvValid(ann_network);
-        std::cout << exportDebugInfo(ann_network.network) << "\n";
+        //std::cout << "clv_valid after undo move: \n";
+        //printClvValid(ann_network);
+        //std::cout << exportDebugInfo(ann_network.network) << "\n";
         assert(exportDebugInfo(ann_network.network) == before);
-        std::cout << "logl after undo move: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
+        //std::cout << "logl after undo move: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
 
         ann_network.raxml_treeinfo->loglh(true);
         std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
         std::vector<std::vector<double> > act_brprobs = extract_brprobs(ann_network);
         for (size_t i = 0; i < act_brlens.size(); ++i) {
             for (size_t j = 0; j < act_brlens[i].size(); ++j) {
-                if (fabs(act_brlens[i][j] - old_brlens[i][j]) >= 1E-7) {
+                if (fabs(act_brlens[i][j] - old_brlens[i][j]) >= 1E-5) {
                     std::cout << "wanted brlens:\n";
                     for (size_t k = 0; k < ann_network.network.num_branches(); ++k) {
                         std::cout << "idx " << ann_network.network.edges[k].pmatrix_index << ": " << old_brlens[i][k]
@@ -308,7 +308,7 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network) {
             moves_cnt = 0;
         }
 
-        std::cout << "Using move type: " << toString(types[type_idx]) << "\n";
+        //std::cout << "Using move type: " << toString(types[type_idx]) << "\n";
         //std::cout << toExtendedNewick(ann_network.network) << "\n";
         //std::cout << exportDebugInfo(ann_network.network) << "\n";
         new_logl = greedyHillClimbingTopology(ann_network, types[type_idx]);

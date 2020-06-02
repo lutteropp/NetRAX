@@ -478,8 +478,8 @@ void compute_tree_logl_blobs(AnnotatedNetwork &ann_network, std::vector<bool> &c
     if (ops_count == 0) {
         return;
     }
-    printOperationArray(ops);
-    std::cout << "\n";
+    //printOperationArray(ops);
+    //std::cout << "\n";
     std::vector<bool> will_be_touched = clv_touched;
     for (size_t i = 0; i < ops_count; ++i) {
         will_be_touched[ops[i].parent_clv_index] = true;
@@ -703,7 +703,7 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
             continue;
         }
 
-        std::cout << "megablobRootClvIdx: " << megablobRootClvIdx << "\n";
+        //std::cout << "megablobRootClvIdx: " << megablobRootClvIdx << "\n";
 
         size_t n_trees = 1 << blobInfo.reticulation_nodes_per_megablob[megablob_idx].size();
         // iterate over all displayed trees within the megablob, storing their tree clvs and tree probs
@@ -729,7 +729,7 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
                 } else {
                     //std::cout << "startNode: nullptr, tree_idx: " << treeIdx << "\n";
                 }
-                printReticulationParents(network);
+                //printReticulationParents(network);
                 //printClvTouched(network, clv_touched);
             } else {
                 setReticulationParents(blobInfo, megablob_idx, treeIdx);
@@ -816,47 +816,18 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
         }
     }
 
-    for (size_t megablob_idx = 0; megablob_idx < blobInfo.megablob_roots.size(); ++megablob_idx) {
-        unsigned int megablobRootClvIdx = blobInfo.megablob_roots[megablob_idx]->clv_index;
-        if (megablobRootClvIdx == network.root->clv_index) {
-            continue;
-        }
-        std::cout << "loglikelihood computed at merged clv index " << megablobRootClvIdx << ":\n";
-        double megablob_logl = pll_compute_edge_loglikelihood(fake_treeinfo.partitions[partitionIdx],
-                network.nodes.size(), -1, megablobRootClvIdx, network.nodes_by_index[megablobRootClvIdx]->scaler_index,
-                network.edges.size(), fake_treeinfo.param_indices[partitionIdx], nullptr);
-        std::cout << megablob_logl << "\n";
-    }
-
-    /*if (!clv_touched[network.root->clv_index]) {
-     // TODO: Is what we do here correct? Since we merged clvs at this megablob...
-
-
-     // we need to find the rightmost touched megablob root
-     Node *newRoot = nullptr;
-     assert(ann_network.blobInfo.megablob_roots[ann_network.blobInfo.megablob_roots.size() - 1] == network.root);
-     for (int i = ann_network.blobInfo.megablob_roots.size() - 2; i >= 0; --i) {
-     if (clv_touched[ann_network.blobInfo.megablob_roots[i]->clv_index]) {
-     newRoot = ann_network.blobInfo.megablob_roots[i];
-     break;
+    /*for (size_t megablob_idx = 0; megablob_idx < blobInfo.megablob_roots.size(); ++megablob_idx) {
+     unsigned int megablobRootClvIdx = blobInfo.megablob_roots[megablob_idx]->clv_index;
+     if (megablobRootClvIdx == network.root->clv_index) {
+     continue;
      }
-     }
-     assert(newRoot);
-     std::vector<pll_operation_t> ops;
-     Node *ops_root = newRoot;
-     ops.emplace_back(
-     buildOperation(network, newRoot, getActiveParent(network, newRoot),
-     std::vector<bool>(network.nodes.size(), false), network.nodes.size(), network.edges.size()));
-
-     // TODO: The following can be optimized a lot
-     std::vector<double> persite_logl(fake_treeinfo.partitions[partitionIdx]->sites, 0.0);
-     pll_compute_root_loglikelihood(fake_treeinfo.partitions[partitionIdx], ops_root->clv_index,
-     ops_root->scaler_index, fake_treeinfo.param_indices[partitionIdx],
-     persite_logl.empty() ? nullptr : persite_logl.data());
-     for (size_t s = 0; s < numSites; ++s) {
-     persite_lh_network[s] = exp(persite_logl[s]);
-     }
+     std::cout << "loglikelihood computed at merged clv index " << megablobRootClvIdx << ":\n";
+     double megablob_logl = pll_compute_edge_loglikelihood(fake_treeinfo.partitions[partitionIdx],
+     network.nodes.size(), -1, megablobRootClvIdx, network.nodes_by_index[megablobRootClvIdx]->scaler_index,
+     network.edges.size(), fake_treeinfo.param_indices[partitionIdx], nullptr);
+     std::cout << megablob_logl << "\n";
      }*/
+
     if (touched) {
         *touched = clv_touched;
     }
