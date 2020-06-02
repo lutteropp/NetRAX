@@ -144,7 +144,7 @@ BlobInformation partitionNetworkIntoBlobs(Network &network, const std::vector<No
 
     // A node is a megablob root, if and only if:
     // 1.) It is the root node, or
-    // 2.) The parent has another blob id with blob size > 1
+    // 2.) The parent has another blob id
 
     blob_info.reticulation_nodes_per_megablob.emplace_back(std::vector<Node*>());
     std::vector<unsigned int> node_blob_id(network.nodes.size());
@@ -161,9 +161,8 @@ BlobInformation partitionNetworkIntoBlobs(Network &network, const std::vector<No
 
         unsigned int blobId = node_blob_id[travbuffer[i]->clv_index];
         unsigned int parentBlobId = node_blob_id[parent[travbuffer[i]->clv_index]->clv_index];
-        unsigned int parentBlobSize = blob_size[parentBlobId];
 
-        if (blobId != parentBlobId && parentBlobSize > 1) {
+        if (blobId != parentBlobId) {
             blob_info.megablob_roots.emplace_back(travbuffer[i]);
             blob_info.reticulation_nodes_per_megablob.emplace_back(std::vector<Node*>());
         }

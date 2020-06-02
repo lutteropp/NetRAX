@@ -129,7 +129,7 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
     std::cout << "start logl: " << start_logl << "\n";
     double old_logl = ann_network.raxml_treeinfo->loglh(true);
     size_t old_reticulation_count = ann_network.network.num_reticulations();
-    double best_logl;
+    double best_logl = old_logl;
     std::vector<std::vector<double> > old_brlens = extract_brlens(ann_network);
     std::vector<std::vector<double> > old_brprobs = extract_brprobs(ann_network);
     std::string before = exportDebugInfo(ann_network.network);
