@@ -645,11 +645,13 @@ void invalidateLostMegablobRoots(AnnotatedNetwork &ann_network, const std::vecto
     for (Node *node : ann_network.blobInfo.megablob_roots) {
         act_megablob_roots.emplace(node);
     }
-    std::vector<bool> visited(ann_network.network.nodes.size(), false);
-    for (Node* prevMegablobRoot : previous_megablob_roots) {
+    pllmod_treeinfo_t *treeinfo = ann_network.fake_treeinfo;
+    for (Node *prevMegablobRoot : previous_megablob_roots) {
         if (act_megablob_roots.find(prevMegablobRoot) == act_megablob_roots.end()) {
-            // we need to invalidate that clv, and probably also all above
-            invalidateHigherCLVs(ann_network, prevMegablobRoot, true, visited);
+            // we need to invalidate that clv
+            for (size_t p = 0; p < treeinfo->partition_count; ++p) {
+                treeinfo->clv_valid[p][prevMegablobRoot->clv_index] = 0;
+            }
         }
     }
 }

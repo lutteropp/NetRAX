@@ -101,13 +101,13 @@ void apply_brlens(AnnotatedNetwork &ann_network, const std::vector<std::vector<d
 
 template<typename T>
 bool wantedMove(T *move) {
-    if (move->moveType == MoveType::ArcRemovalMove) {
+    /*if (move->moveType == MoveType::ArcRemovalMove) {
         ArcRemovalMove *m = (ArcRemovalMove*) move;
         if (m->a_clv_index == 7 && m->b_clv_index == 1 && m->c_clv_index == 7 && m->d_clv_index == 2
                 && m->u_clv_index == 4 && m->v_clv_index == 8) {
             return true;
         }
-    }
+    }*/
     return false;
 }
 
@@ -137,9 +137,9 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
     //int radius = 1;
     //int max_iters = ann_network.options.brlen_smoothings;
     for (size_t i = 0; i < candidates.size(); ++i) {
-        if (wantedMove(&candidates[i])) {
+        /*if (wantedMove(&candidates[i])) {
             std::cout << "reached wanted move\n";
-        }
+        }*/
 
         //std::cout << exportDebugInfo(ann_network.network);
         //std::cout << toExtendedNewick(ann_network.network) << "\n";
