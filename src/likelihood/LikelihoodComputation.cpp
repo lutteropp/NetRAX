@@ -231,8 +231,8 @@ std::vector<pll_operation_t> createOperationsTowardsRoot(AnnotatedNetwork &ann_n
             return ops;
         } else if (actParent->type == NodeType::RETICULATION_NODE) {
             // when our current node is a dead reticulation node, we need to again go up from both its parents, not just from the active parent...
-            return createOperationsUpdatedReticulation(ann_network, partition_idx, parent, actParent,
-                    dead_nodes, incremental, useBlobs, displayed_tree_root);
+            return createOperationsUpdatedReticulation(ann_network, partition_idx, parent, actParent, dead_nodes,
+                    incremental, useBlobs, displayed_tree_root);
         } else {
             return createOperationsTowardsRoot(ann_network, partition_idx, parent, parent[actParent->clv_index],
                     dead_nodes, incremental, useBlobs, displayed_tree_root);
@@ -702,7 +702,7 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
             continue;
         }
 
-        //std::cout << "megablobRootClvIdx: " << megablobRootClvIdx << "\n";
+        std::cout << "megablobRootClvIdx: " << megablobRootClvIdx << "\n";
 
         size_t n_trees = 1 << blobInfo.reticulation_nodes_per_megablob[megablob_idx].size();
         // iterate over all displayed trees within the megablob, storing their tree clvs and tree probs
@@ -728,7 +728,7 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
                 } else {
                     //std::cout << "startNode: nullptr, tree_idx: " << treeIdx << "\n";
                 }
-                //printReticulationParents(network);
+                printReticulationParents(network);
                 //printClvTouched(network, clv_touched);
             } else {
                 setReticulationParents(blobInfo, megablob_idx, treeIdx);
@@ -740,7 +740,7 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
             }
             Node *displayed_tree_root = nullptr;
             std::vector<bool> dead_nodes = collect_dead_nodes(network, megablobRootClvIdx, &displayed_tree_root);
-            // print_dead_nodes(network, dead_nodes);
+            //print_dead_nodes(network, dead_nodes);
             std::vector<double> persite_logl(fake_treeinfo.partitions[partitionIdx]->sites, 0.0);
 
             if (startNode && dead_nodes[startNode->clv_index]) {
@@ -782,6 +782,22 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
             // merge the tree clvs into the megablob root clv
             merge_tree_clvs(tree_clvs, fake_treeinfo.partitions[partitionIdx], megablobRootClvIdx);
         }
+    }
+
+    for (size_t megablob_idx = 0; megablob_idx < blobInfo.megablob_roots.size(); ++megablob_idx) {
+        unsigned int megablobRootClvIdx = blobInfo.megablob_roots[megablob_idx]->clv_index;
+        if (megablobRootClvIdx == network.root->clv_index) {
+            continue;
+        }
+        std::cout << "loglikelihood computed at merged clv index " << megablobRootClvIdx << ":\n";
+        double megablob_logl = pll_compute_edge_loglikelihood(fake_treeinfo.partitions[partitionIdx],
+                getActiveParent(network, network.nodes_by_index[megablobRootClvIdx])->clv_index,
+                getActiveParent(network, network.nodes_by_index[megablobRootClvIdx])->scaler_index, megablobRootClvIdx,
+                network.nodes_by_index[megablobRootClvIdx]->scaler_index,
+                getEdgeTo(network, network.nodes_by_index[megablobRootClvIdx],
+                        getActiveParent(network, network.nodes_by_index[megablobRootClvIdx]))->pmatrix_index,
+                fake_treeinfo.param_indices[partitionIdx], nullptr);
+        std::cout << megablob_logl << "\n";
     }
 
     if (!clv_touched[network.root->clv_index]) {
