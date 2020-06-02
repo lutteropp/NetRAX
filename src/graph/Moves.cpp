@@ -640,7 +640,7 @@ void fixReticulationProbsBackward(Network &network, Node *u, Node *v, Node *s, N
 }
 
 void invalidateLostMegablobRoots(AnnotatedNetwork &ann_network, const std::vector<Node*> &previous_megablob_roots) {
-    std::cout << exportDebugInfoBlobs(ann_network.network, ann_network.blobInfo) << "\n";
+    //std::cout << exportDebugInfoBlobs(ann_network.network, ann_network.blobInfo) << "\n";
     std::unordered_set<Node*> act_megablob_roots;
     for (Node *node : ann_network.blobInfo.megablob_roots) {
         act_megablob_roots.emplace(node);
