@@ -143,7 +143,7 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
 
         //std::cout << exportDebugInfo(ann_network.network);
         //std::cout << toExtendedNewick(ann_network.network) << "\n";
-        //std::cout << "try move " << toString(candidates[i]) << "\n";
+        std::cout << "try move " << toString(candidates[i]) << "\n";
         performMove(ann_network, candidates[i]);
         std::cout << exportDebugInfo(ann_network.network) << "\n";
         //std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, candidates[i]);
@@ -166,7 +166,7 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
             old_logl = best_logl;
             old_reticulation_count = ann_network.network.num_reticulations();
         }
-        //std::cout << "undo move " << toString(candidates[i]) << "\n";
+        std::cout << "undo move " << toString(candidates[i]) << "\n";
         std::cout << "logl before undo move: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
 
         std::cout << toString(candidates[i]) << "\n";
