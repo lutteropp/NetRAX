@@ -784,7 +784,7 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
         }
     }
 
-    for (size_t megablob_idx = 0; megablob_idx < blobInfo.megablob_roots.size(); ++megablob_idx) {
+    /*for (size_t megablob_idx = 0; megablob_idx < blobInfo.megablob_roots.size(); ++megablob_idx) {
         unsigned int megablobRootClvIdx = blobInfo.megablob_roots[megablob_idx]->clv_index;
         if (megablobRootClvIdx == network.root->clv_index) {
             continue;
@@ -798,34 +798,8 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
                         getActiveParent(network, network.nodes_by_index[megablobRootClvIdx]))->pmatrix_index,
                 fake_treeinfo.param_indices[partitionIdx], nullptr);
         std::cout << megablob_logl << "\n";
-    }
+    }*/
 
-    if (!clv_touched[network.root->clv_index]) {
-        // we need to find the rightmost touched megablob root
-        Node *newRoot = nullptr;
-        assert(ann_network.blobInfo.megablob_roots[ann_network.blobInfo.megablob_roots.size() - 1] == network.root);
-        for (int i = ann_network.blobInfo.megablob_roots.size() - 2; i >= 0; --i) {
-            if (clv_touched[ann_network.blobInfo.megablob_roots[i]->clv_index]) {
-                newRoot = ann_network.blobInfo.megablob_roots[i];
-                break;
-            }
-        }
-        assert(newRoot);
-        std::vector<pll_operation_t> ops;
-        Node *ops_root = newRoot;
-        ops.emplace_back(
-                buildOperation(network, newRoot, getActiveParent(network, newRoot),
-                        std::vector<bool>(network.nodes.size(), false), network.nodes.size(), network.edges.size()));
-
-        // TODO: The following can be optimized a lot
-        std::vector<double> persite_logl(fake_treeinfo.partitions[partitionIdx]->sites, 0.0);
-        pll_compute_root_loglikelihood(fake_treeinfo.partitions[partitionIdx], ops_root->clv_index,
-                ops_root->scaler_index, fake_treeinfo.param_indices[partitionIdx],
-                persite_logl.empty() ? nullptr : persite_logl.data());
-        for (size_t s = 0; s < numSites; ++s) {
-            persite_lh_network[s] = exp(persite_logl[s]);
-        }
-    }
     if (touched) {
         *touched = clv_touched;
     }

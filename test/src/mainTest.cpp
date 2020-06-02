@@ -31,7 +31,8 @@ int main(int argc, char **argv) {
     //::testing::GTEST_FLAG(filter) = "*MovesTest.incrementalLoglikelihoodProblem*";
     //::testing::GTEST_FLAG(filter) = "*SystemTest.allNetwork*";
     //::testing::GTEST_FLAG(filter) = "*SystemTest.random*";
-    ::testing::GTEST_FLAG(filter) = "*SystemTest.problem15";
+    ::testing::GTEST_FLAG(filter) = "*SystemTest.problem17";
+    //::testing::GTEST_FLAG(filter) = "*SystemTest.problem15";
     //::testing::GTEST_FLAG(filter) = "*SystemTest.problem15:*SystemTest.problem16";
 
     auto result = RUN_ALL_TESTS();
