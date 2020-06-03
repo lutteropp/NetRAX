@@ -323,7 +323,6 @@ void fixReticulations(Network &network, ArcInsertionMove &move) {
     }
 }
 
-
 void changeEdgeDirection(Network &network, Node *u, Node *v) {
     Link *from_u_link = getLinkToNode(network, u, v);
     Link *from_v_link = getLinkToNode(network, v, u);
@@ -1569,7 +1568,9 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     double u_b_edge_prob = a_b_edge->prob;
 
     removeEdge(network, network.edges_by_index[a_b_edge_index]);
-    removeEdge(network, network.edges_by_index[c_d_edge_index]);
+    if (c_d_edge_index != a_b_edge_index) {
+        removeEdge(network, network.edges_by_index[c_d_edge_index]);
+    }
 
     Edge *u_b_edge = addEdge(network, u_b_link, to_b_link, u_b_edge_length, u_b_edge_prob,
             move.wanted_ub_pmatrix_index);
