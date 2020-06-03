@@ -1120,6 +1120,10 @@ std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_networ
             continue;
         }
 
+        if (a->clv_index == c->clv_index && b->clv_index == d->clv_index) {
+            continue;
+        }
+
         ArcRemovalMove move = buildArcRemovalMove(a->clv_index, b->clv_index, c->clv_index, d->clv_index, u->clv_index,
                 v->clv_index, getEdgeTo(network, u, v)->length, getEdgeTo(network, c, v)->length,
                 getEdgeTo(network, u, v)->prob, getEdgeTo(network, c, v)->prob, getEdgeTo(network, a, u)->length,
@@ -1692,14 +1696,8 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
 
     Edge *a_b_edge = addEdge(network, from_a_link, to_b_link, a_b_edge_length, a_b_edge_prob,
             move.wanted_ab_pmatrix_index); // was ub before
-    Edge *c_d_edge; // was vd before
-    if (move.a_clv_index == move.c_clv_index && move.b_clv_index == move.d_clv_index) {
-        assert(move.wanted_ab_pmatrix_index == move.wanted_cd_pmatrix_index);
-        c_d_edge = a_b_edge;
-    } else {
-        c_d_edge = addEdge(network, from_c_link, to_d_link, c_d_edge_length, c_d_edge_prob,
-                    move.wanted_cd_pmatrix_index); // was vd before
-    }
+    Edge *c_d_edge = addEdge(network, from_c_link, to_d_link, c_d_edge_length, c_d_edge_prob,
+            move.wanted_cd_pmatrix_index); // was vd before
 
     Node *b = network.nodes_by_index[move.b_clv_index];
     if (b->type == NodeType::RETICULATION_NODE) {
@@ -1728,8 +1726,12 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
         badToParentLink->outer = from_c_link;
         badToParentLink->outer->outer = badToParentLink;
     }
-
-    std::vector<size_t> updateMe = { a_b_edge->pmatrix_index, c_d_edge->pmatrix_index };
+    std::vector<size_t> updateMe;
+    if (c_d_edge) {
+        updateMe = { a_b_edge->pmatrix_index, c_d_edge->pmatrix_index };
+    } else {
+        updateMe = { a_b_edge->pmatrix_index };
+    }
     reloadBranchLengthsAndBranchProbs(ann_network, updateMe);
 
     from_a_link->outer = to_b_link;
@@ -1746,9 +1748,9 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     std::vector<bool> visited(network.nodes.size(), false);
     invalidateHigherCLVs(ann_network, network.nodes_by_index[move.a_clv_index], false, visited);
     invalidateHigherCLVs(ann_network, network.nodes_by_index[move.b_clv_index], false, visited);
+    invalidatePmatrixIndex(ann_network, a_b_edge->pmatrix_index, visited);
     invalidateHigherCLVs(ann_network, network.nodes_by_index[move.c_clv_index], false, visited);
     invalidateHigherCLVs(ann_network, network.nodes_by_index[move.d_clv_index], false, visited);
-    invalidatePmatrixIndex(ann_network, a_b_edge->pmatrix_index, visited);
     invalidatePmatrixIndex(ann_network, c_d_edge->pmatrix_index, visited);
 
     ann_network.travbuffer = reversed_topological_sort(ann_network.network);
