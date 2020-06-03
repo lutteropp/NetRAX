@@ -141,7 +141,8 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
 
         //std::cout << "old logl: " << old_logl << ", new_logl: " << new_logl << "\n";
 
-        assert(new_logl >= old_logl);
+        // check whether new_logl >= old_logl
+        assert(new_logl >= old_logl || fabs(new_logl - old_logl) < 1E-5);
         if (new_logl - old_logl > lh_epsilon) { // add all neighbors of the branch to the candidates
             std::unordered_set<size_t> neighbor_indices = getNeighborPmatrixIndices(ann_network.network,
                     ann_network.network.edges_by_index[pmatrix_index]);
