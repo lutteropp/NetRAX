@@ -125,8 +125,8 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
     size_t best_idx = candidates.size();
     double best_score = old_score;
     double start_logl = ann_network.raxml_treeinfo->loglh(true);
-    //std::cout << exportDebugInfo(ann_network.network) << "\n";
-    //std::cout << "start logl: " << start_logl << "\n";
+    std::cout << exportDebugInfoBlobs(ann_network.network, ann_network.blobInfo) << "\n";
+    std::cout << "start logl: " << start_logl << "\n";
     double old_logl = ann_network.raxml_treeinfo->loglh(true);
     size_t old_reticulation_count = ann_network.network.num_reticulations();
     double best_logl = old_logl;
@@ -143,13 +143,13 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
 
         //std::cout << exportDebugInfo(ann_network.network);
         //std::cout << toExtendedNewick(ann_network.network) << "\n";
-        //std::cout << "try move " << toString(candidates[i]) << "\n";
+        std::cout << "try move " << toString(candidates[i]) << "\n";
         performMove(ann_network, candidates[i]);
-        //std::cout << exportDebugInfo(ann_network.network) << "\n";
+        std::cout << exportDebugInfoBlobs(ann_network.network, ann_network.blobInfo) << "\n";
         //std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, candidates[i]);
         //optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
         double new_logl = ann_network.raxml_treeinfo->loglh(true);
-        //std::cout << "logl after perform move: " << new_logl << "\n";
+        std::cout << "logl after perform move: " << new_logl << "\n";
         double new_bic = bic(ann_network, new_logl);
         //std::cout << "bic after perform move: " << new_bic <<"\n";
         if (new_bic < best_score) {
@@ -166,8 +166,8 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
             old_logl = best_logl;
             old_reticulation_count = ann_network.network.num_reticulations();
         }
-        //std::cout << "undo move " << toString(candidates[i]) << "\n";
-        //std::cout << "logl before undo move: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
+        std::cout << "undo move " << toString(candidates[i]) << "\n";
+        std::cout << "logl before undo move: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
 
         //std::cout << toString(candidates[i]) << "\n";
 
