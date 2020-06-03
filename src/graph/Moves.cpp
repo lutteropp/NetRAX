@@ -1555,6 +1555,9 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     Node *u = addInnerNode(network, nullptr, move.wanted_u_clv_index);
     Node *v = addInnerNode(network, &retData, move.wanted_v_clv_index);
 
+    move.wanted_u_clv_index = u->clv_index;
+    move.wanted_v_clv_index = v->clv_index;
+
     Link *to_u_link = make_link(u, nullptr, Direction::INCOMING);
     Link *u_b_link = make_link(u, nullptr, Direction::OUTGOING);
     Link *u_v_link = make_link(u, nullptr, Direction::OUTGOING);
