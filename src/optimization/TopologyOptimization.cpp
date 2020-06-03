@@ -101,13 +101,13 @@ void apply_brlens(AnnotatedNetwork &ann_network, const std::vector<std::vector<d
 
 template<typename T>
 bool wantedMove(T *move) {
-    /*if (move->moveType == MoveType::ArcRemovalMove) {
-     ArcRemovalMove *m = (ArcRemovalMove*) move;
-     if (m->a_clv_index == 7 && m->b_clv_index == 14 && m->c_clv_index == 7 && m->d_clv_index == 14
-     && m->u_clv_index == 8 && m->v_clv_index == 13) {
-     return true;
-     }
-     }*/
+    if (move->moveType == MoveType::ArcRemovalMove) {
+        ArcRemovalMove *m = (ArcRemovalMove*) move;
+        if (m->a_clv_index == 11 && m->b_clv_index == 21 && m->c_clv_index == 18 && m->d_clv_index == 6
+                && m->u_clv_index == 12 && m->v_clv_index == 19) {
+            return true;
+        }
+    }
     return false;
 }
 
@@ -125,8 +125,8 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
     size_t best_idx = candidates.size();
     double best_score = old_score;
     double start_logl = ann_network.raxml_treeinfo->loglh(true);
-    //std::cout << exportDebugInfoBlobs(ann_network.network, ann_network.blobInfo) << "\n";
-    //std::cout << "start logl: " << start_logl << "\n";
+    std::cout << exportDebugInfoBlobs(ann_network.network, ann_network.blobInfo) << "\n";
+    std::cout << "start logl: " << start_logl << "\n";
     assert(fabs(ann_network.raxml_treeinfo->loglh(false) - start_logl) < 1E-5);
     double old_logl = ann_network.raxml_treeinfo->loglh(true);
     size_t old_reticulation_count = ann_network.network.num_reticulations();
@@ -138,19 +138,19 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
     //int radius = 1;
     //int max_iters = ann_network.options.brlen_smoothings;
     for (size_t i = 0; i < candidates.size(); ++i) {
-        //if (wantedMove(&candidates[i])) {
-        //    std::cout << "reached wanted move\n";
-        //}
+        if (wantedMove(&candidates[i])) {
+            std::cout << "reached wanted move\n";
+        }
 
-        //std::cout << exportDebugInfo(ann_network.network);
-        //std::cout << toExtendedNewick(ann_network.network) << "\n";
-        //std::cout << "try move " << toString(candidates[i]) << "\n";
-        performMove(ann_network, candidates[i]);
         //std::cout << exportDebugInfoBlobs(ann_network.network, ann_network.blobInfo) << "\n";
+        //std::cout << toExtendedNewick(ann_network.network) << "\n";
+        std::cout << "try move " << toString(candidates[i]) << "\n";
+        performMove(ann_network, candidates[i]);
+        std::cout << exportDebugInfoBlobs(ann_network.network, ann_network.blobInfo) << "\n";
         //std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, candidates[i]);
         //optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
         double new_logl = ann_network.raxml_treeinfo->loglh(true);
-        //std::cout << "logl after perform move: " << new_logl << "\n";
+        std::cout << "logl after perform move: " << new_logl << "\n";
         double new_bic = bic(ann_network, new_logl);
         //std::cout << "bic after perform move: " << new_bic <<"\n";
         if (new_bic < best_score) {
@@ -167,18 +167,18 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
             old_logl = best_logl;
             old_reticulation_count = ann_network.network.num_reticulations();
         }
-        //std::cout << "undo move " << toString(candidates[i]) << "\n";
-        //std::cout << "logl before undo move: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
+        std::cout << "undo move " << toString(candidates[i]) << "\n";
+        std::cout << "logl before undo move: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
 
         //std::cout << toString(candidates[i]) << "\n";
 
         undoMove(ann_network, candidates[i]);
-        //std::cout << exportDebugInfoBlobs(ann_network.network, ann_network.blobInfo) << "\n";
+        std::cout << exportDebugInfoBlobs(ann_network.network, ann_network.blobInfo) << "\n";
         //std::cout << "clv_valid after undo move: \n";
         //printClvValid(ann_network);
         //std::cout << exportDebugInfo(ann_network.network) << "\n";
         assert(exportDebugInfo(ann_network.network) == before);
-        //std::cout << "logl after undo move: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
+        std::cout << "logl after undo move: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
 
         ann_network.raxml_treeinfo->loglh(true);
         std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);

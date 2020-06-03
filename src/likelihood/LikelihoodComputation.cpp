@@ -828,7 +828,7 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
      std::cout << megablob_logl << "\n";
      }*/
 
-    /*for (size_t i = 0; i < network.num_nodes(); ++i) {
+    for (size_t i = 0; i < network.num_nodes(); ++i) {
         unsigned int clv_idx = network.nodes[i].clv_index;
 
         std::cout << "fake debug clv logl at index " << clv_idx << ":\n";
@@ -836,7 +836,7 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
                 network.nodes.size(), -1, clv_idx, network.nodes_by_index[clv_idx]->scaler_index,
                 network.edges.size(), fake_treeinfo.param_indices[partitionIdx], nullptr);
         std::cout << clv_logl << "\n";
-    }*/
+    }
 
     if (touched) {
         *touched = clv_touched;
