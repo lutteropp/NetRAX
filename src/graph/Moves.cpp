@@ -301,6 +301,29 @@ void fixReticulations(Network &network, RSPRMove &move) {
     }
 }
 
+void fixReticulations(Network &network, ArcRemovalMove &move) {
+    // change parent links from reticulation nodes such that link_to_first_parent points to the smaller pmatrix index
+    for (size_t i = 0; i < network.num_reticulations(); ++i) {
+        if (network.reticulation_nodes[i]->getReticulationData()->link_to_first_parent->edge_pmatrix_index
+                > network.reticulation_nodes[i]->getReticulationData()->link_to_second_parent->edge_pmatrix_index) {
+            std::swap(network.reticulation_nodes[i]->getReticulationData()->link_to_first_parent,
+                    network.reticulation_nodes[i]->getReticulationData()->link_to_second_parent);
+        }
+    }
+}
+
+void fixReticulations(Network &network, ArcInsertionMove &move) {
+    // change parent links from reticulation nodes such that link_to_first_parent points to the smaller pmatrix index
+    for (size_t i = 0; i < network.num_reticulations(); ++i) {
+        if (network.reticulation_nodes[i]->getReticulationData()->link_to_first_parent->edge_pmatrix_index
+                > network.reticulation_nodes[i]->getReticulationData()->link_to_second_parent->edge_pmatrix_index) {
+            std::swap(network.reticulation_nodes[i]->getReticulationData()->link_to_first_parent,
+                    network.reticulation_nodes[i]->getReticulationData()->link_to_second_parent);
+        }
+    }
+}
+
+
 void changeEdgeDirection(Network &network, Node *u, Node *v) {
     Link *from_u_link = getLinkToNode(network, u, v);
     Link *from_v_link = getLinkToNode(network, v, u);
@@ -1610,6 +1633,7 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     checkSanity(network);
     assertReticulationProbs(ann_network);
     invalidateLostMegablobRoots(ann_network, previous_megablob_roots);
+    fixReticulations(network, move);
 }
 
 void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
@@ -1712,6 +1736,8 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     checkSanity(network);
     assertReticulationProbs(ann_network);
     invalidateLostMegablobRoots(ann_network, previous_megablob_roots);
+
+    fixReticulations(network, move);
 }
 
 void undoMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
