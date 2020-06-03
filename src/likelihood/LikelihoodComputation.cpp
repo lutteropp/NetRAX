@@ -478,8 +478,8 @@ void compute_tree_logl_blobs(AnnotatedNetwork &ann_network, std::vector<bool> &c
     if (ops_count == 0) {
         return;
     }
-    printOperationArray(ops);
-    std::cout << "\n";
+    //printOperationArray(ops);
+    //std::cout << "\n";
     std::vector<bool> will_be_touched = clv_touched;
     for (size_t i = 0; i < ops_count; ++i) {
         will_be_touched[ops[i].parent_clv_index] = true;
