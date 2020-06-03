@@ -102,12 +102,12 @@ void apply_brlens(AnnotatedNetwork &ann_network, const std::vector<std::vector<d
 template<typename T>
 bool wantedMove(T *move) {
     /*if (move->moveType == MoveType::ArcRemovalMove) {
-        ArcRemovalMove *m = (ArcRemovalMove*) move;
-        if (m->a_clv_index == 7 && m->b_clv_index == 14 && m->c_clv_index == 7 && m->d_clv_index == 14
-                && m->u_clv_index == 8 && m->v_clv_index == 13) {
-            return true;
-        }
-    }*/
+     ArcRemovalMove *m = (ArcRemovalMove*) move;
+     if (m->a_clv_index == 7 && m->b_clv_index == 14 && m->c_clv_index == 7 && m->d_clv_index == 14
+     && m->u_clv_index == 8 && m->v_clv_index == 13) {
+     return true;
+     }
+     }*/
     return false;
 }
 
@@ -238,6 +238,11 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
         //std::cout << "Accepting move " << toString(candidates[best_idx]) << " with old_score= " << old_score
         //        << ", best_score= " << best_score << ", best_logl= " << best_logl << "\n";
 
+        if (fabs(best_logl - ann_network.raxml_treeinfo->loglh(true)) >= 1E-5) {
+            std::cout << "wanted: " << start_logl << "\n";
+            std::cout << "observed: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
+            std::cout << "recomputed without incremental: " << ann_network.raxml_treeinfo->loglh(false) << "\n";
+        }
         assert(fabs(best_logl - ann_network.raxml_treeinfo->loglh(true)) < 1E-5);
 
         //best_logl = ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
