@@ -302,23 +302,30 @@ void fixReticulations(Network &network, RSPRMove &move) {
 }
 
 void fixReticulations(Network &network, ArcRemovalMove &move) {
-    // change parent links from reticulation nodes such that link_to_first_parent points to the smaller pmatrix index
-    for (size_t i = 0; i < network.num_reticulations(); ++i) {
-        if (network.reticulation_nodes[i]->getReticulationData()->link_to_first_parent->edge_pmatrix_index
-                > network.reticulation_nodes[i]->getReticulationData()->link_to_second_parent->edge_pmatrix_index) {
-            std::swap(network.reticulation_nodes[i]->getReticulationData()->link_to_first_parent,
-                    network.reticulation_nodes[i]->getReticulationData()->link_to_second_parent);
+    std::unordered_set<Node*> repair_candidates;
+    addRepairCandidates(network, repair_candidates, network.nodes_by_index[move.a_clv_index]);
+    addRepairCandidates(network, repair_candidates, network.nodes_by_index[move.b_clv_index]);
+    addRepairCandidates(network, repair_candidates, network.nodes_by_index[move.c_clv_index]);
+    addRepairCandidates(network, repair_candidates, network.nodes_by_index[move.d_clv_index]);
+    for (Node *node : repair_candidates) {
+        if (node->type == NodeType::RETICULATION_NODE) {
+            resetReticulationLinks(node);
         }
     }
 }
 
 void fixReticulations(Network &network, ArcInsertionMove &move) {
     // change parent links from reticulation nodes such that link_to_first_parent points to the smaller pmatrix index
-    for (size_t i = 0; i < network.num_reticulations(); ++i) {
-        if (network.reticulation_nodes[i]->getReticulationData()->link_to_first_parent->edge_pmatrix_index
-                > network.reticulation_nodes[i]->getReticulationData()->link_to_second_parent->edge_pmatrix_index) {
-            std::swap(network.reticulation_nodes[i]->getReticulationData()->link_to_first_parent,
-                    network.reticulation_nodes[i]->getReticulationData()->link_to_second_parent);
+    std::unordered_set<Node*> repair_candidates;
+    addRepairCandidates(network, repair_candidates, network.nodes_by_index[move.a_clv_index]);
+    addRepairCandidates(network, repair_candidates, network.nodes_by_index[move.b_clv_index]);
+    addRepairCandidates(network, repair_candidates, network.nodes_by_index[move.c_clv_index]);
+    addRepairCandidates(network, repair_candidates, network.nodes_by_index[move.d_clv_index]);
+    addRepairCandidates(network, repair_candidates, network.nodes_by_index[move.wanted_u_clv_index]);
+    addRepairCandidates(network, repair_candidates, network.nodes_by_index[move.wanted_v_clv_index]);
+    for (Node *node : repair_candidates) {
+        if (node->type == NodeType::RETICULATION_NODE) {
+            resetReticulationLinks(node);
         }
     }
 }
@@ -1616,6 +1623,8 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
             a_u_edge->pmatrix_index, u_b_edge->pmatrix_index };
     reloadBranchLengthsAndBranchProbs(ann_network, updateMe);
 
+    fixReticulations(network, move);
+
     std::vector<bool> visited(network.nodes.size(), false);
     invalidateHigherCLVs(ann_network, network.nodes_by_index[move.a_clv_index], false, visited);
     invalidateHigherCLVs(ann_network, network.nodes_by_index[move.b_clv_index], false, visited);
@@ -1634,7 +1643,6 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     checkSanity(network);
     assertReticulationProbs(ann_network);
     invalidateLostMegablobRoots(ann_network, previous_megablob_roots);
-    fixReticulations(network, move);
 }
 
 void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
@@ -1681,8 +1689,14 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
 
     Edge *a_b_edge = addEdge(network, from_a_link, to_b_link, a_b_edge_length, a_b_edge_prob,
             move.wanted_ab_pmatrix_index); // was ub before
-    Edge *c_d_edge = addEdge(network, from_c_link, to_d_link, c_d_edge_length, c_d_edge_prob,
-            move.wanted_cd_pmatrix_index); // was vd before
+    Edge *c_d_edge; // was vd before
+    if (move.a_clv_index == move.c_clv_index && move.b_clv_index == move.d_clv_index) {
+        assert(move.wanted_ab_pmatrix_index == move.wanted_cd_pmatrix_index);
+        c_d_edge = a_b_edge;
+    } else {
+        c_d_edge = addEdge(network, from_c_link, to_d_link, c_d_edge_length, c_d_edge_prob,
+                    move.wanted_cd_pmatrix_index); // was vd before
+    }
 
     Node *b = network.nodes_by_index[move.b_clv_index];
     if (b->type == NodeType::RETICULATION_NODE) {
@@ -1724,6 +1738,8 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     from_c_link->edge_pmatrix_index = c_d_edge->pmatrix_index;
     to_d_link->edge_pmatrix_index = c_d_edge->pmatrix_index;
 
+    fixReticulations(network, move);
+
     std::vector<bool> visited(network.nodes.size(), false);
     invalidateHigherCLVs(ann_network, network.nodes_by_index[move.a_clv_index], false, visited);
     invalidateHigherCLVs(ann_network, network.nodes_by_index[move.b_clv_index], false, visited);
@@ -1737,8 +1753,6 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     checkSanity(network);
     assertReticulationProbs(ann_network);
     invalidateLostMegablobRoots(ann_network, previous_megablob_roots);
-
-    fixReticulations(network, move);
 }
 
 void undoMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
