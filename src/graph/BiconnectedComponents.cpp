@@ -63,7 +63,8 @@ void bicon(Network &network, const Node *v, const Node *u, unsigned int &time,
     }
 }
 
-unsigned int get_node_blob_id(Network &network, Node *node, const BlobInformation &blobInfo, const std::vector<Node*> parent) {
+unsigned int get_node_blob_id(Network &network, Node *node, const BlobInformation &blobInfo,
+        const std::vector<Node*> parent) {
     unsigned int res = std::numeric_limits<unsigned int>::infinity();
     std::unordered_set<unsigned int> seen;
     for (Node *neigh : getNeighbors(network, node)) {
@@ -120,6 +121,13 @@ void gather_reticulations_per_megablob(Network &network, BlobInformation &blob_i
         retsum += blob_info.reticulation_nodes_per_megablob[i].size();
     }
     assert(retsum == network.num_reticulations());
+
+    for (size_t i = 0; i < blob_info.reticulation_nodes_per_megablob.size(); ++i) {
+        std::sort(blob_info.reticulation_nodes_per_megablob[i].begin(),
+                blob_info.reticulation_nodes_per_megablob[i].end(), [](const Node *a, const Node *b) {
+                    return a->clv_index < b->clv_index;
+                });
+    }
 }
 
 BlobInformation partitionNetworkIntoBlobs(Network &network, const std::vector<Node*> &travbuffer) {
@@ -134,7 +142,8 @@ BlobInformation partitionNetworkIntoBlobs(Network &network, const std::vector<No
     for (size_t i = 0; i < network.num_nodes(); ++i) {
         Node *node = &network.nodes[i];
         if (discovery_time[node->clv_index] == 0) {
-            bicon(network, node, nullptr, time, discovery_time, lowest, s, blob_info.edge_blob_id, act_bicomp_id, blob_size);
+            bicon(network, node, nullptr, time, discovery_time, lowest, s, blob_info.edge_blob_id, act_bicomp_id,
+                    blob_size);
         }
     }
 
