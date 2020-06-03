@@ -172,6 +172,7 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
         //std::cout << toString(candidates[i]) << "\n";
 
         undoMove(ann_network, candidates[i]);
+        std::cout << exportDebugInfoBlobs(ann_network.network, ann_network.blobInfo) << "\n";
         //std::cout << "clv_valid after undo move: \n";
         //printClvValid(ann_network);
         //std::cout << exportDebugInfo(ann_network.network) << "\n";
