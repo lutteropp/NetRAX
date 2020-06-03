@@ -224,6 +224,7 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
         if (fabs(ann_network.raxml_treeinfo->loglh(true) - start_logl) >= 1E-5) {
             std::cout << "wanted: " << start_logl << "\n";
             std::cout << "observed: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
+            std::cout << "recomputed without incremental: " << ann_network.raxml_treeinfo->loglh(false) << "\n";
         }
         assert(fabs(ann_network.raxml_treeinfo->loglh(true) - start_logl) < 1E-5);
         //apply_brlens(ann_network, old_brlens);
