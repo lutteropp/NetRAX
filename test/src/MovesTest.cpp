@@ -46,331 +46,92 @@ std::vector<std::vector<double> > extract_brlens(AnnotatedNetwork &ann_network) 
     return res;
 }
 
-void randomNNIMoves(const std::string &networkPath, const std::string &msaPath, bool useRepeats) {
-    NetraxOptions options;
-    options.network_file = networkPath;
-    options.msa_file = msaPath;
-    options.use_repeats = useRepeats;
-    AnnotatedNetwork ann_network = build_annotated_network(options);
-    Network &network = ann_network.network;
-    std::string initialDebugInfo = exportDebugInfo(network);
-    std::cout << initialDebugInfo;
-
-    std::vector<std::vector<double> > old_brlens = extract_brlens(ann_network);
-
+template<typename T>
+void randomMovesStep(AnnotatedNetwork &ann_network, std::vector<T> candidates) {
     double initial_logl = computeLoglikelihood(ann_network);
     ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
     std::cout << "initial_logl: " << initial_logl << "\n";
+    Network &network = ann_network.network;
+    std::string initialDebugInfo = exportDebugInfo(network);
+    std::cout << initialDebugInfo << "\n";
+    std::vector<std::vector<double> > old_brlens = extract_brlens(ann_network);
 
-    for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::vector<RNNIMove> candidates = possibleRNNIMoves(ann_network,
-                network.edges_by_index[i]);
-        for (size_t j = 0; j < candidates.size(); ++j) {
-            std::string newickBeforeMove = toExtendedNewick(network);
-            std::cout << "perform " << toString(candidates[j]);
-            performMove(ann_network, candidates[j]);
-            std::cout << toExtendedNewick(network) << "\n";
-            double moved_logl = computeLoglikelihood(ann_network);
-            ASSERT_NE(moved_logl, -std::numeric_limits<double>::infinity());
-            std::cout << "logl after move: " << moved_logl << "\n";
-            std::cout << "undo " << toString(candidates[j]) << "\n";
-            undoMove(ann_network, candidates[j]);
-            computeLoglikelihood(ann_network);
-            std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
-            for (size_t i = 0; i < act_brlens.size(); ++i) {
-                for (size_t j = 0; j < act_brlens[i].size(); ++j) {
-                    ASSERT_DOUBLE_EQ(act_brlens[i][j], old_brlens[i][j]);
-                }
+    for (size_t j = 0; j < candidates.size(); ++j) {
+        std::string newickBeforeMove = toExtendedNewick(network);
+        std::cout << "perform " << toString(candidates[j]);
+        performMove(ann_network, candidates[j]);
+        std::cout << toExtendedNewick(network) << "\n";
+        double moved_logl = computeLoglikelihood(ann_network);
+        ASSERT_NE(moved_logl, -std::numeric_limits<double>::infinity());
+        std::cout << "logl after move: " << moved_logl << "\n";
+        std::cout << "undo " << toString(candidates[j]) << "\n";
+        undoMove(ann_network, candidates[j]);
+        computeLoglikelihood(ann_network);
+        std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
+        for (size_t i = 0; i < act_brlens.size(); ++i) {
+            for (size_t j = 0; j < act_brlens[i].size(); ++j) {
+                ASSERT_DOUBLE_EQ(act_brlens[i][j], old_brlens[i][j]);
             }
-            std::string newickAfterUndoMove = toExtendedNewick(network);
-            std::cout << toExtendedNewick(network) << "\n";
-            std::string debugInfoAfterUndo = exportDebugInfo(network);
-            EXPECT_EQ(initialDebugInfo, debugInfoAfterUndo);
-            double back_logl = computeLoglikelihood(ann_network);
-            ASSERT_EQ(newickBeforeMove, newickAfterUndoMove);
-            ASSERT_DOUBLE_EQ(initial_logl, back_logl);
         }
+        std::string newickAfterUndoMove = toExtendedNewick(network);
+        std::cout << toExtendedNewick(network) << "\n";
+        std::string debugInfoAfterUndo = exportDebugInfo(network);
+        EXPECT_EQ(initialDebugInfo, debugInfoAfterUndo);
+        double back_logl = computeLoglikelihood(ann_network);
+        ASSERT_EQ(newickBeforeMove, newickAfterUndoMove);
+        ASSERT_DOUBLE_EQ(initial_logl, back_logl);
     }
 }
 
-void randomSPRMoves(const std::string &networkPath, const std::string &msaPath, bool useRepeats) {
+void randomMoves(const std::string &networkPath, const std::string &msaPath, bool useRepeats,
+        MoveType type) {
     NetraxOptions options;
     options.network_file = networkPath;
     options.msa_file = msaPath;
     options.use_repeats = useRepeats;
     AnnotatedNetwork ann_network = build_annotated_network(options);
     Network &network = ann_network.network;
-    std::string initialDebugInfo = exportDebugInfo(network);
-    std::cout << initialDebugInfo;
 
-    std::vector<std::vector<double> > old_brlens = extract_brlens(ann_network);
-
-    double initial_logl = computeLoglikelihood(ann_network);
-    ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
-    std::cout << "initial_logl: " << initial_logl << "\n";
-
-    for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::vector<RSPRMove> candidates = possibleRSPRMoves(ann_network,
-                network.edges_by_index[i]);
-        for (size_t j = 0; j < candidates.size(); ++j) {
-            std::cout << "perform " << toString(candidates[j]);
-            performMove(ann_network, candidates[j]);
-            double moved_logl = computeLoglikelihood(ann_network);
-            ASSERT_NE(moved_logl, -std::numeric_limits<double>::infinity());
-            std::cout << "logl after move: " << moved_logl << "\n";
-            std::cout << "undo " << toString(candidates[j]) << "\n";
-            undoMove(ann_network, candidates[j]);
-            computeLoglikelihood(ann_network);
-            std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
-            for (size_t i = 0; i < act_brlens.size(); ++i) {
-                for (size_t j = 0; j < act_brlens[i].size(); ++j) {
-                    ASSERT_DOUBLE_EQ(act_brlens[i][j], old_brlens[i][j]);
-                }
-            }
-            std::string debugInfoAfterUndo = exportDebugInfo(network);
-            EXPECT_EQ(initialDebugInfo, debugInfoAfterUndo);
-            double back_logl = computeLoglikelihood(ann_network);
-            ASSERT_DOUBLE_EQ(initial_logl, back_logl);
-        }
+    if (type == MoveType::ArcRemovalMove) {
+        randomMovesStep<ArcRemovalMove>(ann_network, possibleArcRemovalMoves(ann_network));
+        return;
+    } else if (type == MoveType::DeltaMinusMove) {
+        randomMovesStep<ArcRemovalMove>(ann_network, possibleDeltaMinusMoves(ann_network));
+        return;
     }
-}
-
-void randomHeadMoves(const std::string &networkPath, const std::string &msaPath, bool useRepeats) {
-    NetraxOptions options;
-    options.network_file = networkPath;
-    options.msa_file = msaPath;
-    options.use_repeats = useRepeats;
-    AnnotatedNetwork ann_network = build_annotated_network(options);
-    Network &network = ann_network.network;
-    std::string initialDebugInfo = exportDebugInfo(network);
-    std::cout << initialDebugInfo;
-
-    std::vector<std::vector<double> > old_brlens = extract_brlens(ann_network);
-
-    double initial_logl = computeLoglikelihood(ann_network);
-    ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
-    std::cout << "initial_logl: " << initial_logl << "\n";
 
     for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::vector<RSPRMove> candidates = possibleHeadMoves(ann_network,
-                network.edges_by_index[i]);
-        for (size_t j = 0; j < candidates.size(); ++j) {
-            std::cout << "perform " << toString(candidates[j]);
-            performMove(ann_network, candidates[j]);
-            double moved_logl = computeLoglikelihood(ann_network);
-            ASSERT_NE(moved_logl, -std::numeric_limits<double>::infinity());
-            std::cout << "logl after move: " << moved_logl << "\n";
-            std::cout << "undo " << toString(candidates[j]) << "\n";
-            undoMove(ann_network, candidates[j]);
-            computeLoglikelihood(ann_network);
-            std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
-            for (size_t i = 0; i < act_brlens.size(); ++i) {
-                for (size_t j = 0; j < act_brlens[i].size(); ++j) {
-                    ASSERT_DOUBLE_EQ(act_brlens[i][j], old_brlens[i][j]);
-                }
-            }
-            std::string debugInfoAfterUndo = exportDebugInfo(network);
-            EXPECT_EQ(initialDebugInfo, debugInfoAfterUndo);
-            double back_logl = computeLoglikelihood(ann_network);
-            ASSERT_DOUBLE_EQ(initial_logl, back_logl);
-        }
-    }
-}
-
-void randomTailMoves(const std::string &networkPath, const std::string &msaPath, bool useRepeats) {
-    NetraxOptions options;
-    options.network_file = networkPath;
-    options.msa_file = msaPath;
-    options.use_repeats = useRepeats;
-    AnnotatedNetwork ann_network = build_annotated_network(options);
-    Network &network = ann_network.network;
-    std::string initialDebugInfo = exportDebugInfo(network);
-    std::cout << initialDebugInfo;
-
-    std::vector<std::vector<double> > old_brlens = extract_brlens(ann_network);
-
-    double initial_logl = computeLoglikelihood(ann_network);
-    ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
-    std::cout << "initial_logl: " << initial_logl << "\n";
-
-    for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::vector<RSPRMove> candidates = possibleTailMoves(ann_network,
-                network.edges_by_index[i]);
-        for (size_t j = 0; j < candidates.size(); ++j) {
-            std::cout << "perform " << toString(candidates[j]);
-            performMove(ann_network, candidates[j]);
-            double moved_logl = computeLoglikelihood(ann_network);
-            ASSERT_NE(moved_logl, -std::numeric_limits<double>::infinity());
-            std::cout << "logl after move: " << moved_logl << "\n";
-            std::cout << "undo " << toString(candidates[j]) << "\n";
-            undoMove(ann_network, candidates[j]);
-            computeLoglikelihood(ann_network);
-            std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
-            for (size_t i = 0; i < act_brlens.size(); ++i) {
-                for (size_t j = 0; j < act_brlens[i].size(); ++j) {
-                    ASSERT_DOUBLE_EQ(act_brlens[i][j], old_brlens[i][j]);
-                }
-            }
-            std::string debugInfoAfterUndo = exportDebugInfo(network);
-            EXPECT_EQ(initialDebugInfo, debugInfoAfterUndo);
-            double back_logl = computeLoglikelihood(ann_network);
-            ASSERT_DOUBLE_EQ(initial_logl, back_logl);
-        }
-    }
-}
-
-void randomSPR1Moves(const std::string &networkPath, const std::string &msaPath, bool useRepeats) {
-    NetraxOptions options;
-    options.network_file = networkPath;
-    options.msa_file = msaPath;
-    options.use_repeats = useRepeats;
-    AnnotatedNetwork ann_network = build_annotated_network(options);
-    Network &network = ann_network.network;
-    std::string initialDebugInfo = exportDebugInfo(network);
-    std::cout << initialDebugInfo;
-
-    std::vector<std::vector<double> > old_brlens = extract_brlens(ann_network);
-
-    double initial_logl = computeLoglikelihood(ann_network);
-    ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
-    std::cout << "initial_logl: " << initial_logl << "\n";
-
-    for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::vector<RSPRMove> candidates = possibleRSPR1Moves(ann_network,
-                network.edges_by_index[i]);
-        for (size_t j = 0; j < candidates.size(); ++j) {
-            std::cout << "perform " << toString(candidates[j]);
-            performMove(ann_network, candidates[j]);
-            double moved_logl = computeLoglikelihood(ann_network);
-            ASSERT_NE(moved_logl, -std::numeric_limits<double>::infinity());
-            std::cout << "logl after move: " << moved_logl << "\n";
-            std::cout << "undo " << toString(candidates[j]) << "\n";
-            undoMove(ann_network, candidates[j]);
-            computeLoglikelihood(ann_network);
-            std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
-            for (size_t i = 0; i < act_brlens.size(); ++i) {
-                for (size_t j = 0; j < act_brlens[i].size(); ++j) {
-                    ASSERT_DOUBLE_EQ(act_brlens[i][j], old_brlens[i][j]);
-                }
-            }
-            std::string debugInfoAfterUndo = exportDebugInfo(network);
-            EXPECT_EQ(initialDebugInfo, debugInfoAfterUndo);
-            double back_logl = computeLoglikelihood(ann_network);
-            ASSERT_DOUBLE_EQ(initial_logl, back_logl);
-        }
-    }
-}
-
-void randomArcInsertionMoves(const std::string &networkPath, const std::string &msaPath,
-        bool useRepeats) {
-    NetraxOptions options;
-    options.network_file = networkPath;
-    options.msa_file = msaPath;
-    options.use_repeats = useRepeats;
-    AnnotatedNetwork ann_network = build_annotated_network(options);
-    Network &network = ann_network.network;
-    std::string initialDebugInfo = exportDebugInfo(network);
-    //std::cout << initialDebugInfo;
-
-    std::vector<std::vector<double> > old_brlens = extract_brlens(ann_network);
-
-    double initial_logl = computeLoglikelihood(ann_network);
-    ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
-    //std::cout << "initial_logl: " << initial_logl << "\n";
-
-    for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::vector<ArcInsertionMove> candidates = possibleArcInsertionMoves(ann_network,
-                network.edges_by_index[i]);
-        for (size_t j = 0; j < candidates.size(); ++j) {
-
-            if (candidates[j].a_clv_index != 6 || candidates[j].b_clv_index != 7
-                    || candidates[j].c_clv_index != 4 || candidates[j].d_clv_index != 3) {
-                //    continue;
-            }
-
-            std::cout << "perform " << toString(candidates[j]);
-            performMove(ann_network, candidates[j]);
-
-            //std::cout << "network after move:\n";
-            //std::cout << exportDebugInfo(network) << "\n";
-
-            double moved_logl = computeLoglikelihood(ann_network);
-            ASSERT_NE(moved_logl, -std::numeric_limits<double>::infinity());
-            std::cout << "logl after move: " << moved_logl << "\n";
-            std::cout << "undo " << toString(candidates[j]) << "\n";
-            undoMove(ann_network, candidates[j]);
-            computeLoglikelihood(ann_network);
-            std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
-            for (size_t i = 0; i < act_brlens.size(); ++i) {
-                for (size_t j = 0; j < act_brlens[i].size(); ++j) {
-                    ASSERT_DOUBLE_EQ(act_brlens[i][j], old_brlens[i][j]);
-                }
-            }
-            //std::string debugInfoAfterUndo = exportDebugInfo(network);
-
-            //std::cout << "network after undo move:\n";
-            //std::cout << debugInfoAfterUndo << "\n";
-
-            // ASSERT_EQ(initialDebugInfo, debugInfoAfterUndo);
-            double back_logl = computeLoglikelihood(ann_network);
-            ASSERT_DOUBLE_EQ(initial_logl, back_logl);
-        }
-    }
-}
-
-void randomDeltaPlusMoves(const std::string &networkPath, const std::string &msaPath,
-        bool useRepeats) {
-    NetraxOptions options;
-    options.network_file = networkPath;
-    options.msa_file = msaPath;
-    options.use_repeats = useRepeats;
-    AnnotatedNetwork ann_network = build_annotated_network(options);
-    Network &network = ann_network.network;
-    std::string initialDebugInfo = exportDebugInfo(network);
-    //std::cout << initialDebugInfo;
-
-    std::vector<std::vector<double> > old_brlens = extract_brlens(ann_network);
-
-    double initial_logl = computeLoglikelihood(ann_network);
-    ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
-    //std::cout << "initial_logl: " << initial_logl << "\n";
-
-    for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::vector<ArcInsertionMove> candidates = possibleDeltaPlusMoves(ann_network,
-                network.edges_by_index[i]);
-        for (size_t j = 0; j < candidates.size(); ++j) {
-
-            if (candidates[j].a_clv_index != 6 || candidates[j].b_clv_index != 7
-                    || candidates[j].c_clv_index != 4 || candidates[j].d_clv_index != 3) {
-                //    continue;
-            }
-
-            std::cout << "perform " << toString(candidates[j]);
-            performMove(ann_network, candidates[j]);
-
-            //std::cout << "network after move:\n";
-            //std::cout << exportDebugInfo(network) << "\n";
-
-            double moved_logl = computeLoglikelihood(ann_network);
-            ASSERT_NE(moved_logl, -std::numeric_limits<double>::infinity());
-            std::cout << "logl after move: " << moved_logl << "\n";
-            std::cout << "undo " << toString(candidates[j]) << "\n";
-            undoMove(ann_network, candidates[j]);
-            computeLoglikelihood(ann_network);
-            std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
-            for (size_t i = 0; i < act_brlens.size(); ++i) {
-                for (size_t j = 0; j < act_brlens[i].size(); ++j) {
-                    ASSERT_DOUBLE_EQ(act_brlens[i][j], old_brlens[i][j]);
-                }
-            }
-            //std::string debugInfoAfterUndo = exportDebugInfo(network);
-
-            //std::cout << "network after undo move:\n";
-            //std::cout << debugInfoAfterUndo << "\n";
-
-            // ASSERT_EQ(initialDebugInfo, debugInfoAfterUndo);
-            double back_logl = computeLoglikelihood(ann_network);
-            ASSERT_DOUBLE_EQ(initial_logl, back_logl);
+        switch (type) {
+        case MoveType::RNNIMove:
+            randomMovesStep<RNNIMove>(ann_network,
+                    possibleRNNIMoves(ann_network, &network.edges[i]));
+            break;
+        case MoveType::RSPRMove:
+            randomMovesStep<RSPRMove>(ann_network,
+                    possibleRSPRMoves(ann_network, &network.edges[i]));
+            break;
+        case MoveType::RSPR1Move:
+            randomMovesStep<RSPRMove>(ann_network,
+                    possibleRSPR1Moves(ann_network, &network.edges[i]));
+            break;
+        case MoveType::HeadMove:
+            randomMovesStep<RSPRMove>(ann_network,
+                    possibleHeadMoves(ann_network, &network.edges[i]));
+            break;
+        case MoveType::TailMove:
+            randomMovesStep<RSPRMove>(ann_network,
+                    possibleTailMoves(ann_network, &network.edges[i]));
+            break;
+        case MoveType::ArcInsertionMove:
+            randomMovesStep<ArcInsertionMove>(ann_network,
+                    possibleArcInsertionMoves(ann_network, &network.edges[i]));
+            break;
+        case MoveType::DeltaPlusMove:
+            randomMovesStep<ArcInsertionMove>(ann_network,
+                    possibleDeltaPlusMoves(ann_network, &network.edges[i]));
+            break;
+        default:
+            throw std::runtime_error("Invalid move type");
         }
     }
 }
@@ -382,100 +143,6 @@ void printBranchLengths(AnnotatedNetwork &ann_network) {
         std::cout << "  " << network.edges[i].link1->node_clv_index << " -> "
                 << network.edges[i].link2->node_clv_index << " has branch length: "
                 << network.edges[i].length << "\n";
-    }
-}
-
-void randomArcRemovalMoves(const std::string &networkPath, const std::string &msaPath,
-        bool useRepeats) {
-    NetraxOptions options;
-    options.network_file = networkPath;
-    options.msa_file = msaPath;
-    options.use_repeats = useRepeats;
-    AnnotatedNetwork ann_network = build_annotated_network(options);
-    Network &network = ann_network.network;
-    std::string initialDebugInfo = exportDebugInfo(network);
-    //std::cout << initialDebugInfo;
-    //printBranchLengths(ann_network);
-
-    std::vector<std::vector<double> > old_brlens = extract_brlens(ann_network);
-
-    double initial_logl = computeLoglikelihood(ann_network);
-    ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
-    std::cout << "initial_logl: " << initial_logl << "\n";
-
-    std::vector<ArcRemovalMove> candidates = possibleArcRemovalMoves(ann_network);
-    for (size_t j = 0; j < candidates.size(); ++j) {
-        std::cout << "perform " << toString(candidates[j]);
-        performMove(ann_network, candidates[j]);
-        //std::cout << "network after move:\n";
-        //std::cout << exportDebugInfo(network);
-        //printBranchLengths(ann_network);
-        double moved_logl = computeLoglikelihood(ann_network);
-        ASSERT_NE(moved_logl, -std::numeric_limits<double>::infinity());
-        std::cout << "logl after move: " << moved_logl << "\n";
-        std::cout << "undo " << toString(candidates[j]) << "\n";
-        undoMove(ann_network, candidates[j]);
-        computeLoglikelihood(ann_network);
-        std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
-        for (size_t i = 0; i < act_brlens.size(); ++i) {
-            for (size_t j = 0; j < act_brlens[i].size(); ++j) {
-                ASSERT_DOUBLE_EQ(act_brlens[i][j], old_brlens[i][j]);
-            }
-        }
-
-        //printBranchLengths(ann_network);
-        //std::string debugInfoAfterUndo = exportDebugInfo(network);
-        //std::cout << debugInfoAfterUndo;
-        //EXPECT_EQ(initialDebugInfo, debugInfoAfterUndo);
-        double back_logl = computeLoglikelihood(ann_network);
-        ASSERT_DOUBLE_EQ(initial_logl, back_logl);
-    }
-}
-
-void randomDeltaMinusMoves(const std::string &networkPath, const std::string &msaPath,
-        bool useRepeats) {
-    NetraxOptions options;
-    options.network_file = networkPath;
-    options.msa_file = msaPath;
-    options.use_repeats = useRepeats;
-    AnnotatedNetwork ann_network = build_annotated_network(options);
-    Network &network = ann_network.network;
-    std::string initialDebugInfo = exportDebugInfo(network);
-    //std::cout << initialDebugInfo;
-    //printBranchLengths(ann_network);
-
-    std::vector<std::vector<double> > old_brlens = extract_brlens(ann_network);
-
-    double initial_logl = computeLoglikelihood(ann_network);
-    ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
-    std::cout << "initial_logl: " << initial_logl << "\n";
-
-    std::vector<ArcRemovalMove> candidates = possibleDeltaMinusMoves(ann_network);
-    for (size_t j = 0; j < candidates.size(); ++j) {
-        std::cout << "perform " << toString(candidates[j]);
-        performMove(ann_network, candidates[j]);
-        //std::cout << "network after move:\n";
-        //std::cout << exportDebugInfo(network);
-        //printBranchLengths(ann_network);
-        double moved_logl = computeLoglikelihood(ann_network);
-        ASSERT_NE(moved_logl, -std::numeric_limits<double>::infinity());
-        std::cout << "logl after move: " << moved_logl << "\n";
-        std::cout << "undo " << toString(candidates[j]) << "\n";
-        undoMove(ann_network, candidates[j]);
-        computeLoglikelihood(ann_network);
-        std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
-        for (size_t i = 0; i < act_brlens.size(); ++i) {
-            for (size_t j = 0; j < act_brlens[i].size(); ++j) {
-                ASSERT_DOUBLE_EQ(act_brlens[i][j], old_brlens[i][j]);
-            }
-        }
-
-        //printBranchLengths(ann_network);
-        //std::string debugInfoAfterUndo = exportDebugInfo(network);
-        //std::cout << debugInfoAfterUndo;
-        //EXPECT_EQ(initialDebugInfo, debugInfoAfterUndo);
-        double back_logl = computeLoglikelihood(ann_network);
-        ASSERT_DOUBLE_EQ(initial_logl, back_logl);
     }
 }
 
@@ -516,75 +183,65 @@ TEST (MovesTest, incrementalLoglikelihoodProblem) {
     ASSERT_DOUBLE_EQ(initial_logl, back_logl);
 }
 
-TEST (MovesTest, tailSmall) {
-    randomTailMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
+TEST (MovesTest, tail) {
+    randomMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false,
+            MoveType::TailMove);
+    randomMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false,
+            MoveType::TailMove);
 }
 
-TEST (MovesTest, headSmall) {
-    randomHeadMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
+TEST (MovesTest, head) {
+    randomMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false,
+            MoveType::HeadMove);
+    randomMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false,
+            MoveType::HeadMove);
 }
 
-TEST (MovesTest, tailCeline) {
-    randomTailMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false);
+TEST (MovesTest, arcInsertion) {
+    randomMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false,
+            MoveType::ArcInsertionMove);
+    randomMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false,
+            MoveType::ArcInsertionMove);
 }
 
-TEST (MovesTest, headCeline) {
-    randomHeadMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false);
+TEST (MovesTest, deltaPlus) {
+    randomMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false,
+            MoveType::DeltaPlusMove);
+    randomMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false,
+            MoveType::DeltaPlusMove);
 }
 
-TEST (MovesTest, arcInsertionSmall) {
-    randomArcInsertionMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
+TEST (MovesTest, arcRemoval) {
+    randomMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false,
+            MoveType::ArcRemovalMove);
+    randomMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false,
+            MoveType::ArcRemovalMove);
 }
 
-TEST (MovesTest, deltaPlusSmall) {
-    randomDeltaPlusMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
+TEST (MovesTest, deltaMinus) {
+    randomMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false,
+            MoveType::DeltaMinusMove);
+    randomMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false,
+            MoveType::DeltaMinusMove);
 }
 
-TEST (MovesTest, deltaMinusSmall) {
-    randomDeltaMinusMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
+TEST (MovesTest, rnni) {
+    randomMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false,
+            MoveType::RNNIMove);
+    randomMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false,
+            MoveType::RNNIMove);
 }
 
-TEST (MovesTest, deltaMinusCeline) {
-    randomDeltaMinusMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false);
+TEST (MovesTest, rspr) {
+    randomMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false,
+            MoveType::RSPRMove);
+    randomMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false,
+            MoveType::RSPRMove);
 }
 
-TEST (MovesTest, deltaPlusCeline) {
-    randomDeltaPlusMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false);
-}
-
-TEST (MovesTest, rnniSmall) {
-    randomNNIMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
-}
-
-TEST (MovesTest, rsprSmall) {
-    randomSPRMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
-}
-
-TEST (MovesTest, rspr1Small) {
-    randomSPR1Moves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
-}
-
-TEST (MovesTest, arcRemovalSmall) {
-    randomArcRemovalMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
-}
-
-TEST (MovesTest, rnniCeline) {
-    randomNNIMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false);
-}
-
-TEST (MovesTest, rspr1Celine) {
-    randomSPR1Moves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false);
-}
-
-TEST (MovesTest, rsprCeline) {
-    randomSPRMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false);
-}
-
-TEST (MovesTest, arcRemovalCeline) {
-    randomArcRemovalMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false);
-}
-
-TEST (MovesTest, arcInsertionCeline) {
-    randomArcInsertionMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt",
-            false);
+TEST (MovesTest, rspr1) {
+    randomMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false,
+            MoveType::RSPR1Move);
+    randomMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false,
+            MoveType::RSPR1Move);
 }
