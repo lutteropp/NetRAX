@@ -98,7 +98,8 @@ TEST_F (LikelihoodTest, DISABLED_displayedTreeOfTreeToUtree) {
             compareNodes(network_utree->nodes[i]->next, raxml_utree->nodes[i]->next);
             compareNodes(network_utree->nodes[i]->next->back, raxml_utree->nodes[i]->next->back);
             compareNodes(network_utree->nodes[i]->next->next, raxml_utree->nodes[i]->next->next);
-            compareNodes(network_utree->nodes[i]->next->next->back, raxml_utree->nodes[i]->next->next->back);
+            compareNodes(network_utree->nodes[i]->next->next->back,
+                    raxml_utree->nodes[i]->next->next->back);
 
             compareNodes(network_utree->nodes[i]->next->next->next, network_utree->nodes[i]);
             compareNodes(raxml_utree->nodes[i]->next->next->next, raxml_utree->nodes[i]);
@@ -116,7 +117,8 @@ std::unordered_set<std::string> collect_tip_labels_utree(pll_utree_t *utree) {
 
     std::vector<pll_unode_t*> outbuffer(utree->inner_count + utree->tip_count);
     unsigned int trav_size;
-    pll_utree_traverse(utree->vroot, PLL_TREE_TRAVERSE_POSTORDER, cb_trav_all, outbuffer.data(), &trav_size);
+    pll_utree_traverse(utree->vroot, PLL_TREE_TRAVERSE_POSTORDER, cb_trav_all, outbuffer.data(),
+            &trav_size);
     for (size_t i = 0; i < trav_size; ++i) {
         if (!outbuffer[i]->next) {
             labels.insert(outbuffer[i]->label);
@@ -139,7 +141,8 @@ bool no_clv_indices_equal(pll_utree_t *utree) {
 
     std::vector<pll_unode_t*> outbuffer(utree->inner_count + utree->tip_count);
     unsigned int trav_size;
-    pll_utree_traverse(utree->vroot, PLL_TREE_TRAVERSE_POSTORDER, cb_trav_all, outbuffer.data(), &trav_size);
+    pll_utree_traverse(utree->vroot, PLL_TREE_TRAVERSE_POSTORDER, cb_trav_all, outbuffer.data(),
+            &trav_size);
     for (size_t i = 0; i < trav_size; ++i) {
         clv_idx.insert(outbuffer[i]->clv_index);
     }
@@ -192,7 +195,8 @@ bool isLeafNode(const pll_unode_t *node) {
     return (node->next == NULL);
 }
 
-void compareLikelihoodFunctions(const std::string &networkPath, const std::string &msaPath, bool useRepeats) {
+void compareLikelihoodFunctions(const std::string &networkPath, const std::string &msaPath,
+        bool useRepeats) {
     NetraxOptions options;
     options.network_file = networkPath;
     options.msa_file = msaPath;
@@ -225,7 +229,8 @@ void compareLikelihoodFunctions(const std::string &networkPath, const std::strin
     ann_network.options.use_graycode = true;
     double norep_logl_blobs_graycode = old::computeLoglikelihood(ann_network, 0, 1, false);
     ASSERT_NE(norep_logl_blobs_graycode, -std::numeric_limits<double>::infinity());
-    double naive_logl = old::computeLoglikelihoodNaiveUtree(ann_network, 0, 1, &treewise_logl_naive);
+    double naive_logl = old::computeLoglikelihoodNaiveUtree(ann_network, 0, 1,
+            &treewise_logl_naive);
 
     EXPECT_DOUBLE_EQ(norep_logl_graycode, norep_logl);
     EXPECT_DOUBLE_EQ(norep_logl_blobs, norep_logl);
@@ -278,11 +283,13 @@ TEST_F (LikelihoodTest, celineNetworkIncremental) {
 }
 
 TEST_F (LikelihoodTest, smallNetwork) {
-    compareLikelihoodFunctions(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
+    compareLikelihoodFunctions(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt",
+            false);
 }
 
 TEST_F (LikelihoodTest, smallTree) {
-    compareLikelihoodFunctions(DATA_PATH + "tree.nw", DATA_PATH + "small_fake_alignment.txt", false);
+    compareLikelihoodFunctions(DATA_PATH + "tree.nw", DATA_PATH + "small_fake_alignment.txt",
+            false);
 }
 
 TEST_F (LikelihoodTest, smallTreeIncremental) {
@@ -294,51 +301,58 @@ TEST_F (LikelihoodTest, tinyNetwork) {
 }
 
 TEST_F (LikelihoodTest, clvAveraging) {
-    compareLikelihoodFunctions(DATA_PATH + "clv_averaging.nw", DATA_PATH + "5_taxa_fake_alignment.txt", false);
+    compareLikelihoodFunctions(DATA_PATH + "clv_averaging.nw",
+            DATA_PATH + "5_taxa_fake_alignment.txt", false);
 }
 
 TEST_F (LikelihoodTest, twoReticulations) {
-    compareLikelihoodFunctions(DATA_PATH + "two_reticulations.nw", DATA_PATH + "5_taxa_fake_alignment.txt", false);
+    compareLikelihoodFunctions(DATA_PATH + "two_reticulations.nw",
+            DATA_PATH + "5_taxa_fake_alignment.txt", false);
 }
 
 TEST_F (LikelihoodTest, threeReticulations) {
-    compareLikelihoodFunctions(DATA_PATH + "three_reticulations.nw", DATA_PATH + "7_taxa_fake_alignment.txt", false);
+    compareLikelihoodFunctions(DATA_PATH + "three_reticulations.nw",
+            DATA_PATH + "7_taxa_fake_alignment.txt", false);
 }
 
 TEST_F (LikelihoodTest, interleavedReticulations) {
-    compareLikelihoodFunctions(DATA_PATH + "interleaved_reticulations.nw", DATA_PATH + "5_taxa_fake_alignment.txt",
-            false);
+    compareLikelihoodFunctions(DATA_PATH + "interleaved_reticulations.nw",
+            DATA_PATH + "5_taxa_fake_alignment.txt", false);
 }
 
 TEST_F (LikelihoodTest, reticulationInReticulation) {
-    compareLikelihoodFunctions(DATA_PATH + "reticulation_in_reticulation.nw", DATA_PATH + "small_fake_alignment.txt",
-            false);
+    compareLikelihoodFunctions(DATA_PATH + "reticulation_in_reticulation.nw",
+            DATA_PATH + "small_fake_alignment.txt", false);
 }
 
 TEST_F (LikelihoodTest, smallNetworkWithRepeats) {
-    compareLikelihoodFunctions(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", true);
+    compareLikelihoodFunctions(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt",
+            true);
 }
 
 TEST_F (LikelihoodTest, celineNetwork) {
-    compareLikelihoodFunctions(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false);
+    compareLikelihoodFunctions(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt",
+            false);
 }
 
 TEST_F (LikelihoodTest, celineNetworkSmaller) {
-    compareLikelihoodFunctions(DATA_PATH + "celine_smaller_1.nw", DATA_PATH + "celine_fake_alignment_smaller.txt",
-            false);
+    compareLikelihoodFunctions(DATA_PATH + "celine_smaller_1.nw",
+            DATA_PATH + "celine_fake_alignment_smaller.txt", false);
 }
 
 TEST_F (LikelihoodTest, celineNetworkRepeats) {
-    compareLikelihoodFunctions(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", true);
+    compareLikelihoodFunctions(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt",
+            true);
 }
 
 TEST_F (LikelihoodTest, celineNetworkNonzeroBranches) {
-    compareLikelihoodFunctions(DATA_PATH + "celine_nonzero_branches.nw", DATA_PATH + "celine_fake_alignment.txt",
-            false);
+    compareLikelihoodFunctions(DATA_PATH + "celine_nonzero_branches.nw",
+            DATA_PATH + "celine_fake_alignment.txt", false);
 }
 
 TEST_F (LikelihoodTest, updateReticulationProb) {
-    AnnotatedNetwork ann_network = build_annotated_network(NetraxOptions(networkPath, msaPath, false));
+    AnnotatedNetwork ann_network = build_annotated_network(
+            NetraxOptions(networkPath, msaPath, false));
     double norep_logl = updateReticulationProbs(ann_network);
     std::cout << "norep_logl: " << norep_logl << "\n";
     double norep_logl_2 = updateReticulationProbs(ann_network);
@@ -408,7 +422,8 @@ TEST_F (LikelihoodTest, simpleTreeNaiveVersusNormalRaxml) {
     double naive_logl = old::computeLoglikelihoodNaiveUtree(ann_network, 0, 1);
 
     pll_utree_t *raxml_utree = Tree::loadFromFile(treePath).pll_utree_copy();
-    std::unique_ptr<RaxmlWrapper> treeWrapper = std::make_unique<RaxmlWrapper>(NetraxOptions(treePath, msaPath, false));
+    std::unique_ptr<RaxmlWrapper> treeWrapper = std::make_unique<RaxmlWrapper>(
+            NetraxOptions(treePath, msaPath, false));
     TreeInfo *raxml_treeinfo = treeWrapper->createRaxmlTreeinfo(raxml_utree);
     double raxml_logl = raxml_treeinfo->loglh(false);
 

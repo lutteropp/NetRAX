@@ -22,8 +22,8 @@ struct Node;
 class Network;
 struct BlobInformation;
 
-std::vector<std::vector<size_t> > getDtBranchToNetworkBranchMapping(const pll_utree_t &utree, Network &network,
-        size_t tree_idx);
+std::vector<std::vector<size_t> > getDtBranchToNetworkBranchMapping(const pll_utree_t &utree,
+        Network &network, size_t tree_idx);
 
 pll_utree_t* displayed_tree_to_utree(Network &network, size_t tree_index);
 std::vector<double> collectBranchLengths(const Network &network);
@@ -36,7 +36,8 @@ void setReticulationParents(BlobInformation &blobInfo, unsigned int megablob_idx
 std::vector<Node*> getPossibleRootNodes(Network &network);
 Node* getPossibleTreeRootNode(Network &network, const std::vector<bool> &dead_nodes);
 
-std::vector<bool> collect_dead_nodes(Network &network, size_t megablobRootClvIndex, Node** displayed_tree_root = nullptr);
+std::vector<bool> collect_dead_nodes(Network &network, size_t megablobRootClvIndex,
+        Node **displayed_tree_root = nullptr);
 std::vector<Node*> grab_current_node_parents(Network &network);
 std::vector<Node*> reversed_topological_sort(Network &network);
 

@@ -52,7 +52,8 @@ Link* getLinkToNode(Network &network, Node *node, Node *target) {
 }
 
 Link* getLinkToNode(Network &network, size_t from_clv_index, size_t to_clv_index) {
-    return getLinkToNode(network, network.nodes_by_index[from_clv_index], network.nodes_by_index[to_clv_index]);
+    return getLinkToNode(network, network.nodes_by_index[from_clv_index],
+            network.nodes_by_index[to_clv_index]);
 }
 
 Node* getReticulationChild(Network &network, const Node *node) {
@@ -151,7 +152,8 @@ std::vector<Node*> getChildren(Network &network, Node *node) {
     } else { // normal node
         std::vector<Node*> neighbors = getNeighbors(network, node);
         for (size_t i = 0; i < neighbors.size(); ++i) {
-            if (getLinkToClvIndex(network, node, neighbors[i]->clv_index)->direction == Direction::OUTGOING) {
+            if (getLinkToClvIndex(network, node, neighbors[i]->clv_index)->direction
+                    == Direction::OUTGOING) {
                 children.push_back(neighbors[i]);
             }
         }
@@ -192,7 +194,8 @@ std::vector<Node*> getActiveChildren(Network &network, Node *node) {
     return activeChildren;
 }
 
-std::vector<Node*> getActiveAliveChildren(Network &network, const std::vector<bool> &dead_nodes, Node *node) {
+std::vector<Node*> getActiveAliveChildren(Network &network, const std::vector<bool> &dead_nodes,
+        Node *node) {
     assert(node);
     std::vector<Node*> activeChildren;
     std::vector<Node*> children = getChildren(network, node);
@@ -220,7 +223,8 @@ std::vector<Node*> getActiveChildrenUndirected(Network &network, Node *node, con
         if (children[i]->getType() == NodeType::RETICULATION_NODE) {
             // we need to check if the child is active, this is, if we are currently the selected parent
             // or we could be the current child...
-            if (node != getReticulationChild(network, children[i]) && getActiveParent(network, children[i]) != node) {
+            if (node != getReticulationChild(network, children[i])
+                    && getActiveParent(network, children[i]) != node) {
                 continue;
             }
         }
@@ -272,7 +276,8 @@ std::vector<Node*> getActiveNeighbors(Network &network, const Node *node) {
                 continue;
             }
         }
-        if (node->getType() == NodeType::RETICULATION_NODE && neighbors[i] != getReticulationChild(network, node)) {
+        if (node->getType() == NodeType::RETICULATION_NODE
+                && neighbors[i] != getReticulationChild(network, node)) {
             if (neighbors[i] != getReticulationActiveParent(network, node)) {
                 continue;
             }
@@ -283,7 +288,8 @@ std::vector<Node*> getActiveNeighbors(Network &network, const Node *node) {
     return activeNeighbors;
 }
 
-std::vector<Node*> getActiveAliveNeighbors(Network &network, const std::vector<bool> &dead_nodes, const Node *node) {
+std::vector<Node*> getActiveAliveNeighbors(Network &network, const std::vector<bool> &dead_nodes,
+        const Node *node) {
     assert(node);
     std::vector<Node*> activeNeighbors;
     std::vector<Node*> neighbors = getNeighbors(network, node);
@@ -298,7 +304,8 @@ std::vector<Node*> getActiveAliveNeighbors(Network &network, const std::vector<b
                 continue;
             }
         }
-        if (node->getType() == NodeType::RETICULATION_NODE && neighbors[i] != getReticulationChild(network, node)) {
+        if (node->getType() == NodeType::RETICULATION_NODE
+                && neighbors[i] != getReticulationChild(network, node)) {
             if (neighbors[i] != getReticulationActiveParent(network, node)) {
                 continue;
             }
@@ -349,7 +356,8 @@ Edge* getEdgeTo(Network &network, const Node *node, const Node *target) {
 }
 
 Edge* getEdgeTo(Network &network, size_t from_clv_index, size_t to_clv_index) {
-    return getEdgeTo(network, network.nodes_by_index[from_clv_index], network.nodes_by_index[to_clv_index]);
+    return getEdgeTo(network, network.nodes_by_index[from_clv_index],
+            network.nodes_by_index[to_clv_index]);
 }
 
 std::vector<Edge*> getAdjacentEdges(Network &network, const Node *node) {
@@ -390,8 +398,8 @@ Link* make_link(Node *node, Edge *edge, Direction dir) {
     return node->addLink(link);
 }
 
-void invalidateHigherClvs(Network &network, pllmod_treeinfo_t *treeinfo, Node *node, bool invalidate_myself,
-        std::vector<bool> &visited) {
+void invalidateHigherClvs(Network &network, pllmod_treeinfo_t *treeinfo, Node *node,
+        bool invalidate_myself, std::vector<bool> &visited) {
     if (!node) {
         return;
     }
@@ -410,8 +418,10 @@ void invalidateHigherClvs(Network &network, pllmod_treeinfo_t *treeinfo, Node *n
         return;
     }
     if (node->type == NodeType::RETICULATION_NODE) {
-        invalidateHigherClvs(network, treeinfo, getReticulationFirstParent(network, node), true, visited);
-        invalidateHigherClvs(network, treeinfo, getReticulationSecondParent(network, node), true, visited);
+        invalidateHigherClvs(network, treeinfo, getReticulationFirstParent(network, node), true,
+                visited);
+        invalidateHigherClvs(network, treeinfo, getReticulationSecondParent(network, node), true,
+                visited);
     } else {
         invalidateHigherClvs(network, treeinfo, getActiveParent(network, node), true, visited);
     }
@@ -429,13 +439,15 @@ void invalidateHigherCLVs(AnnotatedNetwork &ann_network, Node *node, bool invali
     invalidateHigherClvs(ann_network.network, treeinfo, node, invalidate_myself, noVisited);
 }
 
-void invalidatePmatrixIndex(AnnotatedNetwork &ann_network, size_t pmatrix_index, std::vector<bool> &visited) {
+void invalidatePmatrixIndex(AnnotatedNetwork &ann_network, size_t pmatrix_index,
+        std::vector<bool> &visited) {
     pllmod_treeinfo_t *treeinfo = ann_network.fake_treeinfo;
     for (size_t p = 0; p < treeinfo->partition_count; ++p) {
         treeinfo->pmatrix_valid[p][pmatrix_index] = 0;
     }
-    invalidateHigherCLVs(ann_network, getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]),
-            true, visited);
+    invalidateHigherCLVs(ann_network,
+            getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]), true,
+            visited);
 }
 
 void assertReticulationProbs(AnnotatedNetwork &ann_network) {
@@ -446,7 +458,8 @@ void assertReticulationProbs(AnnotatedNetwork &ann_network) {
     }
     for (size_t p = 0; p < n_partitions; ++p) {
         for (size_t i = 0; i < ann_network.network.reticulation_nodes.size(); ++i) {
-            double actProb = getReticulationActiveProb(ann_network.network, ann_network.network.reticulation_nodes[i]);
+            double actProb = getReticulationActiveProb(ann_network.network,
+                    ann_network.network.reticulation_nodes[i]);
             assert(actProb >= 0 && actProb <= 1);
         }
     }

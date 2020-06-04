@@ -46,8 +46,8 @@ pll_operation_t buildOperationInternal(Network &network, Node *parent, Node *chi
     return operation;
 }
 
-pll_operation_t buildOperation(Network &network, Node *actNode, Node *actParent, const std::vector<bool> &dead_nodes,
-        size_t fake_clv_index, size_t fake_pmatrix_index) {
+pll_operation_t buildOperation(Network &network, Node *actNode, Node *actParent,
+        const std::vector<bool> &dead_nodes, size_t fake_clv_index, size_t fake_pmatrix_index) {
     std::vector<Node*> activeChildren = getActiveChildrenUndirected(network, actNode, actParent);
     assert(activeChildren.size() > 0);
     Node *child1 = nullptr;
@@ -58,14 +58,17 @@ pll_operation_t buildOperation(Network &network, Node *actNode, Node *actParent,
     if (activeChildren.size() == 2 && !dead_nodes[activeChildren[1]->clv_index]) {
         child2 = activeChildren[1];
     }
-    return buildOperationInternal(network, actNode, child1, child2, fake_clv_index, fake_pmatrix_index);
+    return buildOperationInternal(network, actNode, child1, child2, fake_clv_index,
+            fake_pmatrix_index);
 }
 
-void createOperationsPostorder(AnnotatedNetwork &ann_network, bool incremental, size_t partition_idx, Node *actNode,
-        Node *parent, std::vector<pll_operation_t> &ops, size_t fake_clv_index, size_t fake_pmatrix_index,
-        const std::vector<bool> &dead_nodes, const std::vector<unsigned int> *stop_indices = nullptr) {
+void createOperationsPostorder(AnnotatedNetwork &ann_network, bool incremental,
+        size_t partition_idx, Node *actNode, Node *parent, std::vector<pll_operation_t> &ops,
+        size_t fake_clv_index, size_t fake_pmatrix_index, const std::vector<bool> &dead_nodes,
+        const std::vector<unsigned int> *stop_indices = nullptr) {
     if (stop_indices
-            && std::find(stop_indices->begin(), stop_indices->end(), actNode->clv_index) != stop_indices->end()) {
+            && std::find(stop_indices->begin(), stop_indices->end(), actNode->clv_index)
+                    != stop_indices->end()) {
         return;
     }
     Network &network = ann_network.network;
@@ -80,8 +83,8 @@ void createOperationsPostorder(AnnotatedNetwork &ann_network, bool incremental, 
     }
     assert(activeChildren.size() <= 2);
     for (size_t i = 0; i < activeChildren.size(); ++i) {
-        createOperationsPostorder(ann_network, incremental, partition_idx, activeChildren[i], actNode, ops,
-                fake_clv_index, fake_pmatrix_index, dead_nodes, stop_indices);
+        createOperationsPostorder(ann_network, incremental, partition_idx, activeChildren[i],
+                actNode, ops, fake_clv_index, fake_pmatrix_index, dead_nodes, stop_indices);
     }
 
     pll_operation_t operation = buildOperation(network, actNode, parent, dead_nodes, fake_clv_index,
@@ -89,8 +92,8 @@ void createOperationsPostorder(AnnotatedNetwork &ann_network, bool incremental, 
     ops.push_back(operation);
 }
 
-void fill_untouched_ops_recursive(Network &network, std::vector<bool> &clv_touched, const std::vector<bool> &dead_nodes,
-        std::vector<pll_operation_t> &ops, Node *node) {
+void fill_untouched_ops_recursive(Network &network, std::vector<bool> &clv_touched,
+        const std::vector<bool> &dead_nodes, std::vector<pll_operation_t> &ops, Node *node) {
     if (clv_touched[node->clv_index]) {
         return;
     }
@@ -100,8 +103,8 @@ void fill_untouched_ops_recursive(Network &network, std::vector<bool> &clv_touch
         fill_untouched_ops_recursive(network, clv_touched, dead_nodes, ops, children[i]);
     }
     ops.emplace_back(
-            buildOperation(network, node, getActiveParent(network, node), dead_nodes, network.nodes.size(),
-                    network.edges.size()));
+            buildOperation(network, node, getActiveParent(network, node), dead_nodes,
+                    network.nodes.size(), network.edges.size()));
 
     clv_touched[node->clv_index] = true;
 }
@@ -141,32 +144,34 @@ std::vector<pll_operation_t> createOperations(AnnotatedNetwork &ann_network, siz
 
         if (displayed_tree_root == network.root) {
             Node *rootBack = getTargetNode(network, network.root->getLink());
-            createOperationsPostorder(ann_network, incremental, partition_idx, rootBack, network.root, ops,
-                    fake_clv_index, fake_pmatrix_index, dead_nodes, &stopIndices);
+            createOperationsPostorder(ann_network, incremental, partition_idx, rootBack,
+                    network.root, ops, fake_clv_index, fake_pmatrix_index, dead_nodes,
+                    &stopIndices);
 
             if (!getActiveChildrenUndirected(network, network.root, rootBack).empty()) {
-                createOperationsPostorder(ann_network, incremental, partition_idx, network.root, rootBack, ops,
-                        fake_clv_index, fake_pmatrix_index, dead_nodes, &stopIndices);
+                createOperationsPostorder(ann_network, incremental, partition_idx, network.root,
+                        rootBack, ops, fake_clv_index, fake_pmatrix_index, dead_nodes,
+                        &stopIndices);
             } else {
                 // special case: the root has a single child.
                 ops.push_back(
-                        buildOperationInternal(network, network.root, rootBack, nullptr, fake_clv_index,
-                                fake_pmatrix_index));
+                        buildOperationInternal(network, network.root, rootBack, nullptr,
+                                fake_clv_index, fake_pmatrix_index));
                 // ignore the branch length from the root to its single active child/ treat it as if it had zero branch length
                 ops[ops.size() - 1].child1_matrix_index = fake_pmatrix_index;
             }
         } else {
             createOperationsPostorder(ann_network, incremental, partition_idx, displayed_tree_root,
-                    parent[displayed_tree_root->clv_index], ops, fake_clv_index, fake_pmatrix_index, dead_nodes,
-                    &stopIndices);
+                    parent[displayed_tree_root->clv_index], ops, fake_clv_index, fake_pmatrix_index,
+                    dead_nodes, &stopIndices);
         }
         if (ops.size() > 0) {
             assert(ops[ops.size() - 1].parent_clv_index == displayed_tree_root->clv_index);
         }
     } else {
         createOperationsPostorder(ann_network, incremental, partition_idx, displayed_tree_root,
-                parent[displayed_tree_root->clv_index], ops, fake_clv_index, fake_pmatrix_index, dead_nodes,
-                &stopIndices);
+                parent[displayed_tree_root->clv_index], ops, fake_clv_index, fake_pmatrix_index,
+                dead_nodes, &stopIndices);
     }
     // printOperationArray(ops);
     return ops;
@@ -184,18 +189,21 @@ Node* getActiveParent(Network &network, Node *actNode, const std::vector<Node*> 
 
 bool isMegablobRoot(AnnotatedNetwork &ann_network, Node *node) {
     assert(node);
-    return (std::find(ann_network.blobInfo.megablob_roots.begin(), ann_network.blobInfo.megablob_roots.end(), node)
+    return (std::find(ann_network.blobInfo.megablob_roots.begin(),
+            ann_network.blobInfo.megablob_roots.end(), node)
             != ann_network.blobInfo.megablob_roots.end());
 }
 
 // forward declaration needed for createOperationsTowardsRoot
-std::vector<pll_operation_t> createOperationsUpdatedReticulation(AnnotatedNetwork &ann_network, size_t partition_idx,
-        const std::vector<Node*> &parent, Node *actNode, const std::vector<bool> &dead_nodes, bool incremental,
-        bool useBlobs, Node *displayed_tree_root);
+std::vector<pll_operation_t> createOperationsUpdatedReticulation(AnnotatedNetwork &ann_network,
+        size_t partition_idx, const std::vector<Node*> &parent, Node *actNode,
+        const std::vector<bool> &dead_nodes, bool incremental, bool useBlobs,
+        Node *displayed_tree_root);
 
-std::vector<pll_operation_t> createOperationsTowardsRoot(AnnotatedNetwork &ann_network, size_t partition_idx,
-        const std::vector<Node*> &parent, Node *actParent, const std::vector<bool> &dead_nodes, bool incremental,
-        bool useBlobs, Node *displayed_tree_root) {
+std::vector<pll_operation_t> createOperationsTowardsRoot(AnnotatedNetwork &ann_network,
+        size_t partition_idx, const std::vector<Node*> &parent, Node *actParent,
+        const std::vector<bool> &dead_nodes, bool incremental, bool useBlobs,
+        Node *displayed_tree_root) {
     Network &network = ann_network.network;
 
     std::vector<pll_operation_t> ops;
@@ -207,11 +215,12 @@ std::vector<pll_operation_t> createOperationsTowardsRoot(AnnotatedNetwork &ann_n
             return ops;
         } else if (actParent->type == NodeType::RETICULATION_NODE) {
             // when our current node is a dead reticulation node, we need to again go up from both its parents, not just from the active parent...
-            return createOperationsUpdatedReticulation(ann_network, partition_idx, parent, actParent, dead_nodes,
-                    incremental, useBlobs, displayed_tree_root);
+            return createOperationsUpdatedReticulation(ann_network, partition_idx, parent,
+                    actParent, dead_nodes, incremental, useBlobs, displayed_tree_root);
         } else {
-            return createOperationsTowardsRoot(ann_network, partition_idx, parent, parent[actParent->clv_index],
-                    dead_nodes, incremental, useBlobs, displayed_tree_root);
+            return createOperationsTowardsRoot(ann_network, partition_idx, parent,
+                    parent[actParent->clv_index], dead_nodes, incremental, useBlobs,
+                    displayed_tree_root);
         }
     }
 
@@ -227,8 +236,8 @@ std::vector<pll_operation_t> createOperationsTowardsRoot(AnnotatedNetwork &ann_n
         if (!incremental || ann_network.network.num_reticulations() != 0
                 || !ann_network.fake_treeinfo->clv_valid[partition_idx][actParent->clv_index]) {
             ops.emplace_back(
-                    buildOperation(network, actParent, parent[actParent->clv_index], dead_nodes, fake_clv_index,
-                            fake_pmatrix_index));
+                    buildOperation(network, actParent, parent[actParent->clv_index], dead_nodes,
+                            fake_clv_index, fake_pmatrix_index));
         }
         actParent = getActiveParent(network, actParent, parent);
     }
@@ -248,7 +257,8 @@ std::vector<pll_operation_t> createOperationsTowardsRoot(AnnotatedNetwork &ann_n
         Node *rootBack = getTargetNode(network, network.root->getLink());
         if (!getActiveChildrenUndirected(network, network.root, rootBack).empty()) {
             ops.push_back(
-                    buildOperation(network, network.root, rootBack, dead_nodes, fake_clv_index, fake_pmatrix_index));
+                    buildOperation(network, network.root, rootBack, dead_nodes, fake_clv_index,
+                            fake_pmatrix_index));
         } else {
             // special case: the root has a single child.
             ops.push_back(
@@ -275,20 +285,21 @@ std::vector<pll_operation_t> createOperationsTowardsRoot(AnnotatedNetwork &ann_n
     return ops;
 }
 
-std::vector<pll_operation_t> createOperationsUpdatedReticulation(AnnotatedNetwork &ann_network, size_t partition_idx,
-        const std::vector<Node*> &parent, Node *actNode, const std::vector<bool> &dead_nodes, bool incremental,
-        bool useBlobs, Node *displayed_tree_root) {
+std::vector<pll_operation_t> createOperationsUpdatedReticulation(AnnotatedNetwork &ann_network,
+        size_t partition_idx, const std::vector<Node*> &parent, Node *actNode,
+        const std::vector<bool> &dead_nodes, bool incremental, bool useBlobs,
+        Node *displayed_tree_root) {
     Network &network = ann_network.network;
     std::vector<pll_operation_t> ops;
 
     Node *firstParent = getReticulationFirstParent(network, actNode);
-    std::vector<pll_operation_t> opsFirst = createOperationsTowardsRoot(ann_network, partition_idx, parent, firstParent,
-            dead_nodes, incremental, useBlobs, displayed_tree_root);
+    std::vector<pll_operation_t> opsFirst = createOperationsTowardsRoot(ann_network, partition_idx,
+            parent, firstParent, dead_nodes, incremental, useBlobs, displayed_tree_root);
     //std::cout << "opsFirst:\n";
     //printOperationArray(opsFirst);
     Node *secondParent = getReticulationSecondParent(network, actNode);
-    std::vector<pll_operation_t> opsSecond = createOperationsTowardsRoot(ann_network, partition_idx, parent,
-            secondParent, dead_nodes, incremental, useBlobs, displayed_tree_root);
+    std::vector<pll_operation_t> opsSecond = createOperationsTowardsRoot(ann_network, partition_idx,
+            parent, secondParent, dead_nodes, incremental, useBlobs, displayed_tree_root);
     //std::cout << "opsSecond:\n";
     //printOperationArray(opsSecond);
     //std::cout << "\n";
@@ -325,12 +336,12 @@ std::vector<pll_operation_t> createOperations(AnnotatedNetwork &ann_network, siz
         Node *rootBack = getTargetNode(network, network.root->getLink());
         // How to do the operations at the top-level root trifurcation?
         // First with root->back, then with root...
-        createOperationsPostorder(ann_network, incremental, partition_idx, rootBack, network.root, ops, fake_clv_index,
-                fake_pmatrix_index, dead_nodes);
+        createOperationsPostorder(ann_network, incremental, partition_idx, rootBack, network.root,
+                ops, fake_clv_index, fake_pmatrix_index, dead_nodes);
 
         if (!getActiveChildrenUndirected(network, network.root, rootBack).empty()) {
-            createOperationsPostorder(ann_network, incremental, partition_idx, network.root, rootBack, ops,
-                    fake_clv_index, fake_pmatrix_index, dead_nodes);
+            createOperationsPostorder(ann_network, incremental, partition_idx, network.root,
+                    rootBack, ops, fake_clv_index, fake_pmatrix_index, dead_nodes);
         } else {
             // special case: the root has a single child.
             ops.push_back(
@@ -341,7 +352,8 @@ std::vector<pll_operation_t> createOperations(AnnotatedNetwork &ann_network, siz
         }
     } else {
         createOperationsPostorder(ann_network, incremental, partition_idx, displayed_tree_root,
-                getActiveParent(network, displayed_tree_root), ops, fake_clv_index, fake_pmatrix_index, dead_nodes);
+                getActiveParent(network, displayed_tree_root), ops, fake_clv_index,
+                fake_pmatrix_index, dead_nodes);
     }
 
     if (ops.size() > 0) {
@@ -351,19 +363,22 @@ std::vector<pll_operation_t> createOperations(AnnotatedNetwork &ann_network, siz
     return ops;
 }
 
-double displayed_tree_prob(AnnotatedNetwork &ann_network, size_t tree_index, size_t partition_index) {
+double displayed_tree_prob(AnnotatedNetwork &ann_network, size_t tree_index,
+        size_t partition_index) {
     Network &network = ann_network.network;
     setReticulationParents(network, tree_index);
     double logProb = 0;
     for (size_t i = 0; i < network.num_reticulations(); ++i) {
-        size_t active_pmatrix_idx = getReticulationActiveParentPmatrixIndex(network.reticulation_nodes[i]);
+        size_t active_pmatrix_idx = getReticulationActiveParentPmatrixIndex(
+                network.reticulation_nodes[i]);
         double prob = ann_network.branch_probs[partition_index][active_pmatrix_idx];
         logProb += log(prob);
     }
     return exp(logProb);
 }
 
-double displayed_tree_blob_prob(AnnotatedNetwork &ann_network, size_t megablob_idx, size_t partition_index) {
+double displayed_tree_blob_prob(AnnotatedNetwork &ann_network, size_t megablob_idx,
+        size_t partition_index) {
     BlobInformation &blobInfo = ann_network.blobInfo;
     double logProb = 0;
     for (size_t i = 0; i < blobInfo.reticulation_nodes_per_megablob[megablob_idx].size(); ++i) {
@@ -375,19 +390,21 @@ double displayed_tree_blob_prob(AnnotatedNetwork &ann_network, size_t megablob_i
     return exp(logProb);
 }
 
-double compute_tree_logl(AnnotatedNetwork &ann_network, std::vector<bool> &clv_touched, std::vector<bool> &dead_nodes,
-        Node *displayed_tree_root, size_t partition_idx, std::vector<double> *persite_logl,
-        const std::vector<Node*> &parent, Node *startNode = nullptr, bool incremental = true) {
+double compute_tree_logl(AnnotatedNetwork &ann_network, std::vector<bool> &clv_touched,
+        std::vector<bool> &dead_nodes, Node *displayed_tree_root, size_t partition_idx,
+        std::vector<double> *persite_logl, const std::vector<Node*> &parent, Node *startNode =
+                nullptr, bool incremental = true) {
     Network &network = ann_network.network;
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
 
 // Create pll_operations_t array for the current displayed tree
     std::vector<pll_operation_t> ops;
     if (startNode) {
-        ops = createOperationsUpdatedReticulation(ann_network, partition_idx, parent, startNode, dead_nodes,
-                incremental, false, displayed_tree_root);
+        ops = createOperationsUpdatedReticulation(ann_network, partition_idx, parent, startNode,
+                dead_nodes, incremental, false, displayed_tree_root);
     } else {
-        ops = createOperations(ann_network, partition_idx, dead_nodes, incremental, displayed_tree_root);
+        ops = createOperations(ann_network, partition_idx, dead_nodes, incremental,
+                displayed_tree_root);
     }
     unsigned int ops_count = ops.size();
 
@@ -407,33 +424,35 @@ double compute_tree_logl(AnnotatedNetwork &ann_network, std::vector<bool> &clv_t
     double tree_partition_logl;
     Node *rootBack = getTargetNode(network, network.root->getLink());
     if (displayed_tree_root == network.root && !dead_nodes[rootBack->clv_index]) {
-        tree_partition_logl = pll_compute_edge_loglikelihood(fake_treeinfo.partitions[partition_idx],
-                ops_root->clv_index, ops_root->scaler_index, rootBack->clv_index, rootBack->scaler_index,
+        tree_partition_logl = pll_compute_edge_loglikelihood(
+                fake_treeinfo.partitions[partition_idx], ops_root->clv_index,
+                ops_root->scaler_index, rootBack->clv_index, rootBack->scaler_index,
                 ops_root->getLink()->edge_pmatrix_index, fake_treeinfo.param_indices[partition_idx],
                 persite_logl->empty() ? nullptr : persite_logl->data());
     } else {
-        tree_partition_logl = pll_compute_root_loglikelihood(fake_treeinfo.partitions[partition_idx],
-                ops_root->clv_index, ops_root->scaler_index, fake_treeinfo.param_indices[partition_idx],
+        tree_partition_logl = pll_compute_root_loglikelihood(
+                fake_treeinfo.partitions[partition_idx], ops_root->clv_index,
+                ops_root->scaler_index, fake_treeinfo.param_indices[partition_idx],
                 persite_logl->empty() ? nullptr : persite_logl->data());
     }
     return tree_partition_logl;
 }
 
 void compute_tree_logl_blobs(AnnotatedNetwork &ann_network, std::vector<bool> &clv_touched,
-        std::vector<bool> &dead_nodes, Node *displayed_tree_root, bool incremental, const std::vector<Node*> &parent,
-        pllmod_treeinfo_t &fake_treeinfo, size_t megablob_idx, size_t partition_idx, std::vector<double> *persite_logl,
-        Node *startNode = nullptr) {
+        std::vector<bool> &dead_nodes, Node *displayed_tree_root, bool incremental,
+        const std::vector<Node*> &parent, pllmod_treeinfo_t &fake_treeinfo, size_t megablob_idx,
+        size_t partition_idx, std::vector<double> *persite_logl, Node *startNode = nullptr) {
     Network &network = ann_network.network;
     BlobInformation &blobInfo = ann_network.blobInfo;
 
 // Create pll_operations_t array for the current displayed tree
     std::vector<pll_operation_t> ops;
     if (startNode) {
-        ops = createOperationsUpdatedReticulation(ann_network, partition_idx, parent, startNode, dead_nodes,
-                incremental, true, displayed_tree_root);
+        ops = createOperationsUpdatedReticulation(ann_network, partition_idx, parent, startNode,
+                dead_nodes, incremental, true, displayed_tree_root);
     } else {
-        ops = createOperations(ann_network, partition_idx, parent, blobInfo, megablob_idx, dead_nodes, incremental,
-                displayed_tree_root);
+        ops = createOperations(ann_network, partition_idx, parent, blobInfo, megablob_idx,
+                dead_nodes, incremental, displayed_tree_root);
     }
     unsigned int ops_count = ops.size();
     if (ops_count == 0) {
@@ -465,13 +484,15 @@ void compute_tree_logl_blobs(AnnotatedNetwork &ann_network, std::vector<bool> &c
     if (persite_logl != nullptr) {
         Node *rootBack = getTargetNode(network, ops_root->getLink());
         if (ops_root == network.root && !dead_nodes[rootBack->clv_index]) {
-            pll_compute_edge_loglikelihood(fake_treeinfo.partitions[partition_idx], ops_root->clv_index,
-                    ops_root->scaler_index, rootBack->clv_index, rootBack->scaler_index,
-                    ops_root->getLink()->edge_pmatrix_index, fake_treeinfo.param_indices[partition_idx],
+            pll_compute_edge_loglikelihood(fake_treeinfo.partitions[partition_idx],
+                    ops_root->clv_index, ops_root->scaler_index, rootBack->clv_index,
+                    rootBack->scaler_index, ops_root->getLink()->edge_pmatrix_index,
+                    fake_treeinfo.param_indices[partition_idx],
                     persite_logl->empty() ? nullptr : persite_logl->data());
         } else {
-            pll_compute_root_loglikelihood(fake_treeinfo.partitions[partition_idx], ops_root->clv_index,
-                    ops_root->scaler_index, fake_treeinfo.param_indices[partition_idx],
+            pll_compute_root_loglikelihood(fake_treeinfo.partitions[partition_idx],
+                    ops_root->clv_index, ops_root->scaler_index,
+                    fake_treeinfo.param_indices[partition_idx],
                     persite_logl->empty() ? nullptr : persite_logl->data());
         }
     }
@@ -482,14 +503,16 @@ void setup_pmatrices(AnnotatedNetwork &ann_network, int incremental, int update_
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
     /* NOTE: in unlinked brlen mode, up-to-date brlens for partition p
      * have to be prefetched to treeinfo->branch_lengths[p] !!! */
-    bool collect_brlen = (fake_treeinfo.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED ? false : true);
+    bool collect_brlen =
+            (fake_treeinfo.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED ? false : true);
     if (collect_brlen) {
         for (size_t i = 0; i < network.edges.size() + 1; ++i) { // +1 for the the fake entry
             fake_treeinfo.branch_lengths[0][i] = 0.0;
             ann_network.branch_probs[0][i] = 1.0;
         }
         for (size_t i = 0; i < network.num_branches(); ++i) {
-            fake_treeinfo.branch_lengths[0][network.edges[i].pmatrix_index] = network.edges[i].length;
+            fake_treeinfo.branch_lengths[0][network.edges[i].pmatrix_index] =
+                    network.edges[i].length;
             ann_network.branch_probs[0][network.edges[i].pmatrix_index] = network.edges[i].prob;
         }
         if (update_pmatrices) {
@@ -509,8 +532,9 @@ struct BestPersiteLoglikelihoodData {
     }
 };
 
-void updateBestPersiteLoglikelihoods(unsigned int treeIdx, unsigned int num_reticulations, unsigned int numSites,
-        std::vector<BestPersiteLoglikelihoodData> &best_persite_logl_network, const std::vector<double> &persite_logl) {
+void updateBestPersiteLoglikelihoods(unsigned int treeIdx, unsigned int num_reticulations,
+        unsigned int numSites, std::vector<BestPersiteLoglikelihoodData> &best_persite_logl_network,
+        const std::vector<double> &persite_logl) {
     for (size_t s = 0; s < numSites; ++s) {
         if (best_persite_logl_network[s].best_site_logl < persite_logl[s]) {
             std::fill(best_persite_logl_network[s].first_parent_taken_for_best_cnt.begin(),
@@ -527,9 +551,10 @@ void updateBestPersiteLoglikelihoods(unsigned int treeIdx, unsigned int num_reti
     }
 }
 
-void updateBestPersiteLoglikelihoodsBlobs(Network &network, const BlobInformation &blobInfo, unsigned int megablob_idx,
-        unsigned int treeIdx, unsigned int numSites,
-        std::vector<BestPersiteLoglikelihoodData> &best_persite_logl_network, const std::vector<double> &persite_logl) {
+void updateBestPersiteLoglikelihoodsBlobs(Network &network, const BlobInformation &blobInfo,
+        unsigned int megablob_idx, unsigned int treeIdx, unsigned int numSites,
+        std::vector<BestPersiteLoglikelihoodData> &best_persite_logl_network,
+        const std::vector<double> &persite_logl) {
     for (size_t s = 0; s < numSites; ++s) {
         if (best_persite_logl_network[s].best_site_logl < persite_logl[s]) {
             std::fill(best_persite_logl_network[s].first_parent_taken_for_best_cnt.begin(),
@@ -537,11 +562,13 @@ void updateBestPersiteLoglikelihoodsBlobs(Network &network, const BlobInformatio
             best_persite_logl_network[s].best_site_logl = persite_logl[s];
         }
         if (best_persite_logl_network[s].best_site_logl == persite_logl[s]) {
-            size_t num_reticulations = blobInfo.reticulation_nodes_per_megablob[megablob_idx].size();
+            size_t num_reticulations =
+                    blobInfo.reticulation_nodes_per_megablob[megablob_idx].size();
             for (size_t r = 0; r < num_reticulations; ++r) {
                 if (treeIdx & (1 << r)) {
                     size_t retIdxInNetwork = 0;
-                    unsigned int retClVIdx = blobInfo.reticulation_nodes_per_megablob[megablob_idx][r]->clv_index;
+                    unsigned int retClVIdx =
+                            blobInfo.reticulation_nodes_per_megablob[megablob_idx][r]->clv_index;
                     for (size_t i = 0; i < network.num_reticulations(); ++i) {
                         if (network.reticulation_nodes[i]->clv_index == retClVIdx) {
                             retIdxInNetwork = i;
@@ -555,8 +582,9 @@ void updateBestPersiteLoglikelihoodsBlobs(Network &network, const BlobInformatio
     }
 }
 
-void update_total_taken(std::vector<unsigned int> &totalTaken, std::vector<unsigned int> &totalNotTaken,
-        bool unlinked_mode, unsigned int numSites, unsigned int num_reticulations,
+void update_total_taken(std::vector<unsigned int> &totalTaken,
+        std::vector<unsigned int> &totalNotTaken, bool unlinked_mode, unsigned int numSites,
+        unsigned int num_reticulations,
         const std::vector<BestPersiteLoglikelihoodData> &best_persite_logl_network) {
     if (unlinked_mode) {
         std::fill(totalTaken.begin(), totalTaken.end(), 0);
@@ -566,23 +594,27 @@ void update_total_taken(std::vector<unsigned int> &totalTaken, std::vector<unsig
     for (size_t s = 0; s < numSites; ++s) {
         for (size_t r = 0; r < num_reticulations; ++r) {
             totalTaken[r] += best_persite_logl_network[s].first_parent_taken_for_best_cnt[r];
-            totalNotTaken[r] += n_trees - best_persite_logl_network[s].first_parent_taken_for_best_cnt[r];
+            totalNotTaken[r] += n_trees
+                    - best_persite_logl_network[s].first_parent_taken_for_best_cnt[r];
         }
     }
 }
 
-bool update_probs(AnnotatedNetwork &ann_network, unsigned int partitionIdx, const std::vector<unsigned int> &totalTaken,
+bool update_probs(AnnotatedNetwork &ann_network, unsigned int partitionIdx,
+        const std::vector<unsigned int> &totalTaken,
         const std::vector<unsigned int> &totalNotTaken) {
     Network &network = ann_network.network;
     bool reticulationProbsHaveChanged = false;
     for (size_t r = 0; r < network.num_reticulations(); ++r) {
         double newProb = (double) totalTaken[r] / (totalTaken[r] + totalNotTaken[r]); // Percentage of sites that were maximized when taking this reticulation
 
-        size_t first_parent_pmatrix_index = getReticulationFirstParentPmatrixIndex(network.reticulation_nodes[r]);
+        size_t first_parent_pmatrix_index = getReticulationFirstParentPmatrixIndex(
+                network.reticulation_nodes[r]);
         double oldProb = ann_network.branch_probs[partitionIdx][first_parent_pmatrix_index];
 
         if (newProb != oldProb) {
-            size_t second_parent_pmatrix_index = getReticulationSecondParentPmatrixIndex(network.reticulation_nodes[r]);
+            size_t second_parent_pmatrix_index = getReticulationSecondParentPmatrixIndex(
+                    network.reticulation_nodes[r]);
             ann_network.branch_probs[partitionIdx][first_parent_pmatrix_index] = newProb;
             ann_network.branch_probs[partitionIdx][second_parent_pmatrix_index] = 1.0 - newProb;
             reticulationProbsHaveChanged = true;
@@ -591,8 +623,8 @@ bool update_probs(AnnotatedNetwork &ann_network, unsigned int partitionIdx, cons
     return reticulationProbsHaveChanged;
 }
 
-void merge_tree_clvs(const std::vector<std::pair<double, std::vector<double>>> &tree_clvs, pll_partition_t *partition,
-        unsigned int rootCLVIndex) {
+void merge_tree_clvs(const std::vector<std::pair<double, std::vector<double>>> &tree_clvs,
+        pll_partition_t *partition, unsigned int rootCLVIndex) {
     unsigned int states_padded = partition->states_padded;
     unsigned int sites = partition->sites;
     unsigned int rate_cats = partition->rate_cats;
@@ -609,10 +641,11 @@ void merge_tree_clvs(const std::vector<std::pair<double, std::vector<double>>> &
 }
 
 //size_t dbg = 0;
-std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsigned int partitionIdx,
-        const std::vector<Node*> &parent, bool update_reticulation_probs, unsigned int numSites,
-        std::vector<bool> &clv_touched, std::vector<BestPersiteLoglikelihoodData> &best_persite_logl_network,
-        bool incremental, std::vector<bool> *touched) {
+std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network,
+        unsigned int partitionIdx, const std::vector<Node*> &parent, bool update_reticulation_probs,
+        unsigned int numSites, std::vector<bool> &clv_touched,
+        std::vector<BestPersiteLoglikelihoodData> &best_persite_logl_network, bool incremental,
+        std::vector<bool> *touched) {
     //std::cout << dbg << "\n";
     //dbg++;
     //if (dbg == 2053) {
@@ -636,7 +669,8 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
     for (size_t megablob_idx = 0; megablob_idx < blobInfo.megablob_roots.size(); ++megablob_idx) {
         unsigned int megablobRootClvIdx = blobInfo.megablob_roots[megablob_idx]->clv_index;
         if (incremental && megablobRootClvIdx != network.root->clv_index
-                && fake_treeinfo.clv_valid[partitionIdx][megablobRootClvIdx] && !update_reticulation_probs) {
+                && fake_treeinfo.clv_valid[partitionIdx][megablobRootClvIdx]
+                && !update_reticulation_probs) {
             continue;
         }
 
@@ -660,7 +694,8 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
                     size_t onlyChangedBit = treeIdx ^ lastTreeIdx;
                     size_t changedBitPos = log2(onlyChangedBit);
                     bool changedBitIsSet = treeIdx & onlyChangedBit;
-                    startNode = blobInfo.reticulation_nodes_per_megablob[megablob_idx][changedBitPos];
+                    startNode =
+                            blobInfo.reticulation_nodes_per_megablob[megablob_idx][changedBitPos];
                     startNode->getReticulationData()->setActiveParentToggle(changedBitIsSet);
                     //std::cout << "startNode: " << startNode->clv_index << ", tree_idx: " << treeIdx << "\n";
                 } else {
@@ -677,7 +712,8 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
                 continue;
             }
             Node *displayed_tree_root = nullptr;
-            std::vector<bool> dead_nodes = collect_dead_nodes(network, megablobRootClvIdx, &displayed_tree_root);
+            std::vector<bool> dead_nodes = collect_dead_nodes(network, megablobRootClvIdx,
+                    &displayed_tree_root);
             //print_dead_nodes(network, dead_nodes);
             std::vector<double> persite_logl(fake_treeinfo.partitions[partitionIdx]->sites, 0.0);
 
@@ -685,11 +721,13 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
                 persite_logl = old_persite_logl;
             } else {
                 if (startNode && !clv_touched[startNode->clv_index]) {
-                    fill_untouched_clvs(ann_network, clv_touched, dead_nodes, partitionIdx, startNode);
+                    fill_untouched_clvs(ann_network, clv_touched, dead_nodes, partitionIdx,
+                            startNode);
                     assert(clv_touched[startNode->clv_index]);
                 }
-                compute_tree_logl_blobs(ann_network, clv_touched, dead_nodes, displayed_tree_root, incremental, parent,
-                        fake_treeinfo, megablob_idx, partitionIdx, &persite_logl, startNode);
+                compute_tree_logl_blobs(ann_network, clv_touched, dead_nodes, displayed_tree_root,
+                        incremental, parent, fake_treeinfo, megablob_idx, partitionIdx,
+                        &persite_logl, startNode);
                 old_persite_logl = persite_logl;
             }
 
@@ -701,8 +739,8 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
             }
 
             if (update_reticulation_probs) { // TODO: Only do this if we weren't at a leaf
-                updateBestPersiteLoglikelihoodsBlobs(network, blobInfo, megablob_idx, treeIdx, numSites,
-                        best_persite_logl_network, persite_logl);
+                updateBestPersiteLoglikelihoodsBlobs(network, blobInfo, megablob_idx, treeIdx,
+                        numSites, best_persite_logl_network, persite_logl);
             }
             if (megablobRootClvIdx == network.root->clv_index) { // we have reached the overall network root
                 if (!wasPruned[megablob_idx]) {
@@ -732,7 +770,9 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
     }
 
     if (wasPruned[blobInfo.megablob_roots.size() - 1]) {
-        assert(blobInfo.megablob_roots[blobInfo.megablob_roots.size() - 1]->clv_index == network.root->clv_index);
+        assert(
+                blobInfo.megablob_roots[blobInfo.megablob_roots.size() - 1]->clv_index
+                        == network.root->clv_index);
         bool foundUnpruned = false;
         unsigned int megablobRootClvIdx;
         for (int i = blobInfo.megablob_roots.size() - 2; i >= 0; --i) {
@@ -744,9 +784,10 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
         }
         assert(clv_touched[megablobRootClvIdx]);
         std::vector<double> persite_logl(fake_treeinfo.partitions[partitionIdx]->sites, 0.0);
-        pll_compute_edge_loglikelihood(fake_treeinfo.partitions[partitionIdx], network.nodes.size(), -1,
-                megablobRootClvIdx, network.nodes_by_index[megablobRootClvIdx]->scaler_index, network.edges.size(),
-                fake_treeinfo.param_indices[partitionIdx], persite_logl.data());
+        pll_compute_edge_loglikelihood(fake_treeinfo.partitions[partitionIdx], network.nodes.size(),
+                -1, megablobRootClvIdx, network.nodes_by_index[megablobRootClvIdx]->scaler_index,
+                network.edges.size(), fake_treeinfo.param_indices[partitionIdx],
+                persite_logl.data());
         assert(foundUnpruned);
         for (size_t s = 0; s < numSites; ++s) {
             persite_lh_network[s] += exp(persite_logl[s]);
@@ -766,14 +807,14 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
      }*/
 
     /*for (size_t i = 0; i < network.num_nodes(); ++i) {
-        unsigned int clv_idx = network.nodes[i].clv_index;
+     unsigned int clv_idx = network.nodes[i].clv_index;
 
-        std::cout << "fake debug clv logl at index " << clv_idx << ":\n";
-        double clv_logl = pll_compute_edge_loglikelihood(fake_treeinfo.partitions[partitionIdx],
-                network.nodes.size(), -1, clv_idx, network.nodes_by_index[clv_idx]->scaler_index,
-                network.edges.size(), fake_treeinfo.param_indices[partitionIdx], nullptr);
-        std::cout << clv_logl << "\n";
-    }*/
+     std::cout << "fake debug clv logl at index " << clv_idx << ":\n";
+     double clv_logl = pll_compute_edge_loglikelihood(fake_treeinfo.partitions[partitionIdx],
+     network.nodes.size(), -1, clv_idx, network.nodes_by_index[clv_idx]->scaler_index,
+     network.edges.size(), fake_treeinfo.param_indices[partitionIdx], nullptr);
+     std::cout << clv_logl << "\n";
+     }*/
 
     if (touched) {
         *touched = clv_touched;
@@ -782,8 +823,9 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network, unsi
 }
 
 std::vector<double> compute_persite_lh(AnnotatedNetwork &ann_network, unsigned int partitionIdx,
-        const std::vector<Node*> &parent, bool unlinked_mode, bool update_reticulation_probs, unsigned int numSites,
-        std::vector<bool> &clv_touched, std::vector<BestPersiteLoglikelihoodData> &best_persite_logl_network,
+        const std::vector<Node*> &parent, bool unlinked_mode, bool update_reticulation_probs,
+        unsigned int numSites, std::vector<bool> &clv_touched,
+        std::vector<BestPersiteLoglikelihoodData> &best_persite_logl_network,
         std::vector<bool> *touched, std::vector<double> *treewise_logl = nullptr) {
     Network &network = ann_network.network;
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
@@ -815,7 +857,8 @@ std::vector<double> compute_persite_lh(AnnotatedNetwork &ann_network, unsigned i
         } else {
             setReticulationParents(network, treeIdx);
         }
-        double tree_prob = displayed_tree_prob(ann_network, treeIdx, unlinked_mode ? 0 : partitionIdx);
+        double tree_prob = displayed_tree_prob(ann_network, treeIdx,
+                unlinked_mode ? 0 : partitionIdx);
         /*if (n_trees == 1) {
          std::cout << "repeat case\n";
          tree_prob = 1.0;
@@ -825,7 +868,8 @@ std::vector<double> compute_persite_lh(AnnotatedNetwork &ann_network, unsigned i
         }
 
         Node *displayed_tree_root = nullptr;
-        std::vector<bool> dead_nodes = collect_dead_nodes(network, network.root->clv_index, &displayed_tree_root);
+        std::vector<bool> dead_nodes = collect_dead_nodes(network, network.root->clv_index,
+                &displayed_tree_root);
 
         std::vector<double> persite_logl(fake_treeinfo.partitions[partitionIdx]->sites, 0.0);
         double tree_logl;
@@ -837,8 +881,8 @@ std::vector<double> compute_persite_lh(AnnotatedNetwork &ann_network, unsigned i
                 fill_untouched_clvs(ann_network, clv_touched, dead_nodes, partitionIdx, startNode);
                 assert(clv_touched[startNode->clv_index]);
             }
-            tree_logl = compute_tree_logl(ann_network, clv_touched, dead_nodes, displayed_tree_root, partitionIdx,
-                    &persite_logl, parent, startNode);
+            tree_logl = compute_tree_logl(ann_network, clv_touched, dead_nodes, displayed_tree_root,
+                    partitionIdx, &persite_logl, parent, startNode);
             old_persite_logl = persite_logl;
             old_tree_logl = tree_logl;
         }
@@ -851,8 +895,8 @@ std::vector<double> compute_persite_lh(AnnotatedNetwork &ann_network, unsigned i
         }
 
         if (update_reticulation_probs) {
-            updateBestPersiteLoglikelihoods(treeIdx, network.num_reticulations(), numSites, best_persite_logl_network,
-                    persite_logl);
+            updateBestPersiteLoglikelihoods(treeIdx, network.num_reticulations(), numSites,
+                    best_persite_logl_network, persite_logl);
         }
     }
 
@@ -863,8 +907,9 @@ std::vector<double> compute_persite_lh(AnnotatedNetwork &ann_network, unsigned i
 }
 
 double processPartition(AnnotatedNetwork &ann_network, unsigned int partition_idx, int incremental,
-        bool update_reticulation_probs, std::vector<unsigned int> &totalTaken, std::vector<unsigned int> &totalNotTaken,
-        bool unlinked_mode, bool &reticulationProbsHaveChanged, std::vector<double> *treewise_logl,
+        bool update_reticulation_probs, std::vector<unsigned int> &totalTaken,
+        std::vector<unsigned int> &totalNotTaken, bool unlinked_mode,
+        bool &reticulationProbsHaveChanged, std::vector<double> *treewise_logl,
         std::vector<bool> *touched) {
     Network &network = ann_network.network;
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
@@ -906,13 +951,15 @@ double processPartition(AnnotatedNetwork &ann_network, unsigned int partition_id
 
     if (!useBlobs) {
         persite_lh_network = compute_persite_lh(ann_network, partition_idx, parent, unlinked_mode,
-                update_reticulation_probs, numSites, clv_touched, best_persite_logl_network, touched, treewise_logl);
+                update_reticulation_probs, numSites, clv_touched, best_persite_logl_network,
+                touched, treewise_logl);
     } else {
         if (treewise_logl) {
             throw std::runtime_error("Can't compute treewise logl with the blob optimization");
         }
-        persite_lh_network = compute_persite_lh_blobs(ann_network, partition_idx, parent, update_reticulation_probs,
-                numSites, clv_touched, best_persite_logl_network, useIncrementalClv, touched);
+        persite_lh_network = compute_persite_lh_blobs(ann_network, partition_idx, parent,
+                update_reticulation_probs, numSites, clv_touched, best_persite_logl_network,
+                useIncrementalClv, touched);
     }
 
     double network_partition_logl = 0.0;
@@ -924,10 +971,11 @@ double processPartition(AnnotatedNetwork &ann_network, unsigned int partition_id
     fake_treeinfo.partition_loglh[partition_idx] = network_partition_logl;
 
     if (update_reticulation_probs) {
-        update_total_taken(totalTaken, totalNotTaken, unlinked_mode, numSites, network.num_reticulations(),
-                best_persite_logl_network);
+        update_total_taken(totalTaken, totalNotTaken, unlinked_mode, numSites,
+                network.num_reticulations(), best_persite_logl_network);
         if (unlinked_mode) {
-            reticulationProbsHaveChanged = update_probs(ann_network, partition_idx, totalTaken, totalNotTaken);
+            reticulationProbsHaveChanged = update_probs(ann_network, partition_idx, totalTaken,
+                    totalNotTaken);
         }
     }
 
@@ -955,11 +1003,12 @@ double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int 
     //print_brlens(ann_network);
 
     // special case: root node has a valid merged clv already
-    if (ann_network.options.use_incremental & incremental & fake_treeinfo.clv_valid[0][network.root->clv_index]
-            & !update_reticulation_probs) {
+    if (ann_network.options.use_incremental & incremental
+            & fake_treeinfo.clv_valid[0][network.root->clv_index] & !update_reticulation_probs) {
         return ann_network.old_logl;
     }
-    setup_pmatrices(ann_network, incremental & ann_network.options.use_incremental, update_pmatrices);
+    setup_pmatrices(ann_network, incremental & ann_network.options.use_incremental,
+            update_pmatrices);
     const int old_active_partition = fake_treeinfo.active_partition;
     fake_treeinfo.active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
     bool unlinked_mode = (fake_treeinfo.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
@@ -993,12 +1042,13 @@ double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int 
             touched_ptr = &touched;
         }
         if (treewise_logl) {
-            network_partition_logl = processPartition(ann_network, partitionIdx, incremental, update_reticulation_probs,
-                    totalTaken, totalNotTaken, unlinked_mode, reticulationProbsHaveChanged, &treewise_partition_logl,
-                    touched_ptr);
+            network_partition_logl = processPartition(ann_network, partitionIdx, incremental,
+                    update_reticulation_probs, totalTaken, totalNotTaken, unlinked_mode,
+                    reticulationProbsHaveChanged, &treewise_partition_logl, touched_ptr);
         } else {
-            network_partition_logl = processPartition(ann_network, partitionIdx, incremental, update_reticulation_probs,
-                    totalTaken, totalNotTaken, unlinked_mode, reticulationProbsHaveChanged, nullptr, touched_ptr);
+            network_partition_logl = processPartition(ann_network, partitionIdx, incremental,
+                    update_reticulation_probs, totalTaken, totalNotTaken, unlinked_mode,
+                    reticulationProbsHaveChanged, nullptr, touched_ptr);
         }
 
         network_logl += network_partition_logl;
@@ -1042,8 +1092,8 @@ double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int 
     }
 }
 
-double computeLoglikelihoodNaiveUtree(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices,
-        std::vector<double> *treewise_logl) {
+double computeLoglikelihoodNaiveUtree(AnnotatedNetwork &ann_network, int incremental,
+        int update_pmatrices, std::vector<double> *treewise_logl) {
     (void) incremental;
     (void) update_pmatrices;
 

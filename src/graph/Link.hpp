@@ -14,7 +14,8 @@
 namespace netrax {
 
 struct Link { // subnode in raxml-ng
-    void init(unsigned int node_clv_index, unsigned int edge_pmatrix_index, Link *next, Link *outer, Direction direction) {
+    void init(unsigned int node_clv_index, unsigned int edge_pmatrix_index, Link *next, Link *outer,
+            Direction direction) {
         this->node_clv_index = node_clv_index;
         this->edge_pmatrix_index = edge_pmatrix_index;
         this->next = next;

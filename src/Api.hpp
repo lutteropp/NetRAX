@@ -20,11 +20,16 @@ struct AnnotatedNetwork;
 class NetraxOptions;
 
 AnnotatedNetwork build_annotated_network(const NetraxOptions &options);
-AnnotatedNetwork build_annotated_network_from_string(const NetraxOptions &options, const std::string& newickString);
-AnnotatedNetwork build_annotated_network_from_utree(const NetraxOptions &options, const pll_utree_t &utree);
-AnnotatedNetwork build_random_annotated_network(const NetraxOptions &options, unsigned int start_reticulations = 0);
-AnnotatedNetwork build_parsimony_annotated_network(const NetraxOptions &options, unsigned int start_reticulations = 0);
-AnnotatedNetwork build_best_raxml_annotated_network(const NetraxOptions &options, unsigned int start_reticulations = 0);
+AnnotatedNetwork build_annotated_network_from_string(const NetraxOptions &options,
+        const std::string &newickString);
+AnnotatedNetwork build_annotated_network_from_utree(const NetraxOptions &options,
+        const pll_utree_t &utree);
+AnnotatedNetwork build_random_annotated_network(const NetraxOptions &options,
+        unsigned int start_reticulations = 0);
+AnnotatedNetwork build_parsimony_annotated_network(const NetraxOptions &options,
+        unsigned int start_reticulations = 0);
+AnnotatedNetwork build_best_raxml_annotated_network(const NetraxOptions &options,
+        unsigned int start_reticulations = 0);
 double computeLoglikelihood(AnnotatedNetwork &ann_network);
 double updateReticulationProbs(AnnotatedNetwork &ann_network);
 double optimizeModel(AnnotatedNetwork &ann_network);

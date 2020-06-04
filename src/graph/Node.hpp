@@ -30,7 +30,8 @@ public:
             links.reserve(1);
         }
     }
-    void initReticulation(size_t index, int scaler_index, const std::string &label, const ReticulationData &retData) {
+    void initReticulation(size_t index, int scaler_index, const std::string &label,
+            const ReticulationData &retData) {
         this->clv_index = index;
         this->scaler_index = scaler_index;
         this->label = label;

@@ -152,7 +152,8 @@ void extendReticulationNodeFromString(const std::string &str, RootedNetworkNode 
 
 RootedNetworkNode* buildNodeFromString(const std::string &str, RootedNetworkNode *parent,
         std::vector<std::unique_ptr<RootedNetworkNode> > &nodeList,
-        std::unordered_map<std::string, RootedNetworkNode*> &reticulations, size_t *num_reticulations) {
+        std::unordered_map<std::string, RootedNetworkNode*> &reticulations,
+        size_t *num_reticulations) {
     size_t hashtagIndex = str.find('#');
     if (hashtagIndex != std::string::npos) {
         std::string reticulationName = parseReticulationNameFromString(str);
@@ -160,7 +161,8 @@ RootedNetworkNode* buildNodeFromString(const std::string &str, RootedNetworkNode
             extendReticulationNodeFromString(str, reticulations[reticulationName], parent);
             return reticulations[reticulationName];
         } else {
-            RootedNetworkNode *retNode = buildNewReticulationNodeFromString(str, *num_reticulations, parent);
+            RootedNetworkNode *retNode = buildNewReticulationNodeFromString(str, *num_reticulations,
+                    parent);
             (*num_reticulations)++;
             nodeList.push_back(std::unique_ptr<RootedNetworkNode>(retNode));
             reticulations[reticulationName] = retNode;
@@ -208,24 +210,26 @@ std::vector<std::string> split(const std::string &s) {
 
 RootedNetworkNode* readSubtree(RootedNetworkNode *parent, const std::string &s,
         std::vector<std::unique_ptr<RootedNetworkNode> > &nodeList,
-        std::unordered_map<std::string, RootedNetworkNode*> &reticulations_lookup, size_t *num_reticulations,
-        size_t *num_tips, size_t *num_inner) {
+        std::unordered_map<std::string, RootedNetworkNode*> &reticulations_lookup,
+        size_t *num_reticulations, size_t *num_tips, size_t *num_inner) {
     size_t leftParen = s.find('(');
     size_t rightParen = s.rfind(')');
     if (leftParen != std::string::npos && rightParen != std::string::npos) {
         std::string name = s.substr(rightParen + 1);
-        const std::vector<std::string> childrenString = split(substring(s, leftParen + 1, rightParen));
+        const std::vector<std::string> childrenString = split(
+                substring(s, leftParen + 1, rightParen));
 
         for (size_t i = 0; i < childrenString.size(); ++i) {
             assert(std::isprint(childrenString[i][0]));
         }
 
-        RootedNetworkNode *node = buildNodeFromString(name, parent, nodeList, reticulations_lookup, num_reticulations);
+        RootedNetworkNode *node = buildNodeFromString(name, parent, nodeList, reticulations_lookup,
+                num_reticulations);
 
         for (size_t i = 0; i < childrenString.size(); ++i) {
             assert(std::isprint(childrenString[i][0]));
-            RootedNetworkNode *child = readSubtree(node, childrenString[i], nodeList, reticulations_lookup,
-                    num_reticulations, num_tips, num_inner);
+            RootedNetworkNode *child = readSubtree(node, childrenString[i], nodeList,
+                    reticulations_lookup, num_reticulations, num_tips, num_inner);
             node->children.push_back(child);
             if (!child->isReticulation) {
                 child->parent = node;
@@ -236,7 +240,8 @@ RootedNetworkNode* readSubtree(RootedNetworkNode *parent, const std::string &s,
         (*num_inner)++;
         return node;
     } else if (leftParen == rightParen) {
-        RootedNetworkNode *node = buildNodeFromString(s, parent, nodeList, reticulations_lookup, num_reticulations);
+        RootedNetworkNode *node = buildNodeFromString(s, parent, nodeList, reticulations_lookup,
+                num_reticulations);
         if (!node->isReticulation) {
             node->tip_index = *num_tips;
             (*num_tips)++;
@@ -259,8 +264,9 @@ RootedNetwork* parseRootedNetworkFromNewickString(const std::string &newick) {
     assert(std::count(newick.begin(), newick.end(), ';') == 1);
 
     size_t num_inner = 0;
-    rnetwork->root = readSubtree(nullptr, substring(newick, 0, semicolonPos), rnetwork->nodes, reticulations_lookup,
-            &(rnetwork->reticulationCount), &(rnetwork->tipCount), &num_inner);
+    rnetwork->root = readSubtree(nullptr, substring(newick, 0, semicolonPos), rnetwork->nodes,
+            reticulations_lookup, &(rnetwork->reticulationCount), &(rnetwork->tipCount),
+            &num_inner);
 
     rnetwork->innerCount = rnetwork->nodes.size() - rnetwork->tipCount;
     assert(rnetwork->innerCount == num_inner);
@@ -272,11 +278,14 @@ RootedNetwork* parseRootedNetworkFromNewickString(const std::string &newick) {
     // post-processing: set reticulation node probabilities to 0.5 if they are not given in the input file
     for (size_t i = 0; i < rnetwork->nodes.size(); ++i) {
         if (rnetwork->nodes[i]->isReticulation) {
-            if (rnetwork->nodes[i]->firstParentProb == 0 && rnetwork->nodes[i]->secondParentProb == 0) {
+            if (rnetwork->nodes[i]->firstParentProb == 0
+                    && rnetwork->nodes[i]->secondParentProb == 0) {
                 rnetwork->nodes[i]->firstParentProb = 0.5;
                 rnetwork->nodes[i]->secondParentProb = 0.5;
             } else {
-                assert(rnetwork->nodes[i]->firstParentProb + rnetwork->nodes[i]->secondParentProb == 1);
+                assert(
+                        rnetwork->nodes[i]->firstParentProb + rnetwork->nodes[i]->secondParentProb
+                                == 1);
             }
         }
     }
@@ -286,9 +295,10 @@ RootedNetwork* parseRootedNetworkFromNewickString(const std::string &newick) {
     for (size_t i = 0; i < rnetwork->nodes.size(); ++i) {
         rnetwork->nodes[i]->length = std::max(rnetwork->nodes[i]->length, min_branch_length);
         if (rnetwork->nodes[i]->isReticulation) {
-            rnetwork->nodes[i]->firstParentLength = std::max(rnetwork->nodes[i]->firstParentLength, min_branch_length);
-            rnetwork->nodes[i]->secondParentLength = std::max(rnetwork->nodes[i]->secondParentLength,
+            rnetwork->nodes[i]->firstParentLength = std::max(rnetwork->nodes[i]->firstParentLength,
                     min_branch_length);
+            rnetwork->nodes[i]->secondParentLength = std::max(
+                    rnetwork->nodes[i]->secondParentLength, min_branch_length);
         }
     }
 
@@ -304,10 +314,12 @@ std::string newickNodeName(const RootedNetworkNode *node, const RootedNetworkNod
         assert(parent);
         sb << "#" << node->reticulationName;
         if (node->firstParent == parent) {
-            sb << ":" << node->firstParentLength << ":" << node->firstParentSupport << ":" << node->firstParentProb;
+            sb << ":" << node->firstParentLength << ":" << node->firstParentSupport << ":"
+                    << node->firstParentProb;
         } else {
             assert(node->secondParent == parent);
-            sb << ":" << node->secondParentLength << ":" << node->secondParentSupport << ":" << node->secondParentProb;
+            sb << ":" << node->secondParentLength << ":" << node->secondParentSupport << ":"
+                    << node->secondParentProb;
         }
     } else {
         sb << ":" << node->length << ":" << node->support;
@@ -318,13 +330,16 @@ std::string newickNodeName(const RootedNetworkNode *node, const RootedNetworkNod
 std::string printNodeNewick(const RootedNetworkNode *node, const RootedNetworkNode *parent,
         std::unordered_set<const RootedNetworkNode*> &visited_reticulations) {
     std::stringstream sb("");
-    if (!node->children.empty() && visited_reticulations.find(node) == visited_reticulations.end()) {
+    if (!node->children.empty()
+            && visited_reticulations.find(node) == visited_reticulations.end()) {
         sb << "(";
         for (size_t i = 0; i < node->children.size() - 1; i++) {
             sb << printNodeNewick(node->children[i], node, visited_reticulations);
             sb << ",";
         }
-        sb << printNodeNewick(node->children[node->children.size() - 1], node, visited_reticulations);
+        sb
+                << printNodeNewick(node->children[node->children.size() - 1], node,
+                        visited_reticulations);
         sb << ")";
         if (node->isReticulation) {
             visited_reticulations.insert(node);

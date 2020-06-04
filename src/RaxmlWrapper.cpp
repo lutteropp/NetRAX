@@ -38,7 +38,8 @@ void reset_tip_ids(Network &network, const std::unordered_map<std::string, size_
     }
 }
 
-void reset_tip_ids(pll_utree_t *utree, const std::unordered_map<std::string, size_t> &label_id_map) {
+void reset_tip_ids(pll_utree_t *utree,
+        const std::unordered_map<std::string, size_t> &label_id_map) {
     for (size_t i = 0; i < utree->tip_count + utree->inner_count; ++i) {
         if (utree->nodes[i]->clv_index < utree->tip_count) {
             const unsigned int tip_id = label_id_map.at(utree->nodes[i]->label);
@@ -138,17 +139,17 @@ RaxmlWrapper::RaxmlWrapper(const NetraxOptions &options) :
     network_behaviour.compute_ancestral_function = [&](pllmod_treeinfo_t *treeinfo) {
         return network_ancestral_wrapper(treeinfo);
     };
-    network_behaviour.opt_brlen_function =
-            [&](pllmod_treeinfo_t *fake_treeinfo, double min_brlen, double max_brlen, double lh_epsilon, int max_iters,
-                    int opt_method, int radius) {
-                return network_opt_brlen_wrapper(fake_treeinfo, min_brlen, max_brlen, lh_epsilon, max_iters, opt_method,
-                        radius);
-            };
+    network_behaviour.opt_brlen_function = [&](pllmod_treeinfo_t *fake_treeinfo, double min_brlen,
+            double max_brlen, double lh_epsilon, int max_iters, int opt_method, int radius) {
+        return network_opt_brlen_wrapper(fake_treeinfo, min_brlen, max_brlen, lh_epsilon, max_iters,
+                opt_method, radius);
+    };
     network_behaviour.spr_round_function = [&](pllmod_treeinfo_t *treeinfo, unsigned int radius_min,
-            unsigned int radius_max, unsigned int ntopol_keep, pll_bool_t thorough, int brlen_opt_method, double bl_min,
-            double bl_max, int smoothings, double epsilon, cutoff_info_t *cutoff_info, double subtree_cutoff) {
-        return network_spr_round_wrapper(treeinfo, radius_min, radius_max, ntopol_keep, thorough, brlen_opt_method,
-                bl_min, bl_max, smoothings, epsilon, cutoff_info, subtree_cutoff);
+            unsigned int radius_max, unsigned int ntopol_keep, pll_bool_t thorough,
+            int brlen_opt_method, double bl_min, double bl_max, int smoothings, double epsilon,
+            cutoff_info_t *cutoff_info, double subtree_cutoff) {
+        return network_spr_round_wrapper(treeinfo, radius_min, radius_max, ntopol_keep, thorough,
+                brlen_opt_method, bl_min, bl_max, smoothings, epsilon, cutoff_info, subtree_cutoff);
     };
     network_behaviour.destroy_treeinfo_function = [&](pllmod_treeinfo_t *treeinfo) {
         return destroy_network_treeinfo(treeinfo);
@@ -171,8 +172,8 @@ TreeInfo* RaxmlWrapper::createRaxmlTreeinfo(AnnotatedNetwork &ann_network) {
     return createRaxmlTreeinfo(pllTreeinfo, network_behaviour);
 }
 
-pllmod_treeinfo_t* RaxmlWrapper::createStandardPllTreeinfo(const pll_utree_t *utree, unsigned int partitions,
-        int brlen_linkage) {
+pllmod_treeinfo_t* RaxmlWrapper::createStandardPllTreeinfo(const pll_utree_t *utree,
+        unsigned int partitions, int brlen_linkage) {
     return pllmod_treeinfo_create(utree->vroot, utree->tip_count, partitions, brlen_linkage);
 }
 
@@ -180,18 +181,19 @@ TreeInfo* RaxmlWrapper::createRaxmlTreeinfo(pll_utree_t *utree) {
     // Check that the MSA has already been loaded
     assert(!instance.tip_id_map.empty());
     reset_tip_ids(utree, instance.tip_id_map);
-    pllmod_treeinfo_t *pllTreeinfo = createStandardPllTreeinfo(utree, instance.parted_msa->part_count(),
-            instance.opts.brlen_linkage);
+    pllmod_treeinfo_t *pllTreeinfo = createStandardPllTreeinfo(utree,
+            instance.parted_msa->part_count(), instance.opts.brlen_linkage);
     TreeInfo::tinfo_behaviour standard_behaviour;
     return createRaxmlTreeinfo(pllTreeinfo, standard_behaviour);
 }
 
-TreeInfo* RaxmlWrapper::createRaxmlTreeinfo(pll_utree_t *utree, const pllmod_treeinfo_t &model_treeinfo) {
+TreeInfo* RaxmlWrapper::createRaxmlTreeinfo(pll_utree_t *utree,
+        const pllmod_treeinfo_t &model_treeinfo) {
     // Check that the MSA has already been loaded
     assert(!instance.tip_id_map.empty());
     reset_tip_ids(utree, instance.tip_id_map);
-    pllmod_treeinfo_t *pllTreeinfo = createStandardPllTreeinfo(utree, instance.parted_msa->part_count(),
-            instance.opts.brlen_linkage);
+    pllmod_treeinfo_t *pllTreeinfo = createStandardPllTreeinfo(utree,
+            instance.parted_msa->part_count(), instance.opts.brlen_linkage);
     TreeInfo::tinfo_behaviour standard_behaviour;
     TreeInfo *info = createRaxmlTreeinfo(pllTreeinfo, standard_behaviour);
     transfer_model_params(model_treeinfo, pllTreeinfo);
@@ -213,8 +215,8 @@ void set_partition_fake_clv_entry(pll_partition_t *partition, size_t fake_clv_in
 
     if (clv == NULL) { // this happens when we have site repeats
         // TODO: Does it work? Or do we need to increase the number of tips somehow when creating the partition?
-        partition->clv[fake_clv_index] = (double*) pll_aligned_alloc(sites * rate_cats * states_padded * sizeof(double),
-                partition->alignment);
+        partition->clv[fake_clv_index] = (double*) pll_aligned_alloc(
+                sites * rate_cats * states_padded * sizeof(double), partition->alignment);
         clv = partition->clv[fake_clv_index];
     }
 
@@ -268,7 +270,8 @@ int pllmod_treeinfo_init_partition_sarah(pllmod_treeinfo_t *treeinfo, unsigned i
     /* allocate param_indices array and initialize it to all 0s,
      * i.e. per default, all rate categories will use
      * the same substitution matrix and same base frequencies */
-    treeinfo->param_indices[partition_index] = (unsigned int*) calloc(partition->rate_cats, sizeof(unsigned int));
+    treeinfo->param_indices[partition_index] = (unsigned int*) calloc(partition->rate_cats,
+            sizeof(unsigned int));
 
     /* check memory allocation */
     if (!treeinfo->param_indices[partition_index]) {
@@ -277,11 +280,13 @@ int pllmod_treeinfo_init_partition_sarah(pllmod_treeinfo_t *treeinfo, unsigned i
 
     /* if param_indices were provided, use them instead of default */
     if (param_indices)
-        memcpy(treeinfo->param_indices[partition_index], param_indices, partition->rate_cats * sizeof(unsigned int));
+        memcpy(treeinfo->param_indices[partition_index], param_indices,
+                partition->rate_cats * sizeof(unsigned int));
 
     /* copy substitution rate matrix symmetries, if any */
     if (subst_matrix_symmetries) {
-        const unsigned int symm_size = (partition->states * (partition->states - 1) / 2) * sizeof(int);
+        const unsigned int symm_size = (partition->states * (partition->states - 1) / 2)
+                * sizeof(int);
         treeinfo->subst_matrix_symmetries[partition_index] = (int*) malloc(symm_size);
 
         /* check memory allocation */
@@ -289,7 +294,8 @@ int pllmod_treeinfo_init_partition_sarah(pllmod_treeinfo_t *treeinfo, unsigned i
             return PLL_FAILURE;
         }
 
-        memcpy(treeinfo->subst_matrix_symmetries[partition_index], subst_matrix_symmetries, symm_size);
+        memcpy(treeinfo->subst_matrix_symmetries[partition_index], subst_matrix_symmetries,
+                symm_size);
     } else
         treeinfo->subst_matrix_symmetries[partition_index] = NULL;
 
@@ -299,8 +305,8 @@ int pllmod_treeinfo_init_partition_sarah(pllmod_treeinfo_t *treeinfo, unsigned i
         sites_alloc += partition->states;
     unsigned int precomp_size = sites_alloc * partition->rate_cats * partition->states_padded;
 
-    treeinfo->deriv_precomp[partition_index] = (double*) pll_aligned_alloc(precomp_size * sizeof(double),
-            partition->alignment);
+    treeinfo->deriv_precomp[partition_index] = (double*) pll_aligned_alloc(
+            precomp_size * sizeof(double), partition->alignment);
 
     if (!treeinfo->deriv_precomp[partition_index]) {
         return PLL_FAILURE;
@@ -312,25 +318,30 @@ int pllmod_treeinfo_init_partition_sarah(pllmod_treeinfo_t *treeinfo, unsigned i
 }
 
 void RaxmlWrapper::network_create_init_partition_wrapper(size_t p, int params_to_optimize,
-        pllmod_treeinfo_t *pll_treeinfo, const Options &opts, const PartitionInfo &pinfo, const IDVector &tip_msa_idmap,
-        PartitionAssignment::const_iterator &part_range, const uintVector &weights) {
+        pllmod_treeinfo_t *pll_treeinfo, const Options &opts, const PartitionInfo &pinfo,
+        const IDVector &tip_msa_idmap, PartitionAssignment::const_iterator &part_range,
+        const uintVector &weights) {
     /* create and init PLL partition structure */
-    pll_partition_t *partition = create_pll_partition(opts, pinfo, tip_msa_idmap, *part_range, weights,
-            pll_treeinfo->tree->tip_count, pll_treeinfo->tree->inner_count, pll_treeinfo->tree->edge_count);
-    int retval = pllmod_treeinfo_init_partition_sarah(pll_treeinfo, p, partition, params_to_optimize,
-            pinfo.model().gamma_mode(), pinfo.model().alpha(), pinfo.model().ratecat_submodels().data(),
-            pinfo.model().submodel(0).rate_sym().data());
+    pll_partition_t *partition = create_pll_partition(opts, pinfo, tip_msa_idmap, *part_range,
+            weights, pll_treeinfo->tree->tip_count, pll_treeinfo->tree->inner_count,
+            pll_treeinfo->tree->edge_count);
+    int retval = pllmod_treeinfo_init_partition_sarah(pll_treeinfo, p, partition,
+            params_to_optimize, pinfo.model().gamma_mode(), pinfo.model().alpha(),
+            pinfo.model().ratecat_submodels().data(), pinfo.model().submodel(0).rate_sym().data());
     if (!retval) {
         assert(pll_errno);
         libpll_check_error("ERROR adding treeinfo partition");
     }
-    set_partition_fake_clv_entry(partition, pll_treeinfo->tree->tip_count + pll_treeinfo->tree->inner_count - 1);
+    set_partition_fake_clv_entry(partition,
+            pll_treeinfo->tree->tip_count + pll_treeinfo->tree->inner_count - 1);
 }
 
-void RaxmlWrapper::network_init_treeinfo_wrapper(const Options &opts, const std::vector<doubleVector> &partition_brlens,
-        size_t num_branches, const PartitionedMSA &parted_msa, const IDVector &tip_msa_idmap,
+void RaxmlWrapper::network_init_treeinfo_wrapper(const Options &opts,
+        const std::vector<doubleVector> &partition_brlens, size_t num_branches,
+        const PartitionedMSA &parted_msa, const IDVector &tip_msa_idmap,
         const PartitionAssignment &part_assign, const std::vector<uintVector> &site_weights,
-        doubleVector *partition_contributions, pllmod_treeinfo_t *pll_treeinfo, IDSet *parts_master) {
+        doubleVector *partition_contributions, pllmod_treeinfo_t *pll_treeinfo,
+        IDSet *parts_master) {
 
     //throw std::runtime_error("not implemented yet");
     // Copy&Paste from standard function follows...
@@ -339,7 +350,8 @@ void RaxmlWrapper::network_init_treeinfo_wrapper(const Options &opts, const std:
     double total_weight = 0;
 
     if (ParallelContext::num_procs() > 1) {
-        pllmod_treeinfo_set_parallel_context(pll_treeinfo, (void*) nullptr, ParallelContext::parallel_reduce_cb);
+        pllmod_treeinfo_set_parallel_context(pll_treeinfo, (void*) nullptr,
+                ParallelContext::parallel_reduce_cb);
     }
 
     // init partitions
@@ -357,9 +369,11 @@ void RaxmlWrapper::network_init_treeinfo_wrapper(const Options &opts, const std:
         PartitionAssignment::const_iterator part_range = part_assign.find(p);
         if (part_range != part_assign.end()) {
             /* create and init PLL partition structure */
-            pll_partition_t *partition = create_pll_partition(opts, pinfo, tip_msa_idmap, *part_range, weights);
-            int retval = pllmod_treeinfo_init_partition(pll_treeinfo, p, partition, params_to_optimize,
-                    pinfo.model().gamma_mode(), pinfo.model().alpha(), pinfo.model().ratecat_submodels().data(),
+            pll_partition_t *partition = create_pll_partition(opts, pinfo, tip_msa_idmap,
+                    *part_range, weights);
+            int retval = pllmod_treeinfo_init_partition(pll_treeinfo, p, partition,
+                    params_to_optimize, pinfo.model().gamma_mode(), pinfo.model().alpha(),
+                    pinfo.model().ratecat_submodels().data(),
                     pinfo.model().submodel(0).rate_sym().data());
             if (!retval) {
                 assert(pll_errno);
@@ -371,9 +385,11 @@ void RaxmlWrapper::network_init_treeinfo_wrapper(const Options &opts, const std:
             if (opts.brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED) {
                 assert(pll_treeinfo->brlen_scalers);
                 pll_treeinfo->brlen_scalers[p] = pinfo.model().brlen_scaler();
-            } else if (opts.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED && !partition_brlens.empty()) {
+            } else if (opts.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED
+                    && !partition_brlens.empty()) {
                 assert(pll_treeinfo->branch_lengths[p]);
-                memcpy(pll_treeinfo->branch_lengths[p], partition_brlens[p].data(), num_branches * sizeof(double));
+                memcpy(pll_treeinfo->branch_lengths[p], partition_brlens[p].data(),
+                        num_branches * sizeof(double));
             }
 
             if (part_range->master())
@@ -430,8 +446,8 @@ int fake_init_tree(pllmod_treeinfo_t *treeinfo, Network &network) {
     return PLL_SUCCESS;
 }
 
-pllmod_treeinfo_t* RaxmlWrapper::createNetworkPllTreeinfo(AnnotatedNetwork &ann_network, unsigned int tips,
-        unsigned int partitions, int brlen_linkage) {
+pllmod_treeinfo_t* RaxmlWrapper::createNetworkPllTreeinfo(AnnotatedNetwork &ann_network,
+        unsigned int tips, unsigned int partitions, int brlen_linkage) {
     Network &network = ann_network.network;
 
     assert(partitions > 0);
@@ -487,10 +503,11 @@ pllmod_treeinfo_t* RaxmlWrapper::createNetworkPllTreeinfo(AnnotatedNetwork &ann_
         treeinfo->brlen_scalers = NULL;
 
     /* check memory allocation */
-    if (!treeinfo->partitions || !treeinfo->alphas || !treeinfo->param_indices || !treeinfo->subst_matrix_symmetries
-            || !treeinfo->branch_lengths || !treeinfo->deriv_precomp || !treeinfo->clv_valid || !treeinfo->pmatrix_valid
-            || !treeinfo->linked_branch_lengths || !treeinfo->partition_loglh || !treeinfo->gamma_mode
-            || !treeinfo->init_partition_idx
+    if (!treeinfo->partitions || !treeinfo->alphas || !treeinfo->param_indices
+            || !treeinfo->subst_matrix_symmetries || !treeinfo->branch_lengths
+            || !treeinfo->deriv_precomp || !treeinfo->clv_valid || !treeinfo->pmatrix_valid
+            || !treeinfo->linked_branch_lengths || !treeinfo->partition_loglh
+            || !treeinfo->gamma_mode || !treeinfo->init_partition_idx
             || (brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED && !treeinfo->brlen_scalers)) {
         throw std::runtime_error("Cannot allocate memory for treeinfo arrays\n");
         return NULL;
@@ -513,7 +530,8 @@ pllmod_treeinfo_t* RaxmlWrapper::createNetworkPllTreeinfo(AnnotatedNetwork &ann_
 
         /* check memory allocation */
         if (!treeinfo->branch_lengths[p]) {
-            throw std::runtime_error("Cannot allocate memory for arrays for partition " + std::to_string(p));
+            throw std::runtime_error(
+                    "Cannot allocate memory for arrays for partition " + std::to_string(p));
             return NULL;
         }
     }
@@ -540,25 +558,30 @@ void RaxmlWrapper::destroy_network_treeinfo(pllmod_treeinfo_t *treeinfo) {
     pllmod_treeinfo_destroy(treeinfo);
 }
 
-TreeInfo* RaxmlWrapper::createRaxmlTreeinfo(pllmod_treeinfo_t *treeinfo, TreeInfo::tinfo_behaviour &behaviour) {
+TreeInfo* RaxmlWrapper::createRaxmlTreeinfo(pllmod_treeinfo_t *treeinfo,
+        TreeInfo::tinfo_behaviour &behaviour) {
     PartitionAssignment &part_assign = instance.proc_part_assign.at(ParallelContext::proc_id());
-    return new TreeInfo(instance.opts, std::vector<doubleVector>(), treeinfo, (*instance.parted_msa.get()),
-            instance.tip_msa_idmap, part_assign, std::vector<uintVector>(), behaviour);
+    return new TreeInfo(instance.opts, std::vector<doubleVector>(), treeinfo,
+            (*instance.parted_msa.get()), instance.tip_msa_idmap, part_assign,
+            std::vector<uintVector>(), behaviour);
 }
 
-double RaxmlWrapper::network_logl_wrapper(void *network_params, int incremental, int update_pmatrices) {
+double RaxmlWrapper::network_logl_wrapper(void *network_params, int incremental,
+        int update_pmatrices) {
     NetworkParams *params = (NetworkParams*) network_params;
     return computeLoglikelihood(*params->ann_network, incremental, update_pmatrices);
 }
-double RaxmlWrapper::network_opt_brlen_wrapper(pllmod_treeinfo_t *fake_treeinfo, double min_brlen, double max_brlen,
-        double lh_epsilon, int max_iters, int opt_method, int radius) {
-    AnnotatedNetwork *ann_network = ((NetworkParams*) (fake_treeinfo->likelihood_computation_params))->ann_network;
+double RaxmlWrapper::network_opt_brlen_wrapper(pllmod_treeinfo_t *fake_treeinfo, double min_brlen,
+        double max_brlen, double lh_epsilon, int max_iters, int opt_method, int radius) {
+    AnnotatedNetwork *ann_network =
+            ((NetworkParams*) (fake_treeinfo->likelihood_computation_params))->ann_network;
     return optimize_branches(*ann_network, max_iters, radius);
 
 }
 double RaxmlWrapper::network_spr_round_wrapper(pllmod_treeinfo_t *treeinfo, unsigned int radius_min,
-        unsigned int radius_max, unsigned int ntopol_keep, pll_bool_t thorough, int brlen_opt_method, double bl_min,
-        double bl_max, int smoothings, double epsilon, cutoff_info_t *cutoff_info, double subtree_cutoff) {
+        unsigned int radius_max, unsigned int ntopol_keep, pll_bool_t thorough,
+        int brlen_opt_method, double bl_min, double bl_max, int smoothings, double epsilon,
+        cutoff_info_t *cutoff_info, double subtree_cutoff) {
     (void) treeinfo;
     (void) radius_min;
     (void) radius_max;
@@ -594,5 +617,7 @@ Tree RaxmlWrapper::generateRandomTree() const {
 Tree RaxmlWrapper::generateParsimonyTree() const {
     return generate_tree(instance, StartingTree::parsimony);
 }
-
+Tree RaxmlWrapper::bestRaxmlTree() const {
+    throw std::runtime_error("Not implemented yet");
+}
 }

@@ -40,8 +40,8 @@ protected:
 
 void check_node_types(const Network &network) {
     for (size_t i = 0; i < network.num_nodes(); ++i) {
-        if (std::find(network.reticulation_nodes.begin(), network.reticulation_nodes.end(), &network.nodes[i])
-                == network.reticulation_nodes.end()) {
+        if (std::find(network.reticulation_nodes.begin(), network.reticulation_nodes.end(),
+                &network.nodes[i]) == network.reticulation_nodes.end()) {
             EXPECT_EQ(network.nodes[i].getType(), NodeType::BASIC_NODE);
         } else {
             EXPECT_EQ(network.nodes[i].getType(), NodeType::RETICULATION_NODE);
@@ -277,14 +277,16 @@ TEST_F (NetworkIOTest, readCelineNetwork) {
 }
 
 TEST_F (NetworkIOTest, readSimpleNetworkCelineStyle0) {
-    std::string input = "((A:0.0,((B:0.0,C:0.0)P:0.0)X#H1:0.0::0.3)Q:0.0,(D:0.0,X#H1:0.0::0.7)R:0.0);";
+    std::string input =
+            "((A:0.0,((B:0.0,C:0.0)P:0.0)X#H1:0.0::0.3)Q:0.0,(D:0.0,X#H1:0.0::0.7)R:0.0);";
     Network network = readNetworkFromString(input);
     EXPECT_EQ(4, network.num_tips());
     sanity_checks(network);
 }
 
 TEST_F (NetworkIOTest, readSimpleNetworkCelineStyle2) {
-    std::string input = "((A:0.0,((B:0.0,C:0.0)P:0.0)x#H1:0.0:0.0:0.0)Q:0.0,(D:0.0,x#H1:0.0:0.0:0.0)R:0.0);";
+    std::string input =
+            "((A:0.0,((B:0.0,C:0.0)P:0.0)x#H1:0.0:0.0:0.0)Q:0.0,(D:0.0,x#H1:0.0:0.0:0.0)R:0.0);";
     Network network = readNetworkFromString(input);
     EXPECT_EQ(4, network.num_tips());
     sanity_checks(network);
@@ -312,7 +314,8 @@ TEST_F (NetworkIOTest, readSimpleNetworkCelineStyleNoLengths) {
 }
 
 TEST_F (NetworkIOTest, celineExample1x) {
-    std::string input = "((((((A,(P)X#H1),(((X#H1,T),(A2,Caiman)),(P2,(E,(C1,(C2)Y#H2))))),(Y#H2,M)),X2),P2));";
+    std::string input =
+            "((((((A,(P)X#H1),(((X#H1,T),(A2,Caiman)),(P2,(E,(C1,(C2)Y#H2))))),(Y#H2,M)),X2),P2));";
     Network network = readNetworkFromString(input);
     EXPECT_EQ(12, network.num_tips());
     sanity_checks(network);
@@ -343,7 +346,8 @@ TEST_F (NetworkIOTest, celineExample3) {
 }
 
 TEST_F (NetworkIOTest, readSimpleNetworkCelineStyle1WithSupportValues) {
-    std::string input = "((A:0.0,((B:0.0,C:0.0)P:0.0)X#H1:0.0:0.0:0.3)Q:0.0,(D:0.0,X#H1:0.0:0.0:0.7)R:0.0);";
+    std::string input =
+            "((A:0.0,((B:0.0,C:0.0)P:0.0)X#H1:0.0:0.0:0.3)Q:0.0,(D:0.0,X#H1:0.0:0.0:0.7)R:0.0);";
     Network network = readNetworkFromString(input);
     EXPECT_EQ(4, network.num_tips());
     sanity_checks(network);

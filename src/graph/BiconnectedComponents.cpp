@@ -24,9 +24,9 @@ namespace netrax {
 
 // Algorithm taken from https://www.cs.cmu.edu/~avrim/451f12/lectures/biconnected.pdf
 void bicon(Network &network, const Node *v, const Node *u, unsigned int &time,
-        std::vector<unsigned int> &discovery_time, std::vector<unsigned int> &lowest, std::stack<Edge*> &s,
-        std::vector<unsigned int> &edge_component_id, unsigned int &act_bicomp_id,
-        std::vector<unsigned int> &blob_sizes) {
+        std::vector<unsigned int> &discovery_time, std::vector<unsigned int> &lowest,
+        std::stack<Edge*> &s, std::vector<unsigned int> &edge_component_id,
+        unsigned int &act_bicomp_id, std::vector<unsigned int> &blob_sizes) {
     time++;
     discovery_time[v->clv_index] = time;
     lowest[v->clv_index] = time;
@@ -34,7 +34,8 @@ void bicon(Network &network, const Node *v, const Node *u, unsigned int &time,
         if (discovery_time[neigh->clv_index] == 0) {
             // (v, neigh) is a forward edge
             s.push(getEdgeTo(network, v, neigh));
-            bicon(network, neigh, v, time, discovery_time, lowest, s, edge_component_id, act_bicomp_id, blob_sizes);
+            bicon(network, neigh, v, time, discovery_time, lowest, s, edge_component_id,
+                    act_bicomp_id, blob_sizes);
             lowest[v->clv_index] = std::min(lowest[v->clv_index], lowest[neigh->clv_index]);
             if (lowest[neigh->clv_index] >= discovery_time[v->clv_index]) {
                 // v is either the root of the dfs tree or an articulation point.
@@ -68,7 +69,8 @@ unsigned int get_node_blob_id(Network &network, Node *node, const BlobInformatio
     unsigned int res = std::numeric_limits<unsigned int>::infinity();
     std::unordered_set<unsigned int> seen;
     for (Node *neigh : getNeighbors(network, node)) {
-        unsigned int actBlobID = blobInfo.edge_blob_id[getEdgeTo(network, node, neigh)->pmatrix_index];
+        unsigned int actBlobID =
+                blobInfo.edge_blob_id[getEdgeTo(network, node, neigh)->pmatrix_index];
         if (seen.find(actBlobID) != seen.end()) {
             res = actBlobID;
         }
@@ -77,8 +79,8 @@ unsigned int get_node_blob_id(Network &network, Node *node, const BlobInformatio
 
     if (res == std::numeric_limits<unsigned int>::infinity()) {
         if (parent[node->clv_index] != nullptr) { // catch the network root node
-            unsigned int edgeToParentBlobID =
-                    blobInfo.edge_blob_id[getEdgeTo(network, node, parent[node->clv_index])->pmatrix_index];
+            unsigned int edgeToParentBlobID = blobInfo.edge_blob_id[getEdgeTo(network, node,
+                    parent[node->clv_index])->pmatrix_index];
             res = edgeToParentBlobID;
         }
     }
@@ -103,7 +105,8 @@ void gather_reticulations_per_megablob(Network &network, BlobInformation &blob_i
         if (entry.first->type == NodeType::RETICULATION_NODE) {
             blob_info.reticulation_nodes_per_megablob[act_megablob_index].emplace_back(entry.first);
         } else {
-            auto it = std::find(blob_info.megablob_roots.begin(), blob_info.megablob_roots.end(), entry.first);
+            auto it = std::find(blob_info.megablob_roots.begin(), blob_info.megablob_roots.end(),
+                    entry.first);
             if (it != blob_info.megablob_roots.end()) {
                 act_megablob_index = std::distance(blob_info.megablob_roots.begin(), it);
             }
@@ -124,7 +127,8 @@ void gather_reticulations_per_megablob(Network &network, BlobInformation &blob_i
 
     for (size_t i = 0; i < blob_info.reticulation_nodes_per_megablob.size(); ++i) {
         std::sort(blob_info.reticulation_nodes_per_megablob[i].begin(),
-                blob_info.reticulation_nodes_per_megablob[i].end(), [](const Node *a, const Node *b) {
+                blob_info.reticulation_nodes_per_megablob[i].end(),
+                [](const Node *a, const Node *b) {
                     return a->clv_index < b->clv_index;
                 });
     }
@@ -137,13 +141,14 @@ BlobInformation partitionNetworkIntoBlobs(Network &network, const std::vector<No
     unsigned int act_bicomp_id = 0;
     std::stack<Edge*> s;
     std::vector<unsigned int> discovery_time(network.nodes.size(), 0);
-    std::vector<unsigned int> lowest(network.nodes.size(), std::numeric_limits<unsigned int>::max());
+    std::vector<unsigned int> lowest(network.nodes.size(),
+            std::numeric_limits<unsigned int>::max());
     std::vector<unsigned int> blob_size;
     for (size_t i = 0; i < network.num_nodes(); ++i) {
         Node *node = &network.nodes[i];
         if (discovery_time[node->clv_index] == 0) {
-            bicon(network, node, nullptr, time, discovery_time, lowest, s, blob_info.edge_blob_id, act_bicomp_id,
-                    blob_size);
+            bicon(network, node, nullptr, time, discovery_time, lowest, s, blob_info.edge_blob_id,
+                    act_bicomp_id, blob_size);
         }
     }
 
@@ -158,7 +163,8 @@ BlobInformation partitionNetworkIntoBlobs(Network &network, const std::vector<No
     blob_info.reticulation_nodes_per_megablob.emplace_back(std::vector<Node*>());
     std::vector<unsigned int> node_blob_id(network.nodes.size());
     for (size_t i = 0; i < travbuffer.size(); ++i) {
-        node_blob_id[travbuffer[i]->clv_index] = get_node_blob_id(network, travbuffer[i], blob_info, parent);
+        node_blob_id[travbuffer[i]->clv_index] = get_node_blob_id(network, travbuffer[i], blob_info,
+                parent);
     }
 
     blob_info.node_blob_id = node_blob_id;

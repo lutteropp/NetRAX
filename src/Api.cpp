@@ -36,7 +36,8 @@ void init_annotated_network(AnnotatedNetwork &ann_network) {
     ann_network.rng = rng;
 
     netrax::RaxmlWrapper wrapper(ann_network.options);
-    ann_network.raxml_treeinfo = std::unique_ptr<TreeInfo>(wrapper.createRaxmlTreeinfo(ann_network));
+    ann_network.raxml_treeinfo = std::unique_ptr<TreeInfo>(
+            wrapper.createRaxmlTreeinfo(ann_network));
     ann_network.travbuffer = netrax::reversed_topological_sort(ann_network.network);
     ann_network.blobInfo = netrax::partitionNetworkIntoBlobs(network, ann_network.travbuffer);
 
@@ -45,7 +46,8 @@ void init_annotated_network(AnnotatedNetwork &ann_network) {
         ann_network.branch_probs = std::vector<std::vector<double> >(1,
                 std::vector<double>(ann_network.network.edges.size() + 1, 1.0));
     } else { // each partition has extra branch properties
-        ann_network.branch_probs = std::vector<std::vector<double> >(ann_network.fake_treeinfo->partition_count,
+        ann_network.branch_probs = std::vector<std::vector<double> >(
+                ann_network.fake_treeinfo->partition_count,
                 std::vector<double>(ann_network.network.edges.size() + 1, 1.0));
     }
     for (size_t p = 0; p < ann_network.branch_probs.size(); ++p) {
@@ -64,12 +66,14 @@ void init_annotated_network(AnnotatedNetwork &ann_network) {
 AnnotatedNetwork build_annotated_network(const NetraxOptions &options) {
     AnnotatedNetwork ann_network;
     ann_network.options = options;
-    ann_network.network = netrax::readNetworkFromFile(options.network_file, options.max_reticulations);
+    ann_network.network = netrax::readNetworkFromFile(options.network_file,
+            options.max_reticulations);
     init_annotated_network(ann_network);
     return ann_network;
 }
 
-AnnotatedNetwork build_annotated_network_from_string(const NetraxOptions &options, const std::string &newickString) {
+AnnotatedNetwork build_annotated_network_from_string(const NetraxOptions &options,
+        const std::string &newickString) {
     AnnotatedNetwork ann_network;
     ann_network.options = options;
     ann_network.network = netrax::readNetworkFromString(newickString, options.max_reticulations);
@@ -77,7 +81,8 @@ AnnotatedNetwork build_annotated_network_from_string(const NetraxOptions &option
     return ann_network;
 }
 
-AnnotatedNetwork build_annotated_network_from_utree(const NetraxOptions &options, const pll_utree_t &utree) {
+AnnotatedNetwork build_annotated_network_from_utree(const NetraxOptions &options,
+        const pll_utree_t &utree) {
     AnnotatedNetwork ann_network;
     ann_network.options = options;
     ann_network.network = netrax::convertUtreeToNetwork(utree, options.max_reticulations);
@@ -102,7 +107,8 @@ void add_extra_reticulations(AnnotatedNetwork &ann_network, unsigned int targetC
     }
 }
 
-AnnotatedNetwork build_random_annotated_network(const NetraxOptions &options, unsigned int start_reticulations) {
+AnnotatedNetwork build_random_annotated_network(const NetraxOptions &options,
+        unsigned int start_reticulations) {
     RaxmlWrapper wrapper(options);
     Tree tree = wrapper.generateRandomTree();
     AnnotatedNetwork ann_network = build_annotated_network_from_utree(options, tree.pll_utree());
@@ -110,7 +116,8 @@ AnnotatedNetwork build_random_annotated_network(const NetraxOptions &options, un
     return ann_network;
 }
 
-AnnotatedNetwork build_parsimony_annotated_network(const NetraxOptions &options, unsigned int start_reticulations) {
+AnnotatedNetwork build_parsimony_annotated_network(const NetraxOptions &options,
+        unsigned int start_reticulations) {
     RaxmlWrapper wrapper(options);
     Tree tree = wrapper.generateParsimonyTree();
     AnnotatedNetwork ann_network = build_annotated_network_from_utree(options, tree.pll_utree());
@@ -118,8 +125,13 @@ AnnotatedNetwork build_parsimony_annotated_network(const NetraxOptions &options,
     return ann_network;
 }
 
-AnnotatedNetwork build_best_raxml_annotated_network(const NetraxOptions &options, unsigned int start_reticulations) {
-    throw std::runtime_error("Not implemented yet");
+AnnotatedNetwork build_best_raxml_annotated_network(const NetraxOptions &options,
+        unsigned int start_reticulations) {
+    RaxmlWrapper wrapper(options);
+    Tree tree = wrapper.bestRaxmlTree();
+    AnnotatedNetwork ann_network = build_annotated_network_from_utree(options, tree.pll_utree());
+    add_extra_reticulations(ann_network, start_reticulations);
+    return ann_network;
 }
 
 double computeLoglikelihood(AnnotatedNetwork &ann_network) {
@@ -178,8 +190,10 @@ void writeNetwork(AnnotatedNetwork &ann_network, const std::string &filepath) {
                 lenSum += ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index];
                 probSum += ann_network.branch_probs[p][pmatrix_index];
             }
-            ann_network.network.edges[i].length = lenSum / ann_network.fake_treeinfo->partition_count;
-            ann_network.network.edges[i].prob = probSum / ann_network.fake_treeinfo->partition_count;
+            ann_network.network.edges[i].length = lenSum
+                    / ann_network.fake_treeinfo->partition_count;
+            ann_network.network.edges[i].prob = probSum
+                    / ann_network.fake_treeinfo->partition_count;
         }
     }
 

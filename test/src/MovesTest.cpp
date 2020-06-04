@@ -63,7 +63,8 @@ void randomNNIMoves(const std::string &networkPath, const std::string &msaPath, 
     std::cout << "initial_logl: " << initial_logl << "\n";
 
     for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::vector<RNNIMove> candidates = possibleRNNIMoves(ann_network, network.edges_by_index[i]);
+        std::vector<RNNIMove> candidates = possibleRNNIMoves(ann_network,
+                network.edges_by_index[i]);
         for (size_t j = 0; j < candidates.size(); ++j) {
             std::string newickBeforeMove = toExtendedNewick(network);
             std::cout << "perform " << toString(candidates[j]);
@@ -109,7 +110,8 @@ void randomSPRMoves(const std::string &networkPath, const std::string &msaPath, 
     std::cout << "initial_logl: " << initial_logl << "\n";
 
     for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::vector<RSPRMove> candidates = possibleRSPRMoves(ann_network, network.edges_by_index[i]);
+        std::vector<RSPRMove> candidates = possibleRSPRMoves(ann_network,
+                network.edges_by_index[i]);
         for (size_t j = 0; j < candidates.size(); ++j) {
             std::cout << "perform " << toString(candidates[j]);
             performMove(ann_network, candidates[j]);
@@ -150,7 +152,8 @@ void randomHeadMoves(const std::string &networkPath, const std::string &msaPath,
     std::cout << "initial_logl: " << initial_logl << "\n";
 
     for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::vector<RSPRMove> candidates = possibleHeadMoves(ann_network, network.edges_by_index[i]);
+        std::vector<RSPRMove> candidates = possibleHeadMoves(ann_network,
+                network.edges_by_index[i]);
         for (size_t j = 0; j < candidates.size(); ++j) {
             std::cout << "perform " << toString(candidates[j]);
             performMove(ann_network, candidates[j]);
@@ -191,7 +194,8 @@ void randomTailMoves(const std::string &networkPath, const std::string &msaPath,
     std::cout << "initial_logl: " << initial_logl << "\n";
 
     for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::vector<RSPRMove> candidates = possibleTailMoves(ann_network, network.edges_by_index[i]);
+        std::vector<RSPRMove> candidates = possibleTailMoves(ann_network,
+                network.edges_by_index[i]);
         for (size_t j = 0; j < candidates.size(); ++j) {
             std::cout << "perform " << toString(candidates[j]);
             performMove(ann_network, candidates[j]);
@@ -232,7 +236,8 @@ void randomSPR1Moves(const std::string &networkPath, const std::string &msaPath,
     std::cout << "initial_logl: " << initial_logl << "\n";
 
     for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::vector<RSPRMove> candidates = possibleRSPR1Moves(ann_network, network.edges_by_index[i]);
+        std::vector<RSPRMove> candidates = possibleRSPR1Moves(ann_network,
+                network.edges_by_index[i]);
         for (size_t j = 0; j < candidates.size(); ++j) {
             std::cout << "perform " << toString(candidates[j]);
             performMove(ann_network, candidates[j]);
@@ -256,7 +261,8 @@ void randomSPR1Moves(const std::string &networkPath, const std::string &msaPath,
     }
 }
 
-void randomArcInsertionMoves(const std::string &networkPath, const std::string &msaPath, bool useRepeats) {
+void randomArcInsertionMoves(const std::string &networkPath, const std::string &msaPath,
+        bool useRepeats) {
     NetraxOptions options;
     options.network_file = networkPath;
     options.msa_file = msaPath;
@@ -273,11 +279,12 @@ void randomArcInsertionMoves(const std::string &networkPath, const std::string &
     //std::cout << "initial_logl: " << initial_logl << "\n";
 
     for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::vector<ArcInsertionMove> candidates = possibleArcInsertionMoves(ann_network, network.edges_by_index[i]);
+        std::vector<ArcInsertionMove> candidates = possibleArcInsertionMoves(ann_network,
+                network.edges_by_index[i]);
         for (size_t j = 0; j < candidates.size(); ++j) {
 
-            if (candidates[j].a_clv_index != 6 || candidates[j].b_clv_index != 7 || candidates[j].c_clv_index != 4
-                    || candidates[j].d_clv_index != 3) {
+            if (candidates[j].a_clv_index != 6 || candidates[j].b_clv_index != 7
+                    || candidates[j].c_clv_index != 4 || candidates[j].d_clv_index != 3) {
                 //    continue;
             }
 
@@ -311,7 +318,8 @@ void randomArcInsertionMoves(const std::string &networkPath, const std::string &
     }
 }
 
-void randomDeltaPlusMoves(const std::string &networkPath, const std::string &msaPath, bool useRepeats) {
+void randomDeltaPlusMoves(const std::string &networkPath, const std::string &msaPath,
+        bool useRepeats) {
     NetraxOptions options;
     options.network_file = networkPath;
     options.msa_file = msaPath;
@@ -328,11 +336,12 @@ void randomDeltaPlusMoves(const std::string &networkPath, const std::string &msa
     //std::cout << "initial_logl: " << initial_logl << "\n";
 
     for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::vector<ArcInsertionMove> candidates = possibleDeltaPlusMoves(ann_network, network.edges_by_index[i]);
+        std::vector<ArcInsertionMove> candidates = possibleDeltaPlusMoves(ann_network,
+                network.edges_by_index[i]);
         for (size_t j = 0; j < candidates.size(); ++j) {
 
-            if (candidates[j].a_clv_index != 6 || candidates[j].b_clv_index != 7 || candidates[j].c_clv_index != 4
-                    || candidates[j].d_clv_index != 3) {
+            if (candidates[j].a_clv_index != 6 || candidates[j].b_clv_index != 7
+                    || candidates[j].c_clv_index != 4 || candidates[j].d_clv_index != 3) {
                 //    continue;
             }
 
@@ -370,12 +379,14 @@ void printBranchLengths(AnnotatedNetwork &ann_network) {
     Network &network = ann_network.network;
     std::cout << "branch lengths:\n";
     for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::cout << "  " << network.edges[i].link1->node_clv_index << " -> " << network.edges[i].link2->node_clv_index
-                << " has branch length: " << network.edges[i].length << "\n";
+        std::cout << "  " << network.edges[i].link1->node_clv_index << " -> "
+                << network.edges[i].link2->node_clv_index << " has branch length: "
+                << network.edges[i].length << "\n";
     }
 }
 
-void randomArcRemovalMoves(const std::string &networkPath, const std::string &msaPath, bool useRepeats) {
+void randomArcRemovalMoves(const std::string &networkPath, const std::string &msaPath,
+        bool useRepeats) {
     NetraxOptions options;
     options.network_file = networkPath;
     options.msa_file = msaPath;
@@ -421,7 +432,8 @@ void randomArcRemovalMoves(const std::string &networkPath, const std::string &ms
     }
 }
 
-void randomDeltaMinusMoves(const std::string &networkPath, const std::string &msaPath, bool useRepeats) {
+void randomDeltaMinusMoves(const std::string &networkPath, const std::string &msaPath,
+        bool useRepeats) {
     NetraxOptions options;
     options.network_file = networkPath;
     options.msa_file = msaPath;
@@ -573,5 +585,6 @@ TEST (MovesTest, arcRemovalCeline) {
 }
 
 TEST (MovesTest, arcInsertionCeline) {
-    randomArcInsertionMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false);
+    randomArcInsertionMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt",
+            false);
 }

@@ -41,9 +41,9 @@ TEST (BrlenOptTest, tree) {
     //treeWrapper.enableRaxmlDebugOutput();
 
     Tree normalTree = Tree::loadFromFile(treePath);
-    TreeInfo* infoRaxml = treeWrapper.createRaxmlTreeinfo(normalTree.pll_utree_copy());
+    TreeInfo *infoRaxml = treeWrapper.createRaxmlTreeinfo(normalTree.pll_utree_copy());
     AnnotatedNetwork annTreeNetwork = build_annotated_network(treeOptions);
-    TreeInfo* infoNetwork = annTreeNetwork.raxml_treeinfo.get();
+    TreeInfo *infoNetwork = annTreeNetwork.raxml_treeinfo.get();
 
     // initial logl computation
     double initial_logl_raxml = infoRaxml->loglh(false);
@@ -52,7 +52,8 @@ TEST (BrlenOptTest, tree) {
     std::cout << "NETWORK - Initial loglikelihood: " << initial_logl_network << "\n";
     ASSERT_FLOAT_EQ(initial_logl_raxml, initial_logl_network);
 
-    ASSERT_EQ(infoRaxml->pll_treeinfo().tree->edge_count + 1, infoNetwork->pll_treeinfo().tree->edge_count);
+    ASSERT_EQ(infoRaxml->pll_treeinfo().tree->edge_count + 1,
+            infoNetwork->pll_treeinfo().tree->edge_count);
 
     // Compute branch id mapping to check the branch lengths
     std::vector<std::vector<size_t> > utreeIDToNetworkID = getDtBranchToNetworkBranchMapping(
@@ -62,13 +63,15 @@ TEST (BrlenOptTest, tree) {
 
     std::cout << "RAXML - The branch lengths before brlen optimization are:\n";
     for (size_t i = 0; i < infoRaxml->pll_treeinfo().tree->edge_count; ++i) {
-        std::cout << " " << std::setprecision(17) << infoRaxml->pll_treeinfo().branch_lengths[0][i] << "\n";
+        std::cout << " " << std::setprecision(17) << infoRaxml->pll_treeinfo().branch_lengths[0][i]
+                << "\n";
     }
     std::cout << "NETWORK - The branch lengths before brlen optimization are:\n";
     for (size_t i = 0; i < utreeIDToNetworkID.size(); ++i) {
         if (utreeIDToNetworkID[i].size() == 1) {
             std::cout << " " << std::setprecision(17)
-                    << infoNetwork->pll_treeinfo().branch_lengths[0][utreeIDToNetworkID[i][0]] << "\n";
+                    << infoNetwork->pll_treeinfo().branch_lengths[0][utreeIDToNetworkID[i][0]]
+                    << "\n";
         }
     }
 
@@ -80,24 +83,31 @@ TEST (BrlenOptTest, tree) {
     }
 
     // branch length optimization
-    double brlenopt_logl_raxml = infoRaxml->optimize_branches(treeWrapper.getRaxmlOptions().lh_epsilon, 1);
-    std::cout << "RAXML - Loglikelihood after branch length optimization: " << brlenopt_logl_raxml << "\n";
-    double brlenopt_logl_network = infoNetwork->optimize_branches(treeWrapper.getRaxmlOptions().lh_epsilon, 1);
-    std::cout << "NETWORK - Loglikelihood after branch length optimization: " << brlenopt_logl_network << "\n";
+    double brlenopt_logl_raxml = infoRaxml->optimize_branches(
+            treeWrapper.getRaxmlOptions().lh_epsilon, 1);
+    std::cout << "RAXML - Loglikelihood after branch length optimization: " << brlenopt_logl_raxml
+            << "\n";
+    double brlenopt_logl_network = infoNetwork->optimize_branches(
+            treeWrapper.getRaxmlOptions().lh_epsilon, 1);
+    std::cout << "NETWORK - Loglikelihood after branch length optimization: "
+            << brlenopt_logl_network << "\n";
 
     std::cout << "RAXML - The optimized branch lengths are:\n";
     for (size_t i = 0; i < infoRaxml->pll_treeinfo().tree->edge_count; ++i) {
-        std::cout << " " << std::setprecision(17) << infoRaxml->pll_treeinfo().branch_lengths[0][i] << "\n";
+        std::cout << " " << std::setprecision(17) << infoRaxml->pll_treeinfo().branch_lengths[0][i]
+                << "\n";
     }
     std::cout << "NETWORK - The optimized branch lengths are:\n";
     for (size_t i = 0; i < utreeIDToNetworkID.size(); ++i) {
-        std::cout << " " << std::setprecision(17) << infoNetwork->pll_treeinfo().branch_lengths[0][i] << "\n";
+        std::cout << " " << std::setprecision(17)
+                << infoNetwork->pll_treeinfo().branch_lengths[0][i] << "\n";
     }
     // extract the actual network data structure
     Network *network_ptr = &annTreeNetwork.network;
     std::cout << "NETWORK - The ACTUAL optimized branch lengths are:\n";
     for (size_t i = 0; i < utreeIDToNetworkID.size(); ++i) {
-        std::cout << std::setprecision(17) << " pmatrix_idx = " << network_ptr->edges[i].pmatrix_index << " -> brlen = "
+        std::cout << std::setprecision(17) << " pmatrix_idx = "
+                << network_ptr->edges[i].pmatrix_index << " -> brlen = "
                 << network_ptr->edges_by_index[network_ptr->edges[i].pmatrix_index]->length << "\n";
     }
 
@@ -138,7 +148,8 @@ TEST (BrlenOptTest, small) {
 
     // branch length optimization
     double brlenopt_logl_network = optimizeBranches(annTreeNetwork);
-    std::cout << "NETWORK - Loglikelihood after branch length optimization: " << brlenopt_logl_network << "\n";
+    std::cout << "NETWORK - Loglikelihood after branch length optimization: "
+            << brlenopt_logl_network << "\n";
 
     double normal_logl_network = computeLoglikelihood(annTreeNetwork);
     std::cout << "NETWORK - Loglikelihood when called normally: " << normal_logl_network << "\n";
@@ -165,7 +176,8 @@ TEST (BrlenOptTest, celineFake) {
 
     // branch length optimization
     double brlenopt_logl_network = optimizeBranches(annTreeNetwork);
-    std::cout << "NETWORK - Loglikelihood after branch length optimization: " << brlenopt_logl_network << "\n";
+    std::cout << "NETWORK - Loglikelihood after branch length optimization: "
+            << brlenopt_logl_network << "\n";
 
     double normal_logl_network = computeLoglikelihood(annTreeNetwork);
     std::cout << "NETWORK - Loglikelihood when called normally: " << normal_logl_network << "\n";
@@ -199,7 +211,8 @@ TEST (BrlenOptTest, celineFakeWithModelopt) {
 
     // branch length optimization
     double brlenopt_logl_network = optimizeBranches(annTreeNetwork);
-    std::cout << "NETWORK - Loglikelihood after branch length optimization: " << brlenopt_logl_network << "\n";
+    std::cout << "NETWORK - Loglikelihood after branch length optimization: "
+            << brlenopt_logl_network << "\n";
 
     double normal_logl_network = computeLoglikelihood(annTreeNetwork);
     std::cout << "NETWORK - Loglikelihood when called normally: " << normal_logl_network << "\n";
@@ -207,5 +220,6 @@ TEST (BrlenOptTest, celineFakeWithModelopt) {
     ASSERT_FLOAT_EQ(brlenopt_logl_network, normal_logl_network);
 
     // print the network with brlen variance as branch support values
-    std::cout << "network with brlen variance as branch support values:\n" << toExtendedNewick(annTreeNetwork.network) << "\n";
+    std::cout << "network with brlen variance as branch support values:\n"
+            << toExtendedNewick(annTreeNetwork.network) << "\n";
 }

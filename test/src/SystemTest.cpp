@@ -55,7 +55,8 @@ TEST (SystemTest, allTreeOldRaxml) {
 
     std::cout << "The branch lengths before brlen optimization are:\n";
     for (size_t i = 0; i < info->pll_treeinfo().tree->edge_count; ++i) {
-        std::cout << " " << std::setprecision(17) << info->pll_treeinfo().branch_lengths[0][i] << "\n";
+        std::cout << " " << std::setprecision(17) << info->pll_treeinfo().branch_lengths[0][i]
+                << "\n";
     }
 
     // branch length optimization
@@ -64,7 +65,8 @@ TEST (SystemTest, allTreeOldRaxml) {
 
     std::cout << "The optimized branch lengths are:\n";
     for (size_t i = 0; i < info->pll_treeinfo().tree->edge_count; ++i) {
-        std::cout << " " << std::setprecision(17) << info->pll_treeinfo().branch_lengths[0][i] << "\n";
+        std::cout << " " << std::setprecision(17) << info->pll_treeinfo().branch_lengths[0][i]
+                << "\n";
     }
 
     // model parameter optimization
@@ -154,19 +156,23 @@ void problemTestOptTopology(const std::string &newick, MoveType type) {
 }
 
 TEST (SystemTest, problemFillSkippedNodesRecursive) {
-    problemTest("((C:0.05)#0:0.05::0.5,((B:0.05,#0:1::0.5):0.025)#1:0.025::0.5,(A:0.1,(D:0.05,#1:1::0.5):0.05):0.1);");
+    problemTest(
+            "((C:0.05)#0:0.05::0.5,((B:0.05,#0:1::0.5):0.025)#1:0.025::0.5,(A:0.1,(D:0.05,#1:1::0.5):0.05):0.1);");
 }
 
 TEST (SystemTest, problemConnectSubtreeRecursive) {
-    problemTest("((C:0.1,((D:0.05,((A:0.025)#1:0.025::0.5)#0:1::0.5):0.025,#1:1::0.5):0.025):0.1,B:0.1,#0:0.05::0.5);");
+    problemTest(
+            "((C:0.1,((D:0.05,((A:0.025)#1:0.025::0.5)#0:1::0.5):0.025,#1:1::0.5):0.025):0.1,B:0.1,#0:0.05::0.5);");
 }
 
 TEST (SystemTest, problemCreateOperationsUpdatedReticulation) {
-    problemTest("(((C:0.05)#0:0.025::0.5,((B:0.1,(D:0.05,#0:1::0.5):0.05):0.05)#1:1::0.5):0.025,#1:0.05::0.5,A:0.1);");
+    problemTest(
+            "(((C:0.05)#0:0.025::0.5,((B:0.1,(D:0.05,#0:1::0.5):0.05):0.05)#1:1::0.5):0.025,#1:0.05::0.5,A:0.1);");
 }
 
 TEST (SystemTest, problemPllUpdatePartials) {
-    problemTest("(((C:0.05)#0:0.025::0.5)#1:0.025::0.5,(B:0.1,D:0.1):0.1,(A:0.05,(#0:0.5::0.5,#1:1::0.5):0.5):0.05);");
+    problemTest(
+            "(((C:0.05)#0:0.025::0.5)#1:0.025::0.5,(B:0.1,D:0.1):0.1,(A:0.05,(#0:0.5::0.5,#1:1::0.5):0.5):0.05);");
 }
 
 TEST (SystemTest, problem3) {
@@ -210,7 +216,8 @@ TEST (SystemTest, problem10) {
 }
 
 TEST (SystemTest, problem11) {
-    problemTest("(C:0.1,((B:0.05,(((A:0.1,D:0.1):0.025)#1:0.025::0.5)#0:1::0.5):0.025,#1:1::0.5):0.025,#0:0.05::0.5);");
+    problemTest(
+            "(C:0.1,((B:0.05,(((A:0.1,D:0.1):0.025)#1:0.025::0.5)#0:1::0.5):0.025,#1:1::0.5):0.025,#0:0.05::0.5);");
 }
 
 TEST (SystemTest, problem12) {
@@ -219,7 +226,8 @@ TEST (SystemTest, problem12) {
 }
 
 TEST (SystemTest, problem13) {
-    problemTestOptTopology("((A:1.27388e-06,D:0.331337):3.97574,C:1.91969,B:1.48272e-06);", MoveType::ArcInsertionMove);
+    problemTestOptTopology("((A:1.27388e-06,D:0.331337):3.97574,C:1.91969,B:1.48272e-06);",
+            MoveType::ArcInsertionMove);
     //problemTest("((C:0.05)#1:0.05::0.5,(B:0.05,#1:1::0.5):0.05,(((A:0.05)#0:0.025::0.5,(D:0.025)#2:1::0.5):0.025,(#2:0.025::0.5,#0:1::0.5):0.05):0.1);");
 }
 

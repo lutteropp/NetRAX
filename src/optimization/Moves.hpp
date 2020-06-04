@@ -22,7 +22,15 @@ struct Node;
 // The moves correspond to the rNNI moves and rSPR moves from this paper: https://doi.org/10.1371/journal.pcbi.1005611
 
 enum class MoveType {
-    RNNIMove, RSPRMove, TailMove, HeadMove, RSPR1Move, ArcInsertionMove, ArcRemovalMove, DeltaPlusMove, DeltaMinusMove
+    RNNIMove,
+    RSPRMove,
+    TailMove,
+    HeadMove,
+    RSPR1Move,
+    ArcInsertionMove,
+    ArcRemovalMove,
+    DeltaPlusMove,
+    DeltaMinusMove
 };
 
 struct GeneralMove {
@@ -137,11 +145,13 @@ void performMove(AnnotatedNetwork &ann_network, RSPRMove &move);
 void undoMove(AnnotatedNetwork &ann_network, RNNIMove &move);
 void undoMove(AnnotatedNetwork &ann_network, RSPRMove &move);
 
-std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_network, const Edge *edge);
+std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_network,
+        const Edge *edge);
 std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_network);
 std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_network);
 
-std::vector<ArcInsertionMove> possibleDeltaPlusMoves(AnnotatedNetwork &ann_network, const Edge *edge);
+std::vector<ArcInsertionMove> possibleDeltaPlusMoves(AnnotatedNetwork &ann_network,
+        const Edge *edge);
 std::vector<ArcInsertionMove> possibleDeltaPlusMoves(AnnotatedNetwork &ann_network);
 std::vector<ArcRemovalMove> possibleDeltaMinusMoves(AnnotatedNetwork &ann_network, Node *v);
 std::vector<ArcRemovalMove> possibleDeltaMinusMoves(AnnotatedNetwork &ann_network);
@@ -159,12 +169,15 @@ std::string toString(MoveType &type);
 
 std::unordered_set<size_t> brlenOptCandidates(AnnotatedNetwork &ann_network, RNNIMove &move);
 std::unordered_set<size_t> brlenOptCandidates(AnnotatedNetwork &ann_network, RSPRMove &move);
-std::unordered_set<size_t> brlenOptCandidates(AnnotatedNetwork &ann_network, ArcInsertionMove &move);
+std::unordered_set<size_t> brlenOptCandidates(AnnotatedNetwork &ann_network,
+        ArcInsertionMove &move);
 std::unordered_set<size_t> brlenOptCandidates(AnnotatedNetwork &ann_network, ArcRemovalMove &move);
 std::unordered_set<size_t> brlenOptCandidatesUndo(AnnotatedNetwork &ann_network, RNNIMove &move);
 std::unordered_set<size_t> brlenOptCandidatesUndo(AnnotatedNetwork &ann_network, RSPRMove &move);
-std::unordered_set<size_t> brlenOptCandidatesUndo(AnnotatedNetwork &ann_network, ArcInsertionMove &move);
-std::unordered_set<size_t> brlenOptCandidatesUndo(AnnotatedNetwork &ann_network, ArcRemovalMove &move);
+std::unordered_set<size_t> brlenOptCandidatesUndo(AnnotatedNetwork &ann_network,
+        ArcInsertionMove &move);
+std::unordered_set<size_t> brlenOptCandidatesUndo(AnnotatedNetwork &ann_network,
+        ArcRemovalMove &move);
 
 void performMove(AnnotatedNetwork &ann_network, GeneralMove *move);
 void undoMove(AnnotatedNetwork &ann_network, GeneralMove *move);
