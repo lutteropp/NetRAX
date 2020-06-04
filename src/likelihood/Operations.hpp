@@ -24,7 +24,7 @@ std::vector<pll_operation_t> createOperations(AnnotatedNetwork &ann_network, siz
 
 std::vector<pll_operation_t> createOperationsUpdatedReticulation(AnnotatedNetwork &ann_network,
         size_t partition_idx, const std::vector<Node*> &parent, Node *actNode,
-        const std::vector<bool> &dead_nodes, bool incremental, bool useBlobs,
+        const std::vector<bool> &dead_nodes, bool incremental,
         Node *displayed_tree_root);
 
 }

@@ -86,7 +86,7 @@ void createOperationsPostorder(AnnotatedNetwork &ann_network, bool incremental,
     }
 
     std::vector<Node*> activeChildren = getActiveChildrenIgnoreDirections(network, actNode, parent);
-    if (activeChildren.empty()) { // nothing to do if we are at a leaf node
+    if (activeChildren.empty()) {
         return;
     }
     assert(activeChildren.size() <= 2);
@@ -135,7 +135,6 @@ std::vector<pll_operation_t> createOperations(AnnotatedNetwork &ann_network, siz
     size_t fake_clv_index = network.nodes.size();
     size_t fake_pmatrix_index = network.edges.size();
 
-    // fill forbidden clv indices
     std::vector<unsigned int> stopIndices;
     for (size_t i = 0; i < blobInfo.megablob_roots.size(); ++i) {
         if (i != megablobIdx) {
@@ -147,10 +146,9 @@ std::vector<pll_operation_t> createOperations(AnnotatedNetwork &ann_network, siz
     }
 
     if (blobInfo.megablob_roots[megablobIdx] == network.root) {
-        // How to do the operations at the top-level root trifurcation?
-        // First with root->back, then with root...
-
         if (displayed_tree_root == network.root) {
+            // How to do the operations at the top-level root trifurcation?
+            // First with root->back, then with root...
             Node *rootBack = getTargetNode(network, network.root->getLink());
             createOperationsPostorder(ann_network, incremental, partition_idx, rootBack,
                     network.root, ops, fake_clv_index, fake_pmatrix_index, dead_nodes,
@@ -181,7 +179,6 @@ std::vector<pll_operation_t> createOperations(AnnotatedNetwork &ann_network, siz
                 parent[displayed_tree_root->clv_index], ops, fake_clv_index, fake_pmatrix_index,
                 dead_nodes, &stopIndices);
     }
-    // printOperationArray(ops);
     return ops;
 }
 
@@ -198,12 +195,12 @@ Node* getActiveParent(Network &network, Node *actNode, const std::vector<Node*> 
 // forward declaration needed for createOperationsTowardsRoot
 std::vector<pll_operation_t> createOperationsUpdatedReticulation(AnnotatedNetwork &ann_network,
         size_t partition_idx, const std::vector<Node*> &parent, Node *actNode,
-        const std::vector<bool> &dead_nodes, bool incremental, bool useBlobs,
+        const std::vector<bool> &dead_nodes, bool incremental,
         Node *displayed_tree_root);
 
 std::vector<pll_operation_t> createOperationsTowardsRoot(AnnotatedNetwork &ann_network,
         size_t partition_idx, const std::vector<Node*> &parent, Node *actParent,
-        const std::vector<bool> &dead_nodes, bool incremental, bool useBlobs,
+        const std::vector<bool> &dead_nodes, bool incremental,
         Node *displayed_tree_root) {
     Network &network = ann_network.network;
 
@@ -217,10 +214,10 @@ std::vector<pll_operation_t> createOperationsTowardsRoot(AnnotatedNetwork &ann_n
         } else if (actParent->type == NodeType::RETICULATION_NODE) {
             // when our current node is a dead reticulation node, we need to again go up from both its parents, not just from the active parent...
             return createOperationsUpdatedReticulation(ann_network, partition_idx, parent,
-                    actParent, dead_nodes, incremental, useBlobs, displayed_tree_root);
+                    actParent, dead_nodes, incremental, displayed_tree_root);
         } else {
             return createOperationsTowardsRoot(ann_network, partition_idx, parent,
-                    parent[actParent->clv_index], dead_nodes, incremental, useBlobs,
+                    parent[actParent->clv_index], dead_nodes, incremental,
                     displayed_tree_root);
         }
     }
@@ -244,17 +241,6 @@ std::vector<pll_operation_t> createOperationsTowardsRoot(AnnotatedNetwork &ann_n
     }
 
     if (displayed_tree_root == network.root) {
-        // now, add the two operations for the root node in reverse order.
-        /*if (!rootBack->isTip() && !getActiveChildrenIgnoreDirections(network, rootBack, network.root).empty()) {
-         if (!incremental || !ann_network.fake_treeinfo->clv_valid[partition_idx][rootBack->clv_index]) {
-         if (!useBlobs || !isMegablobRoot(ann_network, rootBack)) {
-         // TODO: Do we even need this one here?
-         ops.push_back(
-         buildOperation(network, rootBack, network.root, dead_nodes, fake_clv_index,
-         fake_pmatrix_index));
-         }
-         }
-         }*/
         Node *rootBack = getTargetNode(network, network.root->getLink());
         if (!getActiveChildrenIgnoreDirections(network, network.root, rootBack).empty()) {
             ops.push_back(
@@ -269,8 +255,6 @@ std::vector<pll_operation_t> createOperationsTowardsRoot(AnnotatedNetwork &ann_n
             ops[ops.size() - 1].child1_matrix_index = fake_pmatrix_index;
         }
     } // else since displayed tree root has only 2 children, no need for rootBack stuff
-
-    //printOperationArray(ops);
 
     // check that we don't have any operation twice
     for (size_t i = 0; i < ops.size(); ++i) {
@@ -288,22 +272,17 @@ std::vector<pll_operation_t> createOperationsTowardsRoot(AnnotatedNetwork &ann_n
 
 std::vector<pll_operation_t> createOperationsUpdatedReticulation(AnnotatedNetwork &ann_network,
         size_t partition_idx, const std::vector<Node*> &parent, Node *actNode,
-        const std::vector<bool> &dead_nodes, bool incremental, bool useBlobs,
+        const std::vector<bool> &dead_nodes, bool incremental,
         Node *displayed_tree_root) {
     Network &network = ann_network.network;
     std::vector<pll_operation_t> ops;
 
     Node *firstParent = getReticulationFirstParent(network, actNode);
     std::vector<pll_operation_t> opsFirst = createOperationsTowardsRoot(ann_network, partition_idx,
-            parent, firstParent, dead_nodes, incremental, useBlobs, displayed_tree_root);
-    //std::cout << "opsFirst:\n";
-    //printOperationArray(opsFirst);
+            parent, firstParent, dead_nodes, incremental, displayed_tree_root);
     Node *secondParent = getReticulationSecondParent(network, actNode);
     std::vector<pll_operation_t> opsSecond = createOperationsTowardsRoot(ann_network, partition_idx,
-            parent, secondParent, dead_nodes, incremental, useBlobs, displayed_tree_root);
-    //std::cout << "opsSecond:\n";
-    //printOperationArray(opsSecond);
-    //std::cout << "\n";
+            parent, secondParent, dead_nodes, incremental, displayed_tree_root);
 
     // find the first entry in opsFirst which also occurs in opsSecond. We will only take opsFirst until this entry, excluding it.
     std::unordered_set<unsigned int> opsSecondRoots;
@@ -321,7 +300,6 @@ std::vector<pll_operation_t> createOperationsUpdatedReticulation(AnnotatedNetwor
     }
 
     assert(ops.empty() || ops[ops.size() - 1].parent_clv_index == displayed_tree_root->clv_index);
-    // printOperationArray(ops);
     return ops;
 }
 
