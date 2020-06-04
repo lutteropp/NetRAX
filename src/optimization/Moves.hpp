@@ -7,14 +7,18 @@
 
 #pragma once
 
-#include "Common.hpp"
+#include <stddef.h>
+#include <limits>
+#include <string>
+#include <unordered_set>
 #include <vector>
-#include <random>
 
 // TODO: Maybe put all moves into a class hierarchy?
 
 namespace netrax {
 struct AnnotatedNetwork;
+struct Edge;
+struct Node;
 // The moves correspond to the rNNI moves and rSPR moves from this paper: https://doi.org/10.1371/journal.pcbi.1005611
 
 enum class MoveType {

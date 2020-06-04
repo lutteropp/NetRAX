@@ -6,16 +6,31 @@
  */
 
 #include "Moves.hpp"
-#include "Network.hpp"
-#include "NetworkTopology.hpp"
-#include "Direction.hpp"
-#include "AnnotatedNetwork.hpp"
-#include "BiconnectedComponents.hpp"
-#include <vector>
+
+#include <algorithm>
+#include <cassert>
+#include <initializer_list>
+#include <iterator>
+#include <memory>
 #include <queue>
-#include <unordered_set>
 #include <sstream>
-#include <iostream>
+#include <stdexcept>
+#include <thread>
+#include <unordered_map>
+#include <utility>
+
+#include "../graph/AnnotatedNetwork.hpp"
+#include "../graph/BiconnectedComponents.hpp"
+#include "../graph/Direction.hpp"
+#include "../graph/Edge.hpp"
+#include "../graph/Link.hpp"
+#include "../graph/Network.hpp"
+#include "../graph/NetworkFunctions.hpp"
+#include "../graph/NetworkTopology.hpp"
+#include "../graph/Node.hpp"
+#include "../graph/NodeType.hpp"
+#include "../graph/ReticulationData.hpp"
+#include "../NetraxOptions.hpp"
 
 extern "C" {
 #include <libpll/pll.h>
@@ -1391,7 +1406,7 @@ Edge* addEdge(Network &network, Link *link1, Link *link2, double length, double 
     if (link1->direction == Direction::INCOMING) {
         std::swap(link1, link2);
     }
-    size_t pmatrix_index;
+    size_t pmatrix_index = 0;
     if (wanted_pmatrix_index < network.edges.size()) {
         pmatrix_index = wanted_pmatrix_index;
     } else {

@@ -9,7 +9,7 @@
 #include "src/io/NetworkIO.hpp"
 #include "src/RaxmlWrapper.hpp"
 #include "src/graph/Network.hpp"
-#include "src/graph/Moves.hpp"
+#include "src/optimization/Moves.hpp"
 #include "src/optimization/TopologyOptimization.hpp"
 #include "src/Api.hpp"
 
@@ -264,4 +264,3 @@ TEST (SystemTest, problem21) {
             "(((((((((((C:0.00625)#3:0.003125::0.5)#6:0.003125::0.5,(A:0.05)#2:1::0.5):0.003125)#9:0.003125::0.5)#5:0.00625::0.5)#1:0.00625::0.5)#4:0.00625::0.5,#3:1::0.5):0.00625,(#6:0.5::0.5,#9:1::0.5):0.5):0.00625)#0:0.05::0.5,B:0.1,(#2:0.05::0.5,((((D:0.025,((#5:0.5::0.5)#7:0.25::0.5)#8:1::0.5):0.025,((#0:0.5::0.5,#8:0.25::0.5):0.25,#7:1::0.5):0.25):0.025,#1:1::0.5):0.0125,#4:1::0.5):0.0125):0.1);",
             MoveType::ArcRemovalMove);
 }
-

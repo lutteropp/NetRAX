@@ -35,7 +35,7 @@ void printClvValid(AnnotatedNetwork &ann_network);
 void printReticulationFirstParents(AnnotatedNetwork &ann_network);
 void printReticulationNodesPerMegablob(AnnotatedNetwork &ann_network);
 
-std::string exportDebugInfo(const RootedNetwork &rnetwork);
+std::string exportDebugInfoRootedNetwork(const RootedNetwork &rnetwork);
 std::string exportDebugInfoBlobs(Network &network, const BlobInformation &blobInfo);
 std::string exportDebugInfo(Network &network);
 

@@ -1,8 +1,8 @@
 /*
- * LikelihoodComputation.hpp
+ * OldLikelihoodComputation.hpp
  *
- *  Created on: Sep 4, 2019
- *      Author: Sarah Lutteropp
+ *  Created on: Jun 4, 2020
+ *      Author: sarah
  */
 
 #pragma once
@@ -15,13 +15,16 @@ extern "C" {
 #include <libpll/pll_tree.h>
 }
 
-#include "../graph/Common.hpp"
-#include "../graph/AnnotatedNetwork.hpp"
-#include "../RaxmlWrapper.hpp"
+#include "src/graph/Common.hpp"
+#include "src/graph/AnnotatedNetwork.hpp"
+#include "src/RaxmlWrapper.hpp"
 #include <raxml-ng/TreeInfo.hpp>
 
 namespace netrax {
-
+namespace old {
+double computeLoglikelihoodNaiveUtree(AnnotatedNetwork &ann_network, int incremental,
+        int update_pmatrices, std::vector<double> *treewise_logl = nullptr);
 double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices,
         bool update_reticulation_probs = false, std::vector<double> *treewise_logl = nullptr);
+}
 }

@@ -24,7 +24,7 @@
 #include "likelihood/LikelihoodComputation.hpp"
 #include "NetraxOptions.hpp"
 #include "RaxmlWrapper.hpp"
-#include "graph/Moves.hpp"
+#include "optimization/Moves.hpp"
 #include "optimization/TopologyOptimization.hpp"
 
 namespace netrax {

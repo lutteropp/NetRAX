@@ -6,17 +6,22 @@
  */
 
 #include "TopologyOptimization.hpp"
-#include <cmath>
-#include <limits>
 
-#include "../graph/AnnotatedNetwork.hpp"
-#include "../graph/NetworkTopology.hpp"
-#include "../graph/Network.hpp"
-#include "../graph/Moves.hpp"
-#include "../likelihood/LikelihoodComputation.hpp"
-#include "BranchLengthOptimization.hpp"
-#include "../io/NetworkIO.hpp"
+#include <stddef.h>
+#include <cassert>
+#include <cmath>
+#include <iostream>
+#include <stdexcept>
+#include <string>
+#include <vector>
+#include <raxml-ng/TreeInfo.hpp>
 #include "../DebugPrintFunctions.hpp"
+#include "../graph/AnnotatedNetwork.hpp"
+#include "../optimization/Moves.hpp"
+#include "../graph/Network.hpp"
+#include "../graph/NetworkTopology.hpp"
+#include "../NetraxOptions.hpp"
+#include "Moves.hpp"
 
 namespace netrax {
 
@@ -31,7 +36,8 @@ double aic(AnnotatedNetwork &ann_network, double logl) {
     Network &network = ann_network.network;
     bool unlinked_mode = (ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
     size_t multiplier = (unlinked_mode) ? 1 : ann_network.fake_treeinfo->partition_count;
-    size_t param_count = multiplier * network.num_branches() + ann_network.total_num_model_parameters;
+    size_t param_count = multiplier * network.num_branches()
+            + ann_network.total_num_model_parameters;
     return aic(logl, param_count);
 }
 
@@ -39,7 +45,8 @@ double bic(AnnotatedNetwork &ann_network, double logl) {
     Network &network = ann_network.network;
     bool unlinked_mode = (ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
     size_t multiplier = (unlinked_mode) ? 1 : ann_network.fake_treeinfo->partition_count;
-    size_t param_count = multiplier * network.num_branches() + ann_network.total_num_model_parameters;
+    size_t param_count = multiplier * network.num_branches()
+            + ann_network.total_num_model_parameters;
     size_t num_sites = ann_network.total_num_sites;
     return bic(logl, param_count, num_sites);
 }
@@ -80,7 +87,8 @@ std::vector<std::vector<double> > extract_brprobs(AnnotatedNetwork &ann_network)
     return res;
 }
 
-void apply_brlens(AnnotatedNetwork &ann_network, const std::vector<std::vector<double> > &old_brlens) {
+void apply_brlens(AnnotatedNetwork &ann_network,
+        const std::vector<std::vector<double> > &old_brlens) {
     std::vector<bool> visited(ann_network.network.nodes.size(), false);
     bool unlinkedMode = (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
     size_t n_partitions = 1;
@@ -90,10 +98,13 @@ void apply_brlens(AnnotatedNetwork &ann_network, const std::vector<std::vector<d
     for (size_t p = 0; p < n_partitions; ++p) {
         for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
             size_t pmatrix_index = ann_network.network.edges[i].pmatrix_index;
-            if (ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] != old_brlens[p][pmatrix_index]) {
-                ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] = old_brlens[p][pmatrix_index];
+            if (ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index]
+                    != old_brlens[p][pmatrix_index]) {
+                ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] =
+                        old_brlens[p][pmatrix_index];
                 ann_network.fake_treeinfo->pmatrix_valid[p][pmatrix_index] = 0;
-                invalidateHigherCLVs(ann_network, getTarget(ann_network.network, &ann_network.network.edges[i]), true,
+                invalidateHigherCLVs(ann_network,
+                        getTarget(ann_network.network, &ann_network.network.edges[i]), true,
                         visited);
             }
         }
@@ -104,8 +115,8 @@ template<typename T>
 bool wantedMove(T *move) {
     if (move->moveType == MoveType::ArcRemovalMove) {
         ArcRemovalMove *m = (ArcRemovalMove*) move;
-        if (m->a_clv_index == 11 && m->b_clv_index == 21 && m->c_clv_index == 18 && m->d_clv_index == 6
-                && m->u_clv_index == 12 && m->v_clv_index == 19) {
+        if (m->a_clv_index == 11 && m->b_clv_index == 21 && m->c_clv_index == 18
+                && m->d_clv_index == 6 && m->u_clv_index == 12 && m->v_clv_index == 19) {
             return true;
         }
     }
@@ -113,7 +124,8 @@ bool wantedMove(T *move) {
 }
 
 template<typename T>
-double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates, double old_score) {
+double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates,
+        double old_score) {
     //std::cout << "greedyHillclimbingStep called\n";
     size_t best_idx = candidates.size();
     double best_score = old_score;
@@ -187,14 +199,14 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
                 if (fabs(act_brlens[i][j] - old_brlens[i][j]) >= 1E-5) {
                     std::cout << "wanted brlens:\n";
                     for (size_t k = 0; k < ann_network.network.num_branches(); ++k) {
-                        std::cout << "idx " << ann_network.network.edges[k].pmatrix_index << ": " << old_brlens[i][k]
-                                << "\n";
+                        std::cout << "idx " << ann_network.network.edges[k].pmatrix_index << ": "
+                                << old_brlens[i][k] << "\n";
                     }
                     std::cout << "\n";
                     std::cout << "observed brlens:\n";
                     for (size_t k = 0; k < ann_network.network.num_branches(); ++k) {
-                        std::cout << "idx " << ann_network.network.edges[k].pmatrix_index << ": " << act_brlens[i][k]
-                                << "\n";
+                        std::cout << "idx " << ann_network.network.edges[k].pmatrix_index << ": "
+                                << act_brlens[i][k] << "\n";
                     }
                     std::cout << "\n";
                 }
@@ -206,14 +218,14 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
                 if (fabs(act_brprobs[i][j] - old_brprobs[i][j]) >= 1E-5) {
                     std::cout << "wanted brprobs:\n";
                     for (size_t k = 0; k < ann_network.network.num_branches(); ++k) {
-                        std::cout << "idx " << ann_network.network.edges[k].pmatrix_index << ": " << old_brprobs[i][k]
-                                << "\n";
+                        std::cout << "idx " << ann_network.network.edges[k].pmatrix_index << ": "
+                                << old_brprobs[i][k] << "\n";
                     }
                     std::cout << "\n";
                     std::cout << "observed brprobs:\n";
                     for (size_t k = 0; k < ann_network.network.num_branches(); ++k) {
-                        std::cout << "idx " << ann_network.network.edges[k].pmatrix_index << ": " << act_brprobs[i][k]
-                                << "\n";
+                        std::cout << "idx " << ann_network.network.edges[k].pmatrix_index << ": "
+                                << act_brprobs[i][k] << "\n";
                     }
                     std::cout << "\n";
                 }
@@ -224,7 +236,8 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
         if (fabs(ann_network.raxml_treeinfo->loglh(true) - start_logl) >= 1E-5) {
             std::cout << "wanted: " << start_logl << "\n";
             std::cout << "observed: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
-            std::cout << "recomputed without incremental: " << ann_network.raxml_treeinfo->loglh(false) << "\n";
+            std::cout << "recomputed without incremental: "
+                    << ann_network.raxml_treeinfo->loglh(false) << "\n";
         }
         assert(fabs(ann_network.raxml_treeinfo->loglh(true) - start_logl) < 1E-5);
         //apply_brlens(ann_network, old_brlens);
@@ -240,7 +253,8 @@ double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> cand
         if (fabs(best_logl - ann_network.raxml_treeinfo->loglh(true)) >= 1E-5) {
             std::cout << "wanted: " << start_logl << "\n";
             std::cout << "observed: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
-            std::cout << "recomputed without incremental: " << ann_network.raxml_treeinfo->loglh(false) << "\n";
+            std::cout << "recomputed without incremental: "
+                    << ann_network.raxml_treeinfo->loglh(false) << "\n";
         }
         assert(fabs(best_logl - ann_network.raxml_treeinfo->loglh(true)) < 1E-5);
 
@@ -277,16 +291,20 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, MoveType type) 
             new_bic = greedyHillClimbingStep(ann_network, possibleTailMoves(ann_network), old_bic);
             break;
         case MoveType::ArcInsertionMove:
-            new_bic = greedyHillClimbingStep(ann_network, possibleArcInsertionMoves(ann_network), old_bic);
+            new_bic = greedyHillClimbingStep(ann_network, possibleArcInsertionMoves(ann_network),
+                    old_bic);
             break;
         case MoveType::DeltaPlusMove:
-            new_bic = greedyHillClimbingStep(ann_network, possibleDeltaPlusMoves(ann_network), old_bic);
+            new_bic = greedyHillClimbingStep(ann_network, possibleDeltaPlusMoves(ann_network),
+                    old_bic);
             break;
         case MoveType::ArcRemovalMove:
-            new_bic = greedyHillClimbingStep(ann_network, possibleArcRemovalMoves(ann_network), old_bic);
+            new_bic = greedyHillClimbingStep(ann_network, possibleArcRemovalMoves(ann_network),
+                    old_bic);
             break;
         case MoveType::DeltaMinusMove:
-            new_bic = greedyHillClimbingStep(ann_network, possibleDeltaMinusMoves(ann_network), old_bic);
+            new_bic = greedyHillClimbingStep(ann_network, possibleDeltaMinusMoves(ann_network),
+                    old_bic);
             break;
         default:
             throw std::runtime_error("Invalid move type");
@@ -299,8 +317,8 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network) {
     //std::vector<MoveType> types = { MoveType::DeltaMinusMove, MoveType::RNNIMove, MoveType::RSPR1Move,
     //        MoveType::DeltaPlusMove };
 
-    std::vector<MoveType> types = { MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPRMove,
-            MoveType::ArcInsertionMove };
+    std::vector<MoveType> types = { MoveType::ArcRemovalMove, MoveType::RNNIMove,
+            MoveType::RSPRMove, MoveType::ArcInsertionMove };
     unsigned int type_idx = 0;
     double old_logl = ann_network.raxml_treeinfo->loglh(true);
     double new_logl = old_logl;
@@ -323,7 +341,8 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network) {
         type_idx = (type_idx + 1) % types.size();
         moves_cnt++;
         if (ann_network.network.num_reticulations() == 0
-                && (types[type_idx] == MoveType::DeltaMinusMove || types[type_idx] == MoveType::ArcRemovalMove)) {
+                && (types[type_idx] == MoveType::DeltaMinusMove
+                        || types[type_idx] == MoveType::ArcRemovalMove)) {
             type_idx = (type_idx + 1) % types.size();
             moves_cnt++;
         }

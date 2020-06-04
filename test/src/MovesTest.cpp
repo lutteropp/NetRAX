@@ -6,10 +6,11 @@
  */
 
 #include "src/likelihood/LikelihoodComputation.hpp"
-#include "src/graph/Moves.hpp"
+#include "src/optimization/Moves.hpp"
 #include "src/io/NetworkIO.hpp"
 #include "src/RaxmlWrapper.hpp"
 #include "src/Api.hpp"
+#include "src/DebugPrintFunctions.hpp"
 
 #include "src/graph/NetworkFunctions.hpp"
 
@@ -464,14 +465,6 @@ void randomDeltaMinusMoves(const std::string &networkPath, const std::string &ms
         double back_logl = computeLoglikelihood(ann_network);
         ASSERT_DOUBLE_EQ(initial_logl, back_logl);
     }
-}
-
-void printClvValid(AnnotatedNetwork &ann_network) {
-    for (size_t i = 0; i < ann_network.network.num_nodes(); ++i) {
-        std::cout << "clv_valid[" << ann_network.network.nodes[i].clv_index << "] = "
-                << (int) ann_network.fake_treeinfo->clv_valid[0][ann_network.network.nodes[i].clv_index] << "\n";
-    }
-    std::cout << "\n";
 }
 
 TEST (MovesTest, incrementalLoglikelihoodProblem) {

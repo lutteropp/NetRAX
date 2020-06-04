@@ -13,7 +13,6 @@
 #include <iterator>
 #include <memory>
 #include <sstream>
-#include <thread>
 
 #include "graph/AnnotatedNetwork.hpp"
 #include "graph/BiconnectedComponents.hpp"
@@ -39,13 +38,16 @@ void printClv(const pllmod_treeinfo_t &treeinfo, size_t clv_index, size_t partit
     for (unsigned int n = 0; n < sites; ++n) {
         for (unsigned int i = 0; i < rate_cats; ++i) {
             for (unsigned int j = 0; j < states; ++j) {
-                std::cout << treeinfo.partitions[partition_index]->clv[clv_index][j + i * states_padded] << "\n";
+                std::cout
+                        << treeinfo.partitions[partition_index]->clv[clv_index][j
+                                + i * states_padded] << "\n";
             }
         }
     }
 }
 
-void print_clv_vector(pllmod_treeinfo_t &fake_treeinfo, size_t tree_idx, size_t partition_idx, size_t clv_index) {
+void print_clv_vector(pllmod_treeinfo_t &fake_treeinfo, size_t tree_idx, size_t partition_idx,
+        size_t clv_index) {
     pll_partition_t *partition = fake_treeinfo.partitions[partition_idx];
     unsigned int states_padded = partition->states_padded;
     unsigned int sites = partition->sites;
@@ -80,16 +82,16 @@ void printReticulationParents(Network &network) {
 void printClvTouched(Network &network, const std::vector<bool> &clv_touched) {
     std::cout << "clv touched:\n";
     for (size_t i = 0; i < network.num_nodes(); ++i) {
-        std::cout << "  clv_touched[" << network.nodes[i].clv_index << "]= " << clv_touched[network.nodes[i].clv_index]
-                << "\n";
+        std::cout << "  clv_touched[" << network.nodes[i].clv_index << "]= "
+                << clv_touched[network.nodes[i].clv_index] << "\n";
     }
 }
 
 void print_dead_nodes(Network &network, const std::vector<bool> &dead_nodes) {
     std::cout << "dead nodes:\n";
     for (size_t i = 0; i < network.num_nodes(); ++i) {
-        std::cout << "  dead_nodes[" << network.nodes[i].clv_index << "]= " << dead_nodes[network.nodes[i].clv_index]
-                << "\n";
+        std::cout << "  dead_nodes[" << network.nodes[i].clv_index << "]= "
+                << dead_nodes[network.nodes[i].clv_index] << "\n";
     }
 }
 
@@ -101,8 +103,8 @@ void print_brlens(AnnotatedNetwork &ann_network) {
     }
     for (size_t p = 0; p < n_partitions; ++p) {
         for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
-            std::cout << "brlens[" << p << "][" << ann_network.network.edges[i].pmatrix_index << "]: "
-                    << ann_network.network.edges[i].length << "\n";
+            std::cout << "brlens[" << p << "][" << ann_network.network.edges[i].pmatrix_index
+                    << "]: " << ann_network.network.edges[i].length << "\n";
         }
     }
     std::cout << "\n";
@@ -111,35 +113,42 @@ void print_brlens(AnnotatedNetwork &ann_network) {
 void printClvValid(AnnotatedNetwork &ann_network) {
     for (size_t i = 0; i < ann_network.network.num_nodes(); ++i) {
         std::cout << "clv_valid[" << ann_network.network.nodes[i].clv_index << "] = "
-                << (int) ann_network.fake_treeinfo->clv_valid[0][ann_network.network.nodes[i].clv_index] << "\n";
+                << (int) ann_network.fake_treeinfo->clv_valid[0][ann_network.network.nodes[i].clv_index]
+                << "\n";
     }
     std::cout << "\n";
 }
 
 void printReticulationFirstParents(AnnotatedNetwork &ann_network) {
     std::cout << "reticulation first parents:\n";
-    for (Node * node : ann_network.network.reticulation_nodes) {
-        std::cout << "  ret node " << node->clv_index << " has first parent " << getReticulationFirstParent(ann_network.network, node)->clv_index << "\n";
+    for (Node *node : ann_network.network.reticulation_nodes) {
+        std::cout << "  ret node " << node->clv_index << " has first parent "
+                << getReticulationFirstParent(ann_network.network, node)->clv_index << "\n";
     }
 }
 
 void printReticulationNodesPerMegablob(AnnotatedNetwork &ann_network) {
     std::cout << "reticulation nodes per megablob:\n";
     for (size_t i = 0; i < ann_network.blobInfo.megablob_roots.size(); ++i) {
-        std::cout << "reticulation nodes in megablob " << ann_network.blobInfo.megablob_roots[i]->clv_index << ":\n";
-        for (size_t j = 0; j < ann_network.blobInfo.reticulation_nodes_per_megablob[i].size(); ++j) {
-            std::cout << "  " << ann_network.blobInfo.reticulation_nodes_per_megablob[i][j]->clv_index << "\n";
+        std::cout << "reticulation nodes in megablob "
+                << ann_network.blobInfo.megablob_roots[i]->clv_index << ":\n";
+        for (size_t j = 0; j < ann_network.blobInfo.reticulation_nodes_per_megablob[i].size();
+                ++j) {
+            std::cout << "  "
+                    << ann_network.blobInfo.reticulation_nodes_per_megablob[i][j]->clv_index
+                    << "\n";
         }
     }
     std::cout << '\n';
 }
 
-std::string exportDebugInfo(const RootedNetwork &rnetwork) {
+std::string exportDebugInfoRootedNetwork(const RootedNetwork &rnetwork) {
     std::stringstream ss;
     ss << "graph\n[\tdirected\t1\n";
     for (size_t i = 0; i < rnetwork.nodes.size(); ++i) {
         ss << "\tnode\n\t[\n\t\tid\t" << i << "\n";
-        std::string nodeLabel = (rnetwork.nodes[i]->label.empty()) ? std::to_string(i) : rnetwork.nodes[i]->label;
+        std::string nodeLabel =
+                (rnetwork.nodes[i]->label.empty()) ? std::to_string(i) : rnetwork.nodes[i]->label;
         ss << "\t\tlabel\t\"" << nodeLabel << "\"\n";
 
         ss << "\t\tgraphics\n\t\t[\n";
@@ -201,9 +210,6 @@ std::string exportDebugInfoBlobs(Network &network, const BlobInformation &blobIn
         }
         nodeLabel += "|" + std::to_string(blobInfo.node_blob_id[i]);
 
-        /*if (std::find(blobInfo.megablob_roots.begin(), blobInfo.megablob_roots.end(), &network.nodes[i]) != blobInfo.megablob_roots.end()) {
-         nodeLabel = "*" + nodeLabel + "*";
-         }*/
         ss << "\t\tlabel\t\"" << nodeLabel << "\"\n";
         ss << buildNodeGraphics(network.nodes_by_index[i], blobInfo);
         ss << "\t]\n";
@@ -246,7 +252,8 @@ std::string buildNodeGraphics(const Node *node) {
     return ss.str();
 }
 
-std::string exportDebugInfoExtraNodeNumber(Network &network, const std::vector<unsigned int> &extra_node_number) {
+std::string exportDebugInfoExtraNodeNumber(Network &network,
+        const std::vector<unsigned int> &extra_node_number) {
     std::stringstream ss;
     ss << "graph\n[\tdirected\t1\n";
     std::vector<Node*> parent = grab_current_node_parents(network);
@@ -262,9 +269,6 @@ std::string exportDebugInfoExtraNodeNumber(Network &network, const std::vector<u
         if (!extra_node_number.empty()) {
             nodeLabel += "|" + std::to_string(extra_node_number[i]);
         }
-        /*if (std::find(blobInfo.megablob_roots.begin(), blobInfo.megablob_roots.end(), &network.nodes[i]) != blobInfo.megablob_roots.end()) {
-         nodeLabel = "*" + nodeLabel + "*";
-         }*/
         ss << "\t\tlabel\t\"" << nodeLabel << "\"\n";
         ss << buildNodeGraphics(network.nodes_by_index[i]);
         ss << "\t]\n";
