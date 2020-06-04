@@ -15,17 +15,11 @@
 #include <iterator>
 #include <memory>
 #include <queue>
-#include <sstream>
 #include <stack>
 #include <stdexcept>
-#include <thread>
-#include <unordered_set>
-#include <utility>
 
 #include "BiconnectedComponents.hpp"
-#include "Direction.hpp"
 #include "Edge.hpp"
-#include "Link.hpp"
 #include "Network.hpp"
 #include "NetworkTopology.hpp"
 #include "Node.hpp"
@@ -538,134 +532,6 @@ std::vector<Node*> reversed_topological_sort(Network &network) {
     }
 
     return res;
-}
-
-std::string buildNodeGraphics(const Node *node, const BlobInformation &blobInfo) {
-    std::stringstream ss;
-    ss << "\t\tgraphics\n\t\t[\n";
-    ss << "\t\t\tfill\t\"";
-    if (node->type == NodeType::RETICULATION_NODE) {
-        ss << "#00CCFF";
-    } else if (std::find(blobInfo.megablob_roots.begin(), blobInfo.megablob_roots.end(), node)
-            != blobInfo.megablob_roots.end()) { // megablob root
-        ss << "#FF6600";
-    } else { // normal node
-        ss << "#FFCC00";
-    }
-    ss << "\"\n\t\t]\n";
-    return ss.str();
-}
-
-std::string exportDebugInfoBlobs(Network &network, const BlobInformation &blobInfo) {
-    std::stringstream ss;
-    ss << "graph\n[\tdirected\t1\n";
-    std::vector<Node*> parent = grab_current_node_parents(network);
-    for (size_t i = 0; i < network.nodes.size(); ++i) {
-        if (network.nodes_by_index[i] == nullptr) {
-            continue;
-        }
-        ss << "\tnode\n\t[\n\t\tid\t" << i << "\n";
-        std::string nodeLabel = std::to_string(i);
-        if (!network.nodes_by_index[i]->label.empty()) {
-            nodeLabel += ": " + network.nodes_by_index[i]->label;
-        }
-        nodeLabel += "|" + std::to_string(blobInfo.node_blob_id[i]);
-
-        /*if (std::find(blobInfo.megablob_roots.begin(), blobInfo.megablob_roots.end(), &network.nodes[i]) != blobInfo.megablob_roots.end()) {
-         nodeLabel = "*" + nodeLabel + "*";
-         }*/
-        ss << "\t\tlabel\t\"" << nodeLabel << "\"\n";
-        ss << buildNodeGraphics(network.nodes_by_index[i], blobInfo);
-        ss << "\t]\n";
-    }
-    for (size_t i = 0; i < network.edges.size(); ++i) {
-        if (network.edges_by_index[i] == nullptr) {
-            continue;
-        }
-        ss << "\tedge\n\t[\n\t\tsource\t";
-        unsigned int parentId = network.edges_by_index[i]->link1->node_clv_index;
-        unsigned int childId = network.edges_by_index[i]->link2->node_clv_index;
-        if (network.edges_by_index[i]->link1->direction == Direction::INCOMING) {
-            std::swap(parentId, childId);
-        }
-        assert(parentId != childId);
-        if (parent[parentId] == network.nodes_by_index[childId]) {
-            std::swap(parentId, childId);
-        }
-        ss << parentId << "\n";
-        ss << "\t\ttarget\t" << childId << "\n";
-        ss << "\t\tlabel\t";
-        std::string edgeLabel = std::to_string(i) + "|" + std::to_string(blobInfo.edge_blob_id[i]);
-        ss << "\"" << edgeLabel << "\"\n";
-        ss << "\t]\n";
-    }
-    ss << "]\n";
-    return ss.str();
-}
-
-std::string buildNodeGraphics(const Node *node) {
-    std::stringstream ss;
-    ss << "\t\tgraphics\n\t\t[\n";
-    ss << "\t\t\tfill\t\"";
-    if (node->type == NodeType::RETICULATION_NODE) {
-        ss << "#00CCFF";
-    } else { // normal node
-        ss << "#FFCC00";
-    }
-    ss << "\"\n\t\t]\n";
-    return ss.str();
-}
-
-std::string exportDebugInfoExtraNodeNumber(Network &network, const std::vector<unsigned int> &extra_node_number) {
-    std::stringstream ss;
-    ss << "graph\n[\tdirected\t1\n";
-    std::vector<Node*> parent = grab_current_node_parents(network);
-    for (size_t i = 0; i < network.nodes.size(); ++i) {
-        if (network.nodes_by_index[i] == nullptr) {
-            continue;
-        }
-        ss << "\tnode\n\t[\n\t\tid\t" << i << "\n";
-        std::string nodeLabel = std::to_string(i);
-        if (!network.nodes_by_index[i]->label.empty()) {
-            nodeLabel += ": " + network.nodes_by_index[i]->label;
-        }
-        if (!extra_node_number.empty()) {
-            nodeLabel += "|" + std::to_string(extra_node_number[i]);
-        }
-        /*if (std::find(blobInfo.megablob_roots.begin(), blobInfo.megablob_roots.end(), &network.nodes[i]) != blobInfo.megablob_roots.end()) {
-         nodeLabel = "*" + nodeLabel + "*";
-         }*/
-        ss << "\t\tlabel\t\"" << nodeLabel << "\"\n";
-        ss << buildNodeGraphics(network.nodes_by_index[i]);
-        ss << "\t]\n";
-    }
-    for (size_t i = 0; i < network.edges.size(); ++i) {
-        if (network.edges_by_index[i] == nullptr) {
-            continue;
-        }
-        ss << "\tedge\n\t[\n\t\tsource\t";
-        unsigned int parentId = network.edges_by_index[i]->link1->node_clv_index;
-        unsigned int childId = network.edges_by_index[i]->link2->node_clv_index;
-        if (network.edges_by_index[i]->link1->direction == Direction::INCOMING) {
-            std::swap(parentId, childId);
-        }
-        assert(parentId != childId);
-        if (parent[parentId] == network.nodes_by_index[childId]) {
-            std::swap(parentId, childId);
-        }
-        ss << parentId << "\n";
-        ss << "\t\ttarget\t" << childId << "\n";
-        ss << "\t\tlabel\t";
-        std::string edgeLabel = std::to_string(i);
-        ss << "\"" << edgeLabel << "\"\n";
-        ss << "\t]\n";
-    }
-    ss << "]\n";
-    return ss.str();
-}
-
-std::string exportDebugInfo(Network &network) {
-    return exportDebugInfoExtraNodeNumber(network, std::vector<unsigned int>());
 }
 
 bool networkIsConnected(Network &network) {

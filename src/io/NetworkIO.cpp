@@ -10,27 +10,26 @@
 #include <stddef.h>
 #include <cassert>
 #include <fstream>
-#include <iostream>
-#include <limits>
 #include <memory>
 #include <sstream>
+#include <stack>
 #include <stdexcept>
 #include <string>
+#include <thread>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <vector>
-#include <stack>
 
 #include "../graph/Direction.hpp"
 #include "../graph/Edge.hpp"
 #include "../graph/Link.hpp"
 #include "../graph/Network.hpp"
+#include "../graph/NetworkFunctions.hpp"
+#include "../graph/NetworkTopology.hpp"
 #include "../graph/Node.hpp"
 #include "../graph/NodeType.hpp"
 #include "../graph/ReticulationData.hpp"
-#include "../graph/NetworkFunctions.hpp"
-#include "../graph/NetworkTopology.hpp"
 
 namespace netrax {
 

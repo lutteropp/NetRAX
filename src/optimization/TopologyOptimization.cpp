@@ -16,6 +16,7 @@
 #include "../likelihood/LikelihoodComputation.hpp"
 #include "BranchLengthOptimization.hpp"
 #include "../io/NetworkIO.hpp"
+#include "../DebugPrintFunctions.hpp"
 
 namespace netrax {
 
@@ -109,32 +110,6 @@ bool wantedMove(T *move) {
         }
     }
     return false;
-}
-
-void printClvValid(AnnotatedNetwork &ann_network) {
-    for (size_t i = 0; i < ann_network.network.num_nodes(); ++i) {
-        std::cout << "clv_valid[" << ann_network.network.nodes[i].clv_index << "] = "
-                << (int) ann_network.fake_treeinfo->clv_valid[0][ann_network.network.nodes[i].clv_index] << "\n";
-    }
-    std::cout << "\n";
-}
-
-void printReticulationFirstParents(AnnotatedNetwork &ann_network) {
-    std::cout << "reticulation first parents:\n";
-    for (Node * node : ann_network.network.reticulation_nodes) {
-        std::cout << "  ret node " << node->clv_index << " has first parent " << getReticulationFirstParent(ann_network.network, node)->clv_index << "\n";
-    }
-}
-
-void printReticulationNodesPerMegablob(AnnotatedNetwork &ann_network) {
-    std::cout << "reticulation nodes per megablob:\n";
-    for (size_t i = 0; i < ann_network.blobInfo.megablob_roots.size(); ++i) {
-        std::cout << "reticulation nodes in megablob " << ann_network.blobInfo.megablob_roots[i]->clv_index << ":\n";
-        for (size_t j = 0; j < ann_network.blobInfo.reticulation_nodes_per_megablob[i].size(); ++j) {
-            std::cout << "  " << ann_network.blobInfo.reticulation_nodes_per_megablob[i][j]->clv_index << "\n";
-        }
-    }
-    std::cout << '\n';
 }
 
 template<typename T>

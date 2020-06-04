@@ -6,15 +6,18 @@
  */
 
 // Adapted from https://stackoverflow.com/a/41418573
-#include <unordered_map>
-#include <unordered_set>
-#include <algorithm>
-#include <sstream>
-#include <cassert>
-#include <raxml-ng/constants.hpp>
-#include <array>
-
 #include "RootedNetworkParser.hpp"
+
+#include <stddef.h>
+#include <array>
+#include <cassert>
+#include <cctype>
+#include <sstream>
+#include <stdexcept>
+#include <unordered_set>
+#include <utility>
+
+#include <raxml-ng/constants.hpp>
 
 namespace netrax {
 
@@ -334,42 +337,6 @@ std::string printNodeNewick(const RootedNetworkNode *node, const RootedNetworkNo
 std::string toNewickString(const RootedNetwork &rnetwork) {
     std::unordered_set<const RootedNetworkNode*> visited_reticulations;
     return printNodeNewick(rnetwork.root, nullptr, visited_reticulations) + ";";
-}
-
-std::string exportDebugInfo(const RootedNetwork &rnetwork) {
-    std::stringstream ss;
-    ss << "graph\n[\tdirected\t1\n";
-    for (size_t i = 0; i < rnetwork.nodes.size(); ++i) {
-        ss << "\tnode\n\t[\n\t\tid\t" << i << "\n";
-        std::string nodeLabel = (rnetwork.nodes[i]->label.empty()) ? std::to_string(i) : rnetwork.nodes[i]->label;
-        ss << "\t\tlabel\t\"" << nodeLabel << "\"\n";
-
-        ss << "\t\tgraphics\n\t\t[\n";
-        ss << "\t\t\tfill\t\"";
-        if (rnetwork.nodes[i]->isReticulation) {
-            ss << "#00CCFF";
-        } else { // normal node
-            ss << "#FFCC00";
-        }
-        ss << "\"\n\t\t]\n";
-        ss << "\t]\n";
-    }
-    for (size_t i = 0; i < rnetwork.nodes.size(); ++i) {
-        for (RootedNetworkNode *child : rnetwork.nodes[i]->children) {
-            ss << "\tedge\n\t[\n\t\tsource\t";
-            unsigned int parentId = i;
-            unsigned int childId = std::distance(rnetwork.nodes.begin(),
-                    std::find_if(rnetwork.nodes.begin(), rnetwork.nodes.end(),
-                            [&](const std::unique_ptr<RootedNetworkNode> &x) {
-                                return x.get() == child;
-                            }));
-            ss << parentId << "\n";
-            ss << "\t\ttarget\t" << childId << "\n";
-            ss << "\t]\n";
-        }
-    }
-    ss << "]\n";
-    return ss.str();
 }
 
 }

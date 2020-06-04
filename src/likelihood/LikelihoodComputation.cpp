@@ -10,28 +10,12 @@
 #include "../graph/NetworkTopology.hpp"
 #include "../graph/BiconnectedComponents.hpp"
 #include "../graph/Node.hpp"
+#include "../DebugPrintFunctions.hpp"
 
 #include <cassert>
 #include <cmath>
 
 namespace netrax {
-
-// TODO: Use a dirty flag to only update CLVs that are needed... actually, we might already have it. It's called clv_valid and is in the treeinfo...
-
-void printClv(const pllmod_treeinfo_t &treeinfo, size_t clv_index, size_t partition_index) {
-    size_t sites = treeinfo.partitions[partition_index]->sites;
-    size_t rate_cats = treeinfo.partitions[partition_index]->rate_cats;
-    size_t states = treeinfo.partitions[partition_index]->states;
-    size_t states_padded = treeinfo.partitions[partition_index]->states_padded;
-    std::cout << "Clv for clv_index " << clv_index << ": \n";
-    for (unsigned int n = 0; n < sites; ++n) {
-        for (unsigned int i = 0; i < rate_cats; ++i) {
-            for (unsigned int j = 0; j < states; ++j) {
-                std::cout << treeinfo.partitions[partition_index]->clv[clv_index][j + i * states_padded] << "\n";
-            }
-        }
-    }
-}
 
 pll_operation_t buildOperationInternal(Network &network, Node *parent, Node *child1, Node *child2,
         size_t fake_clv_index, size_t fake_pmatrix_index) {
@@ -128,16 +112,6 @@ void fill_untouched_clvs(AnnotatedNetwork &ann_network, std::vector<bool> &clv_t
     fill_untouched_ops_recursive(network, clv_touched, dead_nodes, ops, startNode);
     size_t ops_count = ops.size();
     pll_update_partials(fake_treeinfo.partitions[partition_idx], ops.data(), ops_count);
-}
-
-void printOperationArray(const std::vector<pll_operation_t> &ops) {
-    for (size_t i = 0; i < ops.size(); ++i) {
-        size_t c1 = ops[i].child1_clv_index;
-        size_t c2 = ops[i].child2_clv_index;
-        size_t p = ops[i].parent_clv_index;
-
-        std::cout << p << " -> " << c1 << ", " << c2 << "\n";
-    }
 }
 
 std::vector<pll_operation_t> createOperations(AnnotatedNetwork &ann_network, size_t partition_idx,
@@ -399,21 +373,6 @@ double displayed_tree_blob_prob(AnnotatedNetwork &ann_network, size_t megablob_i
     return exp(logProb);
 }
 
-void print_clv_vector(pllmod_treeinfo_t &fake_treeinfo, size_t tree_idx, size_t partition_idx, size_t clv_index) {
-    pll_partition_t *partition = fake_treeinfo.partitions[partition_idx];
-    unsigned int states_padded = partition->states_padded;
-    unsigned int sites = partition->sites;
-    unsigned int rate_cats = partition->rate_cats;
-    unsigned int clv_len = states_padded * sites * rate_cats;
-
-    double *clv = partition->clv[clv_index];
-    std::cout << "clv vector for tree_idx " << tree_idx << " and clv_index " << clv_index << ":\n";
-    for (size_t i = 0; i < clv_len; ++i) {
-        std::cout << clv[i] << ",";
-    }
-    std::cout << "\n";
-}
-
 double compute_tree_logl(AnnotatedNetwork &ann_network, std::vector<bool> &clv_touched, std::vector<bool> &dead_nodes,
         Node *displayed_tree_root, size_t partition_idx, std::vector<double> *persite_logl,
         const std::vector<Node*> &parent, Node *startNode = nullptr, bool incremental = true) {
@@ -644,30 +603,6 @@ void merge_tree_clvs(const std::vector<std::pair<double, std::vector<double>>> &
         for (unsigned int k = 0; k < tree_clvs.size(); ++k) {
             clv[i] += tree_clvs[k].first * tree_clvs[k].second[i];
         }
-    }
-}
-
-void printReticulationParents(Network &network) {
-    std::cout << "reticulation parents:\n";
-    for (size_t i = 0; i < network.num_reticulations(); ++i) {
-        std::cout << "  reticulation " << network.reticulation_nodes[i]->clv_index << " has parent "
-                << getActiveParent(network, network.reticulation_nodes[i])->clv_index << "\n";
-    }
-}
-
-void printClvTouched(Network &network, const std::vector<bool> &clv_touched) {
-    std::cout << "clv touched:\n";
-    for (size_t i = 0; i < network.num_nodes(); ++i) {
-        std::cout << "  clv_touched[" << network.nodes[i].clv_index << "]= " << clv_touched[network.nodes[i].clv_index]
-                << "\n";
-    }
-}
-
-void print_dead_nodes(Network &network, const std::vector<bool> &dead_nodes) {
-    std::cout << "dead nodes:\n";
-    for (size_t i = 0; i < network.num_nodes(); ++i) {
-        std::cout << "  dead_nodes[" << network.nodes[i].clv_index << "]= " << dead_nodes[network.nodes[i].clv_index]
-                << "\n";
     }
 }
 
@@ -925,7 +860,6 @@ std::vector<double> compute_persite_lh(AnnotatedNetwork &ann_network, unsigned i
     return persite_lh_network;
 }
 
-// TODO: Add bool incremental...
 double processPartition(AnnotatedNetwork &ann_network, unsigned int partition_idx, int incremental,
         bool update_reticulation_probs, std::vector<unsigned int> &totalTaken, std::vector<unsigned int> &totalNotTaken,
         bool unlinked_mode, bool &reticulationProbsHaveChanged, std::vector<double> *treewise_logl,
@@ -1008,21 +942,6 @@ double processPartition(AnnotatedNetwork &ann_network, unsigned int partition_id
      }*/
 
     return network_partition_logl;
-}
-
-void print_brlens(AnnotatedNetwork &ann_network) {
-    std::cout << "brlens:\n";
-    size_t n_partitions = 1;
-    if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
-        n_partitions = ann_network.fake_treeinfo->partition_count;
-    }
-    for (size_t p = 0; p < n_partitions; ++p) {
-        for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
-            std::cout << "brlens[" << p << "][" << ann_network.network.edges[i].pmatrix_index << "]: "
-                    << ann_network.network.edges[i].length << "\n";
-        }
-    }
-    std::cout << "\n";
 }
 
 double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices,
