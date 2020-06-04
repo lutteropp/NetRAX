@@ -28,9 +28,9 @@ public:
     bool optimize_model = true;
     bool use_repeats = true;
 
-    bool use_blobs = true;
-    bool use_graycode = true;
-    bool use_incremental = true;
+    bool use_blobs = true; // deprecated, value is ignored now (always set to true)
+    bool use_graycode = true; // deprecated, value is ignored now (always set to true)
+    bool use_incremental = true; // deprecated, value is ignored now (always set to true)
 
     unsigned int max_reticulations = 20;
 

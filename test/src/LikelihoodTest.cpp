@@ -211,19 +211,19 @@ void compareLikelihoodFunctions(const std::string &networkPath, const std::strin
 
     ann_network.options.use_blobs = false;
     ann_network.options.use_graycode = false;
-    double norep_logl = computeLoglikelihood(ann_network, 0, 1, false, &treewise_logl_norep);
+    double norep_logl = old::computeLoglikelihood(ann_network, 0, 1, false, &treewise_logl_norep);
     ASSERT_NE(norep_logl, -std::numeric_limits<double>::infinity());
     ann_network.options.use_blobs = false;
     ann_network.options.use_graycode = true;
-    double norep_logl_graycode = computeLoglikelihood(ann_network, 0, 1, false);
+    double norep_logl_graycode = old::computeLoglikelihood(ann_network, 0, 1, false);
     ASSERT_NE(norep_logl, -std::numeric_limits<double>::infinity());
     ann_network.options.use_blobs = true;
     ann_network.options.use_graycode = false;
-    double norep_logl_blobs = computeLoglikelihood(ann_network, 0, 1, false);
+    double norep_logl_blobs = old::computeLoglikelihood(ann_network, 0, 1, false);
     ASSERT_NE(norep_logl_blobs, -std::numeric_limits<double>::infinity());
     ann_network.options.use_blobs = true;
     ann_network.options.use_graycode = true;
-    double norep_logl_blobs_graycode = computeLoglikelihood(ann_network, 0, 1, false);
+    double norep_logl_blobs_graycode = old::computeLoglikelihood(ann_network, 0, 1, false);
     ASSERT_NE(norep_logl_blobs_graycode, -std::numeric_limits<double>::infinity());
     double naive_logl = old::computeLoglikelihoodNaiveUtree(ann_network, 0, 1, &treewise_logl_naive);
 
