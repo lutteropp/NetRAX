@@ -41,7 +41,7 @@ std::vector<Node*> getChildren(Network &network, Node* node);
 std::vector<Node*> getActiveChildren(Network &network, Node* node);
 std::vector<Node*> getActiveAliveChildren(Network &network, const std::vector<bool> &dead_nodes, Node* node);
 std::vector<Node*> getChildrenIgnoreDirections(Network &network, Node* node, const Node* myParent);
-std::vector<Node*> getActiveChildrenIgnoreDirections(Network &network, Node* node, const Node* myParent);
+std::vector<Node*> getActiveChildrenUndirected(Network &network, Node* node, const Node* myParent);
 Node* getOtherChild(Network &network, Node* parent, Node* aChild);
 bool hasChild(Network &network, Node* parent, Node* candidate);
 std::vector<Node*> getNeighbors(Network &network, const Node* node);

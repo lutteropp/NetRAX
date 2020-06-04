@@ -55,8 +55,7 @@ pll_operation_t buildOperationInternal(Network &network, Node *parent, Node *chi
 
 pll_operation_t buildOperation(Network &network, Node *actNode, Node *actParent,
         const std::vector<bool> &dead_nodes, size_t fake_clv_index, size_t fake_pmatrix_index) {
-    std::vector<Node*> activeChildren = getActiveChildrenIgnoreDirections(network, actNode,
-            actParent);
+    std::vector<Node*> activeChildren = getActiveChildrenUndirected(network, actNode, actParent);
     assert(activeChildren.size() > 0);
     Node *child1 = nullptr;
     if (!dead_nodes[activeChildren[0]->clv_index]) {
@@ -85,7 +84,7 @@ void createOperationsPostorder(AnnotatedNetwork &ann_network, bool incremental,
         return;
     }
 
-    std::vector<Node*> activeChildren = getActiveChildrenIgnoreDirections(network, actNode, parent);
+    std::vector<Node*> activeChildren = getActiveChildrenUndirected(network, actNode, parent);
     if (activeChildren.empty()) {
         return;
     }
@@ -127,6 +126,128 @@ void fill_untouched_clvs(AnnotatedNetwork &ann_network, std::vector<bool> &clv_t
     pll_update_partials(fake_treeinfo.partitions[partition_idx], ops.data(), ops_count);
 }
 
+Node* getActiveParent(Network &network, Node *actNode, const std::vector<Node*> &parent) {
+    Node *actParent;
+    if (actNode->type == NodeType::RETICULATION_NODE) {
+        actParent = getReticulationActiveParent(network, actNode);
+    } else {
+        actParent = parent[actNode->clv_index];
+    }
+    return actParent;
+}
+
+// forward declaration needed for createOperationsTowardsRoot
+std::vector<pll_operation_t> createOperationsUpdatedReticulation(AnnotatedNetwork &ann_network,
+        size_t partition_idx, const std::vector<Node*> &parent, Node *actNode,
+        const std::vector<bool> &dead_nodes, bool incremental, Node *displayed_tree_root);
+
+void assertNoDuplicateOperations(const std::vector<pll_operation_t> &ops) {
+    for (size_t i = 0; i < ops.size(); ++i) {
+        for (size_t j = i + 1; j < ops.size(); ++j) {
+            assert(
+                    ops[i].parent_clv_index != ops[j].parent_clv_index
+                            || ops[i].child1_clv_index != ops[j].child1_clv_index
+                            || ops[i].child2_clv_index != ops[j].child2_clv_index);
+        }
+    }
+}
+
+std::vector<pll_operation_t> createOperationsTowardsRoot(AnnotatedNetwork &ann_network,
+        size_t partition_idx, const std::vector<Node*> &parent, Node *actParent,
+        const std::vector<bool> &dead_nodes, bool incremental, Node *displayed_tree_root) {
+    Network &network = ann_network.network;
+
+    std::vector<pll_operation_t> ops;
+    if (actParent == parent[displayed_tree_root->clv_index]) {
+        return ops;
+    }
+    if (dead_nodes[actParent->clv_index]) {
+        if (actParent == network.root) {
+            return ops;
+        } else if (actParent->type == NodeType::RETICULATION_NODE) {
+            // when our current node is a dead reticulation node, we need to again go up from both
+            // its parents, not just from the active parent...
+            return createOperationsUpdatedReticulation(ann_network, partition_idx, parent,
+                    actParent, dead_nodes, incremental, displayed_tree_root);
+        } else {
+            return createOperationsTowardsRoot(ann_network, partition_idx, parent,
+                    parent[actParent->clv_index], dead_nodes, incremental, displayed_tree_root);
+        }
+    }
+
+    size_t fake_clv_index = network.nodes.size();
+    size_t fake_pmatrix_index = network.edges.size();
+
+    Node *lastParent = network.root;
+    if (displayed_tree_root != network.root) {
+        lastParent = getActiveParent(network, displayed_tree_root);
+    }
+
+    while (actParent != lastParent) {
+        if (!incremental || ann_network.network.num_reticulations() != 0
+                || !ann_network.fake_treeinfo->clv_valid[partition_idx][actParent->clv_index]) {
+            ops.emplace_back(
+                    buildOperation(network, actParent, parent[actParent->clv_index], dead_nodes,
+                            fake_clv_index, fake_pmatrix_index));
+        }
+        actParent = getActiveParent(network, actParent, parent);
+    }
+
+    if (displayed_tree_root == network.root) {
+        Node *rootBack = getTargetNode(network, network.root->getLink());
+        if (!getActiveChildrenUndirected(network, network.root, rootBack).empty()) {
+            ops.push_back(
+                    buildOperation(network, network.root, rootBack, dead_nodes, fake_clv_index,
+                            fake_pmatrix_index));
+        } else {
+            // special case: the root has a single child.
+            ops.push_back(
+                    buildOperationInternal(network, network.root, rootBack, nullptr, fake_clv_index,
+                            fake_pmatrix_index));
+            // ignore the branch length from the root to its single active child/ treat it
+            // as if it had zero branch length
+            ops[ops.size() - 1].child1_matrix_index = fake_pmatrix_index;
+        }
+    } // else since displayed tree root has only 2 children, no need for rootBack stuff
+
+    assertNoDuplicateOperations(ops);
+    assert(ops[ops.size() - 1].parent_clv_index == displayed_tree_root->clv_index);
+    return ops;
+}
+
+std::vector<pll_operation_t> createOperationsUpdatedReticulation(AnnotatedNetwork &ann_network,
+        size_t partition_idx, const std::vector<Node*> &parent, Node *actNode,
+        const std::vector<bool> &dead_nodes, bool incremental, Node *displayed_tree_root) {
+    Network &network = ann_network.network;
+    std::vector<pll_operation_t> ops;
+
+    Node *firstParent = getReticulationFirstParent(network, actNode);
+    std::vector<pll_operation_t> opsFirst = createOperationsTowardsRoot(ann_network, partition_idx,
+            parent, firstParent, dead_nodes, incremental, displayed_tree_root);
+    Node *secondParent = getReticulationSecondParent(network, actNode);
+    std::vector<pll_operation_t> opsSecond = createOperationsTowardsRoot(ann_network, partition_idx,
+            parent, secondParent, dead_nodes, incremental, displayed_tree_root);
+
+    // find the first entry in opsFirst which also occurs in opsSecond.
+    // We will only take opsFirst until this entry, excluding it.
+    std::unordered_set<unsigned int> opsSecondRoots;
+    for (size_t i = 0; i < opsSecond.size(); ++i) {
+        opsSecondRoots.emplace(opsSecond[i].parent_clv_index);
+    }
+    for (size_t i = 0; i < opsFirst.size(); ++i) {
+        if (opsSecondRoots.find(opsFirst[i].parent_clv_index) != opsSecondRoots.end()) {
+            break;
+        }
+        ops.emplace_back(opsFirst[i]);
+    }
+    for (size_t i = 0; i < opsSecond.size(); ++i) {
+        ops.emplace_back(opsSecond[i]);
+    }
+
+    assert(ops.empty() || ops[ops.size() - 1].parent_clv_index == displayed_tree_root->clv_index);
+    return ops;
+}
+
 std::vector<pll_operation_t> createOperations(AnnotatedNetwork &ann_network, size_t partition_idx,
         const std::vector<Node*> &parent, BlobInformation &blobInfo, unsigned int megablobIdx,
         const std::vector<bool> &dead_nodes, bool incremental, Node *displayed_tree_root) {
@@ -154,7 +275,7 @@ std::vector<pll_operation_t> createOperations(AnnotatedNetwork &ann_network, siz
                     network.root, ops, fake_clv_index, fake_pmatrix_index, dead_nodes,
                     &stopIndices);
 
-            if (!getActiveChildrenIgnoreDirections(network, network.root, rootBack).empty()) {
+            if (!getActiveChildrenUndirected(network, network.root, rootBack).empty()) {
                 createOperationsPostorder(ann_network, incremental, partition_idx, network.root,
                         rootBack, ops, fake_clv_index, fake_pmatrix_index, dead_nodes,
                         &stopIndices);
@@ -163,7 +284,8 @@ std::vector<pll_operation_t> createOperations(AnnotatedNetwork &ann_network, siz
                 ops.push_back(
                         buildOperationInternal(network, network.root, rootBack, nullptr,
                                 fake_clv_index, fake_pmatrix_index));
-                // ignore the branch length from the root to its single active child/ treat it as if it had zero branch length
+                // ignore the branch length from the root to its single active child,
+                // treat it as if it had zero branch length
                 ops[ops.size() - 1].child1_matrix_index = fake_pmatrix_index;
             }
         } else {
@@ -179,127 +301,6 @@ std::vector<pll_operation_t> createOperations(AnnotatedNetwork &ann_network, siz
                 parent[displayed_tree_root->clv_index], ops, fake_clv_index, fake_pmatrix_index,
                 dead_nodes, &stopIndices);
     }
-    return ops;
-}
-
-Node* getActiveParent(Network &network, Node *actNode, const std::vector<Node*> &parent) {
-    Node *actParent;
-    if (actNode->type == NodeType::RETICULATION_NODE) {
-        actParent = getReticulationActiveParent(network, actNode);
-    } else {
-        actParent = parent[actNode->clv_index];
-    }
-    return actParent;
-}
-
-// forward declaration needed for createOperationsTowardsRoot
-std::vector<pll_operation_t> createOperationsUpdatedReticulation(AnnotatedNetwork &ann_network,
-        size_t partition_idx, const std::vector<Node*> &parent, Node *actNode,
-        const std::vector<bool> &dead_nodes, bool incremental,
-        Node *displayed_tree_root);
-
-std::vector<pll_operation_t> createOperationsTowardsRoot(AnnotatedNetwork &ann_network,
-        size_t partition_idx, const std::vector<Node*> &parent, Node *actParent,
-        const std::vector<bool> &dead_nodes, bool incremental,
-        Node *displayed_tree_root) {
-    Network &network = ann_network.network;
-
-    std::vector<pll_operation_t> ops;
-    if (actParent == parent[displayed_tree_root->clv_index]) {
-        return ops;
-    }
-    if (dead_nodes[actParent->clv_index]) {
-        if (actParent == network.root) {
-            return ops;
-        } else if (actParent->type == NodeType::RETICULATION_NODE) {
-            // when our current node is a dead reticulation node, we need to again go up from both its parents, not just from the active parent...
-            return createOperationsUpdatedReticulation(ann_network, partition_idx, parent,
-                    actParent, dead_nodes, incremental, displayed_tree_root);
-        } else {
-            return createOperationsTowardsRoot(ann_network, partition_idx, parent,
-                    parent[actParent->clv_index], dead_nodes, incremental,
-                    displayed_tree_root);
-        }
-    }
-
-    size_t fake_clv_index = network.nodes.size();
-    size_t fake_pmatrix_index = network.edges.size();
-
-    Node *lastParent = network.root;
-    if (displayed_tree_root != network.root) {
-        lastParent = getActiveParent(network, displayed_tree_root);
-    }
-
-    while (actParent != lastParent) {
-        if (!incremental || ann_network.network.num_reticulations() != 0
-                || !ann_network.fake_treeinfo->clv_valid[partition_idx][actParent->clv_index]) {
-            ops.emplace_back(
-                    buildOperation(network, actParent, parent[actParent->clv_index], dead_nodes,
-                            fake_clv_index, fake_pmatrix_index));
-        }
-        actParent = getActiveParent(network, actParent, parent);
-    }
-
-    if (displayed_tree_root == network.root) {
-        Node *rootBack = getTargetNode(network, network.root->getLink());
-        if (!getActiveChildrenIgnoreDirections(network, network.root, rootBack).empty()) {
-            ops.push_back(
-                    buildOperation(network, network.root, rootBack, dead_nodes, fake_clv_index,
-                            fake_pmatrix_index));
-        } else {
-            // special case: the root has a single child.
-            ops.push_back(
-                    buildOperationInternal(network, network.root, rootBack, nullptr, fake_clv_index,
-                            fake_pmatrix_index));
-            // ignore the branch length from the root to its single active child/ treat it as if it had zero branch length
-            ops[ops.size() - 1].child1_matrix_index = fake_pmatrix_index;
-        }
-    } // else since displayed tree root has only 2 children, no need for rootBack stuff
-
-    // check that we don't have any operation twice
-    for (size_t i = 0; i < ops.size(); ++i) {
-        for (size_t j = i + 1; j < ops.size(); ++j) {
-            assert(
-                    ops[i].parent_clv_index != ops[j].parent_clv_index
-                            || ops[i].child1_clv_index != ops[j].child1_clv_index
-                            || ops[i].child2_clv_index != ops[j].child2_clv_index);
-        }
-    }
-
-    assert(ops[ops.size() - 1].parent_clv_index == displayed_tree_root->clv_index);
-    return ops;
-}
-
-std::vector<pll_operation_t> createOperationsUpdatedReticulation(AnnotatedNetwork &ann_network,
-        size_t partition_idx, const std::vector<Node*> &parent, Node *actNode,
-        const std::vector<bool> &dead_nodes, bool incremental,
-        Node *displayed_tree_root) {
-    Network &network = ann_network.network;
-    std::vector<pll_operation_t> ops;
-
-    Node *firstParent = getReticulationFirstParent(network, actNode);
-    std::vector<pll_operation_t> opsFirst = createOperationsTowardsRoot(ann_network, partition_idx,
-            parent, firstParent, dead_nodes, incremental, displayed_tree_root);
-    Node *secondParent = getReticulationSecondParent(network, actNode);
-    std::vector<pll_operation_t> opsSecond = createOperationsTowardsRoot(ann_network, partition_idx,
-            parent, secondParent, dead_nodes, incremental, displayed_tree_root);
-
-    // find the first entry in opsFirst which also occurs in opsSecond. We will only take opsFirst until this entry, excluding it.
-    std::unordered_set<unsigned int> opsSecondRoots;
-    for (size_t i = 0; i < opsSecond.size(); ++i) {
-        opsSecondRoots.emplace(opsSecond[i].parent_clv_index);
-    }
-    for (size_t i = 0; i < opsFirst.size(); ++i) {
-        if (opsSecondRoots.find(opsFirst[i].parent_clv_index) != opsSecondRoots.end()) {
-            break;
-        }
-        ops.emplace_back(opsFirst[i]);
-    }
-    for (size_t i = 0; i < opsSecond.size(); ++i) {
-        ops.emplace_back(opsSecond[i]);
-    }
-
-    assert(ops.empty() || ops[ops.size() - 1].parent_clv_index == displayed_tree_root->clv_index);
     return ops;
 }
 

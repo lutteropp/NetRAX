@@ -212,7 +212,7 @@ std::vector<Node*> getActiveAliveChildren(Network &network, const std::vector<bo
     return activeChildren;
 }
 
-std::vector<Node*> getActiveChildrenIgnoreDirections(Network &network, Node *node, const Node *myParent) {
+std::vector<Node*> getActiveChildrenUndirected(Network &network, Node *node, const Node *myParent) {
     assert(node);
     std::vector<Node*> activeChildren;
     std::vector<Node*> children = getChildrenIgnoreDirections(network, node, myParent);

@@ -413,7 +413,7 @@ void getTipVectorRecursive(Network &network, Node *actParent, Node *actNode, siz
     if (actNode->isTip() && pmatrix_idx_found) {
         res[actNode->clv_index] = true;
     } else if (!actNode->isTip()) {
-        std::vector<Node*> activeChildren = getActiveChildrenIgnoreDirections(network, actNode, actParent);
+        std::vector<Node*> activeChildren = getActiveChildrenUndirected(network, actNode, actParent);
         for (size_t i = 0; i < activeChildren.size(); ++i) {
             getTipVectorRecursive(network, actNode, activeChildren[i], pmatrix_idx, pmatrix_idx_found, res);
         }
