@@ -5,7 +5,7 @@ Phylogenetic Network Inference without ILS
 
 1. **Install the dependencies.** On Ubuntu (and other Debian-based systems), you can simply run:
 ```
-sudo apt-get install flex bison libgmp3-dev cmake
+sudo apt-get install flex bison libgmp3-dev cmake doxygen
 ```
 For other systems, please make sure you have following packages/libraries installed:  
 [`GNU Bison`](http://www.gnu.org/software/bison/) [`Flex`](http://flex.sourceforge.net/) [`GMP`](https://gmplib.org/)
@@ -21,3 +21,5 @@ cd build
 cmake ..
 make
 ```
+3. **Documentation**
+To build the documentation, run ```doxygen Doxyfile```, and then open the generated docs/html/index.html in your browser.
