@@ -23,7 +23,7 @@
 
 using namespace netrax;
 
-const std::string DATA_PATH = "../../examples/sample_networks/";
+const std::string DATA_PATH = "examples/sample_networks/";
 
 TEST (BrlenOptTest, testTheTest) {
     ASSERT_TRUE(true);
@@ -32,7 +32,7 @@ TEST (BrlenOptTest, testTheTest) {
 TEST (BrlenOptTest, tree) {
     // initial setup
     std::string treePath = DATA_PATH + "tree.nw";
-    std::string msaPath = DATA_PATH + "small_fake_alignment.nw";
+    std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
     NetraxOptions treeOptions;
     treeOptions.network_file = treePath;
     treeOptions.msa_file = msaPath;
@@ -51,9 +51,6 @@ TEST (BrlenOptTest, tree) {
     double initial_logl_network = NetraxInstance::computeLoglikelihood(annTreeNetwork);
     std::cout << "NETWORK - Initial loglikelihood: " << initial_logl_network << "\n";
     ASSERT_FLOAT_EQ(initial_logl_raxml, initial_logl_network);
-
-    ASSERT_EQ(infoRaxml->pll_treeinfo().tree->edge_count + 1,
-            infoNetwork->pll_treeinfo().tree->edge_count);
 
     // Compute branch id mapping to check the branch lengths
     std::vector<std::vector<size_t> > utreeIDToNetworkID = getDtBranchToNetworkBranchMapping(
@@ -132,7 +129,7 @@ TEST (BrlenOptTest, tree) {
 TEST (BrlenOptTest, small) {
     // initial setup
     std::string smallPath = DATA_PATH + "small.nw";
-    std::string msaPath = DATA_PATH + "small_fake_alignment.nw";
+    std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
     NetraxOptions smallOptions;
     smallOptions.network_file = smallPath;
     smallOptions.msa_file = msaPath;
