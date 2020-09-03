@@ -23,3 +23,6 @@ make
 ```
 3. **Documentation**
 To build the documentation, run ```doxygen Doxyfile```, and then open the generated docs/html/index.html in your browser.
+
+4. **Testing**
+To run the tests, run ```./test/bin/netrax_test``` from the root NetRAX project folder.
