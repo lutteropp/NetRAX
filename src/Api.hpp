@@ -19,24 +19,27 @@ namespace netrax {
 struct AnnotatedNetwork;
 class NetraxOptions;
 
-AnnotatedNetwork build_annotated_network(const NetraxOptions &options);
 
-AnnotatedNetwork build_annotated_network_from_string(const NetraxOptions &options,
-        const std::string &newickString);
-AnnotatedNetwork build_annotated_network_from_utree(const NetraxOptions &options,
-        const pll_utree_t &utree);
-AnnotatedNetwork build_random_annotated_network(const NetraxOptions &options,
-        unsigned int start_reticulations = 0);
-AnnotatedNetwork build_parsimony_annotated_network(const NetraxOptions &options,
-        unsigned int start_reticulations = 0);
-AnnotatedNetwork build_best_raxml_annotated_network(const NetraxOptions &options,
-        unsigned int start_reticulations = 0);
-double computeLoglikelihood(AnnotatedNetwork &ann_network);
-double updateReticulationProbs(AnnotatedNetwork &ann_network);
-double optimizeModel(AnnotatedNetwork &ann_network);
-double optimizeBranches(AnnotatedNetwork &ann_network);
-double optimizeTopology(AnnotatedNetwork &ann_network);
-double optimizeEverything(AnnotatedNetwork &ann_network);
-void writeNetwork(AnnotatedNetwork &ann_network, const std::string &filepath);
+struct NetraxInstance {
+// only put these into a struct in order to get nicer doxygen documentation
+        static AnnotatedNetwork build_annotated_network(const NetraxOptions &options);
+        static AnnotatedNetwork build_annotated_network_from_string(const NetraxOptions &options,
+                const std::string &newickString);
+        static AnnotatedNetwork build_annotated_network_from_utree(const NetraxOptions &options,
+                const pll_utree_t &utree);
+        static AnnotatedNetwork build_random_annotated_network(const NetraxOptions &options,
+                unsigned int start_reticulations = 0);
+        static AnnotatedNetwork build_parsimony_annotated_network(const NetraxOptions &options,
+                unsigned int start_reticulations = 0);
+        static AnnotatedNetwork build_best_raxml_annotated_network(const NetraxOptions &options,
+                unsigned int start_reticulations = 0);
+        static double computeLoglikelihood(AnnotatedNetwork &ann_network);
+        static double updateReticulationProbs(AnnotatedNetwork &ann_network);
+        static double optimizeModel(AnnotatedNetwork &ann_network);
+        static double optimizeBranches(AnnotatedNetwork &ann_network);
+        static double optimizeTopology(AnnotatedNetwork &ann_network);
+        static double optimizeEverything(AnnotatedNetwork &ann_network);
+        static void writeNetwork(AnnotatedNetwork &ann_network, const std::string &filepath);
+};
 
 }

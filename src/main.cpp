@@ -6,6 +6,8 @@
 #include "graph/AnnotatedNetwork.hpp"
 #include "NetraxOptions.hpp"
 
+using namespace netrax;
+
 int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
     CLI::App app { "NetRAX: Phylogenetic Network Inference without Incomplete Lineage Sorting" };
     app.add_option("--msa", options->msa_file, "The Multiple Sequence Alignment File")->required();
@@ -24,13 +26,13 @@ int main(int argc, char **argv) {
     netrax::NetraxOptions netraxOptions;
     parseOptions(argc, argv, &netraxOptions);
 
-    netrax::AnnotatedNetwork ann_network = netrax::build_annotated_network(netraxOptions);
+    netrax::AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(netraxOptions);
     std::cout << "The current Likelihood model being used is the DNA model from raxml-ng\n\n";
 
-    optimizeEverything(ann_network);
+    NetraxInstance::optimizeEverything(ann_network);
 
     if (!netraxOptions.output_file.empty()) {
-        netrax::writeNetwork(ann_network, netraxOptions.output_file);
+        NetraxInstance::writeNetwork(ann_network, netraxOptions.output_file);
         std::cout << "Final network written to " << netraxOptions.output_file << "\n";
     }
     return 0;

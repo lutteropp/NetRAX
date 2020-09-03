@@ -75,7 +75,7 @@ void init_annotated_network(AnnotatedNetwork &ann_network) {
  * 
  * @param options The information specified by the user.
  */
-AnnotatedNetwork build_annotated_network(const NetraxOptions &options) {
+AnnotatedNetwork NetraxInstance::build_annotated_network(const NetraxOptions &options) {
     AnnotatedNetwork ann_network;
     ann_network.options = options;
     ann_network.network = netrax::readNetworkFromFile(options.network_file,
@@ -90,7 +90,7 @@ AnnotatedNetwork build_annotated_network(const NetraxOptions &options) {
  * @param options The information specified by the user.
  * @param newickString The network in Extended Newick format.
  */
-AnnotatedNetwork build_annotated_network_from_string(const NetraxOptions &options,
+AnnotatedNetwork NetraxInstance::build_annotated_network_from_string(const NetraxOptions &options,
         const std::string &newickString) {
     AnnotatedNetwork ann_network;
     ann_network.options = options;
@@ -105,7 +105,7 @@ AnnotatedNetwork build_annotated_network_from_string(const NetraxOptions &option
  * @param options The options specified by the user.
  * @param utree The pll_utree_t to be converted into an annotated network.
  */
-AnnotatedNetwork build_annotated_network_from_utree(const NetraxOptions &options,
+AnnotatedNetwork NetraxInstance::build_annotated_network_from_utree(const NetraxOptions &options,
         const pll_utree_t &utree) {
     AnnotatedNetwork ann_network;
     ann_network.options = options;
@@ -150,7 +150,7 @@ void add_extra_reticulations(AnnotatedNetwork &ann_network, unsigned int targetC
  * @param options The options specified by the user.
  * @param start_reticulations The number of reticulations in the generated annotated network.
  */
-AnnotatedNetwork build_random_annotated_network(const NetraxOptions &options,
+AnnotatedNetwork NetraxInstance::build_random_annotated_network(const NetraxOptions &options,
         unsigned int start_reticulations) {
     RaxmlWrapper wrapper(options);
     Tree tree = wrapper.generateRandomTree();
@@ -165,7 +165,7 @@ AnnotatedNetwork build_random_annotated_network(const NetraxOptions &options,
  * @param options The options specified by the user.
  * @param start_reticulations The number of reticulations in the generated annotated network.
  */
-AnnotatedNetwork build_parsimony_annotated_network(const NetraxOptions &options,
+AnnotatedNetwork NetraxInstance::build_parsimony_annotated_network(const NetraxOptions &options,
         unsigned int start_reticulations) {
     RaxmlWrapper wrapper(options);
     Tree tree = wrapper.generateParsimonyTree();
@@ -180,7 +180,7 @@ AnnotatedNetwork build_parsimony_annotated_network(const NetraxOptions &options,
  * @param options The options specified by the user.
  * @param start_reticulations The number of reticulations in the generated annotated network.
  */
-AnnotatedNetwork build_best_raxml_annotated_network(const NetraxOptions &options,
+AnnotatedNetwork NetraxInstance::build_best_raxml_annotated_network(const NetraxOptions &options,
         unsigned int start_reticulations) {
     RaxmlWrapper wrapper(options);
     Tree tree = wrapper.bestRaxmlTree();
@@ -194,7 +194,7 @@ AnnotatedNetwork build_best_raxml_annotated_network(const NetraxOptions &options
  * 
  * @param ann_network The network.
  */
-double computeLoglikelihood(AnnotatedNetwork &ann_network) {
+double NetraxInstance::computeLoglikelihood(AnnotatedNetwork &ann_network) {
     double logl = ann_network.raxml_treeinfo->loglh(true);
     std::cout << "Loglikelihood: " << logl << "\n";
     return logl;
@@ -207,7 +207,7 @@ double computeLoglikelihood(AnnotatedNetwork &ann_network) {
  * 
  * @return The loglikelihood of the network after re-inferring the reticulation probabilities.
  */
-double updateReticulationProbs(AnnotatedNetwork &ann_network) {
+double NetraxInstance::updateReticulationProbs(AnnotatedNetwork &ann_network) {
     double logl = netrax::computeLoglikelihood(ann_network, 0, 1, true);
     std::cout << "Loglikelihood after updating reticulation probs: " << logl << "\n";
     return logl;
@@ -220,7 +220,7 @@ double updateReticulationProbs(AnnotatedNetwork &ann_network) {
  * 
  * @return The loglikelihood of the network after re-inferring the likelihood model parameters.
  */
-double optimizeModel(AnnotatedNetwork &ann_network) {
+double NetraxInstance::optimizeModel(AnnotatedNetwork &ann_network) {
     double logl = ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
     std::cout << "Loglikelihood after model optimization: " << logl << "\n";
     return logl;
@@ -233,7 +233,7 @@ double optimizeModel(AnnotatedNetwork &ann_network) {
  * 
  * @return The loglikelihood of the network after re-inferring the branch lengths.
  */
-double optimizeBranches(AnnotatedNetwork &ann_network) {
+double NetraxInstance::optimizeBranches(AnnotatedNetwork &ann_network) {
     double logl = ann_network.raxml_treeinfo->optimize_branches(ann_network.options.lh_epsilon, 1);
     std::cout << "Loglikelihood after branch length optimization: " << -logl << "\n";
     return logl;
@@ -246,7 +246,7 @@ double optimizeBranches(AnnotatedNetwork &ann_network) {
  * 
  * @return The loglikelihood of the network after re-inferring the topology.
  */
-double optimizeTopology(AnnotatedNetwork &ann_network) {
+double NetraxInstance::optimizeTopology(AnnotatedNetwork &ann_network) {
     double logl = greedyHillClimbingTopology(ann_network);
     std::cout << "Loglikelihood after topology optimization: " << logl << "\n";
     return logl;
@@ -259,7 +259,7 @@ double optimizeTopology(AnnotatedNetwork &ann_network) {
  * 
  * @return The loglikelihood of the network after re-inferring everything.
  */
-double optimizeEverything(AnnotatedNetwork &ann_network) {
+double NetraxInstance::optimizeEverything(AnnotatedNetwork &ann_network) {
     double lh_epsilon = ann_network.options.lh_epsilon;
     double new_logl = computeLoglikelihood(ann_network);
     double old_logl;
@@ -282,7 +282,7 @@ double optimizeEverything(AnnotatedNetwork &ann_network) {
  * @param ann_network The network.
  * @param filepath The file where to write the network to.
  */
-void writeNetwork(AnnotatedNetwork &ann_network, const std::string &filepath) {
+void NetraxInstance::writeNetwork(AnnotatedNetwork &ann_network, const std::string &filepath) {
     std::ofstream outfile(filepath);
     // If we have unlinked branch lenghts/probs, replace the entries in the network by their average
     if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED

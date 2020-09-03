@@ -1,4 +1,13 @@
-/*
+#pragma once
+
+#include "Network.hpp"
+
+#include <vector>
+#include <memory>
+
+namespace netrax {
+
+/**
  * The blob information data structure. 
  * 
  * A blob is a biconnected component (see https://en.wikipedia.org/wiki/Biconnected_component) in the underlying undirected graph of the phylogenetic network.
@@ -22,20 +31,7 @@
  * 
  * Whenever we encounter a megablob root in our traversal, we compute the CLV (conditional loglikelihood vector, TODO: explain) for the subnetwork rooted at this megablob root, then discard/collapse all nodes below the megablob root.
  * We never actually build any graph structures mentioned here, but instead continue to operate on the phylogenetic network itself. This explanation is just for easier understanding of the general underlying approach.
- *
- *  Created on: Jan 17, 2020
- *      Author: Sarah Lutteropp
  */
-
-#pragma once
-
-#include "Network.hpp"
-
-#include <vector>
-#include <memory>
-
-namespace netrax {
-
 struct BlobInformation {
     std::vector<unsigned int> edge_blob_id;
     std::vector<unsigned int> node_blob_id; // TODO: Maybe remove this again, as it is only used in the debug output
