@@ -61,9 +61,11 @@ public:
         links.emplace_back(link);
         assert(links.size() <= 3);
 
-        // update the next pointers
-        for (size_t i = 0; i < links.size(); ++i) {
-            links[i].next = &links[i + 1 % links.size()];
+        if (links.size() > 1) {
+            // update the next pointers
+            for (size_t i = 0; i < links.size(); ++i) {
+                links[i].next = &links[(i + 1) % links.size()];
+            }
         }
 
         return &(links[links.size() - 1]);
