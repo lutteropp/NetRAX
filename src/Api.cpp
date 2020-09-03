@@ -1,8 +1,10 @@
 /*
  * Api.cpp
+ * 
+ * Api functions for using NetRAX.
  *
  *  Created on: Apr 24, 2020
- *      Author: sarah
+ *      Author: Sarah Lutteropp
  */
 
 #include "Api.hpp"
@@ -29,6 +31,11 @@
 
 namespace netrax {
 
+/**
+ * Initializes the network annotations. Precomputes the reversed topological sort, the partitioning into blobs, and sets the branch probabilities.
+ * 
+ * @param ann_network The still uninitialized annotated network.
+ */
 void init_annotated_network(AnnotatedNetwork &ann_network) {
     Network &network = ann_network.network;
     std::random_device dev;
@@ -63,6 +70,11 @@ void init_annotated_network(AnnotatedNetwork &ann_network) {
     }
 }
 
+/**
+ * Creates the inital annotated network data structure to work on, reading the network from the file specified in the options.
+ * 
+ * @param options The information specified by the user.
+ */
 AnnotatedNetwork build_annotated_network(const NetraxOptions &options) {
     AnnotatedNetwork ann_network;
     ann_network.options = options;
@@ -72,6 +84,12 @@ AnnotatedNetwork build_annotated_network(const NetraxOptions &options) {
     return ann_network;
 }
 
+/**
+ * Creates the inital annotated network data structure to work on, reading the network from a given string and ignoring the input file specified in the options.
+ * 
+ * @param options The information specified by the user.
+ * @param newickString The network in Extended Newick format.
+ */
 AnnotatedNetwork build_annotated_network_from_string(const NetraxOptions &options,
         const std::string &newickString) {
     AnnotatedNetwork ann_network;
@@ -81,6 +99,12 @@ AnnotatedNetwork build_annotated_network_from_string(const NetraxOptions &option
     return ann_network;
 }
 
+/**
+ * Converts a pll_utree_t into an annotated network.
+ * 
+ * @param options The options specified by the user.
+ * @param utree The pll_utree_t to be converted into an annotated network.
+ */
 AnnotatedNetwork build_annotated_network_from_utree(const NetraxOptions &options,
         const pll_utree_t &utree) {
     AnnotatedNetwork ann_network;
@@ -90,12 +114,23 @@ AnnotatedNetwork build_annotated_network_from_utree(const NetraxOptions &options
     return ann_network;
 }
 
+/**
+ * Takes a network and adds random reticulations to it, until the specified targetCount has been reached.
+ * 
+ * @param ann_network The network we want to add reticulations to.
+ * @param targetCount The number of reticulations we want to have in the network.
+ */
 void add_extra_reticulations(AnnotatedNetwork &ann_network, unsigned int targetCount) {
     if (targetCount > ann_network.options.max_reticulations) {
         throw std::runtime_error("Please increase maximum allowed number of reticulations");
     }
+
     Network &network = ann_network.network;
     std::mt19937 &rng = ann_network.rng;
+
+    if (targetCount < network.num_reticulations()) {
+        throw std::invalid_argument("The target count is smaller than the current number of reticulations in the network");
+    }
 
     // TODO: This can be implemented more eficiently than by always re-gathering all candidates
     while (targetCount > network.num_reticulations()) {
@@ -107,6 +142,14 @@ void add_extra_reticulations(AnnotatedNetwork &ann_network, unsigned int targetC
     }
 }
 
+/**
+ * Creates a random annotated network.
+ * 
+ * Creates an annotated network by building a random tree and randomly adding reticulations to it.
+ * 
+ * @param options The options specified by the user.
+ * @param start_reticulations The number of reticulations in the generated annotated network.
+ */
 AnnotatedNetwork build_random_annotated_network(const NetraxOptions &options,
         unsigned int start_reticulations) {
     RaxmlWrapper wrapper(options);
@@ -116,6 +159,12 @@ AnnotatedNetwork build_random_annotated_network(const NetraxOptions &options,
     return ann_network;
 }
 
+/**
+ * Creates an annotated network by building a maximum parsimony tree and randomly adding reticulations to it.
+ * 
+ * @param options The options specified by the user.
+ * @param start_reticulations The number of reticulations in the generated annotated network.
+ */
 AnnotatedNetwork build_parsimony_annotated_network(const NetraxOptions &options,
         unsigned int start_reticulations) {
     RaxmlWrapper wrapper(options);
@@ -125,6 +174,12 @@ AnnotatedNetwork build_parsimony_annotated_network(const NetraxOptions &options,
     return ann_network;
 }
 
+/**
+ * Creates an annotated network by building a maximum likelihood tree and randomly adding reticulations to it.
+ * 
+ * @param options The options specified by the user.
+ * @param start_reticulations The number of reticulations in the generated annotated network.
+ */
 AnnotatedNetwork build_best_raxml_annotated_network(const NetraxOptions &options,
         unsigned int start_reticulations) {
     RaxmlWrapper wrapper(options);
@@ -134,32 +189,76 @@ AnnotatedNetwork build_best_raxml_annotated_network(const NetraxOptions &options
     return ann_network;
 }
 
+/**
+ * Computes the loglikelihood of a given network.
+ * 
+ * @param ann_network The network.
+ */
 double computeLoglikelihood(AnnotatedNetwork &ann_network) {
     double logl = ann_network.raxml_treeinfo->loglh(true);
     std::cout << "Loglikelihood: " << logl << "\n";
     return logl;
 }
+
+/**
+ * Re-infers the reticulation probabilities of a given network.
+ * 
+ * @param ann_network The networ.
+ * 
+ * @return The loglikelihood of the network after re-inferring the reticulation probabilities.
+ */
 double updateReticulationProbs(AnnotatedNetwork &ann_network) {
     double logl = netrax::computeLoglikelihood(ann_network, 0, 1, true);
     std::cout << "Loglikelihood after updating reticulation probs: " << logl << "\n";
     return logl;
 }
+
+/**
+ * Re-infers the likelihood model parameters of a given network.
+ * 
+ * @param ann_network The network.
+ * 
+ * @return The loglikelihood of the network after re-inferring the likelihood model parameters.
+ */
 double optimizeModel(AnnotatedNetwork &ann_network) {
     double logl = ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
     std::cout << "Loglikelihood after model optimization: " << logl << "\n";
     return logl;
 }
+
+/**
+ * Re-infers the branch lengths of a given network.
+ * 
+ * @param ann_network The network.
+ * 
+ * @return The loglikelihood of the network after re-inferring the branch lengths.
+ */
 double optimizeBranches(AnnotatedNetwork &ann_network) {
     double logl = ann_network.raxml_treeinfo->optimize_branches(ann_network.options.lh_epsilon, 1);
     std::cout << "Loglikelihood after branch length optimization: " << -logl << "\n";
     return logl;
 }
+
+/**
+ * Re-infers the topology of a given network.
+ * 
+ * @param ann_network The network.
+ * 
+ * @return The loglikelihood of the network after re-inferring the topology.
+ */
 double optimizeTopology(AnnotatedNetwork &ann_network) {
     double logl = greedyHillClimbingTopology(ann_network);
     std::cout << "Loglikelihood after topology optimization: " << logl << "\n";
     return logl;
 }
 
+/**
+ * Re-infers everything (brach lengths, reticulation probabilities, likelihood model parameters, topology, branch lengths).
+ * 
+ * @param ann_network The network.
+ * 
+ * @return The loglikelihood of the network after re-inferring everything.
+ */
 double optimizeEverything(AnnotatedNetwork &ann_network) {
     double lh_epsilon = ann_network.options.lh_epsilon;
     double new_logl = computeLoglikelihood(ann_network);
@@ -177,6 +276,12 @@ double optimizeEverything(AnnotatedNetwork &ann_network) {
     return new_logl;
 }
 
+/**
+ * Writes a network to a file in Extended Newick Format.
+ * 
+ * @param ann_network The network.
+ * @param filepath The file where to write the network to.
+ */
 void writeNetwork(AnnotatedNetwork &ann_network, const std::string &filepath) {
     std::ofstream outfile(filepath);
     // If we have unlinked branch lenghts/probs, replace the entries in the network by their average
