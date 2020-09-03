@@ -1,5 +1,5 @@
 /*
- * Node.hpp
+ * A node in a phylogenetic network.
  *
  *  Created on: Oct 14, 2019
  *      Author: Sarah Lutteropp

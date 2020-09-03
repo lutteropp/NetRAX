@@ -203,7 +203,7 @@ double computeLoglikelihood(AnnotatedNetwork &ann_network) {
 /**
  * Re-infers the reticulation probabilities of a given network.
  * 
- * @param ann_network The networ.
+ * @param ann_network The network.
  * 
  * @return The loglikelihood of the network after re-inferring the reticulation probabilities.
  */
