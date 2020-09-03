@@ -8,7 +8,7 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "enter program name, for example ${workspaceFolder}/a.out",
+            "program": "${workspaceFolder}/test/bin/netrax_test",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
