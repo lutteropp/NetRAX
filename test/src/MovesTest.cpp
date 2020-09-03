@@ -48,7 +48,7 @@ std::vector<std::vector<double> > extract_brlens(AnnotatedNetwork &ann_network) 
 
 template<typename T>
 void randomMovesStep(AnnotatedNetwork &ann_network, std::vector<T> candidates) {
-    double initial_logl = computeLoglikelihood(ann_network);
+    double initial_logl = NetraxInstance::computeLoglikelihood(ann_network);
     ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
     std::cout << "initial_logl: " << initial_logl << "\n";
     Network &network = ann_network.network;
@@ -61,12 +61,12 @@ void randomMovesStep(AnnotatedNetwork &ann_network, std::vector<T> candidates) {
         std::cout << "perform " << toString(candidates[j]);
         performMove(ann_network, candidates[j]);
         std::cout << toExtendedNewick(network) << "\n";
-        double moved_logl = computeLoglikelihood(ann_network);
+        double moved_logl = NetraxInstance::computeLoglikelihood(ann_network);
         ASSERT_NE(moved_logl, -std::numeric_limits<double>::infinity());
         std::cout << "logl after move: " << moved_logl << "\n";
         std::cout << "undo " << toString(candidates[j]) << "\n";
         undoMove(ann_network, candidates[j]);
-        computeLoglikelihood(ann_network);
+        NetraxInstance::computeLoglikelihood(ann_network);
         std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
         for (size_t i = 0; i < act_brlens.size(); ++i) {
             for (size_t j = 0; j < act_brlens[i].size(); ++j) {
@@ -77,7 +77,7 @@ void randomMovesStep(AnnotatedNetwork &ann_network, std::vector<T> candidates) {
         std::cout << toExtendedNewick(network) << "\n";
         std::string debugInfoAfterUndo = exportDebugInfo(network);
         EXPECT_EQ(initialDebugInfo, debugInfoAfterUndo);
-        double back_logl = computeLoglikelihood(ann_network);
+        double back_logl = NetraxInstance::computeLoglikelihood(ann_network);
         ASSERT_EQ(newickBeforeMove, newickAfterUndoMove);
         ASSERT_DOUBLE_EQ(initial_logl, back_logl);
     }
@@ -89,7 +89,7 @@ void randomMoves(const std::string &networkPath, const std::string &msaPath, boo
     options.network_file = networkPath;
     options.msa_file = msaPath;
     options.use_repeats = useRepeats;
-    AnnotatedNetwork ann_network = build_annotated_network(options);
+    AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(options);
     Network &network = ann_network.network;
 
     if (type == MoveType::ArcRemovalMove) {
@@ -151,10 +151,10 @@ TEST (MovesTest, incrementalLoglikelihoodProblem) {
     options.network_file = DATA_PATH + "small.nw";
     options.msa_file = DATA_PATH + "small_fake_alignment.txt";
     options.use_repeats = true;
-    AnnotatedNetwork ann_network = build_annotated_network(options);
+    AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(options);
 
     printClvValid(ann_network);
-    double initial_logl = computeLoglikelihood(ann_network);
+    double initial_logl = NetraxInstance::computeLoglikelihood(ann_network);
     ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
     std::cout << "initial_logl: " << initial_logl << "\n";
 
@@ -171,14 +171,14 @@ TEST (MovesTest, incrementalLoglikelihoodProblem) {
     std::cout << exportDebugInfo(ann_network.network);
     std::cout << toExtendedNewick(ann_network.network) << "\n";
     printClvValid(ann_network);
-    double moved_logl = computeLoglikelihood(ann_network);
+    double moved_logl = NetraxInstance::computeLoglikelihood(ann_network);
     std::cout << "moved_logl: " << moved_logl << "\n";
     ASSERT_NE(moved_logl, -std::numeric_limits<double>::infinity());
     undoMove(ann_network, move);
     std::cout << exportDebugInfo(ann_network.network);
     std::cout << toExtendedNewick(ann_network.network) << "\n";
     printClvValid(ann_network);
-    double back_logl = computeLoglikelihood(ann_network);
+    double back_logl = NetraxInstance::computeLoglikelihood(ann_network);
     std::cout << "back_logl: " << back_logl << "\n";
     ASSERT_DOUBLE_EQ(initial_logl, back_logl);
 }

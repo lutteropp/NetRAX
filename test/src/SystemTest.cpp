@@ -79,7 +79,7 @@ TEST (SystemTest, allTreeOldRaxml) {
 void completeRun(AnnotatedNetwork &ann_network) {
     //std::cout << exportDebugInfo(ann_network.network) << "\n";
     std::cout << toExtendedNewick(ann_network.network) << "\n";
-    optimizeEverything(ann_network);
+    NetraxInstance::optimizeEverything(ann_network);
     //std::cout << exportDebugInfo(ann_network.network) << "\n";
     std::cout << toExtendedNewick(ann_network.network) << "\n";
 }
@@ -93,7 +93,7 @@ TEST (SystemTest, allTree) {
     treeOptions.msa_file = msaPath;
     treeOptions.use_repeats = true;
 
-    AnnotatedNetwork ann_network = build_annotated_network(treeOptions);
+    AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(treeOptions);
     completeRun(ann_network);
 }
 
@@ -106,7 +106,7 @@ TEST (SystemTest, allNetwork) {
     smallOptions.msa_file = msaPath;
     smallOptions.use_repeats = true;
     RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
-    AnnotatedNetwork ann_network = build_annotated_network(smallOptions);
+    AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(smallOptions);
 
     completeRun(ann_network);
 }
@@ -121,7 +121,7 @@ TEST (SystemTest, randomNetwork) {
     smallOptions.use_repeats = true;
     RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
     unsigned int n_reticulations = 8;
-    AnnotatedNetwork ann_network = build_random_annotated_network(smallOptions, n_reticulations);
+    AnnotatedNetwork ann_network = NetraxInstance::build_random_annotated_network(smallOptions, n_reticulations);
     assert(ann_network.network.num_reticulations() == n_reticulations);
 
     completeRun(ann_network);
@@ -136,7 +136,7 @@ void problemTest(const std::string &newick) {
     smallOptions.msa_file = msaPath;
     smallOptions.use_repeats = true;
     RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
-    AnnotatedNetwork ann_network = build_annotated_network_from_string(smallOptions, newick);
+    AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network_from_string(smallOptions, newick);
 
     completeRun(ann_network);
 }
@@ -150,7 +150,7 @@ void problemTestOptTopology(const std::string &newick, MoveType type) {
     smallOptions.msa_file = msaPath;
     smallOptions.use_repeats = true;
     RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
-    AnnotatedNetwork ann_network = build_annotated_network_from_string(smallOptions, newick);
+    AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network_from_string(smallOptions, newick);
 
     greedyHillClimbingTopology(ann_network, type);
 }

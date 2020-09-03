@@ -201,7 +201,7 @@ void compareLikelihoodFunctions(const std::string &networkPath, const std::strin
     options.network_file = networkPath;
     options.msa_file = msaPath;
     options.use_repeats = useRepeats;
-    AnnotatedNetwork ann_network = build_annotated_network(options);
+    AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(options);
     Network &network = ann_network.network;
     print_clv_index_by_label(network);
     //std::cout << exportDebugInfo(network) << "\n";
@@ -259,7 +259,7 @@ void incrementalTest(const std::string &networkPath, const std::string &msaPath)
     options.use_blobs = true;
     options.use_graycode = true;
     options.use_incremental = true;
-    AnnotatedNetwork ann_network = build_annotated_network(options);
+    AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(options);
     Network &network = ann_network.network;
     print_clv_index_by_label(network);
     //std::cout << exportDebugInfo(network) << "\n";
@@ -351,21 +351,21 @@ TEST_F (LikelihoodTest, celineNetworkNonzeroBranches) {
 }
 
 TEST_F (LikelihoodTest, updateReticulationProb) {
-    AnnotatedNetwork ann_network = build_annotated_network(
+    AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(
             NetraxOptions(networkPath, msaPath, false));
-    double norep_logl = updateReticulationProbs(ann_network);
+    double norep_logl = NetraxInstance::updateReticulationProbs(ann_network);
     std::cout << "norep_logl: " << norep_logl << "\n";
-    double norep_logl_2 = updateReticulationProbs(ann_network);
+    double norep_logl_2 = NetraxInstance::updateReticulationProbs(ann_network);
     std::cout << "norep logl_2: " << norep_logl_2 << "\n";
-    double norep_logl_3 = computeLoglikelihood(ann_network);
+    double norep_logl_3 = NetraxInstance::computeLoglikelihood(ann_network);
     std::cout << "norep logl_3: " << norep_logl_3 << "\n";
 
     EXPECT_EQ(norep_logl_2, norep_logl_3);
 }
 
 TEST_F (LikelihoodTest, simpleTreeWithRepeats) {
-    AnnotatedNetwork ann_network = build_annotated_network(NetraxOptions(treePath, msaPath, true));
-    double network_logl = computeLoglikelihood(ann_network);
+    AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(NetraxOptions(treePath, msaPath, true));
+    double network_logl = NetraxInstance::computeLoglikelihood(ann_network);
     std::cout << "The computed network_logl 5 is: " << network_logl << "\n";
     EXPECT_NE(network_logl, -std::numeric_limits<double>::infinity());
 }
@@ -405,7 +405,7 @@ TEST_F (LikelihoodTest, buildAnnotatedNetworkTest) {
     options.network_file = treePath;
     options.msa_file = msaPath;
     options.use_repeats = true;
-    AnnotatedNetwork ann_network = build_annotated_network(options);
+    AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(options);
     ASSERT_TRUE(true);
 }
 
@@ -414,7 +414,7 @@ TEST_F (LikelihoodTest, simpleTreeNaiveVersusNormalRaxml) {
     options.network_file = treePath;
     options.msa_file = msaPath;
     options.use_repeats = true;
-    AnnotatedNetwork ann_network = build_annotated_network(options);
+    AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(options);
 
     Network &network = ann_network.network;
     print_clv_index_by_label(network);
@@ -440,12 +440,12 @@ TEST_F (LikelihoodTest, convertUtreeToNetwork) {
     options.use_repeats = true;
     pll_utree_t *raxml_utree = Tree::loadFromFile(treePath).pll_utree_copy();
 
-    AnnotatedNetwork ann_network = build_annotated_network_from_utree(options, *raxml_utree);
+    AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network_from_utree(options, *raxml_utree);
     Network &network = ann_network.network;
     print_clv_index_by_label(network);
     double naive_utree_logl = old::computeLoglikelihoodNaiveUtree(ann_network, 0, 1);
 
-    AnnotatedNetwork ann_network_2 = build_annotated_network(options);
+    AnnotatedNetwork ann_network_2 = NetraxInstance::build_annotated_network(options);
     double naive_network_logl = old::computeLoglikelihoodNaiveUtree(ann_network_2, 0, 1);
 
     EXPECT_NE(naive_utree_logl, -std::numeric_limits<double>::infinity());
