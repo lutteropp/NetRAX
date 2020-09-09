@@ -111,7 +111,6 @@ AnnotatedNetwork NetraxInstance::build_annotated_network_from_utree(const Netrax
     AnnotatedNetwork ann_network;
     ann_network.options = options;
     ann_network.network = netrax::convertUtreeToNetwork(utree, options.max_reticulations);
-    init_annotated_network(ann_network);
     return ann_network;
 }
 
@@ -157,6 +156,7 @@ AnnotatedNetwork NetraxInstance::build_random_annotated_network(const NetraxOpti
     Tree tree = wrapper.generateRandomTree();
     AnnotatedNetwork ann_network = build_annotated_network_from_utree(options, tree.pll_utree());
     add_extra_reticulations(ann_network, start_reticulations);
+    init_annotated_network(ann_network);
     return ann_network;
 }
 
@@ -172,6 +172,7 @@ AnnotatedNetwork NetraxInstance::build_parsimony_annotated_network(const NetraxO
     Tree tree = wrapper.generateParsimonyTree();
     AnnotatedNetwork ann_network = build_annotated_network_from_utree(options, tree.pll_utree());
     add_extra_reticulations(ann_network, start_reticulations);
+    init_annotated_network(ann_network);
     return ann_network;
 }
 
@@ -187,6 +188,7 @@ AnnotatedNetwork NetraxInstance::build_best_raxml_annotated_network(const Netrax
     Tree tree = wrapper.bestRaxmlTree();
     AnnotatedNetwork ann_network = build_annotated_network_from_utree(options, tree.pll_utree());
     add_extra_reticulations(ann_network, start_reticulations);
+    init_annotated_network(ann_network);
     return ann_network;
 }
 
