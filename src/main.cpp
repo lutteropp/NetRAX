@@ -15,6 +15,7 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
     app.add_option("-r,--reticulations", options->max_reticulations,
             "Maximum number of reticulations to consider (default: 20)");
     app.add_option("-o,--output", options->output_file, "File where to write the final network to");
+    app.add_option("-t,--timeout", options->timeout, "Maximum number of seconds to run network search.");
     CLI11_PARSE(app, argc, argv);
     return 0;
 }
@@ -29,7 +30,8 @@ int main(int argc, char **argv) {
     netrax::AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(netraxOptions);
     std::cout << "The current Likelihood model being used is the DNA model from raxml-ng\n\n";
 
-    NetraxInstance::optimizeEverything(ann_network);
+    double final_bic = NetraxInstance::optimizeEverything(ann_network);
+    std::cout << "The inferred network has " << ann_network.network.num_reticulations() << " reticulations and this BIC score: " << final_bic << "\n";
 
     if (!netraxOptions.output_file.empty()) {
         NetraxInstance::writeNetwork(ann_network, netraxOptions.output_file);

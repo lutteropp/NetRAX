@@ -253,7 +253,7 @@ std::string buildNodeGraphics(const Node *node) {
 }
 
 std::string exportDebugInfoExtraNodeNumber(Network &network,
-        const std::vector<unsigned int> &extra_node_number) {
+        const std::vector<unsigned int> &extra_node_number, bool with_label) {
     std::stringstream ss;
     ss << "graph\n[\tdirected\t1\n";
     std::vector<Node*> parent = grab_current_node_parents(network);
@@ -263,7 +263,7 @@ std::string exportDebugInfoExtraNodeNumber(Network &network,
         }
         ss << "\tnode\n\t[\n\t\tid\t" << i << "\n";
         std::string nodeLabel = std::to_string(i);
-        if (!network.nodes_by_index[i]->label.empty()) {
+        if (with_label && !network.nodes_by_index[i]->label.empty()) {
             nodeLabel += ": " + network.nodes_by_index[i]->label;
         }
         if (!extra_node_number.empty()) {
@@ -298,8 +298,8 @@ std::string exportDebugInfoExtraNodeNumber(Network &network,
     return ss.str();
 }
 
-std::string exportDebugInfo(Network &network) {
-    return exportDebugInfoExtraNodeNumber(network, std::vector<unsigned int>());
+std::string exportDebugInfo(Network &network, bool with_label) {
+    return exportDebugInfoExtraNodeNumber(network, std::vector<unsigned int>(), with_label);
 }
 
 }

@@ -29,7 +29,7 @@ TEST (BrlenOptTest, testTheTest) {
     ASSERT_TRUE(true);
 }
 
-TEST (BrlenOptTest, tree) {
+TEST (BrlenOptTest, DISABLED_tree_exact) {
     // initial setup
     std::string treePath = DATA_PATH + "tree.nw";
     std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
@@ -74,7 +74,7 @@ TEST (BrlenOptTest, tree) {
 
     for (size_t i = 0; i < utreeIDToNetworkID.size(); ++i) {
         if (utreeIDToNetworkID[i].size() == 1) {
-            ASSERT_FLOAT_EQ(infoRaxml->pll_treeinfo().branch_lengths[0][i],
+            EXPECT_FLOAT_EQ(infoRaxml->pll_treeinfo().branch_lengths[0][i],
                     infoNetwork->pll_treeinfo().branch_lengths[0][utreeIDToNetworkID[i][0]]);
         }
     }
@@ -120,6 +120,51 @@ TEST (BrlenOptTest, tree) {
     std::cout << "NETWORK - Loglikelihood when called normally: " << normal_logl_network << "\n";
 
     ASSERT_FLOAT_EQ(brlenopt_logl_network, normal_logl_network);
+
+    ASSERT_FLOAT_EQ(brlenopt_logl_raxml, brlenopt_logl_network);
+
+    delete infoRaxml;
+}
+
+TEST (BrlenOptTest, tree) {
+    // initial setup
+    std::string treePath = DATA_PATH + "tree.nw";
+    std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
+    NetraxOptions treeOptions;
+    treeOptions.network_file = treePath;
+    treeOptions.msa_file = msaPath;
+    treeOptions.use_repeats = true;
+    RaxmlWrapper treeWrapper = RaxmlWrapper(treeOptions);
+    //treeWrapper.enableRaxmlDebugOutput();
+
+    Tree normalTree = Tree::loadFromFile(treePath);
+    TreeInfo *infoRaxml = treeWrapper.createRaxmlTreeinfo(normalTree.pll_utree_copy());
+    AnnotatedNetwork annTreeNetwork = NetraxInstance::build_annotated_network(treeOptions);
+    TreeInfo *infoNetwork = annTreeNetwork.raxml_treeinfo.get();
+
+    // initial logl computation
+    double initial_logl_raxml = infoRaxml->loglh(false);
+    std::cout << "RAXML - Initial loglikelihood: " << initial_logl_raxml << "\n";
+    double initial_logl_network = NetraxInstance::computeLoglikelihood(annTreeNetwork);
+    std::cout << "NETWORK - Initial loglikelihood: " << initial_logl_network << "\n";
+    ASSERT_FLOAT_EQ(initial_logl_raxml, initial_logl_network);
+
+    // branch length optimization
+    double brlenopt_logl_raxml = infoRaxml->optimize_branches(
+            treeWrapper.getRaxmlOptions().lh_epsilon, 1);
+    std::cout << "RAXML - Loglikelihood after branch length optimization: " << brlenopt_logl_raxml
+            << "\n";
+    double brlenopt_logl_network = -infoNetwork->optimize_branches(
+            treeWrapper.getRaxmlOptions().lh_epsilon, 1);
+    std::cout << "NETWORK - Loglikelihood after branch length optimization: "
+            << brlenopt_logl_network << "\n";
+
+    double normal_logl_raxml = infoRaxml->loglh(0);
+    double normal_logl_network = infoNetwork->loglh(0);
+    std::cout << "RAXML - Loglikelihood when called normally: " << normal_logl_raxml << "\n";
+    std::cout << "NETWORK - Loglikelihood when called normally: " << normal_logl_network << "\n";
+
+    ASSERT_TRUE(brlenopt_logl_network >= normal_logl_network);
 
     ASSERT_FLOAT_EQ(brlenopt_logl_raxml, brlenopt_logl_network);
 

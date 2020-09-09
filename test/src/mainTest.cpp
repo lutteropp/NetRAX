@@ -21,21 +21,21 @@ int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
 //  MPI_INIT(&argc, &argv);
     ::testing::AddGlobalTestEnvironment(env);
-    //::testing::GTEST_FLAG(filter) = "*NetworkIOTest.*";
+    ::testing::GTEST_FLAG(filter) = "*BrlenOptTest.*";
     //:testing::GTEST_FLAG(filter) = "-NetworkIOTest.*";
     //::testing::GTEST_FLAG(filter) = "*SystemTest.allTree";
     //::testing::GTEST_FLAG(filter) = "*LikelihoodTest.celineNetwork:*LikelihoodTest.likelihoodFunctions*";
     //::testing::GTEST_FLAG(filter) = "*NetworkIOTest.reticulationHasLeafChild"*;
     //::testing::GTEST_FLAG(filter) = "*LikelihoodTest.smallNetworkWithRepeats";
     //::testing::GTEST_FLAG(filter) = "*LikelihoodTest.*";
-    //::testing::GTEST_FLAG(filter) = "*MovesTest.*";
+    //::testing::GTEST_FLAG(filter) = "*MovesTest.deltaMinus*";
     //::testing::GTEST_FLAG(filter) = "*MovesTest.incrementalLoglikelihoodProblem*";
     //::testing::GTEST_FLAG(filter) = "*SystemTest.allNetwork*";
     //::testing::GTEST_FLAG(filter) = "*SystemTest.random*";
     //::testing::GTEST_FLAG(filter) = "*SystemTest.problem*";
 
     // suppress any cout output while running the tests
-    std::cout.setstate(std::ios_base::failbit);
+    //std::cout.setstate(std::ios_base::failbit);
     auto result = RUN_ALL_TESTS();
     std::cout.clear();
 //  MPI_FINALIZE();

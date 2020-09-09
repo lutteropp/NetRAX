@@ -14,6 +14,7 @@
 #include <fstream>
 #include <vector>
 #include <random>
+#include <chrono>
 
 #include <raxml-ng/TreeInfo.hpp>
 #include <raxml-ng/main.hpp>
@@ -201,6 +202,16 @@ double NetraxInstance::computeLoglikelihood(AnnotatedNetwork &ann_network) {
 }
 
 /**
+ * Computes the bic-score of a given network.
+ * 
+ * @param ann_network The network.
+ */
+double NetraxInstance::scoreNetwork(AnnotatedNetwork &ann_network) {
+    double logl = ann_network.raxml_treeinfo->loglh(true);
+    return bic(ann_network, logl);
+}
+
+/**
  * Re-infers the reticulation probabilities of a given network.
  * 
  * @param ann_network The network.
@@ -257,23 +268,32 @@ double NetraxInstance::optimizeTopology(AnnotatedNetwork &ann_network) {
  * 
  * @param ann_network The network.
  * 
- * @return The loglikelihood of the network after re-inferring everything.
+ * @return The BIC-score of the network after re-inferring everything.
  */
 double NetraxInstance::optimizeEverything(AnnotatedNetwork &ann_network) {
-    double lh_epsilon = ann_network.options.lh_epsilon;
-    double new_logl = computeLoglikelihood(ann_network);
-    double old_logl;
+    double score_epsilon = ann_network.options.lh_epsilon;
+    unsigned int max_seconds = ann_network.options.timeout;
+    auto start_time = std::chrono::high_resolution_clock::now();
+    double new_score = scoreNetwork(ann_network);
+    double old_score;
     do {
-        old_logl = new_logl;
+        old_score = new_score;
         optimizeBranches(ann_network);
         updateReticulationProbs(ann_network);
         optimizeModel(ann_network);
         optimizeTopology(ann_network);
         optimizeBranches(ann_network);
         updateReticulationProbs(ann_network);
-        new_logl = optimizeModel(ann_network);
-    } while (new_logl - old_logl > lh_epsilon);
-    return new_logl;
+        optimizeModel(ann_network);
+        new_score = scoreNetwork(ann_network);
+        if (max_seconds != 0) {
+            auto act_time = std::chrono::high_resolution_clock::now();
+            if (std::chrono::duration_cast<std::chrono::seconds>( act_time - start_time ).count() >= max_seconds) {
+                break;
+            }
+        }
+    } while (new_score - old_score > score_epsilon);
+    return new_score;
 }
 
 /**

@@ -35,6 +35,8 @@ public:
 
     unsigned int max_reticulations = 20;
 
+    unsigned int timeout = 0; // maximum number of seconds to run the network search, value of zero will be ignored
+
     int brlen_linkage = PLLMOD_COMMON_BRLEN_SCALED;
     int brlen_opt_method = PLLMOD_OPT_BLO_NEWTON_FAST;
     double brlen_min = RAXML_BRLEN_MIN;

@@ -34,6 +34,7 @@ struct NetraxInstance {
         static AnnotatedNetwork build_best_raxml_annotated_network(const NetraxOptions &options,
                 unsigned int start_reticulations = 0);
         static double computeLoglikelihood(AnnotatedNetwork &ann_network);
+        static double scoreNetwork(AnnotatedNetwork &ann_network);
         static double updateReticulationProbs(AnnotatedNetwork &ann_network);
         static double optimizeModel(AnnotatedNetwork &ann_network);
         static double optimizeBranches(AnnotatedNetwork &ann_network);
