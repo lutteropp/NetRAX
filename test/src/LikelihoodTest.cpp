@@ -353,9 +353,11 @@ TEST_F (LikelihoodTest, celineNetworkNonzeroBranches) {
 TEST_F (LikelihoodTest, updateReticulationProb) {
     AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(
             NetraxOptions(networkPath, msaPath, false));
-    double norep_logl = NetraxInstance::updateReticulationProbs(ann_network);
+    NetraxInstance::updateReticulationProbs(ann_network);
+    double norep_logl = NetraxInstance::computeLoglikelihood(ann_network);
     std::cout << "norep_logl: " << norep_logl << "\n";
-    double norep_logl_2 = NetraxInstance::updateReticulationProbs(ann_network);
+    NetraxInstance::updateReticulationProbs(ann_network);
+    double norep_logl_2 = NetraxInstance::computeLoglikelihood(ann_network);
     std::cout << "norep logl_2: " << norep_logl_2 << "\n";
     double norep_logl_3 = NetraxInstance::computeLoglikelihood(ann_network);
     std::cout << "norep logl_3: " << norep_logl_3 << "\n";

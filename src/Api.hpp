@@ -35,11 +35,11 @@ struct NetraxInstance {
                 unsigned int start_reticulations = 0);
         static double computeLoglikelihood(AnnotatedNetwork &ann_network);
         static double scoreNetwork(AnnotatedNetwork &ann_network);
-        static double updateReticulationProbs(AnnotatedNetwork &ann_network);
-        static double optimizeModel(AnnotatedNetwork &ann_network);
-        static double optimizeBranches(AnnotatedNetwork &ann_network);
-        static double optimizeTopology(AnnotatedNetwork &ann_network);
-        static double optimizeEverything(AnnotatedNetwork &ann_network);
+        static void updateReticulationProbs(AnnotatedNetwork &ann_network);
+        static void optimizeModel(AnnotatedNetwork &ann_network);
+        static void optimizeBranches(AnnotatedNetwork &ann_network);
+        static void optimizeTopology(AnnotatedNetwork &ann_network);
+        static void optimizeEverything(AnnotatedNetwork &ann_network);
         static void writeNetwork(AnnotatedNetwork &ann_network, const std::string &filepath);
 };
 

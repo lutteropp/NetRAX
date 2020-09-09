@@ -202,7 +202,7 @@ double NetraxInstance::computeLoglikelihood(AnnotatedNetwork &ann_network) {
 }
 
 /**
- * Computes the bic-score of a given network.
+ * Computes the BIC-score of a given network. A smaller score is a better score.
  * 
  * @param ann_network The network.
  */
@@ -215,62 +215,60 @@ double NetraxInstance::scoreNetwork(AnnotatedNetwork &ann_network) {
  * Re-infers the reticulation probabilities of a given network.
  * 
  * @param ann_network The network.
- * 
- * @return The loglikelihood of the network after re-inferring the reticulation probabilities.
  */
-double NetraxInstance::updateReticulationProbs(AnnotatedNetwork &ann_network) {
-    double logl = netrax::computeLoglikelihood(ann_network, 0, 1, true);
-    std::cout << "Loglikelihood after updating reticulation probs: " << logl << "\n";
-    return logl;
+void NetraxInstance::updateReticulationProbs(AnnotatedNetwork &ann_network) {
+    double old_score = scoreNetwork(ann_network);
+    netrax::computeLoglikelihood(ann_network, 0, 1, true);
+    double new_score = scoreNetwork(ann_network);
+    std::cout << "BIC score after updating reticulation probs: " << new_score << "\n";
+    assert(new_score <= old_score);
 }
 
 /**
  * Re-infers the likelihood model parameters of a given network.
  * 
  * @param ann_network The network.
- * 
- * @return The loglikelihood of the network after re-inferring the likelihood model parameters.
  */
-double NetraxInstance::optimizeModel(AnnotatedNetwork &ann_network) {
-    double logl = ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
-    std::cout << "Loglikelihood after model optimization: " << logl << "\n";
-    return logl;
+void NetraxInstance::optimizeModel(AnnotatedNetwork &ann_network) {
+    double old_score = scoreNetwork(ann_network);
+    ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
+    double new_score = scoreNetwork(ann_network);
+    std::cout << "BIC score after model optimization: " << new_score << "\n";
+    assert(new_score <= old_score);
 }
 
 /**
  * Re-infers the branch lengths of a given network.
  * 
  * @param ann_network The network.
- * 
- * @return The loglikelihood of the network after re-inferring the branch lengths.
  */
-double NetraxInstance::optimizeBranches(AnnotatedNetwork &ann_network) {
-    double logl = ann_network.raxml_treeinfo->optimize_branches(ann_network.options.lh_epsilon, 1);
-    std::cout << "Loglikelihood after branch length optimization: " << -logl << "\n";
-    return -logl;
+void NetraxInstance::optimizeBranches(AnnotatedNetwork &ann_network) {
+    double old_score = scoreNetwork(ann_network);
+    ann_network.raxml_treeinfo->optimize_branches(ann_network.options.lh_epsilon, 1);
+    double new_score = scoreNetwork(ann_network);
+    std::cout << "BIC score after branch length optimization: " << new_score << "\n";
+    assert(new_score <= old_score);
 }
 
 /**
  * Re-infers the topology of a given network.
  * 
  * @param ann_network The network.
- * 
- * @return The loglikelihood of the network after re-inferring the topology.
  */
-double NetraxInstance::optimizeTopology(AnnotatedNetwork &ann_network) {
-    double logl = greedyHillClimbingTopology(ann_network);
-    std::cout << "Loglikelihood after topology optimization: " << logl << "\n";
-    return logl;
+void NetraxInstance::optimizeTopology(AnnotatedNetwork &ann_network) {
+    double old_score = scoreNetwork(ann_network);
+    greedyHillClimbingTopology(ann_network);
+    double new_score = scoreNetwork(ann_network);
+    std::cout << "BIC after topology optimization: " << new_score << "\n";
+    assert(new_score <= old_score);
 }
 
 /**
  * Re-infers everything (brach lengths, reticulation probabilities, likelihood model parameters, topology, branch lengths).
  * 
  * @param ann_network The network.
- * 
- * @return The BIC-score of the network after re-inferring everything.
  */
-double NetraxInstance::optimizeEverything(AnnotatedNetwork &ann_network) {
+void NetraxInstance::optimizeEverything(AnnotatedNetwork &ann_network) {
     double score_epsilon = ann_network.options.lh_epsilon;
     unsigned int max_seconds = ann_network.options.timeout;
     auto start_time = std::chrono::high_resolution_clock::now();
@@ -292,8 +290,7 @@ double NetraxInstance::optimizeEverything(AnnotatedNetwork &ann_network) {
                 break;
             }
         }
-    } while (new_score - old_score > score_epsilon);
-    return new_score;
+    } while (old_score - new_score > score_epsilon);
 }
 
 /**

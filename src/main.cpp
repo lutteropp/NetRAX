@@ -36,7 +36,8 @@ int main(int argc, char **argv) {
 
     std::cout << "The current Likelihood model being used is the DNA model from raxml-ng\n\n";
 
-    double final_bic = NetraxInstance::optimizeEverything(ann_network);
+    NetraxInstance::optimizeEverything(ann_network);
+    double final_bic = NetraxInstance::scoreNetwork(ann_network);
     std::cout << "The inferred network has " << ann_network.network.num_reticulations() << " reticulations and this BIC score: " << final_bic << "\n";
 
     NetraxInstance::writeNetwork(ann_network, netraxOptions.output_file);
