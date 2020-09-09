@@ -37,7 +37,7 @@ namespace netrax {
  * 
  * @param ann_network The still uninitialized annotated network.
  */
-void init_annotated_network(AnnotatedNetwork &ann_network) {
+void NetraxInstance::init_annotated_network(AnnotatedNetwork &ann_network) {
     Network &network = ann_network.network;
     std::random_device dev;
     std::mt19937 rng(dev());
@@ -82,7 +82,6 @@ AnnotatedNetwork NetraxInstance::build_annotated_network(const NetraxOptions &op
     ann_network.options = options;
     ann_network.network = netrax::readNetworkFromFile(options.start_network_file,
             options.max_reticulations);
-    init_annotated_network(ann_network);
     return ann_network;
 }
 
@@ -97,7 +96,6 @@ AnnotatedNetwork NetraxInstance::build_annotated_network_from_string(const Netra
     AnnotatedNetwork ann_network;
     ann_network.options = options;
     ann_network.network = netrax::readNetworkFromString(newickString, options.max_reticulations);
-    init_annotated_network(ann_network);
     return ann_network;
 }
 
@@ -112,7 +110,6 @@ AnnotatedNetwork NetraxInstance::build_annotated_network_from_utree(const Netrax
     AnnotatedNetwork ann_network;
     ann_network.options = options;
     ann_network.network = netrax::convertUtreeToNetwork(utree, options.max_reticulations);
-    init_annotated_network(ann_network);
     return ann_network;
 }
 
