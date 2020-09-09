@@ -546,6 +546,8 @@ pllmod_treeinfo_t* RaxmlWrapper::createNetworkPllTreeinfo(AnnotatedNetwork &ann_
 
     fake_init_collect_branch_lengths(treeinfo, network);
 
+    assert(static_cast<NetworkParams*>(treeinfo->likelihood_computation_params)->ann_network == &ann_network);
+
     return treeinfo;
 }
 
@@ -569,6 +571,7 @@ TreeInfo* RaxmlWrapper::createRaxmlTreeinfo(pllmod_treeinfo_t *treeinfo,
 double RaxmlWrapper::network_logl_wrapper(void *network_params, int incremental,
         int update_pmatrices) {
     NetworkParams *params = (NetworkParams*) network_params;
+    assert(!params->ann_network->branch_probs.empty());
     return computeLoglikelihood(*params->ann_network, incremental, update_pmatrices);
 }
 double RaxmlWrapper::network_opt_brlen_wrapper(pllmod_treeinfo_t *fake_treeinfo, double min_brlen,

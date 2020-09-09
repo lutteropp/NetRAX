@@ -33,6 +33,7 @@ int main(int argc, char **argv) {
     } else {
         ann_network = NetraxInstance::build_annotated_network(netraxOptions);
     }
+    NetraxInstance::init_annotated_network(ann_network);
 
     std::cout << "The current Likelihood model being used is the DNA model from raxml-ng\n\n";
 

@@ -417,6 +417,7 @@ double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int 
         return ann_network.old_logl;
     }
     double network_logl = 0;
+    assert(!ann_network.branch_probs.empty());
     setup_pmatrices(ann_network, incremental, update_pmatrices);
     const int old_active_partition = fake_treeinfo.active_partition;
     fake_treeinfo.active_partition = PLLMOD_TREEINFO_PARTITION_ALL;

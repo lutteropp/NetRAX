@@ -37,15 +37,12 @@ namespace netrax {
  * 
  * @param ann_network The still uninitialized annotated network.
  */
-void init_annotated_network(AnnotatedNetwork &ann_network) {
+void NetraxInstance::init_annotated_network(AnnotatedNetwork &ann_network) {
     Network &network = ann_network.network;
     std::random_device dev;
     std::mt19937 rng(dev());
     ann_network.rng = rng;
 
-    netrax::RaxmlWrapper wrapper(ann_network.options);
-    ann_network.raxml_treeinfo = std::unique_ptr<TreeInfo>(
-            wrapper.createRaxmlTreeinfo(ann_network));
     ann_network.travbuffer = netrax::reversed_topological_sort(ann_network.network);
     ann_network.blobInfo = netrax::partitionNetworkIntoBlobs(network, ann_network.travbuffer);
 
@@ -69,6 +66,10 @@ void init_annotated_network(AnnotatedNetwork &ann_network) {
             ann_network.branch_probs[p][secondParentEdgeIndex] = secondParentProb;
         }
     }
+    netrax::RaxmlWrapper wrapper(ann_network.options);
+    ann_network.raxml_treeinfo = std::unique_ptr<TreeInfo>(wrapper.createRaxmlTreeinfo(ann_network));
+
+    assert(static_cast<RaxmlWrapper::NetworkParams*>(ann_network.raxml_treeinfo->pll_treeinfo().likelihood_computation_params)->ann_network == &ann_network);
 }
 
 /**
@@ -81,7 +82,6 @@ AnnotatedNetwork NetraxInstance::build_annotated_network(const NetraxOptions &op
     ann_network.options = options;
     ann_network.network = netrax::readNetworkFromFile(options.start_network_file,
             options.max_reticulations);
-    init_annotated_network(ann_network);
     return ann_network;
 }
 
@@ -96,7 +96,6 @@ AnnotatedNetwork NetraxInstance::build_annotated_network_from_string(const Netra
     AnnotatedNetwork ann_network;
     ann_network.options = options;
     ann_network.network = netrax::readNetworkFromString(newickString, options.max_reticulations);
-    init_annotated_network(ann_network);
     return ann_network;
 }
 
@@ -198,6 +197,7 @@ AnnotatedNetwork NetraxInstance::build_best_raxml_annotated_network(const Netrax
  * @param ann_network The network.
  */
 double NetraxInstance::computeLoglikelihood(AnnotatedNetwork &ann_network) {
+    assert(!ann_network.branch_probs.empty());
     double logl = ann_network.raxml_treeinfo->loglh(true);
     std::cout << "Loglikelihood: " << logl << "\n";
     return logl;
@@ -209,7 +209,7 @@ double NetraxInstance::computeLoglikelihood(AnnotatedNetwork &ann_network) {
  * @param ann_network The network.
  */
 double NetraxInstance::scoreNetwork(AnnotatedNetwork &ann_network) {
-    double logl = ann_network.raxml_treeinfo->loglh(true);
+    double logl = computeLoglikelihood(ann_network);
     return bic(ann_network, logl);
 }
 
