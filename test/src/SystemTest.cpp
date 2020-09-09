@@ -38,7 +38,7 @@ TEST (SystemTest, allTreeOldRaxml) {
 
     Tree normalTree = Tree::loadFromFile(treePath);
     NetraxOptions treeOptions;
-    treeOptions.network_file = treePath;
+    treeOptions.start_network_file = treePath;
     treeOptions.msa_file = msaPath;
     treeOptions.use_repeats = true;
     RaxmlWrapper treeWrapper = RaxmlWrapper(treeOptions);
@@ -89,7 +89,7 @@ TEST (SystemTest, allTree) {
     std::string treePath = DATA_PATH + "tree.nw";
     std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
     NetraxOptions treeOptions;
-    treeOptions.network_file = treePath;
+    treeOptions.start_network_file = treePath;
     treeOptions.msa_file = msaPath;
     treeOptions.use_repeats = true;
 
@@ -102,7 +102,7 @@ TEST (SystemTest, allNetwork) {
     std::string smallPath = DATA_PATH + "small.nw";
     std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
     NetraxOptions smallOptions;
-    smallOptions.network_file = smallPath;
+    smallOptions.start_network_file = smallPath;
     smallOptions.msa_file = msaPath;
     smallOptions.use_repeats = true;
     RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
@@ -116,7 +116,7 @@ TEST (SystemTest, randomNetwork) {
     std::string smallPath = DATA_PATH + "small.nw";
     std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
     NetraxOptions smallOptions;
-    smallOptions.network_file = smallPath;
+    smallOptions.start_network_file = smallPath;
     smallOptions.msa_file = msaPath;
     smallOptions.use_repeats = true;
     RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
@@ -132,7 +132,7 @@ void problemTest(const std::string &newick) {
     std::string smallPath = DATA_PATH + "small.nw";
     std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
     NetraxOptions smallOptions;
-    smallOptions.network_file = smallPath;
+    smallOptions.start_network_file = smallPath;
     smallOptions.msa_file = msaPath;
     smallOptions.use_repeats = true;
     RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
@@ -146,7 +146,7 @@ void problemTestOptTopology(const std::string &newick, MoveType type) {
     std::string smallPath = DATA_PATH + "small.nw";
     std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
     NetraxOptions smallOptions;
-    smallOptions.network_file = smallPath;
+    smallOptions.start_network_file = smallPath;
     smallOptions.msa_file = msaPath;
     smallOptions.use_repeats = true;
     RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);

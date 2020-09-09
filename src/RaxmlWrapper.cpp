@@ -116,7 +116,7 @@ Options createDefaultOptions() {
 RaxmlInstance createRaxmlInstance(const NetraxOptions &options) {
     RaxmlInstance instance;
     instance.opts = createDefaultOptions();
-    instance.opts.tree_file = options.network_file;
+    instance.opts.tree_file = options.start_network_file;
     instance.opts.msa_file = options.msa_file;
     instance.opts.command = Command::evaluate;
     instance.opts.num_threads = 1;

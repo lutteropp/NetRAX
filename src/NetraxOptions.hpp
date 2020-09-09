@@ -18,9 +18,9 @@ public:
     NetraxOptions() {
     }
 
-    NetraxOptions(const std::string &network_file, const std::string &msa_file, bool use_repeats =
+    NetraxOptions(const std::string &start_network_file, const std::string &msa_file, bool use_repeats =
             true) {
-        this->network_file = network_file;
+        this->start_network_file = start_network_file;
         this->msa_file = msa_file;
         this->use_repeats = use_repeats;
     }
@@ -46,7 +46,7 @@ public:
     double brlen_smoothings = RAXML_BRLEN_SMOOTHINGS;
 
     std::string msa_file = "";
-    std::string network_file = "";
+    std::string start_network_file = "";
     std::string output_file = "";
 };
 }

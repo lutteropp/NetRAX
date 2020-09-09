@@ -198,7 +198,7 @@ bool isLeafNode(const pll_unode_t *node) {
 void compareLikelihoodFunctions(const std::string &networkPath, const std::string &msaPath,
         bool useRepeats) {
     NetraxOptions options;
-    options.network_file = networkPath;
+    options.start_network_file = networkPath;
     options.msa_file = msaPath;
     options.use_repeats = useRepeats;
     AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(options);
@@ -253,7 +253,7 @@ void compareLikelihoodFunctions(const std::string &networkPath, const std::strin
 
 void incrementalTest(const std::string &networkPath, const std::string &msaPath) {
     NetraxOptions options;
-    options.network_file = networkPath;
+    options.start_network_file = networkPath;
     options.msa_file = msaPath;
     options.use_repeats = true;
     options.use_blobs = true;
@@ -402,7 +402,7 @@ TEST_F (LikelihoodTest, DISABLED_displayedTreeOfNetworkToUtree) {
 
 TEST_F (LikelihoodTest, buildAnnotatedNetworkTest) {
     NetraxOptions options;
-    options.network_file = treePath;
+    options.start_network_file = treePath;
     options.msa_file = msaPath;
     options.use_repeats = true;
     AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(options);
@@ -411,7 +411,7 @@ TEST_F (LikelihoodTest, buildAnnotatedNetworkTest) {
 
 TEST_F (LikelihoodTest, simpleTreeNaiveVersusNormalRaxml) {
     NetraxOptions options;
-    options.network_file = treePath;
+    options.start_network_file = treePath;
     options.msa_file = msaPath;
     options.use_repeats = true;
     AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(options);
@@ -435,7 +435,7 @@ TEST_F (LikelihoodTest, simpleTreeNaiveVersusNormalRaxml) {
 
 TEST_F (LikelihoodTest, convertUtreeToNetwork) {
     NetraxOptions options;
-    options.network_file = treePath;
+    options.start_network_file = treePath;
     options.msa_file = msaPath;
     options.use_repeats = true;
     pll_utree_t *raxml_utree = Tree::loadFromFile(treePath).pll_utree_copy();

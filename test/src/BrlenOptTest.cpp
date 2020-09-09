@@ -34,7 +34,7 @@ TEST (BrlenOptTest, DISABLED_tree_exact) {
     std::string treePath = DATA_PATH + "tree.nw";
     std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
     NetraxOptions treeOptions;
-    treeOptions.network_file = treePath;
+    treeOptions.start_network_file = treePath;
     treeOptions.msa_file = msaPath;
     treeOptions.use_repeats = true;
     RaxmlWrapper treeWrapper = RaxmlWrapper(treeOptions);
@@ -131,7 +131,7 @@ TEST (BrlenOptTest, tree) {
     std::string treePath = DATA_PATH + "tree.nw";
     std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
     NetraxOptions treeOptions;
-    treeOptions.network_file = treePath;
+    treeOptions.start_network_file = treePath;
     treeOptions.msa_file = msaPath;
     treeOptions.use_repeats = true;
     RaxmlWrapper treeWrapper = RaxmlWrapper(treeOptions);
@@ -176,7 +176,7 @@ TEST (BrlenOptTest, small) {
     std::string smallPath = DATA_PATH + "small.nw";
     std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
     NetraxOptions smallOptions;
-    smallOptions.network_file = smallPath;
+    smallOptions.start_network_file = smallPath;
     smallOptions.msa_file = msaPath;
     smallOptions.use_repeats = true;
     RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
@@ -204,7 +204,7 @@ TEST (BrlenOptTest, celineFake) {
     std::string celinePath = DATA_PATH + "celine.nw";
     std::string msaPath = DATA_PATH + "celine_fake_alignment.txt";
     NetraxOptions celineOptions;
-    celineOptions.network_file = celinePath;
+    celineOptions.start_network_file = celinePath;
     celineOptions.msa_file = msaPath;
     celineOptions.use_repeats = true;
     RaxmlWrapper celineWrapper = RaxmlWrapper(celineOptions);
@@ -232,7 +232,7 @@ TEST (BrlenOptTest, celineFakeWithModelopt) {
     std::string celinePath = DATA_PATH + "celine.nw";
     std::string msaPath = DATA_PATH + "celine_fake_alignment.txt";
     NetraxOptions celineOptions;
-    celineOptions.network_file = celinePath;
+    celineOptions.start_network_file = celinePath;
     celineOptions.msa_file = msaPath;
     celineOptions.use_repeats = true;
     RaxmlWrapper celineWrapper = RaxmlWrapper(celineOptions);

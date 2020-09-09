@@ -86,7 +86,7 @@ void randomMovesStep(AnnotatedNetwork &ann_network, std::vector<T> candidates) {
 void randomMoves(const std::string &networkPath, const std::string &msaPath, bool useRepeats,
         MoveType type) {
     NetraxOptions options;
-    options.network_file = networkPath;
+    options.start_network_file = networkPath;
     options.msa_file = msaPath;
     options.use_repeats = useRepeats;
     AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(options);
@@ -148,7 +148,7 @@ void printBranchLengths(AnnotatedNetwork &ann_network) {
 
 TEST (MovesTest, incrementalLoglikelihoodProblem) {
     NetraxOptions options;
-    options.network_file = DATA_PATH + "small.nw";
+    options.start_network_file = DATA_PATH + "small.nw";
     options.msa_file = DATA_PATH + "small_fake_alignment.txt";
     options.use_repeats = true;
     AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(options);

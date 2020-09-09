@@ -79,7 +79,7 @@ void init_annotated_network(AnnotatedNetwork &ann_network) {
 AnnotatedNetwork NetraxInstance::build_annotated_network(const NetraxOptions &options) {
     AnnotatedNetwork ann_network;
     ann_network.options = options;
-    ann_network.network = netrax::readNetworkFromFile(options.network_file,
+    ann_network.network = netrax::readNetworkFromFile(options.start_network_file,
             options.max_reticulations);
     init_annotated_network(ann_network);
     return ann_network;
