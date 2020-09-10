@@ -5,7 +5,27 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "(gdb) Launch",
+            "name": "(gdb) Launch Main",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/netrax",
+            "args": ["--msa", "${workspaceFolder}/examples/sample_networks/7_taxa_fake_alignment.txt",
+                     "--output", "${workspaceFolder}/test"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch Test",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/test/bin/netrax_test",

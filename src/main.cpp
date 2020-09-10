@@ -12,7 +12,7 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
     CLI::App app { "NetRAX: Phylogenetic Network Inference without Incomplete Lineage Sorting" };
     app.add_option("--msa", options->msa_file, "The Multiple Sequence Alignment File")->required();
     app.add_option("-o,--output", options->output_file, "File where to write the final network to")->required();
-    app.add_option("--start_network", options->start_network_file, "A network to start search on");
+    app.add_option("--start_network", options->start_network_file, "A network file (in Extended Newick format) to start the search on");
     app.add_option("-r,--reticulations", options->max_reticulations,
             "Maximum number of reticulations to consider (default: 20)");
     app.add_option("-t,--timeout", options->timeout, "Maximum number of seconds to run network search.");
