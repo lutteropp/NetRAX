@@ -90,6 +90,7 @@ void randomMoves(const std::string &networkPath, const std::string &msaPath, boo
     options.msa_file = msaPath;
     options.use_repeats = useRepeats;
     AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(options);
+    NetraxInstance::init_annotated_network(ann_network);
     Network &network = ann_network.network;
 
     if (type == MoveType::ArcRemovalMove) {
@@ -152,6 +153,7 @@ TEST (MovesTest, incrementalLoglikelihoodProblem) {
     options.msa_file = DATA_PATH + "small_fake_alignment.txt";
     options.use_repeats = true;
     AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(options);
+    NetraxInstance::init_annotated_network(ann_network);
 
     printClvValid(ann_network);
     double initial_logl = NetraxInstance::computeLoglikelihood(ann_network);

@@ -202,6 +202,7 @@ void compareLikelihoodFunctions(const std::string &networkPath, const std::strin
     options.msa_file = msaPath;
     options.use_repeats = useRepeats;
     AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(options);
+    NetraxInstance::init_annotated_network(ann_network);
     Network &network = ann_network.network;
     print_clv_index_by_label(network);
     //std::cout << exportDebugInfo(network) << "\n";
@@ -260,6 +261,7 @@ void incrementalTest(const std::string &networkPath, const std::string &msaPath)
     options.use_graycode = true;
     options.use_incremental = true;
     AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(options);
+    NetraxInstance::init_annotated_network(ann_network);
     Network &network = ann_network.network;
     print_clv_index_by_label(network);
     //std::cout << exportDebugInfo(network) << "\n";
@@ -353,6 +355,7 @@ TEST_F (LikelihoodTest, celineNetworkNonzeroBranches) {
 TEST_F (LikelihoodTest, updateReticulationProb) {
     AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(
             NetraxOptions(networkPath, msaPath, false));
+    NetraxInstance::init_annotated_network(ann_network);
     NetraxInstance::updateReticulationProbs(ann_network);
     double norep_logl = NetraxInstance::computeLoglikelihood(ann_network);
     std::cout << "norep_logl: " << norep_logl << "\n";
@@ -367,6 +370,7 @@ TEST_F (LikelihoodTest, updateReticulationProb) {
 
 TEST_F (LikelihoodTest, simpleTreeWithRepeats) {
     AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(NetraxOptions(treePath, msaPath, true));
+    NetraxInstance::init_annotated_network(ann_network);
     double network_logl = NetraxInstance::computeLoglikelihood(ann_network);
     std::cout << "The computed network_logl 5 is: " << network_logl << "\n";
     EXPECT_NE(network_logl, -std::numeric_limits<double>::infinity());
@@ -408,6 +412,7 @@ TEST_F (LikelihoodTest, buildAnnotatedNetworkTest) {
     options.msa_file = msaPath;
     options.use_repeats = true;
     AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(options);
+    NetraxInstance::init_annotated_network(ann_network);
     ASSERT_TRUE(true);
 }
 
@@ -417,6 +422,7 @@ TEST_F (LikelihoodTest, simpleTreeNaiveVersusNormalRaxml) {
     options.msa_file = msaPath;
     options.use_repeats = true;
     AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(options);
+    NetraxInstance::init_annotated_network(ann_network);
 
     Network &network = ann_network.network;
     print_clv_index_by_label(network);
@@ -443,6 +449,7 @@ TEST_F (LikelihoodTest, convertUtreeToNetwork) {
     pll_utree_t *raxml_utree = Tree::loadFromFile(treePath).pll_utree_copy();
 
     AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network_from_utree(options, *raxml_utree);
+    NetraxInstance::init_annotated_network(ann_network);
     Network &network = ann_network.network;
     print_clv_index_by_label(network);
     double naive_utree_logl = old::computeLoglikelihoodNaiveUtree(ann_network, 0, 1);

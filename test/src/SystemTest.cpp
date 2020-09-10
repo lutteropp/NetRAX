@@ -94,6 +94,7 @@ TEST (SystemTest, allTree) {
     treeOptions.use_repeats = true;
 
     AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(treeOptions);
+    NetraxInstance::init_annotated_network(ann_network);
     completeRun(ann_network);
 }
 
@@ -107,6 +108,7 @@ TEST (SystemTest, allNetwork) {
     smallOptions.use_repeats = true;
     RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
     AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(smallOptions);
+    NetraxInstance::init_annotated_network(ann_network);
 
     completeRun(ann_network);
 }
@@ -122,6 +124,7 @@ TEST (SystemTest, randomNetwork) {
     RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
     unsigned int n_reticulations = 8;
     AnnotatedNetwork ann_network = NetraxInstance::build_random_annotated_network(smallOptions, n_reticulations);
+    NetraxInstance::init_annotated_network(ann_network);
     assert(ann_network.network.num_reticulations() == n_reticulations);
 
     completeRun(ann_network);
@@ -137,6 +140,7 @@ void problemTest(const std::string &newick) {
     smallOptions.use_repeats = true;
     RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
     AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network_from_string(smallOptions, newick);
+    NetraxInstance::init_annotated_network(ann_network);
 
     completeRun(ann_network);
 }
@@ -151,6 +155,7 @@ void problemTestOptTopology(const std::string &newick, MoveType type) {
     smallOptions.use_repeats = true;
     RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
     AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network_from_string(smallOptions, newick);
+    NetraxInstance::init_annotated_network(ann_network);
 
     greedyHillClimbingTopology(ann_network, type);
 }
