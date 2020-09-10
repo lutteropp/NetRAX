@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
 //  MPI_INIT(&argc, &argv);
     ::testing::AddGlobalTestEnvironment(env);
-    //::testing::GTEST_FLAG(filter) = "*BrlenOptTest.*";
+    //::testing::GTEST_FLAG(filter) = "*BrlenOptTest.tree*";
     //:testing::GTEST_FLAG(filter) = "-NetworkIOTest.*";
     //::testing::GTEST_FLAG(filter) = "*SystemTest.allTree";
     //::testing::GTEST_FLAG(filter) = "*LikelihoodTest.celineNetwork:*LikelihoodTest.likelihoodFunctions*";

@@ -29,6 +29,7 @@ TEST (BrlenOptTest, testTheTest) {
     ASSERT_TRUE(true);
 }
 
+// This test case has been disabled, because the brlen opt algo changed and currently does not use raxml optimization algo anymore...
 TEST (BrlenOptTest, DISABLED_tree_exact) {
     // initial setup
     std::string treePath = DATA_PATH + "tree.nw";
@@ -162,13 +163,17 @@ TEST (BrlenOptTest, tree) {
             << brlenopt_logl_network << "\n";
 
     double normal_logl_raxml = infoRaxml->loglh(0);
+    double normal_logl_network_incremental = infoNetwork->loglh(1);
     double normal_logl_network = infoNetwork->loglh(0);
+    ASSERT_FLOAT_EQ(normal_logl_network, normal_logl_network_incremental);
     std::cout << "RAXML - Loglikelihood when called normally: " << normal_logl_raxml << "\n";
     std::cout << "NETWORK - Loglikelihood when called normally: " << normal_logl_network << "\n";
 
-    ASSERT_PRED_FORMAT2(::testing::DoubleLE, normal_logl_network, brlenopt_logl_network);
+    ASSERT_PRED_FORMAT2(::testing::DoubleLE, initial_logl_network, brlenopt_logl_network);
+    ASSERT_FLOAT_EQ(normal_logl_network, brlenopt_logl_network);
 
-    ASSERT_FLOAT_EQ(brlenopt_logl_raxml, brlenopt_logl_network);
+    // commented out this assertion, as now we don't use the same brlen opt algo as raxml anymore
+    //ASSERT_FLOAT_EQ(brlenopt_logl_raxml, brlenopt_logl_network);
 
     delete infoRaxml;
 }
