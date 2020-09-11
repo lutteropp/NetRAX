@@ -8,15 +8,25 @@
 
 # arg 1 is the basename for the names for the trees (${output}_trees), network (${output}_network) and alignement.dat
 # arg 2 is the number of trees to be extracted
+# arg 3 is the number of sites per tree
 
 output=$1
-nb_sites=$2
+nb_trees=$2
+nb_sites=$3
 	
-seqGenPATH="/Users/celinescornavacca/Documents/devel/develFromOthers/Seq-Gen-1.3.4/source/seq-gen";
+#seqGenPATH="/Users/celinescornavacca/Documents/devel/develFromOthers/Seq-Gen-1.3.4/source/seq-gen";
+seqGenPATH="seq-gen";
 
 #egenerate the network and the trees
-python3 RandomNetworkandTrees.py -nb_tree ${nb_sites} -no_ILS
+python3 RandomNetworkandTrees.py -o ${output} -nb_trees ${nb_trees} -nb_sites ${nb_sites} -no_ILS
 
 #generate one character per tree via seqGen, please change the model if needed 
 #since seqGen is used, no indel are simulated
-${seqGenPATH} -mHKY -t3.0 -f0.3,0.2,0.2,0.3 -l${nb_sites} -p${nb_sites}< ${output}_trees > ${output}.dat
+
+#nb_trees data sets, each with nb_sites
+#${seqGenPATH} -mHKY -t3.0 -f0.3,0.2,0.2,0.3 -l${nb_sites} -p${nb_trees}< ${output}_trees > ${output}.dat
+
+#one data set with nb_trees*nb_sites sites, where each set of nb_sites sites comes from a 
+#different tree among the nb_trees possible
+totalLenght=$(( nb_trees*nb_sites ))
+${seqGenPATH} -mHKY -t3.0 -f0.3,0.2,0.2,0.3 -l${totalLenght} -p${nb_trees}< ${output}_trees > ${output}.dat
