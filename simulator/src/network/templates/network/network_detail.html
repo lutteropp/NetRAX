@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<p>Number of taxa: {{ object.n_taxa }}</p>
+<p>Number of reticulations: {{ object.n_reticulations }}</p>
+<p>Speciation rate: {{ object.speciation_rate }}</p>
+<p>Hybridization rate: {{ object.hybridization_rate }}</p>
+<p>Time limit: {{ object.time_limit }}</p>
+<p>Sites per tree: {{ object.sites_per_tree }}</p>
+<p>Newick path: {{ object.newick_path }}</p>
+<p>MSA path: {{ object.msa_path }}</p>
+<p>Image path: {{ object.image_path }}</p>
+
+<p><a href='{{ object.get_absolute_url }}/delete'>delete</a></p>
+{% endblock %}
