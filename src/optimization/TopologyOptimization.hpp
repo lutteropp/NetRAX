@@ -17,4 +17,6 @@ double bic(AnnotatedNetwork &ann_network, double logl);
 double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, MoveType type);
 double greedyHillClimbingTopology(AnnotatedNetwork &ann_network);
 
+double simulatedAnnealingTopology(AnnotatedNetwork &ann_network, MoveType type);
+double simulatedAnnealingTopology(AnnotatedNetwork &ann_network);
 }

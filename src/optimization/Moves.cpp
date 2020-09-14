@@ -1932,7 +1932,7 @@ std::string toString(ArcRemovalMove &move) {
     return ss.str();
 }
 
-std::string toString(MoveType &type) {
+std::string toString(MoveType type) {
     switch (type) {
     case MoveType::ArcInsertionMove:
         return "ArcInsertionMove";
@@ -1967,6 +1967,7 @@ std::unordered_set<size_t> brlenOptCandidates(AnnotatedNetwork &ann_network, RNN
     Edge *u_t_edge = getEdgeTo(ann_network.network, u, t);
     return {u_v_edge->pmatrix_index, v_s_edge->pmatrix_index, u_t_edge->pmatrix_index};
 }
+
 std::unordered_set<size_t> brlenOptCandidatesUndo(AnnotatedNetwork &ann_network, RNNIMove &move) {
     Node *u = ann_network.network.nodes_by_index[move.u_clv_index];
     Node *v = ann_network.network.nodes_by_index[move.v_clv_index];
@@ -1977,6 +1978,7 @@ std::unordered_set<size_t> brlenOptCandidatesUndo(AnnotatedNetwork &ann_network,
     Edge *u_t_edge = getEdgeTo(ann_network.network, u, t);
     return {u_s_edge->pmatrix_index, v_t_edge->pmatrix_index, u_t_edge->pmatrix_index};
 }
+
 std::unordered_set<size_t> brlenOptCandidates(AnnotatedNetwork &ann_network, RSPRMove &move) {
     Node *x = ann_network.network.nodes_by_index[move.x_clv_index];
     Node *y = ann_network.network.nodes_by_index[move.y_clv_index];
@@ -1988,6 +1990,7 @@ std::unordered_set<size_t> brlenOptCandidates(AnnotatedNetwork &ann_network, RSP
     Edge *z_y_prime_edge = getEdgeTo(ann_network.network, z, y_prime);
     return {x_y_edge->pmatrix_index, x_prime_z_edge->pmatrix_index, z_y_prime_edge->pmatrix_index};
 }
+
 std::unordered_set<size_t> brlenOptCandidatesUndo(AnnotatedNetwork &ann_network, RSPRMove &move) {
     Node *x = ann_network.network.nodes_by_index[move.x_clv_index];
     Node *y = ann_network.network.nodes_by_index[move.y_clv_index];
@@ -1999,6 +2002,7 @@ std::unordered_set<size_t> brlenOptCandidatesUndo(AnnotatedNetwork &ann_network,
     Edge *z_y_edge = getEdgeTo(ann_network.network, z, y);
     return {x_prime_y_prime_edge->pmatrix_index, x_z_edge->pmatrix_index, z_y_edge->pmatrix_index};
 }
+
 std::unordered_set<size_t> brlenOptCandidates(AnnotatedNetwork &ann_network,
         ArcInsertionMove &move) {
     Network &network = ann_network.network;
@@ -2044,6 +2048,7 @@ std::unordered_set<size_t> brlenOptCandidates(AnnotatedNetwork &ann_network,
     Edge *u_v_edge = getEdgeTo(network, u, v);
     return {a_u_edge->pmatrix_index, u_b_edge->pmatrix_index,c_v_edge->pmatrix_index,v_d_edge->pmatrix_index,u_v_edge->pmatrix_index};
 }
+
 std::unordered_set<size_t> brlenOptCandidatesUndo(AnnotatedNetwork &ann_network,
         ArcInsertionMove &move) {
     Node *a = ann_network.network.nodes_by_index[move.a_clv_index];
@@ -2078,6 +2083,67 @@ std::unordered_set<size_t> brlenOptCandidatesUndo(AnnotatedNetwork &ann_network,
     Edge *v_d_edge = getEdgeTo(ann_network.network, v, d);
     Edge *u_v_edge = getEdgeTo(ann_network.network, u, v);
     return {a_u_edge->pmatrix_index, u_b_edge->pmatrix_index,c_v_edge->pmatrix_index,v_d_edge->pmatrix_index,u_v_edge->pmatrix_index};
+}
+
+ArcInsertionMove randomArcInsertionMove(AnnotatedNetwork &ann_network) {
+    throw std::runtime_error("Not implemented yet");
+}
+
+ArcRemovalMove randomArcRemovalMove(AnnotatedNetwork &ann_network) {
+    throw std::runtime_error("Not implemented yet");
+}
+
+ArcInsertionMove randomDeltaPlusMove(AnnotatedNetwork &ann_network) {
+    throw std::runtime_error("Not implemented yet");
+}
+
+ArcRemovalMove randomDeltaMinusMove(AnnotatedNetwork &ann_network) {
+    throw std::runtime_error("Not implemented yet");
+}
+
+RNNIMove randomRNNIMove(AnnotatedNetwork &ann_network) {
+    throw std::runtime_error("Not implemented yet");
+}
+
+RSPRMove randomRSPRMove(AnnotatedNetwork &ann_network) {
+    throw std::runtime_error("Not implemented yet");
+}
+
+RSPRMove randomRSPR1Move(AnnotatedNetwork &ann_network) {
+    throw std::runtime_error("Not implemented yet");
+}
+
+RSPRMove randomTailMove(AnnotatedNetwork &ann_network) {
+    throw std::runtime_error("Not implemented yet");
+}
+
+RSPRMove randomHeadMove(AnnotatedNetwork &ann_network) {
+    throw std::runtime_error("Not implemented yet");
+}
+
+GeneralMove randomMove(AnnotatedNetwork &ann_network, MoveType type) {
+    switch (type) {
+    case MoveType::ArcInsertionMove:
+        return randomArcInsertionMove(ann_network);
+    case MoveType::ArcRemovalMove:
+        return randomArcRemovalMove(ann_network);
+    case MoveType::DeltaMinusMove:
+        return randomDeltaMinusMove(ann_network);
+    case MoveType::DeltaPlusMove:
+        return randomDeltaPlusMove(ann_network);
+    case MoveType::HeadMove:
+        return randomHeadMove(ann_network);
+    case MoveType::RNNIMove:
+        return randomRNNIMove(ann_network);
+    case MoveType::RSPR1Move:
+        return randomRSPR1Move(ann_network);
+    case MoveType::RSPRMove:
+        return randomRSPRMove(ann_network);
+    case MoveType::TailMove:
+        return randomTailMove(ann_network);
+    default:
+        throw std::runtime_error("Invalid move type");
+    }
 }
 
 }

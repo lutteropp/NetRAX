@@ -350,4 +350,12 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network) {
     return new_logl;
 }
 
+double simulatedAnnealingTopology(AnnotatedNetwork &ann_network, MoveType type) {
+    throw std::runtime_error("Not implemented yet");
+}
+
+double simulatedAnnealingTopology(AnnotatedNetwork &ann_network) {
+    throw std::runtime_error("Not implemented yet");
+}
+
 }

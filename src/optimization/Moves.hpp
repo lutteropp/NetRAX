@@ -12,6 +12,7 @@
 #include <string>
 #include <unordered_set>
 #include <vector>
+#include <memory>
 
 // TODO: Maybe put all moves into a class hierarchy?
 
@@ -60,6 +61,7 @@ struct RSPRMove: public GeneralMove {
     RSPRMove() :
             GeneralMove(MoveType::RSPRMove) {
     }
+    
     size_t x_prime_clv_index = 0;
     size_t y_prime_clv_index = 0;
     size_t x_clv_index = 0;
@@ -78,6 +80,7 @@ struct ArcInsertionMove: public GeneralMove {
     ArcInsertionMove() :
             GeneralMove(MoveType::ArcInsertionMove) {
     }
+
     size_t a_clv_index = 0;
     size_t b_clv_index = 0;
     size_t c_clv_index = 0;
@@ -105,6 +108,7 @@ struct ArcRemovalMove: public GeneralMove {
     ArcRemovalMove() :
             GeneralMove(MoveType::ArcRemovalMove) {
     }
+
     size_t a_clv_index = 0;
     size_t b_clv_index = 0;
     size_t c_clv_index = 0;
@@ -165,7 +169,7 @@ std::string toString(RNNIMove &move);
 std::string toString(RSPRMove &move);
 std::string toString(ArcInsertionMove &move);
 std::string toString(ArcRemovalMove &move);
-std::string toString(MoveType &type);
+std::string toString(MoveType type);
 
 std::unordered_set<size_t> brlenOptCandidates(AnnotatedNetwork &ann_network, RNNIMove &move);
 std::unordered_set<size_t> brlenOptCandidates(AnnotatedNetwork &ann_network, RSPRMove &move);
@@ -182,5 +186,16 @@ std::unordered_set<size_t> brlenOptCandidatesUndo(AnnotatedNetwork &ann_network,
 void performMove(AnnotatedNetwork &ann_network, GeneralMove *move);
 void undoMove(AnnotatedNetwork &ann_network, GeneralMove *move);
 std::string toString(GeneralMove *move);
+
+ArcInsertionMove randomArcInsertionMove(AnnotatedNetwork &ann_network);
+ArcRemovalMove randomArcRemovalMove(AnnotatedNetwork &ann_network);
+ArcInsertionMove randomDeltaPlusMove(AnnotatedNetwork &ann_network);
+ArcRemovalMove randomDeltaMinusMove(AnnotatedNetwork &ann_network);
+RNNIMove randomRNNIMove(AnnotatedNetwork &ann_network);
+RSPRMove randomRSPRMove(AnnotatedNetwork &ann_network);
+RSPRMove randomRSPR1Move(AnnotatedNetwork &ann_network);
+RSPRMove randomTailMove(AnnotatedNetwork &ann_network);
+RSPRMove randomHeadMove(AnnotatedNetwork &ann_network);
+GeneralMove randomMove(AnnotatedNetwork &ann_network, MoveType type);
 
 }
