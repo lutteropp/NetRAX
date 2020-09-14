@@ -266,7 +266,7 @@ void NetraxInstance::optimizeTopology(AnnotatedNetwork &ann_network) {
 }
 
 /**
- * Re-infers everything (brach lengths, reticulation probabilities, likelihood model parameters, topology, branch lengths).
+ * Re-infers everything (brach lengths, reticulation probabilities, likelihood model parameters, topology).
  * 
  * @param ann_network The network.
  */
@@ -274,13 +274,13 @@ void NetraxInstance::optimizeEverything(AnnotatedNetwork &ann_network) {
     double score_epsilon = ann_network.options.lh_epsilon;
     unsigned int max_seconds = ann_network.options.timeout;
     auto start_time = std::chrono::high_resolution_clock::now();
+    optimizeBranches(ann_network);
+    updateReticulationProbs(ann_network);
+    optimizeModel(ann_network);
     double new_score = scoreNetwork(ann_network);
     double old_score;
     do {
         old_score = new_score;
-        optimizeBranches(ann_network);
-        updateReticulationProbs(ann_network);
-        optimizeModel(ann_network);
         optimizeTopology(ann_network);
         optimizeBranches(ann_network);
         updateReticulationProbs(ann_network);
