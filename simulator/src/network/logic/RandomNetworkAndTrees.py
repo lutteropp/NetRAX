@@ -255,5 +255,5 @@ while simulateNetwork==1:
  	 	fileNetworkDendroscope.write(Newick_From_MULTree(nw,0,hybrid_nodes)+";\n")	
  	 	print('done')
  	else:
- 	 	print('The simulated newtork contains less than 4 leaves, try again')	
+ 	 	print('The simulated network contains less than 4 leaves, try again')	
  	 	simulateNetwork=1
