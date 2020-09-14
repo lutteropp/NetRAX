@@ -275,16 +275,16 @@ void NetraxInstance::optimizeEverything(AnnotatedNetwork &ann_network) {
     unsigned int max_seconds = ann_network.options.timeout;
     auto start_time = std::chrono::high_resolution_clock::now();
     optimizeBranches(ann_network);
-    updateReticulationProbs(ann_network);
     optimizeModel(ann_network);
+    updateReticulationProbs(ann_network);
     double new_score = scoreNetwork(ann_network);
     double old_score;
     do {
         old_score = new_score;
         optimizeTopology(ann_network);
         optimizeBranches(ann_network);
-        updateReticulationProbs(ann_network);
         optimizeModel(ann_network);
+        updateReticulationProbs(ann_network);
         new_score = scoreNetwork(ann_network);
         if (max_seconds != 0) {
             auto act_time = std::chrono::high_resolution_clock::now();
