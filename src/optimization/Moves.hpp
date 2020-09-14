@@ -196,6 +196,5 @@ RSPRMove randomRSPRMove(AnnotatedNetwork &ann_network);
 RSPRMove randomRSPR1Move(AnnotatedNetwork &ann_network);
 RSPRMove randomTailMove(AnnotatedNetwork &ann_network);
 RSPRMove randomHeadMove(AnnotatedNetwork &ann_network);
-GeneralMove randomMove(AnnotatedNetwork &ann_network, MoveType type);
 
 }

@@ -2085,64 +2085,151 @@ std::unordered_set<size_t> brlenOptCandidatesUndo(AnnotatedNetwork &ann_network,
     return {a_u_edge->pmatrix_index, u_b_edge->pmatrix_index,c_v_edge->pmatrix_index,v_d_edge->pmatrix_index,u_v_edge->pmatrix_index};
 }
 
+size_t getRandomIndex(std::mt19937& rng, size_t n) {
+    std::uniform_int_distribution<std::mt19937::result_type> d(0, n-1);
+    return d(rng);
+}
+
+Edge* getRandomEdge(AnnotatedNetwork &ann_network) {
+    size_t n = ann_network.network.num_branches();
+    return ann_network.network.edges_by_index[getRandomIndex(ann_network.rng, n)];
+}
+
 ArcInsertionMove randomArcInsertionMove(AnnotatedNetwork &ann_network) {
-    throw std::runtime_error("Not implemented yet");
+    // TODO: This can be made faster
+    std::unordered_set<Edge*> tried;
+    while (tried.size() != ann_network.network.num_branches()) {
+        Edge* edge = getRandomEdge(ann_network);
+        if (tried.count(edge) > 0) {
+            continue;
+        } else {
+            tried.emplace(edge);
+        }
+        auto moves = possibleArcInsertionMoves(ann_network, edge);
+        if (!moves.empty()) {
+            return moves[getRandomIndex(ann_network.rng, moves.size())];
+        }
+    }
 }
 
 ArcRemovalMove randomArcRemovalMove(AnnotatedNetwork &ann_network) {
-    throw std::runtime_error("Not implemented yet");
+    // TODO: This can be made faster
+    auto moves = possibleArcRemovalMoves(ann_network);
+    if (!moves.empty()) {
+        return moves[getRandomIndex(ann_network.rng, moves.size())];
+    } else {
+        throw std::runtime_error("No possible move found");
+    }
 }
 
 ArcInsertionMove randomDeltaPlusMove(AnnotatedNetwork &ann_network) {
-    throw std::runtime_error("Not implemented yet");
+    // TODO: This can be made faster
+    std::unordered_set<Edge*> tried;
+    while (tried.size() != ann_network.network.num_branches()) {
+        Edge* edge = getRandomEdge(ann_network);
+        if (tried.count(edge) > 0) {
+            continue;
+        } else {
+            tried.emplace(edge);
+        }
+        auto moves = possibleDeltaPlusMoves(ann_network, edge);
+        if (!moves.empty()) {
+            return moves[getRandomIndex(ann_network.rng, moves.size())];
+        }
+    }
 }
 
 ArcRemovalMove randomDeltaMinusMove(AnnotatedNetwork &ann_network) {
-    throw std::runtime_error("Not implemented yet");
-}
+    // TODO: This can be made faster
+    auto moves = possibleDeltaMinusMoves(ann_network);
+    if (!moves.empty()) {
+        return moves[getRandomIndex(ann_network.rng, moves.size())];
+    } else {
+        throw std::runtime_error("No possible move found");
+    }}
 
 RNNIMove randomRNNIMove(AnnotatedNetwork &ann_network) {
-    throw std::runtime_error("Not implemented yet");
+    // TODO: This can be made faster
+    std::unordered_set<Edge*> tried;
+    while (tried.size() != ann_network.network.num_branches()) {
+        Edge* edge = getRandomEdge(ann_network);
+        if (tried.count(edge) > 0) {
+            continue;
+        } else {
+            tried.emplace(edge);
+        }
+        auto moves = possibleRNNIMoves(ann_network, edge);
+        if (!moves.empty()) {
+            return moves[getRandomIndex(ann_network.rng, moves.size())];
+        }
+    }
 }
 
 RSPRMove randomRSPRMove(AnnotatedNetwork &ann_network) {
-    throw std::runtime_error("Not implemented yet");
+    // TODO: This can be made faster
+    std::unordered_set<Edge*> tried;
+    while (tried.size() != ann_network.network.num_branches()) {
+        Edge* edge = getRandomEdge(ann_network);
+        if (tried.count(edge) > 0) {
+            continue;
+        } else {
+            tried.emplace(edge);
+        }
+        auto moves = possibleRSPRMoves(ann_network, edge);
+        if (!moves.empty()) {
+            return moves[getRandomIndex(ann_network.rng, moves.size())];
+        }
+    }
 }
 
 RSPRMove randomRSPR1Move(AnnotatedNetwork &ann_network) {
-    throw std::runtime_error("Not implemented yet");
+    // TODO: This can be made faster
+    std::unordered_set<Edge*> tried;
+    while (tried.size() != ann_network.network.num_branches()) {
+        Edge* edge = getRandomEdge(ann_network);
+        if (tried.count(edge) > 0) {
+            continue;
+        } else {
+            tried.emplace(edge);
+        }
+        auto moves = possibleRSPR1Moves(ann_network, edge);
+        if (!moves.empty()) {
+            return moves[getRandomIndex(ann_network.rng, moves.size())];
+        }
+    }
 }
 
 RSPRMove randomTailMove(AnnotatedNetwork &ann_network) {
-    throw std::runtime_error("Not implemented yet");
+    // TODO: This can be made faster
+    std::unordered_set<Edge*> tried;
+    while (tried.size() != ann_network.network.num_branches()) {
+        Edge* edge = getRandomEdge(ann_network);
+        if (tried.count(edge) > 0) {
+            continue;
+        } else {
+            tried.emplace(edge);
+        }
+        auto moves = possibleTailMoves(ann_network, edge);
+        if (!moves.empty()) {
+            return moves[getRandomIndex(ann_network.rng, moves.size())];
+        }
+    }
 }
 
 RSPRMove randomHeadMove(AnnotatedNetwork &ann_network) {
-    throw std::runtime_error("Not implemented yet");
-}
-
-GeneralMove randomMove(AnnotatedNetwork &ann_network, MoveType type) {
-    switch (type) {
-    case MoveType::ArcInsertionMove:
-        return randomArcInsertionMove(ann_network);
-    case MoveType::ArcRemovalMove:
-        return randomArcRemovalMove(ann_network);
-    case MoveType::DeltaMinusMove:
-        return randomDeltaMinusMove(ann_network);
-    case MoveType::DeltaPlusMove:
-        return randomDeltaPlusMove(ann_network);
-    case MoveType::HeadMove:
-        return randomHeadMove(ann_network);
-    case MoveType::RNNIMove:
-        return randomRNNIMove(ann_network);
-    case MoveType::RSPR1Move:
-        return randomRSPR1Move(ann_network);
-    case MoveType::RSPRMove:
-        return randomRSPRMove(ann_network);
-    case MoveType::TailMove:
-        return randomTailMove(ann_network);
-    default:
-        throw std::runtime_error("Invalid move type");
+    // TODO: This can be made faster
+    std::unordered_set<Edge*> tried;
+    while (tried.size() != ann_network.network.num_branches()) {
+        Edge* edge = getRandomEdge(ann_network);
+        if (tried.count(edge) > 0) {
+            continue;
+        } else {
+            tried.emplace(edge);
+        }
+        auto moves = possibleHeadMoves(ann_network, edge);
+        if (!moves.empty()) {
+            return moves[getRandomIndex(ann_network.rng, moves.size())];
+        }
     }
 }
 
