@@ -1,8 +1,8 @@
 Network benchmark dataset simulator with Django WebApp
 
 Build instructions:
-1.) Create a virtual environment:
-virtualenv -p python3.8 .
+1.) Create a virtual environment (You can also use a newer Python version):
+virtualenv -p python3.6 .
 
 2.) Activate the virtual environment:
 source bin/activate
@@ -14,7 +14,7 @@ pip install -r requirements.txt
 cd src
 
 5.) Start the Django project
-django-admin.py startproject simulator .
+# this only needed to be done once in the beginning, no need to do that: django-admin.py startproject simulator .
 python manage.py migrate
 
 6.) Create the superuser
