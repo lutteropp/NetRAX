@@ -57,6 +57,7 @@ class NetworkCreateView(CreateView):
 
 class NetworkUpdateView(NetworkObjectMixin, UpdateView):
 	template_name = 'network/network_create.html'
+	form_class = NetworkModelForm
 	queryset = Network.objects.all()
 
 

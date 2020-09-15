@@ -18,7 +18,7 @@ nb_sites=$3
 seqGenPATH="seq-gen";
 
 #egenerate the network and the trees
-python3 RandomNetworkandTrees.py -o ${output} -nb_trees ${nb_trees} -nb_sites ${nb_sites} -no_ILS
+python3 RandomNetworkAndTrees.py -o ${output} -nb_trees ${nb_trees} -nb_sites ${nb_sites} -no_ILS
 
 #generate one character per tree via seqGen, please change the model if needed 
 #since seqGen is used, no indel are simulated
