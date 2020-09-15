@@ -3,11 +3,16 @@
 {% block content %}
 <p>Number of taxa: {{ object.n_taxa }}</p>
 <p>Number of reticulations: {{ object.n_reticulations }}</p>
+<p>Use Incomplete Lineage Sorting: {{ object.incomplete_lineage_sorting }}</p>
+<p>Population size: {{ object.population_size }}</p>
 <p>Speciation rate: {{ object.speciation_rate }}</p>
 <p>Hybridization rate: {{ object.hybridization_rate }}</p>
 <p>Time limit: {{ object.time_limit }}</p>
+<p>Number of trees: {{ object.n_trees }}</p>
 <p>Sites per tree: {{ object.sites_per_tree }}</p>
+<p>Output base: {{ object.output_base }}</p>
 <p>Newick path: {{ object.newick_path }}</p>
+<p>Newick dendroscope path: {{ object.newick_dendroscope_path }}</p>
 <p>MSA path: {{ object.msa_path }}</p>
 <p>Image path: {{ object.image_path }}</p>
 

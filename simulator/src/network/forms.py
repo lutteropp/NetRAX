@@ -6,11 +6,13 @@ class NetworkModelForm(forms.ModelForm):
 	class Meta:
 		model = Network
 		fields = [
-			'n_reticulations',
-			'n_taxa',
+			'output_base',
+			'incomplete_lineage_sorting',
+			'population_size',
 			'speciation_rate',
 			'hybridization_rate',
 			'time_limit',
+			'n_trees',
 			'sites_per_tree',
 		]
 		#widgets = {
