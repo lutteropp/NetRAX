@@ -217,7 +217,7 @@ def simulate(params):
                     file.write("["+str(params.number_sites)+"]"+Newick_From_MULTree(params,tree,0,hybrid_nodes_fake)+";\n")
 
             fileNetwork.write(Newick_From_MULTree(params,nw,0,hybrid_nodes)+";\n")    
-            inheritance = False
+            parans.inheritance = False
             fileNetworkDendroscope.write(Newick_From_MULTree(params,nw,0,hybrid_nodes)+";\n")    
             print('done')
         else:
