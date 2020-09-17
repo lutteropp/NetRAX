@@ -21,9 +21,8 @@ class SimulationParameters:
         self.number_sites = 1  # number of sites per tree
         self.output = "test"  # basename for the output files
 
+
 ############### CONVERT TO NEWICK ##############
-
-
 def Newick_From_MULTree(params, tree, root, hybrid_nodes):
     if tree.out_degree(root) == 0:
         if root in hybrid_nodes:
@@ -56,6 +55,7 @@ def draw_network(params, nw):
     pos = graphviz_layout(nw, prog='dot')
     nx.draw(nw, pos, with_labels=False, arrows=True)
     plt.savefig(params.output+'_graph.png')
+
 
 def simulate_network(params):
     hybridization_rate = params.hybridization_rate
@@ -253,12 +253,14 @@ def simulate_network(params):
         #draw_network(params, nw)
     return no_of_leaves, no_of_hybrids
 
+
 def simulate_network_and_sequences(params):
     n_taxa, n_reticulations = simulate_network(params)
     total_length = params.number_trees * params.number_sites
     cmd = 'seq-gen -mHKY -t3.0 -f0.3,0.2,0.2,0.3 -l'+str(total_length)+'-p'+str(params.number_trees)+' < '+params.output+'_trees > '+params.output+'.dat'
     subprocess.getoutput(cmd)
     return n_taxa, n_reticulations
+
 
 def parse_user_input():
     params = SimulationParameters()
