@@ -55,6 +55,7 @@ def generate_network(sender, instance, *args, **kwargs):
     instance.trees_path = instance.output_base + "_trees"
     instance.newick_dendroscope_path = instance.output_base + "_networkDendroscope"
     instance.msa_path = instance.output_base + ".dat"
+	instance.image_path = instance.output_base * "_graph.png"
     params = construct_simulation_parameters(instance)
     instance.n_taxa, instance.n_reticulations = simulate_network_and_sequences(params)
 
