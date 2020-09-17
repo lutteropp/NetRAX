@@ -9,18 +9,21 @@ source bin/activate
 
 3.) Install the requirements
 pip install -r requirements.txt
+sudo apt install seq-gen
 
 4.) Change into the src folder
 cd src
 
 5.) Start the Django project
 # this only needed to be done once in the beginning, no need to do that: django-admin.py startproject simulator .
+
+6.) Apply the migrations
 python manage.py migrate
 
-6.) Create the superuser
-python manage.py createsuperuser
+7.) Create the superuser
+# this step is optional: python manage.py createsuperuser
 
-7.) Run the server
+8.) Run the server locally
 python manage.py runserver
 
 
