@@ -58,7 +58,6 @@ def draw_network(params, nw):
 
 
 def simulate_network(params):
-    hybridization_rate = params.hybridization_rate
     file = open(params.output+"_trees", "w")
     fileNetwork = open(params.output+"_network", "w")
     fileNetworkDendroscope = open(params.output+"_networkDendroscope", "w")
@@ -124,8 +123,7 @@ def simulate_network(params):
             no_of_leaves = len(leaves)
             current_speciation_rate = float(
                 params.speciation_rate*no_of_leaves)
-            current_hybridization_rate = float(
-                (no_of_leaves * (no_of_leaves - 1))/2)
+            current_hybridization_rate = float((no_of_leaves * (no_of_leaves - 1))/2*params.hybridization_rate)
             rate = current_speciation_rate + current_hybridization_rate
             extra_time = np.random.exponential(1/rate)
             current_time += extra_time
@@ -251,6 +249,9 @@ def simulate_network(params):
             simulateNetwork = 1
         
         #draw_network(params, nw)
+    file.close()
+    fileNetwork.close()
+    fileNetworkDendroscope.close()
     return no_of_leaves, no_of_hybrids
 
 
