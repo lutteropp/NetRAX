@@ -10,6 +10,7 @@ source bin/activate
 3.) Install the requirements
 pip install -r requirements.txt
 sudo apt install seq-gen
+sudo apt-get install python3-dev graphviz libgraphviz-dev pkg-config
 
 4.) Change into the src folder
 cd src

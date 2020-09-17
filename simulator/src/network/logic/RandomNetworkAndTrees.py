@@ -5,6 +5,7 @@ import sys
 import copy
 import collections
 import subprocess
+import matplotlib
 
 
 class SimulationParameters:
@@ -46,6 +47,15 @@ def Newick_From_MULTree(params, tree, root, hybrid_nodes):
         Newick += "#H"+str(hybrid_nodes[root])
     return Newick
 
+
+def draw_network(params, nw):
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from networkx.drawing.nx_agraph import graphviz_layout
+    plt.title('draw_networkx')
+    pos = graphviz_layout(nw, prog='dot')
+    nx.draw(nw, pos, with_labels=False, arrows=True)
+    plt.savefig(params.output+'_graph.png')
 
 def simulate_network(params):
     hybridization_rate = params.hybridization_rate
@@ -239,6 +249,8 @@ def simulate_network(params):
         else:
             print('The simulated network contains less than 4 leaves, try again')
             simulateNetwork = 1
+        
+        draw_network(params, nw)
     return no_of_leaves, no_of_hybrids
 
 def simulate_network_and_sequences(params):
