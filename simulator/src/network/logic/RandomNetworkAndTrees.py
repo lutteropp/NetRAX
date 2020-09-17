@@ -4,6 +4,7 @@ import networkx as nx
 import sys
 import copy
 import collections
+import subprocess
 
 
 class SimulationParameters:
@@ -46,7 +47,7 @@ def Newick_From_MULTree(params, tree, root, hybrid_nodes):
     return Newick
 
 
-def simulate(params):
+def simulate_network(params):
     hybridization_rate = params.hybridization_rate
     file = open(params.output+"_trees", "w")
     fileNetwork = open(params.output+"_network", "w")
@@ -239,6 +240,11 @@ def simulate(params):
             print('The simulated network contains less than 4 leaves, try again')
             simulateNetwork = 1
 
+def simulate_network_and_sequences(params):
+    simulate_network(params)
+    total_length = params.number_trees * params.number_sites
+    cmd = 'seq-gen -mHKY -t3.0 -f0.3,0.2,0.2,0.3 -l'+str(total_length)+'-p'+str(params.number_trees)+' < '+params.output+'_trees > '+params.output+'.dat'
+    subprocess.getoutput(cmd)
 
 def parse_user_input():
     params = SimulationParameters()
@@ -280,4 +286,4 @@ def parse_user_input():
 
 if __name__ == "__main__":
     params = parse_user_input()
-    simulate(params)
+    simulate_network(params)

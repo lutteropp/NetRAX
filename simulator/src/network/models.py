@@ -3,7 +3,7 @@ from django.urls import reverse
 
 from django.db.models.signals import pre_save
 
-from network.logic.RandomNetworkAndTrees import SimulationParameters, simulate
+from network.logic.RandomNetworkAndTrees import SimulationParameters, simulate_network_and_sequences
 
 # Create your models here.
 
@@ -56,6 +56,6 @@ def generate_network(sender, instance, *args, **kwargs):
     instance.newick_dendroscope_path = instance.output_base + "_networkDendroscope"
     instance.msa_path = instance.output_base + ".dat"
     params = construct_simulation_parameters(instance)
-    simulate(params)
+    simulate_network_and_sequences(params)
 
 pre_save.connect(generate_network, sender=Network)
