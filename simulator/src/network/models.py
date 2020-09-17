@@ -38,7 +38,7 @@ class Network(models.Model):
 
 def construct_simulation_parameters(instance):
     params = SimulationParameters()
-    params.output = instance.output_base
+    params.output = 'data/'+instance.output_base
     params.speciation_rate = instance.speciation_rate
     params.hybridization_rate = instance.hybridization_rate
     params.pop_size = instance.population_size
@@ -50,12 +50,11 @@ def construct_simulation_parameters(instance):
 
 
 def generate_network(sender, instance, *args, **kwargs):
-    print(instance.output_base)
-    instance.newick_path = instance.output_base + "_network"
-    instance.trees_path = instance.output_base + "_trees"
-    instance.newick_dendroscope_path = instance.output_base + "_networkDendroscope"
-    instance.msa_path = instance.output_base + ".dat"
-	#instance.image_path = instance.output_base * "_graph.png"
+    instance.newick_path = 'data/'+instance.output_base + "_network"
+    instance.trees_path = 'data/'+instance.output_base + "_trees"
+    instance.newick_dendroscope_path = 'data/'+instance.output_base + "_networkDendroscope"
+    instance.msa_path = 'data/'+instance.output_base + ".dat"
+	#instance.image_path = 'data/'+instance.output_base * "_graph.png"
     params = construct_simulation_parameters(instance)
     instance.n_taxa, instance.n_reticulations = simulate_network_and_sequences(params)
 
