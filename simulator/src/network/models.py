@@ -10,7 +10,7 @@ from network.logic.RandomNetworkAndTrees import SimulationParameters, simulate_n
 
 class Network(models.Model):
     output_base = models.CharField(
-        max_length=200, default=None, null=False, blank=False)
+        max_length=200, default=None, null=False, blank=False, unique=True)
     n_reticulations = models.PositiveSmallIntegerField(
         default=0, null=True, blank=True)
     n_taxa = models.PositiveSmallIntegerField(default=0, null=True, blank=True)
