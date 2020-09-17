@@ -1,10 +1,10 @@
 from django.db import models
 from django.urls import reverse
 
-from django.db.models.signals import pre_save
+from django.db.models.signals import pre_save, pre_delete
 
 from network.logic.RandomNetworkAndTrees import SimulationParameters, simulate_network_and_sequences
-
+import os
 # Create your models here.
 
 
@@ -58,4 +58,19 @@ def generate_network(sender, instance, *args, **kwargs):
     params = construct_simulation_parameters(instance)
     instance.n_taxa, instance.n_reticulations = simulate_network_and_sequences(params)
 
+
+def delete_network_data(sender, instance, *args, **kwargs):
+    if instance.newick_path and os.path.exists(instance.newick_path):
+        os.remove(instance.newick_path)
+    if instance.trees_path and os.path.exists(instance.trees_path):
+        os.remove(instance.trees_path)
+    if instance.newick_dendroscope_path and os.path.exists(instance.newick_dendroscope_path):
+        os.remove(instance.newick_dendroscope_path)
+    if instance.msa_path and os.path.exists(instance.msa_path):
+        os.remove(instance.msa_path)
+    if instance.image_path and os.path.exists(instance.image_path):
+        os.remove(instance.image_path)
+
+
 pre_save.connect(generate_network, sender=Network)
+pre_delete.connect(delete_network_data, sender=Network)
