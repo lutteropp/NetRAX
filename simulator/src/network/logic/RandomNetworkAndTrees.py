@@ -250,7 +250,7 @@ def simulate_network(params):
             print('The simulated network contains less than 4 leaves, try again')
             simulateNetwork = 1
         
-        draw_network(params, nw)
+        #draw_network(params, nw)
     return no_of_leaves, no_of_hybrids
 
 def simulate_network_and_sequences(params):
