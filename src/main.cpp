@@ -16,12 +16,12 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
     app.add_option("-r,--reticulations", options->max_reticulations,
             "Maximum number of reticulations to consider (default: 20)");
     app.add_option("-t,--timeout", options->timeout, "Maximum number of seconds to run network search.");
-    app.add_option("-e,--endless", options->endless, "Endless search mode - keep trying with more random start networks.");
+    app.add_flag("-e,--endless", options->endless, "Endless search mode - keep trying with more random start networks.");
     CLI11_PARSE(app, argc, argv);
     return 0;
 }
 
-double run_random_endless(NetraxOptions& netraxOptions) {
+void run_random_endless(NetraxOptions& netraxOptions) {
     double best_score = std::numeric_limits<double>::infinity();
     auto start_time = std::chrono::high_resolution_clock::now();
     while (true) {
@@ -32,7 +32,7 @@ double run_random_endless(NetraxOptions& netraxOptions) {
         std::cout << "The inferred network has " << ann_network.network.num_reticulations() << " reticulations and this BIC score: " << final_bic << "\n";
         if (final_bic < best_score) {
             best_score = final_bic;
-            std::cout << "best score found so far: " << best_score << "/n";
+            std::cout << "best score found so far: " << best_score << "\n";
         }
         if (netraxOptions.timeout > 0) {
             auto act_time = std::chrono::high_resolution_clock::now();
@@ -43,7 +43,7 @@ double run_random_endless(NetraxOptions& netraxOptions) {
     }
 }
 
-double run_random_single(NetraxOptions& netraxOptions) {
+void run_random_single(NetraxOptions& netraxOptions) {
     netrax::AnnotatedNetwork ann_network;
     if (netraxOptions.start_network_file.empty()) {
         ann_network = NetraxInstance::build_random_annotated_network(netraxOptions);
