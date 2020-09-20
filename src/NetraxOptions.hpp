@@ -29,6 +29,8 @@ public:
     bool optimize_model = true;
     bool use_repeats = true;
 
+    bool endless = false;
+
     bool use_blobs = true; // deprecated, value is ignored now (always set to true)
     bool use_graycode = true; // deprecated, value is ignored now (always set to true)
     bool use_incremental = true; // deprecated, value is ignored now (always set to true)
