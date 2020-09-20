@@ -2110,6 +2110,7 @@ ArcInsertionMove randomArcInsertionMove(AnnotatedNetwork &ann_network) {
             return moves[getRandomIndex(ann_network.rng, moves.size())];
         }
     }
+    throw std::runtime_error("No random move found");
 }
 
 ArcRemovalMove randomArcRemovalMove(AnnotatedNetwork &ann_network) {
@@ -2137,6 +2138,7 @@ ArcInsertionMove randomDeltaPlusMove(AnnotatedNetwork &ann_network) {
             return moves[getRandomIndex(ann_network.rng, moves.size())];
         }
     }
+    throw std::runtime_error("No random move found");
 }
 
 ArcRemovalMove randomDeltaMinusMove(AnnotatedNetwork &ann_network) {
@@ -2146,7 +2148,8 @@ ArcRemovalMove randomDeltaMinusMove(AnnotatedNetwork &ann_network) {
         return moves[getRandomIndex(ann_network.rng, moves.size())];
     } else {
         throw std::runtime_error("No possible move found");
-    }}
+    }
+}
 
 RNNIMove randomRNNIMove(AnnotatedNetwork &ann_network) {
     // TODO: This can be made faster
@@ -2163,6 +2166,7 @@ RNNIMove randomRNNIMove(AnnotatedNetwork &ann_network) {
             return moves[getRandomIndex(ann_network.rng, moves.size())];
         }
     }
+    throw std::runtime_error("No random move found");
 }
 
 RSPRMove randomRSPRMove(AnnotatedNetwork &ann_network) {
@@ -2180,6 +2184,7 @@ RSPRMove randomRSPRMove(AnnotatedNetwork &ann_network) {
             return moves[getRandomIndex(ann_network.rng, moves.size())];
         }
     }
+    throw std::runtime_error("No random move found");
 }
 
 RSPRMove randomRSPR1Move(AnnotatedNetwork &ann_network) {
@@ -2197,6 +2202,7 @@ RSPRMove randomRSPR1Move(AnnotatedNetwork &ann_network) {
             return moves[getRandomIndex(ann_network.rng, moves.size())];
         }
     }
+    throw std::runtime_error("No random move found");
 }
 
 RSPRMove randomTailMove(AnnotatedNetwork &ann_network) {
@@ -2214,6 +2220,7 @@ RSPRMove randomTailMove(AnnotatedNetwork &ann_network) {
             return moves[getRandomIndex(ann_network.rng, moves.size())];
         }
     }
+    throw std::runtime_error("No random move found");
 }
 
 RSPRMove randomHeadMove(AnnotatedNetwork &ann_network) {
@@ -2231,6 +2238,7 @@ RSPRMove randomHeadMove(AnnotatedNetwork &ann_network) {
             return moves[getRandomIndex(ann_network.rng, moves.size())];
         }
     }
+    throw std::runtime_error("No random move found");
 }
 
 }
