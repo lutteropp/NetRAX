@@ -30,6 +30,7 @@ public:
     bool use_repeats = true;
 
     bool endless = false;
+    int seed = 0;
 
     bool use_blobs = true; // deprecated, value is ignored now (always set to true)
     bool use_graycode = true; // deprecated, value is ignored now (always set to true)

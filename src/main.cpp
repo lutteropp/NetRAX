@@ -17,16 +17,17 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
             "Maximum number of reticulations to consider (default: 20)");
     app.add_option("-t,--timeout", options->timeout, "Maximum number of seconds to run network search.");
     app.add_flag("-e,--endless", options->endless, "Endless search mode - keep trying with more random start networks.");
+    app.add_option("--seed", options->seed, "Seed for random number generation.");
     CLI11_PARSE(app, argc, argv);
     return 0;
 }
 
-void run_random_endless(NetraxOptions& netraxOptions) {
+void run_random_endless(NetraxOptions& netraxOptions, std::mt19937& rng) {
     double best_score = std::numeric_limits<double>::infinity();
     auto start_time = std::chrono::high_resolution_clock::now();
     while (true) {
         netrax::AnnotatedNetwork ann_network = NetraxInstance::build_random_annotated_network(netraxOptions);
-        NetraxInstance::init_annotated_network(ann_network);
+        NetraxInstance::init_annotated_network(ann_network, rng);
         NetraxInstance::optimizeEverything(ann_network);
         double final_bic = NetraxInstance::scoreNetwork(ann_network);
         std::cout << "The inferred network has " << ann_network.network.num_reticulations() << " reticulations and this BIC score: " << final_bic << "\n";
@@ -43,14 +44,14 @@ void run_random_endless(NetraxOptions& netraxOptions) {
     }
 }
 
-void run_random_single(NetraxOptions& netraxOptions) {
+void run_random_single(NetraxOptions& netraxOptions, std::mt19937& rng) {
     netrax::AnnotatedNetwork ann_network;
     if (netraxOptions.start_network_file.empty()) {
         ann_network = NetraxInstance::build_random_annotated_network(netraxOptions);
     } else {
         ann_network = NetraxInstance::build_annotated_network(netraxOptions);
     }
-    NetraxInstance::init_annotated_network(ann_network);
+    NetraxInstance::init_annotated_network(ann_network, rng);
 
     NetraxInstance::optimizeEverything(ann_network);
     double final_bic = NetraxInstance::scoreNetwork(ann_network);
@@ -65,12 +66,21 @@ int main(int argc, char **argv) {
     //std::cin.tie(NULL);
     netrax::NetraxOptions netraxOptions;
     parseOptions(argc, argv, &netraxOptions);
+    std::mt19937 rng;
+    if (netraxOptions.seed == 0) {
+        std::random_device dev;
+        std::mt19937 rng2(dev());
+        rng = rng2;
+    } else {
+        std::mt19937 rng2(netraxOptions.seed);
+        rng = rng2;
+    }
 
     std::cout << "The current Likelihood model being used is the DNA model from raxml-ng\n\n";
     if (!netraxOptions.endless) {
-        run_random_single(netraxOptions);
+        run_random_single(netraxOptions, rng);
     } else {
-        run_random_endless(netraxOptions);
+        run_random_endless(netraxOptions, rng);
     }
 
     return 0;

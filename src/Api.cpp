@@ -37,10 +37,8 @@ namespace netrax {
  * 
  * @param ann_network The still uninitialized annotated network.
  */
-void NetraxInstance::init_annotated_network(AnnotatedNetwork &ann_network) {
+void NetraxInstance::init_annotated_network(AnnotatedNetwork &ann_network, std::mt19937& rng) {
     Network &network = ann_network.network;
-    std::random_device dev;
-    std::mt19937 rng(dev());
     ann_network.rng = rng;
 
     ann_network.travbuffer = netrax::reversed_topological_sort(ann_network.network);
@@ -70,6 +68,12 @@ void NetraxInstance::init_annotated_network(AnnotatedNetwork &ann_network) {
     ann_network.raxml_treeinfo = std::unique_ptr<TreeInfo>(wrapper.createRaxmlTreeinfo(ann_network));
 
     assert(static_cast<RaxmlWrapper::NetworkParams*>(ann_network.raxml_treeinfo->pll_treeinfo().likelihood_computation_params)->ann_network == &ann_network);
+}
+
+void NetraxInstance::init_annotated_network(AnnotatedNetwork &ann_network) {
+    std::random_device dev;
+    std::mt19937 rng(dev());
+    init_annotated_network(ann_network, rng);
 }
 
 /**
@@ -155,7 +159,6 @@ AnnotatedNetwork NetraxInstance::build_random_annotated_network(const NetraxOpti
     Tree tree = wrapper.generateRandomTree();
     AnnotatedNetwork ann_network = build_annotated_network_from_utree(options, tree.pll_utree());
     add_extra_reticulations(ann_network, start_reticulations);
-    init_annotated_network(ann_network);
     return ann_network;
 }
 
@@ -171,7 +174,6 @@ AnnotatedNetwork NetraxInstance::build_parsimony_annotated_network(const NetraxO
     Tree tree = wrapper.generateParsimonyTree();
     AnnotatedNetwork ann_network = build_annotated_network_from_utree(options, tree.pll_utree());
     add_extra_reticulations(ann_network, start_reticulations);
-    init_annotated_network(ann_network);
     return ann_network;
 }
 
@@ -187,7 +189,6 @@ AnnotatedNetwork NetraxInstance::build_best_raxml_annotated_network(const Netrax
     Tree tree = wrapper.bestRaxmlTree();
     AnnotatedNetwork ann_network = build_annotated_network_from_utree(options, tree.pll_utree());
     add_extra_reticulations(ann_network, start_reticulations);
-    init_annotated_network(ann_network);
     return ann_network;
 }
 

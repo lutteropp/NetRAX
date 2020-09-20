@@ -8,6 +8,7 @@
 #pragma once
 
 #include <string>
+#include <random>
 
 extern "C" {
 #include <libpll/pll.h>
@@ -41,6 +42,7 @@ struct NetraxInstance {
         static void optimizeTopology(AnnotatedNetwork &ann_network);
         static void optimizeEverything(AnnotatedNetwork &ann_network);
         static void writeNetwork(AnnotatedNetwork &ann_network, const std::string &filepath);
+        static void init_annotated_network(AnnotatedNetwork &ann_network, std::mt19937& rng);
         static void init_annotated_network(AnnotatedNetwork &ann_network);
 };
 
