@@ -220,6 +220,9 @@ double NetraxInstance::scoreNetwork(AnnotatedNetwork &ann_network) {
  * @param ann_network The network.
  */
 void NetraxInstance::updateReticulationProbs(AnnotatedNetwork &ann_network) {
+    if (ann_network.network.num_reticulations() == 0) {
+        return;
+    }
     double old_score = scoreNetwork(ann_network);
     netrax::computeLoglikelihood(ann_network, 0, 1, true);
     double new_score = scoreNetwork(ann_network);
@@ -284,10 +287,8 @@ void NetraxInstance::optimizeEverything(AnnotatedNetwork &ann_network) {
         old_score = new_score;
         optimizeTopology(ann_network);
         optimizeBranches(ann_network);
+        updateReticulationProbs(ann_network);
         optimizeModel(ann_network);
-        if (ann_network.network.num_reticulations() > 0) {
-            updateReticulationProbs(ann_network);
-        }
         new_score = scoreNetwork(ann_network);
         if (max_seconds != 0) {
             auto act_time = std::chrono::high_resolution_clock::now();
