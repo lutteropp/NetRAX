@@ -12,12 +12,15 @@
 #include <cmath>
 #include <iostream>
 #include <stdexcept>
+#include <algorithm>
 #include <string>
 #include <vector>
 #include <raxml-ng/TreeInfo.hpp>
 #include "../DebugPrintFunctions.hpp"
 #include "../graph/AnnotatedNetwork.hpp"
 #include "../optimization/Moves.hpp"
+#include "../optimization/BranchLengthOptimization.hpp"
+#include "../likelihood/LikelihoodComputation.hpp"
 #include "../graph/Network.hpp"
 #include "../graph/NetworkTopology.hpp"
 #include "../NetraxOptions.hpp"
@@ -123,144 +126,99 @@ bool wantedMove(T *move) {
     return false;
 }
 
+void assertBranchLengthsAndProbs(AnnotatedNetwork& ann_network, const std::vector<std::vector<double> >& old_brlens, const std::vector<std::vector<double> >& old_brprobs, double start_logl) {
+    std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
+    std::vector<std::vector<double> > act_brprobs = extract_brprobs(ann_network);
+    for (size_t i = 0; i < act_brlens.size(); ++i) {
+        for (size_t j = 0; j < act_brlens[i].size(); ++j) {
+            if (fabs(act_brlens[i][j] - old_brlens[i][j]) >= 1E-5) {
+                std::cout << "wanted brlens:\n";
+                for (size_t k = 0; k < ann_network.network.num_branches(); ++k) {
+                    std::cout << "idx " << ann_network.network.edges[k].pmatrix_index << ": "
+                            << old_brlens[i][k] << "\n";
+                }
+                std::cout << "\n";
+                std::cout << "observed brlens:\n";
+                for (size_t k = 0; k < ann_network.network.num_branches(); ++k) {
+                    std::cout << "idx " << ann_network.network.edges[k].pmatrix_index << ": "
+                            << act_brlens[i][k] << "\n";
+                }
+                std::cout << "\n";
+            }
+            assert(fabs(act_brlens[i][j] - old_brlens[i][j]) < 1E-5);
+        }
+    }
+    for (size_t i = 0; i < act_brprobs.size(); ++i) {
+        for (size_t j = 0; j < act_brprobs[i].size(); ++j) {
+            if (fabs(act_brprobs[i][j] - old_brprobs[i][j]) >= 1E-5) {
+                std::cout << "wanted brprobs:\n";
+                for (size_t k = 0; k < ann_network.network.num_branches(); ++k) {
+                    std::cout << "idx " << ann_network.network.edges[k].pmatrix_index << ": "
+                            << old_brprobs[i][k] << "\n";
+                }
+                std::cout << "\n";
+                std::cout << "observed brprobs:\n";
+                for (size_t k = 0; k < ann_network.network.num_branches(); ++k) {
+                    std::cout << "idx " << ann_network.network.edges[k].pmatrix_index << ": "
+                            << act_brprobs[i][k] << "\n";
+                }
+                std::cout << "\n";
+            }
+            assert(fabs(act_brprobs[i][j] - old_brprobs[i][j]) < 1E-5);
+        }
+    }
+
+    if (fabs(ann_network.raxml_treeinfo->loglh(true) - start_logl) >= 1E-5) {
+        std::cout << "wanted: " << start_logl << "\n";
+        std::cout << "observed: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
+        std::cout << "recomputed without incremental: "
+                << ann_network.raxml_treeinfo->loglh(false) << "\n";
+    }
+}
+
 template<typename T>
-double greedyHillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates,
-        double old_score) {
-    //std::cout << "greedyHillclimbingStep called\n";
+double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates, double old_score, bool greedy=false, bool randomizeCandidates=false) {
+    if (randomizeCandidates) {
+        std::random_shuffle(candidates.begin(), candidates.end());
+    }
+    double start_logl = ann_network.raxml_treeinfo->loglh(true);
+    std::vector<std::vector<double> > start_brlens = extract_brlens(ann_network);
+    std::vector<std::vector<double> > start_brprobs = extract_brprobs(ann_network); // just for debug
+    std::string before = exportDebugInfo(ann_network.network);
+
     size_t best_idx = candidates.size();
     double best_score = old_score;
-    double start_logl = ann_network.raxml_treeinfo->loglh(true);
-    //std::cout << exportDebugInfoBlobs(ann_network.network, ann_network.blobInfo) << "\n";
-    //std::cout << "start logl: " << start_logl << "\n";
-    //printReticulationFirstParents(ann_network);
-    //printReticulationNodesPerMegablob(ann_network);
-    assert(fabs(ann_network.raxml_treeinfo->loglh(false) - start_logl) < 1E-5);
-    double old_logl = ann_network.raxml_treeinfo->loglh(true);
-    size_t old_reticulation_count = ann_network.network.num_reticulations();
-    double best_logl = old_logl;
-    std::vector<std::vector<double> > old_brlens = extract_brlens(ann_network);
-    std::vector<std::vector<double> > old_brprobs = extract_brprobs(ann_network);
-    std::string before = exportDebugInfo(ann_network.network);
-    //std::vector<std::vector<double> > best_brlens;
-    //int radius = 1;
-    //int max_iters = ann_network.options.brlen_smoothings;
-    for (size_t i = 0; i < candidates.size(); ++i) {
-        //if (wantedMove(&candidates[i])) {
-        //    std::cout << "reached wanted move\n";
-        //}
+    std::vector<std::vector<double> > best_brlens = start_brlens;
 
-        //std::cout << exportDebugInfoBlobs(ann_network.network, ann_network.blobInfo) << "\n";
-        //std::cout << toExtendedNewick(ann_network.network) << "\n";
-        //std::cout << "try move " << toString(candidates[i]) << "\n";
+    for (size_t i = 0; i < candidates.size(); ++i) {
         performMove(ann_network, candidates[i]);
-        //printReticulationFirstParents(ann_network);
-        //printReticulationNodesPerMegablob(ann_network);
-        //std::cout << exportDebugInfoBlobs(ann_network.network, ann_network.blobInfo) << "\n";
+        // TODO: Also do brlen optimization locally around the move
         //std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, candidates[i]);
         //optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
+
         double new_logl = ann_network.raxml_treeinfo->loglh(true);
-        //std::cout << "logl after perform move: " << new_logl << "\n";
-        double new_bic = bic(ann_network, new_logl);
-        //std::cout << "bic after perform move: " << new_bic <<"\n";
-        if (new_bic < best_score) {
-            best_score = new_bic;
-            best_logl = new_logl;
+        double new_score = bic(ann_network, new_logl);
+        bool foundBetterScore = false;
+        if (new_score < best_score) {
+            best_score = new_score;
             best_idx = i;
-            //std::cout << "good move " << toString(candidates[i]) << "\n";
             //best_brlens = extract_brlens(ann_network);
-            size_t new_reticulation_count = ann_network.network.num_reticulations();
-            //std::cout << exportDebugInfo(ann_network.network) << "\n";
-            //std::cout << "prev_best_logl: " << old_logl << ", prev_bic: " << best_score << ", new_logl: " << new_logl
-            //       << ", new_score: " << new_bic << "\n";
-            assert(old_reticulation_count > new_reticulation_count || new_logl > old_logl);
-            old_logl = best_logl;
-            old_reticulation_count = ann_network.network.num_reticulations();
+            foundBetterScore = true;
         }
-        //std::cout << "undo move " << toString(candidates[i]) << "\n";
-        //std::cout << "logl before undo move: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
-
-        //std::cout << toString(candidates[i]) << "\n";
-
         undoMove(ann_network, candidates[i]);
-        //printReticulationFirstParents(ann_network);
-        //printReticulationNodesPerMegablob(ann_network);
-        //std::cout << exportDebugInfoBlobs(ann_network.network, ann_network.blobInfo) << "\n";
-        //std::cout << "clv_valid after undo move: \n";
-        //printClvValid(ann_network);
-        //std::cout << exportDebugInfo(ann_network.network) << "\n";
         assert(exportDebugInfo(ann_network.network) == before);
-        //std::cout << "logl after undo move: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
-
-        ann_network.raxml_treeinfo->loglh(true);
-        std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
-        std::vector<std::vector<double> > act_brprobs = extract_brprobs(ann_network);
-        for (size_t i = 0; i < act_brlens.size(); ++i) {
-            for (size_t j = 0; j < act_brlens[i].size(); ++j) {
-                if (fabs(act_brlens[i][j] - old_brlens[i][j]) >= 1E-5) {
-                    std::cout << "wanted brlens:\n";
-                    for (size_t k = 0; k < ann_network.network.num_branches(); ++k) {
-                        std::cout << "idx " << ann_network.network.edges[k].pmatrix_index << ": "
-                                << old_brlens[i][k] << "\n";
-                    }
-                    std::cout << "\n";
-                    std::cout << "observed brlens:\n";
-                    for (size_t k = 0; k < ann_network.network.num_branches(); ++k) {
-                        std::cout << "idx " << ann_network.network.edges[k].pmatrix_index << ": "
-                                << act_brlens[i][k] << "\n";
-                    }
-                    std::cout << "\n";
-                }
-                assert(fabs(act_brlens[i][j] - old_brlens[i][j]) < 1E-5);
-            }
+        //apply_brlens(ann_network, start_brlens);
+        // TODO: Figure out why these assertions fail, fix it, then add brlen opt
+        assertBranchLengthsAndProbs(ann_network, start_brlens, start_brprobs, start_logl);
+        assert(ann_network.raxml_treeinfo->loglh(true) == start_logl);
+        if (greedy && foundBetterScore) {
+            break;
         }
-        for (size_t i = 0; i < act_brprobs.size(); ++i) {
-            for (size_t j = 0; j < act_brprobs[i].size(); ++j) {
-                if (fabs(act_brprobs[i][j] - old_brprobs[i][j]) >= 1E-5) {
-                    std::cout << "wanted brprobs:\n";
-                    for (size_t k = 0; k < ann_network.network.num_branches(); ++k) {
-                        std::cout << "idx " << ann_network.network.edges[k].pmatrix_index << ": "
-                                << old_brprobs[i][k] << "\n";
-                    }
-                    std::cout << "\n";
-                    std::cout << "observed brprobs:\n";
-                    for (size_t k = 0; k < ann_network.network.num_branches(); ++k) {
-                        std::cout << "idx " << ann_network.network.edges[k].pmatrix_index << ": "
-                                << act_brprobs[i][k] << "\n";
-                    }
-                    std::cout << "\n";
-                }
-                assert(fabs(act_brprobs[i][j] - old_brprobs[i][j]) < 1E-5);
-            }
-        }
-
-        if (fabs(ann_network.raxml_treeinfo->loglh(true) - start_logl) >= 1E-5) {
-            std::cout << "wanted: " << start_logl << "\n";
-            std::cout << "observed: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
-            std::cout << "recomputed without incremental: "
-                    << ann_network.raxml_treeinfo->loglh(false) << "\n";
-        }
-        assert(fabs(ann_network.raxml_treeinfo->loglh(true) - start_logl) < 1E-5);
-        //apply_brlens(ann_network, old_brlens);
     }
+
     if (best_idx < candidates.size()) {
         performMove(ann_network, candidates[best_idx]);
         //apply_brlens(ann_network, best_brlens);
-        // optimize reticulation probs and model after a move has been accepted
-        //netrax::computeLoglikelihood(ann_network, 1, 1, true);
-        //std::cout << "Accepting move " << toString(candidates[best_idx]) << " with old_score= " << old_score
-        //        << ", best_score= " << best_score << ", best_logl= " << best_logl << "\n";
-
-        if (fabs(best_logl - ann_network.raxml_treeinfo->loglh(true)) >= 1E-5) {
-            std::cout << "wanted: " << start_logl << "\n";
-            std::cout << "observed: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
-            std::cout << "recomputed without incremental: "
-                    << ann_network.raxml_treeinfo->loglh(false) << "\n";
-        }
-        assert(fabs(best_logl - ann_network.raxml_treeinfo->loglh(true)) < 1E-5);
-
-        //best_logl = ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
-        //best_logl = optimize_branches(ann_network, max_iters, radius);
-        assertReticulationProbs(ann_network);
     }
     return best_score;
 }
@@ -270,74 +228,65 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, MoveType type) 
     double old_bic = bic(ann_network, old_logl);
     //std::cout << "start_logl: " << old_logl <<", start_bic: " << old_bic << "\n";
 
-    double new_bic = old_bic;
+    double new_score = old_bic;
     do {
-        old_bic = new_bic;
+        old_bic = new_score;
 
         switch (type) {
         case MoveType::RNNIMove:
-            new_bic = greedyHillClimbingStep(ann_network, possibleRNNIMoves(ann_network), old_bic);
+            new_score = hillClimbingStep(ann_network, possibleRNNIMoves(ann_network), old_bic);
             break;
         case MoveType::RSPRMove:
-            new_bic = greedyHillClimbingStep(ann_network, possibleRSPRMoves(ann_network), old_bic);
+            new_score = hillClimbingStep(ann_network, possibleRSPRMoves(ann_network), old_bic);
             break;
         case MoveType::RSPR1Move:
-            new_bic = greedyHillClimbingStep(ann_network, possibleRSPR1Moves(ann_network), old_bic);
+            new_score = hillClimbingStep(ann_network, possibleRSPR1Moves(ann_network), old_bic);
             break;
         case MoveType::HeadMove:
-            new_bic = greedyHillClimbingStep(ann_network, possibleHeadMoves(ann_network), old_bic);
+            new_score = hillClimbingStep(ann_network, possibleHeadMoves(ann_network), old_bic);
             break;
         case MoveType::TailMove:
-            new_bic = greedyHillClimbingStep(ann_network, possibleTailMoves(ann_network), old_bic);
+            new_score = hillClimbingStep(ann_network, possibleTailMoves(ann_network), old_bic);
             break;
         case MoveType::ArcInsertionMove:
-            new_bic = greedyHillClimbingStep(ann_network, possibleArcInsertionMoves(ann_network),
+            new_score = hillClimbingStep(ann_network, possibleArcInsertionMoves(ann_network),
                     old_bic);
             break;
         case MoveType::DeltaPlusMove:
-            new_bic = greedyHillClimbingStep(ann_network, possibleDeltaPlusMoves(ann_network),
+            new_score = hillClimbingStep(ann_network, possibleDeltaPlusMoves(ann_network),
                     old_bic);
             break;
         case MoveType::ArcRemovalMove:
-            new_bic = greedyHillClimbingStep(ann_network, possibleArcRemovalMoves(ann_network),
+            new_score = hillClimbingStep(ann_network, possibleArcRemovalMoves(ann_network),
                     old_bic);
             break;
         case MoveType::DeltaMinusMove:
-            new_bic = greedyHillClimbingStep(ann_network, possibleDeltaMinusMoves(ann_network),
+            new_score = hillClimbingStep(ann_network, possibleDeltaMinusMoves(ann_network),
                     old_bic);
             break;
         default:
             throw std::runtime_error("Invalid move type");
         }
-    } while (new_bic < old_bic);
+    } while (new_score < old_bic);
     return ann_network.raxml_treeinfo->loglh(true);
 }
 
 double greedyHillClimbingTopology(AnnotatedNetwork &ann_network) {
-    //std::vector<MoveType> types = { MoveType::DeltaMinusMove, MoveType::RNNIMove, MoveType::RSPR1Move,
-    //        MoveType::DeltaPlusMove };
-
     std::vector<MoveType> types = { MoveType::ArcRemovalMove, MoveType::RNNIMove,
             MoveType::RSPRMove, MoveType::ArcInsertionMove };
     unsigned int type_idx = 0;
     double old_logl = ann_network.raxml_treeinfo->loglh(true);
     double new_logl = old_logl;
     double old_bic = bic(ann_network, old_logl);
-    double new_bic = old_bic;
+    double new_score = old_bic;
     unsigned int moves_cnt = 0;
     do {
         //std::cout << toExtendedNewick(ann_network.network) << "\n";
-        if (new_bic < old_bic) {
-            std::cout << "Improved bic from " << old_bic << " to " << new_bic << "\n";
-            old_bic = new_bic;
-            moves_cnt = 0;
-        }
-
         //std::cout << "Using move type: " << toString(types[type_idx]) << "\n";
         //std::cout << toExtendedNewick(ann_network.network) << "\n";
         //std::cout << exportDebugInfo(ann_network.network) << "\n";
         new_logl = greedyHillClimbingTopology(ann_network, types[type_idx]);
-        new_bic = bic(ann_network, new_logl);
+        new_score = bic(ann_network, new_logl);
         type_idx = (type_idx + 1) % types.size();
         moves_cnt++;
         if (ann_network.network.num_reticulations() == 0
@@ -346,7 +295,13 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network) {
             type_idx = (type_idx + 1) % types.size();
             moves_cnt++;
         }
-    } while ((new_bic < old_bic) || (moves_cnt < types.size()));
+
+        if (new_score < old_bic) {
+            std::cout << "Improved bic from " << old_bic << " to " << new_score << "\n";
+            old_bic = new_score;
+            moves_cnt = 0;
+        }
+    } while ((new_score < old_bic) || (moves_cnt < types.size()));
     return new_logl;
 }
 

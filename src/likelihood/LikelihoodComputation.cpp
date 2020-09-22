@@ -306,6 +306,7 @@ std::vector<double> compute_persite_lh(AnnotatedNetwork &ann_network, unsigned i
                 break;
             }
         }
+        assert(megablobRootClvIdx < clv_touched.size());
         assert(clv_touched[megablobRootClvIdx]);
         std::vector<double> persite_logl(fake_treeinfo.partitions[partitionIdx]->sites, 0.0);
         pll_compute_edge_loglikelihood(fake_treeinfo.partitions[partitionIdx], network.nodes.size(),

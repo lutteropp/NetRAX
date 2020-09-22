@@ -33,7 +33,7 @@ void run_random_endless(NetraxOptions& netraxOptions, std::mt19937& rng) {
         std::cout << "The inferred network has " << ann_network.network.num_reticulations() << " reticulations and this BIC score: " << final_bic << "\n";
         if (final_bic < best_score) {
             best_score = final_bic;
-            std::cout << "best score found so far: " << best_score << "\n";
+            std::cout << "best score found so far: " << best_score << "\n\n";
         }
         if (netraxOptions.timeout > 0) {
             auto act_time = std::chrono::high_resolution_clock::now();

@@ -290,6 +290,7 @@ void NetraxInstance::optimizeEverything(AnnotatedNetwork &ann_network) {
         updateReticulationProbs(ann_network);
         optimizeModel(ann_network);
         new_score = scoreNetwork(ann_network);
+        assert(new_score <= old_score);
         if (max_seconds != 0) {
             auto act_time = std::chrono::high_resolution_clock::now();
             if (std::chrono::duration_cast<std::chrono::seconds>( act_time - start_time ).count() >= max_seconds) {
