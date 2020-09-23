@@ -188,6 +188,8 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     if (randomizeCandidates) {
         std::random_shuffle(candidates.begin(), candidates.end());
     }
+    int max_iters = 1;
+    int radius = 1;
     double start_logl = ann_network.raxml_treeinfo->loglh(true);
     std::vector<std::vector<double> > start_brlens = extract_brlens(ann_network);
     std::vector<std::vector<double> > start_brprobs = extract_brprobs(ann_network); // just for debug
@@ -200,8 +202,8 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     for (size_t i = 0; i < candidates.size(); ++i) {
         performMove(ann_network, candidates[i]);
         // TODO: Also do brlen optimization locally around the move
-        //std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, candidates[i]);
-        //optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
+        std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, candidates[i]);
+        optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
 
         double new_logl = ann_network.raxml_treeinfo->loglh(true);
         double new_score = bic(ann_network, new_logl);
@@ -214,7 +216,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         }
         undoMove(ann_network, candidates[i]);
         assert(exportDebugInfo(ann_network.network) == before);
-        //apply_brlens(ann_network, start_brlens);
+        apply_brlens(ann_network, start_brlens);
         // TODO: add brlen opt
         assertBranchLengthsAndProbs(ann_network, start_brlens, start_brprobs, start_logl);
         assert(ann_network.raxml_treeinfo->loglh(true) == start_logl);
@@ -225,12 +227,10 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
 
     if (best_idx < candidates.size()) {
         performMove(ann_network, candidates[best_idx]);
+        apply_brlens(ann_network, best_brlens);
         //std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, candidates[best_idx]);
-        //int max_iters = 1;
-        //int radius = 1;
         //optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
         best_score = bic(ann_network, ann_network.raxml_treeinfo->loglh(true));
-        //apply_brlens(ann_network, best_brlens);
     }
     return best_score;
 }

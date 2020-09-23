@@ -115,6 +115,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, int max_iters, int *act_it
 
 double optimize_branch(AnnotatedNetwork &ann_network, int max_iters, int *act_iters,
         size_t pmatrix_index) {
+    double old_logl = ann_network.raxml_treeinfo->loglh(true);
     size_t n_partitions = 1;
     bool unlinkedMode = (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
     if (unlinkedMode) {
@@ -125,6 +126,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, int max_iters, int *act_it
         // TODO: Set the active partitions in the fake_treeinfo
         logl += optimize_branch(ann_network, max_iters, act_iters, pmatrix_index, p);
     }
+    assert(logl >= old_logl);
     return logl;
 }
 

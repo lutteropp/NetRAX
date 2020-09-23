@@ -200,7 +200,6 @@ AnnotatedNetwork NetraxInstance::build_best_raxml_annotated_network(const Netrax
 double NetraxInstance::computeLoglikelihood(AnnotatedNetwork &ann_network) {
     assert(!ann_network.branch_probs.empty());
     double logl = ann_network.raxml_treeinfo->loglh(true);
-    //std::cout << "Loglikelihood: " << logl << "\n";
     return logl;
 }
 
