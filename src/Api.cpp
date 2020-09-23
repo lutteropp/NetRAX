@@ -282,7 +282,7 @@ void NetraxInstance::optimizeTopology(AnnotatedNetwork &ann_network, MoveType& t
  * @param ann_network The network.
  */
 void NetraxInstance::optimizeEverything(AnnotatedNetwork &ann_network) {
-    std::vector<MoveType> typesBySpeed = {MoveType::DeltaMinusMove, MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::TailMove, MoveType::RSPRMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
+    std::vector<MoveType> typesBySpeed = {MoveType::DeltaMinusMove, MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::HeadMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
 
     double score_epsilon = ann_network.options.lh_epsilon;
     unsigned int max_seconds = ann_network.options.timeout;
@@ -305,7 +305,7 @@ void NetraxInstance::optimizeEverything(AnnotatedNetwork &ann_network) {
         old_score = new_score;
         optimizeTopology(ann_network, typesBySpeed[type_idx]);
         new_score = scoreNetwork(ann_network);
-        if (new_score < old_score) {
+        if (old_score - new_score > score_epsilon) { // score got better
             std::cout << "BIC after topology optimization: " << new_score << "\n";
             optimizeBranches(ann_network);
             updateReticulationProbs(ann_network);
