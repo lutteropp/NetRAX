@@ -109,6 +109,9 @@ void apply_brlens(AnnotatedNetwork &ann_network,
                     != old_brlens[p][pmatrix_index]) {
                 ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] =
                         old_brlens[p][pmatrix_index];
+                if (n_partitions == 1) {
+                    ann_network.network.edges_by_index[pmatrix_index]->length = old_brlens[p][pmatrix_index];
+                }
                 ann_network.fake_treeinfo->pmatrix_valid[p][pmatrix_index] = 0;
                 invalidateHigherCLVs(ann_network,
                         getTarget(ann_network.network, &ann_network.network.edges[i]), true,
@@ -181,7 +184,7 @@ void assertBranchLengthsAndProbs(AnnotatedNetwork& ann_network, const std::vecto
 }
 
 template<typename T>
-double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates, double old_score, bool greedy=false, bool randomizeCandidates=false) {
+double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates, double old_score, bool greedy=true, bool randomizeCandidates=false) {
     if (randomizeCandidates) {
         std::random_shuffle(candidates.begin(), candidates.end());
     }
@@ -206,7 +209,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         if (new_score < best_score) {
             best_score = new_score;
             best_idx = i;
-            //best_brlens = extract_brlens(ann_network);
+            best_brlens = extract_brlens(ann_network);
             foundBetterScore = true;
         }
         undoMove(ann_network, candidates[i]);
@@ -222,6 +225,11 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
 
     if (best_idx < candidates.size()) {
         performMove(ann_network, candidates[best_idx]);
+        //std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, candidates[best_idx]);
+        //int max_iters = 1;
+        //int radius = 1;
+        //optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
+        best_score = bic(ann_network, ann_network.raxml_treeinfo->loglh(true));
         //apply_brlens(ann_network, best_brlens);
     }
     return best_score;
@@ -305,7 +313,7 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network) {
             old_bic = new_score;
             moves_cnt = 0;
         }
-    } while ((new_score < old_bic) || (moves_cnt < types.size()));
+    } while (moves_cnt < types.size());
     return new_logl;
 }
 
