@@ -1296,6 +1296,9 @@ void performMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
     x_y_edge->prob = x_y_prob;
     x_prime_z_edge->prob = x_prime_z_prob;
     z_y_prime_edge->prob = z_y_prime_prob;
+    ann_network.fake_treeinfo->branch_lengths[0][x_y_edge->pmatrix_index] = x_y_edge->length;
+    ann_network.fake_treeinfo->branch_lengths[0][x_prime_z_edge->pmatrix_index] = x_prime_z_edge->length;
+    ann_network.fake_treeinfo->branch_lengths[0][z_y_prime_edge->pmatrix_index] = z_y_prime_edge->length;
 
     x_out_link->edge_pmatrix_index = x_y_edge->pmatrix_index;
     y_in_link->edge_pmatrix_index = x_y_edge->pmatrix_index;
@@ -1382,6 +1385,9 @@ void undoMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
     x_z_edge->prob = x_z_prob;
     z_y_edge->length = z_y_len;
     z_y_edge->prob = z_y_prob;
+    ann_network.fake_treeinfo->branch_lengths[0][x_prime_y_prime_edge->pmatrix_index] = x_prime_y_prime_edge->length;
+    ann_network.fake_treeinfo->branch_lengths[0][x_z_edge->pmatrix_index] = x_z_edge->length;
+    ann_network.fake_treeinfo->branch_lengths[0][z_y_edge->pmatrix_index] = z_y_edge->length;
 
     x_prime_out_link->edge_pmatrix_index = x_prime_y_prime_edge->pmatrix_index;
     y_prime_in_link->edge_pmatrix_index = x_prime_y_prime_edge->pmatrix_index;

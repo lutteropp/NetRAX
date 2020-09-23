@@ -66,6 +66,7 @@ std::vector<std::vector<double> > extract_brlens(AnnotatedNetwork &ann_network) 
         res[p].resize(ann_network.network.edges.size());
         for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
             size_t pmatrix_index = ann_network.network.edges[i].pmatrix_index;
+            assert(ann_network.network.edges_by_index[pmatrix_index] == &ann_network.network.edges[i]);
             if (n_partitions == 1) {
                 assert(ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] == ann_network.network.edges_by_index[pmatrix_index]->length);
             }
@@ -211,7 +212,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         undoMove(ann_network, candidates[i]);
         assert(exportDebugInfo(ann_network.network) == before);
         //apply_brlens(ann_network, start_brlens);
-        // TODO: Figure out why these assertions fail, fix it, then add brlen opt
+        // TODO: add brlen opt
         assertBranchLengthsAndProbs(ann_network, start_brlens, start_brprobs, start_logl);
         assert(ann_network.raxml_treeinfo->loglh(true) == start_logl);
         if (greedy && foundBetterScore) {
