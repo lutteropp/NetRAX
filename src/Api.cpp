@@ -296,7 +296,7 @@ void NetraxInstance::optimizeEverything(AnnotatedNetwork &ann_network) {
     unsigned int type_idx = 0;
 
     do {
-        if (ann_network.network.num_reticulations() == 0
+        while (ann_network.network.num_reticulations() == 0
               && (typesBySpeed[type_idx] == MoveType::DeltaMinusMove || typesBySpeed[type_idx] == MoveType::ArcRemovalMove)) {
             type_idx = (type_idx + 1) % typesBySpeed.size();
         }
