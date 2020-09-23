@@ -183,11 +183,25 @@ void assertBranchLengthsAndProbs(AnnotatedNetwork& ann_network, const std::vecto
     }
 }
 
+void assertBranchesWithinBounds(const AnnotatedNetwork& ann_network) {
+    double min_brlen = ann_network.options.brlen_min;
+    double max_brlen = ann_network.options.brlen_max;
+    for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
+        size_t pmatrix_index = ann_network.network.edges[i].pmatrix_index;
+        double w = ann_network.network.edges_by_index[pmatrix_index]->length;
+        double w2 = ann_network.fake_treeinfo->branch_lengths[0][pmatrix_index];
+        assert(w==w2);
+        assert(w>=min_brlen);
+        assert(w<=max_brlen);
+    }
+}
+
 template<typename T>
 double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates, double old_score, bool greedy=true, bool randomizeCandidates=false) {
     if (randomizeCandidates) {
         std::random_shuffle(candidates.begin(), candidates.end());
     }
+    assertBranchesWithinBounds(ann_network);
     int max_iters = 1;
     int radius = 1;
     double start_logl = ann_network.raxml_treeinfo->loglh(true);
@@ -201,9 +215,11 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
 
     for (size_t i = 0; i < candidates.size(); ++i) {
         performMove(ann_network, candidates[i]);
+        assertBranchesWithinBounds(ann_network);
         // TODO: Also do brlen optimization locally around the move
         std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, candidates[i]);
         optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
+        assertBranchesWithinBounds(ann_network);
 
         double new_logl = ann_network.raxml_treeinfo->loglh(true);
         double new_score = bic(ann_network, new_logl);
@@ -214,9 +230,12 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
             best_brlens = extract_brlens(ann_network);
             foundBetterScore = true;
         }
+        assertBranchesWithinBounds(ann_network);
         undoMove(ann_network, candidates[i]);
+        assertBranchesWithinBounds(ann_network);
         assert(exportDebugInfo(ann_network.network) == before);
         apply_brlens(ann_network, start_brlens);
+        assertBranchesWithinBounds(ann_network);
         // TODO: add brlen opt
         assertBranchLengthsAndProbs(ann_network, start_brlens, start_brprobs, start_logl);
         assert(ann_network.raxml_treeinfo->loglh(true) == start_logl);
@@ -230,6 +249,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         apply_brlens(ann_network, best_brlens);
         //std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, candidates[best_idx]);
         //optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
+        assertBranchesWithinBounds(ann_network);
         best_score = bic(ann_network, ann_network.raxml_treeinfo->loglh(true));
     }
     return best_score;
@@ -294,7 +314,7 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network) {
     unsigned int moves_cnt = 0;
     do {
         //std::cout << toExtendedNewick(ann_network.network) << "\n";
-        //std::cout << "Using move type: " << toString(types[type_idx]) << "\n";
+        std::cout << "Using move type: " << toString(types[type_idx]) << "\n";
         //std::cout << toExtendedNewick(ann_network.network) << "\n";
         //std::cout << exportDebugInfo(ann_network.network) << "\n";
         new_logl = greedyHillClimbingTopology(ann_network, types[type_idx]);
