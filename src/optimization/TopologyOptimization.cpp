@@ -197,16 +197,17 @@ void assertBranchesWithinBounds(const AnnotatedNetwork& ann_network) {
 }
 
 template<typename T>
-double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates, double old_score, bool greedy=true, bool randomizeCandidates=false) {
+double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates, double old_score, bool greedy=false, bool randomizeCandidates=false, bool brlenopt_inside=false) {
     if (randomizeCandidates) {
         std::random_shuffle(candidates.begin(), candidates.end());
     }
-    assertBranchesWithinBounds(ann_network);
     int max_iters = 1;
     int radius = 1;
     double start_logl = ann_network.raxml_treeinfo->loglh(true);
-    std::vector<std::vector<double> > start_brlens = extract_brlens(ann_network);
-    std::vector<std::vector<double> > start_brprobs = extract_brprobs(ann_network); // just for debug
+    std::vector<std::vector<double> > start_brlens;
+    if (brlenopt_inside) {
+        start_brlens = extract_brlens(ann_network);
+    }
     std::string before = exportDebugInfo(ann_network.network);
 
     size_t best_idx = candidates.size();
@@ -215,11 +216,10 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
 
     for (size_t i = 0; i < candidates.size(); ++i) {
         performMove(ann_network, candidates[i]);
-        assertBranchesWithinBounds(ann_network);
-        // TODO: Also do brlen optimization locally around the move
-        std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, candidates[i]);
-        optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
-        assertBranchesWithinBounds(ann_network);
+        if (brlenopt_inside) { // Do brlen optimization locally around the move
+            std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, candidates[i]);
+            optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
+        }
 
         double new_logl = ann_network.raxml_treeinfo->loglh(true);
         double new_score = bic(ann_network, new_logl);
@@ -227,17 +227,20 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         if (new_score < best_score) {
             best_score = new_score;
             best_idx = i;
-            best_brlens = extract_brlens(ann_network);
+            if (brlenopt_inside) {
+                best_brlens = extract_brlens(ann_network);
+            }
             foundBetterScore = true;
         }
-        assertBranchesWithinBounds(ann_network);
         undoMove(ann_network, candidates[i]);
-        assertBranchesWithinBounds(ann_network);
         assert(exportDebugInfo(ann_network.network) == before);
-        apply_brlens(ann_network, start_brlens);
-        assertBranchesWithinBounds(ann_network);
-        // TODO: add brlen opt
-        assertBranchLengthsAndProbs(ann_network, start_brlens, start_brprobs, start_logl);
+        if (brlenopt_inside) {
+            apply_brlens(ann_network, start_brlens);
+        }
+        if (ann_network.raxml_treeinfo->loglh(true) != start_logl) {
+            std::cout << "new value: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
+            std::cout << "old value: " << start_logl << "/n";
+        }
         assert(ann_network.raxml_treeinfo->loglh(true) == start_logl);
         if (greedy && foundBetterScore) {
             break;
@@ -246,10 +249,12 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
 
     if (best_idx < candidates.size()) {
         performMove(ann_network, candidates[best_idx]);
-        apply_brlens(ann_network, best_brlens);
-        //std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, candidates[best_idx]);
-        //optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
-        assertBranchesWithinBounds(ann_network);
+        if (brlenopt_inside) {
+            apply_brlens(ann_network, best_brlens);
+        } else {
+            std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, candidates[best_idx]);
+            optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
+        }
         best_score = bic(ann_network, ann_network.raxml_treeinfo->loglh(true));
     }
     return best_score;
@@ -299,13 +304,17 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, MoveType type) 
         default:
             throw std::runtime_error("Invalid move type");
         }
-    } while (new_score < old_bic);
+    } while (old_bic - new_score > ann_network.options.lh_epsilon);
     return ann_network.raxml_treeinfo->loglh(true);
 }
 
 double greedyHillClimbingTopology(AnnotatedNetwork &ann_network) {
-    std::vector<MoveType> types = { MoveType::ArcRemovalMove, MoveType::RNNIMove,
-            MoveType::RSPRMove, MoveType::ArcInsertionMove };
+    /*std::vector<MoveType> types = { MoveType::ArcRemovalMove, MoveType::RNNIMove,
+            MoveType::RSPRMove, MoveType::ArcInsertionMove };*/
+
+    std::vector<MoveType> types = {MoveType::RNNIMove,
+            MoveType::RSPR1Move, MoveType::DeltaPlusMove, MoveType::DeltaMinusMove };
+
     unsigned int type_idx = 0;
     double old_logl = ann_network.raxml_treeinfo->loglh(true);
     double new_logl = old_logl;
@@ -328,7 +337,7 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network) {
             moves_cnt++;
         }
 
-        if (new_score < old_bic) {
+        if (old_bic - new_score > ann_network.options.lh_epsilon) {
             std::cout << "Improved bic from " << old_bic << " to " << new_score << "\n";
             old_bic = new_score;
             moves_cnt = 0;

@@ -30,10 +30,10 @@ void run_random_endless(NetraxOptions& netraxOptions, std::mt19937& rng) {
         NetraxInstance::init_annotated_network(ann_network, rng);
         NetraxInstance::optimizeEverything(ann_network);
         double final_bic = NetraxInstance::scoreNetwork(ann_network);
-        std::cout << "The inferred network has " << ann_network.network.num_reticulations() << " reticulations and this BIC score: " << final_bic << "\n";
+        std::cout << "The inferred network has " << ann_network.network.num_reticulations() << " reticulations and this BIC score: " << final_bic << "\n\n";
         if (final_bic < best_score) {
             best_score = final_bic;
-            std::cout << "best score found so far: " << best_score << "\n\n";
+            std::cout << "BEST SCORE FOUND SO FAR: " << best_score << "\n\n";
         }
         if (netraxOptions.timeout > 0) {
             auto act_time = std::chrono::high_resolution_clock::now();
