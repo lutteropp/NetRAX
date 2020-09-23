@@ -237,11 +237,11 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         if (brlenopt_inside) {
             apply_brlens(ann_network, start_brlens);
         }
-        if (ann_network.raxml_treeinfo->loglh(true) != start_logl) {
+        if (fabs(ann_network.raxml_treeinfo->loglh(true) - start_logl) >= ann_network.options.lh_epsilon) {
             std::cout << "new value: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
             std::cout << "old value: " << start_logl << "/n";
         }
-        assert(ann_network.raxml_treeinfo->loglh(true) == start_logl);
+        assert(fabs(ann_network.raxml_treeinfo->loglh(true) - start_logl) < ann_network.options.lh_epsilon);
         if (greedy && foundBetterScore) {
             break;
         }
