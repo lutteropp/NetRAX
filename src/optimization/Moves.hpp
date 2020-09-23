@@ -104,6 +104,9 @@ struct ArcInsertionMove: public GeneralMove {
     size_t cd_pmatrix_index = std::numeric_limits<size_t>::max();
     double a_b_len = 0;
     double c_d_len = 0;
+
+    double v_d_len = 0;
+    double u_b_len = 0;
 };
 
 struct ArcRemovalMove: public GeneralMove {
@@ -134,6 +137,9 @@ struct ArcRemovalMove: public GeneralMove {
     size_t wanted_cd_pmatrix_index = std::numeric_limits<size_t>::max();
     double a_b_len = 0;
     double c_d_len = 0;
+
+    double v_d_len = 0;
+    double u_b_len = 0;
 };
 
 std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network, const Edge *edge);

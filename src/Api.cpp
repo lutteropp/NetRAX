@@ -32,6 +32,18 @@
 
 namespace netrax {
 
+void allocateBranchProbsArray(AnnotatedNetwork& ann_network) {
+    // allocate branch probs array...
+    if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED) { // common branches
+        ann_network.branch_probs = std::vector<std::vector<double> >(1,
+                std::vector<double>(ann_network.network.edges.size() + 1, 1.0));
+    } else { // each partition has extra branch properties
+        ann_network.branch_probs = std::vector<std::vector<double> >(
+                ann_network.fake_treeinfo->partition_count,
+                std::vector<double>(ann_network.network.edges.size() + 1, 1.0));
+    }
+}
+
 /**
  * Initializes the network annotations. Precomputes the reversed topological sort, the partitioning into blobs, and sets the branch probabilities.
  * 
@@ -44,15 +56,7 @@ void NetraxInstance::init_annotated_network(AnnotatedNetwork &ann_network, std::
     ann_network.travbuffer = netrax::reversed_topological_sort(ann_network.network);
     ann_network.blobInfo = netrax::partitionNetworkIntoBlobs(network, ann_network.travbuffer);
 
-    // init branch probs...
-    if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED) { // common branches
-        ann_network.branch_probs = std::vector<std::vector<double> >(1,
-                std::vector<double>(ann_network.network.edges.size() + 1, 1.0));
-    } else { // each partition has extra branch properties
-        ann_network.branch_probs = std::vector<std::vector<double> >(
-                ann_network.fake_treeinfo->partition_count,
-                std::vector<double>(ann_network.network.edges.size() + 1, 1.0));
-    }
+    allocateBranchProbsArray(ann_network);
     for (size_t p = 0; p < ann_network.branch_probs.size(); ++p) {
         for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
             Node *retNode = ann_network.network.reticulation_nodes[i];
@@ -123,7 +127,7 @@ AnnotatedNetwork NetraxInstance::build_annotated_network_from_utree(const Netrax
  * @param ann_network The network we want to add reticulations to.
  * @param targetCount The number of reticulations we want to have in the network.
  */
-void add_extra_reticulations(AnnotatedNetwork &ann_network, unsigned int targetCount) {
+void NetraxInstance::add_extra_reticulations(AnnotatedNetwork &ann_network, unsigned int targetCount) {
     if (targetCount > ann_network.options.max_reticulations) {
         throw std::runtime_error("Please increase maximum allowed number of reticulations");
     }
@@ -148,47 +152,38 @@ void add_extra_reticulations(AnnotatedNetwork &ann_network, unsigned int targetC
 /**
  * Creates a random annotated network.
  * 
- * Creates an annotated network by building a random tree and randomly adding reticulations to it.
+ * Creates an annotated network by building a random tree..
  * 
  * @param options The options specified by the user.
- * @param start_reticulations The number of reticulations in the generated annotated network.
  */
-AnnotatedNetwork NetraxInstance::build_random_annotated_network(const NetraxOptions &options,
-        unsigned int start_reticulations) {
+AnnotatedNetwork NetraxInstance::build_random_annotated_network(const NetraxOptions &options) {
     RaxmlWrapper wrapper(options);
     Tree tree = wrapper.generateRandomTree();
     AnnotatedNetwork ann_network = build_annotated_network_from_utree(options, tree.pll_utree());
-    add_extra_reticulations(ann_network, start_reticulations);
     return ann_network;
 }
 
 /**
- * Creates an annotated network by building a maximum parsimony tree and randomly adding reticulations to it.
+ * Creates an annotated network by building a maximum parsimony tree..
  * 
  * @param options The options specified by the user.
- * @param start_reticulations The number of reticulations in the generated annotated network.
  */
-AnnotatedNetwork NetraxInstance::build_parsimony_annotated_network(const NetraxOptions &options,
-        unsigned int start_reticulations) {
+AnnotatedNetwork NetraxInstance::build_parsimony_annotated_network(const NetraxOptions &options) {
     RaxmlWrapper wrapper(options);
     Tree tree = wrapper.generateParsimonyTree();
     AnnotatedNetwork ann_network = build_annotated_network_from_utree(options, tree.pll_utree());
-    add_extra_reticulations(ann_network, start_reticulations);
     return ann_network;
 }
 
 /**
- * Creates an annotated network by building a maximum likelihood tree and randomly adding reticulations to it.
+ * Creates an annotated network by building a maximum likelihood tree..
  * 
  * @param options The options specified by the user.
- * @param start_reticulations The number of reticulations in the generated annotated network.
  */
-AnnotatedNetwork NetraxInstance::build_best_raxml_annotated_network(const NetraxOptions &options,
-        unsigned int start_reticulations) {
+AnnotatedNetwork NetraxInstance::build_best_raxml_annotated_network(const NetraxOptions &options) {
     RaxmlWrapper wrapper(options);
     Tree tree = wrapper.bestRaxmlTree();
     AnnotatedNetwork ann_network = build_annotated_network_from_utree(options, tree.pll_utree());
-    add_extra_reticulations(ann_network, start_reticulations);
     return ann_network;
 }
 
@@ -260,9 +255,9 @@ void NetraxInstance::optimizeBranches(AnnotatedNetwork &ann_network) {
  * 
  * @param ann_network The network.
  */
-void NetraxInstance::optimizeTopology(AnnotatedNetwork &ann_network) {
+void NetraxInstance::optimizeTopology(AnnotatedNetwork &ann_network, const std::vector<MoveType>& types) {
     double old_score = scoreNetwork(ann_network);
-    greedyHillClimbingTopology(ann_network);
+    greedyHillClimbingTopology(ann_network, types);
     double new_score = scoreNetwork(ann_network);
     std::cout << "BIC after topology optimization: " << new_score << "\n";
     assert(new_score <= old_score);
@@ -273,7 +268,12 @@ void NetraxInstance::optimizeTopology(AnnotatedNetwork &ann_network) {
  * 
  * @param ann_network The network.
  */
-void NetraxInstance::optimizeEverything(AnnotatedNetwork &ann_network) {
+void NetraxInstance::optimizeEverything(AnnotatedNetwork &ann_network, bool useQuick) {
+    std::vector<MoveType> typesSlow = {MoveType::ArcRemovalMove, MoveType::RNNIMove,
+            MoveType::RSPRMove, MoveType::ArcInsertionMove };
+
+    std::vector<MoveType> typesQuick = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move };
+
     double score_epsilon = ann_network.options.lh_epsilon;
     unsigned int max_seconds = ann_network.options.timeout;
     auto start_time = std::chrono::high_resolution_clock::now();
@@ -284,7 +284,7 @@ void NetraxInstance::optimizeEverything(AnnotatedNetwork &ann_network) {
     double old_score;
     do {
         old_score = new_score;
-        optimizeTopology(ann_network);
+        optimizeTopology(ann_network, useQuick ? typesQuick : typesSlow);
         optimizeBranches(ann_network);
         updateReticulationProbs(ann_network);
         optimizeModel(ann_network);

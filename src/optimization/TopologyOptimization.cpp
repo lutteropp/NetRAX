@@ -24,6 +24,7 @@
 #include "../graph/Network.hpp"
 #include "../graph/NetworkTopology.hpp"
 #include "../NetraxOptions.hpp"
+#include "../io/NetworkIO.hpp"
 #include "Moves.hpp"
 
 namespace netrax {
@@ -208,7 +209,6 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     if (brlenopt_inside) {
         start_brlens = extract_brlens(ann_network);
     }
-    std::string before = exportDebugInfo(ann_network.network);
 
     size_t best_idx = candidates.size();
     double best_score = old_score;
@@ -233,7 +233,6 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
             foundBetterScore = true;
         }
         undoMove(ann_network, candidates[i]);
-        assert(exportDebugInfo(ann_network.network) == before);
         if (brlenopt_inside) {
             apply_brlens(ann_network, start_brlens);
         }
@@ -308,13 +307,7 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, MoveType type) 
     return ann_network.raxml_treeinfo->loglh(true);
 }
 
-double greedyHillClimbingTopology(AnnotatedNetwork &ann_network) {
-    /*std::vector<MoveType> types = { MoveType::ArcRemovalMove, MoveType::RNNIMove,
-            MoveType::RSPRMove, MoveType::ArcInsertionMove };*/
-
-    std::vector<MoveType> types = {MoveType::RNNIMove,
-            MoveType::RSPR1Move, MoveType::DeltaPlusMove, MoveType::DeltaMinusMove };
-
+double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, const std::vector<MoveType>& types) {
     unsigned int type_idx = 0;
     double old_logl = ann_network.raxml_treeinfo->loglh(true);
     double new_logl = old_logl;
@@ -322,20 +315,16 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network) {
     double new_score = old_bic;
     unsigned int moves_cnt = 0;
     do {
-        //std::cout << toExtendedNewick(ann_network.network) << "\n";
+        if (ann_network.network.num_reticulations() == 0
+              && (types[type_idx] == MoveType::DeltaMinusMove || types[type_idx] == MoveType::ArcRemovalMove)) {
+            type_idx = (type_idx + 1) % types.size();
+            moves_cnt++;
+        }
         std::cout << "Using move type: " << toString(types[type_idx]) << "\n";
-        //std::cout << toExtendedNewick(ann_network.network) << "\n";
-        //std::cout << exportDebugInfo(ann_network.network) << "\n";
         new_logl = greedyHillClimbingTopology(ann_network, types[type_idx]);
         new_score = bic(ann_network, new_logl);
         type_idx = (type_idx + 1) % types.size();
         moves_cnt++;
-        if (ann_network.network.num_reticulations() == 0
-                && (types[type_idx] == MoveType::DeltaMinusMove
-                        || types[type_idx] == MoveType::ArcRemovalMove)) {
-            type_idx = (type_idx + 1) % types.size();
-            moves_cnt++;
-        }
 
         if (old_bic - new_score > ann_network.options.lh_epsilon) {
             std::cout << "Improved bic from " << old_bic << " to " << new_score << "\n";

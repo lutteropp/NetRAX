@@ -123,8 +123,9 @@ TEST (SystemTest, randomNetwork) {
     smallOptions.use_repeats = true;
     RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
     unsigned int n_reticulations = 8;
-    AnnotatedNetwork ann_network = NetraxInstance::build_random_annotated_network(smallOptions, n_reticulations);
+    AnnotatedNetwork ann_network = NetraxInstance::build_random_annotated_network(smallOptions);
     NetraxInstance::init_annotated_network(ann_network);
+    NetraxInstance::add_extra_reticulations(ann_network, n_reticulations);
     assert(ann_network.network.num_reticulations() == n_reticulations);
 
     completeRun(ann_network);

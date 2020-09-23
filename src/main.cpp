@@ -25,15 +25,21 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
 void run_random_endless(NetraxOptions& netraxOptions, std::mt19937& rng) {
     double best_score = std::numeric_limits<double>::infinity();
     auto start_time = std::chrono::high_resolution_clock::now();
+    size_t start_reticulations = 4;
     while (true) {
+        std::cout << "Starting with new random network with " << start_reticulations << " reticulations.\n";
         netrax::AnnotatedNetwork ann_network = NetraxInstance::build_random_annotated_network(netraxOptions);
         NetraxInstance::init_annotated_network(ann_network, rng);
-        NetraxInstance::optimizeEverything(ann_network);
+        NetraxInstance::add_extra_reticulations(ann_network, start_reticulations);
+        NetraxInstance::optimizeEverything(ann_network, true);
+        NetraxInstance::optimizeEverything(ann_network, false);
         double final_bic = NetraxInstance::scoreNetwork(ann_network);
         std::cout << "The inferred network has " << ann_network.network.num_reticulations() << " reticulations and this BIC score: " << final_bic << "\n\n";
         if (final_bic < best_score) {
             best_score = final_bic;
-            std::cout << "BEST SCORE FOUND SO FAR: " << best_score << "\n\n";
+            std::cout << "IMPROVED BEST SCORE FOUND SO FAR: " << best_score << "\n\n";
+        } else {
+            std::cout << "REMAINED BEST SCORE FOUND SO FAR: " << best_score << "\n";
         }
         if (netraxOptions.timeout > 0) {
             auto act_time = std::chrono::high_resolution_clock::now();
