@@ -268,11 +268,11 @@ void NetraxInstance::optimizeTopology(AnnotatedNetwork &ann_network, const std::
  * 
  * @param ann_network The network.
  */
-void NetraxInstance::optimizeEverything(AnnotatedNetwork &ann_network, bool useQuick) {
+void NetraxInstance::optimizeEverything(AnnotatedNetwork &ann_network) {
     std::vector<MoveType> typesSlow = {MoveType::ArcRemovalMove, MoveType::RNNIMove,
             MoveType::RSPRMove, MoveType::ArcInsertionMove };
-
     std::vector<MoveType> typesQuick = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move };
+    bool useQuick = true;
 
     double score_epsilon = ann_network.options.lh_epsilon;
     unsigned int max_seconds = ann_network.options.timeout;
@@ -282,7 +282,7 @@ void NetraxInstance::optimizeEverything(AnnotatedNetwork &ann_network, bool useQ
     updateReticulationProbs(ann_network);
     double new_score = scoreNetwork(ann_network);
     double old_score;
-    do {
+    while (true) {
         old_score = new_score;
         optimizeTopology(ann_network, useQuick ? typesQuick : typesSlow);
         optimizeBranches(ann_network);
@@ -296,7 +296,18 @@ void NetraxInstance::optimizeEverything(AnnotatedNetwork &ann_network, bool useQ
                 break;
             }
         }
-    } while (old_score - new_score > score_epsilon);
+        if (old_score - new_score > score_epsilon) {
+            useQuick = true;
+            continue;
+        } else {
+            if (useQuick) {
+                useQuick = false;
+                continue;
+            } else {
+                break;
+            }
+        }
+    }
 }
 
 /**

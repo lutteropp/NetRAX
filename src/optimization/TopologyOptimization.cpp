@@ -198,7 +198,7 @@ void assertBranchesWithinBounds(const AnnotatedNetwork& ann_network) {
 }
 
 template<typename T>
-double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates, double old_score, bool greedy=false, bool randomizeCandidates=false, bool brlenopt_inside=false) {
+double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates, double old_score, bool greedy=false, bool randomizeCandidates=false, bool brlenopt_inside=true) {
     if (randomizeCandidates) {
         std::random_shuffle(candidates.begin(), candidates.end());
     }
