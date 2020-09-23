@@ -264,15 +264,25 @@ void NetraxInstance::optimizeTopology(AnnotatedNetwork &ann_network, const std::
 }
 
 /**
+ * Re-infers the topology of a given network.
+ * 
+ * @param ann_network The network.
+ */
+void NetraxInstance::optimizeTopology(AnnotatedNetwork &ann_network, MoveType& type) {
+    double old_score = scoreNetwork(ann_network);
+    greedyHillClimbingTopology(ann_network, type);
+    double new_score = scoreNetwork(ann_network);
+    //std::cout << "BIC after topology optimization: " << new_score << "\n";
+    assert(new_score <= old_score);
+}
+
+/**
  * Re-infers everything (brach lengths, reticulation probabilities, likelihood model parameters, topology).
  * 
  * @param ann_network The network.
  */
 void NetraxInstance::optimizeEverything(AnnotatedNetwork &ann_network) {
-    std::vector<MoveType> typesSlow = {MoveType::ArcRemovalMove, MoveType::RNNIMove,
-            MoveType::RSPRMove, MoveType::ArcInsertionMove };
-    std::vector<MoveType> typesQuick = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move };
-    bool useQuick = true;
+    std::vector<MoveType> typesBySpeed = {MoveType::DeltaMinusMove, MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::TailMove, MoveType::RSPRMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
 
     double score_epsilon = ann_network.options.lh_epsilon;
     unsigned int max_seconds = ann_network.options.timeout;
@@ -282,31 +292,45 @@ void NetraxInstance::optimizeEverything(AnnotatedNetwork &ann_network) {
     updateReticulationProbs(ann_network);
     double new_score = scoreNetwork(ann_network);
     double old_score;
-    while (true) {
+
+    unsigned int type_idx = 0;
+
+    do {
+        if (ann_network.network.num_reticulations() == 0
+              && (typesBySpeed[type_idx] == MoveType::DeltaMinusMove || typesBySpeed[type_idx] == MoveType::ArcRemovalMove)) {
+            type_idx = (type_idx + 1) % typesBySpeed.size();
+        }
+        std::cout << "Using move type: " << toString(typesBySpeed[type_idx]) << "\n";
+
         old_score = new_score;
-        optimizeTopology(ann_network, useQuick ? typesQuick : typesSlow);
-        optimizeBranches(ann_network);
-        updateReticulationProbs(ann_network);
-        optimizeModel(ann_network);
+        optimizeTopology(ann_network, typesBySpeed[type_idx]);
         new_score = scoreNetwork(ann_network);
+        if (new_score < old_score) {
+            std::cout << "BIC after topology optimization: " << new_score << "\n";
+            optimizeBranches(ann_network);
+            updateReticulationProbs(ann_network);
+            optimizeModel(ann_network);
+            new_score = scoreNetwork(ann_network);
+        }
         assert(new_score <= old_score);
+
+        if (old_score - new_score > score_epsilon) { // score got better
+            type_idx = 0; // go back to fastest move type
+        } else { // try next-slower move type
+            type_idx++;
+        }
+
         if (max_seconds != 0) {
             auto act_time = std::chrono::high_resolution_clock::now();
             if (std::chrono::duration_cast<std::chrono::seconds>( act_time - start_time ).count() >= max_seconds) {
                 break;
             }
         }
-        if (old_score - new_score > score_epsilon) {
-            useQuick = true;
-            continue;
-        } else {
-            if (useQuick) {
-                useQuick = false;
-                continue;
-            } else {
-                break;
-            }
-        }
+    } while (type_idx < typesBySpeed.size());
+
+    std::cout << "Statistics on which moves were taken:\n";
+    for (const auto& entry : ann_network.stats.moves_taken) {
+        std::cout << toString(entry.first) << ": " << entry.second << "\n";
     }
 }
 

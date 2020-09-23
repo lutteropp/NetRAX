@@ -42,7 +42,8 @@ struct NetraxInstance {
         static void updateReticulationProbs(AnnotatedNetwork &ann_network);
         static void optimizeModel(AnnotatedNetwork &ann_network);
         static void optimizeBranches(AnnotatedNetwork &ann_network);
-        static void optimizeTopology(AnnotatedNetwork &ann_network, const std::vector<MoveType>& type);
+        static void optimizeTopology(AnnotatedNetwork &ann_network, const std::vector<MoveType>& types);
+        static void optimizeTopology(AnnotatedNetwork &ann_network, MoveType& type);
         static void optimizeEverything(AnnotatedNetwork &ann_network);
         static void writeNetwork(AnnotatedNetwork &ann_network, const std::string &filepath);
         static void init_annotated_network(AnnotatedNetwork &ann_network, std::mt19937& rng);

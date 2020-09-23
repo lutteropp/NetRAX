@@ -255,6 +255,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
             optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
         }
         best_score = bic(ann_network, ann_network.raxml_treeinfo->loglh(true));
+        ann_network.stats.moves_taken[candidates[best_idx].moveType]++;
     }
     return best_score;
 }

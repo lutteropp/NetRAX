@@ -14,6 +14,8 @@
 #include <vector>
 #include <memory>
 
+#include "MoveType.hpp"
+
 // TODO: Maybe put all moves into a class hierarchy?
 
 namespace netrax {
@@ -21,18 +23,6 @@ struct AnnotatedNetwork;
 struct Edge;
 struct Node;
 // The moves correspond to the rNNI moves and rSPR moves from this paper: https://doi.org/10.1371/journal.pcbi.1005611
-
-enum class MoveType {
-    RNNIMove,
-    RSPRMove,
-    TailMove,
-    HeadMove,
-    RSPR1Move,
-    ArcInsertionMove,
-    ArcRemovalMove,
-    DeltaPlusMove,
-    DeltaMinusMove
-};
 
 struct GeneralMove {
     GeneralMove(MoveType type) :
@@ -179,7 +169,6 @@ std::string toString(RNNIMove &move);
 std::string toString(RSPRMove &move);
 std::string toString(ArcInsertionMove &move);
 std::string toString(ArcRemovalMove &move);
-std::string toString(MoveType type);
 
 std::unordered_set<size_t> brlenOptCandidates(AnnotatedNetwork &ann_network, RNNIMove &move);
 std::unordered_set<size_t> brlenOptCandidates(AnnotatedNetwork &ann_network, RSPRMove &move);
