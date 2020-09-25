@@ -172,7 +172,7 @@ def extract_random_tree(nw, hybrid_nodes, leaves):
 
 def generate_trees_on_network(ILS, inheritance, pop_size, filename, number_trees, number_sites_per_tree, leaves, nw, hybrid_nodes):
     output_files = []
-    if (len(number_sites_per_tree) > 1):
+    if (len(number_sites_per_tree) > 1): # this means we are in benchmark dataset creation mode, see params.benchmark_mode
         for sites in number_sites_per_tree:
             output_files.append(open(filename+"_spt_"+str(sites), "w"))
     else: # for backwards compatibility
