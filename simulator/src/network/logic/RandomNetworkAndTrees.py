@@ -19,7 +19,7 @@ class SimulationParameters:
         self.ILS = False  # non_ILS simulations for now
         self.output = "test"  # basename for the output files
 
-        self.benchmark_mode = False # Benchmark dataset creation mode
+        self.benchmark_mode = False # Benchmark dataset creation mode: Create multiple MSA datasets of different size and with different number of trees
 
         # These values will only be used if benchmark mode is disabled
         self.number_trees = 1  # number of different trees to generate
@@ -31,21 +31,21 @@ class SimulationParameters:
 
 
 ############### CONVERT TO NEWICK ##############
-def Newick_From_MULTree(params, tree, root, hybrid_nodes):
+def Newick_From_MULTree(ILS, inheritance, pop_size, tree, root, hybrid_nodes):
     if tree.out_degree(root) == 0:
         if root in hybrid_nodes:
             return "#H"+str(hybrid_nodes[root])
         return str(root)
     Newick = ""
     for v in tree.successors(root):
-        if not(params.ILS):
-            Newick += Newick_From_MULTree(params, tree, v,
+        if not(ILS):
+            Newick += Newick_From_MULTree(ILS, inheritance, pop_size, tree, v,
                                           hybrid_nodes)+":"+str(tree[root][v]['length'])
         else:
-            coalescent_time = tree[root][v]['length']/params.pop_size
-            Newick += Newick_From_MULTree(params, tree,
+            coalescent_time = tree[root][v]['length']/pop_size
+            Newick += Newick_From_MULTree(ILS, inheritance, pop_size, tree,
                                           v, hybrid_nodes)+":"+str(coalescent_time)
-        if params.inheritance:
+        if inheritance:
             if v in hybrid_nodes:
                 Newick += "::"+str(tree[root][v]['prob'])
         Newick += ","
@@ -169,7 +169,7 @@ def extract_random_tree(nw, hybrid_nodes, leaves):
     return tree
 
 
-def generate_trees_on_network(params, filename, number_trees, leaves, nw, hybrid_nodes):
+def generate_trees_on_network(ILS, inheritance, pop_size, filename, number_trees, number_sites_per_tree, leaves, nw, hybrid_nodes):
     file = open(filename, "w")
 
     hybrid_nodes_fake = dict()
@@ -177,8 +177,8 @@ def generate_trees_on_network(params, filename, number_trees, leaves, nw, hybrid
     if not(params.ILS):
         for _ in range(0, number_trees):
             tree = extract_random_tree(nw, hybrid_nodes, leaves)
-            file.write("["+str(params.number_sites)+"]" +
-                       Newick_From_MULTree(params, tree, 0, hybrid_nodes_fake)+";\n")
+            file.write("["+str(number_sites_per_tree)+"]" +
+                       Newick_From_MULTree(ILS, inheritance, pop_size, tree, 0, hybrid_nodes_fake)+";\n")
     else:
         print("Extracting trees with ILS is not supported yet.")
     file.close()
@@ -272,13 +272,12 @@ def simulate_network(params):
                 nw[pl][l]['length'] += extra_time
 
             generate_trees_on_network(
-                params, params.output+"_trees", params.number_trees, leaves, nw, hybrid_nodes)
+                params.ILS, params.inheritance, params.pop_size, params.output+"_trees", params.number_trees, params.number_sites, leaves, nw, hybrid_nodes)
 
-            fileNetwork.write(Newick_From_MULTree(
-                params, nw, 0, hybrid_nodes)+";\n")
+            fileNetwork.write(Newick_From_MULTree(params.ILS, params.inheritance, params.pop_size, nw, 0, hybrid_nodes)+";\n")
             params.inheritance = False
             fileNetworkDendroscope.write(
-                Newick_From_MULTree(params, nw, 0, hybrid_nodes)+";\n")
+                Newick_From_MULTree(params.ILS, params.inheritance, params.pop_size, nw, 0, hybrid_nodes)+";\n")
             print('done')
         else:
             print('The simulated network contains less than 4 leaves, try again')
