@@ -288,7 +288,7 @@ def simulate_network(params):
             else:
                 for m in params.wanted_m_values:
                     wanted_tree_count = m*(2**no_of_hybrids)
-                    wanted_sites_per_tree = [math.ceil(x/wanted_tree_count) for x in params.wanted_msa_sizes]
+                    wanted_sites_per_tree = [math.ceil(float(x)/wanted_tree_count) for x in params.wanted_msa_sizes]
                     output_prefix = params.output+"_trees_m_"+str(m)
                     generate_trees_on_network(
                         params.ILS, params.inheritance, params.pop_size, output_prefix, wanted_tree_count, wanted_sites_per_tree, leaves, nw, hybrid_nodes)
