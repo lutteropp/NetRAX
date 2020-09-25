@@ -182,7 +182,7 @@ def generate_trees_on_network(ILS, inheritance, pop_size, filename, number_trees
 
     hybrid_nodes_fake = dict()
 
-    if not(params.ILS):
+    if not(ILS):
         for _ in range(0, number_trees):
             tree = extract_random_tree(nw, hybrid_nodes, leaves)
             tree_newick = Newick_From_MULTree(ILS, inheritance, pop_size, tree, 0, hybrid_nodes_fake)

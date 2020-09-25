@@ -28,6 +28,8 @@ class Network(models.Model):
     image_path = models.TextField(default=None, null=True, blank=True)
     incomplete_lineage_sorting = models.BooleanField(
         default=False, null=False, blank=True)
+    benchmark_mode = models.BooleanField(
+        default=False, null=False, blank=True)
 
     def get_absolute_url(self):
         return reverse("network:network-detail", kwargs={"pk": self.pk})
@@ -46,6 +48,7 @@ def construct_simulation_parameters(instance):
     params.number_trees = instance.n_trees
     params.number_sites = instance.sites_per_tree
     params.ILS = instance.incomplete_lineage_sorting
+    params.benchmark_mode = instance.benchmark_mode
     return params
 
 
