@@ -181,76 +181,83 @@ def generate_trees_on_network(params, leaves, nw, extra_time, hybrid_nodes):
     file.close()
 
 
+def simulate_network_topology(params):
+    nw = nx.DiGraph()
+    nw.add_node(0)
+    leaves = set([0])
+    current_node = 1
+
+    extra_time = np.random.exponential(1/float(params.speciation_rate))
+    current_time = extra_time
+    current_speciation_rate = float(params.speciation_rate)
+    current_hybridization_rate = float(0)
+    rate = current_speciation_rate + current_hybridization_rate
+
+    # First create a MUL-tree
+    hybrid_nodes = dict()
+    no_of_hybrids = 0
+    no_of_leaves = 0
+
+    while current_time < params.time_limit:
+        if random.random() < current_speciation_rate / rate:
+            # speciate
+            splitting_leaf = random.choice(list(leaves))
+            nw.add_weighted_edges_from(
+                [(splitting_leaf, current_node, 0), (splitting_leaf, current_node+1, 0)], weight='length')
+            leaves.remove(splitting_leaf)
+            leaves.add(current_node)
+            leaves.add(current_node+1)
+            current_node += 2
+        else:
+            # Hybridize
+            no_of_hybrids += 1
+            merging = random.sample(leaves, 2)
+            l0 = merging[0]
+            l1 = merging[1]
+            pl0 = -1
+            for p in nw.predecessors(l0):
+                pl0 = p
+            pl1 = -1
+            for p in nw.predecessors(l1):
+                pl1 = p
+            nw.add_weighted_edges_from(
+                [(l0, current_node, 0)], weight='length')
+            leaves.remove(l0)
+            leaves.remove(l1)
+            leaves.add(current_node)
+            prob = random.random()
+            nw[pl0][l0]['prob'] = prob
+            nw[pl1][l1]['prob'] = 1-prob
+            hybrid_nodes[l0] = no_of_hybrids
+            hybrid_nodes[l1] = no_of_hybrids
+            current_node += 1
+        # Now extend all pendant edges
+        for l in leaves:
+            pl = -1
+            for p in nw.predecessors(l):
+                pl = p
+            nw[pl][l]['length'] += extra_time
+        no_of_leaves = len(leaves)
+        current_speciation_rate = float(
+            params.speciation_rate*no_of_leaves)
+        current_hybridization_rate = float((no_of_leaves * (no_of_leaves - 1))/2*params.hybridization_rate)
+        rate = current_speciation_rate + current_hybridization_rate
+        extra_time = np.random.exponential(1/rate)
+        current_time += extra_time
+
+    extra_time -= current_time-params.time_limit
+
+    return nw, leaves, extra_time, hybrid_nodes, no_of_leaves, no_of_hybrids
+
+
 def simulate_network(params):
     fileNetwork = open(params.output+"_network", "w")
     fileNetworkDendroscope = open(params.output+"_networkDendroscope", "w")
 
-    simulateNetwork = 1
-    while simulateNetwork == 1:
-        simulateNetwork = 0
-        nw = nx.DiGraph()
-        nw.add_node(0)
-        leaves = set([0])
-        current_node = 1
-
-        extra_time = np.random.exponential(1/float(params.speciation_rate))
-        current_time = extra_time
-        current_speciation_rate = float(params.speciation_rate)
-        current_hybridization_rate = float(0)
-        rate = current_speciation_rate + current_hybridization_rate
-
-        # First create a MUL-tree
-        hybrid_nodes = dict()
-        no_of_hybrids = 0
-
-        while current_time < params.time_limit:
-            if random.random() < current_speciation_rate / rate:
-                # speciate
-                splitting_leaf = random.choice(list(leaves))
-                nw.add_weighted_edges_from(
-                    [(splitting_leaf, current_node, 0), (splitting_leaf, current_node+1, 0)], weight='length')
-                leaves.remove(splitting_leaf)
-                leaves.add(current_node)
-                leaves.add(current_node+1)
-                current_node += 2
-            else:
-                # Hybridize
-                no_of_hybrids += 1
-                merging = random.sample(leaves, 2)
-                l0 = merging[0]
-                l1 = merging[1]
-                pl0 = -1
-                for p in nw.predecessors(l0):
-                    pl0 = p
-                pl1 = -1
-                for p in nw.predecessors(l1):
-                    pl1 = p
-                nw.add_weighted_edges_from(
-                    [(l0, current_node, 0)], weight='length')
-                leaves.remove(l0)
-                leaves.remove(l1)
-                leaves.add(current_node)
-                prob = random.random()
-                nw[pl0][l0]['prob'] = prob
-                nw[pl1][l1]['prob'] = 1-prob
-                hybrid_nodes[l0] = no_of_hybrids
-                hybrid_nodes[l1] = no_of_hybrids
-                current_node += 1
-            # Now extend all pendant edges
-            for l in leaves:
-                pl = -1
-                for p in nw.predecessors(l):
-                    pl = p
-                nw[pl][l]['length'] += extra_time
-            no_of_leaves = len(leaves)
-            current_speciation_rate = float(
-                params.speciation_rate*no_of_leaves)
-            current_hybridization_rate = float((no_of_leaves * (no_of_leaves - 1))/2*params.hybridization_rate)
-            rate = current_speciation_rate + current_hybridization_rate
-            extra_time = np.random.exponential(1/rate)
-            current_time += extra_time
-
-        extra_time -= current_time-params.time_limit
+    simulateNetwork = True
+    while simulateNetwork:
+        simulateNetwork = False
+        nw, leaves, extra_time, hybrid_nodes, no_of_leaves, no_of_hybrids = simulate_network_topology(params)
 
         if(len(leaves) > 3):  # network contains more than 3 sequences
             generate_trees_on_network(params, leaves, nw, extra_time, hybrid_nodes)
@@ -263,9 +270,7 @@ def simulate_network(params):
             print('done')
         else:
             print('The simulated network contains less than 4 leaves, try again')
-            simulateNetwork = 1
-        
-        #draw_network(params, nw)
+            simulateNetwork = True
     fileNetwork.close()
     fileNetworkDendroscope.close()
     return no_of_leaves, no_of_hybrids
