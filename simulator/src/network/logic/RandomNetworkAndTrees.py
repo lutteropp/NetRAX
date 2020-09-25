@@ -308,10 +308,22 @@ def simulate_network(params):
 
 def simulate_network_and_sequences(params):
     n_taxa, n_reticulations = simulate_network(params)
-    total_length = params.number_trees * params.number_sites
-    cmd = 'seq-gen -mHKY -t3.0 -f0.3,0.2,0.2,0.3 -l'+str(total_length)+'-p'+str(
-        params.number_trees)+' < '+params.output+'_trees > '+params.output+'.dat'
-    subprocess.getoutput(cmd)
+    if not params.benchmark_mode: # backwards compatiibility mode
+        total_length = params.number_trees * params.number_sites
+        cmd = 'seq-gen -mHKY -t3.0 -f0.3,0.2,0.2,0.3 -l'+str(total_length)+'-p'+str(
+            params.number_trees)+' < '+params.output+'_trees > '+params.output+'.dat'
+        subprocess.getoutput(cmd)
+    else: # we need to create multiple MSAs
+        for m in params.wanted_m_values:
+            wanted_tree_count = m*(2**n_reticulations)
+            wanted_sites_per_tree = [math.ceil(x/wanted_tree_count) for x in params.wanted_msa_sizes]
+            output_prefix = params.output+"_trees_m_"+str(m)
+            for sites in wanted_sites_per_tree:
+                output = output_prefix + "_spt_"+str(sites)
+                total_length = wanted_tree_count * sites
+                cmd = 'seq-gen -mHKY -t3.0 -f0.3,0.2,0.2,0.3 -l'+str(total_length)+'-p'+str(
+                    wanted_tree_count)+' < '+output+' > '+output+'.dat'
+                subprocess.getoutput(cmd)
     return n_taxa, n_reticulations
 
 
