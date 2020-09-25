@@ -6,6 +6,7 @@ import copy
 import collections
 import subprocess
 import matplotlib
+import math
 
 
 class SimulationParameters:
@@ -164,12 +165,19 @@ def extract_random_tree(nw, hybrid_nodes, leaves):
             tree.remove_node(toKeep)  # yep, poorly chosen name
 
     # clean the subdivision to get an actual phylogenetic tree (no fake leaves/roots and
-    # no  in- and out-degree 1 nodes
+    # no in- and out-degree 1 nodes
     tree = clean_tree(tree, leaves)
     return tree
 
 
 def generate_trees_on_network(ILS, inheritance, pop_size, filename, number_trees, number_sites_per_tree, leaves, nw, hybrid_nodes):
+    output_files = []
+    if (len(number_sites_per_tree) > 1):
+        for sites in number_sites_per_tree:
+            output_files.append(open(filename+"_spt_"+str(sites), "w"))
+    else: # for backwards compatibility
+        output_files.append(open(filename, "w"))
+
     file = open(filename, "w")
 
     hybrid_nodes_fake = dict()
@@ -177,11 +185,14 @@ def generate_trees_on_network(ILS, inheritance, pop_size, filename, number_trees
     if not(params.ILS):
         for _ in range(0, number_trees):
             tree = extract_random_tree(nw, hybrid_nodes, leaves)
-            file.write("["+str(number_sites_per_tree)+"]" +
-                       Newick_From_MULTree(ILS, inheritance, pop_size, tree, 0, hybrid_nodes_fake)+";\n")
+            tree_newick = Newick_From_MULTree(ILS, inheritance, pop_size, tree, 0, hybrid_nodes_fake)
+            for i in range(len(number_sites_per_tree)):
+                output_files[i].write("["+str(number_sites_per_tree[i])+"]"+tree_newick+";\n")
     else:
         print("Extracting trees with ILS is not supported yet.")
-    file.close()
+
+    for file in output_files:
+        file.close()
 
 
 def simulate_network_topology(params):
@@ -271,9 +282,17 @@ def simulate_network(params):
                     pl = p
                 nw[pl][l]['length'] += extra_time
 
-            generate_trees_on_network(
-                params.ILS, params.inheritance, params.pop_size, params.output+"_trees", params.number_trees, params.number_sites, leaves, nw, hybrid_nodes)
-
+            if not params.benchmark_mode:
+                generate_trees_on_network(
+                    params.ILS, params.inheritance, params.pop_size, params.output+"_trees", params.number_trees, [params.number_sites], leaves, nw, hybrid_nodes)
+            else:
+                for m in params.wanted_m_values:
+                    wanted_tree_count = m*(2**no_of_hybrids)
+                    wanted_sites_per_tree = [math.ceil(x/wanted_tree_count) for x in params.wanted_msa_sizes]
+                    output_prefix = params.output+"_trees_m_"+str(m)
+                    generate_trees_on_network(
+                        params.ILS, params.inheritance, params.pop_size, output_prefix, wanted_tree_count, wanted_sites_per_tree, leaves, nw, hybrid_nodes)
+                        
             fileNetwork.write(Newick_From_MULTree(params.ILS, params.inheritance, params.pop_size, nw, 0, hybrid_nodes)+";\n")
             params.inheritance = False
             fileNetworkDendroscope.write(
