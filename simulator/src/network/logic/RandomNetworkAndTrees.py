@@ -60,10 +60,10 @@ def draw_network(params, nw):
 def clean_tree(tree, leaves):
     # clean the subdivision to get an actual phylogenetic tree (no fake leaves/roots and
     # no  in- and out-degree 1 nodes
-    changed = 1
+    changed = True
 
-    while(changed == 1):
-        changed = 0
+    while changed:
+        changed = False
         nodes = tree.nodes()
         for v in nodes:
             if (tree.out_degree(v) == 0) and not(v in leaves) and tree.in_degree(v) > 0:
@@ -73,12 +73,12 @@ def clean_tree(tree, leaves):
                     father = f
                 tree.remove_edge(father, v)
                 tree.remove_node(v)
-                changed = 1
+                changed = True
                 break
-            elif(tree.out_degree(v) == 0) and not(v in leaves) and tree.in_degree(v) == 0:
+            elif (tree.out_degree(v) == 0) and not(v in leaves) and tree.in_degree(v) == 0:
                 # remove a fake root
                 tree.remove_node(v)
-                changed = 1
+                changed = True
                 break
             elif (tree.out_degree(v) == 1) and (tree.in_degree(v) == 1):
                 # remove a node with in- and out-degree 1
@@ -95,7 +95,7 @@ def clean_tree(tree, leaves):
                 tree.remove_edge(father, v)
                 tree.remove_edge(v, child)
                 tree.remove_node(v)
-                changed = 1
+                changed = True
                 break
     return tree
 
@@ -175,7 +175,7 @@ def generate_trees_on_network(params, leaves, nw, extra_time, hybrid_nodes):
         for _ in range(0, params.number_trees):
             tree = extract_random_tree(params, nw, hybrid_nodes, leaves)
             file.write("["+str(params.number_sites)+"]" +
-                        Newick_From_MULTree(params, tree, 0, hybrid_nodes_fake)+";\n")
+                       Newick_From_MULTree(params, tree, 0, hybrid_nodes_fake)+";\n")
     else:
         print("Extracting trees with ILS is not supported yet.")
     file.close()
@@ -240,7 +240,8 @@ def simulate_network_topology(params):
         no_of_leaves = len(leaves)
         current_speciation_rate = float(
             params.speciation_rate*no_of_leaves)
-        current_hybridization_rate = float((no_of_leaves * (no_of_leaves - 1))/2*params.hybridization_rate)
+        current_hybridization_rate = float(
+            (no_of_leaves * (no_of_leaves - 1))/2*params.hybridization_rate)
         rate = current_speciation_rate + current_hybridization_rate
         extra_time = np.random.exponential(1/rate)
         current_time += extra_time
@@ -257,10 +258,12 @@ def simulate_network(params):
     simulateNetwork = True
     while simulateNetwork:
         simulateNetwork = False
-        nw, leaves, extra_time, hybrid_nodes, no_of_leaves, no_of_hybrids = simulate_network_topology(params)
+        nw, leaves, extra_time, hybrid_nodes, no_of_leaves, no_of_hybrids = simulate_network_topology(
+            params)
 
-        if(len(leaves) > 3):  # network contains more than 3 sequences
-            generate_trees_on_network(params, leaves, nw, extra_time, hybrid_nodes)
+        if len(leaves) > 3:  # network contains more than 3 sequences
+            generate_trees_on_network(
+                params, leaves, nw, extra_time, hybrid_nodes)
 
             fileNetwork.write(Newick_From_MULTree(
                 params, nw, 0, hybrid_nodes)+";\n")
@@ -279,7 +282,8 @@ def simulate_network(params):
 def simulate_network_and_sequences(params):
     n_taxa, n_reticulations = simulate_network(params)
     total_length = params.number_trees * params.number_sites
-    cmd = 'seq-gen -mHKY -t3.0 -f0.3,0.2,0.2,0.3 -l'+str(total_length)+'-p'+str(params.number_trees)+' < '+params.output+'_trees > '+params.output+'.dat'
+    cmd = 'seq-gen -mHKY -t3.0 -f0.3,0.2,0.2,0.3 -l'+str(total_length)+'-p'+str(
+        params.number_trees)+' < '+params.output+'_trees > '+params.output+'.dat'
     subprocess.getoutput(cmd)
     return n_taxa, n_reticulations
 
