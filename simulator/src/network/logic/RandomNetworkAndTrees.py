@@ -21,6 +21,11 @@ class SimulationParameters:
         self.number_sites = 1  # number of sites per tree
         self.output = "test"  # basename for the output files
 
+        self.benchmark_mode = False # Benchmark dataset creation mode
+        # These values will only be used if benchmark mode is enabled
+        self.wanted_msa_sizes = [1000,5000,10000] # wanted number of sites in the total msa
+        self.wanted_m_values = [1, 5, 10, 20, 30] # wanted values for m. Used to generate m*2^k trees with k being the number of reticulations in the network.
+
 
 ############### CONVERT TO NEWICK ##############
 def Newick_From_MULTree(params, tree, root, hybrid_nodes):
@@ -100,7 +105,7 @@ def clean_tree(tree, leaves):
     return tree
 
 
-def extract_random_tree(params, nw, hybrid_nodes, leaves):
+def extract_random_tree(nw, hybrid_nodes, leaves):
     # generate a subdivision
     tree = copy.deepcopy(nw)
 
@@ -161,19 +166,14 @@ def extract_random_tree(params, nw, hybrid_nodes, leaves):
     return tree
 
 
-def generate_trees_on_network(params, leaves, nw, extra_time, hybrid_nodes):
-    file = open(params.output+"_trees", "w")
-    for l in leaves:
-        pl = -1
-        for p in nw.predecessors(l):
-            pl = p
-        nw[pl][l]['length'] += extra_time
+def generate_trees_on_network(params, filename, number_trees, leaves, nw, hybrid_nodes):
+    file = open(filename, "w")
 
     hybrid_nodes_fake = dict()
 
     if not(params.ILS):
-        for _ in range(0, params.number_trees):
-            tree = extract_random_tree(params, nw, hybrid_nodes, leaves)
+        for _ in range(0, number_trees):
+            tree = extract_random_tree(nw, hybrid_nodes, leaves)
             file.write("["+str(params.number_sites)+"]" +
                        Newick_From_MULTree(params, tree, 0, hybrid_nodes_fake)+";\n")
     else:
@@ -262,8 +262,14 @@ def simulate_network(params):
             params)
 
         if len(leaves) > 3:  # network contains more than 3 sequences
+            for l in leaves:
+                pl = -1
+                for p in nw.predecessors(l):
+                    pl = p
+                nw[pl][l]['length'] += extra_time
+
             generate_trees_on_network(
-                params, leaves, nw, extra_time, hybrid_nodes)
+                params, params.output+"_trees", params.number_trees, leaves, nw, hybrid_nodes)
 
             fileNetwork.write(Newick_From_MULTree(
                 params, nw, 0, hybrid_nodes)+";\n")
