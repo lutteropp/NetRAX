@@ -16,12 +16,15 @@ class SimulationParameters:
         self.pop_size = 0.01  # pop size, not used in our non_ILS simulations
         # to print inheritance probs (Dendroscope cannot read them, so we print also a network without them
         self.inheritance = True
-        self.ILS = True  # non_ILS simulations for now
-        self.number_trees = 1  # number of different trees to generate
-        self.number_sites = 1  # number of sites per tree
+        self.ILS = False  # non_ILS simulations for now
         self.output = "test"  # basename for the output files
 
         self.benchmark_mode = False # Benchmark dataset creation mode
+
+        # These values will only be used if benchmark mode is disabled
+        self.number_trees = 1  # number of different trees to generate
+        self.number_sites = 1  # number of sites per tree
+
         # These values will only be used if benchmark mode is enabled
         self.wanted_msa_sizes = [1000,5000,10000] # wanted number of sites in the total msa
         self.wanted_m_values = [1, 5, 10, 20, 30] # wanted values for m. Used to generate m*2^k trees with k being the number of reticulations in the network.
