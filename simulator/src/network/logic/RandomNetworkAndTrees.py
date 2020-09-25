@@ -57,6 +57,110 @@ def draw_network(params, nw):
     plt.savefig(params.output+'_graph.png')
 
 
+def clean_tree(tree, leaves):
+    # clean the subdivision to get an actual phylogenetic tree (no fake leaves/roots and
+    # no  in- and out-degree 1 nodes
+    changed = 1
+
+    while(changed == 1):
+        changed = 0
+        nodes = tree.nodes()
+        for v in nodes:
+            if (tree.out_degree(v) == 0) and not(v in leaves) and tree.in_degree(v) > 0:
+                # remove a fake leaf
+                father = -1
+                for f in tree.predecessors(v):
+                    father = f
+                tree.remove_edge(father, v)
+                tree.remove_node(v)
+                changed = 1
+                break
+            elif(tree.out_degree(v) == 0) and not(v in leaves) and tree.in_degree(v) == 0:
+                # remove a fake root
+                tree.remove_node(v)
+                changed = 1
+                break
+            elif (tree.out_degree(v) == 1) and (tree.in_degree(v) == 1):
+                # remove a node with in- and out-degree 1
+                father = -1
+                child = -1
+                for f in tree.predecessors(v):
+                    father = f
+                for c in tree.successors(v):
+                    child = c
+                lengthNewEdge = tree[father][v]['length'] + \
+                    tree[v][child]['length']
+                tree.add_weighted_edges_from(
+                    [(father, child, lengthNewEdge)], weight='length')
+                tree.remove_edge(father, v)
+                tree.remove_edge(v, child)
+                tree.remove_node(v)
+                changed = 1
+                break
+    return tree
+
+
+def extract_random_tree(params, nw, hybrid_nodes, leaves):
+    # generate a subdivision
+    tree = copy.deepcopy(nw)
+
+    m = int(len(hybrid_nodes)/2)
+
+    parents = np.zeros((m+1, 2))
+
+    for k in hybrid_nodes.keys():
+        if (parents[hybrid_nodes.get(k)][0] == 0):
+            parents[hybrid_nodes.get(k)][0] = k
+        else:
+            parents[hybrid_nodes.get(k)][1] = k
+
+    for h in range(1, m+1):
+        p = random.random()
+        father1 = -1
+        father2 = -1
+        node1 = int(parents[h][0])
+        node2 = int(parents[h][1])
+        for f in tree.predecessors(node1):
+            father1 = f
+        for f in tree.predecessors(node2):
+            father2 = f
+
+        toDelete = -1  # parent to delete
+        fatherNodeToDelete = -1  # parent of the parent to delete
+        toKeep = -1  # parent to keep
+        fatherNodeToKeep = -1  # parent of the parent of the parent to delete
+
+        if (p < tree[father1][node1]['prob']):
+            toDelete = node1
+            toKeep = node2
+            fatherNodeToDelete = father1
+            fatherNodeToKeep = father2
+
+        else:
+            toDelete = node2
+            toKeep = node1
+            fatherNodeToDelete = father2
+            fatherNodeToKeep = father1
+
+        if tree.out_degree(toDelete) == 0 and tree.in_degree(toDelete) > 0:
+            tree.remove_edge(fatherNodeToDelete, toDelete)
+            tree.remove_node(toDelete)
+
+        elif tree.out_degree(toDelete) == 0 and tree.in_degree(toDelete) == 0:
+            tree.remove_node(toDelete)
+        else:
+            tree.add_weighted_edges_from(
+                [(fatherNodeToKeep, toDelete, tree[fatherNodeToKeep][toKeep]['length'])], weight='length')
+            tree.remove_edge(fatherNodeToDelete, toDelete)
+            tree.remove_edge(fatherNodeToKeep, toKeep)
+            tree.remove_node(toKeep)  # yep, poorly chosen name
+
+    # clean the subdivision to get an actual phylogenetic tree (no fake leaves/roots and
+    # no  in- and out-degree 1 nodes
+    tree = clean_tree(tree, leaves)
+    return tree
+
+
 def generate_trees_on_network(params, leaves, nw, extra_time, hybrid_nodes):
     file = open(params.output+"_trees", "w")
     for l in leaves:
@@ -69,106 +173,13 @@ def generate_trees_on_network(params, leaves, nw, extra_time, hybrid_nodes):
 
     if not(params.ILS):
         for _ in range(0, params.number_trees):
-            # generate a subdivision
-            tree = copy.deepcopy(nw)
-
-            m = int(len(hybrid_nodes)/2)
-
-            parents = np.zeros((m+1, 2))
-
-            for k in hybrid_nodes.keys():
-                if (parents[hybrid_nodes.get(k)][0] == 0):
-                    parents[hybrid_nodes.get(k)][0] = k
-                else:
-                    parents[hybrid_nodes.get(k)][1] = k
-
-            for h in range(1, m+1):
-                p = random.random()
-                father1 = -1
-                father2 = -1
-                node1 = int(parents[h][0])
-                node2 = int(parents[h][1])
-                for f in tree.predecessors(node1):
-                    father1 = f
-                for f in tree.predecessors(node2):
-                    father2 = f
-
-                toDelete = -1  # parent to delete
-                fatherNodeToDelete = -1  # parent of the parent to delete
-                toKeep = -1  # parent to keep
-                fatherNodeToKeep = -1  # parent of the parent of the parent to delete
-
-                if (p < tree[father1][node1]['prob']):
-                    toDelete = node1
-                    toKeep = node2
-                    fatherNodeToDelete = father1
-                    fatherNodeToKeep = father2
-
-                else:
-                    toDelete = node2
-                    toKeep = node1
-                    fatherNodeToDelete = father2
-                    fatherNodeToKeep = father1
-
-                if tree.out_degree(toDelete) == 0 and tree.in_degree(toDelete) > 0:
-                    tree.remove_edge(fatherNodeToDelete, toDelete)
-                    tree.remove_node(toDelete)
-
-                elif tree.out_degree(toDelete) == 0 and tree.in_degree(toDelete) == 0:
-                    tree.remove_node(toDelete)
-                else:
-                    tree.add_weighted_edges_from(
-                        [(fatherNodeToKeep, toDelete, tree[fatherNodeToKeep][toKeep]['length'])], weight='length')
-                    tree.remove_edge(fatherNodeToDelete, toDelete)
-                    tree.remove_edge(fatherNodeToKeep, toKeep)
-                    tree.remove_node(toKeep)  # yep, poorly chosen name
-
-            # clean the subdivision to get an actual phylogenetic tree (no fake leaves/roots and
-            # no  in- and out-degree 1 nodes
-            changed = 1
-
-            while(changed == 1):
-                changed = 0
-                nodes = tree.nodes()
-                for v in nodes:
-                    if (tree.out_degree(v) == 0) and not(v in leaves) and tree.in_degree(v) > 0:
-                        # remove a fake leaf
-                        father = -1
-                        for f in tree.predecessors(v):
-                            father = f
-                        tree.remove_edge(father, v)
-                        tree.remove_node(v)
-                        changed = 1
-                        break
-                    elif(tree.out_degree(v) == 0) and not(v in leaves) and tree.in_degree(v) == 0:
-                        # remove a fake root
-                        tree.remove_node(v)
-                        changed = 1
-                        break
-                    elif (tree.out_degree(v) == 1) and (tree.in_degree(v) == 1):
-                        # remove a node with in- and out-degree 1
-                        father = -1
-                        child = -1
-                        for f in tree.predecessors(v):
-                            father = f
-                        for c in tree.successors(v):
-                            child = c
-                        lengthNewEdge = tree[father][v]['length'] + \
-                            tree[v][child]['length']
-                        tree.add_weighted_edges_from(
-                            [(father, child, lengthNewEdge)], weight='length')
-                        tree.remove_edge(father, v)
-                        tree.remove_edge(v, child)
-                        tree.remove_node(v)
-                        changed = 1
-                        break
-
+            tree = extract_random_tree(params, nw, hybrid_nodes, leaves)
             file.write("["+str(params.number_sites)+"]" +
                         Newick_From_MULTree(params, tree, 0, hybrid_nodes_fake)+";\n")
     else:
         print("Extracting trees with ILS is not supported yet.")
     file.close()
-    
+
 
 def simulate_network(params):
     fileNetwork = open(params.output+"_network", "w")
