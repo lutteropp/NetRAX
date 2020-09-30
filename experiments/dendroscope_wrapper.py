@@ -44,6 +44,24 @@ def get_dendro_scores(network_1, network_2):
             scores["path_multiplicity_distance"] = float(line.split(": ")[1])
     return scores
 
+
+# Takes a string in Extended NEWICK Format, and drops the reticulation probabilities and support scores, keeping online the branch length
+def convert_newick_to_dendroscope(newick):
+    new_newick = ""
+    seenColon = False
+    skip = False
+    for c in newick:
+        if c == ':':
+            skip = seenColon
+            seenColon = True
+        elif c in [',', '(', ')', ';']:
+            skip = False
+            seenColon = False
+        if not skip:
+            new_newick += c
+    return new_newick
+
+
 if __name__== "__main__":
     scores = get_dendro_scores(NETWORK_1, NETWORK_2)
     print(scores)
