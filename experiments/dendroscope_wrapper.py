@@ -9,6 +9,8 @@ DENDROSCOPE_PATH = "/home/sarah/dendroscope/Dendroscope"
 NETWORK_1 = "((protopterus:0.0,(Xenopus:0.0,(((((Monodelphis:0.0,(python:0.0)#H1:0.0):0.0,(Caretta:0.0)#H2:0.0):0.0,(Homo:0.0)#H3:0.0):0.0,(Ornithorhynchus:0.0)#H4:0.0):0.0,(((#H1:0.0,((#H3:0.0,Anolis:0.0):0.0,(Gallus:0.0)#H5:0.0):0.0):0.0,(Podarcis:0.0)#H6:0.0):0.0,(((#H5:0.0,(#H6:0.0,Taeniopygia:0.0):0.0):0.0,(alligator:0.0,Caiman:0.0):0.0):0.0,(phrynops:0.0,(Emys:0.0,((Chelonoidi:0.0,#H4:0.0):0.0,#H2:0.0):0.0):0.0):0.0):0.0):0.0):0.0):0.0):0.0);"
 NETWORK_2 = NETWORK_1
 
+
+# Takes two networks in Extended NEWICK format and uses Dendroscope to compute various topological distances.
 def get_dendro_scores(network_1, network_2):
     cmd = "add tree=\'" + network_1 + network_2 + "\';"
     cmd += "\ncompute distance method=hardwired;"
@@ -45,7 +47,7 @@ def get_dendro_scores(network_1, network_2):
     return scores
 
 
-# Takes a string in Extended NEWICK Format, and drops the reticulation probabilities and support scores, keeping online the branch length
+# Takes a string in Extended NEWICK Format, and drops the reticulation probabilities and support scores, keeping only the branch length.
 def convert_newick_to_dendroscope(newick):
     new_newick = ""
     seenColon = False
