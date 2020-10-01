@@ -25,3 +25,24 @@ def infer_network(msa_path, output_path, timeout):
     if timeout > 0:
         netrax_cmd += " --endless --timeout " + str(timeout)
     subprocess.getoutput(netrax_cmd).splitlines()
+    
+    
+# Extracts all displayed trees of a given network, returning two lists: one containing the NEWICK strings, and one containing the tree probabilities
+def extract_displayed_trees(network_path):
+    netrax_cmd = NETRAX_PATH + " --extract_displayed_trees " + " --start_network " + network_path
+    lines = subprocess.getoutput(netrax_cmd).splitlines()
+    start_idx = 0
+    n_trees = 0
+    for i in range(len(lines)):
+        if lines[i].startswith("Number of displayed trees:"):
+            n_trees = int(lines[i].split(": ")[1])
+            start_idx = i + 1
+            break
+    trees_newick = []
+    trees_prob = []
+    for i in range(n_trees):
+        trees_newick.append(lines[start_idx + i].replace('\n',''))
+    start_idx += n_trees + 1
+    for i in range(n_trees):
+        trees_prob.append(float(lines[start_idx + i].split(": ")[1]))
+    return trees_newick, trees_prob
