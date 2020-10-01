@@ -308,7 +308,7 @@ def simulate_network(params):
 
 def simulate_network_and_sequences(params):
     n_taxa, n_reticulations = simulate_network(params)
-    if not params.benchmark_mode: # backwards compatiibility mode
+    if not params.benchmark_mode: # backwards compatibility mode
         total_length = params.number_trees * params.number_sites
         cmd = 'seq-gen -mHKY -t3.0 -f0.3,0.2,0.2,0.3 -l'+str(total_length)+'-p'+str(
             params.number_trees)+' < '+params.output+'_trees > '+params.output+'.dat'
