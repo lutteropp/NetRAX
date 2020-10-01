@@ -33,7 +33,7 @@ def create_dataset_container_sarah(n_taxa, n_reticulations, approx_msa_size, sam
     return ds
     
     
-sample_trees_sarah(ds, trees_prob):
+def sample_trees_sarah(ds, trees_prob):
     n_displayed_trees = len(trees_prob)
     sampled_trees_contrib = [0] * n_displayed_trees
     
