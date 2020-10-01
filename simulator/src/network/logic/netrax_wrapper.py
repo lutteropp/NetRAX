@@ -57,4 +57,4 @@ def generate_random_network(n_taxa, n_reticulations, output_path):
     msa_file.close()
     netrax_cmd = NETRAX_PATH + " --generate_random_network_only " + " --max_reticulations " + str(n_reticulations) + " --msa " + msa_path + " --output " + output_path
     subprocess.getoutput(netrax_cmd)
-    os.remove(msa_file)
+    os.remove(msa_path)

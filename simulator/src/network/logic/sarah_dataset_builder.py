@@ -1,5 +1,5 @@
 
-from evaluate_experiments import Dataset, SamplingType, SimulationType
+from experiment_model import Dataset, SamplingType, SimulationType
 from netrax_wrapper import generate_random_network, extract_displayed_trees
 from seqgen_wrapper import simulate_msa
 

@@ -1,5 +1,5 @@
 import subprocess
-from run_experiments import Dataset
+from experiment_model import Dataset
 
 SEQGEN_PATH = "seq-gen"
 
