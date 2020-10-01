@@ -29,6 +29,7 @@ class Dataset:
         self.n_trees = 0
         self.sites_per_tree = 0
         self.msa_path = ""
+        self.extracted_trees_path = ""
         self.true_network_path = ""
         self.inferred_network_path = ""
         self.sampling_type = SamplingType.STANDARD
