@@ -20,10 +20,13 @@ namespace netrax {
 
 struct Node;
 class Network;
+class AnnotatedNetwork;
 struct BlobInformation;
 
 std::vector<std::vector<size_t> > getDtBranchToNetworkBranchMapping(const pll_utree_t &utree,
         Network &network, size_t tree_idx);
+
+double displayed_tree_prob(AnnotatedNetwork &ann_network, size_t tree_index);
 
 pll_utree_t* displayed_tree_to_utree(Network &network, size_t tree_index);
 std::vector<double> collectBranchLengths(const Network &network);

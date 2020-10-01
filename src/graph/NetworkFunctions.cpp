@@ -25,6 +25,7 @@
 #include "Node.hpp"
 #include "NodeType.hpp"
 #include "ReticulationData.hpp"
+#include "AnnotatedNetwork.hpp"
 
 namespace netrax {
 
@@ -270,6 +271,17 @@ std::vector<bool> collect_skipped_nodes(Network &network, const std::vector<bool
     }
 
     return skipped_nodes;
+}
+
+double displayed_tree_prob(AnnotatedNetwork &ann_network, size_t tree_index) {
+    setReticulationParents(ann_network.network, tree_index);
+    double logProb = 0;
+    for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
+        size_t active_pmatrix_idx = getReticulationActiveParentPmatrixIndex(ann_network.network.reticulation_nodes[i]);
+        double prob = ann_network.branch_probs[0][active_pmatrix_idx];
+        logProb += log(prob);
+    }
+    return exp(logProb);
 }
 
 pll_utree_t* displayed_tree_to_utree(Network &network, size_t tree_index) {

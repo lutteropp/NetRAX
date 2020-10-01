@@ -5,12 +5,13 @@
 #include "Api.hpp"
 #include "graph/AnnotatedNetwork.hpp"
 #include "NetraxOptions.hpp"
+#include "NetworkIO.hpp"
 
 using namespace netrax;
 
 int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
     CLI::App app { "NetRAX: Phylogenetic Network Inference without Incomplete Lineage Sorting" };
-    app.add_option("--msa", options->msa_file, "The Multiple Sequence Alignment File")->required();
+    app.add_option("--msa", options->msa_file, "The Multiple Sequence Alignment File");
     app.add_option("-o,--output", options->output_file, "File where to write the final network to");
     app.add_option("--start_network", options->start_network_file, "A network file (in Extended Newick format) to start the search on");
     app.add_option("-r,--reticulations", options->max_reticulations,
@@ -19,6 +20,7 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
     app.add_flag("-e,--endless", options->endless, "Endless search mode - keep trying with more random start networks.");
     app.add_option("--seed", options->seed, "Seed for random number generation.");
     app.add_flag("--score_only", options->score_only, "Only read a network and MSA from file and compute its score.");
+    app.add_flag("--extract_displayed_trees", options->extract_displayed_trees, "Only extract all displayed trees with their probabilities from a network.");
     CLI11_PARSE(app, argc, argv);
     return 0;
 }
@@ -85,6 +87,33 @@ void score_only(const NetraxOptions& netraxOptions, std::mt19937& rng) {
     std::cout << "Loglikelihood: " << final_logl << "\n";
 }
 
+void extract_displayed_trees(const NetraxOptions& netraxOptions, std::mt19937& rng) {
+    if (netraxOptions.start_network_file.empty()) {
+        throw std::runtime_error("Need network to extract displayed trees");
+    }
+    std::vector<std::pair<std::string, double> > displayed_trees;
+    netrax::AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(netraxOptions);
+    NetraxInstance::init_annotated_network(ann_network, rng);
+    for (size_t tree_index = 0; tree_index < 1 << ann_network.network.num_reticulations(); ++tree_index) {
+        pll_utree_t* utree = netrax::displayed_tree_to_utree(ann_network.network, tree_index);
+        double prob = netrax::displayed_tree_prob(ann_network, tree_index);
+        Network displayedNetwork = netrax::convertUtreeToNetwork(*utree, 0);
+        std::string newick = netrax::toExtendedNewick(displayedNetwork);
+        pll_utree_destroy(utree, nullptr);
+        displayed_trees.emplace_back(std::make_pair(newick, prob));
+    }
+
+    std::cout << "Number of displayed trees: " << displayed_trees.size() << "\n";
+    std::cout << "Displayed trees Newick strings:\n";
+    for (const auto& entry : displayed_trees) {
+        std::cout << entry.first << "\n";
+    }
+    std::cout << "Displayed trees probabilities:\n";
+    for (const auto& entry : displayed_trees) {
+        std::cout << entry.second << "\n";
+    }
+}
+
 int main(int argc, char **argv) {
     //std::ios::sync_with_stdio(false);
     //std::cin.tie(NULL);
@@ -100,7 +129,14 @@ int main(int argc, char **argv) {
         rng = rng2;
     }
 
+    if (netraxOptions.extract_displayed_trees) {
+        extract_displayed_trees(netraxOptions, rng);
+    }
+
     std::cout << "The current Likelihood model being used is the DNA model from raxml-ng\n\n";
+    if (netraxOptions.msa_file.empty()) {
+        throw std::runtime_error("Need MSA to score a network");
+    }
 
     if (netraxOptions.score_only) {
         score_only(netraxOptions, rng);

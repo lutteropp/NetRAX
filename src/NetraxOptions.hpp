@@ -30,6 +30,7 @@ public:
     bool use_repeats = true;
 
     bool score_only = false;
+    bool extract_displayed_trees = false;
 
     bool endless = false;
     int seed = 0;
