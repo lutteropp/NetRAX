@@ -1,4 +1,4 @@
-
+import os
 from sarah_dataset_builder import build_dataset_sarah
 from evaluate_experiments import SamplingType, SimulationType, run_inference_and_evaluate, write_results_to_csv
 
@@ -13,7 +13,9 @@ WANTED_TIMEOUTS = [0, 60] # Timeout of zero means a singl enetrax random startin
 
 
 def build_dataset(n_taxa, n_reticulations, msa_size, m, simulator, sampling, timeout):
-    name = str(simulator) + "_" + str(sampling) + "_" + str(n_taxa) + "_" + str(n_reticulations) + "_" + str(msa_size) + "_" + str(m) + "_" + str(timeout) 
+    if not os.path.exists('datasets'):
+        os.makedirs('datasets')
+    name = "datasets/" + str(simulator) + "_" + str(sampling) + "_" + str(n_taxa) + "_" + str(n_reticulations) + "_" + str(msa_size) + "_" + str(m) + "_" + str(timeout) 
     if simulator == SimulationType.SARAH:
         return build_dataset_sarah(n_taxa, n_reticulations, msa_size, sampling, name, timeout, m)
     else:
