@@ -18,6 +18,7 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
     app.add_option("-t,--timeout", options->timeout, "Maximum number of seconds to run network search.");
     app.add_flag("-e,--endless", options->endless, "Endless search mode - keep trying with more random start networks.");
     app.add_option("--seed", options->seed, "Seed for random number generation.");
+    app.add_flag("--score_only", options->score_only, "Only read a network and MSA from file and compute its score.");
     CLI11_PARSE(app, argc, argv);
     return 0;
 }
@@ -37,6 +38,8 @@ void run_random_endless(NetraxOptions& netraxOptions, std::mt19937& rng) {
         if (final_bic < best_score) {
             best_score = final_bic;
             std::cout << "IMPROVED BEST SCORE FOUND SO FAR: " << best_score << "\n\n";
+            NetraxInstance::writeNetwork(ann_network, netraxOptions.output_file);
+            std::cout << "Better network written to " << netraxOptions.output_file << "\n";  
         } else {
             std::cout << "REMAINED BEST SCORE FOUND SO FAR: " << best_score << "\n";
         }
@@ -66,6 +69,22 @@ void run_random_single(NetraxOptions& netraxOptions, std::mt19937& rng) {
     std::cout << "Final network written to " << netraxOptions.output_file << "\n";
 }
 
+void score_only(const NetraxOptions& netraxOptions, std::mt19937& rng) {
+    if (netraxOptions.msa_file.empty()) {
+        throw std::runtime_error("Need MSA to score a network");
+    }
+    if (netraxOptions.start_network_file.empty()) {
+        throw std::runtime_error("Need network file to be scored");
+    }
+    netrax::AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(netraxOptions);
+    NetraxInstance::init_annotated_network(ann_network, rng);
+    double final_bic = NetraxInstance::scoreNetwork(ann_network);
+    double final_logl = NetraxInstance::computeLoglikelihood(ann_network);
+    std::cout << "Number of reticulations: " << ann_network.network.num_reticulations() << "\n";
+    std::cout << "BIC Score: " << final_bic << "\n";
+    std::cout << "Loglikelihood: " << final_logl << "\n";
+}
+
 int main(int argc, char **argv) {
     //std::ios::sync_with_stdio(false);
     //std::cin.tie(NULL);
@@ -82,6 +101,12 @@ int main(int argc, char **argv) {
     }
 
     std::cout << "The current Likelihood model being used is the DNA model from raxml-ng\n\n";
+
+    if (netraxOptions.score_only) {
+        score_only(netraxOptions, rng);
+        return 0;
+    }
+
     if (!netraxOptions.endless) {
         run_random_single(netraxOptions, rng);
     } else {

@@ -29,6 +29,8 @@ public:
     bool optimize_model = true;
     bool use_repeats = true;
 
+    bool score_only = false;
+
     bool endless = false;
     int seed = 0;
 
