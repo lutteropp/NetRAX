@@ -4,7 +4,7 @@ from enum import Enum
     
     
 class SamplingType(Enum):
-    STANDARD = 1 # randomly choose which tree to sample, then sample equal number of sites for each sampled tree
+    STANDARD = 1 # randomly choose which tree to sample, then sample equal number of sites for each sampled tree - this is the only mode that uses the n_trees parameter for sampling
     PERFECT_SAMPLING = 2 # sample each displayed tree, and as many site as expected by the tree probability
     PERFECT_UNIFORM_SAMPLING = 3 # sample each displayed tree, with the same number of sites per tree (ignoring reticulation probabilities)
     SINGLE_SITE_SAMPLING = 4 # sample each site individually, with the reticulation probabilities in mind
@@ -79,11 +79,9 @@ def write_results_to_csv(results, csv_path):
     csv_file = open(csv_path, "w")
     header = DATASET_CSV_HEADER + ";" + RESULT_CSV_HEADER
     csv_file.write(header + "\n")
-    
     for res in results:
         line = str(res.dataset.get_csv_line() + "," + res.get_csv_line() + "\n")
         csv_file.write(line)
-        
     csv_file.close()
 
 
