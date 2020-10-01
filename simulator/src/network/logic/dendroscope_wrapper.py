@@ -69,13 +69,6 @@ def evaluate(simulated_network_path, inferred_network_path):
     net1 = open(simulated_network_path).read()
     net2 = open(inferred_network_path).read()
     scores = get_dendro_scores(net1, net2)
-    
-
-# Takes a network in Extended NEWICK format and extracts all its displayed trees in Newick format, as well as their probabilities.
-def extract_displayed_trees(newick):
-    trees = []
-    probs = []
-    return trees, probs
 
 
 if __name__== "__main__":
