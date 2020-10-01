@@ -24,6 +24,7 @@ def build_dataset(n_taxa, n_reticulations, msa_size, m, simulator, sampling, tim
 
 def run_experiments(wanted_num_taxa, wanted_num_reticulations, wanted_msa_sizes, wanted_m_values, wanted_simulators, wanted_samplings, wanted_timeouts):
     datasets = []
+    results = []
     for simulator in wanted_simulators:
         for sampling in wanted_samplings:
             for m in wanted_m_values:
@@ -33,8 +34,10 @@ def run_experiments(wanted_num_taxa, wanted_num_reticulations, wanted_msa_sizes,
                     for n_reticulations in wanted_num_reticulations:
                         for msa_size in wanted_msa_sizes:
                             for timeout in wanted_timeouts:
-                                datasets.append(build_dataset(n_taxa, n_reticulations, msa_size, m, simulator, sampling, timeout))
-    results = run_inference_and_evaluate(datasets)
+                                my_dataset = build_dataset(n_taxa, n_reticulations, msa_size, m, simulator, sampling, timeout)
+                                result = run_inference_and_evaluate([my_dataset])
+                                datasets.append(my_dataset)
+                                results.append(result)
     write_results_to_csv(results, "all_results.csv")
 
     

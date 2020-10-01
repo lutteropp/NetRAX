@@ -5,8 +5,8 @@ from experiment_model import *
 
 def evaluate_dataset(dataset):
     res = Result(dataset)
-    _, res.bic_true, res.logl_true = score_network(datase.true_network_path, dataset.msa_path)
-    res.n_reticulations_inferred, res.bic_inferred, res.logl_inferred = score_network(datase.inferred_network_path, dataset.msa_path)
+    _, res.bic_true, res.logl_true = score_network(dataset.true_network_path, dataset.msa_path)
+    res.n_reticulations_inferred, res.bic_inferred, res.logl_inferred = score_network(dataset.inferred_network_path, dataset.msa_path)
     network_1 = open(dataset.true_network_path).read()
     network_2 = open(dataset.inferred_network_path).read()
     res.topological_distances = get_dendro_scores(network_1, network_2)
@@ -17,7 +17,7 @@ def evaluate_dataset(dataset):
 def run_inference_and_evaluate(datasets):
     for ds in datasets:
         infer_network(ds.msa_path, ds.inferred_network_path, ds.timeout)
-    results = [evaluate_dataset(dataset) for ds in datasets]
+    results = [evaluate_dataset(ds) for ds in datasets]
     return results
     
 
