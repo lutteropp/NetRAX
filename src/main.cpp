@@ -11,7 +11,7 @@ using namespace netrax;
 int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
     CLI::App app { "NetRAX: Phylogenetic Network Inference without Incomplete Lineage Sorting" };
     app.add_option("--msa", options->msa_file, "The Multiple Sequence Alignment File")->required();
-    app.add_option("-o,--output", options->output_file, "File where to write the final network to")->required();
+    app.add_option("-o,--output", options->output_file, "File where to write the final network to");
     app.add_option("--start_network", options->start_network_file, "A network file (in Extended Newick format) to start the search on");
     app.add_option("-r,--reticulations", options->max_reticulations,
             "Maximum number of reticulations to consider (default: 20)");
@@ -105,6 +105,8 @@ int main(int argc, char **argv) {
     if (netraxOptions.score_only) {
         score_only(netraxOptions, rng);
         return 0;
+    } else if (netraxOptions.output_file.empty()) {
+        throw std::runtime_error("No output path specified");
     }
 
     if (!netraxOptions.endless) {
