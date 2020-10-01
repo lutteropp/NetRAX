@@ -37,7 +37,6 @@ def extract_displayed_trees(network_path, n_taxa):
     netrax_cmd = NETRAX_PATH + " --extract_displayed_trees " + " --start_network " + network_path + " --msa " + msa_path
     lines = subprocess.getoutput(netrax_cmd).splitlines()
     os.remove(msa_path)
-    print(lines)
     start_idx = 0
     n_trees = 0
     for i in range(len(lines)):
@@ -49,9 +48,9 @@ def extract_displayed_trees(network_path, n_taxa):
     trees_prob = []
     for i in range(n_trees):
         trees_newick.append(lines[start_idx + i].replace('\n',''))
-    start_idx += n_trees + 1
+    start_idx += n_trees + 2
     for i in range(n_trees):
-        trees_prob.append(float(lines[start_idx + i].split(": ")[1]))
+        trees_prob.append(float(lines[start_idx + i]))
     return trees_newick, trees_prob
     
     
