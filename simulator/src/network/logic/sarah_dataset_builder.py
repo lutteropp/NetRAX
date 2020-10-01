@@ -1,6 +1,6 @@
 
 from evaluate_experiments import Dataset, SamplingType, SimulationType
-from netrax_wrapper import generate_random_network, extract_displayed_trees, infer_network
+from netrax_wrapper import generate_random_network, extract_displayed_trees
 from seqgen_wrapper import simulate_msa
 
 import math
@@ -63,13 +63,12 @@ def build_trees_file_sarah(ds, trees_newick, sampled_trees_contrib):
     trees_file.close()
     
     
-def build_and_run_dataset_sarah(n_taxa, n_reticulations, approx_msa_size, sampling_type, name, timeout=0, m=1):
+def build_dataset_sarah(n_taxa, n_reticulations, approx_msa_size, sampling_type, name, timeout=0, m=1):
     ds = create_dataset_container_sarah(n_taxa, n_reticulations, approx_msa_size, sampling_type, name, timeout, m)
     generate_random_network(ds.n_taxa, ds.n_reticulations, ds.true_network_path)
     trees_newick, trees_prob = extract_displayed_trees(ds.true_network_path)
     ds, sampled_tree_contrib = sample_trees_sarah(ds, trees_prob)
     build_trees_file_sarah(ds, trees_newick, sampled_trees_contrib)
     simulate_msa(ds)
-    infer_network(ds.msa_path, ds.inferred_network_path, ds.timeout)
     return ds
    

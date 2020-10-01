@@ -4,7 +4,7 @@ from enum import Enum
     
     
 class SamplingType(Enum):
-    STANDARD = 1 # randomly choose which tree to sample, then sample equal number of sites for each sampled tree - this is the only mode that uses the n_trees parameter for sampling
+    STANDARD = 1 # randomly choose which tree to sample, then sample equal number of sites for each sampled tree - this is the only mode that uses the n_trees or m parameter for sampling
     PERFECT_SAMPLING = 2 # sample each displayed tree, and as many site as expected by the tree probability
     PERFECT_UNIFORM_SAMPLING = 3 # sample each displayed tree, with the same number of sites per tree (ignoring reticulation probabilities)
     SINGLE_SITE_SAMPLING = 4 # sample each site individually, with the reticulation probabilities in mind
@@ -65,6 +65,7 @@ def evaluate_dataset(dataset):
     network_1 = open(dataset.true_network_path).read()
     network_2 = open(dataset.inferred_network_path).read()
     res.topological_distances = get_dendro_scores(network_1, network_2)
+    print(RESULT_CSV_HEADER+"\n" + res.get_csv_line + "\n\n)
     return res
     
     
