@@ -31,7 +31,7 @@ public:
 
     bool score_only = false;
     bool extract_displayed_trees = false;
-    bool generate_network_only = false;
+    bool generate_random_network_only = false;
 
     bool endless = false;
     int seed = 0;

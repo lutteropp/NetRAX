@@ -21,7 +21,7 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
     app.add_option("--seed", options->seed, "Seed for random number generation.");
     app.add_flag("--score_only", options->score_only, "Only read a network and MSA from file and compute its score.");
     app.add_flag("--extract_displayed_trees", options->extract_displayed_trees, "Only extract all displayed trees with their probabilities from a network.");
-    app.add_flag("--generate_network_only", options->generate_network_only, "Only generate a random network, with as many reticulations as specified in the -r parameter");
+    app.add_flag("--generate_random_network_only", options->generate_random_network_only, "Only generate a random network, with as many reticulations as specified in the -r parameter");
     CLI11_PARSE(app, argc, argv);
     return 0;
 }
@@ -115,7 +115,7 @@ void extract_displayed_trees(const NetraxOptions& netraxOptions, std::mt19937& r
     }
 }
 
-void generate_network_only(const NetraxOptions& netraxOptions, std::mt19937& rng) {
+void generate_random_network_only(const NetraxOptions& netraxOptions, std::mt19937& rng) {
     if (netraxOptions.msa_file.empty()) {
         throw std::runtime_error("Need MSA to decide on the number of taxa");
     }
@@ -149,8 +149,8 @@ int main(int argc, char **argv) {
         return 0;
     }
 
-    if (netraxOptions.generate_network_only) {
-        generate_network_only(netraxOptions, rng);
+    if (netraxOptions.generate_random_network_only) {
+        generate_random_network_only(netraxOptions, rng);
         return 0;
     }
 

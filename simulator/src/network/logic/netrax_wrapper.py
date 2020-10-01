@@ -46,3 +46,15 @@ def extract_displayed_trees(network_path):
     for i in range(n_trees):
         trees_prob.append(float(lines[start_idx + i].split(": ")[1]))
     return trees_newick, trees_prob
+    
+    
+# Generates a random network with the wanted number of taxa and reticulations. Writes it in Extended NEWICK format to the provided output path.
+def generate_random_network(n_taxa, n_reticulations, output_path):
+    msa_path = "temp_fake_msa.txt"
+    msa_file = open(msa_path, "w")
+    for i in range(n_taxa):
+        msa_file.write(">T" + str(i) + "\n" + "A\n")
+    msa_file.close()
+    netrax_cmd = NETRAX_PATH + " --generate_random_network_only " + " --max_reticulations " + str(n_reticulations) + " --msa " + msa_path + " --output " + output_path
+    subprocess.getoutput(netrax_cmd)
+    os.remove(msa_file)
