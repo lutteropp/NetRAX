@@ -21,6 +21,7 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
     app.add_option("--seed", options->seed, "Seed for random number generation.");
     app.add_flag("--score_only", options->score_only, "Only read a network and MSA from file and compute its score.");
     app.add_flag("--extract_displayed_trees", options->extract_displayed_trees, "Only extract all displayed trees with their probabilities from a network.");
+    app.add_flag("--generate_network_only", options->generate_network_only, "Only generate a random network, with as many reticulations as specified in the -r parameter");
     CLI11_PARSE(app, argc, argv);
     return 0;
 }
@@ -114,6 +115,20 @@ void extract_displayed_trees(const NetraxOptions& netraxOptions, std::mt19937& r
     }
 }
 
+void generate_network_only(const NetraxOptions& netraxOptions, std::mt19937& rng) {
+    if (netraxOptions.msa_file.empty()) {
+        throw std::runtime_error("Need MSA to decide on the number of taxa");
+    }
+    if (netraxOptions.output_file.empty()) {
+        throw std::runtime_error("Need output file to write the generated network");
+    }
+    netrax::AnnotatedNetwork ann_network = NetraxInstance::build_random_annotated_network(netraxOptions);
+    NetraxInstance::init_annotated_network(ann_network, rng);
+    NetraxInstance::add_extra_reticulations(ann_network, netraxOptions.max_reticulations);
+    NetraxInstance::writeNetwork(ann_network, netraxOptions.output_file);
+    std::cout << "Final network written to " << netraxOptions.output_file << "\n";
+}
+
 int main(int argc, char **argv) {
     //std::ios::sync_with_stdio(false);
     //std::cin.tie(NULL);
@@ -131,6 +146,12 @@ int main(int argc, char **argv) {
 
     if (netraxOptions.extract_displayed_trees) {
         extract_displayed_trees(netraxOptions, rng);
+        return 0;
+    }
+
+    if (netraxOptions.generate_network_only) {
+        generate_network_only(netraxOptions, rng);
+        return 0;
     }
 
     std::cout << "The current Likelihood model being used is the DNA model from raxml-ng\n\n";
