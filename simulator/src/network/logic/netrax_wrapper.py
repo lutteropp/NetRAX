@@ -48,12 +48,28 @@ def extract_displayed_trees(network_path):
     return trees_newick, trees_prob
     
     
+def build_fake_msa(n_taxa):
+    fake_msa = ""
+    
+    def to_dna(s):
+        BS = "ACGT"
+        res = ""
+        while s:
+            res+=BS[s%4]
+            s//= 4
+        return res[::-1] or "A"
+    
+    msa = [""] * n_taxa
+    for i in range(n_taxa):
+        fake_msa += ">T" + str(i) + "\n" + to_dna(i) + "\n"
+    print(fake_msa+ "\n")
+    return fake_msa
+    
 # Generates a random network with the wanted number of taxa and reticulations. Writes it in Extended NEWICK format to the provided output path.
 def generate_random_network(n_taxa, n_reticulations, output_path):
     msa_path = "temp_fake_msa.txt"
     msa_file = open(msa_path, "w")
-    for i in range(n_taxa):
-        msa_file.write(">T" + str(i) + "\n" + "A\n")
+    msa_file.write(build_fake_msa(n_taxa))
     msa_file.close()
     netrax_cmd = NETRAX_PATH + " --generate_random_network_only " + " --max_reticulations " + str(n_reticulations) + " --msa " + msa_path + " --output " + output_path
     subprocess.getoutput(netrax_cmd)
