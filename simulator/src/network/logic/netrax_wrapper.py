@@ -28,9 +28,16 @@ def infer_network(msa_path, output_path, timeout):
     
     
 # Extracts all displayed trees of a given network, returning two lists: one containing the NEWICK strings, and one containing the tree probabilities
-def extract_displayed_trees(network_path):
-    netrax_cmd = NETRAX_PATH + " --extract_displayed_trees " + " --start_network " + network_path
+def extract_displayed_trees(network_path, n_taxa):
+    msa_path = "temp_fake_msa.txt"
+    msa_file = open(msa_path, "w")
+    msa_file.write(build_fake_msa(n_taxa))
+    msa_file.close()
+
+    netrax_cmd = NETRAX_PATH + " --extract_displayed_trees " + " --start_network " + network_path + " --msa " + msa_path
     lines = subprocess.getoutput(netrax_cmd).splitlines()
+    os.remove(msa_path)
+    print(lines)
     start_idx = 0
     n_trees = 0
     for i in range(len(lines)):
@@ -65,7 +72,6 @@ def build_fake_msa(n_taxa):
     
     for i in range(n_taxa):
         fake_msa += ">T" + str(i) + "\n" + msa[i] + "\n"
-    print(fake_msa+ "\n")
     return fake_msa
     
 # Generates a random network with the wanted number of taxa and reticulations. Writes it in Extended NEWICK format to the provided output path.
