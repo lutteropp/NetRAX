@@ -43,7 +43,7 @@ def get_dendro_scores(network_1, network_2):
     temp_command_file.close()
 
     dendro_cmd = XSERVER_MAGIC + " " + DENDROSCOPE_PATH + " -g -c dendroscope_commands.txt"
-    #print(dendro_cmd)
+    print(dendro_cmd)
     dendroscope_output = subprocess.getoutput(dendro_cmd).splitlines()
     os.remove("dendroscope_commands.txt")
     
@@ -61,6 +61,7 @@ def get_dendro_scores(network_1, network_2):
             scores["nested_labels_distance"] = float(line.split(": ")[1])
         elif line.startswith("Path multiplicity distance:"):
             scores["path_multiplicity_distance"] = float(line.split(": ")[1])
+    print(scores)
     return scores
     
     

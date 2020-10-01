@@ -7,22 +7,9 @@ import math
 import random
 
 def create_dataset_container_sarah(n_taxa, n_reticulations, approx_msa_size, sampling_type, name, timeout=0, m=1):
-    n_trees = 2 ** n_reticulations
-    if sampling_type == SamplingType.STANDARD:
-        n_trees *= m
-    sites_per_tree = math.ceil(approx_msa_size / n_trees)
-    msa_size = approx_msa_size
-    
-    if sampling_type == SamplingType.STANDARD:
-        msa_size = sites_per_tree * n_trees
-    if sampling_type == SamplingType.SINGLE_SITE_SAMPLING:
-        sites_per_tree = 1
-        n_trees = approx_msa_size
     ds = Dataset()
     ds.n_taxa = n_taxa
     ds.n_reticulations = n_reticulations
-    ds.n_trees = n_trees
-    ds.sites_per_tree = sites_per_tree
     ds.msa_path = name + "_msa.txt"
     ds.extracted_trees_path = name + "_trees.txt"
     ds.true_network_path = name + "_true_network.nw"
@@ -30,6 +17,18 @@ def create_dataset_container_sarah(n_taxa, n_reticulations, approx_msa_size, sam
     ds.sampling_type = sampling_type
     ds.simulation_type = SimulationType.SARAH
     ds.timeout = timeout
+    
+    ds.n_trees = 2 ** n_reticulations
+    if sampling_type == SamplingType.STANDARD:
+        ds.n_trees *= m
+    ds.sites_per_tree = math.ceil(approx_msa_size / ds.n_trees)
+    ds.msa_size = approx_msa_size
+    
+    if sampling_type == SamplingType.STANDARD:
+        ds.msa_size = ds.sites_per_tree * ds.n_trees
+    if sampling_type == SamplingType.SINGLE_SITE_SAMPLING:
+        ds.sites_per_tree = 1
+        ds.n_trees = approx_msa_size
     return ds
     
     

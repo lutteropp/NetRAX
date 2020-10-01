@@ -7,6 +7,7 @@ NETRAX_PATH = "/home/sarah/code-workspace/NetRAX/bin/netrax"
 # Uses NetRAX to compute the number of reticulations, BIC score, and loglikelihood of a network for a given MSA
 def score_network(network_path, msa_path):
     netrax_cmd = NETRAX_PATH + " --score_only" + " --start_network" + network_path + " --msa " + msa_path
+    print(netrax_cmd)
     netrax_output = subprocess.getoutput(netrax_cmd).splitlines()
     n_reticulations, bic, logl = 0,0,0
     for line in netrax_output:
@@ -22,9 +23,10 @@ def score_network(network_path, msa_path):
 # Uses NetRAX to infer a network... uses single random starting network if timeout==0, else keeps searching for a better network until timeout seconds have passed.
 def infer_network(msa_path, output_path, timeout):
     netrax_cmd = NETRAX_PATH + " --msa " + msa_path + " --output " + output_path
+    print(netrax_cmd)
     if timeout > 0:
         netrax_cmd += " --endless --timeout " + str(timeout)
-    subprocess.getoutput(netrax_cmd).splitlines()
+    subprocess.getoutput(netrax_cmd)
     
     
 # Extracts all displayed trees of a given network, returning two lists: one containing the NEWICK strings, and one containing the tree probabilities
@@ -35,6 +37,7 @@ def extract_displayed_trees(network_path, n_taxa):
     msa_file.close()
 
     netrax_cmd = NETRAX_PATH + " --extract_displayed_trees " + " --start_network " + network_path + " --msa " + msa_path
+    print(netrax_cmd)
     lines = subprocess.getoutput(netrax_cmd).splitlines()
     os.remove(msa_path)
     start_idx = 0
@@ -42,13 +45,13 @@ def extract_displayed_trees(network_path, n_taxa):
     for i in range(len(lines)):
         if lines[i].startswith("Number of displayed trees:"):
             n_trees = int(lines[i].split(": ")[1])
-            start_idx = i + 1
+            start_idx = i + 2
             break
     trees_newick = []
     trees_prob = []
     for i in range(n_trees):
         trees_newick.append(lines[start_idx + i].replace('\n',''))
-    start_idx += n_trees + 2
+    start_idx += n_trees + 1
     for i in range(n_trees):
         trees_prob.append(float(lines[start_idx + i]))
     return trees_newick, trees_prob
@@ -80,5 +83,6 @@ def generate_random_network(n_taxa, n_reticulations, output_path):
     msa_file.write(build_fake_msa(n_taxa))
     msa_file.close()
     netrax_cmd = NETRAX_PATH + " --generate_random_network_only " + " --max_reticulations " + str(n_reticulations) + " --msa " + msa_path + " --output " + output_path
+    print(netrax_cmd)
     subprocess.getoutput(netrax_cmd)
     os.remove(msa_path)

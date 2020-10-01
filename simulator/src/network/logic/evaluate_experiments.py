@@ -10,7 +10,7 @@ def evaluate_dataset(dataset):
     network_1 = open(dataset.true_network_path).read()
     network_2 = open(dataset.inferred_network_path).read()
     res.topological_distances = get_dendro_scores(network_1, network_2)
-    print(RESULT_CSV_HEADER+"\n" + res.get_csv_line + "\n\n")
+    print(RESULT_CSV_HEADER+"\n" + res.get_csv_line() + "\n\n")
     return res
     
     
