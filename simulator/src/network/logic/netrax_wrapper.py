@@ -59,9 +59,12 @@ def build_fake_msa(n_taxa):
             s//= 4
         return res[::-1] or "A"
     
-    msa = [""] * n_taxa
+    msa = [to_dna(i) for i in range(n_taxa)]
+    maxlen = max([len(s) for s in msa])
+    msa = [s.rjust(maxlen, 'A') for s in msa]
+    
     for i in range(n_taxa):
-        fake_msa += ">T" + str(i) + "\n" + to_dna(i) + "\n"
+        fake_msa += ">T" + str(i) + "\n" + msa[i] + "\n"
     print(fake_msa+ "\n")
     return fake_msa
     
