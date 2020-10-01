@@ -10,9 +10,26 @@ NETWORK_1 = "((protopterus:0.0,(Xenopus:0.0,(((((Monodelphis:0.0,(python:0.0)#H1
 NETWORK_2 = NETWORK_1
 
 
+# Takes a string in Extended NEWICK Format, and drops the reticulation probabilities and support scores, keeping only the branch length.
+def convert_newick_to_dendroscope(newick):
+    new_newick = ""
+    seenColon = False
+    skip = False
+    for c in newick:
+        if c == ':':
+            skip = seenColon
+            seenColon = True
+        elif c in [',', '(', ')', ';']:
+            skip = False
+            seenColon = False
+        if not skip:
+            new_newick += c
+    return new_newick
+
+
 # Takes two networks in Extended NEWICK format and uses Dendroscope to compute various topological distances.
 def get_dendro_scores(network_1, network_2):
-    cmd = "add tree=\'" + network_1 + network_2 + "\';"
+    cmd = "add tree=\'" + convert_newick_to_dendroscope(network_1) + convert_newick_to_dendroscope(network_2) + "\';"
     cmd += "\ncompute distance method=hardwired;"
     cmd += "\ncompute distance method=softwired;"
     cmd += "\ncompute distance method=displayedTrees;"
@@ -45,23 +62,19 @@ def get_dendro_scores(network_1, network_2):
         elif line.startswith("Path multiplicity distance:"):
             scores["path_multiplicity_distance"] = float(line.split(": ")[1])
     return scores
+    
+    
+def evaluate(simulated_network_path, inferred_network_path):
+    net1 = open(simulated_network_path).read()
+    net2 = open(inferred_network_path).read()
+    scores = get_dendro_scores(net1, net2)
+    
 
-
-# Takes a string in Extended NEWICK Format, and drops the reticulation probabilities and support scores, keeping only the branch length.
-def convert_newick_to_dendroscope(newick):
-    new_newick = ""
-    seenColon = False
-    skip = False
-    for c in newick:
-        if c == ':':
-            skip = seenColon
-            seenColon = True
-        elif c in [',', '(', ')', ';']:
-            skip = False
-            seenColon = False
-        if not skip:
-            new_newick += c
-    return new_newick
+# Takes a network in Extended NEWICK format and extracts all its displayed trees in Newick format, as well as their probabilities.
+def extract_displayed_trees(newick):
+    trees = []
+    probs = []
+    return trees, probs
 
 
 if __name__== "__main__":
