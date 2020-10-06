@@ -234,17 +234,33 @@ def simulate_network_topology(params):
             pl1 = -1
             for p in nw.predecessors(l1):
                 pl1 = p
-            nw.add_weighted_edges_from(
+            hybridisation=0
+           
+            if hybridisation :
+                nw.add_weighted_edges_from(
                 [(l0, current_node, 0)], weight='length')
-            leaves.remove(l0)
-            leaves.remove(l1)
-            leaves.add(current_node)
-            prob = random.random()
-            nw[pl0][l0]['prob'] = prob
-            nw[pl1][l1]['prob'] = 1-prob
-            hybrid_nodes[l0] = no_of_hybrids
-            hybrid_nodes[l1] = no_of_hybrids
-            current_node += 1
+                leaves.remove(l0)
+                leaves.remove(l1)
+                leaves.add(current_node)
+                prob = random.random()
+                nw[pl0][l0]['prob'] = prob
+                nw[pl1][l1]['prob'] = 1-prob
+                hybrid_nodes[l0] = no_of_hybrids
+                hybrid_nodes[l1] = no_of_hybrids
+                current_node += 1
+            else:   
+                nw.add_weighted_edges_from(
+                    [(l0, current_node, 0), (l0, current_node+1, 0), (l1, current_node+2, 0)], weight='length')
+                leaves.remove(l0)
+                leaves.remove(l1)
+                leaves.add(current_node)
+                leaves.add(current_node+2)
+                prob = random.random()
+                nw[l0][current_node+1]['prob'] = prob
+                nw[pl1][l1]['prob'] = 1-prob
+                hybrid_nodes[current_node+1] = no_of_hybrids
+                hybrid_nodes[l1] = no_of_hybrids
+                current_node += 3
         # Now extend all pendant edges
         for l in leaves:
             pl = -1
