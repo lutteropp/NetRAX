@@ -307,6 +307,7 @@ void NetraxInstance::optimizeEverything(AnnotatedNetwork &ann_network) {
         new_score = scoreNetwork(ann_network);
         if (old_score - new_score > score_epsilon) { // score got better
             std::cout << "BIC after topology optimization: " << new_score << "\n";
+            std::cout << "Current number of reticulations: " << ann_network.network.num_reticulations() << "\n";
             optimizeBranches(ann_network);
             updateReticulationProbs(ann_network);
             optimizeModel(ann_network);
