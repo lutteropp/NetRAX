@@ -198,7 +198,7 @@ void assertBranchesWithinBounds(const AnnotatedNetwork& ann_network) {
 }
 
 template<typename T>
-double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates, double old_score, bool greedy=false, bool randomizeCandidates=false, bool brlenopt_inside=true) {
+double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates, double old_score, bool greedy=true, bool randomizeCandidates=false, bool brlenopt_inside=true) {
     if (randomizeCandidates) {
         std::random_shuffle(candidates.begin(), candidates.end());
     }
@@ -215,6 +215,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     std::vector<std::vector<double> > best_brlens = start_brlens;
 
     for (size_t i = 0; i < candidates.size(); ++i) {
+        std::cout << " " << toString(candidates[i].moveType) << " " << i+1 << "/ " << candidates.size() << "\n";
         performMove(ann_network, candidates[i]);
         if (brlenopt_inside) { // Do brlen optimization locally around the move
             std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, candidates[i]);
