@@ -294,7 +294,6 @@ void NetraxInstance::optimizeEverything(AnnotatedNetwork &ann_network) {
     double old_score;
 
     unsigned int type_idx = 0;
-
     do {
         while (ann_network.network.num_reticulations() == 0
               && (typesBySpeed[type_idx] == MoveType::DeltaMinusMove || typesBySpeed[type_idx] == MoveType::ArcRemovalMove)) {
