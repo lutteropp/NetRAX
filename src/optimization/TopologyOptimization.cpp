@@ -29,10 +29,13 @@
 
 namespace netrax {
 
-double aic(double logl, size_t k) {
+double aic(double logl, double k) {
     return -2 * logl + 2 * k;
 }
-double bic(double logl, size_t k, size_t n) {
+double aicc(double logl, double k, double n) {
+    return aic(logl, k) + (2*k*k + 2*k) / (n - k - 1);
+}
+double bic(double logl, double k, double n) {
     return -2 * logl + k * log(n);
 }
 
@@ -226,6 +229,8 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         double new_score = bic(ann_network, new_logl);
         bool foundBetterScore = false;
         if (new_score < best_score) {
+            std::cout << "    Better score found: " << new_score << " - old score was " << best_score << "\n";
+            std::cout << toExtendedNewick(ann_network.network) << "\n";
             best_score = new_score;
             best_idx = i;
             if (brlenopt_inside) {
