@@ -15,6 +15,7 @@
 
 #include <cassert>
 #include <cmath>
+#include <mpreal.h>
 
 namespace netrax {
 
@@ -467,6 +468,60 @@ double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int 
         ann_network.old_logl = network_logl;
         return network_logl;
     }
+}
+
+mpfr::mpreal displayed_tree_nonblob_prob(AnnotatedNetwork &ann_network, size_t tree_index,
+        size_t partition_index) {
+    Network &network = ann_network.network;
+    setReticulationParents(network, tree_index);
+    mpfr::mpreal logProb = 0;
+    for (size_t i = 0; i < network.num_reticulations(); ++i) {
+        size_t active_pmatrix_idx = getReticulationActiveParentPmatrixIndex(
+                network.reticulation_nodes[i]);
+        mpfr::mpreal prob = ann_network.branch_probs[partition_index][active_pmatrix_idx];
+        logProb += mpfr::log(prob);
+    }
+    return mpfr::exp(logProb);
+}
+
+double computeLoglikelihoodNaiveUtree(AnnotatedNetwork &ann_network, int incremental,
+        int update_pmatrices, std::vector<double> *treewise_logl) {
+    (void) incremental;
+    (void) update_pmatrices;
+
+    Network &network = ann_network.network;
+    RaxmlWrapper wrapper(ann_network.options);
+
+    assert(wrapper.num_partitions() == 1);
+
+    size_t n_trees = 1 << network.num_reticulations();
+    mpfr::mpreal network_l = 0.0;
+// Iterate over all displayed trees
+    for (size_t i = 0; i < n_trees; ++i) {
+
+        mpfr::mpreal tree_prob = displayed_tree_nonblob_prob(ann_network, i, 0);
+
+        if (tree_prob == 0.0) {
+            continue;
+        }
+
+        pll_utree_t *displayed_tree = netrax::displayed_tree_to_utree(network, i);
+
+        TreeInfo *displayedTreeinfo = wrapper.createRaxmlTreeinfo(displayed_tree);
+
+        mpfr::mpreal tree_logl = displayedTreeinfo->loglh(0);
+
+        delete displayedTreeinfo;
+
+        if (treewise_logl) {
+            treewise_logl->emplace_back(tree_logl.toDouble());
+        }
+
+        assert(tree_logl != -std::numeric_limits<double>::infinity());
+        network_l += exp(tree_logl) * tree_prob;
+    }
+
+    return mpfr::log(network_l).toDouble();
 }
 
 }

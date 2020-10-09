@@ -17,7 +17,7 @@ include_directories("../libs/" ${CMAKE_CURRENT_SOURCE_DIR}/io)
 
 # export to the parent dir to use in GTest makefile
 set(NETRAX_SOURCES ${NETRAX_SOURCES} PARENT_SCOPE)
-set(NETRAX_LIBS pthread "${PROJECT_BINARY_DIR}/../libs/raxml-ng/bin/raxml-ng.a" ${RAXML_LIBS})
+set(NETRAX_LIBS pthread "${PROJECT_BINARY_DIR}/../libs/raxml-ng/bin/raxml-ng.a" ${RAXML_LIBS} gmp mpfr)
 set(NETRAX_LIBS ${NETRAX_LIBS} PARENT_SCOPE)
 
 add_executable(netrax ${NETRAX_SOURCES})

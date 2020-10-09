@@ -39,24 +39,29 @@ double bic(double logl, double k, double n) {
     return -2 * logl + k * log(n);
 }
 
-double aic(AnnotatedNetwork &ann_network, double logl) {
+size_t get_param_count(AnnotatedNetwork& ann_network) {
     Network &network = ann_network.network;
     bool unlinked_mode = (ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
     size_t multiplier = (unlinked_mode) ? 1 : ann_network.fake_treeinfo->partition_count;
     size_t param_count = multiplier * network.num_branches()
             + ann_network.total_num_model_parameters;
-    return aic(logl, param_count);
+    return param_count;
+}
+
+size_t get_sample_size(AnnotatedNetwork& ann_network) {
+    return ann_network.total_num_sites * ann_network.network.num_tips();
+}
+
+double aic(AnnotatedNetwork &ann_network, double logl) {
+    return aic(logl, get_param_count(ann_network));
+}
+
+double aicc(AnnotatedNetwork &ann_network, double logl) {
+    return aicc(logl, get_param_count(ann_network), get_sample_size(ann_network));
 }
 
 double bic(AnnotatedNetwork &ann_network, double logl) {
-    Network &network = ann_network.network;
-    bool unlinked_mode = (ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
-    size_t multiplier = (unlinked_mode) ? 1 : ann_network.fake_treeinfo->partition_count;
-    size_t param_count = multiplier * network.num_branches()
-            + ann_network.total_num_model_parameters;
-
-    size_t n = ann_network.total_num_sites * ann_network.network.num_tips();
-    return bic(logl, param_count, n);
+    return bic(logl, get_param_count(ann_network), get_sample_size(ann_network));
 }
 
 std::vector<std::vector<double> > extract_brlens(AnnotatedNetwork &ann_network) {
@@ -268,7 +273,17 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         ann_network.stats.moves_taken[candidates[best_idx].moveType]++;
 
         std::cout << " Took " << toString(candidates[best_idx].moveType) << "\n";
-        std::cout << "  Logl: " << ann_network.raxml_treeinfo->loglh(true) << ", BIC: " << best_score << ", num_reticulations: " << ann_network.network.num_reticulations() << "\n";
+        double logl = ann_network.raxml_treeinfo->loglh(true);
+        double naive_logl = computeLoglikelihoodNaiveUtree(ann_network, 1, 1);
+        double bic_score = bic(ann_network, logl);
+        double aic_score = aic(ann_network, logl);
+        double aicc_score = aicc(ann_network, logl);
+        double bic_naive = bic(ann_network, naive_logl);
+        double aic_naive = aic(ann_network, naive_logl);
+        double aicc_naive = aicc(ann_network, naive_logl);
+        std::cout << "  Logl: " << logl << ", BIC: " << bic_score << ", AIC: " << aic_score << ", AICc: " << aicc_score <<  "\n";
+        std::cout << "  Logl_naive: " << naive_logl << ", BIC: " << bic_naive << ", AIC: " << aic_naive << ", AICc: " << aicc_naive << "\n";
+        std::cout << "  num_reticulations: " << ann_network.network.num_reticulations() << "\n";
         std::cout << toExtendedNewick(ann_network.network) << "\n";
     }
     return best_score;
