@@ -299,14 +299,14 @@ void NetraxInstance::optimizeEverything(AnnotatedNetwork &ann_network) {
               && (typesBySpeed[type_idx] == MoveType::DeltaMinusMove || typesBySpeed[type_idx] == MoveType::ArcRemovalMove)) {
             type_idx = (type_idx + 1) % typesBySpeed.size();
         }
-        std::cout << "Using move type: " << toString(typesBySpeed[type_idx]) << "\n";
+        //std::cout << "Using move type: " << toString(typesBySpeed[type_idx]) << "\n";
 
         old_score = new_score;
         optimizeTopology(ann_network, typesBySpeed[type_idx]);
         new_score = scoreNetwork(ann_network);
         if (old_score - new_score > score_epsilon) { // score got better
-            std::cout << "BIC after topology optimization: " << new_score << "\n";
-            std::cout << "Current number of reticulations: " << ann_network.network.num_reticulations() << "\n";
+            //std::cout << "BIC after topology optimization: " << new_score << "\n";
+            //std::cout << "Current number of reticulations: " << ann_network.network.num_reticulations() << "\n";
             optimizeBranches(ann_network);
             updateReticulationProbs(ann_network);
             optimizeModel(ann_network);

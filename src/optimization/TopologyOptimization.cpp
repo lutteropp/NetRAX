@@ -54,8 +54,9 @@ double bic(AnnotatedNetwork &ann_network, double logl) {
     size_t multiplier = (unlinked_mode) ? 1 : ann_network.fake_treeinfo->partition_count;
     size_t param_count = multiplier * network.num_branches()
             + ann_network.total_num_model_parameters;
-    size_t num_sites = ann_network.total_num_sites;
-    return bic(logl, param_count, num_sites);
+
+    size_t n = ann_network.total_num_sites * ann_network.network.num_tips();
+    return bic(logl, param_count, n);
 }
 
 std::vector<std::vector<double> > extract_brlens(AnnotatedNetwork &ann_network) {
@@ -218,7 +219,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     std::vector<std::vector<double> > best_brlens = start_brlens;
 
     for (size_t i = 0; i < candidates.size(); ++i) {
-        std::cout << " " << toString(candidates[i].moveType) << " " << i+1 << "/ " << candidates.size() << "\n";
+        //std::cout << " " << toString(candidates[i].moveType) << " " << i+1 << "/ " << candidates.size() << "\n";
         performMove(ann_network, candidates[i]);
         if (brlenopt_inside) { // Do brlen optimization locally around the move
             std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, candidates[i]);
@@ -229,8 +230,6 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         double new_score = bic(ann_network, new_logl);
         bool foundBetterScore = false;
         if (new_score < best_score) {
-            std::cout << "    Better score found: " << new_score << " - old score was " << best_score << "\n";
-            std::cout << toExtendedNewick(ann_network.network) << "\n";
             best_score = new_score;
             best_idx = i;
             if (brlenopt_inside) {
@@ -260,8 +259,17 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
             std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, candidates[best_idx]);
             optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
         }
+        // just for debug, doing reticulation opt, full global brlen opt and model opt:
+        //netrax::computeLoglikelihood(ann_network, 0, 1, false);
+        //ann_network.raxml_treeinfo->optimize_branches(ann_network.options.lh_epsilon, 1);
+        //ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
+
         best_score = bic(ann_network, ann_network.raxml_treeinfo->loglh(true));
         ann_network.stats.moves_taken[candidates[best_idx].moveType]++;
+
+        std::cout << " Took " << toString(candidates[best_idx].moveType) << "\n";
+        std::cout << "  Logl: " << ann_network.raxml_treeinfo->loglh(true) << ", BIC: " << best_score << ", num_reticulations: " << ann_network.network.num_reticulations() << "\n";
+        std::cout << toExtendedNewick(ann_network.network) << "\n";
     }
     return best_score;
 }
@@ -327,14 +335,14 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, const std::vect
             type_idx = (type_idx + 1) % types.size();
             moves_cnt++;
         }
-        std::cout << "Using move type: " << toString(types[type_idx]) << "\n";
+        //std::cout << "Using move type: " << toString(types[type_idx]) << "\n";
         new_logl = greedyHillClimbingTopology(ann_network, types[type_idx]);
         new_score = bic(ann_network, new_logl);
         type_idx = (type_idx + 1) % types.size();
         moves_cnt++;
 
         if (old_bic - new_score > ann_network.options.lh_epsilon) {
-            std::cout << "Improved bic from " << old_bic << " to " << new_score << "\n";
+            //std::cout << "Improved bic from " << old_bic << " to " << new_score << "\n";
             old_bic = new_score;
             moves_cnt = 0;
         }
