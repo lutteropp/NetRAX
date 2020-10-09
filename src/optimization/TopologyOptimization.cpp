@@ -282,7 +282,8 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         double aic_naive = aic(ann_network, naive_logl);
         double aicc_naive = aicc(ann_network, naive_logl);
         std::cout << "  Logl: " << logl << ", BIC: " << bic_score << ", AIC: " << aic_score << ", AICc: " << aicc_score <<  "\n";
-        std::cout << "  Logl_naive: " << naive_logl << ", BIC: " << bic_naive << ", AIC: " << aic_naive << ", AICc: " << aicc_naive << "\n";
+        std::cout << "  Logl_naive: " << naive_logl << ", BIC_naive: " << bic_naive << ", AIC_naive: " << aic_naive << ", AICc_naive: " << aicc_naive << "\n";
+        std::cout << "  param_count: " << get_param_count(ann_network) << ", sample_size:" << get_sample_size << "\n";
         std::cout << "  num_reticulations: " << ann_network.network.num_reticulations() << "\n";
         std::cout << toExtendedNewick(ann_network.network) << "\n";
     }
