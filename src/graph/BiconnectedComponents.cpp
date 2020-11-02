@@ -189,8 +189,8 @@ BlobInformation partitionNetworkIntoBlobs(Network &network, const std::vector<No
 
 
     // just for debug
-    //blob_info.megablob_roots = {network.root};
-    //blob_info.reticulation_nodes_per_megablob = {network.reticulation_nodes};
+    blob_info.megablob_roots = {network.root};
+    blob_info.reticulation_nodes_per_megablob = {network.reticulation_nodes};
 
     //std::cout << "Network for debug:\n";
     //std::cout << exportDebugInfoBlobs(network, blob_info) << "\n";
