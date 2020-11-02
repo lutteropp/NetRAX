@@ -532,7 +532,7 @@ DisplayedTreeData compute_displayed_tree(AnnotatedNetwork &ann_network, std::vec
         std::cout << "No operations found\n";
         assert(false);
         assert(tree_logl < 0);
-        return DisplayedTreeData{tree_logl, tree_logprob, tree_clv, tree_persite_logl};
+        return DisplayedTreeData{tree_idx, tree_logl, tree_logprob, tree_clv, tree_persite_logl};
     }
     std::vector<bool> will_be_touched = clv_touched;
     for (size_t i = 0; i < ops_count; ++i) {
@@ -569,7 +569,7 @@ DisplayedTreeData compute_displayed_tree(AnnotatedNetwork &ann_network, std::vec
                 tree_persite_logl.empty() ? nullptr : tree_persite_logl.data());
     }
     assert(tree_logl < 0);
-    return DisplayedTreeData{tree_logl, tree_logprob, tree_clv, tree_persite_logl};
+    return DisplayedTreeData{tree_idx, tree_logl, tree_logprob, tree_clv, tree_persite_logl};
 }
 
 std::vector<DisplayedTreeData> process_partition_new(AnnotatedNetwork &ann_network, int partition_idx, int incremental, 
@@ -628,14 +628,41 @@ std::vector<DisplayedTreeData> process_partition_new(AnnotatedNetwork &ann_netwo
 
 bool update_reticulation_probs_unlinked(AnnotatedNetwork &ann_network, const std::vector<DisplayedTreeData>& displayed_trees, int partition_idx) {
     bool changed = false;
-    // TODO...
-    throw std::runtime_error("Not implemented yet");
+    size_t n_sites = displayed_trees[0].tree_persite_logl.size();
+    std::vector<double> best_persite_logl(n_sites, std::numeric_limits<double>::min());
+    std::vector<size_t> best_tree_idx(n_sites, 0);
+    for (const auto &tree : displayed_trees) {
+        for (size_t i = 0; i < tree.tree_persite_logl.size(); ++i) {
+            if (tree.tree_persite_logl[i] > best_persite_logl[i]) {
+                best_persite_logl[i] = tree.tree_persite_logl[i];
+                best_tree_idx[i] = tree.tree_idx;
+            }
+        }
+    }
+    std::vector<size_t> total_taken(ann_network.network.num_reticulations(), 0);
+    for (size_t i = 0; i < n_sites; ++i) {
+        // find the reticulation nodes that have taken their first parent in the best tree
+        for (size_t j = 0; j < ann_network.network.num_reticulations(); ++j) {
+            if (best_tree_idx[i] & (1 << j)) {
+                total_taken[j]++;
+            }
+        }
+    }
+
+    for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
+        double old_prob = ann_network.branch_probs[partition_idx][i];
+        double new_prob = (double) total_taken[i] / n_sites;
+        ann_network.branch_probs[partition_idx][i] = new_prob;
+        changed |= (old_prob != new_prob);
+    }
+
     return changed;
 }
 
 bool update_reticulation_probs_linked(AnnotatedNetwork &ann_network, const std::vector<std::vector<DisplayedTreeData>>& displayed_trees_all) {
     bool changed = false;
-    // TODO...
+ 
+
     throw std::runtime_error("Not implemented yet");
     return changed;
 }
@@ -648,6 +675,7 @@ double computeLoglikelihood_new(AnnotatedNetwork &ann_network, int incremental, 
             & !update_reticulation_probs) {
         return ann_network.old_logl;
     }
+
     mpfr::mpreal network_logl = 0.0;
 
     assert(!ann_network.branch_probs.empty());
