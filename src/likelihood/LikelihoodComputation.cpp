@@ -340,6 +340,27 @@ std::vector<mpfr::mpreal> compute_persite_lh(AnnotatedNetwork &ann_network, unsi
     return persite_lh_network;
 }
 
+std::vector<bool> init_clv_touched(AnnotatedNetwork& ann_network, bool incremental, int partition_idx) {
+    std::vector<bool> clv_touched(ann_network.network.nodes.size() + 1, false);
+    for (size_t i = 0; i < ann_network.network.num_tips(); ++i) {
+        clv_touched[i] = true;
+    }
+    if (ann_network.network.num_reticulations() == 0 && incremental) {
+        for (size_t i = 0; i < ann_network.network.nodes.size(); ++i) {
+            if (ann_network.fake_treeinfo->clv_valid[partition_idx][i]) {
+                clv_touched[i] = true;
+            }
+        }
+    }
+    for (size_t i = 0; i < ann_network.blobInfo.megablob_roots.size(); ++i) {
+        if (ann_network.fake_treeinfo->clv_valid[partition_idx][ann_network.blobInfo.megablob_roots[i]->clv_index]) {
+            clv_touched[ann_network.blobInfo.megablob_roots[i]->clv_index] = true;
+        }
+    }
+    clv_touched[ann_network.network.nodes.size()] = true; // fake clv index
+    return clv_touched;
+}
+
 double processPartition(AnnotatedNetwork &ann_network, unsigned int partition_idx, int incremental,
         bool update_reticulation_probs, std::vector<unsigned int> &totalTaken,
         std::vector<unsigned int> &totalNotTaken, bool unlinked_mode,
@@ -358,24 +379,7 @@ double processPartition(AnnotatedNetwork &ann_network, unsigned int partition_id
 
     std::vector<Node*> parent = grab_current_node_parents(network);
     std::vector<mpfr::mpreal> persite_lh_network;
-
-    std::vector<bool> clv_touched(network.nodes.size() + 1, false);
-    for (size_t i = 0; i < network.num_tips(); ++i) {
-        clv_touched[i] = true;
-    }
-    if (network.num_reticulations() == 0 && useIncrementalClv) {
-        for (size_t i = 0; i < network.nodes.size(); ++i) {
-            if (fake_treeinfo.clv_valid[partition_idx][i]) {
-                clv_touched[i] = true;
-            }
-        }
-    }
-    for (size_t i = 0; i < ann_network.blobInfo.megablob_roots.size(); ++i) {
-        if (fake_treeinfo.clv_valid[partition_idx][ann_network.blobInfo.megablob_roots[i]->clv_index]) {
-            clv_touched[ann_network.blobInfo.megablob_roots[i]->clv_index] = true;
-        }
-    }
-    clv_touched[network.nodes.size()] = true; // fake clv index
+    std::vector<bool> clv_touched = init_clv_touched(ann_network, incremental, partition_idx);
 
     persite_lh_network = compute_persite_lh(ann_network, partition_idx, parent,
             update_reticulation_probs, numSites, clv_touched, best_persite_logl_network,
@@ -423,7 +427,7 @@ void setup_pmatrices(AnnotatedNetwork &ann_network, int incremental, int update_
     }
 }
 
-double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices,
+double computeLoglikelihood_broken(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices,
         bool update_reticulation_probs) {
     assert(ann_network.options.use_blobs & ann_network.options.use_graycode);
     Network &network = ann_network.network;
@@ -484,6 +488,148 @@ double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int 
     }
 }
 
+
+std::vector<DisplayedTreeData> process_partition_new(AnnotatedNetwork &ann_network, int partition_idx, int incremental, 
+        const std::vector<Node*> &parent, std::vector<bool> *touched) {
+    Network &network = ann_network.network;
+    pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
+    BlobInformation &blobInfo = ann_network.blobInfo;
+    unsigned int states_padded = fake_treeinfo.partitions[partition_idx]->states_padded;
+    unsigned int sites = fake_treeinfo.partitions[partition_idx]->sites;
+    unsigned int rate_cats = fake_treeinfo.partitions[partition_idx]->rate_cats;
+    unsigned int clv_len = states_padded * sites * rate_cats;
+    bool unlinked_mode = (fake_treeinfo.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
+
+    std::vector<bool> clv_touched = init_clv_touched(ann_network, incremental, partition_idx);
+    std::vector<bool> pruned_megablob(blobInfo.megablob_roots.size(), false);
+    std::vector<std::vector<DisplayedTreeData>> displayed_trees_per_megablob(blobInfo.megablob_roots.size());
+
+    std::vector<size_t> n_trees_expanded_megablob(blobInfo.megablob_roots.size());
+    n_trees_expanded_megablob[0] = 1 << blobInfo.reticulation_nodes_per_megablob[0].size();
+    for (size_t i = 1; i < blobInfo.reticulation_nodes_per_megablob.size(); ++i) {
+        n_trees_expanded_megablob[i] = n_trees_expanded_megablob[i-1] + (1 << blobInfo.reticulation_nodes_per_megablob[i].size());
+    }
+
+    for (size_t megablob_idx = 0; megablob_idx < blobInfo.megablob_roots.size(); ++megablob_idx) {
+        displayed_trees_per_megablob[megablob_idx].reserve(n_trees_expanded_megablob[megablob_idx]);
+        unsigned int megablob_root_clv_idx = blobInfo.megablob_roots[megablob_idx]->clv_index;
+
+        if (incremental && fake_treeinfo.clv_valid[partition_idx][megablob_root_clv_idx]) {
+            assert(!ann_network.displayed_trees_rooted_here[megablob_root_clv_idx][partition_idx].empty());
+            displayed_trees_per_megablob[megablob_root_clv_idx] = ann_network.displayed_trees_rooted_here[megablob_root_clv_idx][partition_idx];
+            continue;
+        }
+
+        size_t n_supertrees = 1 << blobInfo.reticulation_nodes_per_megablob[megablob_idx].size();
+        // iterate over all displayed trees within the megablob, storing their tree clvs and tree probs... for each supertree, multiple displayed trees can be involved!
+        // (this is the case if some "leaves" are megablob roots themselves)
+        setReticulationParents(blobInfo, megablob_idx, 0);
+        for (size_t i = 0; i < n_supertrees; ++i) {
+            size_t supertree_idx = i;
+            Node *start_node = nullptr;
+
+            supertree_idx = i ^ (i >> 1);
+            if (i > 0) {
+                size_t lastI = i - 1;
+                size_t last_tree_idx = lastI ^ (lastI >> 1);
+                size_t only_changed_bit = supertree_idx ^ last_tree_idx;
+                size_t changed_bit_pos = log2(only_changed_bit);
+                bool changed_bit_is_set = supertree_idx & only_changed_bit;
+                start_node = blobInfo.reticulation_nodes_per_megablob[megablob_idx][changed_bit_pos];
+                start_node->getReticulationData()->setActiveParentToggle(changed_bit_is_set);
+            }
+        }
+
+
+        throw std::runtime_error("Not fully implemented");
+
+        ann_network.displayed_trees_rooted_here[megablob_root_clv_idx][partition_idx] = displayed_trees_per_megablob[megablob_root_clv_idx];
+    }
+
+    throw std::runtime_error("Not implemented yet");
+
+    return displayed_trees_per_megablob.back();
+}
+
+bool update_reticulation_probs_unlinked(AnnotatedNetwork &ann_network, const std::vector<DisplayedTreeData>& displayed_trees, int partition_idx) {
+    bool changed = false;
+    // TODO...
+    throw std::runtime_error("Not implemented yet");
+    return changed;
+}
+
+bool update_reticulation_probs_linked(AnnotatedNetwork &ann_network, const std::vector<std::vector<DisplayedTreeData>>& displayed_trees_all) {
+    bool changed = false;
+    // TODO...
+    throw std::runtime_error("Not implemented yet");
+    return changed;
+}
+
+double computeLoglikelihood_new(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices,
+        bool update_reticulation_probs) {
+    Network &network = ann_network.network;
+    pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
+    if (incremental & fake_treeinfo.clv_valid[0][network.root->clv_index]
+            & !update_reticulation_probs) {
+        return ann_network.old_logl;
+    }
+    mpfr::mpreal network_logl = 0.0;
+    BlobInformation &blobInfo = ann_network.blobInfo;
+
+    if (ann_network.displayed_trees_rooted_here.empty()) {
+        ann_network.displayed_trees_rooted_here = std::vector<std::vector<std::vector<DisplayedTreeData>>>(network.nodes.size(), std::vector<std::vector<DisplayedTreeData>>(fake_treeinfo.partition_count));
+    }
+
+    assert(!ann_network.branch_probs.empty());
+    setup_pmatrices(ann_network, incremental, update_pmatrices);
+    const int old_active_partition = fake_treeinfo.active_partition;
+    fake_treeinfo.active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
+    bool unlinked_mode = (fake_treeinfo.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
+    std::vector<bool> touched(network.nodes.size(), false);
+    std::vector<Node*> parent = grab_current_node_parents(network);
+    bool reticulation_probs_changed = false;
+    std::vector<std::vector<DisplayedTreeData>> displayed_trees_all;
+
+    for (size_t partition_idx = 0; partition_idx < fake_treeinfo.partition_count; ++partition_idx) {
+        fake_treeinfo.active_partition = partition_idx;
+        std::vector<bool> *touched_ptr = nullptr;
+        if (partition_idx == 0) {
+            touched_ptr = &touched;
+        }
+        std::vector<DisplayedTreeData> displayed_trees = process_partition_new(ann_network, partition_idx, incremental, parent, touched_ptr);
+
+        mpfr::mpreal partition_lh = 0.0;
+        for (const auto& tree : displayed_trees) {
+            partition_lh += exp(tree.tree_logprob) * exp(tree.tree_logl);
+        }
+        network_logl += log(partition_lh);
+
+        if (update_reticulation_probs) {
+            if (unlinked_mode) {
+                reticulation_probs_changed |= update_reticulation_probs_unlinked(ann_network, displayed_trees, partition_idx);
+            } else {
+                displayed_trees_all.emplace_back(displayed_trees);
+            }
+        }
+    }
+    if (update_reticulation_probs && !unlinked_mode) {
+        reticulation_probs_changed = update_reticulation_probs_linked(ann_network, displayed_trees_all);
+    }
+
+    ann_network.old_logl = network_logl.toDouble();
+
+    if (reticulation_probs_changed) {
+        std::vector<bool> visited(network.nodes.size(), false);
+        for (size_t i = 0; i < network.num_reticulations(); ++i) {
+            invalidateHigherCLVs(ann_network, network.reticulation_nodes[i], false, visited);
+        }
+        return computeLoglikelihood_new(ann_network, incremental, false, false);
+    }
+    return ann_network.old_logl;
+}
+
+
+
 mpfr::mpreal displayed_tree_nonblob_prob(AnnotatedNetwork &ann_network, size_t tree_index,
         size_t partition_index) {
     Network &network = ann_network.network;
@@ -532,6 +678,12 @@ double computeLoglikelihoodNaiveUtree(AnnotatedNetwork &ann_network, int increme
     }
 
     return mpfr::log(network_l).toDouble();
+}
+
+
+double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices,
+        bool update_reticulation_probs) {
+    return computeLoglikelihood_broken(ann_network, incremental, update_pmatrices, update_reticulation_probs);
 }
 
 }
