@@ -81,6 +81,7 @@ void score_only(const NetraxOptions& netraxOptions, std::mt19937& rng) {
     }
     netrax::AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(netraxOptions);
     NetraxInstance::init_annotated_network(ann_network, rng);
+    NetraxInstance::optimizeModel(ann_network);
     double final_bic = NetraxInstance::scoreNetwork(ann_network);
     double final_logl = NetraxInstance::computeLoglikelihood(ann_network);
     std::cout << "Number of reticulations: " << ann_network.network.num_reticulations() << "\n";
