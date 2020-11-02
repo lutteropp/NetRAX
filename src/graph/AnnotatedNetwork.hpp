@@ -20,7 +20,6 @@ extern "C" {
 #include "Network.hpp"
 #include "NetworkFunctions.hpp"
 #include "BiconnectedComponents.hpp"
-#include "DisplayedTreeData.hpp"
 #include "../NetraxOptions.hpp"
 #include "../optimization/MoveType.hpp"
 
@@ -42,8 +41,6 @@ struct AnnotatedNetwork {
     double old_logl;
     std::vector<Node*> travbuffer;
     std::mt19937 rng;
-
-    std::vector<std::vector<std::vector<DisplayedTreeData>>> displayed_trees_rooted_here;
 
     Statistics stats;
 };

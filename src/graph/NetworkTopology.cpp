@@ -410,9 +410,6 @@ void invalidateHigherClvs(AnnotatedNetwork &ann_network, pllmod_treeinfo_t *tree
     if (invalidate_myself) {
         for (size_t p = 0; p < treeinfo->partition_count; ++p) {
             treeinfo->clv_valid[p][node->clv_index] = 0;
-            if (!ann_network.displayed_trees_rooted_here.empty()) {
-                ann_network.displayed_trees_rooted_here[node->clv_index][p].clear();
-            }
         }
         if (!visited.empty()) {
             visited[node->clv_index] = true;

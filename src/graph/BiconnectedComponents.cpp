@@ -136,10 +136,10 @@ void gather_reticulations_per_megablob(Network &network, BlobInformation &blob_i
 
 BlobInformation partitionNetworkIntoBlobs(Network &network, const std::vector<Node*> &travbuffer) {
     BlobInformation blob_info;
-    // just for debug, uncomment to disable blob optimization
-    // blob_info.megablob_roots = {network.root};
-    // blob_info.reticulation_nodes_per_megablob = {network.reticulation_nodes};
-    // return blob_info;
+    // comment out these 3 lines to re-enable blob optimization
+    blob_info.megablob_roots = {network.root};
+    blob_info.reticulation_nodes_per_megablob = {network.reticulation_nodes};
+    return blob_info;
 
     blob_info.edge_blob_id.resize(network.edges.size());
     unsigned int time = 0;
