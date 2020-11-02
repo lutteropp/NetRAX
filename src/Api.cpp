@@ -231,7 +231,7 @@ void NetraxInstance::updateReticulationProbs(AnnotatedNetwork &ann_network) {
  */
 void NetraxInstance::optimizeModel(AnnotatedNetwork &ann_network) {
     double old_score = scoreNetwork(ann_network);
-    //ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
+    ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
     double new_score = scoreNetwork(ann_network);
     std::cout << "BIC score after model optimization: " << new_score << "\n";
     assert(new_score <= old_score);
