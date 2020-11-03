@@ -606,7 +606,7 @@ std::vector<DisplayedTreeData> process_partition_new(AnnotatedNetwork &ann_netwo
         std::vector<bool> dead_nodes = collect_dead_nodes(network, network.root->clv_index, &displayed_tree_root);
 
         if (start_node && dead_nodes[start_node->clv_index]) {
-            std::cout << "The start node is a dead node!!!\n";
+            //std::cout << "The start node is a dead node!!!\n";
             displayed_trees.emplace_back(last_tree);
             continue;
             // TODO: what to do here? Is it correct just to return the tree from before?
@@ -731,6 +731,7 @@ double computeLoglikelihood_new(AnnotatedNetwork &ann_network, int incremental, 
             assert(tree.tree_logl != 0);
             partition_lh += mpfr::exp(tree.tree_logprob) * mpfr::exp(tree.tree_logl);
         }
+        fake_treeinfo.partition_loglh[partition_idx] = mpfr::log(partition_lh).toDouble();
         network_logl += mpfr::log(partition_lh);
 
         if (update_reticulation_probs) {
@@ -754,6 +755,7 @@ double computeLoglikelihood_new(AnnotatedNetwork &ann_network, int incremental, 
         }
         return computeLoglikelihood_new(ann_network, incremental, false, false);
     }
+    //std::cout << "network logl: " << ann_network.old_logl << "\n";
     return ann_network.old_logl;
 }
 

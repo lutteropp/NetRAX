@@ -150,6 +150,7 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
     double lh_epsilon = ann_network.options.lh_epsilon;
     int act_iters = 0;
     double old_logl = ann_network.raxml_treeinfo->loglh(true);
+    double start_logl = old_logl;
     while (!candidates.empty()) {
         size_t pmatrix_index = *candidates.begin();
         candidates.erase(candidates.begin());
@@ -166,6 +167,7 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
         }
         old_logl = new_logl;
     }
+    assert(old_logl >= start_logl);
     return old_logl;
 }
 
