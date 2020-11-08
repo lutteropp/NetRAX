@@ -697,6 +697,24 @@ bool update_reticulation_probs_linked(AnnotatedNetwork &ann_network, const std::
     return changed;
 }
 
+double recompute_network_logl(AnnotatedNetwork &ann_network, std::vector<std::vector<DisplayedTreeData>>& displayed_trees_all) {
+     mpfr::mpreal network_logl = 0.0;
+    pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
+    for (size_t partition_idx = 0; partition_idx < fake_treeinfo.partition_count; ++partition_idx) {
+        mpfr::mpreal partition_lh = 0.0;
+        for (auto& tree : displayed_trees_all[partition_idx]) {
+            // update tree logprob with the new reticulation probabilities
+            tree.tree_logprob = displayed_tree_logprob(ann_network, tree.tree_idx, partition_idx);
+            assert(tree.tree_logl != 0);
+            partition_lh += mpfr::exp(tree.tree_logprob) * mpfr::exp(tree.tree_logl);
+        }
+        fake_treeinfo.partition_loglh[partition_idx] = mpfr::log(partition_lh).toDouble();
+        network_logl += mpfr::log(partition_lh);
+    }
+    ann_network.old_logl = network_logl.toDouble();
+    return ann_network.old_logl;
+}
+
 double computeLoglikelihood_new(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices,
         bool update_reticulation_probs) {
     Network &network = ann_network.network;
@@ -735,10 +753,9 @@ double computeLoglikelihood_new(AnnotatedNetwork &ann_network, int incremental, 
         network_logl += mpfr::log(partition_lh);
 
         if (update_reticulation_probs) {
+            displayed_trees_all.emplace_back(displayed_trees);
             if (unlinked_mode) {
                 reticulation_probs_changed |= update_reticulation_probs_unlinked(ann_network, displayed_trees, partition_idx);
-            } else {
-                displayed_trees_all.emplace_back(displayed_trees);
             }
         }
     }
@@ -749,11 +766,7 @@ double computeLoglikelihood_new(AnnotatedNetwork &ann_network, int incremental, 
     ann_network.old_logl = network_logl.toDouble();
 
     if (reticulation_probs_changed) {
-        std::vector<bool> visited(network.nodes.size(), false);
-        for (size_t i = 0; i < network.num_reticulations(); ++i) {
-            invalidateHigherCLVs(ann_network, network.reticulation_nodes[i], false, visited);
-        }
-        return computeLoglikelihood_new(ann_network, incremental, false, false);
+        recompute_network_logl(ann_network, displayed_trees_all);
     }
     //std::cout << "network logl: " << ann_network.old_logl << "\n";
     return ann_network.old_logl;
