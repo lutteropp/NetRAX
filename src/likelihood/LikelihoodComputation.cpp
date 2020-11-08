@@ -629,6 +629,7 @@ std::vector<DisplayedTreeData> process_partition_new(AnnotatedNetwork &ann_netwo
 bool update_reticulation_probs_unlinked(AnnotatedNetwork &ann_network, const std::vector<DisplayedTreeData>& displayed_trees, int partition_idx) {
     bool changed = false;
     size_t n_sites = displayed_trees[0].tree_persite_logl.size();
+    unsigned int n_sites_total = ann_network.fake_treeinfo->partitions[partition_idx]->pattern_weight_sum;
     std::vector<double> best_persite_logl(n_sites, std::numeric_limits<double>::min());
     std::vector<size_t> best_tree_idx(n_sites, 0);
     for (const auto &tree : displayed_trees) {
@@ -641,17 +642,18 @@ bool update_reticulation_probs_unlinked(AnnotatedNetwork &ann_network, const std
     }
     std::vector<size_t> total_taken(ann_network.network.num_reticulations(), 0);
     for (size_t i = 0; i < n_sites; ++i) {
+        unsigned int site_weight = ann_network.fake_treeinfo->partitions[partition_idx]->pattern_weights[i];
         // find the reticulation nodes that have taken their first parent in the best tree
         for (size_t j = 0; j < ann_network.network.num_reticulations(); ++j) {
             if (best_tree_idx[i] & (1 << j)) {
-                total_taken[j]++;
+                total_taken[j] += site_weight;
             }
         }
     }
 
     for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
         double old_prob = ann_network.branch_probs[partition_idx][i];
-        double new_prob = (double) total_taken[i] / n_sites;
+        double new_prob = (double) total_taken[i] / n_sites_total;
         ann_network.branch_probs[partition_idx][i] = new_prob;
         changed |= (old_prob != new_prob);
     }
@@ -661,12 +663,12 @@ bool update_reticulation_probs_unlinked(AnnotatedNetwork &ann_network, const std
 
 bool update_reticulation_probs_linked(AnnotatedNetwork &ann_network, const std::vector<std::vector<DisplayedTreeData>>& displayed_trees_all) {
     bool changed = false;
-    size_t n_sites_total = 0;
+    unsigned int n_sites_total = 0;
     std::vector<size_t> total_taken(ann_network.network.num_reticulations(), 0);
 
-    for (size_t partition_idx = 0; partition_idx < ann_network.fake_treeinfo->partition_count; ++ partition_idx) {
+    for (size_t partition_idx = 0; partition_idx < ann_network.fake_treeinfo->partition_count; ++partition_idx) {
         size_t n_sites = displayed_trees_all[partition_idx][0].tree_persite_logl.size();
-        n_sites_total += n_sites;
+        n_sites_total += ann_network.fake_treeinfo->partitions[partition_idx]->pattern_weight_sum;
         std::vector<double> best_persite_logl(n_sites, std::numeric_limits<double>::min());
         std::vector<size_t> best_tree_idx(n_sites, 0);
         for (const auto &tree : displayed_trees_all[partition_idx]) {
@@ -679,9 +681,10 @@ bool update_reticulation_probs_linked(AnnotatedNetwork &ann_network, const std::
         }
         for (size_t i = 0; i < n_sites; ++i) {
             // find the reticulation nodes that have taken their first parent in the best tree
+            unsigned int site_weight = ann_network.fake_treeinfo->partitions[partition_idx]->pattern_weights[i];
             for (size_t j = 0; j < ann_network.network.num_reticulations(); ++j) {
                 if (best_tree_idx[i] & (1 << j)) {
-                    total_taken[j]++;
+                    total_taken[j] += site_weight;
                 }
             }
         }
