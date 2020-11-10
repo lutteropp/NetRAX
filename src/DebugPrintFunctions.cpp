@@ -219,8 +219,8 @@ std::string exportDebugInfoBlobs(Network &network, const BlobInformation &blobIn
             continue;
         }
         ss << "\tedge\n\t[\n\t\tsource\t";
-        unsigned int parentId = network.edges_by_index[i]->link1->node_clv_index;
-        unsigned int childId = network.edges_by_index[i]->link2->node_clv_index;
+        unsigned int parentId = network.edges_by_index[i]->link1->link_clv_index;
+        unsigned int childId = network.edges_by_index[i]->link2->link_clv_index;
         if (network.edges_by_index[i]->link1->direction == Direction::INCOMING) {
             std::swap(parentId, childId);
         }
@@ -278,8 +278,8 @@ std::string exportDebugInfoExtraNodeNumber(Network &network,
             continue;
         }
         ss << "\tedge\n\t[\n\t\tsource\t";
-        unsigned int parentId = network.edges_by_index[i]->link1->node_clv_index;
-        unsigned int childId = network.edges_by_index[i]->link2->node_clv_index;
+        unsigned int parentId = network.edges_by_index[i]->link1->link_clv_index;
+        unsigned int childId = network.edges_by_index[i]->link2->link_clv_index;
         if (network.edges_by_index[i]->link1->direction == Direction::INCOMING) {
             std::swap(parentId, childId);
         }

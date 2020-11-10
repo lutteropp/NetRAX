@@ -18,10 +18,10 @@ namespace netrax {
 Node* getTargetNode(Network &network, const Link *link) {
     assert(link);
     if (network.edges_by_index[link->edge_pmatrix_index]->link1 == link) {
-        return network.nodes_by_index[network.edges_by_index[link->edge_pmatrix_index]->link2->node_clv_index];
+        return network.nodes_by_index[network.edges_by_index[link->edge_pmatrix_index]->link2->link_clv_index];
     } else {
         assert(network.edges_by_index[link->edge_pmatrix_index]->link2 == link);
-        return network.nodes_by_index[network.edges_by_index[link->edge_pmatrix_index]->link1->node_clv_index];
+        return network.nodes_by_index[network.edges_by_index[link->edge_pmatrix_index]->link1->link_clv_index];
     }
 }
 
@@ -348,7 +348,7 @@ Edge* getEdgeTo(Network &network, const Node *node, const Node *target) {
     assert(node);
     assert(target);
     for (const auto &link : node->links) {
-        if (link.outer->node_clv_index == target->clv_index) {
+        if (link.outer->link_clv_index == target->clv_index) {
             return network.edges_by_index[link.edge_pmatrix_index];
         }
     }
@@ -372,12 +372,12 @@ std::vector<Edge*> getAdjacentEdges(Network &network, const Node *node) {
 
 Node* getSource(Network &network, const Edge *edge) {
     assert(edge->link1->direction == Direction::OUTGOING);
-    return network.nodes_by_index[edge->link1->node_clv_index];
+    return network.nodes_by_index[edge->link1->link_clv_index];
 }
 
 Node* getTarget(Network &network, const Edge *edge) {
     assert(edge->link2->direction == Direction::INCOMING);
-    return network.nodes_by_index[edge->link2->node_clv_index];
+    return network.nodes_by_index[edge->link2->link_clv_index];
 }
 
 bool hasNeighbor(Node *node1, Node *node2) {
@@ -385,7 +385,7 @@ bool hasNeighbor(Node *node1, Node *node2) {
         return false;
     }
     for (const auto &link : node1->links) {
-        if (link.outer->node_clv_index == node2->clv_index) {
+        if (link.outer->link_clv_index == node2->clv_index) {
             return true;
         }
     }
