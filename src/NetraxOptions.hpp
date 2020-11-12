@@ -10,6 +10,7 @@
 #include <string>
 #include <raxml-ng/constants.hpp>
 #include <raxml-ng/common.h>
+#include "LikelihoodVariant.hpp"
 
 namespace netrax {
 
@@ -24,6 +25,8 @@ public:
         this->msa_file = msa_file;
         this->use_repeats = use_repeats;
     }
+
+    LikelihoodVariant likelihood_variant = LikelihoodVariant::AVERAGE_DISPLAYED_TREES;
 
     bool optimize_brlen = true;
     bool optimize_model = true;

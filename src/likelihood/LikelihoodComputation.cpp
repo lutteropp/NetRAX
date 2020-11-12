@@ -700,8 +700,8 @@ bool update_reticulation_probs_linked(AnnotatedNetwork &ann_network, const std::
     return changed;
 }
 
-double recompute_network_logl(AnnotatedNetwork &ann_network, std::vector<std::vector<DisplayedTreeData>>& displayed_trees_all) {
-     mpfr::mpreal network_logl = 0.0;
+double recompute_network_logl_average_trees(AnnotatedNetwork &ann_network, std::vector<std::vector<DisplayedTreeData>>& displayed_trees_all) {
+    mpfr::mpreal network_logl = 0.0;
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
     for (size_t partition_idx = 0; partition_idx < fake_treeinfo.partition_count; ++partition_idx) {
         mpfr::mpreal partition_lh = 0.0;
@@ -716,6 +716,32 @@ double recompute_network_logl(AnnotatedNetwork &ann_network, std::vector<std::ve
     }
     ann_network.old_logl = network_logl.toDouble();
     return ann_network.old_logl;
+}
+
+double recompute_network_logl_best_tree(AnnotatedNetwork &ann_network, std::vector<std::vector<DisplayedTreeData>>& displayed_trees_all) {
+    double network_logl = 0.0;
+    pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
+    for (size_t partition_idx = 0; partition_idx < fake_treeinfo.partition_count; ++partition_idx) {
+        double partition_logl = std::numeric_limits<double>::min();
+        for (auto& tree : displayed_trees_all[partition_idx]) {
+            // update tree logprob with the new reticulation probabilities
+            tree.tree_logprob = displayed_tree_logprob(ann_network, tree.tree_idx, partition_idx);
+            assert(tree.tree_logl != 0);
+            partition_logl = std::max(partition_logl, tree.tree_logprob + tree.tree_logl);
+        }
+        fake_treeinfo.partition_loglh[partition_idx] = partition_logl;
+        network_logl += partition_logl;
+    }
+    ann_network.old_logl = network_logl;
+    return ann_network.old_logl;
+}
+
+double recompute_network_logl(AnnotatedNetwork &ann_network, std::vector<std::vector<DisplayedTreeData>>& displayed_trees_all) {
+    if (ann_network.options.likelihood_variant == LikelihoodVariant::AVERAGE_DISPLAYED_TREES) {
+        return recompute_network_logl_average_trees(ann_network, displayed_trees_all);
+    } else { // LikelihoodVariant::BEST_DISPLAYED_TREE
+        return recompute_network_logl_best_tree(ann_network, displayed_trees_all);
+    }
 }
 
 double computeLoglikelihood_new(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices,
@@ -747,13 +773,23 @@ double computeLoglikelihood_new(AnnotatedNetwork &ann_network, int incremental, 
         }
         std::vector<DisplayedTreeData> displayed_trees = process_partition_new(ann_network, partition_idx, incremental, parent, touched_ptr);
 
-        mpfr::mpreal partition_lh = 0.0;
-        for (const auto& tree : displayed_trees) {
-            assert(tree.tree_logl != 0);
-            partition_lh += mpfr::exp(tree.tree_logprob) * mpfr::exp(tree.tree_logl);
+        if (ann_network.options.likelihood_variant == LikelihoodVariant::AVERAGE_DISPLAYED_TREES) {
+            mpfr::mpreal partition_lh = 0.0;
+            for (const auto& tree : displayed_trees) {
+                assert(tree.tree_logl != 0);
+                partition_lh += mpfr::exp(tree.tree_logprob) * mpfr::exp(tree.tree_logl);
+            }
+            fake_treeinfo.partition_loglh[partition_idx] = mpfr::log(partition_lh).toDouble();
+            network_logl += mpfr::log(partition_lh);
+        } else { // LikelihoodVariant::BEST_DISPLAYED_TREE
+            double partition_logl = 0.0;
+            for (const auto& tree : displayed_trees) {
+                assert(tree.tree_logl != 0);
+                partition_logl = std::max(partition_logl, tree.tree_logprob + tree.tree_logl);
+            }
+            fake_treeinfo.partition_loglh[partition_idx] = partition_logl;
+            network_logl += partition_logl;
         }
-        fake_treeinfo.partition_loglh[partition_idx] = mpfr::log(partition_lh).toDouble();
-        network_logl += mpfr::log(partition_lh);
 
         if (update_reticulation_probs) {
             displayed_trees_all.emplace_back(displayed_trees);

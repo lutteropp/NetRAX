@@ -22,7 +22,12 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
     app.add_flag("--score_only", options->score_only, "Only read a network and MSA from file and compute its score.");
     app.add_flag("--extract_displayed_trees", options->extract_displayed_trees, "Only extract all displayed trees with their probabilities from a network.");
     app.add_flag("--generate_random_network_only", options->generate_random_network_only, "Only generate a random network, with as many reticulations as specified in the -r parameter");
+    
+    bool best_displayed_tree_variant = false;
+    app.add_flag("--best_displayed_tree_variant", best_displayed_tree_variant, "Use only best displayed tree instead of weighted average in network likelihood formula.");
+
     CLI11_PARSE(app, argc, argv);
+    options->likelihood_variant = (best_displayed_tree_variant) ? LikelihoodVariant::BEST_DISPLAYED_TREE : LikelihoodVariant::AVERAGE_DISPLAYED_TREES;
     return 0;
 }
 

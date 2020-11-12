@@ -141,8 +141,8 @@ void printBranchLengths(AnnotatedNetwork &ann_network) {
     Network &network = ann_network.network;
     std::cout << "branch lengths:\n";
     for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::cout << "  " << network.edges[i].link1->node_clv_index << " -> "
-                << network.edges[i].link2->node_clv_index << " has branch length: "
+        std::cout << "  " << network.edges[i].link1->link_clv_index << " -> "
+                << network.edges[i].link2->link_clv_index << " has branch length: "
                 << network.edges[i].length << "\n";
     }
 }
