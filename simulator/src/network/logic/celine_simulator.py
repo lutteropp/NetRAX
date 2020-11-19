@@ -43,18 +43,16 @@ def parse_user_input():
 
 
 ############### CONVERT TO NEWICK ##############
-def Newick_From_MULTree(tree, root, hybrid_nodes):
-    inheritance = True
-    
+def Newick_From_MULTree(tree, root, hybrid_nodes, params):
     if tree.out_degree(root) == 0:
         if root in hybrid_nodes:
             return "#H"+str(hybrid_nodes[root])
         return str(root)
     Newick = ""
     for v in tree.successors(root):
-        Newick += Newick_From_MULTree(tree, v, hybrid_nodes) + \
+        Newick += Newick_From_MULTree(tree, v, hybrid_nodes, params) + \
                                       ":"+str(tree[root][v]['length'])
-        if inheritance:
+        if params.inheritance:
             if v in hybrid_nodes:
                 Newick += "::"+str(tree[root][v]['prob'])
         Newick += ","
@@ -71,80 +69,96 @@ def reshuffle_params(params):
     return params
 
 
-def simulate_network(params):
+def simulate_network_step(params):
+    nw = nx.DiGraph()
+    nw.add_node(0)
+    leaves = set([0])
+    current_node = 1
+
+    extra_time = np.random.exponential(1/float(params.speciation_rate))
+    current_time = extra_time
+    current_speciation_rate = float(params.speciation_rate)
+    current_hybridization_rate = float(0)
+    rate = current_speciation_rate + current_hybridization_rate
+
+    # First create a MUL-tree
+    hybrid_nodes = dict()
+    no_of_hybrids = 0
+
+    while current_time < params.time_limit:
+        if random.random() < current_speciation_rate / rate:
+            # speciate
+            splitting_leaf = random.choice(list(leaves))
+            nw.add_weighted_edges_from(
+                [(splitting_leaf, current_node, 0), (splitting_leaf, current_node+1, 0)], weight='length')
+            leaves.remove(splitting_leaf)
+            leaves.add(current_node)
+            leaves.add(current_node+1)
+            current_node += 2
+        else:
+            # Hybridize
+            no_of_hybrids += 1
+            merging = random.sample(leaves, 2)
+            l0 = merging[0]
+            l1 = merging[1]
+            pl0 = -1
+            for p in nw.predecessors(l0):
+                pl0 = p
+            pl1 = -1
+            for p in nw.predecessors(l1):
+                pl1 = p
+            nw.add_weighted_edges_from([(l0, current_node, 0)], weight='length')
+            leaves.remove(l0)
+            leaves.remove(l1)
+            leaves.add(current_node)
+            prob = random.random()
+            nw[pl0][l0]['prob'] = prob
+            nw[pl1][l1]['prob'] = 1-prob
+            hybrid_nodes[l0] = no_of_hybrids
+            hybrid_nodes[l1] = no_of_hybrids
+            current_node += 1
+        # Now extend all pendant edges
+        for l in leaves:
+            pl = -1
+            for p in nw.predecessors(l):
+                pl = p
+            nw[pl][l]['length'] += extra_time
+        no_of_leaves = len(leaves)
+        current_speciation_rate = float(params.speciation_rate*no_of_leaves)
+        current_hybridization_rate = float(
+            params.hybridization_rate*(no_of_leaves * (no_of_leaves - 1))/2)
+        rate = current_speciation_rate + current_hybridization_rate
+        extra_time = np.random.exponential(1/rate)
+        current_time += extra_time
+
+    if current_node != 1:  # add this check to avoid the simulator to complain about Only one node in the network
+        extra_time -= current_time-params.time_limit
+        for l in leaves:
+            pl = -1
+            for p in nw.predecessors(l):
+                pl = p
+            nw[pl][l]['length'] += extra_time
+        
+    print("to="+str(params.time_limit)+",lambda="+str(params.speciation_rate)+",nu="+str(params.hybridization_rate) +
+          ",no_of_leaves="+str(len(leaves))+",no_of_hybrids="+str(no_of_hybrids) + ",ratio=" + str(float(no_of_hybrids/len(leaves))))
+       
+    # if ( len(leaves) < 100 and no_of_hybrids < float(len(leaves)/3)):  ## add this check to avoid the simulator to complain
+    
     taxa_ok = False
     reticulations_ok = False
-    param_info = {}
-    while not taxa_ok and not reticulations_ok:
-        nw = nx.DiGraph()
-        nw.add_node(0)
-        leaves = set([0])
-        current_node = 1
+    if params.wanted_taxa != -1:
+        taxa_ok = (len(leaves) == params.wanted_taxa)
+    else:
+        taxa_ok = (len(leaves) > 30)
+    if params.wanted_reticulations != -1:
+        reticulatons_ok = (no_of_hybrids == params.wanted_reticulations)
+    else:
+        reticulations_ok = (no_of_hybrids/len(leaves) < 0.1)
 
-        extra_time = np.random.exponential(1/float(params.speciation_rate))
-        current_time = extra_time
-        current_speciation_rate = float(params.speciation_rate)
-        current_hybridization_rate = float(0)
-        rate = current_speciation_rate + current_hybridization_rate
-
-        # First create a MUL-tree
-        hybrid_nodes = dict()
-        no_of_hybrids = 0
-
-        while current_time < params.time_limit:
-            if random.random() < current_speciation_rate / rate:
-                # speciate
-                splitting_leaf = random.choice(list(leaves))
-                nw.add_weighted_edges_from(
-                    [(splitting_leaf, current_node, 0), (splitting_leaf, current_node+1, 0)], weight='length')
-                leaves.remove(splitting_leaf)
-                leaves.add(current_node)
-                leaves.add(current_node+1)
-                current_node += 2
-            else:
-                # Hybridize
-                no_of_hybrids += 1
-                merging = random.sample(leaves, 2)
-                l0 = merging[0]
-                l1 = merging[1]
-                pl0 = -1
-                for p in nw.predecessors(l0):
-                    pl0 = p
-                pl1 = -1
-                for p in nw.predecessors(l1):
-                    pl1 = p
-                nw.add_weighted_edges_from([(l0, current_node, 0)], weight='length')
-                leaves.remove(l0)
-                leaves.remove(l1)
-                leaves.add(current_node)
-                prob = random.random()
-                nw[pl0][l0]['prob'] = prob
-                nw[pl1][l1]['prob'] = 1-prob
-                hybrid_nodes[l0] = no_of_hybrids
-                hybrid_nodes[l1] = no_of_hybrids
-                current_node += 1
-            # Now extend all pendant edges
-            for l in leaves:
-                pl = -1
-                for p in nw.predecessors(l):
-                    pl = p
-                nw[pl][l]['length'] += extra_time
-            no_of_leaves = len(leaves)
-            current_speciation_rate = float(params.speciation_rate*no_of_leaves)
-            current_hybridization_rate = float(
-                params.hybridization_rate*(no_of_leaves * (no_of_leaves - 1))/2)
-            rate = current_speciation_rate + current_hybridization_rate
-            extra_time = np.random.exponential(1/rate)
-            current_time += extra_time
-
-        if current_node != 1:  # add this check to avoid the simulator to complain about Only one node in the network
-            extra_time -= current_time-params.time_limit
-            for l in leaves:
-                pl = -1
-                for p in nw.predecessors(l):
-                    pl = p
-                nw[pl][l]['length'] += extra_time
-                
+    if taxa_ok and reticulations_ok:
+        n_taxa = len(leaves)
+        n_reticulations = no_of_hybrids
+        newick = Newick_From_MULTree(nw,0,hybrid_nodes,params)+";"
         param_info = {}
         param_info["to"] = params.time_limit
         param_info["lambda"] = params.speciation_rate
@@ -152,30 +166,22 @@ def simulate_network(params):
         param_info["no_of_leaves"] = len(leaves)
         param_info["no_of_hybrids"] = no_of_hybrids
         param_info["ratio"] = float(no_of_hybrids/len(leaves))
-            
-        print("to="+str(params.time_limit)+",lambda="+str(params.speciation_rate)+",nu="+str(params.hybridization_rate) +
-              ",no_of_leaves="+str(len(leaves))+",no_of_hybrids="+str(no_of_hybrids) + ",ratio=" + str(float(no_of_hybrids/len(leaves))))
-           
-        # if ( len(leaves) < 100 and no_of_hybrids < float(len(leaves)/3)):  ## add this check to avoid the simulator to complain
-        
-        if params.wanted_taxa != -1:
-            taxa_ok = (len(leaves) == params.wanted_taxa)
-        else:
-            taxa_ok = (len(leaves > 30))
-        if params.wanted_reticulations != -1:
-            reticulatons_ok = (no_of_hybrids == params.wanted_reticulations)
-        else:
-            reticulations_ok = (no_of_hybrids/len(leaves < 0.1))
+        return (n_taxa, n_reticulations, newick, param_info)
+    else: 
+        return None
 
-        if taxa_ok and reticulations_ok:
-        # if ( len(leaves) < 100 and no_of_hybrids < float(len(leaves)/3)):  ## add this check to avoid the simulator to complain 
-            print("OK")
-            newick = Newick_From_MULTree(nw,0,hybrid_nodes)+";"
-            return len(leaves), no_of_hybrids, newick, param_info
-        else: 
-            print("trying again")
-            params = reshuffle_params(params)
-        
+
+
+def simulate_network(params):
+    res = simulate_network_step(params)
+    while res == None:
+        print("trying again")
+        params = reshuffle_params(params)
+        res = simulate_network_step(params)
+    print("OK")
+    return res
+    
+    
         
 def simulate_network_celine(wanted_taxa, wanted_reticulations, network_path):
     params = CelineParams()
