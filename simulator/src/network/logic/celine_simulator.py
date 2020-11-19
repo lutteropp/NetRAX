@@ -149,7 +149,7 @@ def simulate_network_step(params):
     if params.wanted_taxa != -1:
         taxa_ok = (len(leaves) == params.wanted_taxa)
     else:
-        taxa_ok = (len(leaves) > 30)
+        taxa_ok = (len(leaves) >= 30)
     if params.wanted_reticulations != -1:
         reticulatons_ok = (no_of_hybrids == params.wanted_reticulations)
     else:
