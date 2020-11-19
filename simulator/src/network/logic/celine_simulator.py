@@ -179,8 +179,7 @@ def simulate_network(params):
         params = reshuffle_params(params)
         res = simulate_network_step(params)
     print("OK")
-    return res
-    
+    return res    
     
         
 def simulate_network_celine(wanted_taxa, wanted_reticulations, network_path):
