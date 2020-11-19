@@ -15,7 +15,7 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
     app.add_option("-o,--output", options->output_file, "File where to write the final network to");
     app.add_option("--start_network", options->start_network_file, "A network file (in Extended Newick format) to start the search on");
     app.add_option("-r,--reticulations", options->max_reticulations,
-            "Maximum number of reticulations to consider (default: 20)");
+            "Maximum number of reticulations to consider (default: 32)");
     app.add_option("-t,--timeout", options->timeout, "Maximum number of seconds to run network search.");
     app.add_flag("-e,--endless", options->endless, "Endless search mode - keep trying with more random start networks.");
     app.add_option("--seed", options->seed, "Seed for random number generation.");
@@ -34,7 +34,7 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
 void run_random_endless(NetraxOptions& netraxOptions, std::mt19937& rng) {
     double best_score = std::numeric_limits<double>::infinity();
     auto start_time = std::chrono::high_resolution_clock::now();
-    size_t start_reticulations = 4;
+    size_t start_reticulations = 0;
     while (true) {
         std::cout << "Starting with new random network with " << start_reticulations << " reticulations.\n";
         netrax::AnnotatedNetwork ann_network = NetraxInstance::build_random_annotated_network(netraxOptions);

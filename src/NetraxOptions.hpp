@@ -43,7 +43,7 @@ public:
     bool use_graycode = true; // deprecated, value is ignored now (always set to true)
     bool use_incremental = true; // deprecated, value is ignored now (always set to true)
 
-    unsigned int max_reticulations = 20;
+    unsigned int max_reticulations = 32;
 
     unsigned int timeout = 0; // maximum number of seconds to run the network search, value of zero will be ignored
 
