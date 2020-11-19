@@ -2,11 +2,12 @@
 from experiment_model import Dataset, SamplingType, SimulationType
 from netrax_wrapper import generate_random_network, extract_displayed_trees
 from seqgen_wrapper import simulate_msa
+from celine_simulator import CelineParams, simulate_network_celine
 
 import math
 import random
 
-def create_dataset_container_sarah(n_taxa, n_reticulations, approx_msa_size, sampling_type, name, timeout=0, m=1):
+def create_dataset_container(n_taxa, n_reticulations, approx_msa_size, sampling_type, simulation_type, likelihood_type, name, timeout=0, m=1):
     ds = Dataset()
     ds.n_taxa = n_taxa
     ds.n_reticulations = n_reticulations
@@ -15,7 +16,8 @@ def create_dataset_container_sarah(n_taxa, n_reticulations, approx_msa_size, sam
     ds.true_network_path = name + "_true_network.nw"
     ds.inferred_network_path = name + "_inferred_network.nw"
     ds.sampling_type = sampling_type
-    ds.simulation_type = SimulationType.SARAH
+    ds.simulation_type = simulation_type
+    ds.likelihood_type = likelihood_type
     ds.timeout = timeout
     
     ds.n_trees = 2 ** n_reticulations
@@ -32,7 +34,7 @@ def create_dataset_container_sarah(n_taxa, n_reticulations, approx_msa_size, sam
     return ds
     
     
-def sample_trees_sarah(ds, trees_prob):
+def sample_trees(ds, trees_prob):
     n_displayed_trees = len(trees_prob)
     sampled_trees_contrib = [0] * n_displayed_trees
     
@@ -53,7 +55,7 @@ def sample_trees_sarah(ds, trees_prob):
     
     
 # build the trees file required by seq-gen
-def build_trees_file_sarah(ds, trees_newick, sampled_trees_contrib):
+def build_trees_file(ds, trees_newick, sampled_trees_contrib):
     trees_file = open(ds.extracted_trees_path, "w")
     for i in range(len(trees_newick)):
         newick = trees_newick[i]
@@ -62,12 +64,18 @@ def build_trees_file_sarah(ds, trees_newick, sampled_trees_contrib):
     trees_file.close()
     
     
-def build_dataset_sarah(n_taxa, n_reticulations, approx_msa_size, sampling_type, name, timeout=0, m=1):
-    ds = create_dataset_container_sarah(n_taxa, n_reticulations, approx_msa_size, sampling_type, name, timeout, m)
-    generate_random_network(ds.n_taxa, ds.n_reticulations, ds.true_network_path)
+def build_dataset(n_taxa, n_reticulations, approx_msa_size, sampling_type, simulation_type, likelihood_type, name, timeout=0, m=1):
+    ds = create_dataset_container(n_taxa, n_reticulations, approx_msa_size, sampling_type, simulation_type, likelihood_type, name, timeout, m)
+    if simulation_type == SimulationType.SARAH:
+        generate_random_network(ds.n_taxa, ds.n_reticulations, ds.true_network_path)
+    else:
+        celine_params = CelineParams()
+        celine_params.wanted_taxa = n_taxa
+        celine_params.wanted_reticulations
+        ds.celine_params = simulate_network_celine(ds.n_taxa, ds.n_reticulations, ds.true_network_path)
     trees_newick, trees_prob = extract_displayed_trees(ds.true_network_path, ds.n_taxa)
-    ds, sampled_trees_contrib = sample_trees_sarah(ds, trees_prob)
-    build_trees_file_sarah(ds, trees_newick, sampled_trees_contrib)
+    ds, sampled_trees_contrib = sample_trees(ds, trees_prob)
+    build_trees_file(ds, trees_newick, sampled_trees_contrib)
     simulate_msa(ds)
     return ds
    
