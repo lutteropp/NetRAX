@@ -69,6 +69,7 @@ void NetraxInstance::init_annotated_network(AnnotatedNetwork &ann_network, std::
         }
     }
     netrax::RaxmlWrapper wrapper(ann_network.options);
+    std::cout << "I am here\n";
     ann_network.raxml_treeinfo = std::unique_ptr<TreeInfo>(wrapper.createRaxmlTreeinfo(ann_network));
 
     assert(static_cast<RaxmlWrapper::NetworkParams*>(ann_network.raxml_treeinfo->pll_treeinfo().likelihood_computation_params)->ann_network == &ann_network);

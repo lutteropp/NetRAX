@@ -23,6 +23,7 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
     app.add_option("--seed", options->seed, "Seed for random number generation.");
     app.add_flag("--score_only", options->score_only, "Only read a network and MSA from file and compute its score.");
     app.add_flag("--extract_displayed_trees", options->extract_displayed_trees, "Only extract all displayed trees with their probabilities from a network.");
+    app.add_flag("--extract_taxon_names", options->extract_taxon_names, "Only extract all taxon names from a network.");
     app.add_flag("--generate_random_network_only", options->generate_random_network_only, "Only generate a random network, with as many reticulations as specified in the -r parameter");
     
     bool best_displayed_tree_variant = false;
@@ -81,6 +82,22 @@ void score_only(const NetraxOptions& netraxOptions, std::mt19937& rng) {
     std::cout << "Number of reticulations: " << ann_network.network.num_reticulations() << "\n";
     std::cout << "BIC Score: " << final_bic << "\n";
     std::cout << "Loglikelihood: " << final_logl << "\n";
+}
+
+void extract_taxon_names(const NetraxOptions& netraxOptions) {
+    if (netraxOptions.start_network_file.empty()) {
+        throw std::runtime_error("Need network to extract taxon names");
+    }
+    netrax::Network network = netrax::readNetworkFromFile(netraxOptions.start_network_file,
+            netraxOptions.max_reticulations);
+    std::vector<std::string> tip_labels;
+    for (size_t i = 0; i < network.num_tips(); ++i) {
+        tip_labels.emplace_back(network.nodes_by_index[i]->getLabel());
+    }
+    std::cout << "Found " << tip_labels.size() << " taxa:\n";
+    for (size_t i = 0; i < tip_labels.size(); ++i) {
+        std::cout << tip_labels[i] << "\n";
+    }
 }
 
 void extract_displayed_trees(const NetraxOptions& netraxOptions, std::mt19937& rng) {
@@ -143,6 +160,11 @@ int main(int argc, char **argv) {
     } else {
         std::mt19937 rng2(netraxOptions.seed);
         rng = rng2;
+    }
+
+    if (netraxOptions.extract_taxon_names) {
+        extract_taxon_names(netraxOptions);
+        return 0;
     }
 
     if (netraxOptions.extract_displayed_trees) {

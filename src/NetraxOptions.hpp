@@ -33,6 +33,7 @@ public:
     bool use_repeats = true;
 
     bool score_only = false;
+    bool extract_taxon_names = false;
     bool extract_displayed_trees = false;
     bool generate_random_network_only = false;
 
