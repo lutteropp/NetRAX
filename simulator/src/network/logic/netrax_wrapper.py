@@ -21,13 +21,13 @@ def score_network(network_path, msa_path):
     
     
 # Uses NetRAX to infer a network... uses few random starting network if timeout==0, else keeps searching for a better network until timeout seconds have passed.
-def infer_network(msa_path, output_path, timeout):
+def infer_network(msa_path, output_path, timeout, num_start_networks):
     netrax_cmd = NETRAX_PATH + " --msa " + msa_path + " --output " + output_path
     print(netrax_cmd)
     if timeout > 0:
         netrax_cmd += " --endless --timeout " + str(timeout)
     else:
-        netrax_cmd += " --num_start_networks 5"
+        netrax_cmd += " --num_start_networks " + str(num_start_networks)
     subprocess.getoutput(netrax_cmd)
     
     
@@ -35,13 +35,12 @@ def infer_network(msa_path, output_path, timeout):
 def extract_displayed_trees(network_path, n_taxa):
     msa_path = "temp_fake_msa.txt"
     msa_file = open(msa_path, "w")
-    msa_file.write(build_fake_msa(n_taxa))
+    msa_file.write(build_fake_msa(n_taxa, network_path))
     msa_file.close()
 
     netrax_cmd = NETRAX_PATH + " --extract_displayed_trees " + " --start_network " + network_path + " --msa " + msa_path
     print(netrax_cmd)
     lines = subprocess.getoutput(netrax_cmd).splitlines()
-    os.remove(msa_path)
     start_idx = 0
     n_trees = 0
     for i in range(len(lines)):
@@ -56,10 +55,11 @@ def extract_displayed_trees(network_path, n_taxa):
     start_idx += n_trees + 1
     for i in range(n_trees):
         trees_prob.append(float(lines[start_idx + i]))
+    #os.remove(msa_path)
     return trees_newick, trees_prob
-    
-    
-def build_fake_msa(n_taxa):
+
+
+def build_fake_msa(n_taxa, network_path=""):
     fake_msa = ""
     
     def to_dna(s):
@@ -74,9 +74,21 @@ def build_fake_msa(n_taxa):
     maxlen = max([len(s) for s in msa])
     msa = [s.rjust(maxlen, 'A') for s in msa]
     
+    taxon_names = []
+    if network_path != "":
+        netrax_cmd = NETRAX_PATH + " --extract_taxon_names " + " --start_network " + network_path
+        print(netrax_cmd)
+        lines = subprocess.getoutput(netrax_cmd).splitlines()
+        for line in lines[1:]:
+            taxon_names.append(line)
+            
     for i in range(n_taxa):
-        fake_msa += ">T" + str(i) + "\n" + msa[i] + "\n"
-    return fake_msa
+        if len(taxon_names) == 0:
+            fake_msa += ">T" + str(i) + "\n" + msa[i] + "\n"
+        else:
+            fake_msa += ">" + taxon_names[i] + "\n" + msa[i] + "\n"
+    return fake_msa    
+
     
 # Generates a random network with the wanted number of taxa and reticulations. Writes it in Extended NEWICK format to the provided output path.
 def generate_random_network(n_taxa, n_reticulations, output_path):

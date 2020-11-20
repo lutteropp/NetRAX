@@ -219,17 +219,13 @@ def simulate_network_celine(wanted_taxa, wanted_reticulations, network_path):
     return param_info
     
 
-def simulate_network_celine_minmax(min_taxa, max_taxa, min_reticulations, max_reticulations, network_path):
+def simulate_network_celine_minmax(min_taxa, max_taxa, min_reticulations, max_reticulations):
     params = CelineParams()
     params.min_taxa = min_taxa
     params.max_taxa = max_taxa
     params.min_reticulations = min_reticulations
     params.max_reticulations = max_reticulations
-    n_taxa, n_reticulations, newick, param_info = simulate_network(params)
-    network_file = open(network_path, "w")
-    network_file.write(newick)
-    network_file.close()
-    return param_info
+    return simulate_network(params)
         
         
 if __name__ == "__main__":

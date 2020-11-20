@@ -20,7 +20,7 @@ class LikelihoodType(Enum):
 
 TOPOLOGICAL_DISTANCE_NAMES = ['hardwired_cluster_distance', 'softwired_cluster_distance', 'displayed_trees_distance', 'tripartition_distance', 'nested_labels_distance', 'path_multiplicity_distance']
 
-DATASET_CSV_HEADER = "n_taxa,n_trees,n_reticulations,msa_size,sampling_type,simulation_type,likelihood_type,timeout"
+DATASET_CSV_HEADER = "n_taxa,n_trees,n_reticulations,msa_size,sampling_type,simulation_type,likelihood_type,timeout,n_start_networks"
 RESULT_CSV_HEADER = "n_reticulations_inferred,bic_true,logl_true,bic_inferred,logl_inferred" + "," + ",".join(TOPOLOGICAL_DISTANCE_NAMES)
 
 
@@ -39,14 +39,14 @@ class Dataset:
         self.simulation_type = SimulationType.CELINE
         self.likelihood_type = LikelihoodType.AVERAGE
         self.timeout = 0
-        self.start_networks = 5
+        self.n_start_networks = 5
         self.celine_params = {}
         
     def msa_size(self):
         return self.n_trees * self.sites_per_tree
         
     def get_csv_line(self):
-        return str(self.n_taxa) + "," + str(self.n_trees) + "," + str(self.n_reticulations) + "," + str(self.msa_size) + "," + str(self.sampling_type) + "," + str(self.simulation_type) + "," + str(self.likelihood_type) + "," + str(self.timeout)
+        return str(self.n_taxa) + "," + str(self.n_trees) + "," + str(self.n_reticulations) + "," + str(self.msa_size) + "," + str(self.sampling_type) + "," + str(self.simulation_type) + "," + str(self.likelihood_type) + "," + str(self.timeout) + "," + str(n_start_networks)
 
 
 class Result:

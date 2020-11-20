@@ -16,7 +16,7 @@ def evaluate_dataset(dataset):
     
 def run_inference_and_evaluate(datasets):
     for ds in datasets:
-        infer_network(ds.msa_path, ds.inferred_network_path, ds.timeout)
+        infer_network(ds.msa_path, ds.inferred_network_path, ds.timeout, ds.n_start_networks)
     results = [evaluate_dataset(ds) for ds in datasets]
     return results
     

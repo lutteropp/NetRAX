@@ -7,7 +7,7 @@ from celine_simulator import CelineParams, simulate_network_celine
 import math
 import random
 
-def create_dataset_container(n_taxa, n_reticulations, approx_msa_size, sampling_type, simulation_type, likelihood_type, name, timeout=0, m=1):
+def create_dataset_container(n_taxa, n_reticulations, approx_msa_size, sampling_type, simulation_type, likelihood_type, name, timeout=0, m=1, num_start_networks=5):
     ds = Dataset()
     ds.n_taxa = n_taxa
     ds.n_reticulations = n_reticulations
@@ -20,6 +20,7 @@ def create_dataset_container(n_taxa, n_reticulations, approx_msa_size, sampling_
     ds.simulation_type = simulation_type
     ds.likelihood_type = likelihood_type
     ds.timeout = timeout
+    ds.num_start_networks = num_start_networks
     
     ds.n_trees = 2 ** n_reticulations
     if sampling_type == SamplingType.STANDARD:
@@ -71,14 +72,14 @@ def build_trees_file(ds, trees_newick, sampled_trees_contrib):
     partitions_file.close()
     
     
-def build_dataset(n_taxa, n_reticulations, approx_msa_size, sampling_type, simulation_type, likelihood_type, name, timeout=0, m=1):
-    ds = create_dataset_container(n_taxa, n_reticulations, approx_msa_size, sampling_type, simulation_type, likelihood_type, name, timeout, m)
+def build_dataset(n_taxa, n_reticulations, approx_msa_size, sampling_type, simulation_type, likelihood_type, name, timeout=0, m=1, num_start_networks=5):
+    ds = create_dataset_container(n_taxa, n_reticulations, approx_msa_size, sampling_type, simulation_type, likelihood_type, name, timeout, m, num_start_networks)
     if simulation_type == SimulationType.SARAH:
         generate_random_network(ds.n_taxa, ds.n_reticulations, ds.true_network_path)
     else:
         celine_params = CelineParams()
         celine_params.wanted_taxa = n_taxa
-        celine_params.wanted_reticulations
+        celine_params.wanted_reticulations = n_reticulations
         ds.celine_params = simulate_network_celine(ds.n_taxa, ds.n_reticulations, ds.true_network_path)
     trees_newick, trees_prob = extract_displayed_trees(ds.true_network_path, ds.n_taxa)
     ds, sampled_trees_contrib = sample_trees(ds, trees_prob)
