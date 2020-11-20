@@ -16,6 +16,8 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
     app.add_option("--start_network", options->start_network_file, "A network file (in Extended Newick format) to start the search on");
     app.add_option("-r,--reticulations", options->max_reticulations,
             "Maximum number of reticulations to consider (default: 32)");
+    app.add_option("-n,--num_start_networks", options->num_start_networks,
+            "Number of random start networks (default: 5)");
     app.add_option("-t,--timeout", options->timeout, "Maximum number of seconds to run network search.");
     app.add_flag("-e,--endless", options->endless, "Endless search mode - keep trying with more random start networks.");
     app.add_option("--seed", options->seed, "Seed for random number generation.");
@@ -31,11 +33,13 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
     return 0;
 }
 
-void run_random_endless(NetraxOptions& netraxOptions, std::mt19937& rng) {
+void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {
     double best_score = std::numeric_limits<double>::infinity();
     auto start_time = std::chrono::high_resolution_clock::now();
     size_t start_reticulations = 0;
+    size_t n_iterations = 0;
     while (true) {
+        n_iterations++;
         std::cout << "Starting with new random network with " << start_reticulations << " reticulations.\n";
         netrax::AnnotatedNetwork ann_network = NetraxInstance::build_random_annotated_network(netraxOptions);
         NetraxInstance::init_annotated_network(ann_network, rng);
@@ -56,25 +60,10 @@ void run_random_endless(NetraxOptions& netraxOptions, std::mt19937& rng) {
             if (std::chrono::duration_cast<std::chrono::seconds>(act_time - start_time).count() >= netraxOptions.timeout) {
                 break;
             }
+        } else if (n_iterations >= netraxOptions.num_start_networks) {
+            break;
         }
     }
-}
-
-void run_random_single(NetraxOptions& netraxOptions, std::mt19937& rng) {
-    netrax::AnnotatedNetwork ann_network;
-    if (netraxOptions.start_network_file.empty()) {
-        ann_network = NetraxInstance::build_random_annotated_network(netraxOptions);
-    } else {
-        ann_network = NetraxInstance::build_annotated_network(netraxOptions);
-    }
-    NetraxInstance::init_annotated_network(ann_network, rng);
-
-    NetraxInstance::optimizeEverything(ann_network);
-    double final_bic = NetraxInstance::scoreNetwork(ann_network);
-    std::cout << "The inferred network has " << ann_network.network.num_reticulations() << " reticulations and this BIC score: " << final_bic << "\n";
-
-    NetraxInstance::writeNetwork(ann_network, netraxOptions.output_file);
-    std::cout << "Final network written to " << netraxOptions.output_file << "\n";
 }
 
 void score_only(const NetraxOptions& netraxOptions, std::mt19937& rng) {
@@ -172,11 +161,7 @@ int main(int argc, char **argv) {
         throw std::runtime_error("No output path specified");
     }
 
-    if (!netraxOptions.endless) {
-        run_random_single(netraxOptions, rng);
-    } else {
-        run_random_endless(netraxOptions, rng);
-    }
+    run_random(netraxOptions, rng);
 
     return 0;
 }

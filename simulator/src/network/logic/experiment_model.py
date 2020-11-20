@@ -31,13 +31,15 @@ class Dataset:
         self.n_trees = 0
         self.sites_per_tree = 0
         self.msa_path = ""
+        self.partitions_path = ""
         self.extracted_trees_path = ""
         self.true_network_path = ""
         self.inferred_network_path = ""
-        self.sampling_type = SamplingType.STANDARD
+        self.sampling_type = SamplingType.PERFECT_SAMPLING
         self.simulation_type = SimulationType.CELINE
         self.likelihood_type = LikelihoodType.AVERAGE
         self.timeout = 0
+        self.start_networks = 5
         self.celine_params = {}
         
     def msa_size(self):

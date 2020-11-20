@@ -20,12 +20,14 @@ def score_network(network_path, msa_path):
     return n_reticulations, bic, logl
     
     
-# Uses NetRAX to infer a network... uses single random starting network if timeout==0, else keeps searching for a better network until timeout seconds have passed.
+# Uses NetRAX to infer a network... uses few random starting network if timeout==0, else keeps searching for a better network until timeout seconds have passed.
 def infer_network(msa_path, output_path, timeout):
     netrax_cmd = NETRAX_PATH + " --msa " + msa_path + " --output " + output_path
     print(netrax_cmd)
     if timeout > 0:
         netrax_cmd += " --endless --timeout " + str(timeout)
+    else:
+        netrax_cmd += " --num_start_networks 5"
     subprocess.getoutput(netrax_cmd)
     
     

@@ -45,6 +45,8 @@ public:
 
     unsigned int max_reticulations = 32;
 
+    unsigned int num_start_networks = 5;
+
     unsigned int timeout = 0; // maximum number of seconds to run the network search, value of zero will be ignored
 
     int brlen_linkage = PLLMOD_COMMON_BRLEN_SCALED;

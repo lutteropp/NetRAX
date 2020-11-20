@@ -14,6 +14,10 @@ class CelineParams:
         self.inheritance = True
         self.wanted_taxa = -1
         self.wanted_reticulations = -1
+        self.min_taxa = -1
+        self.max_taxa = -1
+        self.min_reticulations = -1
+        self.max_reticulations = -1
 
 
 def parse_user_input():
@@ -38,6 +42,18 @@ def parse_user_input():
         if arg == "-nreticulations":
             i += 1
             params.wanted_reticulations = int(sys.argv[i])
+        if arg == "-min_taxa":
+            i += 1
+            params.min_taxa = int(sys.argv[1])
+        if arg == "-max_taxa":
+            i += 1
+            params.max_taxa = int(sys.argv[1])
+        if arg == "-min_reticulations":
+            i += 1
+            params.min_reticulations = int(sys.argv[1])
+        if arg == "-max_reticulations":
+            i += 1
+            params.max_reticulations = int(sys.argv[1])
         i += 1
     return params
 
@@ -67,6 +83,27 @@ def reshuffle_params(params):
     params.speciation_rate = random.random()*20 + 5
     params.hybridization_rate = float(params.speciation_rate * 0.003)
     return params
+
+
+def check_counts(n_taxa, n_reticulations, params):
+    taxa_ok = False
+    reticulations_ok = False
+    # check number of taxa
+    if params.wanted_taxa != -1:
+        taxa_ok = (n_taxa == params.wanted_taxa)
+    elif params.min_taxa != -1 and params.max_taxa != -1:
+        taxa_ok = (n_taxa >= params.min_taxa and n_taxa <= params.max_taxa)
+    else:
+        taxa_ok = (n_taxa >= 30)
+    # check number of reticulations
+    if params.wanted_reticulations != -1:
+        reticulations_ok = (n_reticulations == params.wanted_reticulations)
+    elif params.min_reticulations != -1 and params.max_reticulations != -1:
+        reticulations_ok = (n_reticulations >= params.min_reticulations and n_reticulations <= params.max_reticulations)
+    else:
+        reticulations_ok = (float(n_reticulations)/n_taxa <= 0.1)
+    
+    return (taxa_ok and reticulations_ok)
 
 
 def simulate_network_step(params):
@@ -143,19 +180,8 @@ def simulate_network_step(params):
           ",no_of_leaves="+str(len(leaves))+",no_of_hybrids="+str(no_of_hybrids) + ",ratio=" + str(float(no_of_hybrids/len(leaves))))
        
     # if ( len(leaves) < 100 and no_of_hybrids < float(len(leaves)/3)):  ## add this check to avoid the simulator to complain
-    
-    taxa_ok = False
-    reticulations_ok = False
-    if params.wanted_taxa != -1:
-        taxa_ok = (len(leaves) == params.wanted_taxa)
-    else:
-        taxa_ok = (len(leaves) >= 30)
-    if params.wanted_reticulations != -1:
-        reticulatons_ok = (no_of_hybrids == params.wanted_reticulations)
-    else:
-        reticulations_ok = (no_of_hybrids/len(leaves) <= 0.1)
 
-    if taxa_ok and reticulations_ok:
+    if check_counts(len(leaves), no_of_hybrids, params):
         n_taxa = len(leaves)
         n_reticulations = no_of_hybrids
         newick = Newick_From_MULTree(nw,0,hybrid_nodes,params)+";"
@@ -186,6 +212,19 @@ def simulate_network_celine(wanted_taxa, wanted_reticulations, network_path):
     params = CelineParams()
     params.wanted_taxa = wanted_taxa
     params.wanted_reticulations = wanted_reticulations
+    n_taxa, n_reticulations, newick, param_info = simulate_network(params)
+    network_file = open(network_path, "w")
+    network_file.write(newick)
+    network_file.close()
+    return param_info
+    
+
+def simulate_network_celine_minmax(min_taxa, max_taxa, min_reticulations, max_reticulations, network_path):
+    params = CelineParams()
+    params.min_taxa = min_taxa
+    params.max_taxa = max_taxa
+    params.min_reticulations = min_reticulations
+    params.max_reticulations = max_reticulations
     n_taxa, n_reticulations, newick, param_info = simulate_network(params)
     network_file = open(network_path, "w")
     network_file.write(newick)

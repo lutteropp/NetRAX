@@ -12,6 +12,7 @@ def create_dataset_container(n_taxa, n_reticulations, approx_msa_size, sampling_
     ds.n_taxa = n_taxa
     ds.n_reticulations = n_reticulations
     ds.msa_path = name + "_msa.txt"
+    ds.partitions_path = name + "_partitions.txt"
     ds.extracted_trees_path = name + "_trees.txt"
     ds.true_network_path = name + "_true_network.nw"
     ds.inferred_network_path = name + "_inferred_network.nw"
@@ -57,11 +58,17 @@ def sample_trees(ds, trees_prob):
 # build the trees file required by seq-gen
 def build_trees_file(ds, trees_newick, sampled_trees_contrib):
     trees_file = open(ds.extracted_trees_path, "w")
+    partitions_file = open(ds.partitions_path, "w")
+    min_site = 1
     for i in range(len(trees_newick)):
         newick = trees_newick[i]
         if sampled_trees_contrib[i] > 0:
-            trees_file.write('[' + str(sampled_trees_contrib[i]) + ']' + newick + "\n")
+            trees_file.write('[' + str(sampled_trees_contrib[i]) + ']' + newick + '\n')
+            max_site = min_site + sampled_trees_contrib[i] - 1
+            partitions_file.write('DNA, tree_' + str(i) + '=' + str(min_site) + '-' + str(max_site) + '\n')
+            min_site = max_site + 1
     trees_file.close()
+    partitions_file.close()
     
     
 def build_dataset(n_taxa, n_reticulations, approx_msa_size, sampling_type, simulation_type, likelihood_type, name, timeout=0, m=1):

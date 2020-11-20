@@ -13,14 +13,11 @@ WANTED_LIKELIHOODS = [LikelihoodType.AVERAGE, LikelihoodType.BEST]
 WANTED_TIMEOUTS = [0, 60] # Timeout of zero means a single netrax random starting network, timeout larger than zero means continue starting from other random networks until timeout has been reached
 
 
-def build_dataset(n_taxa, n_reticulations, msa_size, m, simulator, sampling, timeout):
+def build_dataset(n_taxa, n_reticulations, msa_size, m, simulator, sampling, likelihood, timeout):
     if not os.path.exists('datasets'):
         os.makedirs('datasets')
-    name = "datasets/" + str(simulator) + "_" + str(sampling) + "_" + str(n_taxa) + "_" + str(n_reticulations) + "_" + str(msa_size) + "_" + str(m) + "_" + str(timeout) 
-    if simulator == SimulationType.SARAH:
-        return build_dataset_sarah(n_taxa, n_reticulations, msa_size, sampling, name, timeout, m)
-    else:
-        raise "Dataset building with Celine simulator not implemented yet"
+    name = "datasets/" + str(simulator) + "_" + str(sampling) + "_" + str(likelihood) + "_" + str(n_taxa) + "_" + str(n_reticulations) + "_" + str(msa_size) + "_" + str(m) + "_" + str(timeout) 
+    return build_dataset(n_taxa, n_reticulations, msa_size, sampling, likelihood, name, timeout, m)
     
 
 def run_experiments(wanted_num_taxa, wanted_num_reticulations, wanted_msa_sizes, wanted_m_values, wanted_simulators, wanted_samplings, wanted_timeouts):
