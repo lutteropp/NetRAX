@@ -90,13 +90,19 @@ void extract_displayed_trees(const NetraxOptions& netraxOptions, std::mt19937& r
     std::vector<std::pair<std::string, double> > displayed_trees;
     netrax::AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(netraxOptions);
     NetraxInstance::init_annotated_network(ann_network, rng);
-    for (size_t tree_index = 0; tree_index < 1 << ann_network.network.num_reticulations(); ++tree_index) {
-        pll_utree_t* utree = netrax::displayed_tree_to_utree(ann_network.network, tree_index);
-        double prob = netrax::displayed_tree_prob(ann_network, tree_index);
-        Network displayedNetwork = netrax::convertUtreeToNetwork(*utree, 0);
-        std::string newick = netrax::toExtendedNewick(displayedNetwork);
-        pll_utree_destroy(utree, nullptr);
-        displayed_trees.emplace_back(std::make_pair(newick, prob));
+
+    if (ann_network.network.num_reticulations() == 0) {
+        std::string newick = netrax::toExtendedNewick(ann_network.network);
+        displayed_trees.emplace_back(std::make_pair(newick, 1.0));
+    } else {
+        for (size_t tree_index = 0; tree_index < 1 << ann_network.network.num_reticulations(); ++tree_index) {
+            pll_utree_t* utree = netrax::displayed_tree_to_utree(ann_network.network, tree_index);
+            double prob = netrax::displayed_tree_prob(ann_network, tree_index);
+            Network displayedNetwork = netrax::convertUtreeToNetwork(*utree, 0);
+            std::string newick = netrax::toExtendedNewick(displayedNetwork);
+            pll_utree_destroy(utree, nullptr);
+            displayed_trees.emplace_back(std::make_pair(newick, prob));
+        }
     }
 
     std::cout << "Number of displayed trees: " << displayed_trees.size() << "\n";
