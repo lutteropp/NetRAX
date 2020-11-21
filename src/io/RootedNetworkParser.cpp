@@ -148,6 +148,7 @@ void extendReticulationNodeFromString(const std::string &str, RootedNetworkNode 
     node->secondParentSupport = brlen_support_prob[1];
     node->secondParentProb = brlen_support_prob[2];
     node->secondParent = secondParent;
+    assert(node->firstParentProb + node->secondParentProb == 1.0);
 }
 
 RootedNetworkNode* buildNodeFromString(const std::string &str, RootedNetworkNode *parent,
@@ -305,7 +306,7 @@ RootedNetwork* parseRootedNetworkFromNewickString(const std::string &newick) {
     return rnetwork;
 }
 
-std::string newickNodeName(const RootedNetworkNode *node, const RootedNetworkNode *parent) {
+std::string newickNodeName(const RootedNetworkNode *node, const RootedNetworkNode *parent, std::unordered_set<const RootedNetworkNode*> &first_parent_seen) {
     assert(node);
     std::stringstream sb("");
 
@@ -313,9 +314,10 @@ std::string newickNodeName(const RootedNetworkNode *node, const RootedNetworkNod
     if (node->isReticulation) {
         assert(parent);
         sb << "#" << node->reticulationName;
-        if (node->firstParent == parent) {
+        if (node->firstParent == parent && first_parent_seen.count(node) == 0) {
             sb << ":" << node->firstParentLength << ":" << node->firstParentSupport << ":"
                     << node->firstParentProb;
+            first_parent_seen.emplace(node);
         } else {
             assert(node->secondParent == parent);
             sb << ":" << node->secondParentLength << ":" << node->secondParentSupport << ":"
@@ -328,30 +330,31 @@ std::string newickNodeName(const RootedNetworkNode *node, const RootedNetworkNod
 }
 
 std::string printNodeNewick(const RootedNetworkNode *node, const RootedNetworkNode *parent,
-        std::unordered_set<const RootedNetworkNode*> &visited_reticulations) {
+        std::unordered_set<const RootedNetworkNode*> &visited_reticulations, std::unordered_set<const RootedNetworkNode*> &first_parent_seen) {
     std::stringstream sb("");
     if (!node->children.empty()
             && visited_reticulations.find(node) == visited_reticulations.end()) {
         sb << "(";
         for (size_t i = 0; i < node->children.size() - 1; i++) {
-            sb << printNodeNewick(node->children[i], node, visited_reticulations);
+            sb << printNodeNewick(node->children[i], node, visited_reticulations, first_parent_seen);
             sb << ",";
         }
-        sb
-                << printNodeNewick(node->children[node->children.size() - 1], node,
-                        visited_reticulations);
+        sb << printNodeNewick(node->children[node->children.size() - 1], node,
+                        visited_reticulations, first_parent_seen);
         sb << ")";
         if (node->isReticulation) {
             visited_reticulations.insert(node);
         }
     }
-    sb << newickNodeName(node, parent);
+    sb << newickNodeName(node, parent, first_parent_seen);
     return sb.str();
 }
 
 std::string toNewickString(const RootedNetwork &rnetwork) {
     std::unordered_set<const RootedNetworkNode*> visited_reticulations;
-    return printNodeNewick(rnetwork.root, nullptr, visited_reticulations) + ";";
+    std::unordered_set<const RootedNetworkNode*> first_parent_seen; // needed for exotic case when both reticulation parents are the same one
+
+    return printNodeNewick(rnetwork.root, nullptr, visited_reticulations, first_parent_seen) + ";";
 }
 
 }

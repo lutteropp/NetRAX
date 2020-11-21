@@ -21,8 +21,8 @@ namespace netrax {
 
 struct RootedNetworkNode {
     // only relevant for non-reticulation nodes
-    double length = 0.0;
-    double support = 0.0;
+    double length = 0.0; // length to parent
+    double support = 0.0; // support of the branch to parent
     RootedNetworkNode *parent = nullptr;
 
     size_t tip_index = std::numeric_limits<size_t>::max(); // this will be used to later on set the clv_index and the pmatrix_index values of tip nodes
