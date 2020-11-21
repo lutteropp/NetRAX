@@ -61,7 +61,7 @@ def get_dendro_scores(network_1, network_2):
         elif line.startswith("Path multiplicity distance:"):
             scores["path_multiplicity_distance"] = float(line.split(": ")[1])
     print(scores)
-    #os.remove("dendroscope_commands.txt")
+    os.remove("dendroscope_commands.txt")
     return scores
     
     
