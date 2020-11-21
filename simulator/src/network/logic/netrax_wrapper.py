@@ -6,7 +6,7 @@ NETRAX_PATH = "/home/sarah/code-workspace/NetRAX/bin/netrax"
 
 # Uses NetRAX to compute the number of reticulations, BIC score, and loglikelihood of a network for a given MSA
 def score_network(network_path, msa_path):
-    netrax_cmd = NETRAX_PATH + " --score_only" + " --start_network" + network_path + " --msa " + msa_path
+    netrax_cmd = NETRAX_PATH + " --score_only" + " --start_network " + network_path + " --msa " + msa_path
     print(netrax_cmd)
     netrax_output = subprocess.getoutput(netrax_cmd).splitlines()
     n_reticulations, bic, logl = 0,0,0
