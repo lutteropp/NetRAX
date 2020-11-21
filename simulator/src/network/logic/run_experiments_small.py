@@ -61,7 +61,7 @@ def run_experiments_small():
                 print(str(i) + ", " + str(j) + ": " + str(counter[i][j]))
     
     results = run_inference_and_evaluate(datasets)
-    write_results_to_csv(results, "all_results.csv")
+    write_results_to_csv(results, "small_results.csv")
 
     
 if __name__ == "__main__":
