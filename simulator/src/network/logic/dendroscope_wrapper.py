@@ -22,7 +22,7 @@ def convert_newick_to_dendroscope(newick):
         elif c in [',', '(', ')', ';']:
             skip = False
             seenColon = False
-        if not skip:
+        if not skip and c != '\n':
             new_newick += c
     return new_newick
 
