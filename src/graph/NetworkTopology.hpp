@@ -21,7 +21,7 @@ namespace netrax {
 
 Node* getTargetNode(Network &network, const Link *link);
 bool isOutgoing(Network &network, Node *from, Node *to);
-Link* getLinkToClvIndex(Network &network, Node *node, size_t target_index);
+std::vector<Link*> getLinksToClvIndex(Network &network, Node *node, size_t target_index);
 Link* getLinkToNode(Network &network, Node *node, Node *target);
 Link* getLinkToNode(Network &network, size_t from_clv_index, size_t to_clv_index);
 Node* getReticulationChild(Network &network, const Node *node);

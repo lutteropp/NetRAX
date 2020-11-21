@@ -27,19 +27,20 @@ Node* getTargetNode(Network &network, const Link *link) {
 }
 
 bool isOutgoing(Network &network, Node *from, Node *to) {
-    assert(getLinkToClvIndex(network, from, to->clv_index));
+    assert(!getLinksToClvIndex(network, from, to->clv_index).empty());
     auto children = getChildren(network, from);
     return (std::find(children.begin(), children.end(), to) != children.end());
 }
 
-Link* getLinkToClvIndex(Network &network, Node *node, size_t target_index) {
+std::vector<Link*> getLinksToClvIndex(Network &network, Node *node, size_t target_index) {
     assert(node);
+    std::vector<Link*> res;
     for (size_t i = 0; i < node->links.size(); ++i) {
         if (getTargetNode(network, &(node->links[i]))->clv_index == target_index) {
-            return &(node->links[i]);
+            res.emplace_back(&(node->links[i]));
         }
     }
-    return nullptr;
+    return res;
 }
 
 Link* getLinkToNode(Network &network, Node *node, Node *target) {
@@ -93,6 +94,10 @@ double getReticulationFirstParentProb(Network &network, const Node *node) {
     if ( network.edges_by_index[node->getReticulationData()->link_to_first_parent->edge_pmatrix_index]->prob
         + network.edges_by_index[node->getReticulationData()->link_to_second_parent->edge_pmatrix_index]->prob
         != 1.0) {
+            std::cout << "first parent link_index: " << node->getReticulationData()->link_to_first_parent->link_clv_index << "\n";
+            std::cout << "second parent link_index: " << node->getReticulationData()->link_to_second_parent->link_clv_index << "\n";
+            std::cout << "first parent pmatrix_index: " << node->getReticulationData()->link_to_first_parent->edge_pmatrix_index << "\n";
+            std::cout << "second parent pmatrix_index: " << node->getReticulationData()->link_to_second_parent->edge_pmatrix_index << "\n";
             std::cout << "first parent prob: " << network.edges_by_index[node->getReticulationData()->link_to_first_parent->edge_pmatrix_index]->prob << "\n";
             std::cout << "second parent prob: " << network.edges_by_index[node->getReticulationData()->link_to_second_parent->edge_pmatrix_index]->prob << "\n";
             std::cout << "sum: " << network.edges_by_index[node->getReticulationData()->link_to_first_parent->edge_pmatrix_index]->prob
@@ -106,6 +111,7 @@ double getReticulationFirstParentProb(Network &network, const Node *node) {
                     == 1.0);
     return network.edges_by_index[node->getReticulationData()->link_to_first_parent->edge_pmatrix_index]->prob;
 }
+
 double getReticulationSecondParentProb(Network &network, const Node *node) {
     assert(node);
     assert(node->type == NodeType::RETICULATION_NODE);
@@ -163,7 +169,7 @@ std::vector<Node*> getChildren(Network &network, Node *node) {
     } else { // normal node
         std::vector<Node*> neighbors = getNeighbors(network, node);
         for (size_t i = 0; i < neighbors.size(); ++i) {
-            if (getLinkToClvIndex(network, node, neighbors[i]->clv_index)->direction
+            if (getLinksToClvIndex(network, node, neighbors[i]->clv_index)[0]->direction
                     == Direction::OUTGOING) {
                 children.push_back(neighbors[i]);
             }
@@ -201,7 +207,7 @@ std::vector<Node*> getActiveChildren(Network &network, Node *node) {
         }
         activeChildren.push_back(children[i]);
     }
-    assert(activeChildren.size() <= 2 || (node == network.root && activeChildren.size() == 3));
+    assert(activeChildren.size() <= 2);
     return activeChildren;
 }
 
@@ -222,7 +228,7 @@ std::vector<Node*> getActiveAliveChildren(Network &network, const std::vector<bo
         }
         activeChildren.push_back(children[i]);
     }
-    assert(activeChildren.size() <= 2 || (node == network.root && activeChildren.size() == 3));
+    assert(activeChildren.size() <= 2);
     return activeChildren;
 }
 
@@ -241,7 +247,7 @@ std::vector<Node*> getActiveChildrenUndirected(Network &network, Node *node, con
         }
         activeChildren.push_back(children[i]);
     }
-    assert(activeChildren.size() <= 2 || (myParent == nullptr && activeChildren.size() == 3));
+    assert(activeChildren.size() <= 2);
     return activeChildren;
 }
 
@@ -270,7 +276,9 @@ std::vector<Node*> getNeighbors(Network &network, const Node *node) {
     std::vector<Node*> neighbors;
     for (const auto &link : node->links) {
         Node *target = getTargetNode(network, &link);
-        neighbors.push_back(target);
+        if (std::find(neighbors.begin(), neighbors.end(), target) == neighbors.end()) {
+            neighbors.emplace_back(target);
+        }
     }
     return neighbors;
 }

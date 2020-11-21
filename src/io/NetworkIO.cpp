@@ -211,10 +211,19 @@ Network convertNetworkToplevel(RootedNetwork &rnetwork, size_t node_count,
             Link *linkFromFirstParent = network.edges[pmatrix_index].link2;
             Link *linkFromSecondParent = network.edges[pmatrix_index + 1].link2;
 
-            Link *linkToFirstParent = getLinkToClvIndex(network, &network.nodes[rnode->clv_index],
+            Link *linkToFirstParent = nullptr;
+            Link *linkToSecondParent = nullptr;
+            if (rnode->firstParent->clv_index == rnode->secondParent->clv_index) {
+                std::vector<Link*> links = getLinksToClvIndex(network, &network.nodes[rnode->clv_index],
                     rnode->firstParent->clv_index);
-            Link *linkToSecondParent = getLinkToClvIndex(network, &network.nodes[rnode->clv_index],
-                    rnode->secondParent->clv_index);
+                linkToFirstParent = links[0];
+                linkToSecondParent = links[1];
+            } else {
+                linkToFirstParent = getLinksToClvIndex(network, &network.nodes[rnode->clv_index],
+                    rnode->firstParent->clv_index)[0];
+                linkToSecondParent = getLinksToClvIndex(network, &network.nodes[rnode->clv_index],
+                    rnode->secondParent->clv_index)[0];
+            }
 
             linkFromFirstParent->outer = linkToFirstParent;
             linkToFirstParent->outer = linkFromFirstParent;
@@ -234,8 +243,8 @@ Network convertNetworkToplevel(RootedNetwork &rnetwork, size_t node_count,
             size_t pmatrix_index = rnode->clv_index;
             Link *linkFromParent = network.edges[pmatrix_index].link2;
 
-            Link *linkToParent = getLinkToClvIndex(network, &network.nodes[rnode->clv_index],
-                    rnode->parent->clv_index);
+            Link *linkToParent = getLinksToClvIndex(network, &network.nodes[rnode->clv_index],
+                    rnode->parent->clv_index)[0];
             linkFromParent->outer = linkToParent;
             linkToParent->outer = linkFromParent;
         }
