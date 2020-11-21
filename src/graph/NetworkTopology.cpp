@@ -12,6 +12,7 @@
 #include "Link.hpp"
 #include "Edge.hpp"
 #include "Network.hpp"
+#include "../DebugPrintFunctions.hpp"
 
 namespace netrax {
 
@@ -89,6 +90,16 @@ Node* getReticulationNonActiveParent(Network &network, const Node *node) {
 double getReticulationFirstParentProb(Network &network, const Node *node) {
     assert(node);
     assert(node->type == NodeType::RETICULATION_NODE);
+    if ( network.edges_by_index[node->getReticulationData()->link_to_first_parent->edge_pmatrix_index]->prob
+        + network.edges_by_index[node->getReticulationData()->link_to_second_parent->edge_pmatrix_index]->prob
+        != 1.0) {
+            std::cout << "first parent prob: " << network.edges_by_index[node->getReticulationData()->link_to_first_parent->edge_pmatrix_index]->prob << "\n";
+            std::cout << "second parent prob: " << network.edges_by_index[node->getReticulationData()->link_to_second_parent->edge_pmatrix_index]->prob << "\n";
+            std::cout << "sum: " << network.edges_by_index[node->getReticulationData()->link_to_first_parent->edge_pmatrix_index]->prob
+        + network.edges_by_index[node->getReticulationData()->link_to_second_parent->edge_pmatrix_index]->prob << "\n";
+
+        std::cout << exportDebugInfo(network) << "\n";
+    }
     assert(
             network.edges_by_index[node->getReticulationData()->link_to_first_parent->edge_pmatrix_index]->prob
                     + network.edges_by_index[node->getReticulationData()->link_to_second_parent->edge_pmatrix_index]->prob

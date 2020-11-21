@@ -55,7 +55,7 @@ std::vector<RootedNetworkNode*> collectNodes(RootedNetwork &rnetwork) {
     return res;
 }
 
-Network convertNetworkToplevelTrifurcation(RootedNetwork &rnetwork, size_t node_count,
+Network convertNetworkToplevel(RootedNetwork &rnetwork, size_t node_count,
         size_t branch_count, int maxReticulations) {
     Network network;
 
@@ -136,8 +136,6 @@ Network convertNetworkToplevelTrifurcation(RootedNetwork &rnetwork, size_t node_
                     Direction::INCOMING);
             network.edges[pmatrix_index].link1 = linkToParent;
             assert(rnode->children.size() == 2);
-        } else {
-            assert(rnode->children.size() == 3);
         }
     }
 
@@ -265,36 +263,20 @@ Network convertNetworkToplevelTrifurcation(RootedNetwork &rnetwork, size_t node_
     return network;
 }
 
-std::pair<size_t, size_t> makeToplevelTrifurcation(RootedNetwork &rnetwork) {
+std::pair<size_t, size_t> makeToplevel(RootedNetwork &rnetwork) {
     RootedNetworkNode *root = rnetwork.root;
     size_t node_count = rnetwork.nodes.size();
     size_t branch_count = rnetwork.branchCount;
-    if (root->children.size() == 3) {
-        return std::make_pair(node_count, branch_count);
-    } else if (root->children.size() > 3) {
-        throw std::runtime_error("The network is not bifurcating");
-    }
+    
     // special case: check if rnetwork.root has only one child... if so, reset the root to its child.
     while (root->children.size() == 1) {
         root = root->children[0];
         node_count--;
         branch_count--;
     }
-
-    if (root->children.size() == 2) { // make it trifurcating
-        unsigned int newRootChildIdx = 0;
-        if (root->children[0]->children.size() == 0) {
-            newRootChildIdx = 1;
-        }
-        RootedNetworkNode *new_root = root->children[newRootChildIdx];
-        new_root->children.push_back(root->children[!newRootChildIdx]);
-        root->children[!newRootChildIdx]->length += new_root->length;
-        root->children[!newRootChildIdx]->parent = new_root;
-        node_count--;
-        branch_count--;
-        root = new_root;
-        root->parent = nullptr;
-        rnetwork.root = root;
+    
+    if (root->children.size() > 3) {
+        throw std::runtime_error("The network is not bifurcating");
     }
 
     return std::make_pair(node_count, branch_count);
@@ -302,13 +284,13 @@ std::pair<size_t, size_t> makeToplevelTrifurcation(RootedNetwork &rnetwork) {
 
 Network convertNetwork(RootedNetwork &rnetwork, int maxReticulations) {
     //std::cout << exportDebugInfo(rnetwork) << "\n";
-    std::pair<size_t, size_t> node_and_branch_count = makeToplevelTrifurcation(rnetwork);
+    std::pair<size_t, size_t> node_and_branch_count = makeToplevel(rnetwork);
     //std::cout << exportDebugInfo(rnetwork) << "\n";
     size_t node_count = node_and_branch_count.first;
     size_t branch_count = node_and_branch_count.second;
 
     Network network;
-    network = convertNetworkToplevelTrifurcation(rnetwork, node_count, branch_count,
+    network = convertNetworkToplevel(rnetwork, node_count, branch_count,
             maxReticulations);
     assert(!network.root->isTip());
 
