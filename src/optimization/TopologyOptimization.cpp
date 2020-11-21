@@ -264,6 +264,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
             std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, candidates[best_idx]);
             optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
         }
+
         // just for debug, doing reticulation opt, full global brlen opt and model opt:
         //netrax::computeLoglikelihood(ann_network, 0, 1, false);
         //ann_network.raxml_treeinfo->optimize_branches(ann_network.options.lh_epsilon, 1);
@@ -287,7 +288,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         double aicc_naive = aicc(ann_network, naive_logl);
         std::cout << "  Logl_naive: " << naive_logl << ", BIC_naive: " << bic_naive << ", AIC_naive: " << aic_naive << ", AICc_naive: " << aicc_naive << "\n";
         */
-       
+
         std::cout << "  param_count: " << get_param_count(ann_network) << ", sample_size:" << get_sample_size << "\n";
         std::cout << "  num_reticulations: " << ann_network.network.num_reticulations() << "\n";
         std::cout << toExtendedNewick(ann_network.network) << "\n";
@@ -338,6 +339,14 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, MoveType type) 
             break;
         default:
             throw std::runtime_error("Invalid move type");
+        }
+
+        if ((type == MoveType::ArcInsertionMove) || (type == MoveType::DeltaPlusMove)) {
+            //doing reticulation opt, full global brlen opt and model opt:
+            ann_network.raxml_treeinfo->optimize_branches(ann_network.options.lh_epsilon, 1);
+            ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
+            double new_logl = netrax::computeLoglikelihood(ann_network, 1, 1, true);
+            new_score = bic(ann_network, new_logl);
         }
     } while (old_bic - new_score > ann_network.options.lh_epsilon);
     return ann_network.raxml_treeinfo->loglh(true);
