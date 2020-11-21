@@ -61,19 +61,10 @@ double compute_tree_logl(AnnotatedNetwork &ann_network, std::vector<bool> &clv_t
         clv_touched[ops[i].parent_clv_index] = true;
     }
     if (persite_logl != nullptr) {
-        Node *rootBack = getTargetNode(network, ops_root->getLink());
-        if (ops_root == network.root && !dead_nodes[rootBack->clv_index]) {
-            tree_logl = pll_compute_edge_loglikelihood(fake_treeinfo.partitions[partition_idx],
-                    ops_root->clv_index, ops_root->scaler_index, rootBack->clv_index,
-                    rootBack->scaler_index, ops_root->getLink()->edge_pmatrix_index,
-                    fake_treeinfo.param_indices[partition_idx],
-                    persite_logl->empty() ? nullptr : persite_logl->data());
-        } else {
-            tree_logl = pll_compute_root_loglikelihood(fake_treeinfo.partitions[partition_idx],
-                    ops_root->clv_index, ops_root->scaler_index,
-                    fake_treeinfo.param_indices[partition_idx],
-                    persite_logl->empty() ? nullptr : persite_logl->data());
-        }
+        tree_logl = pll_compute_root_loglikelihood(fake_treeinfo.partitions[partition_idx],
+                ops_root->clv_index, ops_root->scaler_index,
+                fake_treeinfo.param_indices[partition_idx],
+                persite_logl->empty() ? nullptr : persite_logl->data());
     }
     return tree_logl;
 }
@@ -504,7 +495,6 @@ double displayed_tree_logprob(AnnotatedNetwork &ann_network, size_t tree_index,
     return logProb.toDouble();
 }
 
-
 DisplayedTreeData compute_displayed_tree(AnnotatedNetwork &ann_network, std::vector<bool> &clv_touched,
         std::vector<bool> &dead_nodes, Node *displayed_tree_root, bool incremental,
         const std::vector<Node*> &parent, pllmod_treeinfo_t &fake_treeinfo, size_t tree_idx,
@@ -555,19 +545,11 @@ DisplayedTreeData compute_displayed_tree(AnnotatedNetwork &ann_network, std::vec
         clv_touched[ops[i].parent_clv_index] = true;
     }
 
-    Node *rootBack = getTargetNode(network, ops_root->getLink());
-    if (ops_root == network.root && !dead_nodes[rootBack->clv_index]) {
-        tree_logl = pll_compute_edge_loglikelihood(fake_treeinfo.partitions[partition_idx],
-                ops_root->clv_index, ops_root->scaler_index, rootBack->clv_index,
-                rootBack->scaler_index, ops_root->getLink()->edge_pmatrix_index,
-                fake_treeinfo.param_indices[partition_idx],
-                tree_persite_logl.empty() ? nullptr : tree_persite_logl.data());
-    } else {
-        tree_logl = pll_compute_root_loglikelihood(fake_treeinfo.partitions[partition_idx],
-                ops_root->clv_index, ops_root->scaler_index,
-                fake_treeinfo.param_indices[partition_idx],
-                tree_persite_logl.empty() ? nullptr : tree_persite_logl.data());
-    }
+    tree_logl = pll_compute_root_loglikelihood(fake_treeinfo.partitions[partition_idx],
+            ops_root->clv_index, ops_root->scaler_index,
+            fake_treeinfo.param_indices[partition_idx],
+            tree_persite_logl.empty() ? nullptr : tree_persite_logl.data());
+
     assert(tree_logl < 0);
     return DisplayedTreeData{tree_idx, tree_logl, tree_logprob, tree_clv, tree_persite_logl};
 }
