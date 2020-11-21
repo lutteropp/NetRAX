@@ -61,10 +61,28 @@ double compute_tree_logl(AnnotatedNetwork &ann_network, std::vector<bool> &clv_t
         clv_touched[ops[i].parent_clv_index] = true;
     }
     if (persite_logl != nullptr) {
-        tree_logl = pll_compute_root_loglikelihood(fake_treeinfo.partitions[partition_idx],
-                ops_root->clv_index, ops_root->scaler_index,
-                fake_treeinfo.param_indices[partition_idx],
-                persite_logl->empty() ? nullptr : persite_logl->data());
+        bool toplevel_trifurcation = (getChildren(network, network.root).size() == 3);
+
+        if (toplevel_trifurcation) {
+            Node *rootBack = getTargetNode(network, ops_root->getLink());
+            if (ops_root == network.root && !dead_nodes[rootBack->clv_index]) {
+                tree_logl = pll_compute_edge_loglikelihood(fake_treeinfo.partitions[partition_idx],
+                        ops_root->clv_index, ops_root->scaler_index, rootBack->clv_index,
+                        rootBack->scaler_index, ops_root->getLink()->edge_pmatrix_index,
+                        fake_treeinfo.param_indices[partition_idx],
+                        persite_logl->empty() ? nullptr : persite_logl->data());
+            } else {
+                tree_logl = pll_compute_root_loglikelihood(fake_treeinfo.partitions[partition_idx],
+                        ops_root->clv_index, ops_root->scaler_index,
+                        fake_treeinfo.param_indices[partition_idx],
+                        persite_logl->empty() ? nullptr : persite_logl->data());
+            }
+        } else {
+            tree_logl = pll_compute_root_loglikelihood(fake_treeinfo.partitions[partition_idx],
+                        ops_root->clv_index, ops_root->scaler_index,
+                        fake_treeinfo.param_indices[partition_idx],
+                        persite_logl->empty() ? nullptr : persite_logl->data());
+        }
     }
     return tree_logl;
 }
@@ -545,10 +563,27 @@ DisplayedTreeData compute_displayed_tree(AnnotatedNetwork &ann_network, std::vec
         clv_touched[ops[i].parent_clv_index] = true;
     }
 
-    tree_logl = pll_compute_root_loglikelihood(fake_treeinfo.partitions[partition_idx],
-            ops_root->clv_index, ops_root->scaler_index,
-            fake_treeinfo.param_indices[partition_idx],
-            tree_persite_logl.empty() ? nullptr : tree_persite_logl.data());
+    bool toplevel_trifurcation = (getChildren(network, network.root).size() == 3);
+    if (toplevel_trifurcation) {
+        Node *rootBack = getTargetNode(network, ops_root->getLink());
+        if (ops_root == network.root && !dead_nodes[rootBack->clv_index]) {
+            tree_logl = pll_compute_edge_loglikelihood(fake_treeinfo.partitions[partition_idx],
+                    ops_root->clv_index, ops_root->scaler_index, rootBack->clv_index,
+                    rootBack->scaler_index, ops_root->getLink()->edge_pmatrix_index,
+                    fake_treeinfo.param_indices[partition_idx],
+                    tree_persite_logl.empty() ? nullptr : tree_persite_logl.data());
+        } else {
+            tree_logl = pll_compute_root_loglikelihood(fake_treeinfo.partitions[partition_idx],
+                    ops_root->clv_index, ops_root->scaler_index,
+                    fake_treeinfo.param_indices[partition_idx],
+                    tree_persite_logl.empty() ? nullptr : tree_persite_logl.data());
+        }
+    } else {
+        tree_logl = pll_compute_root_loglikelihood(fake_treeinfo.partitions[partition_idx],
+                ops_root->clv_index, ops_root->scaler_index,
+                fake_treeinfo.param_indices[partition_idx],
+                tree_persite_logl.empty() ? nullptr : tree_persite_logl.data());
+    }
 
     assert(tree_logl < 0);
     return DisplayedTreeData{tree_idx, tree_logl, tree_logprob, tree_clv, tree_persite_logl};

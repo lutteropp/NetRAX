@@ -207,13 +207,14 @@ std::vector<Node*> getActiveChildren(Network &network, Node *node) {
         }
         activeChildren.push_back(children[i]);
     }
-    assert(activeChildren.size() <= 2);
+    assert(activeChildren.size() <= 2 || (node == network.root && activeChildren.size() == 3));
     return activeChildren;
 }
 
 std::vector<Node*> getActiveAliveChildren(Network &network, const std::vector<bool> &dead_nodes,
         Node *node) {
     assert(node);
+    std::cout << exportDebugInfo(network) << "\n";
     std::vector<Node*> activeChildren;
     std::vector<Node*> children = getChildren(network, node);
     for (size_t i = 0; i < children.size(); ++i) {
@@ -228,7 +229,7 @@ std::vector<Node*> getActiveAliveChildren(Network &network, const std::vector<bo
         }
         activeChildren.push_back(children[i]);
     }
-    assert(activeChildren.size() <= 2);
+    assert(activeChildren.size() <= 2 || (node == network.root && activeChildren.size() == 3));
     return activeChildren;
 }
 
@@ -247,7 +248,7 @@ std::vector<Node*> getActiveChildrenUndirected(Network &network, Node *node, con
         }
         activeChildren.push_back(children[i]);
     }
-    assert(activeChildren.size() <= 2);
+    assert(activeChildren.size() <= 2 || (node == network.root && activeChildren.size() == 3));
     return activeChildren;
 }
 
