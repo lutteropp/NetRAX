@@ -16,6 +16,8 @@ def create_dataset_container(n_taxa, n_reticulations, approx_msa_size, sampling_
     ds.extracted_trees_path = name + "_trees.txt"
     ds.true_network_path = name + "_true_network.nw"
     ds.inferred_network_path = name + "_inferred_network.nw"
+    ds.raxml_tree_path = name + ".raxml.bestTree"
+    ds.name = name
     ds.sampling_type = sampling_type
     ds.simulation_type = simulation_type
     ds.likelihood_type = likelihood_type
