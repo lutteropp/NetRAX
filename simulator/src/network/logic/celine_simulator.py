@@ -123,7 +123,7 @@ def simulate_network_step(params):
     no_of_hybrids = 0
 
     while current_time < params.time_limit:
-        if random.random() < current_speciation_rate / rate:
+        if random.random() < current_speciation_rate / rate or len(leaves) == 1:
             # speciate
             splitting_leaf = random.choice(list(leaves))
             nw.add_weighted_edges_from(
