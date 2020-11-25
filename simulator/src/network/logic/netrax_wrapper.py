@@ -9,6 +9,7 @@ def score_network(network_path, msa_path):
     netrax_cmd = NETRAX_PATH + " --score_only" + " --start_network " + network_path + " --msa " + msa_path
     print(netrax_cmd)
     netrax_output = subprocess.getoutput(netrax_cmd).splitlines()
+    print(netrax_output)
     n_reticulations, bic, logl = 0,0,0
     for line in netrax_output:
        if line.startswith("Number of reticulations:"):
@@ -28,11 +29,11 @@ def infer_network(ds):
         netrax_cmd += " --endless --timeout " + str(ds.timeout)
     else:
         netrax_cmd += " --num_random_start_networks " + str(ds.n_random_start_networks) + " --num_parsimony_start_networks " + str(ds.n_parsimony_start_networks)
-    subprocess.getoutput(netrax_cmd)
+    print(subprocess.getoutput(netrax_cmd))
     if ds.start_from_raxml:
         netrax_cmd_2 = NETRAX_PATH + " --msa " + ds.msa_path + " --output " + ds.inferred_network_with_raxml_path + " --start_network " + ds.raxml_tree_path 
         print(netrax_cmd_2)
-        subprocess.getoutput(netrax_cmd_2)
+        print(subprocess.getoutput(netrax_cmd_2))
     
     
 # Extracts all displayed trees of a given network, returning two lists: one containing the NEWICK strings, and one containing the tree probabilities
@@ -45,6 +46,7 @@ def extract_displayed_trees(network_path, n_taxa):
     netrax_cmd = NETRAX_PATH + " --extract_displayed_trees " + " --start_network " + network_path + " --msa " + msa_path
     print(netrax_cmd)
     lines = subprocess.getoutput(netrax_cmd).splitlines()
+    print(lines)
     start_idx = 0
     n_trees = 0
     for i in range(len(lines)):
@@ -91,6 +93,7 @@ def build_fake_msa(n_taxa, network_path=""):
             fake_msa += ">T" + str(i) + "\n" + msa[i] + "\n"
         else:
             fake_msa += ">" + taxon_names[i] + "\n" + msa[i] + "\n"
+    print(fake_msa)
     return fake_msa    
 
     
@@ -102,5 +105,5 @@ def generate_random_network(n_taxa, n_reticulations, output_path):
     msa_file.close()
     netrax_cmd = NETRAX_PATH + " --generate_random_network_only " + " --max_reticulations " + str(n_reticulations) + " --msa " + msa_path + " --output " + output_path
     print(netrax_cmd)
-    subprocess.getoutput(netrax_cmd)
+    print(subprocess.getoutput(netrax_cmd))
     os.remove(msa_path)

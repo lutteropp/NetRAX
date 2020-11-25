@@ -45,6 +45,7 @@ def get_dendro_scores(network_1, network_2):
     dendro_cmd = XSERVER_MAGIC + " " + DENDROSCOPE_PATH + " -g -c dendroscope_commands.txt"
     print(dendro_cmd)
     dendroscope_output = subprocess.getoutput(dendro_cmd).splitlines()
+    print(dendroscope_output)
     
     scores = {}
     for line in dendroscope_output:
