@@ -31,6 +31,8 @@ def infer_network(ds):
     subprocess.getoutput(netrax_cmd)
     if ds.start_from_raxml:
         netrax_cmd_2 = NETRAX_PATH + " --msa " + ds.msa_path + " --output " + ds.inferred_network_with_raxml_path + " --start_network " + ds.raxml_tree_path 
+        print(netrax_cmd_2)
+        subprocess.getoutput(netrax_cmd_2)
     
     
 # Extracts all displayed trees of a given network, returning two lists: one containing the NEWICK strings, and one containing the tree probabilities
