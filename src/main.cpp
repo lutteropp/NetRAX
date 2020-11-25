@@ -17,8 +17,8 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
     app.add_option("--start_network", options->start_network_file, "A network file (in Extended Newick format) to start the search on");
     app.add_option("-r,--reticulations", options->max_reticulations,
             "Maximum number of reticulations to consider (default: 32)");
-    app.add_option("-n,--num_start_networks", options->num_start_networks,
-            "Number of random start networks (default: 5)");
+    app.add_option("-n,--num_random_start_networks", options->num_random_start_networks,
+            "Number of random start networks (default: 10)");
     app.add_option("-t,--timeout", options->timeout, "Maximum number of seconds to run network search.");
     app.add_flag("-e,--endless", options->endless, "Endless search mode - keep trying with more random start networks.");
     app.add_option("--seed", options->seed, "Seed for random number generation.");
@@ -62,7 +62,7 @@ void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {
             if (std::chrono::duration_cast<std::chrono::seconds>(act_time - start_time).count() >= netraxOptions.timeout) {
                 break;
             }
-        } else if (n_iterations >= netraxOptions.num_start_networks) {
+        } else if (n_iterations >= netraxOptions.num_random_start_networks) {
             break;
         }
     }
