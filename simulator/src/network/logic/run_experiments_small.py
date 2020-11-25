@@ -16,7 +16,7 @@ def build_dataset(n_taxa, n_reticulations, msa_size, sampling_type, likelihood_t
     
 
 def run_experiments_small():
-    iterations = 100
+    iterations = 3
     min_taxa = 4
     max_taxa = 10
     min_reticulations = 0

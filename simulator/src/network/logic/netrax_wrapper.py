@@ -24,7 +24,7 @@ def score_network(network_path, msa_path):
 def infer_network(ds):
     netrax_cmd = NETRAX_PATH + " --msa " + ds.msa_path + " --output " + ds.inferred_network_path
     print(netrax_cmd)
-    if timeout > 0:
+    if ds.timeout > 0:
         netrax_cmd += " --endless --timeout " + str(ds.timeout)
     else:
         netrax_cmd += " --num_random_start_networks " + str(ds.n_random_start_networks) + " --num_parsimony_start_networks " + str(ds.n_parsimony_start_networks)
