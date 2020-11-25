@@ -19,6 +19,8 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
             "Maximum number of reticulations to consider (default: 32)");
     app.add_option("-n,--num_random_start_networks", options->num_random_start_networks,
             "Number of random start networks (default: 10)");
+    app.add_option("-n,--num_parsimony_start_networks", options->num_parsimony_start_networks,
+            "Number of parsimony start networks (default: 10)");
     app.add_option("-t,--timeout", options->timeout, "Maximum number of seconds to run network search.");
     app.add_flag("-e,--endless", options->endless, "Endless search mode - keep trying with more random start networks.");
     app.add_option("--seed", options->seed, "Seed for random number generation.");
@@ -40,6 +42,7 @@ void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {
     auto start_time = std::chrono::high_resolution_clock::now();
     size_t start_reticulations = 0;
     size_t n_iterations = 0;
+    // random start networks
     while (true) {
         n_iterations++;
         std::cout << "Starting with new random network with " << start_reticulations << " reticulations.\n";
@@ -63,6 +66,36 @@ void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {
                 break;
             }
         } else if (n_iterations >= netraxOptions.num_random_start_networks) {
+            break;
+        }
+    }
+
+    // TODO: Get rid of the code duplication here
+    // parsimony start networks
+    n_iterations = 0;
+    while (true) {
+        n_iterations++;
+        std::cout << "Starting with new parsimony tree with " << start_reticulations << " reticulations.\n";
+        netrax::AnnotatedNetwork ann_network = NetraxInstance::build_parsimony_annotated_network(netraxOptions);
+        NetraxInstance::init_annotated_network(ann_network, rng);
+        NetraxInstance::add_extra_reticulations(ann_network, start_reticulations);
+        NetraxInstance::optimizeEverything(ann_network);
+        double final_bic = NetraxInstance::scoreNetwork(ann_network);
+        std::cout << "The inferred network has " << ann_network.network.num_reticulations() << " reticulations and this BIC score: " << final_bic << "\n\n";
+        if (final_bic < best_score) {
+            best_score = final_bic;
+            std::cout << "IMPROVED BEST SCORE FOUND SO FAR: " << best_score << "\n\n";
+            NetraxInstance::writeNetwork(ann_network, netraxOptions.output_file);
+            std::cout << "Better network written to " << netraxOptions.output_file << "\n";  
+        } else {
+            std::cout << "REMAINED BEST SCORE FOUND SO FAR: " << best_score << "\n";
+        }
+        if (netraxOptions.timeout > 0) {
+            auto act_time = std::chrono::high_resolution_clock::now();
+            if (std::chrono::duration_cast<std::chrono::seconds>(act_time - start_time).count() >= netraxOptions.timeout) {
+                break;
+            }
+        } else if (n_iterations >= netraxOptions.num_parsimony_start_networks) {
             break;
         }
     }

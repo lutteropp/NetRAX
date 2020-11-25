@@ -27,7 +27,7 @@ def infer_network(ds):
     if timeout > 0:
         netrax_cmd += " --endless --timeout " + str(ds.timeout)
     else:
-        netrax_cmd += " --num_random_start_networks " + str(ds.n_random_start_networks)
+        netrax_cmd += " --num_random_start_networks " + str(ds.n_random_start_networks) + " --num_parsimony_start_networks " + str(ds.n_parsimony_start_networks)
     subprocess.getoutput(netrax_cmd)
     if ds.also_start_from_raxml:
         netrax_cmd_2 = NETRAX_PATH + " --msa " + ds.msa_path + " --output " + ds.inferred_network_with_raxml_path + " --start_network " + ds.raxml_tree_path 
