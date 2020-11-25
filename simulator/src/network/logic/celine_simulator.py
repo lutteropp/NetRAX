@@ -135,9 +135,13 @@ def simulate_network_step(params):
         else:
             # Hybridize
             no_of_hybrids += 1
-            merging = random.sample(leaves, 2)
-            l0 = merging[0]
-            l1 = merging[1]
+            # avoid self-loops
+            l0 = None
+            l1 = None
+            while (l0 == l1):
+                merging = random.sample(leaves, 2)
+                l0 = merging[0]
+                l1 = merging[1]
             pl0 = -1
             for p in nw.predecessors(l0):
                 pl0 = p
