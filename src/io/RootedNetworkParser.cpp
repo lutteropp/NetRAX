@@ -263,6 +263,8 @@ void enforceToplevelBifurcation(RootedNetwork* rnetwork) {
     rnetwork->root->children.pop_back();
     rnetwork->root->children.pop_back();
     rnetwork->root->children.emplace_back(newNode);
+    rnetwork->branchCount++;
+    rnetwork->innerCount++;
 }
 
 RootedNetwork* parseRootedNetworkFromNewickString(const std::string &newick) {
