@@ -264,7 +264,6 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
             std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, candidates[best_idx]);
             optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
         }
-
         // just for debug, doing reticulation opt, full global brlen opt and model opt:
         //netrax::computeLoglikelihood(ann_network, 0, 1, false);
         //ann_network.raxml_treeinfo->optimize_branches(ann_network.options.lh_epsilon, 1);

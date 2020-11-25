@@ -252,6 +252,19 @@ RootedNetworkNode* readSubtree(RootedNetworkNode *parent, const std::string &s,
         throw std::runtime_error("unbalanced ()'s");
 }
 
+void enforceToplevelBifurcation(RootedNetwork* rnetwork) {
+    if (rnetwork->root->children.size() != 3) {
+        return;
+    }
+    rnetwork->nodes.emplace_back(new RootedNetworkNode());
+    RootedNetworkNode* newNode = rnetwork->nodes.back().get();
+    newNode->children.emplace_back(rnetwork->root->children[1]);
+    newNode->children.emplace_back(rnetwork->root->children[2]);
+    rnetwork->root->children.pop_back();
+    rnetwork->root->children.pop_back();
+    rnetwork->root->children.emplace_back(newNode);
+}
+
 RootedNetwork* parseRootedNetworkFromNewickString(const std::string &newick) {
     RootedNetwork *rnetwork = new RootedNetwork();
     // TODO: special case: ignore faulty extra Céline parantheses which lead to top-level monofurcation
@@ -291,7 +304,9 @@ RootedNetwork* parseRootedNetworkFromNewickString(const std::string &newick) {
         }
     }
 
-    // further post-processing: Set zero-length branches to minimum branch length
+    enforceToplevelBifurcation(rnetwork);
+
+    // further post-processing: Set too-short branches to minimum branch length
     double min_branch_length = RAXML_BRLEN_MIN;
     for (size_t i = 0; i < rnetwork->nodes.size(); ++i) {
         rnetwork->nodes[i]->length = std::max(rnetwork->nodes[i]->length, min_branch_length);
