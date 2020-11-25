@@ -21,7 +21,7 @@ def run_experiments_small():
     max_taxa = 10
     min_reticulations = 0
     max_reticulations = 2
-    sampling_type = SamplingType.PERFECT_UNIFORM_SAMPLING
+    sampling_type = SamplingType.PERFECT_SAMPLING
     
     if not os.path.exists('datasets_small'):
         os.makedirs('datasets_small')
