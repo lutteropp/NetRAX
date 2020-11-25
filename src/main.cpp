@@ -19,7 +19,7 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
             "Maximum number of reticulations to consider (default: 32)");
     app.add_option("-n,--num_random_start_networks", options->num_random_start_networks,
             "Number of random start networks (default: 10)");
-    app.add_option("-n,--num_parsimony_start_networks", options->num_parsimony_start_networks,
+    app.add_option("-p,--num_parsimony_start_networks", options->num_parsimony_start_networks,
             "Number of parsimony start networks (default: 10)");
     app.add_option("-t,--timeout", options->timeout, "Maximum number of seconds to run network search.");
     app.add_flag("-e,--endless", options->endless, "Endless search mode - keep trying with more random start networks.");
