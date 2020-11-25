@@ -30,6 +30,7 @@
 #include "../graph/Node.hpp"
 #include "../graph/NodeType.hpp"
 #include "../graph/ReticulationData.hpp"
+#include "../DebugPrintFunctions.hpp"
 
 namespace netrax {
 
@@ -292,9 +293,9 @@ std::pair<size_t, size_t> makeToplevel(RootedNetwork &rnetwork) {
 }
 
 Network convertNetwork(RootedNetwork &rnetwork, int maxReticulations) {
-    //std::cout << exportDebugInfo(rnetwork) << "\n";
+    //std::cout << exportDebugInfoRootedNetwork(rnetwork) << "\n";
     std::pair<size_t, size_t> node_and_branch_count = makeToplevel(rnetwork);
-    //std::cout << exportDebugInfo(rnetwork) << "\n";
+    //std::cout << exportDebugInfoRootedNetwork(rnetwork) << "\n";
     size_t node_count = node_and_branch_count.first;
     size_t branch_count = node_and_branch_count.second;
 
@@ -308,7 +309,7 @@ Network convertNetwork(RootedNetwork &rnetwork, int maxReticulations) {
         assert(network.edges[i].length != 0);
     }
 
-    //std::cout << exportDebugInfo(network) << "\n";
+    std::cout << exportDebugInfo(network) << "\n";
 
     assert(networkIsConnected(network));
 
