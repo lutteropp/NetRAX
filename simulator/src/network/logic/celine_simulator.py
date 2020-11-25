@@ -123,7 +123,7 @@ def simulate_network_step(params):
     no_of_hybrids = 0
 
     while current_time < params.time_limit:
-        if random.random() < current_speciation_rate / rate:
+        if random.random() < current_speciation_rate / rate or len(leaves) <= 3:
             # speciate
             splitting_leaf = random.choice(list(leaves))
             nw.add_weighted_edges_from(
@@ -135,15 +135,18 @@ def simulate_network_step(params):
         else:
             # Hybridize
             no_of_hybrids += 1
-            merging = random.sample(leaves, 2)
-            l0 = merging[0]
-            l1 = merging[1]
-            pl0 = -1
-            for p in nw.predecessors(l0):
-                pl0 = p
-            pl1 = -1
-            for p in nw.predecessors(l1):
-                pl1 = p
+            l0 = l1 = None
+            pl0 = pl1 = None
+            while pl0 == pl1: # avoid self-loops by avoiding that l0 and l1 are siblings
+                merging = random.sample(leaves, 2)
+                l0 = merging[0]
+                l1 = merging[1]
+                pl0 = None
+                for p in nw.predecessors(l0):
+                    pl0 = p
+                pl1 = None
+                for p in nw.predecessors(l1):
+                    pl1 = p
             nw.add_weighted_edges_from([(l0, current_node, 0)], weight='length')
             leaves.remove(l0)
             leaves.remove(l1)
