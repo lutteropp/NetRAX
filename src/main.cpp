@@ -37,6 +37,25 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
     return 0;
 }
 
+void run_single_start(NetraxOptions& netraxOptions, std::mt19937& rng) {
+    double best_score = std::numeric_limits<double>::infinity();
+    auto start_time = std::chrono::high_resolution_clock::now();
+
+    netrax::AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(netraxOptions);
+    NetraxInstance::init_annotated_network(ann_network, rng);
+    NetraxInstance::optimizeEverything(ann_network);
+    double final_bic = NetraxInstance::scoreNetwork(ann_network);
+    std::cout << "The inferred network has " << ann_network.network.num_reticulations() << " reticulations and this BIC score: " << final_bic << "\n\n";
+    if (final_bic < best_score) {
+        best_score = final_bic;
+        std::cout << "IMPROVED BEST SCORE FOUND SO FAR: " << best_score << "\n\n";
+        NetraxInstance::writeNetwork(ann_network, netraxOptions.output_file);
+        std::cout << "Better network written to " << netraxOptions.output_file << "\n";  
+    } else {
+        std::cout << "REMAINED BEST SCORE FOUND SO FAR: " << best_score << "\n";
+    }
+}
+
 void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {
     double best_score = std::numeric_limits<double>::infinity();
     auto start_time = std::chrono::high_resolution_clock::now();
@@ -227,7 +246,11 @@ int main(int argc, char **argv) {
         throw std::runtime_error("No output path specified");
     }
 
-    run_random(netraxOptions, rng);
+    if (!netraxOptions.start_network_file.empty()) {
+        run_single_start(netraxOptions, rng);
+    } else {
+        run_random(netraxOptions, rng);
+    }
 
     return 0;
 }
