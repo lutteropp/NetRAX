@@ -42,7 +42,6 @@ void run_single_start(NetraxOptions& netraxOptions, std::mt19937& rng) {
     auto start_time = std::chrono::high_resolution_clock::now();
 
     netrax::AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(netraxOptions);
-    std::cout << "MEOW!!!\n";
     NetraxInstance::init_annotated_network(ann_network, rng);
     NetraxInstance::optimizeEverything(ann_network);
     double final_bic = NetraxInstance::scoreNetwork(ann_network);
