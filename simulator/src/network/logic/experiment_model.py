@@ -20,7 +20,7 @@ class LikelihoodType(Enum):
 
 TOPOLOGICAL_DISTANCE_NAMES = ['hardwired_cluster_distance', 'softwired_cluster_distance', 'displayed_trees_distance', 'tripartition_distance', 'nested_labels_distance', 'path_multiplicity_distance']
 
-DATASET_CSV_HEADER = "n_taxa,n_trees,n_reticulations,msa_size,sampling_type,simulation_type,likelihood_type,timeout,n_start_networks"
+DATASET_CSV_HEADER = "n_taxa,n_trees,n_reticulations,msa_size,sampling_type,simulation_type,likelihood_type,timeout,n_start_networks,start_from_raxml"
 RESULT_CSV_HEADER = "n_reticulations_inferred,bic_true,logl_true,bic_inferred,logl_inferred,bic_raxml,logl_raxml" + "," + ",".join(TOPOLOGICAL_DISTANCE_NAMES)
 
 
@@ -35,20 +35,25 @@ class Dataset:
         self.extracted_trees_path = ""
         self.true_network_path = ""
         self.inferred_network_path = ""
+        self.inferred_network_with_raxml_path = ""
         self.raxml_tree_path = ""
         self.name = ""
         self.sampling_type = SamplingType.PERFECT_SAMPLING
         self.simulation_type = SimulationType.CELINE
         self.likelihood_type = LikelihoodType.AVERAGE
         self.timeout = 0
-        self.n_start_networks = 5
+        self.n_start_networks = 10
+        self.start_from_raxml = True
         self.celine_params = {}
         
     def msa_size(self):
         return self.n_trees * self.sites_per_tree
         
     def get_csv_line(self):
-        return str(self.n_taxa) + "," + str(self.n_trees) + "," + str(self.n_reticulations) + "," + str(self.msa_size) + "," + str(self.sampling_type) + "," + str(self.simulation_type) + "," + str(self.likelihood_type) + "," + str(self.timeout) + "," + str(self.n_start_networks)
+        return str(self.n_taxa) + "," + str(self.n_trees) + "," + str(self.n_reticulations) + "," + str(self.msa_size) + "," + str(self.sampling_type) + "," + str(self.simulation_type) + "," + str(self.likelihood_type) + "," + str(self.timeout) + "," + str(self.n_start_networks) + ",False"
+        
+    def get_csv_line_with_raxml(self):
+        return str(self.n_taxa) + "," + str(self.n_trees) + "," + str(self.n_reticulations) + "," + str(self.msa_size) + "," + str(self.sampling_type) + "," + str(self.simulation_type) + "," + str(self.likelihood_type) + "," + str(self.timeout) + "," + str(self.n_start_networks) + ",True"
 
 
 class Result:
@@ -58,13 +63,21 @@ class Result:
         self.logl_true = 0
         self.bic_inferred = 0
         self.logl_inferred = 0
+        self.bic_inferred_with_raxml = 0
+        self.logl_inferred_with_raxml = 0
         self.bic_raxml = 0
         self.logl_raxml = 0
         self.n_reticulations_inferred = 0
+        self.n_reticulations_inferred_with_raxml = 0
         self.topological_distances = {}
+        self.topological_distances_with_raxml = {}
         
     def get_csv_line(self):
         topo_scores_strings_ordered = [str(self.topological_distances[x]) for x in TOPOLOGICAL_DISTANCE_NAMES]
         return str(self.n_reticulations_inferred) + "," + str(self.bic_true) + "," + str(self.logl_true) + "," + str(self.bic_inferred) + "," + str(self.logl_inferred) + "," + str(self.bic_raxml) + "," + str(self.logl_raxml) + ",".join(topo_scores_strings_ordered)
+        
+    def get_csv_line_with_raxml(self):
+        topo_scores_strings_ordered_with_raxml = [str(self.topological_distances_with_raxml[x]) for x in TOPOLOGICAL_DISTANCE_NAMES]
+        return str(self.n_reticulations_inferred_with_raxml) + "," + str(self.bic_true) + "," + str(self.logl_true) + "," + str(self.bic_inferred_with_raxml) + "," + str(self.logl_inferred_with_raxml) + "," + str(self.bic_raxml) + "," + str(self.logl_raxml) + ",".join(topo_scores_strings_ordered_with_raxml)
         
 

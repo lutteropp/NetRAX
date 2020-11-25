@@ -21,14 +21,16 @@ def score_network(network_path, msa_path):
     
     
 # Uses NetRAX to infer a network... uses few random starting network if timeout==0, else keeps searching for a better network until timeout seconds have passed.
-def infer_network(msa_path, output_path, timeout, num_start_networks):
-    netrax_cmd = NETRAX_PATH + " --msa " + msa_path + " --output " + output_path
+def infer_network(ds):
+    netrax_cmd = NETRAX_PATH + " --msa " + ds.msa_path + " --output " + ds.inferred_network_path
     print(netrax_cmd)
     if timeout > 0:
-        netrax_cmd += " --endless --timeout " + str(timeout)
+        netrax_cmd += " --endless --timeout " + str(ds.timeout)
     else:
-        netrax_cmd += " --num_start_networks " + str(num_start_networks)
+        netrax_cmd += " --num_start_networks " + str(ds.n_start_networks)
     subprocess.getoutput(netrax_cmd)
+    if ds.also_start_from_raxml:
+        netrax_cmd_2 = NETRAX_PATH + " --msa " + ds.msa_path + " --output " + ds.inferred_network_with_raxml_path + " --start_network " + ds.raxml_tree_path 
     
     
 # Extracts all displayed trees of a given network, returning two lists: one containing the NEWICK strings, and one containing the tree probabilities

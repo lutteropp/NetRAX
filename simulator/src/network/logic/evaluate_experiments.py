@@ -4,14 +4,23 @@ from raxml_wrapper import infer_raxml_tree
 
 from experiment_model import *
 
+def retrieve_topological_distances(network_1_path, network_2_path):
+    network_1 = open(network_1_path).read()
+    network_2 = open(network_2_path).read()
+    return get_dendro_scores(network_1, network_2)
+
+
 def evaluate_dataset(dataset):
     res = Result(dataset)
     _, res.bic_true, res.logl_true = score_network(dataset.true_network_path, dataset.msa_path)
     res.n_reticulations_inferred, res.bic_inferred, res.logl_inferred = score_network(dataset.inferred_network_path, dataset.msa_path)
     _, res.bic_raxml, res.logl_raxml = score_network(dataset.raxml_tree_path, dataset.msa_path)
-    network_1 = open(dataset.true_network_path).read()
-    network_2 = open(dataset.inferred_network_path).read()
-    res.topological_distances = get_dendro_scores(network_1, network_2)
+    
+    if dataset.start_from_raxml:
+        res.n_reticulations_inferred_with_raxml, res.bic_inferred_with_raxml, res.logl_inferred_with_raxml = score_network(dataset.inferred_network_with_raxml_path, dataset.msa_path)
+        res.topological_distances_with_raxml = retrieve_topological_distances(dataset.true_network_path, dataset.inferred_network_with_raxml_path)
+    
+    res.topological_distances = retrieve_topological_distances(dataset.true_network_path, dataset.inferred_network_path)
     print(RESULT_CSV_HEADER+"\n" + res.get_csv_line() + "\n\n")
     return res
     
@@ -19,7 +28,7 @@ def evaluate_dataset(dataset):
 def run_inference_and_evaluate(datasets):
     for ds in datasets:
         infer_raxml_tree(ds)
-        infer_network(ds.msa_path, ds.inferred_network_path, ds.timeout, ds.n_start_networks)
+        infer_network(ds)
     results = [evaluate_dataset(ds) for ds in datasets]
     return results
     
@@ -31,6 +40,9 @@ def write_results_to_csv(results, csv_path):
     for res in results:
         line = str(res.dataset.get_csv_line() + "," + res.get_csv_line() + "\n")
         csv_file.write(line)
+        if res.dataset.start_from_raxml:
+            line2 = str(res.dataset.get_csv_line_with_raxml() + "," + res.get_csv_line_with_raxml() + "\n")
+            csv_file.write(line2)
     csv_file.close()
 
 
