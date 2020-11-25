@@ -309,7 +309,7 @@ Network convertNetwork(RootedNetwork &rnetwork, int maxReticulations) {
         assert(network.edges[i].length != 0);
     }
 
-    std::cout << exportDebugInfo(network) << "\n";
+    //std::cout << exportDebugInfo(network) << "\n";
 
     assert(networkIsConnected(network));
 
