@@ -200,6 +200,9 @@ Network convertNetworkToplevel(RootedNetwork &rnetwork, size_t node_count,
         }
     }
 
+         std::cout << "tips: " << rnetwork_tips.size() << ", inner: " << rnetwork_inner_tree.size() << ", ret: " << rnetwork_reticulations.size() << "\n";
+
+
     // 3.) Create the outer links
     for (const auto &rnode : rnetwork_nodes) {
         if (rnode == rnetwork.root) {

@@ -260,6 +260,7 @@ void enforceToplevelBifurcation(RootedNetwork* rnetwork) {
     RootedNetworkNode* newNode = rnetwork->nodes.back().get();
     newNode->children.emplace_back(rnetwork->root->children[1]);
     newNode->children.emplace_back(rnetwork->root->children[2]);
+    newNode->parent = rnetwork->root;
     rnetwork->root->children.pop_back();
     rnetwork->root->children.pop_back();
     rnetwork->root->children.emplace_back(newNode);
