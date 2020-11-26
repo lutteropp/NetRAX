@@ -289,7 +289,8 @@ void NetraxInstance::optimizeEverything(AnnotatedNetwork &ann_network) {
     auto start_time = std::chrono::high_resolution_clock::now();
 
     std::cout << "Initial network loglikelihood: " << computeLoglikelihood(ann_network) << "\n";
-    std::cout << "Initial network BIC score: " << scoreNetwork(ann_network) << "\n";
+    double initial_score = scoreNetwork(ann_network);
+    std::cout << "Initial network BIC score: " << initial_score << "\n";
 
     optimizeBranches(ann_network);
     updateReticulationProbs(ann_network);
@@ -297,6 +298,8 @@ void NetraxInstance::optimizeEverything(AnnotatedNetwork &ann_network) {
     double new_score = scoreNetwork(ann_network);
     std::cout << "Initial optimized network loglikelihood: " << computeLoglikelihood(ann_network) << "\n";
     std::cout << "Initial optimized network BIC score: " << new_score << "\n";
+    assert(new_score <= initial_score);
+
     double old_score;
 
     unsigned int type_idx = 0;
