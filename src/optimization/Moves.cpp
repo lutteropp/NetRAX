@@ -508,7 +508,7 @@ void checkLinkDirections(Network &network) {
         if (network.nodes[i].type == NodeType::RETICULATION_NODE) {
             targetOutgoing = 1;
         } else if (network.root == &network.nodes[i]) {
-            targetOutgoing = 3;
+            targetOutgoing = 2;
         } else if (network.nodes[i].isTip()) {
             targetOutgoing = 0;
         }
