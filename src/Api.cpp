@@ -29,6 +29,7 @@
 #include "RaxmlWrapper.hpp"
 #include "optimization/Moves.hpp"
 #include "optimization/TopologyOptimization.hpp"
+#include "DebugPrintFunctions.hpp"
 
 namespace netrax {
 
@@ -399,7 +400,9 @@ void NetraxInstance::double_check_likelihood(AnnotatedNetwork &ann_network) {
         std::cout << "logl: " << logl << "\n";
         std::cout << "reread_logl: " << reread_logl << "\n";
         std::cout << "current network:\n" << newick << "\n";
+        std::cout << exportDebugInfo(ann_network.network) << "\n";
         std::cout << "reread_network:\n" << toExtendedNewick(ann_network2.network) << "\n";
+        std::cout << exportDebugInfo(ann_network2.network) << "\n";
     }
 
     assert(logl == reread_logl);

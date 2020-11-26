@@ -256,6 +256,7 @@ void enforceToplevelBifurcation(RootedNetwork* rnetwork) {
     if (rnetwork->root->children.size() != 3) {
         return;
     }
+    std::cout << "ENFORCING TOPLEVEL BIFURCATION\n";
     rnetwork->nodes.emplace_back(new RootedNetworkNode());
     RootedNetworkNode* newNode = rnetwork->nodes.back().get();
     newNode->children.emplace_back(rnetwork->root->children[1]);
