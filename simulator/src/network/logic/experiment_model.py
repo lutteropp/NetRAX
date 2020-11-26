@@ -75,10 +75,10 @@ class Result:
         
     def get_csv_line(self):
         topo_scores_strings_ordered = [str(self.topological_distances[x]) for x in TOPOLOGICAL_DISTANCE_NAMES]
-        return str(self.n_reticulations_inferred) + "," + str(self.bic_true) + "," + str(self.logl_true) + "," + str(self.bic_inferred) + "," + str(self.logl_inferred) + "," + str(self.bic_raxml) + "," + str(self.logl_raxml) + ",".join(topo_scores_strings_ordered)
+        return str(self.n_reticulations_inferred) + "," + str(self.bic_true) + "," + str(self.logl_true) + "," + str(self.bic_inferred) + "," + str(self.logl_inferred) + "," + str(self.bic_raxml) + "," + str(self.logl_raxml) + "," + ",".join(topo_scores_strings_ordered)
         
     def get_csv_line_with_raxml(self):
         topo_scores_strings_ordered_with_raxml = [str(self.topological_distances_with_raxml[x]) for x in TOPOLOGICAL_DISTANCE_NAMES]
-        return str(self.n_reticulations_inferred_with_raxml) + "," + str(self.bic_true) + "," + str(self.logl_true) + "," + str(self.bic_inferred_with_raxml) + "," + str(self.logl_inferred_with_raxml) + "," + str(self.bic_raxml) + "," + str(self.logl_raxml) + ",".join(topo_scores_strings_ordered_with_raxml)
+        return str(self.n_reticulations_inferred_with_raxml) + "," + str(self.bic_true) + "," + str(self.logl_true) + "," + str(self.bic_inferred_with_raxml) + "," + str(self.logl_inferred_with_raxml) + "," + str(self.bic_raxml) + "," + str(self.logl_raxml) + "," + ",".join(topo_scores_strings_ordered_with_raxml)
         
 
