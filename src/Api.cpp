@@ -396,7 +396,9 @@ void NetraxInstance::double_check_likelihood(AnnotatedNetwork &ann_network) {
     NetraxInstance::optimizeModel(ann_network2);
     double reread_logl = NetraxInstance::computeLoglikelihood(ann_network2);
 
-    if (logl != reread_logl) {
+    bool similar_logl = (abs(logl - reread_logl < 1.0));
+
+    if (!similar_logl) {
         std::cout << "logl: " << logl << "\n";
         std::cout << "reread_logl: " << reread_logl << "\n";
         std::cout << "current network:\n" << newick << "\n";
@@ -405,7 +407,7 @@ void NetraxInstance::double_check_likelihood(AnnotatedNetwork &ann_network) {
         std::cout << exportDebugInfo(ann_network2.network) << "\n";
     }
 
-    assert(logl == reread_logl);
+    assert(similar_logl);
 }
 
 }
