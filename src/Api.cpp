@@ -72,6 +72,7 @@ void NetraxInstance::init_annotated_network(AnnotatedNetwork &ann_network, std::
     ann_network.raxml_treeinfo = std::unique_ptr<TreeInfo>(wrapper.createRaxmlTreeinfo(ann_network));
 
     assert(static_cast<RaxmlWrapper::NetworkParams*>(ann_network.raxml_treeinfo->pll_treeinfo().likelihood_computation_params)->ann_network == &ann_network);
+    netrax::computeLoglikelihood(ann_network, false, true, false);
 }
 
 void NetraxInstance::init_annotated_network(AnnotatedNetwork &ann_network) {
@@ -300,6 +301,8 @@ void NetraxInstance::optimizeEverything(AnnotatedNetwork &ann_network) {
     std::cout << "Initial optimized network BIC score: " << new_score << "\n";
     assert(new_score <= initial_score);
 
+    double_check_likelihood(ann_network);
+
     double old_score;
 
     unsigned int type_idx = 0;
@@ -320,7 +323,10 @@ void NetraxInstance::optimizeEverything(AnnotatedNetwork &ann_network) {
         if (old_score - new_score > score_epsilon) { // score got better
             //std::cout << "BIC after topology optimization: " << new_score << "\n";
             //std::cout << "Current number of reticulations: " << ann_network.network.num_reticulations() << "\n";
+            std::cout << "network (BIC = " << new_score << ", logl = " << computeLoglikelihood(ann_network) << ") before brlen opt:\n" << toExtendedNewick(ann_network.network) << "\n";
             optimizeBranches(ann_network);
+            new_score = scoreNetwork(ann_network);
+            std::cout << "network (BIC = " << new_score << ", logl = " << computeLoglikelihood(ann_network) << ") after brlen opt:\n" << toExtendedNewick(ann_network.network) << "\n\n";
             updateReticulationProbs(ann_network);
             optimizeModel(ann_network);
             new_score = scoreNetwork(ann_network);
@@ -375,6 +381,28 @@ void NetraxInstance::writeNetwork(AnnotatedNetwork &ann_network, const std::stri
 
     outfile << netrax::toExtendedNewick(ann_network.network) << "\n";
     outfile.close();
+}
+
+void NetraxInstance::double_check_likelihood(AnnotatedNetwork &ann_network) {
+    double logl = ann_network.raxml_treeinfo->loglh(true);
+    std::string newick = toExtendedNewick(ann_network.network);
+
+    AnnotatedNetwork ann_network2;
+    ann_network2.options = ann_network.options;
+    ann_network2.network = netrax::readNetworkFromString(newick,
+            ann_network.options.max_reticulations);
+    init_annotated_network(ann_network2, ann_network.rng);
+    NetraxInstance::optimizeModel(ann_network2);
+    double reread_logl = NetraxInstance::computeLoglikelihood(ann_network2);
+
+    if (logl != reread_logl) {
+        std::cout << "logl: " << logl << "\n";
+        std::cout << "reread_logl: " << reread_logl << "\n";
+        std::cout << "current network:\n" << newick << "\n";
+        std::cout << "reread_network:\n" << toExtendedNewick(ann_network2.network) << "\n";
+    }
+
+    assert(logl == reread_logl);
 }
 
 }

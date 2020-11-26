@@ -43,6 +43,10 @@ void run_single_start(NetraxOptions& netraxOptions, std::mt19937& rng) {
 
     netrax::AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(netraxOptions);
     NetraxInstance::init_annotated_network(ann_network, rng);
+
+    std::cout << "Initial network is:\n" << toExtendedNewick(ann_network.network) << "\n\n";
+    std::string best_network = toExtendedNewick(ann_network.network);
+
     NetraxInstance::optimizeEverything(ann_network);
     double final_bic = NetraxInstance::scoreNetwork(ann_network);
     std::cout << "The inferred network has " << ann_network.network.num_reticulations() << " reticulations and this BIC score: " << final_bic << "\n\n";
@@ -50,10 +54,14 @@ void run_single_start(NetraxOptions& netraxOptions, std::mt19937& rng) {
         best_score = final_bic;
         std::cout << "IMPROVED BEST SCORE FOUND SO FAR: " << best_score << "\n\n";
         NetraxInstance::writeNetwork(ann_network, netraxOptions.output_file);
+        best_network = toExtendedNewick(ann_network.network);
         std::cout << "Better network written to " << netraxOptions.output_file << "\n";  
     } else {
         std::cout << "REMAINED BEST SCORE FOUND SO FAR: " << best_score << "\n";
     }
+
+    std::cout << "Best found network is:\n" << best_network << "\n\n";
+    std::cout << "Recomputing BIC on exactly this network gives: " << NetraxInstance::scoreNetwork(ann_network) << "\n";
 }
 
 void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {

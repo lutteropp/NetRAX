@@ -48,6 +48,8 @@ struct NetraxInstance {
         static void writeNetwork(AnnotatedNetwork &ann_network, const std::string &filepath);
         static void init_annotated_network(AnnotatedNetwork &ann_network, std::mt19937& rng);
         static void init_annotated_network(AnnotatedNetwork &ann_network);
+
+        static void double_check_likelihood(AnnotatedNetwork &ann_network);
 };
 
 }
