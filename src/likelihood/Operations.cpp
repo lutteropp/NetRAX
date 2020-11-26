@@ -193,7 +193,9 @@ std::vector<pll_operation_t> createOperationsTowardsRoot(AnnotatedNetwork &ann_n
         actParent = getActiveParent(network, actParent, parent);
     }
 
-    if (displayed_tree_root == network.root) {
+    bool toplevel_trifurcation = (getChildren(network, network.root).size() == 3);
+    assert(!toplevel_trifurcation);
+    if (displayed_tree_root == network.root && toplevel_trifurcation) {
         Node *rootBack = getTargetNode(network, network.root->getLink());
         if (!getActiveChildrenUndirected(network, network.root, rootBack).empty()) {
             ops.push_back(
@@ -267,7 +269,10 @@ std::vector<pll_operation_t> createOperations(AnnotatedNetwork &ann_network, siz
     }
 
     if (blobInfo.megablob_roots[megablobIdx] == network.root) {
-        if (displayed_tree_root == network.root) {
+        bool toplevel_trifurcation = (getChildren(network, network.root).size() == 3);
+        assert(!toplevel_trifurcation);
+
+        if (displayed_tree_root == network.root && toplevel_trifurcation) {
             // How to do the operations at the top-level root trifurcation?
             // First with root->back, then with root...
             Node *rootBack = getTargetNode(network, network.root->getLink());
