@@ -24,6 +24,7 @@ extern "C" {
 #include "../graph/Network.hpp"
 #include "../graph/NetworkTopology.hpp"
 #include "../graph/NodeType.hpp"
+#include "../DebugPrintFunctions.hpp"
 
 namespace netrax {
 pll_operation_t buildOperationInternal(Network &network, Node *parent, Node *child1, Node *child2,
@@ -207,12 +208,25 @@ std::vector<pll_operation_t> createOperationsTowardsRoot(AnnotatedNetwork &ann_n
                     buildOperationInternal(network, network.root, rootBack, nullptr, fake_clv_index,
                             fake_pmatrix_index));
             // ignore the branch length from the root to its single active child/ treat it
-            // as if it had zero branch length
+            // as if it had zero branch lBenoitength
             ops[ops.size() - 1].child1_matrix_index = fake_pmatrix_index;
         }
     } // else since displayed tree root has only 2 children, no need for rootBack stuff
+    else if (displayed_tree_root == network.root) {
+        ops.push_back(
+                    buildOperation(network, network.root, nullptr, dead_nodes, fake_clv_index,
+                            fake_pmatrix_index));
+    }
 
     assertNoDuplicateOperations(ops);
+
+    // just for debug
+    /*std::cout << exportDebugInfo(ann_network.network) << "\n";
+    std::cout << "operations array:\n";
+    printOperationArray(ops);
+    std::cout << "\n";
+    std::cout << "displayed tree root clv index: " << displayed_tree_root->clv_index << "\n";*/
+
     assert(ops[ops.size() - 1].parent_clv_index == displayed_tree_root->clv_index);
     return ops;
 }
