@@ -290,9 +290,9 @@ void NetraxInstance::optimizeEverything(AnnotatedNetwork &ann_network) {
     unsigned int max_seconds = ann_network.options.timeout;
     auto start_time = std::chrono::high_resolution_clock::now();
 
-    std::cout << "Initial network loglikelihood: " << computeLoglikelihood(ann_network) << "\n";
-    double initial_score = scoreNetwork(ann_network);
-    std::cout << "Initial network BIC score: " << initial_score << "\n";
+    //std::cout << "Initial network loglikelihood: " << computeLoglikelihood(ann_network) << "\n";
+    //double initial_score = scoreNetwork(ann_network);
+    //std::cout << "Initial network BIC score: " << initial_score << "\n";
 
     optimizeBranches(ann_network);
     updateReticulationProbs(ann_network);
@@ -300,7 +300,7 @@ void NetraxInstance::optimizeEverything(AnnotatedNetwork &ann_network) {
     double new_score = scoreNetwork(ann_network);
     std::cout << "Initial optimized network loglikelihood: " << computeLoglikelihood(ann_network) << "\n";
     std::cout << "Initial optimized network BIC score: " << new_score << "\n";
-    assert(new_score <= initial_score);
+    //assert(new_score <= initial_score);
 
     double_check_likelihood(ann_network);
 
@@ -324,10 +324,10 @@ void NetraxInstance::optimizeEverything(AnnotatedNetwork &ann_network) {
         if (old_score - new_score > score_epsilon) { // score got better
             //std::cout << "BIC after topology optimization: " << new_score << "\n";
             //std::cout << "Current number of reticulations: " << ann_network.network.num_reticulations() << "\n";
-            std::cout << "network (BIC = " << new_score << ", logl = " << computeLoglikelihood(ann_network) << ") before brlen opt:\n" << toExtendedNewick(ann_network.network) << "\n";
+            //std::cout << "network (BIC = " << new_score << ", logl = " << computeLoglikelihood(ann_network) << ") before brlen opt:\n" << toExtendedNewick(ann_network.network) << "\n";
             optimizeBranches(ann_network);
-            new_score = scoreNetwork(ann_network);
-            std::cout << "network (BIC = " << new_score << ", logl = " << computeLoglikelihood(ann_network) << ") after brlen opt:\n" << toExtendedNewick(ann_network.network) << "\n\n";
+            //new_score = scoreNetwork(ann_network);
+            //std::cout << "network (BIC = " << new_score << ", logl = " << computeLoglikelihood(ann_network) << ") after brlen opt:\n" << toExtendedNewick(ann_network.network) << "\n\n";
             updateReticulationProbs(ann_network);
             optimizeModel(ann_network);
             new_score = scoreNetwork(ann_network);
