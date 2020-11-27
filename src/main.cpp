@@ -137,6 +137,8 @@ void score_only(const NetraxOptions& netraxOptions, std::mt19937& rng) {
     }
     netrax::AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(netraxOptions);
     NetraxInstance::init_annotated_network(ann_network, rng);
+    NetraxInstance::optimizeBranches(ann_network);
+    NetraxInstance::updateReticulationProbs(ann_network);
     NetraxInstance::optimizeModel(ann_network);
     double final_bic = NetraxInstance::scoreNetwork(ann_network);
     double final_logl = NetraxInstance::computeLoglikelihood(ann_network);
