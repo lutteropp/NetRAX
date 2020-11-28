@@ -1,12 +1,16 @@
 import subprocess
 import os
 
+from experiment_model import LikelihoodType
+
 NETRAX_PATH = "/home/sarah/code-workspace/NetRAX/bin/netrax"
 
 
 # Uses NetRAX to compute the number of reticulations, BIC score, and loglikelihood of a network for a given MSA
-def score_network(network_path, msa_path):
+def score_network(network_path, msa_path, likelihood_type):
     netrax_cmd = NETRAX_PATH + " --score_only" + " --start_network " + network_path + " --msa " + msa_path
+    if likelihood_type == LikelihoodType.BEST:
+        netrax_cmd += " --best_displayed_tree_variant"
     print(netrax_cmd)
     netrax_output = subprocess.getoutput(netrax_cmd).splitlines()
     print(netrax_output)
@@ -24,14 +28,18 @@ def score_network(network_path, msa_path):
 # Uses NetRAX to infer a network... uses few random starting network if timeout==0, else keeps searching for a better network until timeout seconds have passed.
 def infer_network(ds):
     netrax_cmd = NETRAX_PATH + " --msa " + ds.msa_path + " --output " + ds.inferred_network_path
-    print(netrax_cmd)
+    if ds.likelihood_type == LikelihoodType.BEST:
+        netrax_cmd += " --best_displayed_tree_variant"
     if ds.timeout > 0:
         netrax_cmd += " --endless --timeout " + str(ds.timeout)
     else:
         netrax_cmd += " --num_random_start_networks " + str(ds.n_random_start_networks) + " --num_parsimony_start_networks " + str(ds.n_parsimony_start_networks)
+    print(netrax_cmd)
     print(subprocess.getoutput(netrax_cmd))
     if ds.start_from_raxml:
-        netrax_cmd_2 = NETRAX_PATH + " --msa " + ds.msa_path + " --output " + ds.inferred_network_with_raxml_path + " --start_network " + ds.raxml_tree_path 
+        netrax_cmd_2 = NETRAX_PATH + " --msa " + ds.msa_path + " --output " + ds.inferred_network_with_raxml_path + " --start_network " + ds.raxml_tree_path
+        if ds.likelihood_type == LikelihoodType.BEST:
+            netrax_cmd_2 += " --best_displayed_tree_variant"
         print(netrax_cmd_2)
         print(subprocess.getoutput(netrax_cmd_2))
     
