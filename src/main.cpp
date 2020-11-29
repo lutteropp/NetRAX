@@ -2,6 +2,7 @@
 #include <string>
 
 #include <CLI11.hpp>
+#include <mpreal.h>
 #include "Api.hpp"
 #include "graph/AnnotatedNetwork.hpp"
 #include "NetraxOptions.hpp"
@@ -211,6 +212,8 @@ void generate_random_network_only(const NetraxOptions& netraxOptions, std::mt199
 }
 
 int main(int argc, char **argv) {
+    //mpfr::mpreal::set_default_prec(mpfr::digits2bits(1000));
+
     //std::ios::sync_with_stdio(false);
     //std::cin.tie(NULL);
     netrax::NetraxOptions netraxOptions;
