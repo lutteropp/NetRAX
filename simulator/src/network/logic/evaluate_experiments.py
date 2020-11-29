@@ -23,16 +23,23 @@ def evaluate_dataset(dataset):
     res.topological_distances = retrieve_topological_distances(dataset.true_network_path, dataset.inferred_network_path)
     if dataset.n_reticulations == 0:
         res.rf_absolute_raxml, res.rf_relative_raxml = compute_rf_dist(dataset.true_network_path, dataset.raxml_tree_path)
+        if res.n_reticulations_inferred == 0:
+            res.rf_absolute_inferred, res.rf_relative_inferred = compute_rf_dist(dataset.true_network_path, dataset.inferred_network_path)
+        if dataset.start_from_raxml and res.n_reticulations_inferred_with_raxml == 0:
+            res.rf_absolute_inferred_with_raxml, res.rf_relative_inferred_with_raxml = compute_rf_dist(dataset.true_network_path, dataset.inferred_network_with_raxml_path)
     
     print(RESULT_CSV_HEADER+"\n" + res.get_csv_line() + "\n\n")
     return res
     
     
 def run_inference_and_evaluate(datasets):
+    results = []
     for ds in datasets:
-        infer_raxml_tree(ds)
+        near_zero_branches = infer_raxml_tree(ds)
         infer_network(ds)
-    results = [evaluate_dataset(ds) for ds in datasets]
+        res = evaluate_dataset(ds)
+        res.near_zero_branches_raxml = near_zero_branches
+        results.append(res)
     return results
     
 
