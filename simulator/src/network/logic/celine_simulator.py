@@ -170,6 +170,12 @@ def simulate_network_step(params):
         rate = current_speciation_rate + current_hybridization_rate
         extra_time = np.random.exponential(1/rate)
         current_time += extra_time
+        
+        #early stop if we already have a network larger than we wanted
+        if params.max_taxa != -1 and no_of_leaves > params.max_taxa:
+            break
+        if params.max_reticulations != -1 and no_of_hybrids > params.max_reticulations:
+            break
 
     if current_node != 1:  # add this check to avoid the simulator to complain about Only one node in the network
         extra_time -= current_time-params.time_limit
