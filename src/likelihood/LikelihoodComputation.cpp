@@ -392,7 +392,7 @@ double computeLoglikelihood_new(AnnotatedNetwork &ann_network, int incremental, 
             fake_treeinfo.partition_loglh[partition_idx] = mpfr::log(partition_lh).toDouble();
             network_logl += mpfr::log(partition_lh);
         } else { // LikelihoodVariant::BEST_DISPLAYED_TREE
-            double partition_logl = std::numeric_limits<double>::min();
+            double partition_logl = -std::numeric_limits<double>::infinity();
             for (const auto& tree : displayed_trees) {
                 assert(tree.tree_logl != 0);
                 partition_logl = std::max(partition_logl, tree.tree_logprob + tree.tree_logl);
