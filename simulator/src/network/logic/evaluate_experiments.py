@@ -1,6 +1,6 @@
 from dendroscope_wrapper import *
 from netrax_wrapper import *
-from raxml_wrapper import infer_raxml_tree
+from raxml_wrapper import infer_raxml_tree, compute_rf_dist
 
 from experiment_model import *
 
@@ -21,6 +21,9 @@ def evaluate_dataset(dataset):
         res.topological_distances_with_raxml = retrieve_topological_distances(dataset.true_network_path, dataset.inferred_network_with_raxml_path)
     
     res.topological_distances = retrieve_topological_distances(dataset.true_network_path, dataset.inferred_network_path)
+    if dataset.n_reticulations == 0:
+        res.rf_absolute_raxml, res.rf_relative_raxml = compute_rf_dist(dataset.true_network_path, dataset.raxml_tree_path)
+    
     print(RESULT_CSV_HEADER+"\n" + res.get_csv_line() + "\n\n")
     return res
     
