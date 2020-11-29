@@ -77,7 +77,7 @@ class Result:
         self.rf_absolute_inferred = -1
         self.rf_relative_inferred = -1
         self.rf_absolute_inferred_with_raxml = -1
-        self.rf_relarive_inferred_with_raxml = -1
+        self.rf_relative_inferred_with_raxml = -1
         self.near_zero_branches_raxml = 0
         
     def get_csv_line(self):
