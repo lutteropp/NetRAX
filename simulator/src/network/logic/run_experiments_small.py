@@ -39,7 +39,7 @@ def run_experiments_small():
         n_taxa, n_reticulations, newick, param_info = simulate_network_celine_minmax(min_taxa, max_taxa, min_reticulations, max_reticulations)
         counter[n_taxa][n_reticulations] += 1
         n_trees = 2 ** param_info["no_of_hybrids"]
-        for partition_size in [500, 100]:
+        for partition_size in [500, 1000]:
             for likelihood_type in [LikelihoodType.AVERAGE, LikelihoodType.BEST]:
                 ds = build_dataset(n_taxa, n_reticulations, n_trees * partition_size, sampling_type, likelihood_type, my_id)
                 ds.sites_per_tree = partition_size
