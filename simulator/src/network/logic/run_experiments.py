@@ -77,4 +77,4 @@ def run_experiments_small_network():
     
 if __name__ == "__main__":
     run_experiments_small_tree()
-    run_experiments_small_network()
+    #run_experiments_small_network()

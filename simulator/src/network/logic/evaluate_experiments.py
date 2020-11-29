@@ -36,9 +36,11 @@ def run_inference_and_evaluate(datasets):
     results = []
     for ds in datasets:
         near_zero_branches = infer_raxml_tree(ds)
-        infer_network(ds)
+        runtime_inference, runtime_inference_with_raxml = infer_network(ds)
         res = evaluate_dataset(ds)
         res.near_zero_branches_raxml = near_zero_branches
+        res.runtime_inference = runtime_inference
+        res.runtime_inference_with_raxml = runtime_inference_with_raxml
         results.append(res)
     return results
     

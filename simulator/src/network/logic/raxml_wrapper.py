@@ -12,7 +12,7 @@ def infer_raxml_tree(dataset):
     near_zero_branches = 0
     for line in lines:
         if "near-zero branches" in line:
-            near_zero_branches = int(line.split(' ')[5])
+            near_zero_branches = int(line.split('WARNING: Best ML tree contains ')[1].split(' ')[0])
     return near_zero_branches
     
     

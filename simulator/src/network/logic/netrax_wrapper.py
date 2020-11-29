@@ -1,5 +1,6 @@
 import subprocess
 import os
+import time
 
 from experiment_model import LikelihoodType
 
@@ -27,6 +28,8 @@ def score_network(network_path, msa_path, likelihood_type):
     
 # Uses NetRAX to infer a network... uses few random starting network if timeout==0, else keeps searching for a better network until timeout seconds have passed.
 def infer_network(ds):
+    runtime_inference = 0
+    runtime_inference_with_raxml = 0
     netrax_cmd = NETRAX_PATH + " --msa " + ds.msa_path + " --output " + ds.inferred_network_path
     if ds.likelihood_type == LikelihoodType.BEST:
         netrax_cmd += " --best_displayed_tree_variant"
@@ -35,13 +38,21 @@ def infer_network(ds):
     else:
         netrax_cmd += " --num_random_start_networks " + str(ds.n_random_start_networks) + " --num_parsimony_start_networks " + str(ds.n_parsimony_start_networks)
     print(netrax_cmd)
+    
+    start_normal = time.time()
     print(subprocess.getoutput(netrax_cmd))
+    runtime_inference = round(time.time() - start_normal, 3)
+    
     if ds.start_from_raxml:
         netrax_cmd_2 = NETRAX_PATH + " --msa " + ds.msa_path + " --output " + ds.inferred_network_with_raxml_path + " --start_network " + ds.raxml_tree_path
         if ds.likelihood_type == LikelihoodType.BEST:
             netrax_cmd_2 += " --best_displayed_tree_variant"
         print(netrax_cmd_2)
+ 
+        start_with_raxml = time.time()
         print(subprocess.getoutput(netrax_cmd_2))
+        runtime_inference_with_raxml = round(time.time() - start_with_raxml, 3)
+    return runtime_inference, runtime_inference_with_raxml
     
     
 # Extracts all displayed trees of a given network, returning two lists: one containing the NEWICK strings, and one containing the tree probabilities
