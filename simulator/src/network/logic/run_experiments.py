@@ -8,26 +8,17 @@ from seqgen_wrapper import simulate_msa
 from celine_simulator import CelineParams, simulate_network_celine_minmax
 
 
-def build_dataset(n_taxa, n_reticulations, msa_size, sampling_type, likelihood_type, my_id):
-    if not os.path.exists('datasets_small'):
-        os.makedirs('datasets_small')
-    name = "datasets_small/" + str(my_id) + '_' + str(n_taxa) + '_taxa_' + str(n_reticulations) + '_reticulations_' + str(sampling_type) + "_sampling_" + str(likelihood_type) + "_likelihood_" + str(msa_size) + "_msasize"
+def build_dataset(prefix, n_taxa, n_reticulations, msa_size, sampling_type, likelihood_type, my_id):
+    if not os.path.exists('datasets_' + prefix):
+        os.makedirs('datasets_' + prefix)
+    name = "datasets_" + prefix + "/" + str(my_id) + '_' + str(n_taxa) + '_taxa_' + str(n_reticulations) + '_reticulations_' + str(sampling_type) + "_sampling_" + str(likelihood_type) + "_likelihood_" + str(msa_size) + "_msasize"
     return create_dataset_container(n_taxa, n_reticulations, msa_size, sampling_type, SimulationType.CELINE, likelihood_type, name)
     
 
-def run_experiments_small():
-    iterations = 1
-    min_taxa = 4
-    max_taxa = 10
-    min_reticulations = 0
-    max_reticulations = 2
+def run_experiments(prefix, iterations, min_taxa, max_taxa, min_reticulations, max_reticulations):
     sampling_type = SamplingType.PERFECT_SAMPLING
-    
-    if not os.path.exists('datasets_small'):
-        os.makedirs('datasets_small')
-    
-    name = "datasets_small/ds"
-    
+    if not os.path.exists('datasets_' + prefix):
+        os.makedirs('datasets_' + prefix)
     datasets = []
     results = []
     
@@ -41,7 +32,7 @@ def run_experiments_small():
         n_trees = 2 ** param_info["no_of_hybrids"]
         for partition_size in [500, 1000]:
             for likelihood_type in [LikelihoodType.AVERAGE, LikelihoodType.BEST]:
-                ds = build_dataset(n_taxa, n_reticulations, n_trees * partition_size, sampling_type, likelihood_type, my_id)
+                ds = build_dataset(prefix, n_taxa, n_reticulations, n_trees * partition_size, sampling_type, likelihood_type, my_id)
                 ds.sites_per_tree = partition_size
                 ds.celine_params = param_info
                 ds.n_trees = 2 ** ds.celine_params["no_of_hybrids"]
@@ -61,9 +52,19 @@ def run_experiments_small():
                 print(str(i) + ", " + str(j) + ": " + str(counter[i][j]))
     
     results = run_inference_and_evaluate(datasets)
-    write_results_to_csv(results, "small_results.csv")
+    write_results_to_csv(results, prefix + "_results.csv")
 
+
+def run_experiments_small_tree():
+    iterations = 1
+    min_taxa = 4
+    max_taxa = 10
+    min_reticulations = 0
+    max_reticulations = 0
+    prefix = 'small_tree'
+    run_experiments(prefix, iterations, min_taxa, max_taxa, min_reticulations, max_reticulations)
+    
     
 if __name__ == "__main__":
-    run_experiments_small()
+    run_experiments_small_tree()
 
