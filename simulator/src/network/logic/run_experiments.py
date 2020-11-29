@@ -64,7 +64,17 @@ def run_experiments_small_tree():
     prefix = 'small_tree'
     run_experiments(prefix, iterations, min_taxa, max_taxa, min_reticulations, max_reticulations)
     
+
+def run_experiments_small_network():
+    iterations = 1
+    min_taxa = 4
+    max_taxa = 10
+    min_reticulations = 1
+    max_reticulations = 2
+    prefix = 'small_network'
+    run_experiments(prefix, iterations, min_taxa, max_taxa, min_reticulations, max_reticulations)
+    
     
 if __name__ == "__main__":
     run_experiments_small_tree()
-
+    run_experiments_small_network()
