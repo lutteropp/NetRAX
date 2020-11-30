@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import os
+import collections
 
 def merge_multi(dataframes, column_name):
     merged = dataframes[0]
@@ -10,7 +11,8 @@ def merge_multi(dataframes, column_name):
 
 
 def create_bic_plot(prefix, name_prefix, filtered_data):
-    filepath = 'plots_' + prefix + '/' + name_prefix + '_bic_plot.png'
+    plot_filepath = 'plots_' + prefix + '/' + name_prefix + '_bic_plot.png'
+    stats_filepath = 'plots_' + prefix + '/' + name_prefix + '_bic_stats.png'
 
     true_simulated_network_bics = filtered_data.loc[filtered_data['start_from_raxml'] == False][['name', 'bic_true']]
     inferred_network_bics = filtered_data.loc[filtered_data['start_from_raxml'] == False][['name', 'bic_inferred']]
@@ -18,6 +20,7 @@ def create_bic_plot(prefix, name_prefix, filtered_data):
     raxml_bics = filtered_data.loc[filtered_data['start_from_raxml'] == False][['name', 'bic_raxml']]
     merged_df = merge_multi([true_simulated_network_bics, inferred_network_bics, inferred_network_with_raxml_bics, raxml_bics], 'name')
     
+    counts = collections.defaultdict(int)
     bic_dict_list = []
     for _, row in merged_df.iterrows():
         act_entry = {}
@@ -26,20 +29,36 @@ def create_bic_plot(prefix, name_prefix, filtered_data):
         act_entry['rel_diff_bic_inferred_with_raxml'] = float(row['bic_inferred_with_raxml'] - row['bic_true']) / row['bic_true']
         act_entry['rel_diff_bic_raxml'] = float(row['bic_raxml'] - row['bic_true']) / row['bic_true']
         bic_dict_list.append(act_entry)
+        
+        if row['bic_inferred'] <= row['bic_true']:
+            counts['bic_inferred_better_or_equal_than_true'] += 1
+        else:
+            counts['bic_inferred_worse_than_true'] += 1
+        if row['bic_inferred_with_raxml'] <= row['bic_true']:
+            counts['bic_inferred_with_raxml_better_or_equal_than_true'] += 1
+        else:
+            counts['bic_inferred_with_raxml_worse_than_true'] += 1
+        if row['bic_raxml'] <= row['bic_true']:
+            counts['bic_raxml_better_or_equal_than_true'] += 1
+        else:
+            counts['bic_raxml_worse_than_true'] += 1
+        
     df_bic = pd.DataFrame(bic_dict_list)
-    
     df_bic.plot(x="id", y=["rel_diff_bic_inferred", "rel_diff_bic_inferred_with_raxml", "rel_diff_bic_raxml"])
     plt.title("Relative BIC difference for " + name_prefix.replace('_',' '), wrap=True)
-    plt.savefig(filepath)
-    #plt.show()
-
+    plt.savefig(plot_filepath)
+    
+    df_bic_stats = pd.DataFrame([counts])
+    df_bic_stats.plot(kind='bar')
+    plt.title("Relative BIC statistics for " + name_prefix.replace('_',' '), wrap=True)
+    plt.savefig(stats_filepath)
+    
 
 def create_plots_internal(prefix, data, simulator_type, sampling_type, msa_size, likelihood_type):
     name_prefix = str(simulator_type) + "_" + str(sampling_type) +'_' + str(msa_size) + "_msasize_" + str(likelihood_type)
     filtered_data = data.loc[(data['simulation_type'] == simulator_type) & (data['sampling_type'] == sampling_type) & (data['msa_size'] == msa_size) & (data['likelihood_type'] == likelihood_type)]
     # BIC plot
     create_bic_plot(prefix, name_prefix, filtered_data)
-    
     
     # Logl plot
     # relative RF-distance plot
