@@ -302,7 +302,7 @@ void NetraxInstance::optimizeEverything(AnnotatedNetwork &ann_network) {
     std::cout << "Initial optimized network BIC score: " << new_score << "\n";
     //assert(new_score <= initial_score);
 
-    double_check_likelihood(ann_network);
+    //double_check_likelihood(ann_network);
 
     double old_score;
 
