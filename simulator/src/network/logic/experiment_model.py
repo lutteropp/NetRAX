@@ -20,7 +20,7 @@ class LikelihoodType(Enum):
 
 TOPOLOGICAL_DISTANCE_NAMES = ['hardwired_cluster_distance', 'softwired_cluster_distance', 'displayed_trees_distance', 'tripartition_distance', 'nested_labels_distance', 'path_multiplicity_distance']
 
-DATASET_CSV_HEADER = "name,n_taxa,n_trees,n_reticulations,msa_size,sampling_type,simulation_type,likelihood_type,timeout,n_random_start_networks,n_parsimony_start_networks,start_from_raxml"
+DATASET_CSV_HEADER = "name,n_taxa,n_trees,n_reticulations,msa_size,sampling_type,simulation_type,likelihood_type,timeout,n_random_start_networks,n_parsimony_start_networks,start_from_raxml,celine_params"
 RESULT_CSV_HEADER = "n_reticulations_inferred,bic_true,logl_true,bic_inferred,logl_inferred,bic_raxml,logl_raxml,rf_absolute_raxml,rf_relative_raxml,rf_absolute_inferred,rf_relative_inferred,near_zero_branches_raxml,runtime_inference" + "," + ",".join(TOPOLOGICAL_DISTANCE_NAMES)
 
 
@@ -51,10 +51,10 @@ class Dataset:
         return self.n_trees * self.sites_per_tree
         
     def get_csv_line(self):
-        return str(self.name) + "," + str(self.n_taxa) + "," + str(self.n_trees) + "," + str(self.n_reticulations) + "," + str(self.msa_size) + "," + str(self.sampling_type) + "," + str(self.simulation_type) + "," + str(self.likelihood_type) + "," + str(self.timeout) + "," + str(self.n_random_start_networks) + "," + str(self.n_parsimony_start_networks) + ",False"
+        return str(self.name) + "," + str(self.n_taxa) + "," + str(self.n_trees) + "," + str(self.n_reticulations) + "," + str(self.msa_size) + "," + str(self.sampling_type) + "," + str(self.simulation_type) + "," + str(self.likelihood_type) + "," + str(self.timeout) + "," + str(self.n_random_start_networks) + "," + str(self.n_parsimony_start_networks) + ",False" + "," + str(self.celine_params).replace(",", ";")
         
     def get_csv_line_with_raxml(self):
-        return str(self.name) + "," + str(self.n_taxa) + "," + str(self.n_trees) + "," + str(self.n_reticulations) + "," + str(self.msa_size) + "," + str(self.sampling_type) + "," + str(self.simulation_type) + "," + str(self.likelihood_type) + "," + str(self.timeout) + "," + str(self.n_random_start_networks) + "," + str(self.n_parsimony_start_networks) + ",True"
+        return str(self.name) + "," + str(self.n_taxa) + "," + str(self.n_trees) + "," + str(self.n_reticulations) + "," + str(self.msa_size) + "," + str(self.sampling_type) + "," + str(self.simulation_type) + "," + str(self.likelihood_type) + "," + str(self.timeout) + "," + str(self.n_random_start_networks) + "," + str(self.n_parsimony_start_networks) + ",True" + "," + str(self.celine_params).replace(",", ";")
 
 
 class Result:
