@@ -1,13 +1,27 @@
 import matplotlib
 import pandas as pd
+import os
 
 
-def create_plots_internal(prefix, data, simulator_type, sampling_type, likelihood_type):
+def create_plots_internal(prefix, data, simulator_type, sampling_type, msa_size, likelihood_type):
+    #pd.set_option('display.max_columns', None)
+    name_prefix = str(simulator_type) + "_simulator_" + str(sampling_type) + "_sampling_" + str(msa_size) + "_msasize_" + str(likelihood_type) + "_likelihood"
+    filtered_data = data.loc[(data['simulation_type'] == simulator_type) & (data['sampling_type'] == sampling_type) & (data['msa_size'] == msa_size) & (data['likelihood_type'] == likelihood_type)]
+    # BIC plot
+    true_simulated_network_bics = filtered_data.loc[filtered_data['start_from_raxml'] == False][['name', 'bic_true']]
+    inferred_network_bics = filtered_data.loc[filtered_data['start_from_raxml'] == False][['name', 'bic_inferred']]
+    inferred_network_with_raxml_bics = filtered_data.loc[filtered_data['start_from_raxml'] == True][['name', 'bic_inferred']]
+    raxml_bics = filtered_data.loc[filtered_data['start_from_raxml'] == False][['name', 'bic_raxml']]
+    # Logl plot
+    # relative RF-distance plot
+    # num near-zero raxml-ng branches plot
     pass
 
 
 def create_plots(prefix):
-    data = pd.read_csv(prefix + "_results.csv")
+    if not os.path.exists('plots_' + prefix):
+        os.makedirs('plots_' + prefix)
+    data = pd.read_csv(prefix + "_results.csv", sep=',|;', index_col=False)
     msa_sizes = data.msa_size.unique()
     simulator_types = data.simulation_type.unique()
     sampling_types = data.sampling_type.unique()
@@ -16,7 +30,8 @@ def create_plots(prefix):
         for sampling_type in sampling_types:
             for msa_size in msa_sizes:
                 for likelihood_type in likelihood_types:
-                    create_plots_internal(prefix, data, simulator_type, sampling_type, likelihood_type)
+                    create_plots_internal(prefix, data, simulator_type, sampling_type, msa_size, likelihood_type)
+
 
 if __name__ == "__main__":
     create_plots("small_tree")
