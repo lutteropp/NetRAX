@@ -51,10 +51,10 @@ class Dataset:
         return self.n_trees * self.sites_per_tree
         
     def get_csv_line(self):
-        return str(self.name) + "," + str(self.n_taxa) + "," + str(self.n_trees) + "," + str(self.n_reticulations) + "," + str(self.msa_size) + "," + str(self.sampling_type) + "," + str(self.simulation_type) + "," + str(self.likelihood_type) + "," + str(self.timeout) + "," + str(self.n_random_start_networks) + "," + str(self.n_parsimony_start_networks) + ",False" + "," + str(self.celine_params).replace(",", ";")
+        return str(self.name) + "," + str(self.n_taxa) + "," + str(self.n_trees) + "," + str(self.n_reticulations) + "," + str(self.msa_size) + "," + str(self.sampling_type) + "," + str(self.simulation_type) + "," + str(self.likelihood_type) + "," + str(self.timeout) + "," + str(self.n_random_start_networks) + "," + str(self.n_parsimony_start_networks) + ",False" + "," + str(self.celine_params).replace(",", "|")
         
     def get_csv_line_with_raxml(self):
-        return str(self.name) + "," + str(self.n_taxa) + "," + str(self.n_trees) + "," + str(self.n_reticulations) + "," + str(self.msa_size) + "," + str(self.sampling_type) + "," + str(self.simulation_type) + "," + str(self.likelihood_type) + "," + str(self.timeout) + "," + str(self.n_random_start_networks) + "," + str(self.n_parsimony_start_networks) + ",True" + "," + str(self.celine_params).replace(",", ";")
+        return str(self.name) + "," + str(self.n_taxa) + "," + str(self.n_trees) + "," + str(self.n_reticulations) + "," + str(self.msa_size) + "," + str(self.sampling_type) + "," + str(self.simulation_type) + "," + str(self.likelihood_type) + "," + str(self.timeout) + "," + str(self.n_random_start_networks) + "," + str(self.n_parsimony_start_networks) + ",True" + "," + str(self.celine_params).replace(",", "|")
 
 
 class Result:
