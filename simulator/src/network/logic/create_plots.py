@@ -23,14 +23,14 @@ def create_plots_internal(prefix, data, simulator_type, sampling_type, msa_size,
     for _, row in merged_df.iterrows():
         act_entry = {}
         act_entry['id'] = int(row['name'].split('/')[1].split('_')[0])
-        act_entry['diff_bic_inferred'] = row['bic_true'] - row['bic_inferred']
-        act_entry['diff_bic_inferred_with_raxml'] = row['bic_true'] - row['bic_inferred_with_raxml']
-        act_entry['diff_bic_raxml'] = row['bic_true'] - row['bic_raxml']
+        act_entry['rel_diff_bic_inferred'] = float(row['bic_inferred'] - row['bic_true']) / row['bic_true']
+        act_entry['rel_diff_bic_inferred_with_raxml'] = float(row['bic_inferred_with_raxml'] - row['bic_true']) / row['bic_true']
+        act_entry['rel_diff_bic_raxml'] = float(row['bic_raxml'] - row['bic_true']) / row['bic_true']
         bic_dict_list.append(act_entry)
     df_bic = pd.DataFrame(bic_dict_list)
     
     print(df_bic.head())
-    df_bic.plot(x="id", y=["diff_bic_inferred", "diff_bic_inferred_with_raxml", "diff_bic_raxml"])
+    df_bic.plot(x="id", y=["rel_diff_bic_inferred", "rel_diff_bic_inferred_with_raxml", "rel_diff_bic_raxml"])
     plt.show()
     # Logl plot
     # relative RF-distance plot
