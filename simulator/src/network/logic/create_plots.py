@@ -56,17 +56,70 @@ def create_bic_plot(prefix, name_prefix, filtered_data):
     plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
     plt.savefig(stats_filepath, bbox_inches='tight')
     
+    
+def create_logl_plot(prefix, name_prefix, filtered_data):
+    plot_filepath = 'plots_' + prefix + '/' + name_prefix + '_logl_plot.png'
+    stats_filepath = 'plots_' + prefix + '/' + name_prefix + '_logl_stats.png'
+
+    true_simulated_network_logls = filtered_data.loc[filtered_data['start_from_raxml'] == False][['name', 'logl_true']]
+    inferred_network_logls = filtered_data.loc[filtered_data['start_from_raxml'] == False][['name', 'logl_inferred']]
+    inferred_network_with_raxml_logls = filtered_data.loc[filtered_data['start_from_raxml'] == True][['name', 'logl_inferred']].rename(columns={'logl_inferred': 'logl_inferred_with_raxml'})
+    raxml_logls = filtered_data.loc[filtered_data['start_from_raxml'] == False][['name', 'logl_raxml']]
+    merged_df = merge_multi([true_simulated_network_logls, inferred_network_logls, inferred_network_with_raxml_logls, raxml_logls], 'name')
+    
+    counts = collections.defaultdict(int)
+    logl_dict_list = []
+    for _, row in merged_df.iterrows():
+        act_entry = {}
+        act_entry['id'] = int(row['name'].split('/')[1].split('_')[0])
+        act_entry['rel_diff_logl_inferred'] = float(row['logl_inferred'] - row['logl_true']) / row['logl_true']
+        act_entry['rel_diff_logl_inferred_with_raxml'] = float(row['logl_inferred_with_raxml'] - row['logl_true']) / row['logl_true']
+        act_entry['rel_diff_logl_raxml'] = float(row['logl_raxml'] - row['logl_true']) / row['logl_true']
+        logl_dict_list.append(act_entry)
+        
+        if row['logl_inferred'] <= row['logl_true']:
+            counts['logl_inferred_better_or_equal_than_true'] += 1
+        else:
+            counts['logl_inferred_worse_than_true'] += 1
+        if row['logl_inferred_with_raxml'] <= row['logl_true']:
+            counts['logl_inferred_with_raxml_better_or_equal_than_true'] += 1
+        else:
+            counts['logl_inferred_with_raxml_worse_than_true'] += 1
+        if row['logl_raxml'] <= row['logl_true']:
+            counts['logl_raxml_better_or_equal_than_true'] += 1
+        else:
+            counts['logl_raxml_worse_than_true'] += 1
+        
+    plt.tight_layout()
+    df_logl = pd.DataFrame(logl_dict_list)
+    df_logl.plot(x="id", y=["rel_diff_logl_inferred", "rel_diff_logl_inferred_with_raxml", "rel_diff_logl_raxml"])
+    plt.title(prefix + "\nRelative logl difference for\n" + name_prefix.replace('_',' ') + "\Positive value means logl got better!", wrap=True, fontsize=8)
+    plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
+    plt.savefig(plot_filepath, bbox_inches='tight')
+    
+    df_logl_stats = pd.DataFrame([counts])
+    df_logl_stats.plot(kind='bar')
+    plt.title(prefix + "\nRelative logl statistics for\n" + name_prefix.replace('_',' '), wrap=True, fontsize=8)
+    plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
+    plt.savefig(stats_filepath, bbox_inches='tight')
+    
+    
+def create_relative_rf_dist_plot(prefix, name_prefix, filtered_data):
+    pass
+    
+    
+def create_num_nearzero_raxml_branches_plot(prefix, name_prefix, filtered_data):
+    pass
+    
 
 def create_plots_internal(prefix, data, simulator_type, sampling_type, msa_size, likelihood_type):
     name_prefix = str(simulator_type) + "_" + str(sampling_type) +'_' + str(msa_size) + "_msasize_" + str(likelihood_type)
     filtered_data = data.loc[(data['simulation_type'] == simulator_type) & (data['sampling_type'] == sampling_type) & (data['msa_size'] == msa_size) & (data['likelihood_type'] == likelihood_type)]
-    # BIC plot
+    # Create the plots for BIC, logl, rf-dist, nearzero-branches
     create_bic_plot(prefix, name_prefix, filtered_data)
-    
-    # Logl plot
-    # relative RF-distance plot
-    # num near-zero raxml-ng branches plot
-    pass
+    create_logl_plot(prefix, name_prefix, filtered_data)
+    create_relative_rf_dist_plot(prefix, name_prefix, filtered_data)
+    create_num_nearzero_raxml_branches_plot(prefix, name_prefix, filtered_data)
 
 
 def create_plots(prefix):
