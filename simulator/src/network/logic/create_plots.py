@@ -56,6 +56,8 @@ def create_bic_plot(prefix, name_prefix, filtered_data):
     plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
     plt.savefig(stats_filepath, bbox_inches='tight')
     
+    plt.close()
+    
     
 def create_logl_plot(prefix, name_prefix, filtered_data):
     plot_filepath = 'plots_' + prefix + '/' + name_prefix + '_logl_plot.png'
@@ -103,9 +105,55 @@ def create_logl_plot(prefix, name_prefix, filtered_data):
     plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
     plt.savefig(stats_filepath, bbox_inches='tight')
     
+    plt.close()
+    
     
 def create_relative_rf_dist_plot(prefix, name_prefix, filtered_data):
-    pass
+    plot_filepath = 'plots_' + prefix + '/' + name_prefix + '_rfdist_plot.png'
+    stats_filepath = 'plots_' + prefix + '/' + name_prefix + '_rfdist_stats.png'
+
+    inferred_network_rfdist = filtered_data.loc[filtered_data['start_from_raxml'] == False][['name', 'rf_relative_inferred']]
+    inferred_network_with_raxml_rfdist = filtered_data.loc[filtered_data['start_from_raxml'] == True][['name', 'rf_relative_inferred']].rename(columns={'rf_relative_inferred': 'rf_relative_inferred_with_raxml'})
+    raxml_rfdist = filtered_data.loc[filtered_data['start_from_raxml'] == False][['name', 'rf_relative_raxml']]
+    merged_df = merge_multi([inferred_network_rfdist, inferred_network_with_raxml_rfdist, raxml_rfdist], 'name')
+    
+    counts = collections.defaultdict(int)
+    logl_dict_list = []
+    for _, row in merged_df.iterrows():
+        act_entry = {}
+        act_entry['id'] = int(row['name'].split('/')[1].split('_')[0])
+        act_entry['rf_relative_inferred'] = row['rf_relative_inferred']
+        act_entry['rf_relative_inferred_with_raxml'] = row['rf_relative_inferred_with_raxml']
+        act_entry['rf_relative_raxml'] = row['rf_relative_raxml']
+        logl_dict_list.append(act_entry)
+        
+        if row['rf_relative_inferred'] > 0:
+            counts['rfdist_inferred_greater_zero'] += 1
+        else:
+            counts['rfdist_inferred_zero'] += 1
+        if row['rf_relative_inferred_with_raxml'] > 0:
+            counts['rfdist_inferred_with_raxml_greater_zero'] += 1
+        else:
+            counts['rfdist_inferred_with_raxml_zero'] += 1
+        if row['rf_relative_raxml'] > 0:
+            counts['rfdist_raxml_greater_zero'] += 1
+        else:
+            counts['rfdist_raxml_zero'] += 1
+        
+    plt.tight_layout()
+    df_logl = pd.DataFrame(logl_dict_list)
+    df_logl.plot(x="id", y=["rf_relative_inferred", "rf_relative_inferred_with_raxml", "rf_relative_raxml"])
+    plt.title(prefix + "\nRelative RF-distance to simulated tree for\n" + name_prefix.replace('_',' '), wrap=True, fontsize=8)
+    plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
+    plt.savefig(plot_filepath, bbox_inches='tight')
+    
+    df_logl_stats = pd.DataFrame([counts])
+    df_logl_stats.plot(kind='bar')
+    plt.title(prefix + "\nRelative RF-distance to simulated tree statistics for\n" + name_prefix.replace('_',' '), wrap=True, fontsize=8)
+    plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
+    plt.savefig(stats_filepath, bbox_inches='tight')
+    
+    plt.close()
     
     
 def create_num_nearzero_raxml_branches_plot(prefix, name_prefix, filtered_data):
