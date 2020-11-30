@@ -9,10 +9,9 @@ def merge_multi(dataframes, column_name):
     return merged
 
 
-def create_plots_internal(prefix, data, simulator_type, sampling_type, msa_size, likelihood_type):
-    name_prefix = str(simulator_type) + "_simulator_" + str(sampling_type) + "_sampling_" + str(msa_size) + "_msasize_" + str(likelihood_type) + "_likelihood"
-    filtered_data = data.loc[(data['simulation_type'] == simulator_type) & (data['sampling_type'] == sampling_type) & (data['msa_size'] == msa_size) & (data['likelihood_type'] == likelihood_type)]
-    # BIC plot
+def create_bic_plot(prefix, name_prefix, filtered_data):
+    filepath = 'plots_' + prefix + '/' + name_prefix + '_bic_plot.png'
+
     true_simulated_network_bics = filtered_data.loc[filtered_data['start_from_raxml'] == False][['name', 'bic_true']]
     inferred_network_bics = filtered_data.loc[filtered_data['start_from_raxml'] == False][['name', 'bic_inferred']]
     inferred_network_with_raxml_bics = filtered_data.loc[filtered_data['start_from_raxml'] == True][['name', 'bic_inferred']].rename(columns={'bic_inferred': 'bic_inferred_with_raxml'})
@@ -29,9 +28,18 @@ def create_plots_internal(prefix, data, simulator_type, sampling_type, msa_size,
         bic_dict_list.append(act_entry)
     df_bic = pd.DataFrame(bic_dict_list)
     
-    print(df_bic.head())
     df_bic.plot(x="id", y=["rel_diff_bic_inferred", "rel_diff_bic_inferred_with_raxml", "rel_diff_bic_raxml"])
-    plt.show()
+    plt.savefig(filepath)
+    #plt.show()
+
+
+def create_plots_internal(prefix, data, simulator_type, sampling_type, msa_size, likelihood_type):
+    name_prefix = str(simulator_type) + "_simulator_" + str(sampling_type) + "_sampling_" + str(msa_size) + "_msasize_" + str(likelihood_type) + "_likelihood"
+    filtered_data = data.loc[(data['simulation_type'] == simulator_type) & (data['sampling_type'] == sampling_type) & (data['msa_size'] == msa_size) & (data['likelihood_type'] == likelihood_type)]
+    # BIC plot
+    create_bic_plot(prefix, name_prefix, filtered_data)
+    
+    
     # Logl plot
     # relative RF-distance plot
     # num near-zero raxml-ng branches plot
