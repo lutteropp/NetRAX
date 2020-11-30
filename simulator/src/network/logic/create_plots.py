@@ -45,13 +45,13 @@ def create_bic_plot(prefix, name_prefix, filtered_data):
         
     df_bic = pd.DataFrame(bic_dict_list)
     df_bic.plot(x="id", y=["rel_diff_bic_inferred", "rel_diff_bic_inferred_with_raxml", "rel_diff_bic_raxml"])
-    plt.title("Relative BIC difference for " + name_prefix.replace('_',' '), wrap=True)
-    plt.savefig(plot_filepath)
+    plt.title(prefix + "\nRelative BIC difference for\n" + name_prefix.replace('_',' ') + "\nNegative value means BIC got better!", wrap=True, fontsize=8)
+    plt.savefig(plot_filepath, bbox_inches='tight')
     
     df_bic_stats = pd.DataFrame([counts])
     df_bic_stats.plot(kind='bar')
-    plt.title("Relative BIC statistics for " + name_prefix.replace('_',' '), wrap=True)
-    plt.savefig(stats_filepath)
+    plt.title(prefix + "\nRelative BIC statistics for\n" + name_prefix.replace('_',' '), wrap=True, fontsize=8)
+    plt.savefig(stats_filepath, bbox_inches='tight')
     
 
 def create_plots_internal(prefix, data, simulator_type, sampling_type, msa_size, likelihood_type):
