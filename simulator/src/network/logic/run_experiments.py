@@ -15,8 +15,7 @@ def build_dataset(prefix, n_taxa, n_reticulations, msa_size, sampling_type, like
     return create_dataset_container(n_taxa, n_reticulations, msa_size, sampling_type, SimulationType.CELINE, likelihood_type, name)
     
 
-def run_experiments(prefix, iterations, min_taxa, max_taxa, min_reticulations, max_reticulations):
-    sampling_type = SamplingType.PERFECT_SAMPLING
+def run_experiments(prefix, iterations, min_taxa, max_taxa, min_reticulations, max_reticulations, sampling_types):
     if not os.path.exists('datasets_' + prefix):
         os.makedirs('datasets_' + prefix)
     datasets = []
@@ -31,20 +30,21 @@ def run_experiments(prefix, iterations, min_taxa, max_taxa, min_reticulations, m
         counter[n_taxa][n_reticulations] += 1
         n_trees = 2 ** param_info["no_of_hybrids"]
         for partition_size in [500, 1000]:
-            for likelihood_type in [LikelihoodType.AVERAGE, LikelihoodType.BEST]:
-                ds = build_dataset(prefix, n_taxa, n_reticulations, n_trees * partition_size, sampling_type, likelihood_type, my_id)
-                ds.sites_per_tree = partition_size
-                ds.celine_params = param_info
-                ds.n_trees = 2 ** ds.celine_params["no_of_hybrids"]
-                network_file = open(ds.true_network_path, "w")
-                network_file.write(newick + '\n')
-                network_file.close()
-                # network topology has been simulated now.
-                trees_newick, trees_prob = extract_displayed_trees(ds.true_network_path, ds.n_taxa)
-                ds, sampled_trees_contrib = sample_trees(ds, trees_prob)
-                build_trees_file(ds, trees_newick, sampled_trees_contrib)
-                simulate_msa(ds)
-                datasets.append(ds)
+            for sampling_type in sampling_types:
+                for likelihood_type in [LikelihoodType.AVERAGE, LikelihoodType.BEST]:
+                    ds = build_dataset(prefix, n_taxa, n_reticulations, n_trees * partition_size, sampling_type, likelihood_type, my_id)
+                    ds.sites_per_tree = partition_size
+                    ds.celine_params = param_info
+                    ds.n_trees = 2 ** ds.celine_params["no_of_hybrids"]
+                    network_file = open(ds.true_network_path, "w")
+                    network_file.write(newick + '\n')
+                    network_file.close()
+                    # network topology has been simulated now.
+                    trees_newick, trees_prob = extract_displayed_trees(ds.true_network_path, ds.n_taxa)
+                    ds, sampled_trees_contrib = sample_trees(ds, trees_prob)
+                    build_trees_file(ds, trees_newick, sampled_trees_contrib)
+                    simulate_msa(ds)
+                    datasets.append(ds)
     
     for i in range(max_taxa+1):
         for j in range(max_reticulations+1):
@@ -56,25 +56,27 @@ def run_experiments(prefix, iterations, min_taxa, max_taxa, min_reticulations, m
 
 
 def run_experiments_small_tree():
-    iterations = 1
+    iterations = 100
     min_taxa = 4
     max_taxa = 10
     min_reticulations = 0
     max_reticulations = 0
     prefix = 'small_tree'
-    run_experiments(prefix, iterations, min_taxa, max_taxa, min_reticulations, max_reticulations)
+    sampling_types = [SamplingType.PERFECT_SAMPLING]
+    run_experiments(prefix, iterations, min_taxa, max_taxa, min_reticulations, max_reticulations, sampling_types)
     
 
 def run_experiments_small_network():
-    iterations = 1
+    iterations = 20
     min_taxa = 4
     max_taxa = 10
     min_reticulations = 1
     max_reticulations = 2
     prefix = 'small_network'
-    run_experiments(prefix, iterations, min_taxa, max_taxa, min_reticulations, max_reticulations)
+    sampling_types = [SamplingType.PERFECT_SAMPLING, SamplingType.PERFECT_UNIFORM_SAMPLING]
+    run_experiments(prefix, iterations, min_taxa, max_taxa, min_reticulations, max_reticulations, sampling_types)
     
     
 if __name__ == "__main__":
-    run_experiments_small_tree()
-    #run_experiments_small_network()
+    #run_experiments_small_tree()
+    run_experiments_small_network()
