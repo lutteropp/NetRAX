@@ -310,11 +310,23 @@ void NetraxInstance::optimizeEverything(AnnotatedNetwork &ann_network) {
     do {
         while (ann_network.network.num_reticulations() == 0
               && (typesBySpeed[type_idx] == MoveType::DeltaMinusMove || typesBySpeed[type_idx] == MoveType::ArcRemovalMove)) {
-            type_idx = (type_idx + 1) % typesBySpeed.size();
+            type_idx++;
+            if (type_idx >= typesBySpeed.size()) {
+                break;
+            }
+        }
+        if (type_idx >= typesBySpeed.size()) {
+            break;
         }
         while (ann_network.network.num_reticulations() == ann_network.options.max_reticulations
               && (typesBySpeed[type_idx] == MoveType::DeltaPlusMove || typesBySpeed[type_idx] == MoveType::ArcInsertionMove)) {
-            type_idx = (type_idx + 1) % typesBySpeed.size();
+            type_idx++;
+            if (type_idx >= typesBySpeed.size()) {
+                break;
+            }
+        }
+        if (type_idx >= typesBySpeed.size()) {
+            break;
         }
         //std::cout << "Using move type: " << toString(typesBySpeed[type_idx]) << "\n";
 
