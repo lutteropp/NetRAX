@@ -29,12 +29,13 @@ def create_bic_plot(prefix, name_prefix, filtered_data):
     df_bic = pd.DataFrame(bic_dict_list)
     
     df_bic.plot(x="id", y=["rel_diff_bic_inferred", "rel_diff_bic_inferred_with_raxml", "rel_diff_bic_raxml"])
+    plt.title("Relative BIC difference for " + name_prefix.replace('_',' '), wrap=True)
     plt.savefig(filepath)
     #plt.show()
 
 
 def create_plots_internal(prefix, data, simulator_type, sampling_type, msa_size, likelihood_type):
-    name_prefix = str(simulator_type) + "_simulator_" + str(sampling_type) + "_sampling_" + str(msa_size) + "_msasize_" + str(likelihood_type) + "_likelihood"
+    name_prefix = str(simulator_type) + "_" + str(sampling_type) +'_' + str(msa_size) + "_msasize_" + str(likelihood_type)
     filtered_data = data.loc[(data['simulation_type'] == simulator_type) & (data['sampling_type'] == sampling_type) & (data['msa_size'] == msa_size) & (data['likelihood_type'] == likelihood_type)]
     # BIC plot
     create_bic_plot(prefix, name_prefix, filtered_data)
