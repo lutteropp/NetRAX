@@ -18,8 +18,19 @@ def create_plots_internal(prefix, data, simulator_type, sampling_type, msa_size,
     inferred_network_with_raxml_bics = filtered_data.loc[filtered_data['start_from_raxml'] == True][['name', 'bic_inferred']].rename(columns={'bic_inferred': 'bic_inferred_with_raxml'})
     raxml_bics = filtered_data.loc[filtered_data['start_from_raxml'] == False][['name', 'bic_raxml']]
     merged_df = merge_multi([true_simulated_network_bics, inferred_network_bics, inferred_network_with_raxml_bics, raxml_bics], 'name')
-    print(merged_df.head())
-    merged_df.plot(x="name", y=["bic_true", "bic_raxml", "bic_inferred", "bic_inferred_with_raxml"])
+    
+    bic_dict_list = []
+    for _, row in merged_df.iterrows():
+        act_entry = {}
+        act_entry['id'] = int(row['name'].split('/')[1].split('_')[0])
+        act_entry['diff_bic_inferred'] = row['bic_true'] - row['bic_inferred']
+        act_entry['diff_bic_inferred_with_raxml'] = row['bic_true'] - row['bic_inferred_with_raxml']
+        act_entry['diff_bic_raxml'] = row['bic_true'] - row['bic_raxml']
+        bic_dict_list.append(act_entry)
+    df_bic = pd.DataFrame(bic_dict_list)
+    
+    print(df_bic.head())
+    df_bic.plot(x="id", y=["diff_bic_inferred", "diff_bic_inferred_with_raxml", "diff_bic_raxml"])
     plt.show()
     # Logl plot
     # relative RF-distance plot
