@@ -43,14 +43,17 @@ def create_bic_plot(prefix, name_prefix, filtered_data):
         else:
             counts['bic_raxml_worse_than_true'] += 1
         
+    plt.tight_layout()
     df_bic = pd.DataFrame(bic_dict_list)
     df_bic.plot(x="id", y=["rel_diff_bic_inferred", "rel_diff_bic_inferred_with_raxml", "rel_diff_bic_raxml"])
     plt.title(prefix + "\nRelative BIC difference for\n" + name_prefix.replace('_',' ') + "\nNegative value means BIC got better!", wrap=True, fontsize=8)
+    plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
     plt.savefig(plot_filepath, bbox_inches='tight')
     
     df_bic_stats = pd.DataFrame([counts])
     df_bic_stats.plot(kind='bar')
     plt.title(prefix + "\nRelative BIC statistics for\n" + name_prefix.replace('_',' '), wrap=True, fontsize=8)
+    plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
     plt.savefig(stats_filepath, bbox_inches='tight')
     
 
