@@ -11,7 +11,7 @@ def infer_raxml_tree(dataset):
     print(lines)
     near_zero_branches = 0
     for line in lines:
-        if "near-zero branches" in line:
+        if "near-zero branches" in line and "WARNING: Best ML tree contains" in line:
             near_zero_branches = int(line.split('WARNING: Best ML tree contains ')[1].split(' ')[0])
     return near_zero_branches
     
