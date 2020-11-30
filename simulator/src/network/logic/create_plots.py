@@ -1,4 +1,4 @@
-import matplotlib
+import matplotlib.pyplot as plt
 import pandas as pd
 import os
 
@@ -10,7 +10,6 @@ def merge_multi(dataframes, column_name):
 
 
 def create_plots_internal(prefix, data, simulator_type, sampling_type, msa_size, likelihood_type):
-    #pd.set_option('display.max_columns', None)
     name_prefix = str(simulator_type) + "_simulator_" + str(sampling_type) + "_sampling_" + str(msa_size) + "_msasize_" + str(likelihood_type) + "_likelihood"
     filtered_data = data.loc[(data['simulation_type'] == simulator_type) & (data['sampling_type'] == sampling_type) & (data['msa_size'] == msa_size) & (data['likelihood_type'] == likelihood_type)]
     # BIC plot
@@ -20,6 +19,8 @@ def create_plots_internal(prefix, data, simulator_type, sampling_type, msa_size,
     raxml_bics = filtered_data.loc[filtered_data['start_from_raxml'] == False][['name', 'bic_raxml']]
     merged_df = merge_multi([true_simulated_network_bics, inferred_network_bics, inferred_network_with_raxml_bics, raxml_bics], 'name')
     print(merged_df.head())
+    merged_df.plot(x="name", y=["bic_true", "bic_raxml", "bic_inferred", "bic_inferred_with_raxml"])
+    plt.show()
     # Logl plot
     # relative RF-distance plot
     # num near-zero raxml-ng branches plot
@@ -27,6 +28,7 @@ def create_plots_internal(prefix, data, simulator_type, sampling_type, msa_size,
 
 
 def create_plots(prefix):
+    pd.set_option('display.max_columns', None)
     if not os.path.exists('plots_' + prefix):
         os.makedirs('plots_' + prefix)
     data = pd.read_csv(prefix + "_results.csv", sep=',|;', index_col=False, engine='python')
