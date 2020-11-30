@@ -96,6 +96,9 @@ void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {
         } else if (n_iterations >= netraxOptions.num_random_start_networks) {
             break;
         }
+        if (n_iterations == 1) {
+            netraxOptions.max_reticulations = ann_network.network.num_reticulations();
+        }
     }
 
     // TODO: Get rid of the code duplication here
@@ -125,6 +128,9 @@ void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {
             }
         } else if (n_iterations >= netraxOptions.num_parsimony_start_networks) {
             break;
+        }
+        if (n_iterations == 1) {
+            netraxOptions.max_reticulations = ann_network.network.num_reticulations();
         }
     }
 }
