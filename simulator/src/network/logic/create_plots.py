@@ -189,12 +189,13 @@ def create_num_nearzero_raxml_branches_plot(prefix, name_prefix, filtered_data):
 
 def create_plots_internal(prefix, data, simulator_type, sampling_type, msa_size, likelihood_type):
     name_prefix = str(simulator_type) + "_" + str(sampling_type) +'_' + str(msa_size) + "_msasize_" + str(likelihood_type)
-    filtered_data = data.loc[(data['simulation_type'] == simulator_type) & (data['sampling_type'] == sampling_type) & (data['msa_size'] == msa_size) & (data['likelihood_type'] == likelihood_type)]
-    # Create the plots for BIC, logl, rf-dist, nearzero-branches
-    create_bic_plot(prefix, name_prefix, filtered_data)
-    create_logl_plot(prefix, name_prefix, filtered_data)
-    create_relative_rf_dist_plot(prefix, name_prefix, filtered_data)
-    create_num_nearzero_raxml_branches_plot(prefix, name_prefix, filtered_data)
+    filtered_data = data.loc[(data['simulation_type'] == simulator_type) & (data['sampling_type'] == sampling_type) & (data['msa_size'].isin([msa_size + x for x in range(50)])) & (data['likelihood_type'] == likelihood_type)]
+    if not filtered_data.empty:
+        # Create the plots for BIC, logl, rf-dist, nearzero-branches
+        create_bic_plot(prefix, name_prefix, filtered_data)
+        create_logl_plot(prefix, name_prefix, filtered_data)
+        create_relative_rf_dist_plot(prefix, name_prefix, filtered_data)
+        create_num_nearzero_raxml_branches_plot(prefix, name_prefix, filtered_data)
 
 
 def create_plots(prefix):
@@ -215,3 +216,4 @@ def create_plots(prefix):
 
 if __name__ == "__main__":
     create_plots("small_tree")
+    #create_plots("small_network")
