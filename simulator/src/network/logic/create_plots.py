@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import os
 import collections
+#import seaborn as sns
+#import numpy as np
 
 def merge_multi(dataframes, column_name):
     merged = dataframes[0]
@@ -49,13 +51,17 @@ def create_bic_plot(prefix, name_prefix, filtered_data):
     plt.title(prefix + "\nRelative BIC difference for\n" + name_prefix.replace('_',' ') + "\nNegative value means BIC got better!", wrap=True, fontsize=8)
     plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
     plt.savefig(plot_filepath, bbox_inches='tight')
+    plt.clf()
+    plt.cla()
+    plt.close()
     
     df_bic_stats = pd.DataFrame([counts])
     df_bic_stats.plot(kind='bar')
     plt.title(prefix + "\nRelative BIC statistics for\n" + name_prefix.replace('_',' '), wrap=True, fontsize=8)
     plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
     plt.savefig(stats_filepath, bbox_inches='tight')
-    
+    plt.clf()
+    plt.cla()
     plt.close()
     
     
@@ -98,13 +104,17 @@ def create_logl_plot(prefix, name_prefix, filtered_data):
     plt.title(prefix + "\nRelative logl difference for\n" + name_prefix.replace('_',' ') + "\Positive value means logl got better!", wrap=True, fontsize=8)
     plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
     plt.savefig(plot_filepath, bbox_inches='tight')
+    plt.clf()
+    plt.cla()
+    plt.close()
     
     df_logl_stats = pd.DataFrame([counts])
     df_logl_stats.plot(kind='bar')
     plt.title(prefix + "\nRelative logl statistics for\n" + name_prefix.replace('_',' '), wrap=True, fontsize=8)
     plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
     plt.savefig(stats_filepath, bbox_inches='tight')
-    
+    plt.clf()
+    plt.cla()
     plt.close()
     
     
@@ -146,18 +156,35 @@ def create_relative_rf_dist_plot(prefix, name_prefix, filtered_data):
     plt.title(prefix + "\nRelative RF-distance to simulated tree for\n" + name_prefix.replace('_',' '), wrap=True, fontsize=8)
     plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
     plt.savefig(plot_filepath, bbox_inches='tight')
+    plt.clf()
+    plt.cla()
+    plt.close()
     
     df_logl_stats = pd.DataFrame([counts])
     df_logl_stats.plot(kind='bar')
     plt.title(prefix + "\nRelative RF-distance to simulated tree statistics for\n" + name_prefix.replace('_',' '), wrap=True, fontsize=8)
     plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
     plt.savefig(stats_filepath, bbox_inches='tight')
-    
+    plt.clf()
+    plt.cla()
     plt.close()
     
     
 def create_num_nearzero_raxml_branches_plot(prefix, name_prefix, filtered_data):
-    pass
+    hist_filepath = 'plots_' + prefix + '/' + name_prefix + '_raxml_nonzero_branches_histogram.png'
+    raxml_nonzero_branches = filtered_data.loc[filtered_data['start_from_raxml'] == False][['name', 'near_zero_branches_raxml']]
+    
+    counts = collections.defaultdict(int)
+    for _, row in raxml_nonzero_branches.iterrows():
+        counts[row['near_zero_branches_raxml']] += 1
+    
+    plt.bar(list(counts.keys()), counts.values())
+    plt.tight_layout()
+    plt.title(prefix + "\nNumber of near-zero branches in raxml-ng tree for\n" + name_prefix.replace('_',' '), wrap=True, fontsize=8)
+    plt.savefig(hist_filepath, bbox_inches='tight')
+    plt.clf()
+    plt.cla()
+    plt.close()
     
 
 def create_plots_internal(prefix, data, simulator_type, sampling_type, msa_size, likelihood_type):
