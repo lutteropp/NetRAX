@@ -67,7 +67,7 @@ def run_experiments_small_tree():
     
 
 def run_experiments_small_network():
-    iterations = 20
+    iterations = 10
     min_taxa = 4
     max_taxa = 10
     min_reticulations = 1
@@ -77,6 +77,18 @@ def run_experiments_small_network():
     run_experiments(prefix, iterations, min_taxa, max_taxa, min_reticulations, max_reticulations, sampling_types)
     
     
+def run_experiments_larger_network():
+    iterations = 10
+    min_taxa = 20
+    max_taxa = 50
+    min_reticulations = 2
+    max_reticulations = -1
+    prefix = 'larger_network'
+    sampling_types = [SamplingType.PERFECT_SAMPLING, SamplingType.PERFECT_UNIFORM_SAMPLING]
+    run_experiments(prefix, iterations, min_taxa, max_taxa, min_reticulations, max_reticulations, sampling_types)
+    
+    
 if __name__ == "__main__":
     #run_experiments_small_tree()
-    run_experiments_small_network()
+    #run_experiments_small_network()
+    run_experiments_larger_network()
