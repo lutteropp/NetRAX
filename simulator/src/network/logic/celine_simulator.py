@@ -93,6 +93,10 @@ def check_counts(n_taxa, n_reticulations, params):
         taxa_ok = (n_taxa == params.wanted_taxa)
     elif params.min_taxa != -1 and params.max_taxa != -1:
         taxa_ok = (n_taxa >= params.min_taxa and n_taxa <= params.max_taxa)
+    elif params.min_taxa != -1:
+        taxa_ok = (n_taxa >= params.min_taxa)
+    elif params.max_taxa != -1:
+        taxa_ok = (n_taxa <= params.max_taxa)
     else:
         taxa_ok = (n_taxa >= 30)
     # check number of reticulations
@@ -100,6 +104,8 @@ def check_counts(n_taxa, n_reticulations, params):
         reticulations_ok = (n_reticulations == params.wanted_reticulations)
     elif params.min_reticulations != -1 and params.max_reticulations != -1:
         reticulations_ok = (n_reticulations >= params.min_reticulations and n_reticulations <= params.max_reticulations)
+    elif params.min_reticulations != -1
+        reticulations_ok = (n_reticulations >= params.min_reticulations and (float(n_reticulations)/n_taxa <= 0.1)
     else:
         reticulations_ok = (float(n_reticulations)/n_taxa <= 0.1)
     
