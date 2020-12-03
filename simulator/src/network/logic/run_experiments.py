@@ -7,6 +7,7 @@ from seqgen_wrapper import simulate_msa
 
 from celine_simulator import CelineParams, simulate_network_celine_minmax
 
+from create_plots import create_plots
 
 def build_dataset(prefix, n_taxa, n_reticulations, msa_size, sampling_type, likelihood_type, inference_type, my_id):
     if not os.path.exists('datasets_' + prefix):
@@ -53,6 +54,7 @@ def run_experiments(prefix, iterations, min_taxa, max_taxa, min_reticulations, m
     
     results = run_inference_and_evaluate(datasets)
     write_results_to_csv(results, prefix + "_results.csv")
+    create_plots(prefix)
 
 
 def run_experiments_small_tree():
