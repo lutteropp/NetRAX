@@ -2,7 +2,7 @@ import subprocess
 import os
 import time
 
-from experiment_model import LikelihoodType
+from experiment_model import LikelihoodType, InferenceType
 
 NETRAX_PATH = "/home/sarah/code-workspace/NetRAX/bin/netrax"
 
@@ -30,18 +30,20 @@ def score_network(network_path, msa_path, likelihood_type):
 def infer_network(ds):
     runtime_inference = 0
     runtime_inference_with_raxml = 0
-    netrax_cmd = NETRAX_PATH + " --msa " + ds.msa_path + " --output " + ds.inferred_network_path
-    if ds.likelihood_type == LikelihoodType.BEST:
-        netrax_cmd += " --best_displayed_tree_variant"
-    if ds.timeout > 0:
-        netrax_cmd += " --endless --timeout " + str(ds.timeout)
-    else:
-        netrax_cmd += " --num_random_start_networks " + str(ds.n_random_start_networks) + " --num_parsimony_start_networks " + str(ds.n_parsimony_start_networks)
-    print(netrax_cmd)
     
-    start_normal = time.time()
-    print(subprocess.getoutput(netrax_cmd))
-    runtime_inference = round(time.time() - start_normal, 3)
+    if ds.inference_type != InferenceType.FROM_RAXML_ONLY:
+        netrax_cmd = NETRAX_PATH + " --msa " + ds.msa_path + " --output " + ds.inferred_network_path
+        if ds.likelihood_type == LikelihoodType.BEST:
+            netrax_cmd += " --best_displayed_tree_variant"
+        if ds.timeout > 0:
+            netrax_cmd += " --endless --timeout " + str(ds.timeout)
+        else:
+            netrax_cmd += " --num_random_start_networks " + str(ds.n_random_start_networks) + " --num_parsimony_start_networks " + str(ds.n_parsimony_start_networks)
+        print(netrax_cmd)
+        
+        start_normal = time.time()
+        print(subprocess.getoutput(netrax_cmd))
+        runtime_inference = round(time.time() - start_normal, 3)
     
     if ds.start_from_raxml:
         netrax_cmd_2 = NETRAX_PATH + " --msa " + ds.msa_path + " --output " + ds.inferred_network_with_raxml_path + " --start_network " + ds.raxml_tree_path

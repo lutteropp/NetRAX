@@ -1,5 +1,5 @@
 
-from experiment_model import Dataset, SamplingType, SimulationType
+from experiment_model import Dataset, SamplingType, SimulationType, InferenceType
 from netrax_wrapper import generate_random_network, extract_displayed_trees
 from seqgen_wrapper import simulate_msa
 from celine_simulator import CelineParams, simulate_network_celine
@@ -7,7 +7,7 @@ from celine_simulator import CelineParams, simulate_network_celine
 import math
 import random
 
-def create_dataset_container(n_taxa, n_reticulations, approx_msa_size, sampling_type, simulation_type, likelihood_type, name, timeout=0, m=1, num_start_networks=10):
+def create_dataset_container(n_taxa, n_reticulations, approx_msa_size, sampling_type, simulation_type, likelihood_type, inference_type, name, timeout=0, m=1, num_start_networks=10):
     ds = Dataset()
     ds.n_taxa = n_taxa
     ds.n_reticulations = n_reticulations
@@ -24,6 +24,13 @@ def create_dataset_container(n_taxa, n_reticulations, approx_msa_size, sampling_
     ds.likelihood_type = likelihood_type
     ds.timeout = timeout
     ds.num_start_networks = num_start_networks
+    ds.inference_type = inference_type
+    if inference_type == InferenceType.RANDOM_ONLY:
+        ds.start_from_raxml = False
+        
+    if inference_type == InferenceType.FROM_RAXML_ONLY:
+        ds.n_random_start_networks = 0
+        ds.n_parsimony_start_networks = 0
     
     ds.n_trees = 2 ** n_reticulations
     if sampling_type == SamplingType.STANDARD:
@@ -75,8 +82,8 @@ def build_trees_file(ds, trees_newick, sampled_trees_contrib):
     partitions_file.close()
     
     
-def build_dataset(n_taxa, n_reticulations, approx_msa_size, sampling_type, simulation_type, likelihood_type, name, timeout=0, m=1, num_start_networks=5):
-    ds = create_dataset_container(n_taxa, n_reticulations, approx_msa_size, sampling_type, simulation_type, likelihood_type, name, timeout, m, num_start_networks)
+def build_dataset(n_taxa, n_reticulations, approx_msa_size, sampling_type, simulation_type, likelihood_type, inference_type, name, timeout=0, m=1, num_start_networks=5):
+    ds = create_dataset_container(n_taxa, n_reticulations, approx_msa_size, sampling_type, simulation_type, likelihood_type, inference_type, name, timeout, m, num_start_networks)
     if simulation_type == SimulationType.SARAH:
         generate_random_network(ds.n_taxa, ds.n_reticulations, ds.true_network_path)
     else:

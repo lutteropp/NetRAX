@@ -18,6 +18,12 @@ class LikelihoodType(Enum):
     BEST = 2 # use best displayed tree
 
 
+class InferenceType(Enum):
+    RANDOM_PLUS_RAXML = 1
+    RANDOM_ONLY = 2
+    FROM_RAXML_ONLY = 3
+    
+
 TOPOLOGICAL_DISTANCE_NAMES = ['hardwired_cluster_distance', 'softwired_cluster_distance', 'displayed_trees_distance', 'tripartition_distance', 'nested_labels_distance', 'path_multiplicity_distance']
 
 DATASET_CSV_HEADER = "name,n_taxa,n_trees,n_reticulations,msa_size,sampling_type,simulation_type,likelihood_type,timeout,n_random_start_networks,n_parsimony_start_networks,start_from_raxml,celine_params"
@@ -46,7 +52,8 @@ class Dataset:
         self.n_parsimony_start_networks = 10
         self.start_from_raxml = True
         self.celine_params = {}
-        
+        self.inference_type = InferenceType.RANDOM_PLUS_RAXML
+
     def msa_size(self):
         return self.n_trees * self.sites_per_tree
         

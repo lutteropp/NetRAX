@@ -13,22 +13,25 @@ def retrieve_topological_distances(network_1_path, network_2_path):
 def evaluate_dataset(dataset):
     res = Result(dataset)
     _, res.bic_true, res.logl_true = score_network(dataset.true_network_path, dataset.msa_path, dataset.likelihood_type)
-    res.n_reticulations_inferred, res.bic_inferred, res.logl_inferred = score_network(dataset.inferred_network_path, dataset.msa_path, dataset.likelihood_type)
+    if dataset.inference_type != InferenceType.FROM_RAXML_ONLY:
+        res.n_reticulations_inferred, res.bic_inferred, res.logl_inferred = score_network(dataset.inferred_network_path, dataset.msa_path, dataset.likelihood_type)
     _, res.bic_raxml, res.logl_raxml = score_network(dataset.raxml_tree_path, dataset.msa_path, dataset.likelihood_type)
     
     if dataset.start_from_raxml:
         res.n_reticulations_inferred_with_raxml, res.bic_inferred_with_raxml, res.logl_inferred_with_raxml = score_network(dataset.inferred_network_with_raxml_path, dataset.msa_path, dataset.likelihood_type)
         res.topological_distances_with_raxml = retrieve_topological_distances(dataset.true_network_path, dataset.inferred_network_with_raxml_path)
     
-    res.topological_distances = retrieve_topological_distances(dataset.true_network_path, dataset.inferred_network_path)
+    if dataset.inference_type != InferenceType.FROM_RAXML_ONLY:
+        res.topological_distances = retrieve_topological_distances(dataset.true_network_path, dataset.inferred_network_path)
+        
     if dataset.n_reticulations == 0:
         res.rf_absolute_raxml, res.rf_relative_raxml = compute_rf_dist(dataset.true_network_path, dataset.raxml_tree_path)
-        if res.n_reticulations_inferred == 0:
+        if res.n_reticulations_inferred == 0 and dataset.inference_type != InferenceType.FROM_RAXML_ONLY:
             res.rf_absolute_inferred, res.rf_relative_inferred = compute_rf_dist(dataset.true_network_path, dataset.inferred_network_path)
         if dataset.start_from_raxml and res.n_reticulations_inferred_with_raxml == 0:
             res.rf_absolute_inferred_with_raxml, res.rf_relative_inferred_with_raxml = compute_rf_dist(dataset.true_network_path, dataset.inferred_network_with_raxml_path)
     
-    print(RESULT_CSV_HEADER+"\n" + res.get_csv_line() + "\n\n")
+    #print(RESULT_CSV_HEADER+"\n" + res.get_csv_line() + "\n\n")
     return res
     
     
@@ -47,11 +50,12 @@ def run_inference_and_evaluate(datasets):
 
 def write_results_to_csv(results, csv_path):
     csv_file = open(csv_path, "w")
-    header = DATASET_CSV_HEADER + ";" + RESULT_CSV_HEADER
+    header = DATASET_CSV_HEADER + "," + RESULT_CSV_HEADER
     csv_file.write(header + "\n")
     for res in results:
-        line = str(res.dataset.get_csv_line() + "," + res.get_csv_line() + "\n")
-        csv_file.write(line)
+        if res.dataset.inference_type != InferenceType.FROM_RAXML_ONLY:
+            line = str(res.dataset.get_csv_line() + "," + res.get_csv_line() + "\n")
+            csv_file.write(line)
         if res.dataset.start_from_raxml:
             line2 = str(res.dataset.get_csv_line_with_raxml() + "," + res.get_csv_line_with_raxml() + "\n")
             csv_file.write(line2)

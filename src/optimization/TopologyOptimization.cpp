@@ -206,6 +206,23 @@ void assertBranchesWithinBounds(const AnnotatedNetwork& ann_network) {
     }
 }
 
+void printExtensiveBICInfo(AnnotatedNetwork &ann_network) {
+    bool unlinked_mode = (ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
+    size_t multiplier = (unlinked_mode) ? 1 : ann_network.fake_treeinfo->partition_count;
+    std::cout << " multiplier: " << multiplier << "\n";
+    std::cout << " network.num_reticulations: " << ann_network.network.num_reticulations() << "\n";
+    std::cout << " network.num_branches: " << ann_network.network.num_branches() << "\n";
+    std::cout << " ann_network.total_num_model_parameters: " << ann_network.total_num_model_parameters << "\n";
+    std::cout << " ann_network.total_num_sites: " << ann_network.total_num_sites << "\n";
+    std::cout << " ann_network.network.num_tips: " << ann_network.network.num_tips() << "\n";
+    std::cout << " number of partitions in the MSA: " << ann_network.fake_treeinfo->partition_count << "\n";
+    std::cout << " sample_size n: " << get_sample_size(ann_network) << "\n";
+    std::cout << " param_count k: " << get_param_count(ann_network) << "\n";
+    double logl = ann_network.raxml_treeinfo->loglh(true);
+    std::cout << " logl: " << logl << "\n";
+    std::cout << " bic: " << bic(ann_network, logl) << "\n";
+}
+
 template<typename T>
 double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates, double old_score, bool greedy=true, bool randomizeCandidates=false, bool brlenopt_inside=true) {
     if (randomizeCandidates) {
@@ -224,12 +241,19 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     std::vector<std::vector<double> > best_brlens = start_brlens;
 
     for (size_t i = 0; i < candidates.size(); ++i) {
+
+        std::cout << "Extensive BIC info before applying current " << toString(candidates[i].moveType) << " move " << i+1 << "/ " << candidates.size() << ":\n";
+        printExtensiveBICInfo(ann_network);
+
         //std::cout << " " << toString(candidates[i].moveType) << " " << i+1 << "/ " << candidates.size() << "\n";
         performMove(ann_network, candidates[i]);
         if (brlenopt_inside) { // Do brlen optimization locally around the move
             std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, candidates[i]);
             optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
         }
+
+        std::cout << "Extensive BIC info after applying current " << toString(candidates[i].moveType) << " move " << i+1 << "/ " << candidates.size() << ":\n";
+        printExtensiveBICInfo(ann_network);
 
         double new_logl = ann_network.raxml_treeinfo->loglh(true);
         double new_score = bic(ann_network, new_logl);
