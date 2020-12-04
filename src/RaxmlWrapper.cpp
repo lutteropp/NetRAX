@@ -118,6 +118,7 @@ RaxmlInstance createRaxmlInstance(const NetraxOptions &options) {
     instance.opts = createDefaultOptions();
     instance.opts.tree_file = options.start_network_file;
     instance.opts.msa_file = options.msa_file;
+    instance.opts.model_file = options.model_file;
     instance.opts.command = Command::evaluate;
     instance.opts.num_threads = 1;
     instance.opts.use_repeats = options.use_repeats;
@@ -127,6 +128,7 @@ RaxmlInstance createRaxmlInstance(const NetraxOptions &options) {
     instance.opts.brlen_linkage = options.brlen_linkage;
     instance.opts.brlen_opt_method = options.brlen_opt_method;
     instance.opts.lh_epsilon = options.lh_epsilon;
+    init_part_info(instance);
     load_parted_msa(instance);
     check_options(instance);
     balance_load(instance);
@@ -497,10 +499,11 @@ pllmod_treeinfo_t* RaxmlWrapper::createNetworkPllTreeinfo(AnnotatedNetwork &ann_
     treeinfo->linked_branch_lengths = (double*) malloc(branch_count * sizeof(double));
 
     /* allocate branch length scalers if needed */
-    if (brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED)
+    if (brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED) {
         treeinfo->brlen_scalers = (double*) calloc(partitions, sizeof(double));
-    else
+    } else {
         treeinfo->brlen_scalers = NULL;
+    }
 
     /* check memory allocation */
     if (!treeinfo->partitions || !treeinfo->alphas || !treeinfo->param_indices

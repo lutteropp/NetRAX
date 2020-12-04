@@ -60,6 +60,7 @@ public:
     double brlen_smoothings = RAXML_BRLEN_SMOOTHINGS;
 
     std::string msa_file = "";
+    std::string model_file = "";
     std::string start_network_file = "";
     std::string output_file = "";
 };

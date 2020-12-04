@@ -12,13 +12,13 @@ def retrieve_topological_distances(network_1_path, network_2_path):
 
 def evaluate_dataset(dataset):
     res = Result(dataset)
-    _, res.bic_true, res.logl_true = score_network(dataset.true_network_path, dataset.msa_path, dataset.likelihood_type)
+    _, res.bic_true, res.logl_true = score_network(dataset.true_network_path, dataset.msa_path, dataset.partitions_path, dataset.likelihood_type)
     if dataset.inference_type != InferenceType.FROM_RAXML_ONLY:
-        res.n_reticulations_inferred, res.bic_inferred, res.logl_inferred = score_network(dataset.inferred_network_path, dataset.msa_path, dataset.likelihood_type)
-    _, res.bic_raxml, res.logl_raxml = score_network(dataset.raxml_tree_path, dataset.msa_path, dataset.likelihood_type)
+        res.n_reticulations_inferred, res.bic_inferred, res.logl_inferred = score_network(dataset.inferred_network_path, dataset.msa_path, dataset.partitions_path, dataset.likelihood_type)
+    _, res.bic_raxml, res.logl_raxml = score_network(dataset.raxml_tree_path, dataset.msa_path, dataset.partitions_path, dataset.likelihood_type)
     
     if dataset.start_from_raxml:
-        res.n_reticulations_inferred_with_raxml, res.bic_inferred_with_raxml, res.logl_inferred_with_raxml = score_network(dataset.inferred_network_with_raxml_path, dataset.msa_path, dataset.likelihood_type)
+        res.n_reticulations_inferred_with_raxml, res.bic_inferred_with_raxml, res.logl_inferred_with_raxml = score_network(dataset.inferred_network_with_raxml_path, dataset.msa_path, dataset.partitions_path, dataset.likelihood_type)
         res.topological_distances_with_raxml = retrieve_topological_distances(dataset.true_network_path, dataset.inferred_network_with_raxml_path)
     
     if dataset.inference_type != InferenceType.FROM_RAXML_ONLY:

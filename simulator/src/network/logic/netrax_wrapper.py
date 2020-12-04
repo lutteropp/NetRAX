@@ -8,8 +8,8 @@ NETRAX_PATH = "/home/sarah/code-workspace/NetRAX/bin/netrax"
 
 
 # Uses NetRAX to compute the number of reticulations, BIC score, and loglikelihood of a network for a given MSA
-def score_network(network_path, msa_path, likelihood_type):
-    netrax_cmd = NETRAX_PATH + " --score_only" + " --start_network " + network_path + " --msa " + msa_path
+def score_network(network_path, msa_path, partitions_path, likelihood_type):
+    netrax_cmd = NETRAX_PATH + " --score_only" + " --start_network " + network_path + " --msa " + msa_path + " --model " + partitions_path
     if likelihood_type == LikelihoodType.BEST:
         netrax_cmd += " --best_displayed_tree_variant"
     print(netrax_cmd)
@@ -32,7 +32,7 @@ def infer_network(ds):
     runtime_inference_with_raxml = 0
     
     if ds.inference_type != InferenceType.FROM_RAXML_ONLY:
-        netrax_cmd = NETRAX_PATH + " --msa " + ds.msa_path + " --output " + ds.inferred_network_path
+        netrax_cmd = NETRAX_PATH + " --msa " + ds.msa_path + " --model " + ds.partitions_path + " --output " + ds.inferred_network_path
         if ds.likelihood_type == LikelihoodType.BEST:
             netrax_cmd += " --best_displayed_tree_variant"
         if ds.timeout > 0:
@@ -46,7 +46,7 @@ def infer_network(ds):
         runtime_inference = round(time.time() - start_normal, 3)
     
     if ds.start_from_raxml:
-        netrax_cmd_2 = NETRAX_PATH + " --msa " + ds.msa_path + " --output " + ds.inferred_network_with_raxml_path + " --start_network " + ds.raxml_tree_path
+        netrax_cmd_2 = NETRAX_PATH + " --msa " + ds.msa_path + " --model " + ds.partitions_path + " --output " + ds.inferred_network_with_raxml_path + " --start_network " + ds.raxml_tree_path
         if ds.likelihood_type == LikelihoodType.BEST:
             netrax_cmd_2 += " --best_displayed_tree_variant"
         print(netrax_cmd_2)
@@ -64,7 +64,7 @@ def extract_displayed_trees(network_path, n_taxa):
     msa_file.write(build_fake_msa(n_taxa, network_path))
     msa_file.close()
 
-    netrax_cmd = NETRAX_PATH + " --extract_displayed_trees " + " --start_network " + network_path + " --msa " + msa_path
+    netrax_cmd = NETRAX_PATH + " --extract_displayed_trees " + " --start_network " + network_path + " --msa " + msa_path + " --model DNA"
     print(netrax_cmd)
     lines = subprocess.getoutput(netrax_cmd).splitlines()
     print(lines)
@@ -103,7 +103,7 @@ def build_fake_msa(n_taxa, network_path=""):
     
     taxon_names = []
     if network_path != "":
-        netrax_cmd = NETRAX_PATH + " --extract_taxon_names " + " --start_network " + network_path
+        netrax_cmd = NETRAX_PATH + " --extract_taxon_names " + " --start_network " + network_path  + " --model DNA"
         print(netrax_cmd)
         lines = subprocess.getoutput(netrax_cmd).splitlines()
         for line in lines[1:]:
@@ -124,7 +124,7 @@ def generate_random_network(n_taxa, n_reticulations, output_path):
     msa_file = open(msa_path, "w")
     msa_file.write(build_fake_msa(n_taxa))
     msa_file.close()
-    netrax_cmd = NETRAX_PATH + " --generate_random_network_only " + " --max_reticulations " + str(n_reticulations) + " --msa " + msa_path + " --output " + output_path
+    netrax_cmd = NETRAX_PATH + " --generate_random_network_only " + " --max_reticulations " + str(n_reticulations) + " --msa " + msa_path + " --model DNA " + " --output " + output_path
     print(netrax_cmd)
     print(subprocess.getoutput(netrax_cmd))
     os.remove(msa_path)
