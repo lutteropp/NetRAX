@@ -28,6 +28,7 @@
 #include "NetraxOptions.hpp"
 #include "RaxmlWrapper.hpp"
 #include "optimization/Moves.hpp"
+#include "optimization/BranchLengthOptimization.hpp"
 #include "optimization/TopologyOptimization.hpp"
 #include "DebugPrintFunctions.hpp"
 
@@ -220,7 +221,11 @@ void NetraxInstance::updateReticulationProbs(AnnotatedNetwork &ann_network) {
         return;
     }
     double old_score = scoreNetwork(ann_network);
-    netrax::computeLoglikelihood(ann_network, 0, 1, true);
+    if (ann_network.options.use_nepal_prob_estimation) {
+        netrax::computeLoglikelihood(ann_network, 0, 1, true);
+    } else {
+        netrax::optimize_reticulations(ann_network, 100);
+    }
     double new_score = scoreNetwork(ann_network);
     std::cout << "BIC score after updating reticulation probs: " << new_score << "\n";
     assert(new_score <= old_score);

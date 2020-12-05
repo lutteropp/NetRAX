@@ -51,10 +51,14 @@ public:
 
     unsigned int timeout = 0; // maximum number of seconds to run the network search, value of zero will be ignored
 
+    bool use_nepal_prob_estimation = false;
+
     int brlen_linkage = PLLMOD_COMMON_BRLEN_SCALED;
     int brlen_opt_method = PLLMOD_OPT_BLO_NEWTON_FAST;
     double brlen_min = RAXML_BRLEN_MIN;
     double brlen_max = RAXML_BRLEN_MAX;
+    double brprob_min = RAXML_BRLEN_MIN;
+    double brprob_max = 1.0 - RAXML_BRLEN_MIN;
     double lh_epsilon = DEF_LH_EPSILON;
     double tolerance = DEF_LH_EPSILON; //RAXML_BRLEN_TOLERANCE;
     double brlen_smoothings = RAXML_BRLEN_SMOOTHINGS;

@@ -45,6 +45,9 @@ size_t get_param_count(AnnotatedNetwork& ann_network) {
     size_t multiplier = (unlinked_mode) ? 1 : ann_network.fake_treeinfo->partition_count;
     size_t param_count = multiplier * network.num_branches()
             + ann_network.total_num_model_parameters;
+    if (!ann_network.options.use_nepal_prob_estimation) { // reticulation probs as free parameters
+        param_count += multiplier * ann_network.network.num_reticulations();
+    }
     return param_count;
 }
 
