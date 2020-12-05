@@ -261,7 +261,7 @@ bool update_reticulation_probs_unlinked(AnnotatedNetwork &ann_network, const std
         unsigned int site_weight = ann_network.fake_treeinfo->partitions[partition_idx]->pattern_weights[i];
         // find the reticulation nodes that have taken their first parent in the best tree
         for (size_t j = 0; j < ann_network.network.num_reticulations(); ++j) {
-            if (best_tree_idx[i] & (1 << j)) {
+            if (best_tree_idx[i] & !(1 << j)) {
                 total_taken[j] += site_weight;
             }
         }
@@ -300,7 +300,7 @@ bool update_reticulation_probs_linked(AnnotatedNetwork &ann_network, const std::
             // find the reticulation nodes that have taken their first parent in the best tree
             unsigned int site_weight = ann_network.fake_treeinfo->partitions[partition_idx]->pattern_weights[i];
             for (size_t j = 0; j < ann_network.network.num_reticulations(); ++j) {
-                if (best_tree_idx[i] & (1 << j)) {
+                if (best_tree_idx[i] & !(1 << j)) {
                     total_taken[j] += site_weight;
                 }
             }
