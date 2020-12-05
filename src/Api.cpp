@@ -295,6 +295,10 @@ void NetraxInstance::optimizeTopology(AnnotatedNetwork &ann_network, MoveType& t
     greedyHillClimbingTopology(ann_network, type);
     double new_score = scoreNetwork(ann_network);
     //std::cout << "BIC after topology optimization: " << new_score << "\n";
+    if (new_score > old_score) {
+        std::cout << "old score: " << old_score << "\n";
+        std::cout << "new score: " << new_score << "\n";
+    }
     assert(new_score <= old_score);
 }
 

@@ -371,7 +371,12 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, MoveType type) 
             //doing reticulation opt, full global brlen opt and model opt:
             ann_network.raxml_treeinfo->optimize_branches(ann_network.options.lh_epsilon, 1);
             ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
-            double new_logl = netrax::computeLoglikelihood(ann_network, 1, 1, true);
+            double new_logl;
+            if (ann_network.options.use_nepal_prob_estimation) {
+                new_logl = netrax::computeLoglikelihood(ann_network, 1, 1, true);
+            } else {
+                new_logl = netrax::optimize_reticulations(ann_network, 100);
+            }
             new_score = bic(ann_network, new_logl);
         }
     } while (old_bic - new_score > ann_network.options.lh_epsilon);
