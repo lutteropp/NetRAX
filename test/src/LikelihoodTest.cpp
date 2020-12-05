@@ -353,8 +353,8 @@ TEST_F (LikelihoodTest, celineNetworkNonzeroBranches) {
 }
 
 TEST_F (LikelihoodTest, updateReticulationProb) {
-    AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(
-            NetraxOptions(networkPath, msaPath, false));
+    NetraxOptions options = NetraxOptions(networkPath, msaPath, false);
+    AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(options);
     NetraxInstance::init_annotated_network(ann_network);
     NetraxInstance::updateReticulationProbs(ann_network);
     double norep_logl = NetraxInstance::computeLoglikelihood(ann_network);
@@ -369,7 +369,8 @@ TEST_F (LikelihoodTest, updateReticulationProb) {
 }
 
 TEST_F (LikelihoodTest, simpleTreeWithRepeats) {
-    AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(NetraxOptions(treePath, msaPath, true));
+    NetraxOptions options = NetraxOptions(treePath, msaPath, true);
+    AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(options);
     NetraxInstance::init_annotated_network(ann_network);
     double network_logl = NetraxInstance::computeLoglikelihood(ann_network);
     std::cout << "The computed network_logl 5 is: " << network_logl << "\n";
@@ -430,8 +431,9 @@ TEST_F (LikelihoodTest, simpleTreeNaiveVersusNormalRaxml) {
     double naive_logl = old::computeLoglikelihoodNaiveUtree(ann_network, 0, 1);
 
     pll_utree_t *raxml_utree = Tree::loadFromFile(treePath).pll_utree_copy();
+    NetraxOptions options2 = NetraxOptions(treePath, msaPath, false);
     std::unique_ptr<RaxmlWrapper> treeWrapper = std::make_unique<RaxmlWrapper>(
-            NetraxOptions(treePath, msaPath, false));
+            options2);
     TreeInfo *raxml_treeinfo = treeWrapper->createRaxmlTreeinfo(raxml_utree);
     double raxml_logl = raxml_treeinfo->loglh(false);
 
