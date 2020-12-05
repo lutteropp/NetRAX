@@ -33,6 +33,9 @@ size_t findReticulationIndexInNetwork(Network &network, Node *retNode) {
 
 mpfr::mpreal displayed_tree_prob(AnnotatedNetwork &ann_network, size_t megablob_idx,
         size_t partition_index) {
+    if (ann_network.fake_treeinfo->brlen_linkage != PLLMOD_COMMON_BRLEN_UNLINKED) {
+        partition_index = 0;
+    }
     BlobInformation &blobInfo = ann_network.blobInfo;
     mpfr::mpreal logProb = 0;
     for (size_t i = 0; i < blobInfo.reticulation_nodes_per_megablob[megablob_idx].size(); ++i) {
@@ -92,7 +95,7 @@ void setup_pmatrices(AnnotatedNetwork &ann_network, int incremental, int update_
 
 double displayed_tree_logprob(AnnotatedNetwork &ann_network, size_t tree_index,
         size_t partition_index) {
-    if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED) {
+    if (ann_network.options.brlen_linkage != PLLMOD_COMMON_BRLEN_UNLINKED) {
         partition_index = 0;
     }
     Network &network = ann_network.network;
