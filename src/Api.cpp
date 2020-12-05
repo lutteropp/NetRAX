@@ -249,6 +249,21 @@ void NetraxInstance::optimizeBranches(AnnotatedNetwork &ann_network) {
     ann_network.raxml_treeinfo->optimize_branches(ann_network.options.lh_epsilon, 1);
     double new_score = scoreNetwork(ann_network);
     std::cout << "BIC score after branch length optimization: " << new_score << "\n";
+    if (new_score < old_score && ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
+        // set branch lengths in the network file to the weighted average over all partitions
+        size_t n_sites_total = 0;
+        size_t n_partitions = ann_network.fake_treeinfo->partition_count;
+        for (size_t p = 0; p < n_partitions; ++p) {
+            n_sites_total += ann_network.fake_treeinfo->partitions[p]->pattern_weight_sum;
+        }
+        for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
+            double length_sum = 0.0;
+            for (size_t p = 0; p < n_partitions; ++p) {
+                length_sum += ann_network.fake_treeinfo->branch_lengths[p][i] * ann_network.fake_treeinfo->partitions[p]->pattern_weight_sum;
+            }
+            ann_network.network.edges_by_index[i]->length = length_sum / n_sites_total;
+        }
+    }
     assert(new_score <= old_score);
 }
 

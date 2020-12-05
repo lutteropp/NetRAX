@@ -271,9 +271,6 @@ bool update_reticulation_probs_unlinked(AnnotatedNetwork &ann_network, const std
         size_t pmatrix_index_first_parent = getReticulationFirstParentPmatrixIndex(ann_network.network.reticulation_nodes[i]);
         double old_prob = ann_network.branch_probs[partition_idx][pmatrix_index_first_parent];
         double new_prob = (double) total_taken[i] / n_sites_total;
-        ann_network.branch_probs[partition_idx][pmatrix_index_first_parent] = new_prob;
-        size_t pmatrix_index_second_parent = getReticulationSecondParentPmatrixIndex(ann_network.network.reticulation_nodes[i]);
-        ann_network.network.edges_by_index[pmatrix_index_second_parent]->prob = 1.0 - new_prob;
         changed |= (old_prob != new_prob);
     }
 
@@ -427,6 +424,25 @@ double computeLoglikelihood_new(AnnotatedNetwork &ann_network, int incremental, 
     ann_network.old_logl = network_logl.toDouble();
 
     if (reticulation_probs_changed) {
+        if (unlinked_mode) {
+            // set branch probs in the network file to the weighted average over all partitions
+            size_t n_sites_total = 0;
+            size_t n_partitions = ann_network.fake_treeinfo->partition_count;
+            for (size_t p = 0; p < n_partitions; ++p) {
+                n_sites_total += ann_network.fake_treeinfo->partitions[p]->pattern_weight_sum;
+            }
+            for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
+                double first_parent_prob_sum = 0.0;
+                size_t pmatrix_index_first_parent = getReticulationFirstParentPmatrixIndex(ann_network.network.reticulation_nodes[i]);
+                size_t pmatrix_index_second_parent = getReticulationSecondParentPmatrixIndex(ann_network.network.reticulation_nodes[i]);
+                for (size_t p = 0; p < n_partitions; ++p) {
+                    first_parent_prob_sum += ann_network.branch_probs[p][pmatrix_index_first_parent] * ann_network.fake_treeinfo->partitions[p]->pattern_weight_sum;
+                }
+                double prob = first_parent_prob_sum / n_sites_total;
+                ann_network.network.edges_by_index[pmatrix_index_first_parent]->prob = prob;
+                ann_network.network.edges_by_index[pmatrix_index_second_parent]->prob = 1.0 - prob;
+            }
+        }
         recompute_network_logl(ann_network, displayed_trees_all);
     }
     //std::cout << "network logl: " << ann_network.old_logl << "\n";
