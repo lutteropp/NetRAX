@@ -471,7 +471,8 @@ pllmod_treeinfo_t* RaxmlWrapper::createNetworkPllTreeinfo(AnnotatedNetwork &ann_
     /* compute some derived dimensions */
     unsigned int inner_nodes_count = treeinfo->tree->inner_count;
     unsigned int branch_count = treeinfo->tree->edge_count;
-    treeinfo->subnode_count = tips + 3 * inner_nodes_count;
+    //treeinfo->subnode_count = tips + 3 * inner_nodes_count;
+    treeinfo->subnode_count = 0;
 
     treeinfo->travbuffer = NULL;
     treeinfo->matrix_indices = NULL;
