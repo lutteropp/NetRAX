@@ -268,9 +268,10 @@ bool update_reticulation_probs_unlinked(AnnotatedNetwork &ann_network, const std
     }
 
     for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
-        double old_prob = ann_network.branch_probs[partition_idx][i];
+        size_t pmatrix_index = getReticulationFirstParentPmatrixIndex(ann_network.network.reticulation_nodes[i]);
+        double old_prob = ann_network.branch_probs[partition_idx][pmatrix_index];
         double new_prob = (double) total_taken[i] / n_sites_total;
-        ann_network.branch_probs[partition_idx][i] = new_prob;
+        ann_network.branch_probs[partition_idx][pmatrix_index] = new_prob;
         changed |= (old_prob != new_prob);
     }
 
@@ -307,9 +308,10 @@ bool update_reticulation_probs_linked(AnnotatedNetwork &ann_network, const std::
     }
 
     for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
-        double old_prob = ann_network.branch_probs[0][i];
+        size_t pmatrix_index = getReticulationFirstParentPmatrixIndex(ann_network.network.reticulation_nodes[i]);
+        double old_prob = ann_network.branch_probs[0][pmatrix_index];
         double new_prob = (double) total_taken[i] / n_sites_total;
-        ann_network.branch_probs[0][i] = new_prob;
+        ann_network.branch_probs[0][pmatrix_index] = new_prob;
         changed |= (old_prob != new_prob);
     }
 
