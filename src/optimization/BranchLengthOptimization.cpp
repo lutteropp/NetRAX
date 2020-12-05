@@ -22,35 +22,6 @@
 
 namespace netrax {
 
-struct OptimizedBranchLength {
-    size_t tree_index;
-    double length;
-    double tree_prob;
-};
-
-double computeVariance(const std::vector<OptimizedBranchLength> &brlens) {
-    // TODO: Maybe adapt to different tree probabilities, such as here?
-    // https://en.wikipedia.org/wiki/Variance#Discrete_random_variable
-    double var = 0;
-    if (brlens.empty()) {
-        var = std::numeric_limits<double>::infinity();
-    } else {
-        // compute the mean branch length
-        double mean = 0;
-        for (size_t i = 0; i < brlens.size(); ++i) {
-            mean += brlens[i].length;
-        }
-        mean /= (double) brlens.size();
-
-        // compute the variance
-        for (size_t i = 0; i < brlens.size(); ++i) {
-            var += (brlens[i].length - mean) * (brlens[i].length - mean);
-        }
-        var /= (double) brlens.size();
-    }
-    return var;
-}
-
 struct BrentBrlenParams {
     AnnotatedNetwork *ann_network;
     size_t pmatrix_index;
