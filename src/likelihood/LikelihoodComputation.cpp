@@ -268,10 +268,12 @@ bool update_reticulation_probs_unlinked(AnnotatedNetwork &ann_network, const std
     }
 
     for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
-        size_t pmatrix_index = getReticulationFirstParentPmatrixIndex(ann_network.network.reticulation_nodes[i]);
-        double old_prob = ann_network.branch_probs[partition_idx][pmatrix_index];
+        size_t pmatrix_index_first_parent = getReticulationFirstParentPmatrixIndex(ann_network.network.reticulation_nodes[i]);
+        double old_prob = ann_network.branch_probs[partition_idx][pmatrix_index_first_parent];
         double new_prob = (double) total_taken[i] / n_sites_total;
-        ann_network.branch_probs[partition_idx][pmatrix_index] = new_prob;
+        ann_network.branch_probs[partition_idx][pmatrix_index_first_parent] = new_prob;
+        size_t pmatrix_index_second_parent = getReticulationSecondParentPmatrixIndex(ann_network.network.reticulation_nodes[i]);
+        ann_network.network.edges_by_index[pmatrix_index_second_parent]->prob = 1.0 - new_prob;
         changed |= (old_prob != new_prob);
     }
 
@@ -308,10 +310,12 @@ bool update_reticulation_probs_linked(AnnotatedNetwork &ann_network, const std::
     }
 
     for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
-        size_t pmatrix_index = getReticulationFirstParentPmatrixIndex(ann_network.network.reticulation_nodes[i]);
-        double old_prob = ann_network.branch_probs[0][pmatrix_index];
+        size_t pmatrix_index_first_parent = getReticulationFirstParentPmatrixIndex(ann_network.network.reticulation_nodes[i]);
+        double old_prob = ann_network.branch_probs[0][pmatrix_index_first_parent];
         double new_prob = (double) total_taken[i] / n_sites_total;
-        ann_network.branch_probs[0][pmatrix_index] = new_prob;
+        ann_network.branch_probs[0][pmatrix_index_first_parent] = new_prob;
+        size_t pmatrix_index_second_parent = getReticulationSecondParentPmatrixIndex(ann_network.network.reticulation_nodes[i]);
+        ann_network.network.edges_by_index[pmatrix_index_second_parent]->prob = 1.0 - new_prob;
         changed |= (old_prob != new_prob);
     }
 
