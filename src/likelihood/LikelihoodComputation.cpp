@@ -246,7 +246,7 @@ bool update_reticulation_probs_unlinked(AnnotatedNetwork &ann_network, const std
     bool changed = false;
     size_t n_sites = displayed_trees[0].tree_persite_logl.size();
     unsigned int n_sites_total = ann_network.fake_treeinfo->partitions[partition_idx]->pattern_weight_sum;
-    std::vector<double> best_persite_logl(n_sites, std::numeric_limits<double>::min());
+    std::vector<double> best_persite_logl(n_sites, -std::numeric_limits<double>::infinity());
     std::vector<size_t> best_tree_idx(n_sites, 0);
     for (const auto &tree : displayed_trees) {
         for (size_t i = 0; i < tree.tree_persite_logl.size(); ++i) {
@@ -285,7 +285,7 @@ bool update_reticulation_probs_linked(AnnotatedNetwork &ann_network, const std::
     for (size_t partition_idx = 0; partition_idx < ann_network.fake_treeinfo->partition_count; ++partition_idx) {
         size_t n_sites = displayed_trees_all[partition_idx][0].tree_persite_logl.size();
         n_sites_total += ann_network.fake_treeinfo->partitions[partition_idx]->pattern_weight_sum;
-        std::vector<double> best_persite_logl(n_sites, std::numeric_limits<double>::min());
+        std::vector<double> best_persite_logl(n_sites, -std::numeric_limits<double>::infinity());
         std::vector<size_t> best_tree_idx(n_sites, 0);
         for (const auto &tree : displayed_trees_all[partition_idx]) {
             for (size_t i = 0; i < tree.tree_persite_logl.size(); ++i) {
