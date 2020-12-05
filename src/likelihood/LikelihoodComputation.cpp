@@ -92,6 +92,9 @@ void setup_pmatrices(AnnotatedNetwork &ann_network, int incremental, int update_
 
 double displayed_tree_logprob(AnnotatedNetwork &ann_network, size_t tree_index,
         size_t partition_index) {
+    if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED) {
+        partition_index = 0;
+    }
     Network &network = ann_network.network;
     setReticulationParents(network, tree_index);
     mpfr::mpreal logProb = 0;
