@@ -108,6 +108,9 @@ double optimize_branch(AnnotatedNetwork &ann_network, int max_iters, int *act_it
     double f2x;
     double new_brlen = pllmod_opt_minimize_brent(min_brlen, old_brlen, max_brlen, tolerance, &score,
             &f2x, (void*) &params, &brent_target_networks);
+    if (ann_network.options.brlen_linkage != PLLMOD_COMMON_BRLEN_UNLINKED) {
+        ann_network.network.edges_by_index[pmatrix_index]->length = new_brlen;
+    }
 
     assert(new_brlen >= min_brlen && new_brlen <= max_brlen);
 
