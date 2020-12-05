@@ -24,7 +24,7 @@ public:
         }
     };
 
-    RaxmlWrapper(const NetraxOptions &options);
+    RaxmlWrapper(NetraxOptions &options);
 
     Options getRaxmlOptions() const;
 

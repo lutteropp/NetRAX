@@ -41,7 +41,6 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
 
 void run_single_start(NetraxOptions& netraxOptions, std::mt19937& rng) {
     double best_score = std::numeric_limits<double>::infinity();
-    auto start_time = std::chrono::high_resolution_clock::now();
 
     netrax::AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(netraxOptions);
     NetraxInstance::init_annotated_network(ann_network, rng);
@@ -130,7 +129,7 @@ void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {
     }
 }
 
-void score_only(const NetraxOptions& netraxOptions, std::mt19937& rng) {
+void score_only(NetraxOptions& netraxOptions, std::mt19937& rng) {
     if (netraxOptions.msa_file.empty()) {
         throw std::runtime_error("Need MSA to score a network");
     }
@@ -165,7 +164,7 @@ void extract_taxon_names(const NetraxOptions& netraxOptions) {
     }
 }
 
-void extract_displayed_trees(const NetraxOptions& netraxOptions, std::mt19937& rng) {
+void extract_displayed_trees(NetraxOptions& netraxOptions, std::mt19937& rng) {
     if (netraxOptions.start_network_file.empty()) {
         throw std::runtime_error("Need network to extract displayed trees");
     }
@@ -177,7 +176,7 @@ void extract_displayed_trees(const NetraxOptions& netraxOptions, std::mt19937& r
         std::string newick = netrax::toExtendedNewick(ann_network.network);
         displayed_trees.emplace_back(std::make_pair(newick, 1.0));
     } else {
-        for (size_t tree_index = 0; tree_index < 1 << ann_network.network.num_reticulations(); ++tree_index) {
+        for (int tree_index = 0; tree_index < 1 << ann_network.network.num_reticulations(); ++tree_index) {
             pll_utree_t* utree = netrax::displayed_tree_to_utree(ann_network.network, tree_index);
             double prob = netrax::displayed_tree_prob(ann_network, tree_index);
             Network displayedNetwork = netrax::convertUtreeToNetwork(*utree, 0);
@@ -198,7 +197,7 @@ void extract_displayed_trees(const NetraxOptions& netraxOptions, std::mt19937& r
     }
 }
 
-void generate_random_network_only(const NetraxOptions& netraxOptions, std::mt19937& rng) {
+void generate_random_network_only(NetraxOptions& netraxOptions, std::mt19937& rng) {
     if (netraxOptions.msa_file.empty()) {
         throw std::runtime_error("Need MSA to decide on the number of taxa");
     }

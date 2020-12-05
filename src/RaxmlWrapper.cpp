@@ -113,7 +113,7 @@ Options createDefaultOptions() {
     return opts;
 }
 
-RaxmlInstance createRaxmlInstance(const NetraxOptions &options) {
+RaxmlInstance createRaxmlInstance(NetraxOptions &options) {
     RaxmlInstance instance;
     instance.opts = createDefaultOptions();
     instance.opts.tree_file = options.start_network_file;
@@ -130,12 +130,17 @@ RaxmlInstance createRaxmlInstance(const NetraxOptions &options) {
     instance.opts.lh_epsilon = options.lh_epsilon;
     init_part_info(instance);
     load_parted_msa(instance);
+    // ensure linked brlens for unpartitioned MSA
+    if (instance.parted_msa->part_count() == 1) {
+        options.brlen_linkage = PLLMOD_COMMON_BRLEN_LINKED;
+        instance.opts.brlen_linkage = PLLMOD_COMMON_BRLEN_LINKED;
+    }
     check_options(instance);
     balance_load(instance);
     return instance;
 }
 
-RaxmlWrapper::RaxmlWrapper(const NetraxOptions &options) :
+RaxmlWrapper::RaxmlWrapper(NetraxOptions &options) :
         netraxOptions(options) {
     instance = createRaxmlInstance(options);
     network_behaviour.compute_ancestral_function = [&](pllmod_treeinfo_t *treeinfo) {

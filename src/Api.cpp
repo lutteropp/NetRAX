@@ -35,7 +35,7 @@ namespace netrax {
 
 void allocateBranchProbsArray(AnnotatedNetwork& ann_network) {
     // allocate branch probs array...
-    if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED) { // common branches
+    if (ann_network.options.brlen_linkage != PLLMOD_COMMON_BRLEN_UNLINKED) { // common branches
         ann_network.branch_probs = std::vector<std::vector<double> >(1,
                 std::vector<double>(ann_network.network.edges.size() + 1, 1.0));
     } else { // each partition has extra branch properties
@@ -87,7 +87,7 @@ void NetraxInstance::init_annotated_network(AnnotatedNetwork &ann_network) {
  * 
  * @param options The information specified by the user.
  */
-AnnotatedNetwork NetraxInstance::build_annotated_network(const NetraxOptions &options) {
+AnnotatedNetwork NetraxInstance::build_annotated_network(NetraxOptions &options) {
     AnnotatedNetwork ann_network;
     ann_network.options = options;
     ann_network.network = netrax::readNetworkFromFile(options.start_network_file,
@@ -101,7 +101,7 @@ AnnotatedNetwork NetraxInstance::build_annotated_network(const NetraxOptions &op
  * @param options The information specified by the user.
  * @param newickString The network in Extended Newick format.
  */
-AnnotatedNetwork NetraxInstance::build_annotated_network_from_string(const NetraxOptions &options,
+AnnotatedNetwork NetraxInstance::build_annotated_network_from_string(NetraxOptions &options,
         const std::string &newickString) {
     AnnotatedNetwork ann_network;
     ann_network.options = options;
@@ -115,7 +115,7 @@ AnnotatedNetwork NetraxInstance::build_annotated_network_from_string(const Netra
  * @param options The options specified by the user.
  * @param utree The pll_utree_t to be converted into an annotated network.
  */
-AnnotatedNetwork NetraxInstance::build_annotated_network_from_utree(const NetraxOptions &options,
+AnnotatedNetwork NetraxInstance::build_annotated_network_from_utree(NetraxOptions &options,
         const pll_utree_t &utree) {
     AnnotatedNetwork ann_network;
     ann_network.options = options;
@@ -158,7 +158,7 @@ void NetraxInstance::add_extra_reticulations(AnnotatedNetwork &ann_network, unsi
  * 
  * @param options The options specified by the user.
  */
-AnnotatedNetwork NetraxInstance::build_random_annotated_network(const NetraxOptions &options) {
+AnnotatedNetwork NetraxInstance::build_random_annotated_network(NetraxOptions &options) {
     RaxmlWrapper wrapper(options);
     Tree tree = wrapper.generateRandomTree();
     AnnotatedNetwork ann_network = build_annotated_network_from_utree(options, tree.pll_utree());
@@ -170,7 +170,7 @@ AnnotatedNetwork NetraxInstance::build_random_annotated_network(const NetraxOpti
  * 
  * @param options The options specified by the user.
  */
-AnnotatedNetwork NetraxInstance::build_parsimony_annotated_network(const NetraxOptions &options) {
+AnnotatedNetwork NetraxInstance::build_parsimony_annotated_network(NetraxOptions &options) {
     RaxmlWrapper wrapper(options);
     Tree tree = wrapper.generateParsimonyTree();
     AnnotatedNetwork ann_network = build_annotated_network_from_utree(options, tree.pll_utree());
@@ -182,7 +182,7 @@ AnnotatedNetwork NetraxInstance::build_parsimony_annotated_network(const NetraxO
  * 
  * @param options The options specified by the user.
  */
-AnnotatedNetwork NetraxInstance::build_best_raxml_annotated_network(const NetraxOptions &options) {
+AnnotatedNetwork NetraxInstance::build_best_raxml_annotated_network(NetraxOptions &options) {
     RaxmlWrapper wrapper(options);
     Tree tree = wrapper.bestRaxmlTree();
     AnnotatedNetwork ann_network = build_annotated_network_from_utree(options, tree.pll_utree());

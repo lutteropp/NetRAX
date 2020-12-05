@@ -26,14 +26,14 @@ class NetraxOptions;
 
 struct NetraxInstance {
 // only put these into a struct in order to get nicer doxygen documentation
-        static AnnotatedNetwork build_annotated_network(const NetraxOptions &options);
-        static AnnotatedNetwork build_annotated_network_from_string(const NetraxOptions &options,
+        static AnnotatedNetwork build_annotated_network(NetraxOptions &options);
+        static AnnotatedNetwork build_annotated_network_from_string(NetraxOptions &options,
                 const std::string &newickString);
-        static AnnotatedNetwork build_annotated_network_from_utree(const NetraxOptions &options,
+        static AnnotatedNetwork build_annotated_network_from_utree(NetraxOptions &options,
                 const pll_utree_t &utree);
-        static AnnotatedNetwork build_random_annotated_network(const NetraxOptions &options);
-        static AnnotatedNetwork build_parsimony_annotated_network(const NetraxOptions &options);
-        static AnnotatedNetwork build_best_raxml_annotated_network(const NetraxOptions &options);
+        static AnnotatedNetwork build_random_annotated_network(NetraxOptions &options);
+        static AnnotatedNetwork build_parsimony_annotated_network(NetraxOptions &options);
+        static AnnotatedNetwork build_best_raxml_annotated_network(NetraxOptions &options);
 
         static void add_extra_reticulations(AnnotatedNetwork &ann_network, unsigned int targetCount);
 
