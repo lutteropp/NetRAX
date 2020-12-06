@@ -53,7 +53,7 @@ public:
 
     bool use_nepal_prob_estimation = false;
 
-    int brlen_linkage = PLLMOD_COMMON_BRLEN_SCALED;
+    int brlen_linkage = PLLMOD_COMMON_BRLEN_LINKED;
     int brlen_opt_method = PLLMOD_OPT_BLO_NEWTON_FAST;
     double brlen_min = RAXML_BRLEN_MIN;
     double brlen_max = RAXML_BRLEN_MAX;
