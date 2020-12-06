@@ -42,7 +42,7 @@ double bic(double logl, double k, double n) {
 size_t get_param_count(AnnotatedNetwork& ann_network) {
     Network &network = ann_network.network;
     bool unlinked_mode = (ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
-    size_t multiplier = (unlinked_mode) ? 1 : ann_network.fake_treeinfo->partition_count;
+    size_t multiplier = unlinked_mode ? ann_network.fake_treeinfo->partition_count : 1;
     size_t param_count = multiplier * network.num_branches()
             + ann_network.total_num_model_parameters;
     if (!ann_network.options.use_nepal_prob_estimation) { // reticulation probs as free parameters
