@@ -211,7 +211,7 @@ void assertBranchesWithinBounds(const AnnotatedNetwork& ann_network) {
 
 void printExtensiveBICInfo(AnnotatedNetwork &ann_network) {
     bool unlinked_mode = (ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
-    size_t multiplier = (unlinked_mode) ? 1 : ann_network.fake_treeinfo->partition_count;
+    size_t multiplier = unlinked_mode ? ann_network.fake_treeinfo->partition_count : 1;
     std::cout << " multiplier: " << multiplier << "\n";
     std::cout << " network.num_reticulations: " << ann_network.network.num_reticulations() << "\n";
     std::cout << " network.num_branches: " << ann_network.network.num_branches() << "\n";
@@ -367,6 +367,7 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, MoveType type) 
             throw std::runtime_error("Invalid move type");
         }
 
+        /*
         if ((type == MoveType::ArcInsertionMove) || (type == MoveType::DeltaPlusMove)) {
             //doing reticulation opt, full global brlen opt and model opt:
             ann_network.raxml_treeinfo->optimize_branches(ann_network.options.lh_epsilon, 1);
@@ -379,6 +380,7 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, MoveType type) 
             }
             new_score = bic(ann_network, new_logl);
         }
+        */
     } while (old_bic - new_score > ann_network.options.lh_epsilon);
     return ann_network.raxml_treeinfo->loglh(true);
 }
