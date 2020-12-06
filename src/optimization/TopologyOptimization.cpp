@@ -41,12 +41,22 @@ double bic(double logl, double k, double n) {
 
 size_t get_param_count(AnnotatedNetwork& ann_network) {
     Network &network = ann_network.network;
-    bool unlinked_mode = (ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
-    size_t multiplier = unlinked_mode ? ann_network.fake_treeinfo->partition_count : 1;
-    size_t param_count = multiplier * network.num_branches()
-            + ann_network.total_num_model_parameters;
-    if (!ann_network.options.use_nepal_prob_estimation) { // reticulation probs as free parameters
-        param_count += multiplier * ann_network.network.num_reticulations();
+
+    size_t param_count = ann_network.total_num_model_parameters;
+    if (ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
+        param_count += ann_network.fake_treeinfo->partition_count * network.num_branches();
+        if (!ann_network.options.use_nepal_prob_estimation) { // reticulation probs as free parameters
+            param_count += ann_network.fake_treeinfo->partition_count * ann_network.network.num_reticulations();
+        }
+    } else { // branch lengths are shared among partitions
+        param_count += network.num_branches();
+        if (!ann_network.options.use_nepal_prob_estimation) { // reticulation probs as free parameters
+            param_count += ann_network.network.num_reticulations();
+        }
+        if (ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED) {
+            // each partition can scale the branch lengths by its own scaling factor
+            param_count += ann_network.fake_treeinfo->partition_count;
+        }
     }
     return param_count;
 }
@@ -212,7 +222,15 @@ void assertBranchesWithinBounds(const AnnotatedNetwork& ann_network) {
 void printExtensiveBICInfo(AnnotatedNetwork &ann_network) {
     bool unlinked_mode = (ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
     size_t multiplier = unlinked_mode ? ann_network.fake_treeinfo->partition_count : 1;
-    std::cout << " multiplier: " << multiplier << "\n";
+    std::cout << " brlen_linkage: ";
+    if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED) {
+        std::cout << "PLLMOD_COMMON_BRLEN_SCALED";
+    } else if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
+        std::cout << "PLLMOD_COMMON_BRLEN_UNLINKED";
+    } else {
+        std::cout << "PLLMOD_COMMON_BRLEN_LINKED";
+    }
+    std::cout << "\n";
     std::cout << " network.num_reticulations: " << ann_network.network.num_reticulations() << "\n";
     std::cout << " network.num_branches: " << ann_network.network.num_branches() << "\n";
     std::cout << " ann_network.total_num_model_parameters: " << ann_network.total_num_model_parameters << "\n";
