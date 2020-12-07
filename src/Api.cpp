@@ -54,13 +54,14 @@ void NetraxInstance::init_annotated_network(AnnotatedNetwork &ann_network, std::
     allocateBranchProbsArray(ann_network);
     for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
         Node *retNode = ann_network.network.reticulation_nodes[i];
-        double firstParentProb = netrax::getReticulationFirstParentProb(network, retNode);
-        double secondParentProb = netrax::getReticulationSecondParentProb(network, retNode);
+        double firstParentProb = netrax::getReticulationFirstParentProb(ann_network, retNode);
+        double secondParentProb = netrax::getReticulationSecondParentProb(ann_network, retNode);
         size_t firstParentEdgeIndex = netrax::getReticulationFirstParentPmatrixIndex(retNode);
         size_t secondParentEdgeIndex = netrax::getReticulationSecondParentPmatrixIndex(retNode);
         ann_network.branch_probs[firstParentEdgeIndex] = firstParentProb;
         ann_network.branch_probs[secondParentEdgeIndex] = secondParentProb;
     }
+
     netrax::RaxmlWrapper wrapper(ann_network.options);
     ann_network.raxml_treeinfo = std::unique_ptr<TreeInfo>(wrapper.createRaxmlTreeinfo(ann_network));
 
@@ -370,20 +371,7 @@ void NetraxInstance::optimizeEverything(AnnotatedNetwork &ann_network) {
  */
 void NetraxInstance::writeNetwork(AnnotatedNetwork &ann_network, const std::string &filepath) {
     std::ofstream outfile(filepath);
-    // If we have unlinked branch lenghts/probs, replace the entries in the network by their average
-    if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
-        for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
-            double lenSum = 0.0;
-            size_t pmatrix_index = ann_network.network.edges[i].pmatrix_index;
-            for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-                lenSum += ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index];
-            }
-            ann_network.network.edges[i].length = lenSum
-                    / ann_network.fake_treeinfo->partition_count;
-        }
-    }
-
-    outfile << netrax::toExtendedNewick(ann_network.network) << "\n";
+    outfile << netrax::toExtendedNewick(ann_network) << "\n";
     outfile.close();
 }
 
@@ -405,9 +393,9 @@ void NetraxInstance::double_check_likelihood(AnnotatedNetwork &ann_network) {
         std::cout << "logl: " << logl << "\n";
         std::cout << "reread_logl: " << reread_logl << "\n";
         std::cout << "current network:\n" << newick << "\n";
-        std::cout << exportDebugInfo(ann_network.network) << "\n";
-        std::cout << "reread_network:\n" << toExtendedNewick(ann_network2.network) << "\n";
-        std::cout << exportDebugInfo(ann_network2.network) << "\n";
+        std::cout << exportDebugInfo(ann_network) << "\n";
+        std::cout << "reread_network:\n" << toExtendedNewick(ann_network2) << "\n";
+        std::cout << exportDebugInfo(ann_network2) << "\n";
     }
 
     assert(similar_logl);

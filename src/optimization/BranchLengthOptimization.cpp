@@ -44,7 +44,6 @@ static double brent_target_networks(void *p, double x) {
         score = -1 * computeLoglikelihood(*ann_network, 1, 1);
     } else {
         ann_network->fake_treeinfo->branch_lengths[partition_index][pmatrix_index] = x;
-        ann_network->network.edges_by_index[pmatrix_index]->length = x;
         ann_network->fake_treeinfo->pmatrix_valid[partition_index][pmatrix_index] = 0;
         invalidateHigherCLVs(*ann_network,
                 getSource(ann_network->network, ann_network->network.edges_by_index[pmatrix_index]),
@@ -105,9 +104,6 @@ double optimize_branch(AnnotatedNetwork &ann_network, int max_iters, int *act_it
     double f2x;
     double new_brlen = pllmod_opt_minimize_brent(min_brlen, old_brlen, max_brlen, tolerance, &score,
             &f2x, (void*) &params, &brent_target_networks);
-    if (ann_network.options.brlen_linkage != PLLMOD_COMMON_BRLEN_UNLINKED) {
-        ann_network.network.edges_by_index[pmatrix_index]->length = new_brlen;
-    }
 
     assert(new_brlen >= min_brlen && new_brlen <= max_brlen);
 
@@ -137,7 +133,7 @@ double optimize_reticulation(AnnotatedNetwork &ann_network, size_t reticulation_
     params.ann_network = &ann_network;
     params.pmatrix_index = getReticulationFirstParentPmatrixIndex(ann_network.network.reticulation_nodes[reticulation_index]);
     params.contra_pmatrix_index = getReticulationSecondParentPmatrixIndex(ann_network.network.reticulation_nodes[reticulation_index]);
-    double old_brprob = getReticulationFirstParentProb(ann_network.network, ann_network.network.reticulation_nodes[reticulation_index]);
+    double old_brprob = getReticulationFirstParentProb(ann_network, ann_network.network.reticulation_nodes[reticulation_index]);
 
     assert(old_brprob >= min_brprob);
     assert(old_brprob <= max_brprob);
@@ -148,8 +144,6 @@ double optimize_reticulation(AnnotatedNetwork &ann_network, size_t reticulation_
     double f2x;
     double new_brprob = pllmod_opt_minimize_brent(min_brprob, old_brprob, max_brprob, tolerance, &score,
             &f2x, (void*) &params, &brent_target_networks_prob);
-    ann_network.network.edges_by_index[params.pmatrix_index]->prob = new_brprob;
-    ann_network.network.edges_by_index[params.contra_pmatrix_index]->prob = 1.0 - new_brprob;
     ann_network.branch_probs[params.pmatrix_index] = new_brprob;
     ann_network.branch_probs[params.contra_pmatrix_index] = 1.0 - new_brprob;
 

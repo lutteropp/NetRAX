@@ -25,15 +25,6 @@ std::vector<std::vector<double> > extract_brlens_partitions(AnnotatedNetwork &an
     return res;
 }
 
-std::vector<double> extract_brlens_network(AnnotatedNetwork &ann_network) {
-    std::vector<double> res(ann_network.network.edges.size());
-    for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
-        size_t pmatrix_index = ann_network.network.edges[i].pmatrix_index;
-        res[pmatrix_index] = ann_network.network.edges_by_index[pmatrix_index]->length;
-    }
-    return res;
-}
-
 std::vector<double> extract_brprobs(AnnotatedNetwork &ann_network) {
     std::vector<double> res;
     res.resize(ann_network.network.edges.size());
@@ -59,21 +50,17 @@ std::vector<double> extract_brlen_scalers(AnnotatedNetwork &ann_network) {
 
 
 NetworkState extract_network_state(AnnotatedNetwork &ann_network) {
-    return NetworkState{extract_brlens_partitions(ann_network), extract_brlens_network(ann_network), extract_brprobs(ann_network), extract_brlen_scalers(ann_network)};
+    return NetworkState{extract_brlens_partitions(ann_network), extract_brprobs(ann_network), extract_brlen_scalers(ann_network)};
 }
 
 
 void apply_old_state(AnnotatedNetwork &ann_network,
-        const std::vector<std::vector<double> > &old_brlens_partition, const std::vector<double>& old_brlens_network, const std::vector<double>& old_brlen_scalers, const std::vector<double>& old_brprobs) {
+        const std::vector<std::vector<double> > &old_brlens_partition, const std::vector<double>& old_brlen_scalers, const std::vector<double>& old_brprobs) {
     std::vector<bool> visited(ann_network.network.nodes.size(), false);
     bool unlinkedMode = (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
     size_t n_partitions = 1;
     if (unlinkedMode) {
         n_partitions = ann_network.fake_treeinfo->partition_count;
-    }
-    for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
-        size_t pmatrix_index = ann_network.network.edges[i].pmatrix_index;
-        ann_network.network.edges_by_index[pmatrix_index]->length = old_brlens_network[pmatrix_index];
     }
     for (size_t p = 0; p < n_partitions; ++p) {
         for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
@@ -110,18 +97,16 @@ void apply_old_state(AnnotatedNetwork &ann_network,
 
 
 void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &state) {
-    apply_old_state(ann_network, state.brlens_partitions, state.brlens_network, state.brlen_scalers, state.brprobs);
+    apply_old_state(ann_network, state.brlens_partitions, state.brlen_scalers, state.brprobs);
 }
 
 
 bool network_states_equal(NetworkState &act_network_state, NetworkState &old_network_state) {
     std::vector<std::vector<double> > act_brlens_partitions = act_network_state.brlens_partitions;
-    std::vector<double> act_brlens_network = act_network_state.brlens_network;
     std::vector<double> act_brprobs = act_network_state.brprobs;
     std::vector<double> act_brlen_scalers = act_network_state.brlen_scalers;
 
     std::vector<std::vector<double> > old_brlens_partitions = old_network_state.brlens_partitions;
-    std::vector<double> old_brlens_network = old_network_state.brlens_network;
     std::vector<double> old_brprobs = old_network_state.brprobs;
     std::vector<double> old_brlen_scalers = old_network_state.brlen_scalers;
 
@@ -143,18 +128,6 @@ bool network_states_equal(NetworkState &act_network_state, NetworkState &old_net
             }
             assert(fabs(act_brlens_partitions[i][j] - old_brlens_partitions[i][j]) < 1E-5);
         }
-    }
-
-    for (size_t j = 0; j < act_brlens_network.size(); ++j) {
-        if (fabs(act_brlens_network[j] - old_brlens_network[j]) >= 1E-5) {
-            std::cout << "wanted brlen:\n";
-            std::cout << "idx " << j << ": " << old_brlens_network[j] << "\n";
-            std::cout << "\n";
-            std::cout << "observed brlen:\n";
-            std::cout << "idx " << j << ": " << act_brlens_network[j] << "\n";
-            std::cout << "\n";
-        }
-        assert(fabs(act_brlens_network[j] - old_brlens_network[j]) < 1E-5);
     }
 
     for (size_t j = 0; j < act_brlen_scalers.size(); ++j) {

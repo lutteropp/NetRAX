@@ -57,7 +57,7 @@ void randomMovesStep(AnnotatedNetwork &ann_network, std::vector<T> candidates) {
     std::vector<std::vector<double> > old_brlens = extract_brlens(ann_network);
 
     for (size_t j = 0; j < candidates.size(); ++j) {
-        std::string newickBeforeMove = toExtendedNewick(network);
+        std::string newickBeforeMove = toExtendedNewick(ann_network);
         //std::cout << "perform " << toString(candidates[j]);
         performMove(ann_network, candidates[j]);
         //std::cout << toExtendedNewick(network) << "\n";
@@ -160,8 +160,8 @@ TEST (MovesTest, incrementalLoglikelihoodProblem) {
     ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
     std::cout << "initial_logl: " << initial_logl << "\n";
 
-    std::cout << exportDebugInfo(ann_network.network);
-    std::cout << toExtendedNewick(ann_network.network) << "\n";
+    std::cout << exportDebugInfo(ann_network);
+    std::cout << toExtendedNewick(ann_network) << "\n";
     RNNIMove move;
     move.moveType = MoveType::RNNIMove;
     move.u_clv_index = 7;
@@ -170,15 +170,15 @@ TEST (MovesTest, incrementalLoglikelihoodProblem) {
     move.t_clv_index = 2;
     move.type = RNNIMoveType::THREE;
     performMove(ann_network, move);
-    std::cout << exportDebugInfo(ann_network.network);
-    std::cout << toExtendedNewick(ann_network.network) << "\n";
+    std::cout << exportDebugInfo(ann_network);
+    std::cout << toExtendedNewick(ann_network) << "\n";
     printClvValid(ann_network);
     double moved_logl = NetraxInstance::computeLoglikelihood(ann_network);
     std::cout << "moved_logl: " << moved_logl << "\n";
     ASSERT_NE(moved_logl, -std::numeric_limits<double>::infinity());
     undoMove(ann_network, move);
-    std::cout << exportDebugInfo(ann_network.network);
-    std::cout << toExtendedNewick(ann_network.network) << "\n";
+    std::cout << exportDebugInfo(ann_network);
+    std::cout << toExtendedNewick(ann_network) << "\n";
     printClvValid(ann_network);
     double back_logl = NetraxInstance::computeLoglikelihood(ann_network);
     std::cout << "back_logl: " << back_logl << "\n";

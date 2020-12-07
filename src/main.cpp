@@ -57,8 +57,8 @@ void run_single_start(NetraxOptions& netraxOptions, std::mt19937& rng) {
     netrax::AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(netraxOptions);
     NetraxInstance::init_annotated_network(ann_network, rng);
 
-    std::cout << "Initial network is:\n" << toExtendedNewick(ann_network.network) << "\n\n";
-    std::string best_network = toExtendedNewick(ann_network.network);
+    std::cout << "Initial network is:\n" << toExtendedNewick(ann_network) << "\n\n";
+    std::string best_network = toExtendedNewick(ann_network);
 
     NetraxInstance::optimizeEverything(ann_network);
     double final_bic = NetraxInstance::scoreNetwork(ann_network);
@@ -67,7 +67,7 @@ void run_single_start(NetraxOptions& netraxOptions, std::mt19937& rng) {
         best_score = final_bic;
         std::cout << "IMPROVED BEST SCORE FOUND SO FAR: " << best_score << "\n\n";
         NetraxInstance::writeNetwork(ann_network, netraxOptions.output_file);
-        best_network = toExtendedNewick(ann_network.network);
+        best_network = toExtendedNewick(ann_network);
         std::cout << "Better network written to " << netraxOptions.output_file << "\n";  
     } else {
         std::cout << "REMAINED BEST SCORE FOUND SO FAR: " << best_score << "\n";
@@ -185,7 +185,7 @@ void extract_displayed_trees(NetraxOptions& netraxOptions, std::mt19937& rng) {
     NetraxInstance::init_annotated_network(ann_network, rng);
 
     if (ann_network.network.num_reticulations() == 0) {
-        std::string newick = netrax::toExtendedNewick(ann_network.network);
+        std::string newick = netrax::toExtendedNewick(ann_network);
         displayed_trees.emplace_back(std::make_pair(newick, 1.0));
     } else {
         for (int tree_index = 0; tree_index < 1 << ann_network.network.num_reticulations(); ++tree_index) {

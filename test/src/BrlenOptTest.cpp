@@ -261,5 +261,5 @@ TEST (BrlenOptTest, celineFakeWithModelopt) {
 
     // print the network with brlen variance as branch support values
     std::cout << "network with brlen variance as branch support values:\n"
-            << toExtendedNewick(annTreeNetwork.network) << "\n";
+            << toExtendedNewick(annTreeNetwork) << "\n";
 }

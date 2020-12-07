@@ -25,6 +25,7 @@
 #include "graph/Node.hpp"
 #include "graph/NodeType.hpp"
 #include "io/RootedNetworkParser.hpp"
+#include "io/NetworkIO.hpp"
 #include "NetraxOptions.hpp"
 
 namespace netrax {
@@ -298,8 +299,10 @@ std::string exportDebugInfoExtraNodeNumber(Network &network,
     return ss.str();
 }
 
-std::string exportDebugInfo(Network &network, bool with_label) {
-    return exportDebugInfoExtraNodeNumber(network, std::vector<unsigned int>(), with_label);
+
+std::string exportDebugInfo(AnnotatedNetwork &ann_network, bool with_label) {
+    updateNetwork(ann_network);
+    return exportDebugInfoExtraNodeNumber(ann_network.network, std::vector<unsigned int>(), with_label);
 }
 
 }

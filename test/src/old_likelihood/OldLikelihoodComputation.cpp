@@ -463,7 +463,7 @@ void compute_tree_logl_blobs(AnnotatedNetwork &ann_network, std::vector<bool> &c
         will_be_touched[ops[i].parent_clv_index] = true;
         if (!will_be_touched[ops[i].child1_clv_index]) {
             std::cout << "problematic clv index: " << ops[i].child1_clv_index << "\n";
-            std::cout << exportDebugInfo(network) << "\n";
+            std::cout << exportDebugInfo(ann_network) << "\n";
         }
         assert(will_be_touched[ops[i].child1_clv_index]);
         if (!will_be_touched[ops[i].child2_clv_index]) {
@@ -1081,7 +1081,7 @@ double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int 
             }
         }
         if (network_logl >= -1) {
-            std::cout << exportDebugInfo(network) << "\n";
+            std::cout << exportDebugInfo(ann_network) << "\n";
         }
         assert(network_logl < -1);
         ann_network.old_logl = network_logl;

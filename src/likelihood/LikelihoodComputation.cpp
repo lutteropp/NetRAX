@@ -66,25 +66,9 @@ std::vector<bool> init_clv_touched(AnnotatedNetwork& ann_network, bool increment
 
 
 void setup_pmatrices(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices) {
-    Network &network = ann_network.network;
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
-    /* NOTE: in unlinked brlen mode, up-to-date brlens for partition p
-     * have to be prefetched to treeinfo->branch_lengths[p] !!! */
-    bool collect_brlen =
-            (fake_treeinfo.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED ? false : true);
-    if (collect_brlen) {
-        for (size_t i = 0; i < network.edges.size() + 1; ++i) { // +1 for the the fake entry
-            fake_treeinfo.branch_lengths[0][i] = 0.0;
-            ann_network.branch_probs[i] = 1.0;
-        }
-        for (size_t i = 0; i < network.num_branches(); ++i) {
-            fake_treeinfo.branch_lengths[0][network.edges[i].pmatrix_index] =
-                    network.edges[i].length;
-            ann_network.branch_probs[network.edges[i].pmatrix_index] = network.edges[i].prob;
-        }
-        if (update_pmatrices) {
-            pllmod_treeinfo_update_prob_matrices(&fake_treeinfo, !incremental);
-        }
+    if (update_pmatrices) {
+        pllmod_treeinfo_update_prob_matrices(&fake_treeinfo, !incremental);
     }
 }
 
@@ -136,7 +120,7 @@ DisplayedTreeData compute_displayed_tree(AnnotatedNetwork &ann_network, std::vec
         will_be_touched[ops[i].parent_clv_index] = true;
         if (!will_be_touched[ops[i].child1_clv_index]) {
             std::cout << "problematic clv index: " << ops[i].child1_clv_index << "\n";
-            std::cout << exportDebugInfo(network) << "\n";
+            std::cout << exportDebugInfo(ann_network) << "\n";
         }
         assert(will_be_touched[ops[i].child1_clv_index]);
         if (!will_be_touched[ops[i].child2_clv_index]) {

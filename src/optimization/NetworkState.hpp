@@ -7,7 +7,6 @@ namespace netrax {
 
 struct NetworkState {
     std::vector<std::vector<double> > brlens_partitions;
-    std::vector<double> brlens_network;
     std::vector<double> brprobs;
     std::vector<double> brlen_scalers;
 };

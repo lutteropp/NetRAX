@@ -15,7 +15,9 @@ namespace netrax {
 
 Network readNetworkFromString(const std::string &newick, int maxReticulations = -1);
 Network readNetworkFromFile(const std::string &filename, int maxReticulations = -1);
+std::string toExtendedNewick(AnnotatedNetwork &ann_network);
 std::string toExtendedNewick(Network &network);
 Network convertUtreeToNetwork(const pll_utree_t &utree, unsigned int maxReticulations);
+void updateNetwork(AnnotatedNetwork &ann_network);
 
 }

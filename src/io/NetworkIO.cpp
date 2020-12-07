@@ -344,7 +344,7 @@ std::string newickNodeName(Network &network, const Node *node, const Node *paren
         }
         sb << "#" << retLabel;
         Link *link = node->getReticulationData()->getLinkToFirstParent();
-        double prob = getReticulationFirstParentProb(network, node);
+        double prob = network.edges_by_index[node->getReticulationData()->getLinkToFirstParent()->edge_pmatrix_index]->prob;
         if (getReticulationSecondParent(network, node) == parent) {
             link = node->getReticulationData()->getLinkToSecondParent();
             prob = 1.0 - prob;
@@ -388,9 +388,42 @@ std::string printNodeNewick(Network &network, Node *node, Node *parent,
     return sb.str();
 }
 
+void updateNetwork(AnnotatedNetwork &ann_network) {
+    // If we have unlinked branch lenghts/probs, replace the entries in the network by their average
+    if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
+        for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
+            double lenSum = 0.0;
+            size_t pmatrix_index = ann_network.network.edges[i].pmatrix_index;
+            for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+                lenSum += ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index];
+            }
+            ann_network.network.edges_by_index[pmatrix_index]->length = lenSum
+                    / ann_network.fake_treeinfo->partition_count;
+        }
+    } else {
+        for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
+            double lenSum = 0.0;
+            size_t pmatrix_index = ann_network.network.edges[i].pmatrix_index;
+            ann_network.network.edges_by_index[pmatrix_index]->length = ann_network.fake_treeinfo->branch_lengths[0][pmatrix_index];
+        }
+    }
+
+    for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
+        size_t pmatrix_index = getReticulationFirstParentPmatrixIndex(ann_network.network.reticulation_nodes[i]);
+        size_t contra_pmatrix_index = getReticulationSecondParentPmatrixIndex(ann_network.network.reticulation_nodes[i]);
+        ann_network.network.edges_by_index[pmatrix_index]->prob = ann_network.branch_probs[pmatrix_index];
+        ann_network.network.edges_by_index[contra_pmatrix_index]->prob = ann_network.branch_probs[contra_pmatrix_index];
+    }
+}
+
 std::string toExtendedNewick(Network &network) {
     std::unordered_set<Node*> visited_reticulations;
     return printNodeNewick(network, network.root, nullptr, visited_reticulations) + ";";
+}
+
+std::string toExtendedNewick(AnnotatedNetwork &ann_network) {
+    updateNetwork(ann_network);
+    return toExtendedNewick(ann_network.network);
 }
 
 Network convertUtreeToNetwork(const pll_utree_t &utree, unsigned int maxReticulations) {

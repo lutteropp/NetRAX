@@ -236,7 +236,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
 
         std::cout << "  param_count: " << get_param_count(ann_network) << ", sample_size:" << get_sample_size << "\n";
         std::cout << "  num_reticulations: " << ann_network.network.num_reticulations() << "\n";
-        std::cout << toExtendedNewick(ann_network.network) << "\n";
+        std::cout << toExtendedNewick(ann_network) << "\n";
     }
     return best_score;
 }

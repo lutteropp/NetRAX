@@ -88,48 +88,32 @@ Node* getReticulationNonActiveParent(Network &network, const Node *node) {
     return getTargetNode(network, node->getReticulationData()->getLinkToNonActiveParent());
 }
 
-double getReticulationFirstParentProb(Network &network, const Node *node) {
+double getReticulationFirstParentProb(AnnotatedNetwork &ann_network, const Node *node) {
     assert(node);
     assert(node->type == NodeType::RETICULATION_NODE);
-    if ( network.edges_by_index[node->getReticulationData()->link_to_first_parent->edge_pmatrix_index]->prob
-        + network.edges_by_index[node->getReticulationData()->link_to_second_parent->edge_pmatrix_index]->prob
-        != 1.0) {
-            std::cout << "first parent link_index: " << node->getReticulationData()->link_to_first_parent->link_clv_index << "\n";
-            std::cout << "second parent link_index: " << node->getReticulationData()->link_to_second_parent->link_clv_index << "\n";
-            std::cout << "first parent pmatrix_index: " << node->getReticulationData()->link_to_first_parent->edge_pmatrix_index << "\n";
-            std::cout << "second parent pmatrix_index: " << node->getReticulationData()->link_to_second_parent->edge_pmatrix_index << "\n";
-            std::cout << "first parent prob: " << network.edges_by_index[node->getReticulationData()->link_to_first_parent->edge_pmatrix_index]->prob << "\n";
-            std::cout << "second parent prob: " << network.edges_by_index[node->getReticulationData()->link_to_second_parent->edge_pmatrix_index]->prob << "\n";
-            std::cout << "sum: " << network.edges_by_index[node->getReticulationData()->link_to_first_parent->edge_pmatrix_index]->prob
-        + network.edges_by_index[node->getReticulationData()->link_to_second_parent->edge_pmatrix_index]->prob << "\n";
 
-        std::cout << exportDebugInfo(network) << "\n";
-    }
-    assert(
-            network.edges_by_index[node->getReticulationData()->link_to_first_parent->edge_pmatrix_index]->prob
-                    + network.edges_by_index[node->getReticulationData()->link_to_second_parent->edge_pmatrix_index]->prob
-                    == 1.0);
-    return network.edges_by_index[node->getReticulationData()->link_to_first_parent->edge_pmatrix_index]->prob;
+    size_t first_parent_pmatrix_index = getReticulationFirstParentPmatrixIndex(node);
+    size_t second_parent_pmatrix_index = getReticulationSecondParentPmatrixIndex(node);
+    assert(ann_network.branch_probs[first_parent_pmatrix_index] + ann_network.branch_probs[second_parent_pmatrix_index] == 1.0);
+
+    return ann_network.branch_probs[first_parent_pmatrix_index];
 }
 
-double getReticulationSecondParentProb(Network &network, const Node *node) {
+double getReticulationSecondParentProb(AnnotatedNetwork &ann_network, const Node *node) {
     assert(node);
     assert(node->type == NodeType::RETICULATION_NODE);
-    assert(
-            network.edges_by_index[node->getReticulationData()->link_to_first_parent->edge_pmatrix_index]->prob
-                    + network.edges_by_index[node->getReticulationData()->link_to_second_parent->edge_pmatrix_index]->prob
-                    == 1.0);
-    return network.edges_by_index[node->getReticulationData()->link_to_second_parent->edge_pmatrix_index]->prob;
+
+    size_t first_parent_pmatrix_index = getReticulationFirstParentPmatrixIndex(node);
+    size_t second_parent_pmatrix_index = getReticulationSecondParentPmatrixIndex(node);
+    assert(ann_network.branch_probs[first_parent_pmatrix_index] + ann_network.branch_probs[second_parent_pmatrix_index] == 1.0);
+
+    return ann_network.branch_probs[second_parent_pmatrix_index];
 }
 
-double getReticulationActiveProb(Network &network, const Node *node) {
+double getReticulationActiveProb(AnnotatedNetwork &ann_network, const Node *node) {
     assert(node);
     assert(node->type == NodeType::RETICULATION_NODE);
-    assert(
-            network.edges_by_index[node->getReticulationData()->link_to_first_parent->edge_pmatrix_index]->prob
-                    + network.edges_by_index[node->getReticulationData()->link_to_second_parent->edge_pmatrix_index]->prob
-                    == 1.0);
-    return network.edges_by_index[node->getReticulationData()->getLinkToActiveParent()->edge_pmatrix_index]->prob;
+    return ann_network.branch_probs[node->getReticulationData()->getLinkToActiveParent()->edge_pmatrix_index];
 }
 
 size_t getReticulationFirstParentPmatrixIndex(const Node *node) {
@@ -478,7 +462,7 @@ void assertReticulationProbs(AnnotatedNetwork &ann_network) {
     }
     for (size_t p = 0; p < n_partitions; ++p) {
         for (size_t i = 0; i < ann_network.network.reticulation_nodes.size(); ++i) {
-            double actProb = getReticulationActiveProb(ann_network.network,
+            double actProb = getReticulationActiveProb(ann_network,
                     ann_network.network.reticulation_nodes[i]);
             assert(actProb >= 0 && actProb <= 1);
         }

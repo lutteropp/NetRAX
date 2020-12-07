@@ -78,10 +78,10 @@ TEST (SystemTest, allTreeOldRaxml) {
 
 void completeRun(AnnotatedNetwork &ann_network) {
     //std::cout << exportDebugInfo(ann_network.network) << "\n";
-    std::cout << toExtendedNewick(ann_network.network) << "\n";
+    std::cout << toExtendedNewick(ann_network) << "\n";
     NetraxInstance::optimizeEverything(ann_network);
     //std::cout << exportDebugInfo(ann_network.network) << "\n";
-    std::cout << toExtendedNewick(ann_network.network) << "\n";
+    std::cout << toExtendedNewick(ann_network) << "\n";
 }
 
 TEST (SystemTest, allTree) {
