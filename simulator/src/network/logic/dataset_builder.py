@@ -1,5 +1,5 @@
 
-from experiment_model import Dataset, SamplingType, SimulationType, InferenceType
+from experiment_model import Dataset, SamplingType, SimulatorType, LikelihoodType, BrlenLinkageType, StartType, InferenceVariant
 from netrax_wrapper import generate_random_network, extract_displayed_trees
 from seqgen_wrapper import simulate_msa
 from celine_simulator import CelineParams, simulate_network_celine
@@ -7,30 +7,21 @@ from celine_simulator import CelineParams, simulate_network_celine
 import math
 import random
 
-def create_dataset_container(n_taxa, n_reticulations, approx_msa_size, sampling_type, simulation_type, likelihood_type, inference_type, name, timeout=0, m=1, num_start_networks=10):
+def create_dataset_container(n_taxa, n_reticulations, approx_msa_size, sampling_type, simulation_type, likelihood_types, brlen_linkage_types, start_types, my_id, name, timeout=0, m=1, num_start_networks=10):
     ds = Dataset()
+    ds.my_id = my_id
     ds.n_taxa = n_taxa
     ds.n_reticulations = n_reticulations
     ds.msa_path = name + "_msa.txt"
     ds.partitions_path = name + "_partitions.txt"
     ds.extracted_trees_path = name + "_trees.txt"
     ds.true_network_path = name + "_true_network.nw"
-    ds.inferred_network_path = name + "_inferred_network.nw"
-    ds.inferred_network_with_raxml_path = name + "_inferred_network_with_raxml.nw"
     ds.raxml_tree_path = name + ".raxml.bestTree"
     ds.name = name
     ds.sampling_type = sampling_type
     ds.simulation_type = simulation_type
-    ds.likelihood_type = likelihood_type
     ds.timeout = timeout
     ds.num_start_networks = num_start_networks
-    ds.inference_type = inference_type
-    if inference_type == InferenceType.RANDOM_ONLY:
-        ds.start_from_raxml = False
-        
-    if inference_type == InferenceType.FROM_RAXML_ONLY:
-        ds.n_random_start_networks = 0
-        ds.n_parsimony_start_networks = 0
     
     ds.n_trees = 2 ** n_reticulations
     if sampling_type == SamplingType.STANDARD:
@@ -43,6 +34,18 @@ def create_dataset_container(n_taxa, n_reticulations, approx_msa_size, sampling_
     if sampling_type == SamplingType.SINGLE_SITE_SAMPLING:
         ds.sites_per_tree = 1
         ds.n_trees = approx_msa_size
+        
+    for likelihood_type in likelihood_types:
+        for brlen_linkage_type in brlen_linkage_types:
+            for start_type in start_types:
+                var = InferenceVariant(likelihood_type, brlen_linkage_type, start_type, name)
+                if start_type == StartType.RANDOM:
+                    var.n_random_start_networks = num_start_networks
+                    var.n_parsimony_start_networks = num_start_networks
+                elif start_type == StartType.ENDLESS:
+                    var.timeout = timeout
+                ds.inference_variants.append(var)
+        
     return ds
     
     
@@ -82,8 +85,8 @@ def build_trees_file(ds, trees_newick, sampled_trees_contrib):
     partitions_file.close()
     
     
-def build_dataset(n_taxa, n_reticulations, approx_msa_size, sampling_type, simulation_type, likelihood_type, inference_type, name, timeout=0, m=1, num_start_networks=5):
-    ds = create_dataset_container(n_taxa, n_reticulations, approx_msa_size, sampling_type, simulation_type, likelihood_type, inference_type, name, timeout, m, num_start_networks)
+def build_dataset(n_taxa, n_reticulations, approx_msa_size, sampling_type, simulation_type, likelihood_types, brlen_linkage_types, start_types, name, timeout=0, m=1, num_start_networks=5):
+    ds = create_dataset_container(n_taxa, n_reticulations, approx_msa_size, sampling_type, simulation_type, likelihood_types, brlen_linkage_types, start_types, name, timeout, m, num_start_networks)
     if simulation_type == SimulationType.SARAH:
         generate_random_network(ds.n_taxa, ds.n_reticulations, ds.true_network_path)
     else:

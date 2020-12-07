@@ -2,16 +2,25 @@ import subprocess
 import os
 import time
 
-from experiment_model import LikelihoodType, InferenceType
+from experiment_model import LikelihoodType, BrlenLinkageType, StartType
 
 NETRAX_PATH = "/home/sarah/code-workspace/NetRAX/bin/netrax"
 
 
 # Uses NetRAX to compute the number of reticulations, BIC score, and loglikelihood of a network for a given MSA
-def score_network(network_path, msa_path, partitions_path, likelihood_type):
+def score_network(network_path, msa_path, partitions_path, likelihood_type, brlen_linkage_type):
     netrax_cmd = NETRAX_PATH + " --score_only" + " --start_network " + network_path + " --msa " + msa_path + " --model " + partitions_path
+    
     if likelihood_type == LikelihoodType.BEST:
         netrax_cmd += " --best_displayed_tree_variant"
+        
+    if brlen_linkage_type == BrlenLinkageType.UNLINKED:
+        netrax_cmd += " --brlen unlinked"
+    elif brlen_linkage_type == BrlenLinkageType.LINKED:
+        netrax_cmd += " --brlen linked"
+    else:
+        netrax_cmd += " --brlen scaled"
+        
     print(netrax_cmd)
     netrax_output = subprocess.getoutput(netrax_cmd).splitlines()
     print(netrax_output)
@@ -26,35 +35,31 @@ def score_network(network_path, msa_path, partitions_path, likelihood_type):
     return n_reticulations, bic, logl
     
     
-# Uses NetRAX to infer a network... uses few random starting network if timeout==0, else keeps searching for a better network until timeout seconds have passed.
-def infer_network(ds):
-    runtime_inference = 0
-    runtime_inference_with_raxml = 0
-    
-    if ds.inference_type != InferenceType.FROM_RAXML_ONLY:
-        netrax_cmd = NETRAX_PATH + " --msa " + ds.msa_path + " --model " + ds.partitions_path + " --output " + ds.inferred_network_path
-        if ds.likelihood_type == LikelihoodType.BEST:
+def infer_networks(ds):
+    runtime = 0
+    netrax_cmd_start = NETRAX_PATH + " --msa " + ds.msa_path + " --model " + ds.partitions_path
+    for var in ds.inference_variants:
+        netrax_cmd = netrax_cmd_start + " --output " + var.inferred_network_path
+        if var.likelihood_type == LikelihoodType.BEST:
             netrax_cmd += " --best_displayed_tree_variant"
-        if ds.timeout > 0:
-            netrax_cmd += " --endless --timeout " + str(ds.timeout)
+            
+        if var.start_type == StartType.ENDLESS:
+            netrax_cmd += " --endless --timeout " + str(var.timeout)
+        elif var.start_type == StartType.RANDOM:
+            netrax_cmd += " --num_random_start_networks " + str(var.n_random_start_networks) + " --num_parsimony_start_networks " + str(var.n_parsimony_start_networks)
+        else: # StartType.FROM_RAXML
+            netrax_cmd += " --start_network " + ds.raxml_tree_path
+            
+        if var.brlen_linkage_type == BrlenLinkageType.UNLINKED:
+            netrax_cmd += " --brlen unlinked"
+        elif var.brlen_linkage_type == BrlenLinkageType.LINKED:
+            netrax_cmd += " --brlen linked"
         else:
-            netrax_cmd += " --num_random_start_networks " + str(ds.n_random_start_networks) + " --num_parsimony_start_networks " + str(ds.n_parsimony_start_networks)
-        print(netrax_cmd)
-        
-        start_normal = time.time()
+            netrax_cmd += " --brlen scaled"    
+            
+        start_time = time.time()
         print(subprocess.getoutput(netrax_cmd))
-        runtime_inference = round(time.time() - start_normal, 3)
-    
-    if ds.start_from_raxml:
-        netrax_cmd_2 = NETRAX_PATH + " --msa " + ds.msa_path + " --model " + ds.partitions_path + " --output " + ds.inferred_network_with_raxml_path + " --start_network " + ds.raxml_tree_path
-        if ds.likelihood_type == LikelihoodType.BEST:
-            netrax_cmd_2 += " --best_displayed_tree_variant"
-        print(netrax_cmd_2)
- 
-        start_with_raxml = time.time()
-        print(subprocess.getoutput(netrax_cmd_2))
-        runtime_inference_with_raxml = round(time.time() - start_with_raxml, 3)
-    return runtime_inference, runtime_inference_with_raxml
+        var.runtime_inference = round(time.time() - start_time, 3)
     
     
 # Extracts all displayed trees of a given network, returning two lists: one containing the NEWICK strings, and one containing the tree probabilities

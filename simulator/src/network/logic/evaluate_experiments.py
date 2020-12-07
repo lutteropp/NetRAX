@@ -10,61 +10,46 @@ def retrieve_topological_distances(network_1_path, network_2_path):
     return get_dendro_scores(network_1, network_2)
 
 
-def evaluate_dataset(dataset):
-    res = Result(dataset)
-    _, res.bic_true, res.logl_true = score_network(dataset.true_network_path, dataset.msa_path, dataset.partitions_path, dataset.likelihood_type)
-    if dataset.inference_type != InferenceType.FROM_RAXML_ONLY:
-        res.n_reticulations_inferred, res.bic_inferred, res.logl_inferred = score_network(dataset.inferred_network_path, dataset.msa_path, dataset.partitions_path, dataset.likelihood_type)
-    _, res.bic_raxml, res.logl_raxml = score_network(dataset.raxml_tree_path, dataset.msa_path, dataset.partitions_path, dataset.likelihood_type)
+def evaluate_dataset(ds):
+    rf_absolute_raxml = -1
+    rf_relative_raxml = -1
+    if ds.n_reticulations == 0:
+        rf_absolute_raxml, rf_relative_raxml = compute_rf_dist(ds.true_network_path, ds.raxml_tree_path)
     
-    if dataset.start_from_raxml:
-        res.n_reticulations_inferred_with_raxml, res.bic_inferred_with_raxml, res.logl_inferred_with_raxml = score_network(dataset.inferred_network_with_raxml_path, dataset.msa_path, dataset.partitions_path, dataset.likelihood_type)
-        res.topological_distances_with_raxml = retrieve_topological_distances(dataset.true_network_path, dataset.inferred_network_with_raxml_path)
-    
-    if dataset.inference_type != InferenceType.FROM_RAXML_ONLY:
-        res.topological_distances = retrieve_topological_distances(dataset.true_network_path, dataset.inferred_network_path)
+    for var in ds.inference_variants:
+        res = Result()
+        _, res.bic_true, res.logl_true = score_network(ds.true_network_path, ds.msa_path, ds.partitions_path, var.likelihood_type, var.brlen_linkage_type)
+        _, res.bic_raxml, res.logl_raxml = score_network(ds.raxml_tree_path, ds.msa_path, ds.partitions_path, var.likelihood_type, var.brlen_linkage_type)
+        res.n_reticulations_inferred, res.bic_inferred, res.logl_inferred = score_network(var.inferred_network_path, ds.msa_path, ds.partitions_path, var.likelihood_type, var.brlen_linkage_type)
+        res.topological_distances = retrieve_topological_distances(ds.true_network_path, var.inferred_network_path)
         
-    if dataset.n_reticulations == 0:
-        res.rf_absolute_raxml, res.rf_relative_raxml = compute_rf_dist(dataset.true_network_path, dataset.raxml_tree_path)
-        if res.n_reticulations_inferred == 0 and dataset.inference_type != InferenceType.FROM_RAXML_ONLY:
-            res.rf_absolute_inferred, res.rf_relative_inferred = compute_rf_dist(dataset.true_network_path, dataset.inferred_network_path)
-        if dataset.start_from_raxml and res.n_reticulations_inferred_with_raxml == 0:
-            res.rf_absolute_inferred_with_raxml, res.rf_relative_inferred_with_raxml = compute_rf_dist(dataset.true_network_path, dataset.inferred_network_with_raxml_path)
-    
-    #print(RESULT_CSV_HEADER+"\n" + res.get_csv_line() + "\n\n")
-    return res
-    
+        if dataset.n_reticulations == 0:
+            res.rf_absolute_raxml = rf_absolute_raxml
+            res.rf_relative_raxml = rf_relative_raxml
+            if res.n_reticulations_inferred == 0:
+                res.rf_absolute_inferred, res.rf_relative_inferred = compute_rf_dist(ds.true_network_path, var.inferred_network_path)
+
+        var.res = res
+
     
 def run_inference_and_evaluate(datasets):
-    results = []
     for ds in datasets:
-        near_zero_branches = infer_raxml_tree(ds)
-        runtime_inference, runtime_inference_with_raxml = infer_network(ds)
-        res = evaluate_dataset(ds)
-        res.near_zero_branches_raxml = near_zero_branches
-        res.runtime_inference = runtime_inference
-        res.runtime_inference_with_raxml = runtime_inference_with_raxml
-        results.append(res)
-    return results
+        ds.near_zero_branches_raxml = infer_raxml_tree(ds)
+        infer_networks(ds)
+        evaluate_dataset(ds)
     
 
-def write_results_to_csv(results, csv_path):
+def write_results_to_csv(ds, csv_path):
     csv_file = open(csv_path, "w")
-    header = DATASET_CSV_HEADER + "," + RESULT_CSV_HEADER
+    header = DATASET_CSV_HEADER + "," + INFERENCE_VARIANT_CSV_HEADER + "," + RESULT_CSV_HEADER
     csv_file.write(header + "\n")
-    for res in results:
-        if res.dataset.inference_type != InferenceType.FROM_RAXML_ONLY:
-            line = str(res.dataset.get_csv_line() + "," + res.get_csv_line() + "\n")
-            csv_file.write(line)
-        if res.dataset.start_from_raxml:
-            line2 = str(res.dataset.get_csv_line_with_raxml() + "," + res.get_csv_line_with_raxml() + "\n")
-            csv_file.write(line2)
+    
+    for var in ds.inference_variants:
+        line = ds.get_csv_line() + "," + var.get_csv_line() + "," + var.res.get_csv_line() + "\n"
+        csv_file.write(line)
+        
     csv_file.close()
 
 
-def run_experiments():
-    pass
-
-
 if __name__ == "__init__":
-    run_experiments()
+    pass
