@@ -46,12 +46,14 @@ size_t get_param_count(AnnotatedNetwork& ann_network) {
     // reticulation probs as free parameters
     param_count += ann_network.network.num_reticulations();
     if (ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
+        assert(ann_network.fake_treeinfo->partition_count > 1);
         param_count += ann_network.fake_treeinfo->partition_count * network.num_branches();
     } else { // branch lengths are shared among partitions
         param_count += network.num_branches();
         if (ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED) {
+            assert(ann_network.fake_treeinfo->partition_count > 1);
             // each partition can scale the branch lengths by its own scaling factor
-            param_count += ann_network.fake_treeinfo->partition_count;
+            param_count += ann_network.fake_treeinfo->partition_count - 1;
         }
     }
     return param_count;
