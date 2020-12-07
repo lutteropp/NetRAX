@@ -41,7 +41,7 @@ static double brent_target_networks(void *p, double x) {
     double old_x = ann_network->fake_treeinfo->branch_lengths[partition_index][pmatrix_index];
     double score;
     if (old_x == x) {
-        score = -1 * computeLoglikelihood(*ann_network, 1, 1, false);
+        score = -1 * computeLoglikelihood(*ann_network, 1, 1);
     } else {
         ann_network->fake_treeinfo->branch_lengths[partition_index][pmatrix_index] = x;
         ann_network->network.edges_by_index[pmatrix_index]->length = x;
@@ -49,7 +49,7 @@ static double brent_target_networks(void *p, double x) {
         invalidateHigherCLVs(*ann_network,
                 getSource(ann_network->network, ann_network->network.edges_by_index[pmatrix_index]),
                 true);
-        score = -1 * computeLoglikelihood(*ann_network, 1, 1, false);
+        score = -1 * computeLoglikelihood(*ann_network, 1, 1);
         //std::cout << "    score: " << score << ", x: " << x << ", old_x: " << old_x << ", pmatrix index:"
         //        << pmatrix_index << "\n";
     }
@@ -63,13 +63,13 @@ static double brent_target_networks_prob(void *p, double x) {
     double old_x = ann_network->branch_probs[pmatrix_index];
     double score;
     if (old_x == x) {
-        score = -1 * computeLoglikelihood(*ann_network, 1, 1, false);
+        score = -1 * computeLoglikelihood(*ann_network, 1, 1);
     } else {
         ann_network->branch_probs[pmatrix_index] = x;
         ann_network->branch_probs[contra_pmatrix_index] = 1.0 - x;
         ann_network->network.edges_by_index[pmatrix_index]->prob = x;
         ann_network->network.edges_by_index[contra_pmatrix_index]->prob = 1.0 - x;
-        score = -1 * computeLoglikelihood(*ann_network, 1, 1, false);
+        score = -1 * computeLoglikelihood(*ann_network, 1, 1);
         //std::cout << "    score: " << score << ", x: " << x << ", old_x: " << old_x << ", pmatrix index:"
         //        << pmatrix_index << "\n";
     }
@@ -82,7 +82,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, int max_iters, int *act_it
     double max_brlen = ann_network.options.brlen_max;
     double tolerance = ann_network.options.tolerance;
 
-    double start_logl = computeLoglikelihood(ann_network, 1, 1, false);
+    double start_logl = computeLoglikelihood(ann_network, 1, 1);
     double old_logl = ann_network.raxml_treeinfo->loglh(true);
     assert(start_logl == old_logl);
 
@@ -113,7 +113,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, int max_iters, int *act_it
 
     //std::cout << "  score: " << score << "\n";
     //std::cout << "  old_brlen: " << old_brlen << ", new_brlen: " << new_brlen << "\n";
-    best_logl = computeLoglikelihood(ann_network, 1, 1, false);
+    best_logl = computeLoglikelihood(ann_network, 1, 1);
     //std::cout << " start logl for branch " << pmatrix_index << " with length " << start_brlen << ": " << start_logl
     //        << "\n";
     //std::cout << "   end logl for branch " << pmatrix_index << " with length " << new_brlen << ": " << best_logl
@@ -128,7 +128,7 @@ double optimize_reticulation(AnnotatedNetwork &ann_network, size_t reticulation_
     double max_brprob = ann_network.options.brprob_max;
     double tolerance = ann_network.options.tolerance;
 
-    double start_logl = computeLoglikelihood(ann_network, 1, 1, false);
+    double start_logl = computeLoglikelihood(ann_network, 1, 1);
     double old_logl = ann_network.raxml_treeinfo->loglh(true);
     assert(start_logl == old_logl);
 
@@ -157,7 +157,7 @@ double optimize_reticulation(AnnotatedNetwork &ann_network, size_t reticulation_
 
     //std::cout << "  score: " << score << "\n";
     //std::cout << "  old_brlen: " << old_brlen << ", new_brlen: " << new_brlen << "\n";
-    best_logl = computeLoglikelihood(ann_network, 1, 1, false);
+    best_logl = computeLoglikelihood(ann_network, 1, 1);
     //std::cout << " start logl for branch " << pmatrix_index << " with length " << start_brlen << ": " << start_logl
     //        << "\n";
     //std::cout << "   end logl for branch " << pmatrix_index << " with length " << new_brlen << ": " << best_logl

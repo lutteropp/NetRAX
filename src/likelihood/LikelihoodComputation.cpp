@@ -234,100 +234,10 @@ std::vector<DisplayedTreeData> process_partition_new(AnnotatedNetwork &ann_netwo
     return displayed_trees;
 }
 
-bool update_reticulation_probs_linked(AnnotatedNetwork &ann_network, const std::vector<std::vector<DisplayedTreeData>>& displayed_trees_all) {
-    bool changed = false;
-    unsigned int n_sites_total = 0;
-    std::vector<size_t> total_taken(ann_network.network.num_reticulations(), 0);
-
-    for (size_t partition_idx = 0; partition_idx < ann_network.fake_treeinfo->partition_count; ++partition_idx) {
-        size_t n_sites = displayed_trees_all[partition_idx][0].tree_persite_logl.size();
-        n_sites_total += ann_network.fake_treeinfo->partitions[partition_idx]->pattern_weight_sum;
-        std::vector<double> best_persite_logl(n_sites, -std::numeric_limits<double>::infinity());
-        std::vector<size_t> best_tree_idx(n_sites, 0);
-        for (const auto &tree : displayed_trees_all[partition_idx]) {
-            for (size_t i = 0; i < tree.tree_persite_logl.size(); ++i) {
-                if (tree.tree_persite_logl[i] > best_persite_logl[i]) {
-                    best_persite_logl[i] = tree.tree_persite_logl[i];
-                    best_tree_idx[i] = tree.tree_idx;
-                }
-            }
-        }
-        for (size_t i = 0; i < n_sites; ++i) {
-            // find the reticulation nodes that have taken their first parent in the best tree
-            unsigned int site_weight = ann_network.fake_treeinfo->partitions[partition_idx]->pattern_weights[i];
-            for (size_t j = 0; j < ann_network.network.num_reticulations(); ++j) {
-                if (!(best_tree_idx[i] & (1 << j))) {
-                    total_taken[j] += site_weight;
-                }
-            }
-        }
-    }
-
-    for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
-        size_t pmatrix_index_first_parent = getReticulationFirstParentPmatrixIndex(ann_network.network.reticulation_nodes[i]);
-        double old_prob = ann_network.branch_probs[pmatrix_index_first_parent];
-        double new_prob = (double) total_taken[i] / n_sites_total;
-        ann_network.branch_probs[pmatrix_index_first_parent] = new_prob;
-        ann_network.network.edges_by_index[pmatrix_index_first_parent]->prob = new_prob;
-        size_t pmatrix_index_second_parent = getReticulationSecondParentPmatrixIndex(ann_network.network.reticulation_nodes[i]);
-        ann_network.branch_probs[pmatrix_index_second_parent] = 1.0 - new_prob;
-        ann_network.network.edges_by_index[pmatrix_index_second_parent]->prob = 1.0 - new_prob;
-        changed |= (old_prob != new_prob);
-    }
-
-    return changed;
-}
-
-double recompute_network_logl_average_trees(AnnotatedNetwork &ann_network, std::vector<std::vector<DisplayedTreeData>>& displayed_trees_all) {
-    mpfr::mpreal network_logl = 0.0;
-    pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
-    for (size_t partition_idx = 0; partition_idx < fake_treeinfo.partition_count; ++partition_idx) {
-        mpfr::mpreal partition_lh = 0.0;
-        for (auto& tree : displayed_trees_all[partition_idx]) {
-            // update tree logprob with the new reticulation probabilities
-            tree.tree_logprob = displayed_tree_logprob(ann_network, tree.tree_idx);
-            assert(tree.tree_logl != 0);
-            partition_lh += mpfr::exp(tree.tree_logprob) * mpfr::exp(tree.tree_logl);
-        }
-        fake_treeinfo.partition_loglh[partition_idx] = mpfr::log(partition_lh).toDouble();
-        network_logl += mpfr::log(partition_lh);
-    }
-    ann_network.old_logl = network_logl.toDouble();
-    return ann_network.old_logl;
-}
-
-double recompute_network_logl_best_tree(AnnotatedNetwork &ann_network, std::vector<std::vector<DisplayedTreeData>>& displayed_trees_all) {
-    double network_logl = 0.0;
-    pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
-    for (size_t partition_idx = 0; partition_idx < fake_treeinfo.partition_count; ++partition_idx) {
-        double partition_logl = std::numeric_limits<double>::min();
-        for (auto& tree : displayed_trees_all[partition_idx]) {
-            // update tree logprob with the new reticulation probabilities
-            tree.tree_logprob = displayed_tree_logprob(ann_network, tree.tree_idx);
-            assert(tree.tree_logl != 0);
-            partition_logl = std::max(partition_logl, tree.tree_logprob + tree.tree_logl);
-        }
-        fake_treeinfo.partition_loglh[partition_idx] = partition_logl;
-        network_logl += partition_logl;
-    }
-    ann_network.old_logl = network_logl;
-    return ann_network.old_logl;
-}
-
-double recompute_network_logl(AnnotatedNetwork &ann_network, std::vector<std::vector<DisplayedTreeData>>& displayed_trees_all) {
-    if (ann_network.options.likelihood_variant == LikelihoodVariant::AVERAGE_DISPLAYED_TREES) {
-        return recompute_network_logl_average_trees(ann_network, displayed_trees_all);
-    } else { // LikelihoodVariant::BEST_DISPLAYED_TREE
-        return recompute_network_logl_best_tree(ann_network, displayed_trees_all);
-    }
-}
-
-double computeLoglikelihood_new(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices,
-        bool update_reticulation_probs) {
+double computeLoglikelihood_new(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices) {
     Network &network = ann_network.network;
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
-    if (incremental & fake_treeinfo.clv_valid[0][network.root->clv_index]
-            & !update_reticulation_probs) {
+    if (incremental & fake_treeinfo.clv_valid[0][network.root->clv_index]) {
         return ann_network.old_logl;
     }
 
@@ -340,8 +250,6 @@ double computeLoglikelihood_new(AnnotatedNetwork &ann_network, int incremental, 
     bool unlinked_mode = (fake_treeinfo.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
     std::vector<bool> touched(network.nodes.size(), false);
     std::vector<Node*> parent = grab_current_node_parents(network);
-    bool reticulation_probs_changed = false;
-    std::vector<std::vector<DisplayedTreeData>> displayed_trees_all;
 
     for (size_t partition_idx = 0; partition_idx < fake_treeinfo.partition_count; ++partition_idx) {
         fake_treeinfo.active_partition = partition_idx;
@@ -368,20 +276,9 @@ double computeLoglikelihood_new(AnnotatedNetwork &ann_network, int incremental, 
             fake_treeinfo.partition_loglh[partition_idx] = partition_logl;
             network_logl += partition_logl;
         }
-
-        if (update_reticulation_probs) {
-            displayed_trees_all.emplace_back(displayed_trees);
-        }
-    }
-    if (update_reticulation_probs) {
-        reticulation_probs_changed = update_reticulation_probs_linked(ann_network, displayed_trees_all);
     }
 
     ann_network.old_logl = network_logl.toDouble();
-
-    if (reticulation_probs_changed) {
-        recompute_network_logl(ann_network, displayed_trees_all);
-    }
     //std::cout << "network logl: " << ann_network.old_logl << "\n";
     return ann_network.old_logl;
 }
@@ -437,9 +334,8 @@ double computeLoglikelihoodNaiveUtree(AnnotatedNetwork &ann_network, int increme
 }
 
 
-double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices,
-        bool update_reticulation_probs) {
-    return computeLoglikelihood_new(ann_network, incremental, update_pmatrices, update_reticulation_probs);
+double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices) {
+    return computeLoglikelihood_new(ann_network, incremental, update_pmatrices);
 }
 
 }

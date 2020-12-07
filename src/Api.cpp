@@ -65,7 +65,7 @@ void NetraxInstance::init_annotated_network(AnnotatedNetwork &ann_network, std::
     ann_network.raxml_treeinfo = std::unique_ptr<TreeInfo>(wrapper.createRaxmlTreeinfo(ann_network));
 
     assert(static_cast<RaxmlWrapper::NetworkParams*>(ann_network.raxml_treeinfo->pll_treeinfo().likelihood_computation_params)->ann_network == &ann_network);
-    netrax::computeLoglikelihood(ann_network, false, true, false);
+    netrax::computeLoglikelihood(ann_network, false, true);
 }
 
 void NetraxInstance::init_annotated_network(AnnotatedNetwork &ann_network) {
@@ -212,11 +212,7 @@ void NetraxInstance::updateReticulationProbs(AnnotatedNetwork &ann_network) {
         return;
     }
     double old_score = scoreNetwork(ann_network);
-    if (ann_network.options.use_nepal_prob_estimation) {
-        netrax::computeLoglikelihood(ann_network, 0, 1, true);
-    } else {
-        netrax::optimize_reticulations(ann_network, 100);
-    }
+    netrax::optimize_reticulations(ann_network, 100);
     double new_score = scoreNetwork(ann_network);
     std::cout << "BIC score after updating reticulation probs: " << new_score << "\n";
     assert(new_score <= old_score);

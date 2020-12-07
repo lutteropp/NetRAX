@@ -267,10 +267,10 @@ void incrementalTest(const std::string &networkPath, const std::string &msaPath)
     //std::cout << exportDebugInfo(network) << "\n";
     ASSERT_TRUE(networkIsConnected(network));
 
-    double initial_logl = computeLoglikelihood(ann_network, 0, 1, false);
+    double initial_logl = computeLoglikelihood(ann_network, 0, 1);
     ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
 
-    double first_repeat = computeLoglikelihood(ann_network, 1, 0, false);
+    double first_repeat = computeLoglikelihood(ann_network, 1, 0);
     ASSERT_NE(first_repeat, -std::numeric_limits<double>::infinity());
 
     EXPECT_DOUBLE_EQ(first_repeat, initial_logl);
