@@ -16,9 +16,6 @@ std::vector<std::vector<double> > extract_brlens_partitions(AnnotatedNetwork &an
         for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
             size_t pmatrix_index = ann_network.network.edges[i].pmatrix_index;
             assert(ann_network.network.edges_by_index[pmatrix_index] == &ann_network.network.edges[i]);
-            if (n_partitions == 1) {
-                assert(ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] == ann_network.network.edges_by_index[pmatrix_index]->length);
-            }
             res[p][pmatrix_index] = ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index];
         }
     }
