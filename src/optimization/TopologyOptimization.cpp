@@ -143,9 +143,8 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     NetworkState best_state = start_state;
 
     for (size_t i = 0; i < candidates.size(); ++i) {
-
-        std::cout << "Extensive BIC info before applying current " << toString(candidates[i].moveType) << " move " << i+1 << "/ " << candidates.size() << ":\n";
-        printExtensiveBICInfo(ann_network);
+        //std::cout << "Extensive BIC info before applying current " << toString(candidates[i].moveType) << " move " << i+1 << "/ " << candidates.size() << ":\n";
+        //printExtensiveBICInfo(ann_network);
 
         //std::cout << " " << toString(candidates[i].moveType) << " " << i+1 << "/ " << candidates.size() << "\n";
         performMove(ann_network, candidates[i]);
@@ -163,8 +162,8 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
             optimize_reticulations(ann_network, 100);
         }
 
-        std::cout << "Extensive BIC info after applying current " << toString(candidates[i].moveType) << " move " << i+1 << "/ " << candidates.size() << ":\n";
-        printExtensiveBICInfo(ann_network);
+        //std::cout << "Extensive BIC info after applying current " << toString(candidates[i].moveType) << " move " << i+1 << "/ " << candidates.size() << ":\n";
+        //printExtensiveBICInfo(ann_network);
 
         double new_logl = ann_network.raxml_treeinfo->loglh(true);
         double new_score = bic(ann_network, new_logl);
