@@ -30,12 +30,24 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
     app.add_flag("--extract_displayed_trees", options->extract_displayed_trees, "Only extract all displayed trees with their probabilities from a network.");
     app.add_flag("--extract_taxon_names", options->extract_taxon_names, "Only extract all taxon names from a network.");
     app.add_flag("--generate_random_network_only", options->generate_random_network_only, "Only generate a random network, with as many reticulations as specified in the -r parameter");
-    
+    std::string brlen_linkage = "scaled";
+    app.add_option("--brlen", brlen_linkage, "branch length linkage between partitions (linked, scaled, or unlinked) (default: scaled)");
+
     bool best_displayed_tree_variant = false;
     app.add_flag("--best_displayed_tree_variant", best_displayed_tree_variant, "Use only best displayed tree instead of weighted average in network likelihood formula.");
 
     CLI11_PARSE(app, argc, argv);
     options->likelihood_variant = (best_displayed_tree_variant) ? LikelihoodVariant::BEST_DISPLAYED_TREE : LikelihoodVariant::AVERAGE_DISPLAYED_TREES;
+
+    if (brlen_linkage == "scaled") {
+        options->brlen_linkage = PLLMOD_COMMON_BRLEN_SCALED;
+    } else if (brlen_linkage == "linked") {
+        options->brlen_linkage = PLLMOD_COMMON_BRLEN_LINKED;
+    } else if (brlen_linkage == "unlinked") {
+        options->brlen_linkage = PLLMOD_COMMON_BRLEN_UNLINKED;
+    } else {
+        throw std::runtime_error("brlen_linkage needs to be one of {linked, scaled, unlinked}");
+    }
     return 0;
 }
 
