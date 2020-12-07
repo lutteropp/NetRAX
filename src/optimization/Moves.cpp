@@ -1633,9 +1633,9 @@ void reloadBranchLengthsAndBranchProbs(AnnotatedNetwork &ann_network,
     }
     for (size_t pmatrix_index : affectedPmatrixIndices) {
         assert(network.edges_by_index[pmatrix_index]);
-        for (size_t p = 0; p < partitions; ++p) {
-            ann_network.branch_probs[p][pmatrix_index] =
+        ann_network.branch_probs[pmatrix_index] =
                     network.edges_by_index[pmatrix_index]->prob;
+        for (size_t p = 0; p < partitions; ++p) {
             fake_treeinfo->branch_lengths[p][pmatrix_index] =
                     network.edges_by_index[pmatrix_index]->length;
             fake_treeinfo->pmatrix_valid[p][pmatrix_index] = 0;

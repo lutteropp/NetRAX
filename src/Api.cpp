@@ -36,14 +36,7 @@ namespace netrax {
 
 void allocateBranchProbsArray(AnnotatedNetwork& ann_network) {
     // allocate branch probs array...
-    if (ann_network.options.brlen_linkage != PLLMOD_COMMON_BRLEN_UNLINKED) { // common branches
-        ann_network.branch_probs = std::vector<std::vector<double> >(1,
-                std::vector<double>(ann_network.network.edges.size() + 1, 1.0));
-    } else { // each partition has extra branch properties
-        ann_network.branch_probs = std::vector<std::vector<double> >(
-                ann_network.fake_treeinfo->partition_count,
-                std::vector<double>(ann_network.network.edges.size() + 1, 1.0));
-    }
+     ann_network.branch_probs = std::vector<double>(ann_network.network.edges.size() + 1, 1.0);
 }
 
 /**
@@ -59,16 +52,14 @@ void NetraxInstance::init_annotated_network(AnnotatedNetwork &ann_network, std::
     ann_network.blobInfo = netrax::partitionNetworkIntoBlobs(network, ann_network.travbuffer);
 
     allocateBranchProbsArray(ann_network);
-    for (size_t p = 0; p < ann_network.branch_probs.size(); ++p) {
-        for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
-            Node *retNode = ann_network.network.reticulation_nodes[i];
-            double firstParentProb = netrax::getReticulationFirstParentProb(network, retNode);
-            double secondParentProb = netrax::getReticulationSecondParentProb(network, retNode);
-            size_t firstParentEdgeIndex = netrax::getReticulationFirstParentPmatrixIndex(retNode);
-            size_t secondParentEdgeIndex = netrax::getReticulationSecondParentPmatrixIndex(retNode);
-            ann_network.branch_probs[p][firstParentEdgeIndex] = firstParentProb;
-            ann_network.branch_probs[p][secondParentEdgeIndex] = secondParentProb;
-        }
+    for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
+        Node *retNode = ann_network.network.reticulation_nodes[i];
+        double firstParentProb = netrax::getReticulationFirstParentProb(network, retNode);
+        double secondParentProb = netrax::getReticulationSecondParentProb(network, retNode);
+        size_t firstParentEdgeIndex = netrax::getReticulationFirstParentPmatrixIndex(retNode);
+        size_t secondParentEdgeIndex = netrax::getReticulationSecondParentPmatrixIndex(retNode);
+        ann_network.branch_probs[firstParentEdgeIndex] = firstParentProb;
+        ann_network.branch_probs[secondParentEdgeIndex] = secondParentProb;
     }
     netrax::RaxmlWrapper wrapper(ann_network.options);
     ann_network.raxml_treeinfo = std::unique_ptr<TreeInfo>(wrapper.createRaxmlTreeinfo(ann_network));
@@ -407,11 +398,8 @@ void NetraxInstance::writeNetwork(AnnotatedNetwork &ann_network, const std::stri
             size_t pmatrix_index = ann_network.network.edges[i].pmatrix_index;
             for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
                 lenSum += ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index];
-                probSum += ann_network.branch_probs[p][pmatrix_index];
             }
             ann_network.network.edges[i].length = lenSum
-                    / ann_network.fake_treeinfo->partition_count;
-            ann_network.network.edges[i].prob = probSum
                     / ann_network.fake_treeinfo->partition_count;
         }
     }

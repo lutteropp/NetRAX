@@ -32,7 +32,6 @@ struct BrentBrprobParams {
     AnnotatedNetwork *ann_network;
     size_t pmatrix_index;
     size_t contra_pmatrix_index;
-    size_t partition_index;
 };
 
 static double brent_target_networks(void *p, double x) {
@@ -61,14 +60,13 @@ static double brent_target_networks_prob(void *p, double x) {
     AnnotatedNetwork *ann_network = ((BrentBrprobParams*) p)->ann_network;
     size_t pmatrix_index = ((BrentBrprobParams*) p)->pmatrix_index;
     size_t contra_pmatrix_index = ((BrentBrprobParams*) p)->contra_pmatrix_index;
-    size_t partition_index = ((BrentBrprobParams*) p)->partition_index;
-    double old_x = ann_network->branch_probs[partition_index][pmatrix_index];
+    double old_x = ann_network->branch_probs[pmatrix_index];
     double score;
     if (old_x == x) {
         score = -1 * computeLoglikelihood(*ann_network, 1, 1, false);
     } else {
-        ann_network->branch_probs[partition_index][pmatrix_index] = x;
-        ann_network->branch_probs[partition_index][contra_pmatrix_index] = 1.0 - x;
+        ann_network->branch_probs[pmatrix_index] = x;
+        ann_network->branch_probs[contra_pmatrix_index] = 1.0 - x;
         ann_network->network.edges_by_index[pmatrix_index]->prob = x;
         ann_network->network.edges_by_index[contra_pmatrix_index]->prob = 1.0 - x;
         score = -1 * computeLoglikelihood(*ann_network, 1, 1, false);
@@ -139,7 +137,6 @@ double optimize_reticulation(AnnotatedNetwork &ann_network, size_t reticulation_
     params.ann_network = &ann_network;
     params.pmatrix_index = getReticulationFirstParentPmatrixIndex(ann_network.network.reticulation_nodes[reticulation_index]);
     params.contra_pmatrix_index = getReticulationSecondParentPmatrixIndex(ann_network.network.reticulation_nodes[reticulation_index]);
-    params.partition_index = partition_index;
     double old_brprob = getReticulationFirstParentProb(ann_network.network, ann_network.network.reticulation_nodes[reticulation_index]);
 
     assert(old_brprob >= min_brprob);

@@ -363,28 +363,26 @@ std::vector<pll_operation_t> createOperations(AnnotatedNetwork &ann_network, siz
     return ops;
 }
 
-double displayed_tree_prob(AnnotatedNetwork &ann_network, size_t tree_index,
-        size_t partition_index) {
+double displayed_tree_prob_old(AnnotatedNetwork &ann_network, size_t tree_index) {
     Network &network = ann_network.network;
     setReticulationParents(network, tree_index);
     double logProb = 0;
     for (size_t i = 0; i < network.num_reticulations(); ++i) {
         size_t active_pmatrix_idx = getReticulationActiveParentPmatrixIndex(
                 network.reticulation_nodes[i]);
-        double prob = ann_network.branch_probs[partition_index][active_pmatrix_idx];
+        double prob = ann_network.branch_probs[active_pmatrix_idx];
         logProb += log(prob);
     }
     return exp(logProb);
 }
 
-double displayed_tree_blob_prob(AnnotatedNetwork &ann_network, size_t megablob_idx,
-        size_t partition_index) {
+double displayed_tree_blob_prob(AnnotatedNetwork &ann_network, size_t megablob_idx) {
     BlobInformation &blobInfo = ann_network.blobInfo;
     double logProb = 0;
     for (size_t i = 0; i < blobInfo.reticulation_nodes_per_megablob[megablob_idx].size(); ++i) {
         size_t active_pmatrix_idx = getReticulationActiveParentPmatrixIndex(
                 blobInfo.reticulation_nodes_per_megablob[megablob_idx][i]);
-        double prob = ann_network.branch_probs[partition_index][active_pmatrix_idx];
+        double prob = ann_network.branch_probs[active_pmatrix_idx];
         logProb += log(prob);
     }
     return exp(logProb);
@@ -508,12 +506,12 @@ void setup_pmatrices(AnnotatedNetwork &ann_network, int incremental, int update_
     if (collect_brlen) {
         for (size_t i = 0; i < network.edges.size() + 1; ++i) { // +1 for the the fake entry
             fake_treeinfo.branch_lengths[0][i] = 0.0;
-            ann_network.branch_probs[0][i] = 1.0;
+            ann_network.branch_probs[i] = 1.0;
         }
         for (size_t i = 0; i < network.num_branches(); ++i) {
             fake_treeinfo.branch_lengths[0][network.edges[i].pmatrix_index] =
                     network.edges[i].length;
-            ann_network.branch_probs[0][network.edges[i].pmatrix_index] = network.edges[i].prob;
+            ann_network.branch_probs[network.edges[i].pmatrix_index] = network.edges[i].prob;
         }
         if (update_pmatrices) {
             pllmod_treeinfo_update_prob_matrices(&fake_treeinfo, !incremental);
@@ -600,7 +598,7 @@ void update_total_taken(std::vector<unsigned int> &totalTaken,
     }
 }
 
-bool update_probs(AnnotatedNetwork &ann_network, unsigned int partitionIdx,
+bool update_probs(AnnotatedNetwork &ann_network,
         const std::vector<unsigned int> &totalTaken,
         const std::vector<unsigned int> &totalNotTaken) {
     Network &network = ann_network.network;
@@ -610,13 +608,13 @@ bool update_probs(AnnotatedNetwork &ann_network, unsigned int partitionIdx,
 
         size_t first_parent_pmatrix_index = getReticulationFirstParentPmatrixIndex(
                 network.reticulation_nodes[r]);
-        double oldProb = ann_network.branch_probs[partitionIdx][first_parent_pmatrix_index];
+        double oldProb = ann_network.branch_probs[first_parent_pmatrix_index];
 
         if (newProb != oldProb) {
             size_t second_parent_pmatrix_index = getReticulationSecondParentPmatrixIndex(
                     network.reticulation_nodes[r]);
-            ann_network.branch_probs[partitionIdx][first_parent_pmatrix_index] = newProb;
-            ann_network.branch_probs[partitionIdx][second_parent_pmatrix_index] = 1.0 - newProb;
+            ann_network.branch_probs[first_parent_pmatrix_index] = newProb;
+            ann_network.branch_probs[second_parent_pmatrix_index] = 1.0 - newProb;
             reticulationProbsHaveChanged = true;
         }
     }
@@ -707,7 +705,7 @@ std::vector<double> compute_persite_lh_blobs(AnnotatedNetwork &ann_network,
                 setReticulationParents(blobInfo, megablob_idx, treeIdx);
             }
 
-            double tree_prob = displayed_tree_blob_prob(ann_network, megablob_idx, partitionIdx);
+            double tree_prob = displayed_tree_blob_prob(ann_network, megablob_idx);
             if (tree_prob == 0.0 && !update_reticulation_probs) {
                 continue;
             }
@@ -857,8 +855,7 @@ std::vector<double> compute_persite_lh(AnnotatedNetwork &ann_network, unsigned i
         } else {
             setReticulationParents(network, treeIdx);
         }
-        double tree_prob = displayed_tree_prob(ann_network, treeIdx,
-                unlinked_mode ? 0 : partitionIdx);
+        double tree_prob = displayed_tree_prob_old(ann_network, treeIdx);
         /*if (n_trees == 1) {
          std::cout << "repeat case\n";
          tree_prob = 1.0;
@@ -974,7 +971,7 @@ double processPartition(AnnotatedNetwork &ann_network, unsigned int partition_id
         update_total_taken(totalTaken, totalNotTaken, unlinked_mode, numSites,
                 network.num_reticulations(), best_persite_logl_network);
         if (unlinked_mode) {
-            reticulationProbsHaveChanged = update_probs(ann_network, partition_idx, totalTaken,
+            reticulationProbsHaveChanged = update_probs(ann_network, totalTaken,
                     totalNotTaken);
         }
     }
@@ -1060,7 +1057,7 @@ double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int 
     }
 
     if (update_reticulation_probs && !unlinked_mode) {
-        reticulationProbsHaveChanged = update_probs(ann_network, 0, totalTaken, totalNotTaken);
+        reticulationProbsHaveChanged = update_probs(ann_network, totalTaken, totalNotTaken);
     }
 
     /* restore original active partition */
@@ -1106,7 +1103,7 @@ double computeLoglikelihoodNaiveUtree(AnnotatedNetwork &ann_network, int increme
     double network_l = 0.0;
 // Iterate over all displayed trees
     for (size_t i = 0; i < n_trees; ++i) {
-        double tree_prob = displayed_tree_prob(ann_network, i, 0);
+        double tree_prob = displayed_tree_prob_old(ann_network, i);
         if (tree_prob == 0.0) {
             continue;
         }
