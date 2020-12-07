@@ -26,6 +26,7 @@
 #include "../NetraxOptions.hpp"
 #include "../io/NetworkIO.hpp"
 #include "Moves.hpp"
+#include "NetworkState.hpp"
 
 namespace netrax {
 
@@ -75,75 +76,6 @@ double bic(AnnotatedNetwork &ann_network, double logl) {
     return bic(logl, get_param_count(ann_network), get_sample_size(ann_network));
 }
 
-std::vector<std::vector<double> > extract_brlens_partitions(AnnotatedNetwork &ann_network) {
-    std::vector<std::vector<double> > res;
-    bool unlinkedMode = (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
-    size_t n_partitions = 1;
-    if (unlinkedMode) {
-        n_partitions = ann_network.fake_treeinfo->partition_count;
-    }
-    res.resize(n_partitions);
-    for (size_t p = 0; p < n_partitions; ++p) {
-        res[p].resize(ann_network.network.edges.size());
-        for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
-            size_t pmatrix_index = ann_network.network.edges[i].pmatrix_index;
-            assert(ann_network.network.edges_by_index[pmatrix_index] == &ann_network.network.edges[i]);
-            if (n_partitions == 1) {
-                assert(ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] == ann_network.network.edges_by_index[pmatrix_index]->length);
-            }
-            res[p][pmatrix_index] = ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index];
-        }
-    }
-    return res;
-}
-
-std::vector<double> extract_brlens_network(AnnotatedNetwork &ann_network) {
-    std::vector<double> res(ann_network.network.edges.size());
-    for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
-        size_t pmatrix_index = ann_network.network.edges[i].pmatrix_index;
-        res[pmatrix_index] = ann_network.network.edges_by_index[pmatrix_index]->length;
-    }
-    return res;
-}
-
-std::vector<double> extract_brprobs(AnnotatedNetwork &ann_network) {
-    std::vector<double> res;
-    res.resize(ann_network.network.edges.size());
-    for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
-        size_t pmatrix_index = ann_network.network.edges[i].pmatrix_index;
-        res[pmatrix_index] = ann_network.network.edges[i].prob;
-    }
-    return res;
-}
-
-void apply_brlens(AnnotatedNetwork &ann_network,
-        const std::vector<std::vector<double> > &old_brlens_partition, const std::vector<double>& old_brlens_network) {
-    std::vector<bool> visited(ann_network.network.nodes.size(), false);
-    bool unlinkedMode = (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
-    size_t n_partitions = 1;
-    if (unlinkedMode) {
-        n_partitions = ann_network.fake_treeinfo->partition_count;
-    }
-    for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
-        size_t pmatrix_index = ann_network.network.edges[i].pmatrix_index;
-        ann_network.network.edges_by_index[pmatrix_index]->length = old_brlens_network[pmatrix_index];
-    }
-    for (size_t p = 0; p < n_partitions; ++p) {
-        for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
-            size_t pmatrix_index = ann_network.network.edges[i].pmatrix_index;
-            if (ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index]
-                    != old_brlens_partition[p][pmatrix_index]) {
-                ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] =
-                        old_brlens_partition[p][pmatrix_index];
-                ann_network.fake_treeinfo->pmatrix_valid[p][pmatrix_index] = 0;
-                invalidateHigherCLVs(ann_network,
-                        getTarget(ann_network.network, &ann_network.network.edges[i]), true,
-                        visited);
-            }
-        }
-    }
-}
-
 template<typename T>
 bool wantedMove(T *move) {
     if (move->moveType == MoveType::ArcRemovalMove) {
@@ -156,73 +88,6 @@ bool wantedMove(T *move) {
     return false;
 }
 
-void assertBranchLengthsAndProbs(AnnotatedNetwork& ann_network, const std::vector<std::vector<double> >& old_brlens_partitions, const std::vector<double>& old_brlens_network, const std::vector<double>& old_brprobs, double start_logl) {
-    std::vector<std::vector<double> > act_brlens_partitions = extract_brlens_partitions(ann_network);
-    std::vector<double> act_brlens_network = extract_brlens_network(ann_network);
-    std::vector<double> act_brprobs = extract_brprobs(ann_network);
-    for (size_t i = 0; i < act_brlens_partitions.size(); ++i) {
-        for (size_t j = 0; j < act_brlens_partitions[i].size(); ++j) {
-            if (fabs(act_brlens_partitions[i][j] - old_brlens_partitions[i][j]) >= 1E-5) {
-                std::cout << "wanted brlens:\n";
-                for (size_t k = 0; k < ann_network.network.num_branches(); ++k) {
-                    std::cout << "idx " << ann_network.network.edges[k].pmatrix_index << ": "
-                            << old_brlens_partitions[i][k] << "\n";
-                }
-                std::cout << "\n";
-                std::cout << "observed brlens:\n";
-                for (size_t k = 0; k < ann_network.network.num_branches(); ++k) {
-                    std::cout << "idx " << ann_network.network.edges[k].pmatrix_index << ": "
-                            << act_brlens_partitions[i][k] << "\n";
-                }
-                std::cout << "\n";
-            }
-            assert(fabs(act_brlens_partitions[i][j] - old_brlens_partitions[i][j]) < 1E-5);
-        }
-    }
-
-    for (size_t j = 0; j < act_brlens_network.size(); ++j) {
-        if (fabs(act_brlens_network[j] - old_brlens_network[j]) >= 1E-5) {
-            std::cout << "wanted brlens:\n";
-            for (size_t k = 0; k < ann_network.network.num_branches(); ++k) {
-                std::cout << "idx " << ann_network.network.edges[k].pmatrix_index << ": "
-                        << old_brlens_network[k] << "\n";
-            }
-            std::cout << "\n";
-            std::cout << "observed brlens:\n";
-            for (size_t k = 0; k < ann_network.network.num_branches(); ++k) {
-                std::cout << "idx " << ann_network.network.edges[k].pmatrix_index << ": "
-                        << act_brlens_network[k] << "\n";
-            }
-            std::cout << "\n";
-        }
-        assert(fabs(act_brlens_network[j] - old_brlens_network[j]) < 1E-5);
-    }
-    
-    for (size_t j = 0; j < act_brprobs.size(); ++j) {
-        if (fabs(act_brprobs[j] - old_brprobs[j]) >= 1E-5) {
-            std::cout << "wanted brprobs:\n";
-            for (size_t k = 0; k < ann_network.network.num_branches(); ++k) {
-                std::cout << "idx " << ann_network.network.edges[k].pmatrix_index << ": "
-                        << old_brprobs[k] << "\n";
-            }
-            std::cout << "\n";
-            std::cout << "observed brprobs:\n";
-            for (size_t k = 0; k < ann_network.network.num_branches(); ++k) {
-                std::cout << "idx " << ann_network.network.edges[k].pmatrix_index << ": "
-                        << act_brprobs[k] << "\n";
-            }
-            std::cout << "\n";
-        }
-        assert(fabs(act_brprobs[j] - old_brprobs[j]) < 1E-5);
-    }
-
-    if (fabs(ann_network.raxml_treeinfo->loglh(true) - start_logl) >= 1E-5) {
-        std::cout << "wanted: " << start_logl << "\n";
-        std::cout << "observed: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
-        std::cout << "recomputed without incremental: "
-                << ann_network.raxml_treeinfo->loglh(false) << "\n";
-    }
-}
 
 void assertBranchesWithinBounds(const AnnotatedNetwork& ann_network) {
     double min_brlen = ann_network.options.brlen_min;
@@ -270,17 +135,12 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     int max_iters = 1;
     int radius = 1;
     double start_logl = ann_network.raxml_treeinfo->loglh(true);
-    std::vector<std::vector<double> > start_brlens_partitions;
-    std::vector<double> start_brlens_network;
-    if (brlenopt_inside) {
-        start_brlens_partitions = extract_brlens_partitions(ann_network);
-        start_brlens_network = extract_brlens_network(ann_network);
-    }
+    NetworkState start_state = extract_network_state(ann_network);
 
     size_t best_idx = candidates.size();
     double best_score = old_score;
-    std::vector<std::vector<double> > best_brlens_partitions = start_brlens_partitions;
-    std::vector<double> best_brlens_network = start_brlens_network;
+
+    NetworkState best_state = start_state;
 
     for (size_t i = 0; i < candidates.size(); ++i) {
 
@@ -292,6 +152,15 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         if (brlenopt_inside) { // Do brlen optimization locally around the move
             std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, candidates[i]);
             optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
+            if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED) {
+                pllmod_algo_opt_brlen_scalers_treeinfo(ann_network.fake_treeinfo,
+                                                                RAXML_BRLEN_SCALER_MIN,
+                                                                RAXML_BRLEN_SCALER_MAX,
+                                                                ann_network.options.brlen_min,
+                                                                ann_network.options.brlen_max,
+                                                                RAXML_PARAM_EPSILON);
+            }
+            optimize_reticulations(ann_network, 100);
         }
 
         std::cout << "Extensive BIC info after applying current " << toString(candidates[i].moveType) << " move " << i+1 << "/ " << candidates.size() << ":\n";
@@ -304,14 +173,15 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
             best_score = new_score;
             best_idx = i;
             if (brlenopt_inside) {
-                best_brlens_partitions = extract_brlens_partitions(ann_network);
-                best_brlens_network = extract_brlens_network(ann_network);
+                best_state = extract_network_state(ann_network);
             }
             foundBetterScore = true;
         }
         undoMove(ann_network, candidates[i]);
         if (brlenopt_inside) {
-            apply_brlens(ann_network, start_brlens_partitions, start_brlens_network);
+            apply_network_state(ann_network, start_state);
+            NetworkState act_state = extract_network_state(ann_network);
+            assert(network_states_equal(start_state, act_state));
         }
         if (fabs(ann_network.raxml_treeinfo->loglh(true) - start_logl) >= ann_network.options.lh_epsilon) {
             std::cout << "new value: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
@@ -326,10 +196,19 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     if (best_idx < candidates.size()) {
         performMove(ann_network, candidates[best_idx]);
         if (brlenopt_inside) {
-            apply_brlens(ann_network, best_brlens_partitions, best_brlens_network);
+            apply_network_state(ann_network, best_state);
         } else {
             std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, candidates[best_idx]);
             optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
+            if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED) {
+                pllmod_algo_opt_brlen_scalers_treeinfo(ann_network.fake_treeinfo,
+                                                                RAXML_BRLEN_SCALER_MIN,
+                                                                RAXML_BRLEN_SCALER_MAX,
+                                                                ann_network.options.brlen_min,
+                                                                ann_network.options.brlen_max,
+                                                                RAXML_PARAM_EPSILON);
+            }
+            optimize_reticulations(ann_network, 100);
         }
         // just for debug, doing reticulation opt, full global brlen opt and model opt:
         //netrax::computeLoglikelihood(ann_network, 0, 1, false);
