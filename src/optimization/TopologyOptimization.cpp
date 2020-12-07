@@ -75,7 +75,7 @@ double bic(AnnotatedNetwork &ann_network, double logl) {
     return bic(logl, get_param_count(ann_network), get_sample_size(ann_network));
 }
 
-std::vector<std::vector<double> > extract_brlens(AnnotatedNetwork &ann_network) {
+std::vector<std::vector<double> > extract_brlens_partitions(AnnotatedNetwork &ann_network) {
     std::vector<std::vector<double> > res;
     bool unlinkedMode = (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
     size_t n_partitions = 1;
@@ -97,42 +97,44 @@ std::vector<std::vector<double> > extract_brlens(AnnotatedNetwork &ann_network) 
     return res;
 }
 
-std::vector<std::vector<double> > extract_brprobs(AnnotatedNetwork &ann_network) {
-    std::vector<std::vector<double> > res;
-    bool unlinkedMode = (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
-    size_t n_partitions = 1;
-    if (unlinkedMode) {
-        n_partitions = ann_network.fake_treeinfo->partition_count;
+std::vector<double> extract_brlens_network(AnnotatedNetwork &ann_network) {
+    std::vector<double> res(ann_network.network.edges.size());
+    for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
+        size_t pmatrix_index = ann_network.network.edges[i].pmatrix_index;
+        res[pmatrix_index] = ann_network.network.edges_by_index[pmatrix_index]->length;
     }
-    res.resize(n_partitions);
-    for (size_t p = 0; p < n_partitions; ++p) {
-        res[p].resize(ann_network.network.edges.size());
-        for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
-            size_t pmatrix_index = ann_network.network.edges[i].pmatrix_index;
-            res[p][pmatrix_index] = ann_network.network.edges[i].prob;
-        }
+    return res;
+}
+
+std::vector<double> extract_brprobs(AnnotatedNetwork &ann_network) {
+    std::vector<double> res;
+    res.resize(ann_network.network.edges.size());
+    for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
+        size_t pmatrix_index = ann_network.network.edges[i].pmatrix_index;
+        res[pmatrix_index] = ann_network.network.edges[i].prob;
     }
     return res;
 }
 
 void apply_brlens(AnnotatedNetwork &ann_network,
-        const std::vector<std::vector<double> > &old_brlens) {
+        const std::vector<std::vector<double> > &old_brlens_partition, const std::vector<double>& old_brlens_network) {
     std::vector<bool> visited(ann_network.network.nodes.size(), false);
     bool unlinkedMode = (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
     size_t n_partitions = 1;
     if (unlinkedMode) {
         n_partitions = ann_network.fake_treeinfo->partition_count;
     }
+    for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
+        size_t pmatrix_index = ann_network.network.edges[i].pmatrix_index;
+        ann_network.network.edges_by_index[pmatrix_index]->length = old_brlens_network[pmatrix_index];
+    }
     for (size_t p = 0; p < n_partitions; ++p) {
         for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
             size_t pmatrix_index = ann_network.network.edges[i].pmatrix_index;
             if (ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index]
-                    != old_brlens[p][pmatrix_index]) {
+                    != old_brlens_partition[p][pmatrix_index]) {
                 ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] =
-                        old_brlens[p][pmatrix_index];
-                if (n_partitions == 1) {
-                    ann_network.network.edges_by_index[pmatrix_index]->length = old_brlens[p][pmatrix_index];
-                }
+                        old_brlens_partition[p][pmatrix_index];
                 ann_network.fake_treeinfo->pmatrix_valid[p][pmatrix_index] = 0;
                 invalidateHigherCLVs(ann_network,
                         getTarget(ann_network.network, &ann_network.network.edges[i]), true,
@@ -154,46 +156,64 @@ bool wantedMove(T *move) {
     return false;
 }
 
-void assertBranchLengthsAndProbs(AnnotatedNetwork& ann_network, const std::vector<std::vector<double> >& old_brlens, const std::vector<std::vector<double> >& old_brprobs, double start_logl) {
-    std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
-    std::vector<std::vector<double> > act_brprobs = extract_brprobs(ann_network);
-    for (size_t i = 0; i < act_brlens.size(); ++i) {
-        for (size_t j = 0; j < act_brlens[i].size(); ++j) {
-            if (fabs(act_brlens[i][j] - old_brlens[i][j]) >= 1E-5) {
+void assertBranchLengthsAndProbs(AnnotatedNetwork& ann_network, const std::vector<std::vector<double> >& old_brlens_partitions, const std::vector<double>& old_brlens_network, const std::vector<double>& old_brprobs, double start_logl) {
+    std::vector<std::vector<double> > act_brlens_partitions = extract_brlens_partitions(ann_network);
+    std::vector<double> act_brlens_network = extract_brlens_network(ann_network);
+    std::vector<double> act_brprobs = extract_brprobs(ann_network);
+    for (size_t i = 0; i < act_brlens_partitions.size(); ++i) {
+        for (size_t j = 0; j < act_brlens_partitions[i].size(); ++j) {
+            if (fabs(act_brlens_partitions[i][j] - old_brlens_partitions[i][j]) >= 1E-5) {
                 std::cout << "wanted brlens:\n";
                 for (size_t k = 0; k < ann_network.network.num_branches(); ++k) {
                     std::cout << "idx " << ann_network.network.edges[k].pmatrix_index << ": "
-                            << old_brlens[i][k] << "\n";
+                            << old_brlens_partitions[i][k] << "\n";
                 }
                 std::cout << "\n";
                 std::cout << "observed brlens:\n";
                 for (size_t k = 0; k < ann_network.network.num_branches(); ++k) {
                     std::cout << "idx " << ann_network.network.edges[k].pmatrix_index << ": "
-                            << act_brlens[i][k] << "\n";
+                            << act_brlens_partitions[i][k] << "\n";
                 }
                 std::cout << "\n";
             }
-            assert(fabs(act_brlens[i][j] - old_brlens[i][j]) < 1E-5);
+            assert(fabs(act_brlens_partitions[i][j] - old_brlens_partitions[i][j]) < 1E-5);
         }
     }
-    for (size_t i = 0; i < act_brprobs.size(); ++i) {
-        for (size_t j = 0; j < act_brprobs[i].size(); ++j) {
-            if (fabs(act_brprobs[i][j] - old_brprobs[i][j]) >= 1E-5) {
-                std::cout << "wanted brprobs:\n";
-                for (size_t k = 0; k < ann_network.network.num_branches(); ++k) {
-                    std::cout << "idx " << ann_network.network.edges[k].pmatrix_index << ": "
-                            << old_brprobs[i][k] << "\n";
-                }
-                std::cout << "\n";
-                std::cout << "observed brprobs:\n";
-                for (size_t k = 0; k < ann_network.network.num_branches(); ++k) {
-                    std::cout << "idx " << ann_network.network.edges[k].pmatrix_index << ": "
-                            << act_brprobs[i][k] << "\n";
-                }
-                std::cout << "\n";
+
+    for (size_t j = 0; j < act_brlens_network.size(); ++j) {
+        if (fabs(act_brlens_network[j] - old_brlens_network[j]) >= 1E-5) {
+            std::cout << "wanted brlens:\n";
+            for (size_t k = 0; k < ann_network.network.num_branches(); ++k) {
+                std::cout << "idx " << ann_network.network.edges[k].pmatrix_index << ": "
+                        << old_brlens_network[k] << "\n";
             }
-            assert(fabs(act_brprobs[i][j] - old_brprobs[i][j]) < 1E-5);
+            std::cout << "\n";
+            std::cout << "observed brlens:\n";
+            for (size_t k = 0; k < ann_network.network.num_branches(); ++k) {
+                std::cout << "idx " << ann_network.network.edges[k].pmatrix_index << ": "
+                        << act_brlens_network[k] << "\n";
+            }
+            std::cout << "\n";
         }
+        assert(fabs(act_brlens_network[j] - old_brlens_network[j]) < 1E-5);
+    }
+    
+    for (size_t j = 0; j < act_brprobs.size(); ++j) {
+        if (fabs(act_brprobs[j] - old_brprobs[j]) >= 1E-5) {
+            std::cout << "wanted brprobs:\n";
+            for (size_t k = 0; k < ann_network.network.num_branches(); ++k) {
+                std::cout << "idx " << ann_network.network.edges[k].pmatrix_index << ": "
+                        << old_brprobs[k] << "\n";
+            }
+            std::cout << "\n";
+            std::cout << "observed brprobs:\n";
+            for (size_t k = 0; k < ann_network.network.num_branches(); ++k) {
+                std::cout << "idx " << ann_network.network.edges[k].pmatrix_index << ": "
+                        << act_brprobs[k] << "\n";
+            }
+            std::cout << "\n";
+        }
+        assert(fabs(act_brprobs[j] - old_brprobs[j]) < 1E-5);
     }
 
     if (fabs(ann_network.raxml_treeinfo->loglh(true) - start_logl) >= 1E-5) {
@@ -250,14 +270,17 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     int max_iters = 1;
     int radius = 1;
     double start_logl = ann_network.raxml_treeinfo->loglh(true);
-    std::vector<std::vector<double> > start_brlens;
+    std::vector<std::vector<double> > start_brlens_partitions;
+    std::vector<double> start_brlens_network;
     if (brlenopt_inside) {
-        start_brlens = extract_brlens(ann_network);
+        start_brlens_partitions = extract_brlens_partitions(ann_network);
+        start_brlens_network = extract_brlens_network(ann_network);
     }
 
     size_t best_idx = candidates.size();
     double best_score = old_score;
-    std::vector<std::vector<double> > best_brlens = start_brlens;
+    std::vector<std::vector<double> > best_brlens_partitions = start_brlens_partitions;
+    std::vector<double> best_brlens_network = start_brlens_network;
 
     for (size_t i = 0; i < candidates.size(); ++i) {
 
@@ -281,13 +304,14 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
             best_score = new_score;
             best_idx = i;
             if (brlenopt_inside) {
-                best_brlens = extract_brlens(ann_network);
+                best_brlens_partitions = extract_brlens_partitions(ann_network);
+                best_brlens_network = extract_brlens_network(ann_network);
             }
             foundBetterScore = true;
         }
         undoMove(ann_network, candidates[i]);
         if (brlenopt_inside) {
-            apply_brlens(ann_network, start_brlens);
+            apply_brlens(ann_network, start_brlens_partitions, start_brlens_network);
         }
         if (fabs(ann_network.raxml_treeinfo->loglh(true) - start_logl) >= ann_network.options.lh_epsilon) {
             std::cout << "new value: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
@@ -302,7 +326,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     if (best_idx < candidates.size()) {
         performMove(ann_network, candidates[best_idx]);
         if (brlenopt_inside) {
-            apply_brlens(ann_network, best_brlens);
+            apply_brlens(ann_network, best_brlens_partitions, best_brlens_network);
         } else {
             std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, candidates[best_idx]);
             optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
