@@ -1,3 +1,4 @@
 [submodule "libs/raxml-ng"]
 	path = libs/raxml-ng
 	url = git://github.com/lutteropp/raxml-ng.git
+	branch = netrax
