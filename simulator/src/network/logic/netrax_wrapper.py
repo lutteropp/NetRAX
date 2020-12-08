@@ -4,7 +4,7 @@ import time
 
 from experiment_model import LikelihoodType, BrlenLinkageType, StartType
 
-NETRAX_PATH = "/home/sarah/code-workspace/NetRAX/bin/netrax"
+NETRAX_PATH = "/home/sarah/eclipse-workspace/NetRAX/bin/netrax"
 
 
 # Uses NetRAX to compute the number of reticulations, BIC score, and loglikelihood of a network for a given MSA
@@ -57,6 +57,7 @@ def infer_networks(ds):
         else:
             netrax_cmd += " --brlen scaled"    
             
+        print(netrax_cmd)
         start_time = time.time()
         print(subprocess.getoutput(netrax_cmd))
         var.runtime_inference = round(time.time() - start_time, 3)
