@@ -185,7 +185,6 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
         size_t pmatrix_index = *candidates.begin();
         candidates.erase(candidates.begin());
         //std::cout << "\noptimizing branch " << pmatrix_index << "\n";
-        assert(ann_network.network.edges_by_index[pmatrix_index]->length == ann_network.fake_treeinfo->branch_lengths[0][pmatrix_index]);
         double new_logl = optimize_branch(ann_network, max_iters, &act_iters, pmatrix_index);
 
         if (new_logl - old_logl > lh_epsilon) { // add all neighbors of the branch to the candidates
