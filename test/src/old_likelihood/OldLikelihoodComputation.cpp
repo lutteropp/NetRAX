@@ -975,10 +975,10 @@ double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int 
     //print_brlens(ann_network);
 
     // special case: root node has a valid merged clv already
-    if (ann_network.options.use_incremental & incremental
+    /*if (ann_network.options.use_incremental & incremental
             & fake_treeinfo.clv_valid[0][network.root->clv_index] & !update_reticulation_probs) {
         return ann_network.old_logl;
-    }
+    }*/
     setup_pmatrices(ann_network, incremental & ann_network.options.use_incremental,
             update_pmatrices);
     const int old_active_partition = fake_treeinfo.active_partition;
@@ -1059,7 +1059,7 @@ double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int 
             std::cout << exportDebugInfo(ann_network) << "\n";
         }
         assert(network_logl < -1);
-        ann_network.old_logl = network_logl;
+        //ann_network.old_logl = network_logl;
         return network_logl;
     }
 }

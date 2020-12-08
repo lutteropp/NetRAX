@@ -195,7 +195,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
             std::cout << "start_logl: " << start_logl << "\n";
             std::cout << "new_logl: " << new_logl << "\n";
             printOldDisplayedTrees(ann_network);
-            assert(fabs(new_logl - start_logl) < ann_network.options.lh_epsilon);
+            assert(start_logl - new_logl < ann_network.options.lh_epsilon);
         }
 
         double new_score = bic(ann_network, new_logl);
