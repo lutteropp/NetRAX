@@ -143,8 +143,8 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     for (size_t i = 0; i < candidates.size(); ++i) {
         std::cout << toString(candidates[i].moveType) << " move " << i+1 << "/ " << candidates.size() << "\n";
 
-        //std::cout << "Extensive BIC info before applying current " << toString(candidates[i].moveType) << " move " << i+1 << "/ " << candidates.size() << ":\n";
-        //printExtensiveBICInfo(ann_network);
+        std::cout << "Extensive BIC info before applying current " << toString(candidates[i].moveType) << " move " << i+1 << "/ " << candidates.size() << ":\n";
+        printExtensiveBICInfo(ann_network);
 
         //std::cout << " " << toString(candidates[i].moveType) << " " << i+1 << "/ " << candidates.size() << "\n";
         performMove(ann_network, candidates[i]);
@@ -164,16 +164,21 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
             optimize_reticulations(ann_network, 100);
         }
 
-        //std::cout << "Extensive BIC info after applying current " << toString(candidates[i].moveType) << " move " << i+1 << "/ " << candidates.size() << ":\n";
-        //printExtensiveBICInfo(ann_network);
-
         double new_logl = ann_network.raxml_treeinfo->loglh(true);
 
-        if (candidates[best_idx].moveType == MoveType::ArcInsertionMove || candidates[best_idx].moveType == MoveType::DeltaPlusMove) {
+        if (candidates[i].moveType == MoveType::ArcInsertionMove || candidates[i].moveType == MoveType::DeltaPlusMove) {
             assert(new_logl >= start_logl);
         }
 
         double new_score = bic(ann_network, new_logl);
+
+        std::cout << "start_logl: " << start_logl << "\n";
+        std::cout << "new_logl: " << new_logl << "\n";
+        std::cout << "new_score: " << new_score << "\n";
+
+        std::cout << "Extensive BIC info after applying current " << toString(candidates[i].moveType) << " move " << i+1 << "/ " << candidates.size() << ":\n";
+        printExtensiveBICInfo(ann_network);
+
         bool foundBetterScore = false;
         if (new_score < best_score) {
             best_score = new_score;
