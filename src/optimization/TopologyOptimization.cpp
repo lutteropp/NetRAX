@@ -171,7 +171,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         if (candidates[i].moveType == MoveType::ArcInsertionMove || candidates[i].moveType == MoveType::DeltaPlusMove) {
             std::cout << "start_logl: " << start_logl << "\n";
             std::cout << "new_logl: " << new_logl << "\n";
-            assert(new_logl >= start_logl);
+            assert(fabs(new_logl - start_logl) < ann_network.options.lh_epsilon);
         }
 
         double new_score = bic(ann_network, new_logl);

@@ -154,7 +154,7 @@ double optimize_reticulation(AnnotatedNetwork &ann_network, size_t reticulation_
         }
     }
     double act_logl = computeLoglikelihood(ann_network, 1, 1);
-    std::cout << "NETWORK LOGL WITH SETTING PROB TO 1: " << act_logl << "\n";
+    //std::cout << "NETWORK LOGL WITH SETTING PROB TO 1: " << act_logl << "\n";
     if (act_logl > best_logl) {
         best_logl = act_logl;
         old_brprob = 1.0;
@@ -166,7 +166,7 @@ double optimize_reticulation(AnnotatedNetwork &ann_network, size_t reticulation_
             }
         }
         act_logl = computeLoglikelihood(ann_network, 1, 1);
-        std::cout << "NETWORK LOGL WITH SETTING PROB TO 0: " << act_logl << "\n";
+        //std::cout << "NETWORK LOGL WITH SETTING PROB TO 0: " << act_logl << "\n";
         if (act_logl > best_logl) {
             best_logl = act_logl;
             old_brprob = 0.0;
