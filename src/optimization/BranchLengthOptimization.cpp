@@ -191,8 +191,8 @@ double optimize_reticulation(AnnotatedNetwork &ann_network, size_t reticulation_
             &f2x, (void*) &params, &brent_target_networks_prob);
     ann_network.reticulation_probs[reticulation_index] = new_brprob;
 
-    std::cout << "old prob for reticulation " << reticulation_index << ": " << old_brprob << "\n";
-    std::cout << "new prob for reticulation " << reticulation_index << ": " << new_brprob << "\n";
+    //std::cout << "old prob for reticulation " << reticulation_index << ": " << old_brprob << "\n";
+    //std::cout << "new prob for reticulation " << reticulation_index << ": " << new_brprob << "\n";
 
     assert(new_brprob >= min_brprob && new_brprob <= max_brprob);
 

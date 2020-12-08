@@ -125,6 +125,17 @@ void printExtensiveBICInfo(AnnotatedNetwork &ann_network) {
     std::cout << " bic: " << bic(ann_network, logl) << "\n";
 }
 
+void printOldDisplayedTrees(AnnotatedNetwork &ann_network) {
+    std::cout << "Displayed trees info:\n";
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        for (size_t i = 0; i < ann_network.old_displayed_trees[p].size(); ++i) {
+            std::cout << " partition " << p << ", displayed tree " << ann_network.old_displayed_trees[p][i].tree_idx << ":\n";
+            std::cout << "   tree_logprob: " << ann_network.old_displayed_trees[p][i].tree_logprob << "\n";
+            std::cout << "   tree_logl: " << ann_network.old_displayed_trees[p][i].tree_logl << "\n";
+        }
+    }
+}
+
 template<typename T>
 double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates, double old_score, bool greedy=true, bool randomizeCandidates=false, bool brlenopt_inside=true) {
     if (randomizeCandidates) {
@@ -145,13 +156,22 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
 
         std::cout << "Extensive BIC info before applying current " << toString(candidates[i].moveType) << " move " << i+1 << "/ " << candidates.size() << ":\n";
         printExtensiveBICInfo(ann_network);
+        printOldDisplayedTrees(ann_network);
 
         //std::cout << " " << toString(candidates[i].moveType) << " " << i+1 << "/ " << candidates.size() << "\n";
         performMove(ann_network, candidates[i]);
         
         if (brlenopt_inside) { // Do brlen optimization locally around the move
+
+            std::cout << "AFTER MOVE, BUT BEFORE ANY OPT: \n";
+            printOldDisplayedTrees(ann_network);
+
             std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, candidates[i]);
             optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
+
+            std::cout << "AFTER MOVE, AFTER BRLEN OPT: \n";
+            printOldDisplayedTrees(ann_network);
+
             if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED) {
                 pllmod_algo_opt_brlen_scalers_treeinfo(ann_network.fake_treeinfo,
                                                                 RAXML_BRLEN_SCALER_MIN,
@@ -159,6 +179,9 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
                                                                 ann_network.options.brlen_min,
                                                                 ann_network.options.brlen_max,
                                                                 RAXML_PARAM_EPSILON);
+
+                std::cout << "AFTER MOVE, AFTER BRLEN OPT + SCALER OPT: \n";
+                printOldDisplayedTrees(ann_network);
             }
             optimize_reticulations(ann_network, 100);
         } else if (candidates[i].moveType == MoveType::ArcInsertionMove || candidates[i].moveType == MoveType::DeltaPlusMove) {
@@ -171,6 +194,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         if (candidates[i].moveType == MoveType::ArcInsertionMove || candidates[i].moveType == MoveType::DeltaPlusMove) {
             std::cout << "start_logl: " << start_logl << "\n";
             std::cout << "new_logl: " << new_logl << "\n";
+            printOldDisplayedTrees(ann_network);
             assert(fabs(new_logl - start_logl) < ann_network.options.lh_epsilon);
         }
 
