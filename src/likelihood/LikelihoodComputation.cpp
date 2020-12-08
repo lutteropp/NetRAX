@@ -77,6 +77,9 @@ double displayed_tree_logprob(AnnotatedNetwork &ann_network, size_t tree_index) 
     mpfr::mpreal logProb = 0;
     for (size_t i = 0; i < network.num_reticulations(); ++i) {
         mpfr::mpreal prob = getReticulationActiveProb(ann_network, network.reticulation_nodes[i]);
+        if (prob == 0.0) {
+            return std::numeric_limits<double>::infinity();
+        }
         logProb += mpfr::log(prob);
     }
     return logProb.toDouble();
@@ -259,7 +262,9 @@ double computeLoglikelihood_new(AnnotatedNetwork &ann_network, int incremental, 
             for (const auto& tree : all_displayed_trees[partition_idx]) {
                 assert(tree.tree_logl != 0);
                 std::cout << "tree " << tree.tree_idx << " logl: " << tree.tree_logl << "\n";
-                partition_lh += mpfr::exp(tree.tree_logprob) * mpfr::exp(tree.tree_logl);
+                if (tree.tree_logprob != std::numeric_limits<double>::infinity()) {
+                    partition_lh += mpfr::exp(tree.tree_logprob) * mpfr::exp(tree.tree_logl);
+                }
             }
             fake_treeinfo.partition_loglh[partition_idx] = mpfr::log(partition_lh).toDouble();
             network_logl += mpfr::log(partition_lh);
@@ -269,8 +274,10 @@ double computeLoglikelihood_new(AnnotatedNetwork &ann_network, int incremental, 
                 assert(tree.tree_logl != 0);
                 std::cout << "tree " << tree.tree_idx << " logl: " << tree.tree_logl << "\n";
                 std::cout << "tree " << tree.tree_idx << " logprob: " << tree.tree_logprob << "\n";
-                std::cout << "tree " << tree.tree_idx << " prob: " << mpfr::exp(tree.tree_logprob) << "\n";
-                partition_logl = std::max(partition_logl, tree.tree_logprob + tree.tree_logl);
+                if (tree.tree_logprob != std::numeric_limits<double>::infinity()) {
+                    std::cout << "tree " << tree.tree_idx << " prob: " << mpfr::exp(tree.tree_logprob) << "\n";
+                    partition_logl = std::max(partition_logl, tree.tree_logprob + tree.tree_logl);
+                }
             }
             fake_treeinfo.partition_loglh[partition_idx] = partition_logl;
             std::cout << "partiion " << partition_idx << " logl: " << partition_logl << "\n";
