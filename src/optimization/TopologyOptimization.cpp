@@ -168,6 +168,11 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         //printExtensiveBICInfo(ann_network);
 
         double new_logl = ann_network.raxml_treeinfo->loglh(true);
+
+        if (candidates[best_idx].moveType == MoveType::ArcInsertionMove || candidates[best_idx].moveType == MoveType::DeltaPlusMove) {
+            assert(new_logl >= start_logl);
+        }
+
         double new_score = bic(ann_network, new_logl);
         bool foundBetterScore = false;
         if (new_score < best_score) {
