@@ -226,6 +226,12 @@ void NetraxInstance::updateReticulationProbs(AnnotatedNetwork &ann_network) {
  * @param ann_network The network.
  */
 void NetraxInstance::optimizeModel(AnnotatedNetwork &ann_network) {
+    double incremental_logl = netrax::computeLoglikelihood(ann_network, 1, 1);
+    double non_incremental_logl = netrax::computeLoglikelihood(ann_network, 0, 1);
+    if (incremental_logl != non_incremental_logl) {
+        std::cout << "incremental logl: " << incremental_logl << "\n";
+        std::cout << "non_incremental logl: " << non_incremental_logl << "\n";
+    }
     assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
     double old_score = scoreNetwork(ann_network);
     ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
