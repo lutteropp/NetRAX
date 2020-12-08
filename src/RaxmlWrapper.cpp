@@ -555,6 +555,14 @@ pllmod_treeinfo_t* RaxmlWrapper::createNetworkPllTreeinfo(AnnotatedNetwork &ann_
 
     fake_init_collect_branch_lengths(treeinfo, network);
 
+    size_t n_p = (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED ? treeinfo->partition_count : 1);
+    for (size_t p = 0; p < n_p; ++p) {
+        for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
+            treeinfo->branch_lengths[p][i] = std::min(treeinfo->branch_lengths[p][i], ann_network.options.brlen_max);
+            treeinfo->branch_lengths[p][i] = std::max(treeinfo->branch_lengths[p][i], ann_network.options.brlen_min);
+        }
+    }
+
     assert(static_cast<NetworkParams*>(treeinfo->likelihood_computation_params)->ann_network == &ann_network);
 
     return treeinfo;

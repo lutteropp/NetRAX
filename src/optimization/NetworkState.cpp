@@ -1,5 +1,6 @@
 #include "NetworkState.hpp"
 #include "../graph/NetworkTopology.hpp"
+#include "../likelihood/LikelihoodComputation.hpp"
 
 namespace netrax {
 
@@ -15,8 +16,12 @@ std::vector<std::vector<double> > extract_brlens_partitions(AnnotatedNetwork &an
         res[p].resize(ann_network.network.edges.size());
         for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
             size_t pmatrix_index = ann_network.network.edges[i].pmatrix_index;
-            assert(ann_network.network.edges_by_index[pmatrix_index] == &ann_network.network.edges[i]);
+            assert(
+                    ann_network.network.edges_by_index[pmatrix_index]
+                            == &ann_network.network.edges[i]);
             res[p][pmatrix_index] = ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index];
+            assert(res[p][pmatrix_index] >= ann_network.options.brlen_min);
+            assert(res[p][pmatrix_index] <= ann_network.options.brlen_max);
         }
     }
     return res;
@@ -30,7 +35,6 @@ std::vector<double> extract_reticulation_probs(AnnotatedNetwork &ann_network) {
     return res;
 }
 
-
 std::vector<double> extract_brlen_scalers(AnnotatedNetwork &ann_network) {
     std::vector<double> res;
     if (ann_network.options.brlen_linkage != PLLMOD_COMMON_BRLEN_SCALED) {
@@ -43,14 +47,21 @@ std::vector<double> extract_brlen_scalers(AnnotatedNetwork &ann_network) {
     return res;
 }
 
-
 NetworkState extract_network_state(AnnotatedNetwork &ann_network) {
-    return NetworkState{extract_brlens_partitions(ann_network), extract_reticulation_probs(ann_network), extract_brlen_scalers(ann_network)};
+    std::vector<EdgeInfo> edge_infos(ann_network.network.num_branches());
+    for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
+        edge_infos[i] = EdgeInfo { getSource(ann_network.network,
+                ann_network.network.edges_by_index[i])->clv_index, getTarget(ann_network.network,
+                ann_network.network.edges_by_index[i])->clv_index, i };
+    }
+    return NetworkState { extract_brlens_partitions(ann_network), extract_reticulation_probs(
+            ann_network), extract_brlen_scalers(ann_network), edge_infos, ann_network.old_logl };
 }
 
-
 void apply_old_state(AnnotatedNetwork &ann_network,
-        const std::vector<std::vector<double> > &old_brlens_partition, const std::vector<double>& old_brlen_scalers, const std::vector<double>& old_reticulation_probs) {
+        const std::vector<std::vector<double> > &old_brlens_partition,
+        const std::vector<double> &old_brlen_scalers,
+        const std::vector<double> &old_reticulation_probs) {
     std::vector<bool> visited(ann_network.network.nodes.size(), false);
     bool unlinkedMode = (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
     size_t n_partitions = 1;
@@ -60,6 +71,10 @@ void apply_old_state(AnnotatedNetwork &ann_network,
     for (size_t p = 0; p < n_partitions; ++p) {
         for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
             size_t pmatrix_index = ann_network.network.edges[i].pmatrix_index;
+
+            assert(old_brlens_partition[p][pmatrix_index] >= ann_network.options.brlen_min);
+            assert(old_brlens_partition[p][pmatrix_index] <= ann_network.options.brlen_max);
+
             if (ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index]
                     != old_brlens_partition[p][pmatrix_index]) {
                 ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] =
@@ -91,11 +106,19 @@ void apply_old_state(AnnotatedNetwork &ann_network,
     }
 }
 
-
 void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &state) {
-    apply_old_state(ann_network, state.brlens_partitions, state.brlen_scalers, state.reticulation_probs);
-}
+    apply_old_state(ann_network, state.brlens_partitions, state.brlen_scalers,
+            state.reticulation_probs);
+    for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
+        getEdgeTo(ann_network.network,
+                ann_network.network.nodes_by_index[state.edge_infos[i].from_clv_index],
+                ann_network.network.nodes_by_index[state.edge_infos[i].to_clv_index])->pmatrix_index =
+                state.edge_infos[i].pmatrix_index;
+    }
 
+    setup_pmatrices(ann_network, 0, 1);
+    ann_network.old_logl = state.old_logl;
+}
 
 bool network_states_equal(NetworkState &act_network_state, NetworkState &old_network_state) {
     std::vector<std::vector<double> > act_brlens_partitions = act_network_state.brlens_partitions;
@@ -111,14 +134,12 @@ bool network_states_equal(NetworkState &act_network_state, NetworkState &old_net
             if (fabs(act_brlens_partitions[i][j] - old_brlens_partitions[i][j]) >= 1E-5) {
                 std::cout << "wanted brlens:\n";
                 for (size_t k = 0; k < old_brlens_partitions[i].size(); ++k) {
-                    std::cout << "idx " << k << ": "
-                            << old_brlens_partitions[i][k] << "\n";
+                    std::cout << "idx " << k << ": " << old_brlens_partitions[i][k] << "\n";
                 }
                 std::cout << "\n";
                 std::cout << "observed brlens:\n";
                 for (size_t k = 0; k < act_brlens_partitions[i].size(); ++k) {
-                    std::cout << "idx " << k << ": "
-                            << act_brlens_partitions[i][k] << "\n";
+                    std::cout << "idx " << k << ": " << act_brlens_partitions[i][k] << "\n";
                 }
                 std::cout << "\n";
             }
@@ -137,7 +158,7 @@ bool network_states_equal(NetworkState &act_network_state, NetworkState &old_net
         }
         assert(fabs(act_brlen_scalers[j] - old_brlen_scalers[j]) < 1E-5);
     }
-    
+
     assert(act_reticulation_probs.size() == old_reticulation_probs.size());
     for (size_t j = 0; j < act_reticulation_probs.size(); ++j) {
         if (fabs(act_reticulation_probs[j] - old_reticulation_probs[j]) >= 1E-5) {

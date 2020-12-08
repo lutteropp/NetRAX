@@ -160,10 +160,9 @@ DisplayedTreeData compute_displayed_tree(AnnotatedNetwork &ann_network, std::vec
 }
 
 std::vector<DisplayedTreeData> process_partition_new(AnnotatedNetwork &ann_network, int partition_idx, int incremental, 
-        const std::vector<Node*> &parent, std::vector<bool> *touched) {
+        const std::vector<Node*> &parent) {
     Network &network = ann_network.network;
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
-    bool unlinked_mode = (fake_treeinfo.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
 
     std::vector<bool> clv_touched = init_clv_touched(ann_network, incremental, partition_idx);
     size_t n_trees = 1 << network.num_reticulations();
@@ -217,26 +216,25 @@ std::vector<DisplayedTreeData> process_partition_new(AnnotatedNetwork &ann_netwo
 double computeLoglikelihood_new(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices) {
     Network &network = ann_network.network;
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
-    if (incremental & fake_treeinfo.clv_valid[0][network.root->clv_index]) {
-        return ann_network.old_logl;
+    if (incremental) {
+        bool all_clvs_valid = true;
+        for (size_t i = 0; i < fake_treeinfo.partition_count; ++i) {
+            all_clvs_valid &= fake_treeinfo.clv_valid[i][network.root->clv_index];
+        }
+        if (all_clvs_valid) {
+            return ann_network.old_logl;
+        }
     }
 
     mpfr::mpreal network_logl = 0.0;
 
-    setup_pmatrices(ann_network, incremental, update_pmatrices);
-    const int old_active_partition = fake_treeinfo.active_partition;
     fake_treeinfo.active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
-    bool unlinked_mode = (fake_treeinfo.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
-    std::vector<bool> touched(network.nodes.size(), false);
+    setup_pmatrices(ann_network, incremental, update_pmatrices);
     std::vector<Node*> parent = grab_current_node_parents(network);
 
     for (size_t partition_idx = 0; partition_idx < fake_treeinfo.partition_count; ++partition_idx) {
         fake_treeinfo.active_partition = partition_idx;
-        std::vector<bool> *touched_ptr = nullptr;
-        if (partition_idx == 0) {
-            touched_ptr = &touched;
-        }
-        std::vector<DisplayedTreeData> displayed_trees = process_partition_new(ann_network, partition_idx, incremental, parent, touched_ptr);
+        std::vector<DisplayedTreeData> displayed_trees = process_partition_new(ann_network, partition_idx, incremental, parent);
 
         if (ann_network.options.likelihood_variant == LikelihoodVariant::AVERAGE_DISPLAYED_TREES) {
             mpfr::mpreal partition_lh = 0.0;
@@ -258,6 +256,9 @@ double computeLoglikelihood_new(AnnotatedNetwork &ann_network, int incremental, 
     }
 
     ann_network.old_logl = network_logl.toDouble();
+    for (size_t i = 0; i < fake_treeinfo.partition_count; ++i) {
+        fake_treeinfo.clv_valid[i][network.root->clv_index] = 1;
+    }
     //std::cout << "network logl: " << ann_network.old_logl << "\n";
     return ann_network.old_logl;
 }

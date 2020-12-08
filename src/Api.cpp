@@ -53,7 +53,6 @@ void NetraxInstance::init_annotated_network(AnnotatedNetwork &ann_network, std::
 
     allocateBranchProbsArray(ann_network);
     for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
-        Node *retNode = ann_network.network.reticulation_nodes[i];
         double firstParentProb = ann_network.network.edges_by_index[ann_network.network.reticulation_nodes[i]->getReticulationData()->getLinkToFirstParent()->edge_pmatrix_index]->prob;
         ann_network.reticulation_probs[i] = firstParentProb;
     }
@@ -62,6 +61,12 @@ void NetraxInstance::init_annotated_network(AnnotatedNetwork &ann_network, std::
     ann_network.raxml_treeinfo = std::unique_ptr<TreeInfo>(wrapper.createRaxmlTreeinfo(ann_network));
 
     assert(static_cast<RaxmlWrapper::NetworkParams*>(ann_network.raxml_treeinfo->pll_treeinfo().likelihood_computation_params)->ann_network == &ann_network);
+
+    ann_network.fake_treeinfo->active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
+    netrax::setup_pmatrices(ann_network, false, true);
+    for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
+        ann_network.fake_treeinfo->clv_valid[i][network.root->clv_index] = 0;
+    }
     netrax::computeLoglikelihood(ann_network, false, true);
 }
 
@@ -238,6 +243,7 @@ void NetraxInstance::optimizeBranches(AnnotatedNetwork &ann_network) {
     assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
     double old_score = scoreNetwork(ann_network);
     ann_network.raxml_treeinfo->optimize_branches(ann_network.options.lh_epsilon, 1);
+    assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
     double new_score = scoreNetwork(ann_network);
     std::cout << "BIC score after branch length optimization: " << new_score << "\n";
     assert(new_score <= old_score);

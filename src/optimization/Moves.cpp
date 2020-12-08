@@ -43,6 +43,8 @@ std::vector<double> get_edge_lengths(AnnotatedNetwork &ann_network, size_t pmatr
     std::vector<double> res(ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED ? ann_network.fake_treeinfo->partition_count : 1);
     for (size_t p = 0; p < res.size(); ++p) {
         res[p] = ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index];
+        assert(res[p] >= ann_network.options.brlen_min);
+        assert(res[p] <= ann_network.options.brlen_max);
     }
     return res;
 }
@@ -50,6 +52,8 @@ std::vector<double> get_edge_lengths(AnnotatedNetwork &ann_network, size_t pmatr
 void set_edge_lengths(AnnotatedNetwork &ann_network, size_t pmatrix_index, const std::vector<double> &lengths) {
     for (size_t p = 0; p < lengths.size(); ++p) {
         ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] = lengths[p];
+        assert(lengths[p] >= ann_network.options.brlen_min);
+        assert(lengths[p] <= ann_network.options.brlen_max);
     }
 }
 
@@ -1204,8 +1208,11 @@ void performMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
     std::vector<double> x_y_len(n_p), x_prime_z_len(n_p), z_y_prime_len(n_p);
     for (size_t p = 0; p < n_p; ++p) {
         x_y_len[p] = std::min(x_z_len[p] + z_y_len[p], max_br);
+        assert(x_y_len[p] >= min_br);
         x_prime_z_len[p] = std::max(x_prime_y_prime_len[p] / 2, min_br);
+        assert(x_prime_z_len[p] <= max_br);
         z_y_prime_len[p] = std::max(x_prime_y_prime_len[p] / 2, min_br);
+        assert(x_prime_y_prime_len[p] <= max_br);
     }
 
     assert(x_prime_out_link->edge_pmatrix_index == x_prime_y_prime_edge->pmatrix_index);

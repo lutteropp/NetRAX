@@ -27,4 +27,6 @@ double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int 
 double computeLoglikelihoodNaiveUtree(AnnotatedNetwork &ann_network, int incremental,
         int update_pmatrices, std::vector<double> *treewise_logl = nullptr);
 
+void setup_pmatrices(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices);
+
 }
