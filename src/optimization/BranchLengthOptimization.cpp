@@ -77,6 +77,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, int max_iters, int *act_it
     double tolerance = ann_network.options.tolerance;
 
     double start_logl = computeLoglikelihood(ann_network, 1, 1);
+    assert(start_logl == computeLoglikelihood(ann_network, 0, 1));
     double old_logl = ann_network.raxml_treeinfo->loglh(true);
     assert(start_logl == old_logl);
 

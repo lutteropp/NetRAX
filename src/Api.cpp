@@ -207,6 +207,7 @@ void NetraxInstance::updateReticulationProbs(AnnotatedNetwork &ann_network) {
     if (ann_network.network.num_reticulations() == 0) {
         return;
     }
+    assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
     double old_score = scoreNetwork(ann_network);
     netrax::optimize_reticulations(ann_network, 100);
     double new_score = scoreNetwork(ann_network);
@@ -220,6 +221,7 @@ void NetraxInstance::updateReticulationProbs(AnnotatedNetwork &ann_network) {
  * @param ann_network The network.
  */
 void NetraxInstance::optimizeModel(AnnotatedNetwork &ann_network) {
+    assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
     double old_score = scoreNetwork(ann_network);
     ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
     double new_score = scoreNetwork(ann_network);
@@ -233,6 +235,7 @@ void NetraxInstance::optimizeModel(AnnotatedNetwork &ann_network) {
  * @param ann_network The network.
  */
 void NetraxInstance::optimizeBranches(AnnotatedNetwork &ann_network) {
+    assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
     double old_score = scoreNetwork(ann_network);
     ann_network.raxml_treeinfo->optimize_branches(ann_network.options.lh_epsilon, 1);
     double new_score = scoreNetwork(ann_network);
@@ -246,6 +249,7 @@ void NetraxInstance::optimizeBranches(AnnotatedNetwork &ann_network) {
  * @param ann_network The network.
  */
 void NetraxInstance::optimizeTopology(AnnotatedNetwork &ann_network, const std::vector<MoveType>& types) {
+    assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
     double old_score = scoreNetwork(ann_network);
     greedyHillClimbingTopology(ann_network, types);
     double new_score = scoreNetwork(ann_network);
@@ -259,6 +263,7 @@ void NetraxInstance::optimizeTopology(AnnotatedNetwork &ann_network, const std::
  * @param ann_network The network.
  */
 void NetraxInstance::optimizeTopology(AnnotatedNetwork &ann_network, MoveType& type) {
+    assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
     double old_score = scoreNetwork(ann_network);
     greedyHillClimbingTopology(ann_network, type);
     double new_score = scoreNetwork(ann_network);
