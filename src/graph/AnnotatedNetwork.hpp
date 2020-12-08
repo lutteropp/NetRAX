@@ -22,6 +22,7 @@ extern "C" {
 #include "BiconnectedComponents.hpp"
 #include "../NetraxOptions.hpp"
 #include "../optimization/MoveType.hpp"
+#include "../likelihood/DisplayedTreeData.hpp"
 
 namespace netrax {
 
@@ -39,7 +40,7 @@ struct AnnotatedNetwork {
     BlobInformation blobInfo; // mapping of edges to blobs, megablob roots, mapping of megablob roots to set of reticulation nodes within the megablob
     std::vector<double> reticulation_probs; // the first-parent reticulation probs
 
-    double old_logl;
+    std::vector<std::vector<DisplayedTreeData> > old_displayed_trees;
     std::vector<Node*> travbuffer;
     std::mt19937 rng;
 

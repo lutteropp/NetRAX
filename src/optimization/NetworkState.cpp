@@ -55,7 +55,7 @@ NetworkState extract_network_state(AnnotatedNetwork &ann_network) {
                 ann_network.network.edges_by_index[i])->clv_index, i };
     }
     return NetworkState { extract_brlens_partitions(ann_network), extract_reticulation_probs(
-            ann_network), extract_brlen_scalers(ann_network), edge_infos, ann_network.old_logl };
+            ann_network), extract_brlen_scalers(ann_network), edge_infos, ann_network.old_displayed_trees };
 }
 
 void apply_old_state(AnnotatedNetwork &ann_network,
@@ -117,7 +117,7 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
     }
 
     setup_pmatrices(ann_network, 0, 1);
-    ann_network.old_logl = state.old_logl;
+    ann_network.old_displayed_trees = state.old_displayed_trees;
 }
 
 bool network_states_equal(NetworkState &act_network_state, NetworkState &old_network_state) {

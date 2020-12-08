@@ -148,6 +148,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
 
         //std::cout << " " << toString(candidates[i].moveType) << " " << i+1 << "/ " << candidates.size() << "\n";
         performMove(ann_network, candidates[i]);
+        
         if (brlenopt_inside) { // Do brlen optimization locally around the move
             std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, candidates[i]);
             optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
@@ -164,9 +165,12 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
             optimize_reticulations(ann_network, 100);
         }
 
+        std::cout << "COMPUTING NEW LOGL\n";
         double new_logl = ann_network.raxml_treeinfo->loglh(true);
 
         if (candidates[i].moveType == MoveType::ArcInsertionMove || candidates[i].moveType == MoveType::DeltaPlusMove) {
+            std::cout << "start_logl: " << start_logl << "\n";
+            std::cout << "new_logl: " << new_logl << "\n";
             assert(new_logl >= start_logl);
         }
 

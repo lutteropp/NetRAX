@@ -16,7 +16,7 @@ struct NetworkState {
     std::vector<double> reticulation_probs;
     std::vector<double> brlen_scalers;
     std::vector<EdgeInfo> edge_infos;
-    double old_logl;
+    std::vector<std::vector<DisplayedTreeData> > old_displayed_trees;
 };
 
 NetworkState extract_network_state(AnnotatedNetwork &ann_network);

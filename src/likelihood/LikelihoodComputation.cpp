@@ -217,15 +217,19 @@ std::vector<DisplayedTreeData> process_partition_new(AnnotatedNetwork &ann_netwo
 }
 
 double computeLoglikelihood_new(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices) {
+    //incremental = 0;
+    //update_pmatrices = 1;
+
     Network &network = ann_network.network;
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
+    bool reuse_old_displayed_trees = false;
     if (incremental) {
         bool all_clvs_valid = true;
         for (size_t i = 0; i < fake_treeinfo.partition_count; ++i) {
             all_clvs_valid &= fake_treeinfo.clv_valid[i][network.root->clv_index];
         }
         if (all_clvs_valid) {
-            return ann_network.old_logl;
+            reuse_old_displayed_trees = true;
         }
     }
 
@@ -235,35 +239,53 @@ double computeLoglikelihood_new(AnnotatedNetwork &ann_network, int incremental, 
     setup_pmatrices(ann_network, incremental, update_pmatrices);
     std::vector<Node*> parent = grab_current_node_parents(network);
 
+    std::vector<std::vector<DisplayedTreeData> > all_displayed_trees(fake_treeinfo.partition_count);
+    if (reuse_old_displayed_trees) {
+        all_displayed_trees = ann_network.old_displayed_trees;
+    } else {
+        for (size_t partition_idx = 0; partition_idx < fake_treeinfo.partition_count; ++partition_idx) {
+            fake_treeinfo.active_partition = partition_idx;
+            std::vector<DisplayedTreeData> displayed_trees = process_partition_new(ann_network, partition_idx, incremental, parent);
+            for (size_t i = 0; i < displayed_trees.size(); ++i) {
+                all_displayed_trees[partition_idx].emplace_back(displayed_trees[i]);
+            }
+        }
+    }
+
     for (size_t partition_idx = 0; partition_idx < fake_treeinfo.partition_count; ++partition_idx) {
         fake_treeinfo.active_partition = partition_idx;
-        std::vector<DisplayedTreeData> displayed_trees = process_partition_new(ann_network, partition_idx, incremental, parent);
-
         if (ann_network.options.likelihood_variant == LikelihoodVariant::AVERAGE_DISPLAYED_TREES) {
             mpfr::mpreal partition_lh = 0.0;
-            for (const auto& tree : displayed_trees) {
+            for (const auto& tree : all_displayed_trees[partition_idx]) {
                 assert(tree.tree_logl != 0);
+                std::cout << "tree " << tree.tree_idx << " logl: " << tree.tree_logl << "\n";
                 partition_lh += mpfr::exp(tree.tree_logprob) * mpfr::exp(tree.tree_logl);
             }
             fake_treeinfo.partition_loglh[partition_idx] = mpfr::log(partition_lh).toDouble();
             network_logl += mpfr::log(partition_lh);
         } else { // LikelihoodVariant::BEST_DISPLAYED_TREE
             double partition_logl = -std::numeric_limits<double>::infinity();
-            for (const auto& tree : displayed_trees) {
+            for (const auto& tree : all_displayed_trees[partition_idx]) {
                 assert(tree.tree_logl != 0);
+                std::cout << "tree " << tree.tree_idx << " logl: " << tree.tree_logl << "\n";
+                std::cout << "tree " << tree.tree_idx << " logprob: " << tree.tree_logprob << "\n";
+                std::cout << "tree " << tree.tree_idx << " prob: " << mpfr::exp(tree.tree_logprob) << "\n";
                 partition_logl = std::max(partition_logl, tree.tree_logprob + tree.tree_logl);
             }
             fake_treeinfo.partition_loglh[partition_idx] = partition_logl;
+            std::cout << "partiion " << partition_idx << " logl: " << partition_logl << "\n";
             network_logl += partition_logl;
         }
     }
 
-    ann_network.old_logl = network_logl.toDouble();
+    std::cout << "total_logl: " << network_logl << "\n";
+
+    ann_network.old_displayed_trees = all_displayed_trees;
     for (size_t i = 0; i < fake_treeinfo.partition_count; ++i) {
         fake_treeinfo.clv_valid[i][network.root->clv_index] = 1;
     }
     //std::cout << "network logl: " << ann_network.old_logl << "\n";
-    return ann_network.old_logl;
+    return network_logl.toDouble();
 }
 
 

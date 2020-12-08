@@ -65,6 +65,13 @@ static double brent_target_networks_prob(void *p, double x) {
         score = -1 * computeLoglikelihood(*ann_network, 1, 1);
     } else {
         ann_network->reticulation_probs[reticulation_index] = x;
+
+        for (size_t p = 0; p < ann_network->fake_treeinfo->partition_count; ++p) {
+            for (size_t i = 0; i < ann_network->old_displayed_trees[p].size(); ++i) {
+                ann_network->old_displayed_trees[p][i].tree_logprob = displayed_tree_logprob(*ann_network, ann_network->old_displayed_trees[p][i].tree_idx);
+            }
+        }
+
         score = -1 * computeLoglikelihood(*ann_network, 1, 1);
         //std::cout << "    score: " << score << ", x: " << x << ", old_x: " << old_x << ", pmatrix index:"
         //        << pmatrix_index << "\n";
@@ -144,6 +151,9 @@ double optimize_reticulation(AnnotatedNetwork &ann_network, size_t reticulation_
     double new_brprob = pllmod_opt_minimize_brent(min_brprob, old_brprob, max_brprob, tolerance, &score,
             &f2x, (void*) &params, &brent_target_networks_prob);
     ann_network.reticulation_probs[reticulation_index] = new_brprob;
+
+    std::cout << "old prob for retculation " << reticulation_index << ": " << old_brprob << "\n";
+    std::cout << "new prob for retculation " << reticulation_index << ": " << new_brprob << "\n";
 
     assert(new_brprob >= min_brprob && new_brprob <= max_brprob);
 
