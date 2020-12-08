@@ -103,8 +103,6 @@ void assertBranchesWithinBounds(const AnnotatedNetwork& ann_network) {
 }
 
 void printExtensiveBICInfo(AnnotatedNetwork &ann_network) {
-    bool unlinked_mode = (ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
-    size_t multiplier = unlinked_mode ? ann_network.fake_treeinfo->partition_count : 1;
     std::cout << " brlen_linkage: ";
     if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED) {
         std::cout << "PLLMOD_COMMON_BRLEN_SCALED";
@@ -143,7 +141,6 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     NetworkState best_state = start_state;
 
     for (size_t i = 0; i < candidates.size(); ++i) {
-
         std::cout << "Extensive BIC info before applying current " << toString(candidates[i].moveType) << " move " << i+1 << "/ " << candidates.size() << ":\n";
         printExtensiveBICInfo(ann_network);
 
@@ -160,6 +157,8 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
                                                                 ann_network.options.brlen_max,
                                                                 RAXML_PARAM_EPSILON);
             }
+            optimize_reticulations(ann_network, 100);
+        } else if (candidates[i].moveType == MoveType::ArcInsertionMove || candidates[i].moveType == MoveType::DeltaPlusMove) {
             optimize_reticulations(ann_network, 100);
         }
 
@@ -234,7 +233,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         std::cout << "  Logl_naive: " << naive_logl << ", BIC_naive: " << bic_naive << ", AIC_naive: " << aic_naive << ", AICc_naive: " << aicc_naive << "\n";
         */
 
-        std::cout << "  param_count: " << get_param_count(ann_network) << ", sample_size:" << get_sample_size << "\n";
+        std::cout << "  param_count: " << get_param_count(ann_network) << ", sample_size:" << get_sample_size(ann_network) << "\n";
         std::cout << "  num_reticulations: " << ann_network.network.num_reticulations() << "\n";
         std::cout << toExtendedNewick(ann_network) << "\n";
     }

@@ -35,9 +35,7 @@ mpfr::mpreal displayed_tree_prob_blobs(AnnotatedNetwork &ann_network, size_t meg
     BlobInformation &blobInfo = ann_network.blobInfo;
     mpfr::mpreal logProb = 0;
     for (size_t i = 0; i < blobInfo.reticulation_nodes_per_megablob[megablob_idx].size(); ++i) {
-        size_t active_pmatrix_idx = getReticulationActiveParentPmatrixIndex(
-                blobInfo.reticulation_nodes_per_megablob[megablob_idx][i]);
-        mpfr::mpreal prob = ann_network.branch_probs[active_pmatrix_idx];
+        mpfr::mpreal prob = getReticulationActiveProb(ann_network, blobInfo.reticulation_nodes_per_megablob[megablob_idx][i]);
         logProb += mpfr::log(prob);
     }
     return mpfr::exp(logProb);
@@ -78,9 +76,7 @@ double displayed_tree_logprob(AnnotatedNetwork &ann_network, size_t tree_index) 
     setReticulationParents(network, tree_index);
     mpfr::mpreal logProb = 0;
     for (size_t i = 0; i < network.num_reticulations(); ++i) {
-        size_t active_pmatrix_idx = getReticulationActiveParentPmatrixIndex(
-                network.reticulation_nodes[i]);
-        mpfr::mpreal prob = ann_network.branch_probs[active_pmatrix_idx];
+        mpfr::mpreal prob = getReticulationActiveProb(ann_network, network.reticulation_nodes[i]);
         logProb += mpfr::log(prob);
     }
     return logProb.toDouble();
@@ -227,7 +223,6 @@ double computeLoglikelihood_new(AnnotatedNetwork &ann_network, int incremental, 
 
     mpfr::mpreal network_logl = 0.0;
 
-    assert(!ann_network.branch_probs.empty());
     setup_pmatrices(ann_network, incremental, update_pmatrices);
     const int old_active_partition = fake_treeinfo.active_partition;
     fake_treeinfo.active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
@@ -273,9 +268,7 @@ mpfr::mpreal displayed_tree_nonblob_prob(AnnotatedNetwork &ann_network, size_t t
     setReticulationParents(network, tree_index);
     mpfr::mpreal logProb = 0;
     for (size_t i = 0; i < network.num_reticulations(); ++i) {
-        size_t active_pmatrix_idx = getReticulationActiveParentPmatrixIndex(
-                network.reticulation_nodes[i]);
-        mpfr::mpreal prob = ann_network.branch_probs[active_pmatrix_idx];
+        mpfr::mpreal prob = getReticulationActiveProb(ann_network, network.reticulation_nodes[i]);
         logProb += mpfr::log(prob);
     }
     return mpfr::exp(logProb);

@@ -91,29 +91,26 @@ Node* getReticulationNonActiveParent(Network &network, const Node *node) {
 double getReticulationFirstParentProb(AnnotatedNetwork &ann_network, const Node *node) {
     assert(node);
     assert(node->type == NodeType::RETICULATION_NODE);
-
-    size_t first_parent_pmatrix_index = getReticulationFirstParentPmatrixIndex(node);
-    size_t second_parent_pmatrix_index = getReticulationSecondParentPmatrixIndex(node);
-    assert(ann_network.branch_probs[first_parent_pmatrix_index] + ann_network.branch_probs[second_parent_pmatrix_index] == 1.0);
-
-    return ann_network.branch_probs[first_parent_pmatrix_index];
+    return ann_network.reticulation_probs[node->getReticulationData()->reticulation_index];
 }
 
 double getReticulationSecondParentProb(AnnotatedNetwork &ann_network, const Node *node) {
     assert(node);
     assert(node->type == NodeType::RETICULATION_NODE);
-
-    size_t first_parent_pmatrix_index = getReticulationFirstParentPmatrixIndex(node);
-    size_t second_parent_pmatrix_index = getReticulationSecondParentPmatrixIndex(node);
-    assert(ann_network.branch_probs[first_parent_pmatrix_index] + ann_network.branch_probs[second_parent_pmatrix_index] == 1.0);
-
-    return ann_network.branch_probs[second_parent_pmatrix_index];
+    return 1.0 - ann_network.reticulation_probs[node->getReticulationData()->reticulation_index];
 }
 
 double getReticulationActiveProb(AnnotatedNetwork &ann_network, const Node *node) {
     assert(node);
     assert(node->type == NodeType::RETICULATION_NODE);
-    return ann_network.branch_probs[node->getReticulationData()->getLinkToActiveParent()->edge_pmatrix_index];
+    size_t first_parent_pmatrix_index = getReticulationFirstParentPmatrixIndex(node);
+    size_t active_pmatrix_index = node->getReticulationData()->getLinkToActiveParent()->edge_pmatrix_index;
+
+    if (first_parent_pmatrix_index == active_pmatrix_index) {
+        return getReticulationFirstParentProb(ann_network, node);
+    } else {
+        return getReticulationSecondParentProb(ann_network, node);
+    }
 }
 
 size_t getReticulationFirstParentPmatrixIndex(const Node *node) {

@@ -58,12 +58,9 @@ struct RSPRMove: public GeneralMove {
     size_t y_clv_index = 0;
     size_t z_clv_index = 0;
 
-    double x_z_len = 0;
-    double z_y_len = 0;
-    double x_prime_y_prime_len = 0;
-    double x_z_prob = 0.5;
-    double z_y_prob = 0.5;
-    double x_prime_y_prime_prob = 0.5;
+    std::vector<double> x_z_len = {0};
+    std::vector<double> z_y_len = {0};
+    std::vector<double> x_prime_y_prime_len = {0};
 };
 
 struct ArcInsertionMove: public GeneralMove {
@@ -76,11 +73,9 @@ struct ArcInsertionMove: public GeneralMove {
     size_t c_clv_index = 0;
     size_t d_clv_index = 0;
 
-    double u_v_len = 1.0;
-    double c_v_len = 1.0;
-    double u_v_prob = 0.5;
-    double c_v_prob = 0.5;
-    double a_u_len = 1.0;
+    std::vector<double> u_v_len = {1.0};
+    std::vector<double> c_v_len = {1.0};
+    std::vector<double> a_u_len = {1.0};
 
     size_t wanted_u_clv_index = std::numeric_limits<size_t>::max();
     size_t wanted_v_clv_index = std::numeric_limits<size_t>::max();
@@ -92,11 +87,11 @@ struct ArcInsertionMove: public GeneralMove {
 
     size_t ab_pmatrix_index = std::numeric_limits<size_t>::max();
     size_t cd_pmatrix_index = std::numeric_limits<size_t>::max();
-    double a_b_len = 0;
-    double c_d_len = 0;
+    std::vector<double> a_b_len = {0};
+    std::vector<double> c_d_len = {0};
 
-    double v_d_len = 0;
-    double u_b_len = 0;
+    std::vector<double> v_d_len = {0};
+    std::vector<double> u_b_len = {0};
 };
 
 struct ArcRemovalMove: public GeneralMove {
@@ -111,11 +106,9 @@ struct ArcRemovalMove: public GeneralMove {
     size_t u_clv_index = 0;
     size_t v_clv_index = 0;
 
-    double u_v_len = 0.0;
-    double c_v_len = 0.0;
-    double u_v_prob = 0.5;
-    double c_v_prob = 0.5;
-    double a_u_len = 1.0;
+    std::vector<double> u_v_len = {0.0};
+    std::vector<double> c_v_len = {0.0};
+    std::vector<double> a_u_len = {1.0};
 
     size_t au_pmatrix_index = std::numeric_limits<size_t>::max();
     size_t ub_pmatrix_index = std::numeric_limits<size_t>::max();
@@ -125,11 +118,11 @@ struct ArcRemovalMove: public GeneralMove {
 
     size_t wanted_ab_pmatrix_index = std::numeric_limits<size_t>::max();
     size_t wanted_cd_pmatrix_index = std::numeric_limits<size_t>::max();
-    double a_b_len = 0;
-    double c_d_len = 0;
+    std::vector<double> a_b_len = {0};
+    std::vector<double> c_d_len = {0};
 
-    double v_d_len = 0;
-    double u_b_len = 0;
+    std::vector<double> v_d_len = {0};
+    std::vector<double> u_b_len = {0};
 };
 
 std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network, const Edge *edge);

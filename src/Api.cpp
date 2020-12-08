@@ -36,7 +36,7 @@ namespace netrax {
 
 void allocateBranchProbsArray(AnnotatedNetwork& ann_network) {
     // allocate branch probs array...
-     ann_network.branch_probs = std::vector<double>(ann_network.network.edges.size() + 1, 1.0);
+     ann_network.reticulation_probs = std::vector<double>(ann_network.options.max_reticulations, 0.5);
 }
 
 /**
@@ -54,12 +54,8 @@ void NetraxInstance::init_annotated_network(AnnotatedNetwork &ann_network, std::
     allocateBranchProbsArray(ann_network);
     for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
         Node *retNode = ann_network.network.reticulation_nodes[i];
-        double firstParentProb = netrax::getReticulationFirstParentProb(ann_network, retNode);
-        double secondParentProb = netrax::getReticulationSecondParentProb(ann_network, retNode);
-        size_t firstParentEdgeIndex = netrax::getReticulationFirstParentPmatrixIndex(retNode);
-        size_t secondParentEdgeIndex = netrax::getReticulationSecondParentPmatrixIndex(retNode);
-        ann_network.branch_probs[firstParentEdgeIndex] = firstParentProb;
-        ann_network.branch_probs[secondParentEdgeIndex] = secondParentProb;
+        double firstParentProb = ann_network.network.edges_by_index[ann_network.network.reticulation_nodes[i]->getReticulationData()->getLinkToFirstParent()->edge_pmatrix_index]->prob;
+        ann_network.reticulation_probs[i] = firstParentProb;
     }
 
     netrax::RaxmlWrapper wrapper(ann_network.options);
@@ -188,7 +184,6 @@ AnnotatedNetwork NetraxInstance::build_best_raxml_annotated_network(NetraxOption
  * @param ann_network The network.
  */
 double NetraxInstance::computeLoglikelihood(AnnotatedNetwork &ann_network) {
-    assert(!ann_network.branch_probs.empty());
     double logl = ann_network.raxml_treeinfo->loglh(true);
     return logl;
 }

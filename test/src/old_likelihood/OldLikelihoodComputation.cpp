@@ -368,9 +368,7 @@ double displayed_tree_prob_old(AnnotatedNetwork &ann_network, size_t tree_index)
     setReticulationParents(network, tree_index);
     double logProb = 0;
     for (size_t i = 0; i < network.num_reticulations(); ++i) {
-        size_t active_pmatrix_idx = getReticulationActiveParentPmatrixIndex(
-                network.reticulation_nodes[i]);
-        double prob = ann_network.branch_probs[active_pmatrix_idx];
+        double prob = getReticulationActiveProb(ann_network, network.reticulation_nodes[i]);
         logProb += log(prob);
     }
     return exp(logProb);
@@ -380,9 +378,7 @@ double displayed_tree_blob_prob(AnnotatedNetwork &ann_network, size_t megablob_i
     BlobInformation &blobInfo = ann_network.blobInfo;
     double logProb = 0;
     for (size_t i = 0; i < blobInfo.reticulation_nodes_per_megablob[megablob_idx].size(); ++i) {
-        size_t active_pmatrix_idx = getReticulationActiveParentPmatrixIndex(
-                blobInfo.reticulation_nodes_per_megablob[megablob_idx][i]);
-        double prob = ann_network.branch_probs[active_pmatrix_idx];
+        double prob = getReticulationActiveProb(ann_network, blobInfo.reticulation_nodes_per_megablob[megablob_idx][i]);
         logProb += log(prob);
     }
     return exp(logProb);
@@ -499,23 +495,8 @@ void compute_tree_logl_blobs(AnnotatedNetwork &ann_network, std::vector<bool> &c
 void setup_pmatrices(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices) {
     Network &network = ann_network.network;
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
-    /* NOTE: in unlinked brlen mode, up-to-date brlens for partition p
-     * have to be prefetched to treeinfo->branch_lengths[p] !!! */
-    bool collect_brlen =
-            (fake_treeinfo.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED ? false : true);
-    if (collect_brlen) {
-        for (size_t i = 0; i < network.edges.size() + 1; ++i) { // +1 for the the fake entry
-            fake_treeinfo.branch_lengths[0][i] = 0.0;
-            ann_network.branch_probs[i] = 1.0;
-        }
-        for (size_t i = 0; i < network.num_branches(); ++i) {
-            fake_treeinfo.branch_lengths[0][network.edges[i].pmatrix_index] =
-                    network.edges[i].length;
-            ann_network.branch_probs[network.edges[i].pmatrix_index] = network.edges[i].prob;
-        }
-        if (update_pmatrices) {
-            pllmod_treeinfo_update_prob_matrices(&fake_treeinfo, !incremental);
-        }
+    if (update_pmatrices) {
+        pllmod_treeinfo_update_prob_matrices(&fake_treeinfo, !incremental);
     }
 }
 
@@ -605,16 +586,10 @@ bool update_probs(AnnotatedNetwork &ann_network,
     bool reticulationProbsHaveChanged = false;
     for (size_t r = 0; r < network.num_reticulations(); ++r) {
         double newProb = (double) totalTaken[r] / (totalTaken[r] + totalNotTaken[r]); // Percentage of sites that were maximized when taking this reticulation
-
-        size_t first_parent_pmatrix_index = getReticulationFirstParentPmatrixIndex(
-                network.reticulation_nodes[r]);
-        double oldProb = ann_network.branch_probs[first_parent_pmatrix_index];
+        double oldProb = ann_network.reticulation_probs[r];
 
         if (newProb != oldProb) {
-            size_t second_parent_pmatrix_index = getReticulationSecondParentPmatrixIndex(
-                    network.reticulation_nodes[r]);
-            ann_network.branch_probs[first_parent_pmatrix_index] = newProb;
-            ann_network.branch_probs[second_parent_pmatrix_index] = 1.0 - newProb;
+            ann_network.reticulation_probs[r] = newProb;
             reticulationProbsHaveChanged = true;
         }
     }

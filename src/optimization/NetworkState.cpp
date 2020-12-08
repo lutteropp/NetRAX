@@ -55,7 +55,7 @@ NetworkState extract_network_state(AnnotatedNetwork &ann_network) {
 
 
 void apply_old_state(AnnotatedNetwork &ann_network,
-        const std::vector<std::vector<double> > &old_brlens_partition, const std::vector<double>& old_brlen_scalers, const std::vector<double>& old_brprobs) {
+        const std::vector<std::vector<double> > &old_brlens_partition, const std::vector<double>& old_brlen_scalers, const std::vector<double>& old_reticulation_probs) {
     std::vector<bool> visited(ann_network.network.nodes.size(), false);
     bool unlinkedMode = (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
     size_t n_partitions = 1;
@@ -87,9 +87,9 @@ void apply_old_state(AnnotatedNetwork &ann_network,
             }
         }
     }
-    for (size_t i = 0; i < old_brprobs.size(); ++i) {
-        if (ann_network.branch_probs[i] != old_brprobs[i]) {
-            ann_network.branch_probs[i] = old_brprobs[i];
+    for (size_t i = 0; i < old_reticulation_probs.size(); ++i) {
+        if (ann_network.reticulation_probs[i] != old_reticulation_probs[i]) {
+            ann_network.reticulation_probs[i] = old_reticulation_probs[i];
             invalidateHigherCLVs(ann_network, ann_network.network.root, true, visited);
         }
     }
@@ -97,17 +97,17 @@ void apply_old_state(AnnotatedNetwork &ann_network,
 
 
 void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &state) {
-    apply_old_state(ann_network, state.brlens_partitions, state.brlen_scalers, state.brprobs);
+    apply_old_state(ann_network, state.brlens_partitions, state.brlen_scalers, state.reticulation_probs);
 }
 
 
 bool network_states_equal(NetworkState &act_network_state, NetworkState &old_network_state) {
     std::vector<std::vector<double> > act_brlens_partitions = act_network_state.brlens_partitions;
-    std::vector<double> act_brprobs = act_network_state.brprobs;
+    std::vector<double> act_brprobs = act_network_state.reticulation_probs;
     std::vector<double> act_brlen_scalers = act_network_state.brlen_scalers;
 
     std::vector<std::vector<double> > old_brlens_partitions = old_network_state.brlens_partitions;
-    std::vector<double> old_brprobs = old_network_state.brprobs;
+    std::vector<double> old_brprobs = old_network_state.reticulation_probs;
     std::vector<double> old_brlen_scalers = old_network_state.brlen_scalers;
 
     for (size_t i = 0; i < act_brlens_partitions.size(); ++i) {

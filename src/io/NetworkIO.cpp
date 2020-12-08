@@ -411,8 +411,8 @@ void updateNetwork(AnnotatedNetwork &ann_network) {
     for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
         size_t pmatrix_index = getReticulationFirstParentPmatrixIndex(ann_network.network.reticulation_nodes[i]);
         size_t contra_pmatrix_index = getReticulationSecondParentPmatrixIndex(ann_network.network.reticulation_nodes[i]);
-        ann_network.network.edges_by_index[pmatrix_index]->prob = ann_network.branch_probs[pmatrix_index];
-        ann_network.network.edges_by_index[contra_pmatrix_index]->prob = ann_network.branch_probs[contra_pmatrix_index];
+        ann_network.network.edges_by_index[pmatrix_index]->prob = ann_network.reticulation_probs[i];
+        ann_network.network.edges_by_index[contra_pmatrix_index]->prob = 1.0 - ann_network.reticulation_probs[i];
     }
 }
 
