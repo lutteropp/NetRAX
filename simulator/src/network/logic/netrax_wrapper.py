@@ -4,7 +4,7 @@ import time
 
 from experiment_model import LikelihoodType, BrlenLinkageType, StartType
 
-NETRAX_PATH = "/home/sarah/eclipse-workspace/NetRAX/bin/netrax"
+NETRAX_PATH = "../../../../bin/netrax"
 
 
 # Uses NetRAX to compute the number of reticulations, BIC score, and loglikelihood of a network for a given MSA
