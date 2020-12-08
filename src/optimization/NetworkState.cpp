@@ -22,7 +22,7 @@ std::vector<std::vector<double> > extract_brlens_partitions(AnnotatedNetwork &an
     return res;
 }
 
-std::vector<double> extract_brprobs(AnnotatedNetwork &ann_network) {
+std::vector<double> extract_reticulation_probs(AnnotatedNetwork &ann_network) {
     std::vector<double> res(ann_network.options.max_reticulations);
     for (size_t i = 0; i < ann_network.options.max_reticulations; ++i) {
         res[i] = ann_network.reticulation_probs[i];
@@ -45,7 +45,7 @@ std::vector<double> extract_brlen_scalers(AnnotatedNetwork &ann_network) {
 
 
 NetworkState extract_network_state(AnnotatedNetwork &ann_network) {
-    return NetworkState{extract_brlens_partitions(ann_network), extract_brprobs(ann_network), extract_brlen_scalers(ann_network)};
+    return NetworkState{extract_brlens_partitions(ann_network), extract_reticulation_probs(ann_network), extract_brlen_scalers(ann_network)};
 }
 
 
@@ -99,11 +99,11 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
 
 bool network_states_equal(NetworkState &act_network_state, NetworkState &old_network_state) {
     std::vector<std::vector<double> > act_brlens_partitions = act_network_state.brlens_partitions;
-    std::vector<double> act_brprobs = act_network_state.reticulation_probs;
+    std::vector<double> act_reticulation_probs = act_network_state.reticulation_probs;
     std::vector<double> act_brlen_scalers = act_network_state.brlen_scalers;
 
     std::vector<std::vector<double> > old_brlens_partitions = old_network_state.brlens_partitions;
-    std::vector<double> old_brprobs = old_network_state.reticulation_probs;
+    std::vector<double> old_reticulation_probs = old_network_state.reticulation_probs;
     std::vector<double> old_brlen_scalers = old_network_state.brlen_scalers;
 
     for (size_t i = 0; i < act_brlens_partitions.size(); ++i) {
@@ -138,17 +138,17 @@ bool network_states_equal(NetworkState &act_network_state, NetworkState &old_net
         assert(fabs(act_brlen_scalers[j] - old_brlen_scalers[j]) < 1E-5);
     }
     
-    assert(act_brprobs.size() == old_brprobs.size());
-    for (size_t j = 0; j < act_brprobs.size(); ++j) {
-        if (fabs(act_brprobs[j] - old_brprobs[j]) >= 1E-5) {
-            std::cout << "wanted brprob:\n";
-            std::cout << "idx " << j << ": " << old_brprobs[j] << "\n";
+    assert(act_reticulation_probs.size() == old_reticulation_probs.size());
+    for (size_t j = 0; j < act_reticulation_probs.size(); ++j) {
+        if (fabs(act_reticulation_probs[j] - old_reticulation_probs[j]) >= 1E-5) {
+            std::cout << "wanted prob:\n";
+            std::cout << "idx " << j << ": " << old_reticulation_probs[j] << "\n";
             std::cout << "\n";
-            std::cout << "observed brprob:\n";
-            std::cout << "idx " << j << ": " << act_brprobs[j] << "\n";
+            std::cout << "observed prob:\n";
+            std::cout << "idx " << j << ": " << act_reticulation_probs[j] << "\n";
             std::cout << "\n";
         }
-        assert(fabs(act_brprobs[j] - old_brprobs[j]) < 1E-5);
+        assert(fabs(act_reticulation_probs[j] - old_reticulation_probs[j]) < 1E-5);
     }
 
     return true;
