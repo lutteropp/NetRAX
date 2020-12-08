@@ -23,11 +23,9 @@ std::vector<std::vector<double> > extract_brlens_partitions(AnnotatedNetwork &an
 }
 
 std::vector<double> extract_brprobs(AnnotatedNetwork &ann_network) {
-    std::vector<double> res;
-    res.resize(ann_network.network.edges.size());
-    for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
-        size_t pmatrix_index = ann_network.network.edges[i].pmatrix_index;
-        res[pmatrix_index] = ann_network.network.edges[i].prob;
+    std::vector<double> res(ann_network.options.max_reticulations);
+    for (size_t i = 0; i < ann_network.options.max_reticulations; ++i) {
+        res[i] = ann_network.reticulation_probs[i];
     }
     return res;
 }
@@ -84,6 +82,7 @@ void apply_old_state(AnnotatedNetwork &ann_network,
             }
         }
     }
+    assert(ann_network.reticulation_probs.size() == old_reticulation_probs.size());
     for (size_t i = 0; i < old_reticulation_probs.size(); ++i) {
         if (ann_network.reticulation_probs[i] != old_reticulation_probs[i]) {
             ann_network.reticulation_probs[i] = old_reticulation_probs[i];
@@ -139,6 +138,7 @@ bool network_states_equal(NetworkState &act_network_state, NetworkState &old_net
         assert(fabs(act_brlen_scalers[j] - old_brlen_scalers[j]) < 1E-5);
     }
     
+    assert(act_brprobs.size() == old_brprobs.size());
     for (size_t j = 0; j < act_brprobs.size(); ++j) {
         if (fabs(act_brprobs[j] - old_brprobs[j]) >= 1E-5) {
             std::cout << "wanted brprob:\n";
