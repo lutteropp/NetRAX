@@ -164,6 +164,9 @@ std::vector<DisplayedTreeData> process_partition_new(AnnotatedNetwork &ann_netwo
     Network &network = ann_network.network;
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
 
+    fake_treeinfo.active_partition = partition_idx;
+    setup_pmatrices(ann_network, incremental, ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED ? true : (partition_idx == 0));
+
     std::vector<bool> clv_touched = init_clv_touched(ann_network, incremental, partition_idx);
     size_t n_trees = 1 << network.num_reticulations();
     std::vector<DisplayedTreeData> displayed_trees;
