@@ -53,6 +53,7 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
 
 void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
     std::vector<MoveType> typesBySpeed = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::HeadMove};
+
     auto start_time = std::chrono::high_resolution_clock::now();
     double best_score = std::numeric_limits<double>::infinity();
     int best_num_reticulations = 0;
