@@ -51,6 +51,59 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
     return 0;
 }
 
+void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
+    std::vector<MoveType> typesBySpeed = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::HeadMove};
+    auto start_time = std::chrono::high_resolution_clock::now();
+    double best_score = std::numeric_limits<double>::infinity();
+    int best_num_reticulations = 0;
+    netrax::AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(netraxOptions);
+    NetraxInstance::init_annotated_network(ann_network, rng);
+
+    std::cout << "Initial network is:\n" << toExtendedNewick(ann_network) << "\n\n";
+    std::string best_network = toExtendedNewick(ann_network);
+
+    bool seen_improvement = true;
+    while (seen_improvement) {
+        seen_improvement = false;
+
+        double new_score = NetraxInstance::optimizeEverythingRun(ann_network, typesBySpeed, start_time);
+        std::cout << "Best optimized " << ann_network.network.num_reticulations() << "-reticulation network loglikelihood: " << NetraxInstance::computeLoglikelihood(ann_network) << "\n";
+        std::cout << "Best optimized " << ann_network.network.num_reticulations() << "-reticulation network BIC score: " << new_score << "\n";
+
+        if (new_score < best_score) {
+            best_score = new_score;
+            best_num_reticulations = ann_network.network.num_reticulations();
+            std::cout << "IMPROVED BEST SCORE FOUND SO FAR: " << best_score << "\n\n";
+            NetraxInstance::writeNetwork(ann_network, netraxOptions.output_file);
+            best_network = toExtendedNewick(ann_network);
+            std::cout << "Better network written to " << netraxOptions.output_file << "\n";
+        } else {
+            std::cout << "REMAINED BEST SCORE FOUND SO FAR: " << best_score << "\n";
+        }
+
+        if (new_score <= best_score) { // score did not get worse
+            if (ann_network.network.num_reticulations() < ann_network.options.max_reticulations) {
+                seen_improvement = true;
+                NetraxInstance::add_extra_reticulations(ann_network, ann_network.network.num_reticulations() + 1);
+                NetraxInstance::optimizeBranches(ann_network);
+                NetraxInstance::optimizeModel(ann_network);
+                NetraxInstance::updateReticulationProbs(ann_network);
+                new_score = NetraxInstance::scoreNetwork(ann_network);
+                std::cout << "Initial optimized " << ann_network.network.num_reticulations() << "-reticulation network loglikelihood: " << NetraxInstance::computeLoglikelihood(ann_network) << "\n";
+                std::cout << "Initial optimized " << ann_network.network.num_reticulations() << "-reticulation network BIC score: " << new_score << "\n";
+            }
+        }
+    }
+
+    std::cout << "The inferred network has " << best_num_reticulations << " reticulations and this BIC score: " << best_score << "\n\n";
+    std::cout << "Best found network is:\n" << best_network << "\n\n";
+
+    std::cout << "Statistics on which moves were taken:\n";
+    for (const auto& entry : ann_network.stats.moves_taken) {
+        std::cout << toString(entry.first) << ": " << entry.second << "\n";
+    }
+}
+
 void run_single_start(NetraxOptions& netraxOptions, std::mt19937& rng) {
     double best_score = std::numeric_limits<double>::infinity();
 
@@ -60,7 +113,7 @@ void run_single_start(NetraxOptions& netraxOptions, std::mt19937& rng) {
     std::cout << "Initial network is:\n" << toExtendedNewick(ann_network) << "\n\n";
     std::string best_network = toExtendedNewick(ann_network);
 
-    NetraxInstance::optimizeEverythingInWaves(ann_network);
+    NetraxInstance::optimizeEverything(ann_network);
     double final_bic = NetraxInstance::scoreNetwork(ann_network);
     std::cout << "The inferred network has " << ann_network.network.num_reticulations() << " reticulations and this BIC score: " << final_bic << "\n\n";
     if (final_bic < best_score) {
@@ -271,7 +324,7 @@ int main(int argc, char **argv) {
     }
 
     if (!netraxOptions.start_network_file.empty()) {
-        run_single_start(netraxOptions, rng);
+        run_single_start_waves(netraxOptions, rng);
     } else {
         run_random(netraxOptions, rng);
     }

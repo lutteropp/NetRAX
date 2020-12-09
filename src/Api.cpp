@@ -31,6 +31,7 @@
 #include "optimization/BranchLengthOptimization.hpp"
 #include "optimization/TopologyOptimization.hpp"
 #include "DebugPrintFunctions.hpp"
+#include "utils.hpp"
 
 namespace netrax {
 
@@ -217,7 +218,11 @@ void NetraxInstance::updateReticulationProbs(AnnotatedNetwork &ann_network) {
     netrax::optimize_reticulations(ann_network, 100);
     double new_score = scoreNetwork(ann_network);
     std::cout << "BIC score after updating reticulation probs: " << new_score << "\n";
-    assert(new_score <= old_score);
+    if (definitelyGreaterThan(new_score, old_score)) {
+        std::cout << "old score: " << old_score << "\n";
+        std::cout << "new score: " << new_score << "\n";
+        assert(new_score <= old_score);
+    }
 }
 
 /**
@@ -237,7 +242,11 @@ void NetraxInstance::optimizeModel(AnnotatedNetwork &ann_network) {
     ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
     double new_score = scoreNetwork(ann_network);
     std::cout << "BIC score after model optimization: " << new_score << "\n";
-    assert(new_score <= old_score);
+    if (definitelyGreaterThan(new_score, old_score)) {
+        std::cout << "old score: " << old_score << "\n";
+        std::cout << "new score: " << new_score << "\n";
+        assert(new_score <= old_score);
+    }
 }
 
 /**
@@ -252,7 +261,11 @@ void NetraxInstance::optimizeBranches(AnnotatedNetwork &ann_network) {
     assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
     double new_score = scoreNetwork(ann_network);
     std::cout << "BIC score after branch length optimization: " << new_score << "\n";
-    assert(new_score <= old_score);
+    if (definitelyGreaterThan(new_score, old_score)) {
+        std::cout << "old score: " << old_score << "\n";
+        std::cout << "new score: " << new_score << "\n";
+        assert(new_score <= old_score);
+    }
 }
 
 /**
@@ -266,7 +279,11 @@ void NetraxInstance::optimizeTopology(AnnotatedNetwork &ann_network, const std::
     greedyHillClimbingTopology(ann_network, types);
     double new_score = scoreNetwork(ann_network);
     std::cout << "BIC after topology optimization: " << new_score << "\n";
-    assert(new_score <= old_score);
+    if (definitelyGreaterThan(new_score, old_score)) {
+        std::cout << "old score: " << old_score << "\n";
+        std::cout << "new score: " << new_score << "\n";
+        assert(new_score <= old_score);
+    }
 }
 
 /**
@@ -280,11 +297,12 @@ void NetraxInstance::optimizeTopology(AnnotatedNetwork &ann_network, MoveType& t
     greedyHillClimbingTopology(ann_network, type);
     double new_score = scoreNetwork(ann_network);
     //std::cout << "BIC after topology optimization: " << new_score << "\n";
-    if (new_score > old_score) {
+
+    if (definitelyGreaterThan(new_score, old_score)) {
         std::cout << "old score: " << old_score << "\n";
         std::cout << "new score: " << new_score << "\n";
+        assert(new_score <= old_score);
     }
-    assert(new_score <= old_score);
 }
 
 double NetraxInstance::optimizeEverythingRun(AnnotatedNetwork & ann_network, std::vector<MoveType>& typesBySpeed, const std::chrono::high_resolution_clock::time_point& start_time) {
@@ -359,13 +377,16 @@ void NetraxInstance::optimizeEverything(AnnotatedNetwork &ann_network) {
     updateReticulationProbs(ann_network);
     optimizeModel(ann_network);
     double new_score = scoreNetwork(ann_network);
-    std::cout << "Initial optimized network loglikelihood: " << computeLoglikelihood(ann_network) << "\n";
-    std::cout << "Initial optimized network BIC score: " << new_score << "\n";
+    std::cout << "Initial optimized " << ann_network.network.num_reticulations() << "-reticulation network loglikelihood: " << computeLoglikelihood(ann_network) << "\n";
+    std::cout << "Initial optimized " << ann_network.network.num_reticulations() << "-reticulation network BIC score: " << new_score << "\n";
     //assert(new_score <= initial_score);
 
     //double_check_likelihood(ann_network);
 
     optimizeEverythingRun(ann_network, typesBySpeed, start_time);
+
+    std::cout << "Best optimized " << ann_network.network.num_reticulations() << "-reticulation network loglikelihood: " << computeLoglikelihood(ann_network) << "\n";
+    std::cout << "Best optimized " << ann_network.network.num_reticulations() << "-reticulation network BIC score: " << new_score << "\n";
 
     std::cout << "Statistics on which moves were taken:\n";
     for (const auto& entry : ann_network.stats.moves_taken) {
@@ -402,7 +423,7 @@ void NetraxInstance::optimizeEverythingInWaves(AnnotatedNetwork &ann_network) {
         std::cout << "Best optimized " << ann_network.network.num_reticulations() << "-reticulation network loglikelihood: " << computeLoglikelihood(ann_network) << "\n";
         std::cout << "Best optimized " << ann_network.network.num_reticulations() << "-reticulation network BIC score: " << new_score << "\n";
 
-        if (new_score >= best_score) { // score did not get worse
+        if (new_score <= best_score) { // score did not get worse
             best_score = new_score;
             if (ann_network.network.num_reticulations() < ann_network.options.max_reticulations) {
                 seen_improvement = true;
