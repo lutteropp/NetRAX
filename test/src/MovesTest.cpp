@@ -147,44 +147,6 @@ void printBranchLengths(AnnotatedNetwork &ann_network) {
     }
 }
 
-TEST (MovesTest, incrementalLoglikelihoodProblem) {
-    NetraxOptions options;
-    options.start_network_file = DATA_PATH + "small.nw";
-    options.msa_file = DATA_PATH + "small_fake_alignment.txt";
-    options.use_repeats = true;
-    AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(options);
-    NetraxInstance::init_annotated_network(ann_network);
-
-    printClvValid(ann_network);
-    double initial_logl = NetraxInstance::computeLoglikelihood(ann_network);
-    ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
-    std::cout << "initial_logl: " << initial_logl << "\n";
-
-    std::cout << exportDebugInfo(ann_network);
-    std::cout << toExtendedNewick(ann_network) << "\n";
-    RNNIMove move;
-    move.moveType = MoveType::RNNIMove;
-    move.u_clv_index = 7;
-    move.v_clv_index = 5;
-    move.s_clv_index = 6;
-    move.t_clv_index = 2;
-    move.type = RNNIMoveType::THREE;
-    performMove(ann_network, move);
-    std::cout << exportDebugInfo(ann_network);
-    std::cout << toExtendedNewick(ann_network) << "\n";
-    printClvValid(ann_network);
-    double moved_logl = NetraxInstance::computeLoglikelihood(ann_network);
-    std::cout << "moved_logl: " << moved_logl << "\n";
-    ASSERT_NE(moved_logl, -std::numeric_limits<double>::infinity());
-    undoMove(ann_network, move);
-    std::cout << exportDebugInfo(ann_network);
-    std::cout << toExtendedNewick(ann_network) << "\n";
-    printClvValid(ann_network);
-    double back_logl = NetraxInstance::computeLoglikelihood(ann_network);
-    std::cout << "back_logl: " << back_logl << "\n";
-    ASSERT_DOUBLE_EQ(initial_logl, back_logl);
-}
-
 TEST (MovesTest, tail) {
     randomMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false,
             MoveType::TailMove);
