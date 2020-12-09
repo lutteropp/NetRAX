@@ -79,6 +79,31 @@ void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
             std::cout << best_network << "\n";
             std::cout << "Better network written to " << netraxOptions.output_file << "\n";
 
+            //print displayed trees
+            std::vector<std::pair<std::string, double>> displayed_trees;
+            if (ann_network.network.num_reticulations() == 0) {
+                std::string newick = netrax::toExtendedNewick(ann_network);
+                displayed_trees.emplace_back(std::make_pair(newick, 1.0));
+            } else {
+                for (int tree_index = 0; tree_index < 1 << ann_network.network.num_reticulations(); ++tree_index) {
+                    pll_utree_t* utree = netrax::displayed_tree_to_utree(ann_network.network, tree_index);
+                    double prob = netrax::displayed_tree_prob(ann_network, tree_index);
+                    Network displayedNetwork = netrax::convertUtreeToNetwork(*utree, 0);
+                    std::string newick = netrax::toExtendedNewick(displayedNetwork);
+                    pll_utree_destroy(utree, nullptr);
+                    displayed_trees.emplace_back(std::make_pair(newick, prob));
+                }
+            }
+            std::cout << "Number of displayed trees: " << displayed_trees.size() << "\n";
+            std::cout << "Displayed trees Newick strings:\n";
+            for (const auto& entry : displayed_trees) {
+                std::cout << entry.first << "\n";
+            }
+            std::cout << "Displayed trees probabilities:\n";
+            for (const auto& entry : displayed_trees) {
+                std::cout << entry.second << "\n";
+            }
+
             if (ann_network.network.num_reticulations() > 0) {
                 for (size_t i = 0; i < ann_network.reticulation_probs.size(); ++i) {
                     assert(ann_network.reticulation_probs[i] != 1.0);
