@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
     //::testing::GTEST_FLAG(filter) = "*SystemTest.problem*";
 
     // suppress any cout output while running the tests
-    std::cout.setstate(std::ios_base::failbit);
+    //std::cout.setstate(std::ios_base::failbit);
     auto result = RUN_ALL_TESTS();
     std::cout.clear();
 //  MPI_FINALIZE();

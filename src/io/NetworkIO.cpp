@@ -289,6 +289,8 @@ std::pair<size_t, size_t> makeToplevel(RootedNetwork &rnetwork) {
         throw std::runtime_error("The network is not bifurcating");
     }
 
+    rnetwork.root = root;
+
     return std::make_pair(node_count, branch_count);
 }
 
