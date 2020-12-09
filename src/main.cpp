@@ -76,6 +76,7 @@ void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
             std::cout << "IMPROVED BEST SCORE FOUND SO FAR: " << best_score << "\n\n";
             NetraxInstance::writeNetwork(ann_network, netraxOptions.output_file);
             best_network = toExtendedNewick(ann_network);
+            std::cout << best_network << "\n";
             std::cout << "Better network written to " << netraxOptions.output_file << "\n";
         } else {
             std::cout << "REMAINED BEST SCORE FOUND SO FAR: " << best_score << "\n";
