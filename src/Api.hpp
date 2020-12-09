@@ -10,6 +10,7 @@
 #include <string>
 #include <random>
 #include <vector>
+#include <chrono>
 
 extern "C" {
 #include <libpll/pll.h>
@@ -44,7 +45,11 @@ struct NetraxInstance {
         static void optimizeBranches(AnnotatedNetwork &ann_network);
         static void optimizeTopology(AnnotatedNetwork &ann_network, const std::vector<MoveType>& types);
         static void optimizeTopology(AnnotatedNetwork &ann_network, MoveType& type);
+        
+        static double optimizeEverythingRun(AnnotatedNetwork & ann_network, std::vector<MoveType>& typesBySpeed, const std::chrono::high_resolution_clock::time_point& start_time);
         static void optimizeEverything(AnnotatedNetwork &ann_network);
+        static void optimizeEverythingInWaves(AnnotatedNetwork &ann_network);
+
         static void writeNetwork(AnnotatedNetwork &ann_network, const std::string &filepath);
         static void init_annotated_network(AnnotatedNetwork &ann_network, std::mt19937& rng);
         static void init_annotated_network(AnnotatedNetwork &ann_network);

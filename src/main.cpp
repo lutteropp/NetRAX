@@ -60,7 +60,7 @@ void run_single_start(NetraxOptions& netraxOptions, std::mt19937& rng) {
     std::cout << "Initial network is:\n" << toExtendedNewick(ann_network) << "\n\n";
     std::string best_network = toExtendedNewick(ann_network);
 
-    NetraxInstance::optimizeEverything(ann_network);
+    NetraxInstance::optimizeEverythingInWaves(ann_network);
     double final_bic = NetraxInstance::scoreNetwork(ann_network);
     std::cout << "The inferred network has " << ann_network.network.num_reticulations() << " reticulations and this BIC score: " << final_bic << "\n\n";
     if (final_bic < best_score) {
@@ -89,7 +89,7 @@ void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {
         netrax::AnnotatedNetwork ann_network = NetraxInstance::build_random_annotated_network(netraxOptions);
         NetraxInstance::init_annotated_network(ann_network, rng);
         NetraxInstance::add_extra_reticulations(ann_network, start_reticulations);
-        NetraxInstance::optimizeEverything(ann_network);
+        NetraxInstance::optimizeEverythingInWaves(ann_network);
         double final_bic = NetraxInstance::scoreNetwork(ann_network);
         std::cout << "The inferred network has " << ann_network.network.num_reticulations() << " reticulations and this BIC score: " << final_bic << "\n\n";
         if (final_bic < best_score) {
@@ -119,7 +119,7 @@ void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {
         netrax::AnnotatedNetwork ann_network = NetraxInstance::build_parsimony_annotated_network(netraxOptions);
         NetraxInstance::init_annotated_network(ann_network, rng);
         NetraxInstance::add_extra_reticulations(ann_network, start_reticulations);
-        NetraxInstance::optimizeEverything(ann_network);
+        NetraxInstance::optimizeEverythingInWaves(ann_network);
         double final_bic = NetraxInstance::scoreNetwork(ann_network);
         std::cout << "The inferred network has " << ann_network.network.num_reticulations() << " reticulations and this BIC score: " << final_bic << "\n\n";
         if (final_bic < best_score) {
