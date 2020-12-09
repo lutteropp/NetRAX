@@ -266,6 +266,22 @@ void NetraxInstance::optimizeBranches(AnnotatedNetwork &ann_network) {
         std::cout << "new score: " << new_score << "\n";
         assert(new_score <= old_score);
     }
+    if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED) {
+        old_score = scoreNetwork(ann_network);
+        pllmod_algo_opt_brlen_scalers_treeinfo(ann_network.fake_treeinfo,
+                                                        RAXML_BRLEN_SCALER_MIN,
+                                                        RAXML_BRLEN_SCALER_MAX,
+                                                        ann_network.options.brlen_min,
+                                                        ann_network.options.brlen_max,
+                                                        RAXML_PARAM_EPSILON);
+        new_score = scoreNetwork(ann_network);
+        std::cout << "BIC score after branch length scaler optimization: " << new_score << "\n";
+        if (definitelyGreaterThan(new_score, old_score)) {
+            std::cout << "old score: " << old_score << "\n";
+            std::cout << "new score: " << new_score << "\n";
+            assert(new_score <= old_score);
+        }
+    }
 }
 
 /**
