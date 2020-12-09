@@ -155,7 +155,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     NetworkState best_state = start_state;
 
     for (size_t i = 0; i < candidates.size(); ++i) {
-        std::cout << toString(candidates[i].moveType) << " move " << i+1 << "/ " << candidates.size() << "\n";
+        if (verbose) std::cout << toString(candidates[i].moveType) << " move " << i+1 << "/ " << candidates.size() << "\n";
 
         if (verbose) std::cout << "Extensive BIC info before applying current " << toString(candidates[i].moveType) << " move " << i+1 << "/ " << candidates.size() << ":\n";
         if (verbose) printExtensiveBICInfo(ann_network);
@@ -296,6 +296,7 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, MoveType type) 
     double old_logl = ann_network.raxml_treeinfo->loglh(true);
     double old_bic = bic(ann_network, old_logl);
     //std::cout << "start_logl: " << old_logl <<", start_bic: " << old_bic << "\n";
+    std::cout << "Using move type: " << toString(type) << "\n";
 
     double new_score = old_bic;
     do {
