@@ -289,9 +289,8 @@ void NetraxInstance::optimizeTopology(AnnotatedNetwork &ann_network, MoveType& t
 
 double NetraxInstance::optimizeEverythingRun(AnnotatedNetwork & ann_network, std::vector<MoveType>& typesBySpeed, const std::chrono::high_resolution_clock::time_point& start_time) {
     unsigned int type_idx = 0;
-    double score_epsilon = ann_network.options.lh_epsilon;
     unsigned int max_seconds = ann_network.options.timeout;
-    double best_score = std::numeric_limits<double>::infinity();
+    double best_score = scoreNetwork(ann_network);
     do {
         while (ann_network.network.num_reticulations() == 0
             && (typesBySpeed[type_idx] == MoveType::DeltaMinusMove || typesBySpeed[type_idx] == MoveType::ArcRemovalMove)) {
@@ -318,7 +317,7 @@ double NetraxInstance::optimizeEverythingRun(AnnotatedNetwork & ann_network, std
         double old_score = scoreNetwork(ann_network);
         optimizeTopology(ann_network, typesBySpeed[type_idx]);
         double new_score = scoreNetwork(ann_network);
-        if (best_score - new_score > score_epsilon) { // score got better
+        if (new_score < old_score) { // score got better
             //std::cout << "BIC after topology optimization: " << new_score << "\n";
             //std::cout << "Current number of reticulations: " << ann_network.network.num_reticulations() << "\n";
             //std::cout << "network (BIC = " << new_score << ", logl = " << computeLoglikelihood(ann_network) << ") before brlen opt:\n" << toExtendedNewick(ann_network.network) << "\n";
@@ -334,7 +333,7 @@ double NetraxInstance::optimizeEverythingRun(AnnotatedNetwork & ann_network, std
         } else { // try next-slower move type
             type_idx++;
         }
-        assert(old_score - new_score > score_epsilon);
+        assert(new_score <= old_score);
 
         if (max_seconds != 0) {
             auto act_time = std::chrono::high_resolution_clock::now();
@@ -381,8 +380,6 @@ void NetraxInstance::optimizeEverything(AnnotatedNetwork &ann_network) {
  */
 void NetraxInstance::optimizeEverythingInWaves(AnnotatedNetwork &ann_network) {
     std::vector<MoveType> typesBySpeed = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::HeadMove};
-
-    double score_epsilon = ann_network.options.lh_epsilon;
     auto start_time = std::chrono::high_resolution_clock::now();
 
     optimizeBranches(ann_network);
@@ -405,7 +402,7 @@ void NetraxInstance::optimizeEverythingInWaves(AnnotatedNetwork &ann_network) {
         std::cout << "Best optimized " << ann_network.network.num_reticulations() << "-reticulation network loglikelihood: " << computeLoglikelihood(ann_network) << "\n";
         std::cout << "Best optimized " << ann_network.network.num_reticulations() << "-reticulation network BIC score: " << new_score << "\n";
 
-        if (best_score - new_score > score_epsilon) { // score got better
+        if (new_score >= best_score) { // score did not get worse
             best_score = new_score;
             if (ann_network.network.num_reticulations() < ann_network.options.max_reticulations) {
                 seen_improvement = true;
