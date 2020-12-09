@@ -52,7 +52,7 @@ inline double tolerantSTOD(const std::string &str) {
 }
 
 std::array<double, 3> readBrlenSupportProb(const std::string &str) {
-    std::array<double, 3> res = { 0, 0, 0 };
+    std::array<double, 3> res = { 0, 0, 0.5 };
     size_t colonCount = std::count(str.begin(), str.end(), ':');
     assert(colonCount <= 3);
     if (colonCount == 0) {
