@@ -27,6 +27,7 @@
 #include "../io/NetworkIO.hpp"
 #include "Moves.hpp"
 #include "NetworkState.hpp"
+#include "../utils.hpp"
 
 namespace netrax {
 

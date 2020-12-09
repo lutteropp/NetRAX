@@ -9,6 +9,30 @@
 
 namespace netrax {
 
+bool approximatelyEqual(double a, double b)
+{
+    double epsilon = std::numeric_limits<double>::epsilon();
+    return fabs(a - b) <= ( (fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * epsilon);
+}
+
+bool essentiallyEqual(double a, double b)
+{
+    double epsilon = std::numeric_limits<double>::epsilon();
+    return fabs(a - b) <= ( (fabs(a) > fabs(b) ? fabs(b) : fabs(a)) * epsilon);
+}
+
+bool definitelyGreaterThan(double a, double b)
+{
+    double epsilon = std::numeric_limits<double>::epsilon();
+    return (a - b) > ( (fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * epsilon);
+}
+
+bool definitelyLessThan(double a, double b)
+{
+    double epsilon = std::numeric_limits<double>::epsilon();
+    return (b - a) > ( (fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * epsilon);
+}
+
 template<typename T>
 void print_vector(const std::vector<T> &vector, const std::string &vectorName) {
     std::cout << vectorName << ":\n";

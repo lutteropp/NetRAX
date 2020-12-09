@@ -21,4 +21,12 @@ namespace netrax {
 void print_model_params(const pllmod_treeinfo_t &treeinfo);
 void transfer_model_params(const pllmod_treeinfo_t &from, pllmod_treeinfo_t *to);
 
+bool approximatelyEqual(double a, double b);
+
+bool essentiallyEqual(double a, double b);
+
+bool definitelyGreaterThan(double a, double b);
+
+bool definitelyLessThan(double a, double b);
+
 }
