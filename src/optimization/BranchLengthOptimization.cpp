@@ -144,7 +144,6 @@ double optimize_reticulation(AnnotatedNetwork &ann_network, size_t reticulation_
     assert(old_brprob >= min_brprob);
     assert(old_brprob <= max_brprob);
 
-
     // before doing Brent, try the naive way of setting reticulation prob to 1.0 or 0.0....
     // case 1: prob is 1.0:
     ann_network.reticulation_probs[reticulation_index] = 1.0;
@@ -181,7 +180,6 @@ double optimize_reticulation(AnnotatedNetwork &ann_network, size_t reticulation_
             double act_logl = computeLoglikelihood(ann_network, 1, 1);
         }
     }
-
 
     // Do Brent's method to find a better branch length
     //std::cout << " optimizing branch " << pmatrix_index << ":\n";
