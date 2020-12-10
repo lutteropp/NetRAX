@@ -586,7 +586,7 @@ TreeInfo* RaxmlWrapper::createRaxmlTreeinfo(pllmod_treeinfo_t *treeinfo,
 }
 
 double RaxmlWrapper::network_logl_wrapper(void *network_params, int incremental,
-        int update_pmatrices) {
+        int update_pmatrices, double ** persite_lnl) {
     NetworkParams *params = (NetworkParams*) network_params;
     return computeLoglikelihood(*params->ann_network, incremental, update_pmatrices);
 }

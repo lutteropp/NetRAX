@@ -44,7 +44,7 @@ public:
 
     void enableRaxmlDebugOutput();
 
-    static double network_logl_wrapper(void *network_params, int incremental, int update_pmatrices);
+    static double network_logl_wrapper(void *network_params, int incremental, int update_pmatrices, double ** persite_lnl);
     double network_opt_brlen_wrapper(pllmod_treeinfo_t *fake_treeinfo, double min_brlen,
             double max_brlen, double lh_epsilon, int max_iters, int opt_method, int radius);
     double network_spr_round_wrapper(pllmod_treeinfo_t *treeinfo, unsigned int radius_min,
