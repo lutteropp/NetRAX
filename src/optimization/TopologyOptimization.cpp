@@ -165,6 +165,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
 
         //std::cout << " " << toString(candidates[i].moveType) << " " << i+1 << "/ " << candidates.size() << "\n";
         performMove(ann_network, candidates[i]);
+        optimize_reticulations(ann_network, 100);
         
         if (brlenopt_inside) { // Do brlen optimization locally around the move
             if (verbose) std::cout << "AFTER MOVE, BUT BEFORE ANY OPT: \n";
@@ -181,8 +182,6 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
             if (verbose) std::cout << "AFTER MOVE, AFTER BRLEN OPT + SCALER OPT + RETICULATION OPT: \n";
             if (verbose) printOldDisplayedTrees(ann_network);
             if (verbose) std::cout << toExtendedNewick(ann_network) << "\n";
-        } else if (candidates[i].moveType == MoveType::ArcInsertionMove || candidates[i].moveType == MoveType::DeltaPlusMove) {
-            optimize_reticulations(ann_network, 100);
         }
 
         if (verbose) std::cout << "COMPUTING NEW LOGL\n";
@@ -245,7 +244,6 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
                                                                 ann_network.options.brlen_max,
                                                                 RAXML_PARAM_EPSILON);
             }
-            optimize_reticulations(ann_network, 100);
         }
         // just for debug, doing reticulation opt, full global brlen opt and model opt:
         //netrax::computeLoglikelihood(ann_network, 0, 1, false);
