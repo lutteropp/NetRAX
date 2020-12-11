@@ -177,7 +177,7 @@ double optimize_reticulation(AnnotatedNetwork &ann_network, size_t reticulation_
                     ann_network.old_displayed_trees[p][i].tree_logprob = displayed_tree_logprob(ann_network, ann_network.old_displayed_trees[p][i].tree_idx);
                 }
             }
-            double act_logl = computeLoglikelihood(ann_network, 1, 1);
+            act_logl = computeLoglikelihood(ann_network, 1, 1);
         }
     }
 

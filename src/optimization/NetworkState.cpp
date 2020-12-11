@@ -63,12 +63,12 @@ void apply_old_state(AnnotatedNetwork &ann_network,
         const std::vector<double> &old_brlen_scalers,
         const std::vector<double> &old_reticulation_probs) {
     std::vector<bool> visited(ann_network.network.nodes.size(), false);
-    bool unlinkedMode = (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
+    /*bool unlinkedMode = (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
     size_t n_partitions = 1;
     if (unlinkedMode) {
         n_partitions = ann_network.fake_treeinfo->partition_count;
     }
-    /*for (size_t p = 0; p < n_partitions; ++p) {
+    for (size_t p = 0; p < n_partitions; ++p) {
         for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
             size_t pmatrix_index = ann_network.network.edges[i].pmatrix_index;
 
