@@ -63,7 +63,7 @@ void apply_old_state(AnnotatedNetwork &ann_network,
         const std::vector<double> &old_brlen_scalers,
         const std::vector<double> &old_reticulation_probs) {
     std::vector<bool> visited(ann_network.network.nodes.size(), false);
-    /*bool unlinkedMode = (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
+    bool unlinkedMode = (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
     size_t n_partitions = 1;
     if (unlinkedMode) {
         n_partitions = ann_network.fake_treeinfo->partition_count;
@@ -85,7 +85,7 @@ void apply_old_state(AnnotatedNetwork &ann_network,
                         visited);
             }
         }
-    }*/
+    }
     for (size_t p = 0; p < old_brlen_scalers.size(); ++p) {
         if (ann_network.fake_treeinfo->brlen_scalers[p] != old_brlen_scalers[p]) {
             ann_network.fake_treeinfo->brlen_scalers[p] = old_brlen_scalers[p];
@@ -107,9 +107,6 @@ void apply_old_state(AnnotatedNetwork &ann_network,
 }
 
 void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &state) {
-    return;
-
-
     apply_old_state(ann_network, state.brlens_partitions, state.brlen_scalers,
             state.reticulation_probs);
     for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
@@ -124,18 +121,15 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
 }
 
 bool network_states_equal(NetworkState &act_network_state, NetworkState &old_network_state) {
-    return true;
-
-
     std::vector<std::vector<double> > act_brlens_partitions = act_network_state.brlens_partitions;
     std::vector<double> act_reticulation_probs = act_network_state.reticulation_probs;
     std::vector<double> act_brlen_scalers = act_network_state.brlen_scalers;
 
-    //std::vector<std::vector<double> > old_brlens_partitions = old_network_state.brlens_partitions;
+    std::vector<std::vector<double> > old_brlens_partitions = old_network_state.brlens_partitions;
     std::vector<double> old_reticulation_probs = old_network_state.reticulation_probs;
     std::vector<double> old_brlen_scalers = old_network_state.brlen_scalers;
 
-    /*for (size_t i = 0; i < act_brlens_partitions.size(); ++i) {
+    for (size_t i = 0; i < act_brlens_partitions.size(); ++i) {
         for (size_t j = 0; j < act_brlens_partitions[i].size(); ++j) {
             if (fabs(act_brlens_partitions[i][j] - old_brlens_partitions[i][j]) >= 1E-5) {
                 std::cout << "wanted brlens:\n";
@@ -151,7 +145,7 @@ bool network_states_equal(NetworkState &act_network_state, NetworkState &old_net
             }
             assert(fabs(act_brlens_partitions[i][j] - old_brlens_partitions[i][j]) < 1E-5);
         }
-    }*/
+    }
 
     for (size_t j = 0; j < act_brlen_scalers.size(); ++j) {
         if (fabs(act_brlen_scalers[j] - old_brlen_scalers[j]) >= 1E-5) {

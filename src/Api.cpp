@@ -377,6 +377,8 @@ double NetraxInstance::optimizeEverythingRun(AnnotatedNetwork & ann_network, std
         }
     } while (type_idx < typesBySpeed.size());
 
+    scoreNetwork(ann_network);
+
     return best_score;
 }
 
