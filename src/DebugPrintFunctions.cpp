@@ -305,4 +305,8 @@ std::string exportDebugInfo(AnnotatedNetwork &ann_network, bool with_label) {
     return exportDebugInfoExtraNodeNumber(ann_network.network, std::vector<unsigned int>(), with_label);
 }
 
+std::string exportDebugInfoNetwork(Network &network, bool with_labels) {
+    return exportDebugInfoExtraNodeNumber(network, std::vector<unsigned int>(), with_labels);
+}
+
 }

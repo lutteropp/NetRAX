@@ -39,5 +39,6 @@ void printReticulationNodesPerMegablob(AnnotatedNetwork &ann_network);
 std::string exportDebugInfoRootedNetwork(const RootedNetwork &rnetwork);
 std::string exportDebugInfoBlobs(Network &network, const BlobInformation &blobInfo);
 std::string exportDebugInfo(AnnotatedNetwork &ann_network, bool with_labels = true);
+std::string exportDebugInfoNetwork(Network &network, bool with_labels = true);
 
 }

@@ -30,6 +30,8 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
     app.add_flag("--extract_displayed_trees", options->extract_displayed_trees, "Only extract all displayed trees with their probabilities from a network.");
     app.add_flag("--extract_taxon_names", options->extract_taxon_names, "Only extract all taxon names from a network.");
     app.add_flag("--generate_random_network_only", options->generate_random_network_only, "Only generate a random network, with as many reticulations as specified in the -r parameter");
+    app.add_flag("--pretty_print_only", options->pretty_print_only, "Only pretty-print a given input network.");
+
     std::string brlen_linkage = "scaled";
     app.add_option("--brlen", brlen_linkage, "branch length linkage between partitions (linked, scaled, or unlinked) (default: scaled)");
 
@@ -230,6 +232,14 @@ void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {
     }
 }
 
+void pretty_print(NetraxOptions& netraxOptions) {
+    if (netraxOptions.start_network_file.empty()) {
+        throw std::runtime_error("No input network specified to be pretty-printed");
+    }
+    Network network = netrax::readNetworkFromFile(netraxOptions.start_network_file);
+    std::cout << exportDebugInfoNetwork(network) << "\n";
+}
+
 void score_only(NetraxOptions& netraxOptions, std::mt19937& rng) {
     if (netraxOptions.msa_file.empty()) {
         throw std::runtime_error("Need MSA to score a network");
@@ -331,6 +341,11 @@ int main(int argc, char **argv) {
     } else {
         std::mt19937 rng2(netraxOptions.seed);
         rng = rng2;
+    }
+
+    if (netraxOptions.pretty_print_only) {
+        pretty_print(netraxOptions);
+        return 0;
     }
 
     if (netraxOptions.extract_taxon_names) {
