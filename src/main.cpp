@@ -251,10 +251,16 @@ void score_only(NetraxOptions& netraxOptions, std::mt19937& rng) {
     NetraxInstance::init_annotated_network(ann_network, rng);
     NetraxInstance::optimizeModel(ann_network);
 
+    std::cout << "Initial, given network:\n";
+    std::cout << exportDebugInfo(ann_network) << "\n";
+
     double start_bic = NetraxInstance::scoreNetwork(ann_network);
     double start_logl = NetraxInstance::computeLoglikelihood(ann_network);
     std::cout << "Initial (before brlen and reticulation opt) BIC Score: " << start_bic << "\n";
     std::cout << "Initial (before brlen and reticulation opt) loglikelihood: " << start_logl << "\n";
+
+    std::cout << "Network after optimization of brlens and reticulation probs:\n";
+    std::cout << exportDebugInfo(ann_network) << "\n";
 
     NetraxInstance::optimizeBranches(ann_network);
     NetraxInstance::updateReticulationProbs(ann_network);
