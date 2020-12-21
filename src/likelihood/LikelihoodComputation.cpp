@@ -67,6 +67,7 @@ void setup_pmatrices(AnnotatedNetwork &ann_network, int incremental, int update_
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
     if (update_pmatrices) {
         pllmod_treeinfo_update_prob_matrices(&fake_treeinfo, !incremental);
+        // TODO: Aren't we missing setting the fae pmatrix entry???
     }
 }
 
