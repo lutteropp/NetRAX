@@ -1,28 +1,21 @@
 #pragma once
 
+#include <raxml-ng/Model.hpp>
 #include <vector>
 #include "../graph/AnnotatedNetwork.hpp"
 
 namespace netrax {
 
-struct EdgeInfo {
-    size_t from_clv_index;
-    size_t to_clv_index;
-    size_t pmatrix_index;
-};
-
 struct NetworkState {
-    std::vector<std::vector<double> > brlens_partitions;
-    std::vector<double> reticulation_probs;
-    std::vector<double> brlen_scalers;
-    std::vector<EdgeInfo> edge_infos;
-    std::vector<std::vector<DisplayedTreeData> > old_displayed_trees;
+    Network network;
+    std::vector<std::vector<double> > partition_brlens;
+    std::vector<Model> partition_models;
+    std::vector<double> reticulation_probs; // the first-parent reticulation probs
 };
 
 NetworkState extract_network_state(AnnotatedNetwork &ann_network);
-
 void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &state);
-
-bool network_states_equal(NetworkState& old_state, NetworkState &act_state);
+bool network_states_equal(const NetworkState& old_state, const NetworkState &act_state);
+AnnotatedNetwork build_annotated_network_from_state(NetworkState& state, const NetraxOptions& options);
 
 }

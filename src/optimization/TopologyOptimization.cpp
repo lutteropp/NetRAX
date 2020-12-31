@@ -152,7 +152,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
 
     bool verbose = false;
 
-    NetworkState best_state = start_state;
+    NetworkState best_state = extract_network_state(ann_network);
 
     for (size_t i = 0; i < candidates.size(); ++i) {
         if (verbose) std::cout << toString(candidates[i].moveType) << " move " << i+1 << "/ " << candidates.size() << "\n";
