@@ -34,17 +34,7 @@ namespace netrax {
         return result;
     }
     
-    Network cloneNetwork(const Network& other) {
-        std::cout << "clone network called\n";
-        Network network;
-        network.nodeCount = other.nodeCount;
-        network.branchCount = other.branchCount;
-        network.tipCount = other.tipCount;
-
-        network.nodes.resize(other.nodes.size());
-        network.edges.resize(other.edges.size());
-
-        // Clone the nodes and edges, first without any links
+    void cloneNodesAndEdges(Network& network, const Network& other) {
         for (size_t i = 0; i < other.nodes.size(); ++i) {
             if (other.nodes[i].type == NodeType::BASIC_NODE) {
                 network.nodes[i].initBasic(other.nodes[i].clv_index, other.nodes[i].scaler_index, other.nodes[i].label);
@@ -58,22 +48,30 @@ namespace netrax {
         for (size_t i = 0; i < other.edges.size(); ++i) {
             network.edges[i].init(other.edges[i].pmatrix_index, nullptr, nullptr, other.edges[i].length, other.edges[i].prob);
         }
+    }
 
-        // Fill the by-index references
+    void fillByIndexReferences(Network& network, const Network& other) {
         network.nodes_by_index.resize(other.nodes_by_index.size());
         network.edges_by_index.resize(other.edges_by_index.size());
         for (size_t i = 0; i < network.nodes.size(); ++i) {
+            if (network.nodes[i].clv_index == std::numeric_limits<size_t>::max()) {
+                continue;
+            }
             network.nodes_by_index[network.nodes[i].clv_index] = &network.nodes[i];
         }
         for (size_t i = 0; i < network.edges.size(); ++i) {
+            if (network.edges[i].pmatrix_index == std::numeric_limits<size_t>::max()) {
+                continue;
+            }
             network.edges_by_index[network.edges[i].pmatrix_index] = &network.edges[i];
         }
         network.reticulation_nodes.reserve(other.reticulation_nodes.size());
         for (size_t i = 0; i < other.reticulation_nodes.size(); ++i) {
             network.reticulation_nodes.emplace_back(network.nodes_by_index[other.reticulation_nodes[i]->clv_index]);
         }
+    }
 
-        // Create the links
+    void createTheLinks(Network& network, const Network& other) {
         for (size_t i = 0; i < other.nodes.size(); ++i) {
             for (size_t j = 0; j < other.nodes[i].links.size(); ++j) {
                 Link link;
@@ -81,8 +79,9 @@ namespace netrax {
                 network.nodes[i].addLink(link);
             }
         }
+    }
 
-        // Set the links for the edges
+    void setLinksForEdges(Network& network, const Network& other) {
         for (size_t i = 0; i < network.nodes.size(); ++i) {
             for (size_t j = 0; j < network.nodes[i].links.size(); ++j) {
                 size_t pmatrix_index = network.nodes[i].links[j].edge_pmatrix_index;
@@ -95,8 +94,9 @@ namespace netrax {
                 }
             }
         }
+    }
 
-        // Set the outer links
+    void setOuterLinks(Network& network, const Network& other) {
         for (size_t i = 0; i < network.edges.size(); ++i) {
             if (network.edges[i].pmatrix_index == std::numeric_limits<size_t>::max()) {
                 continue;
@@ -107,8 +107,9 @@ namespace netrax {
             network.edges[i].link1->outer = network.edges[i].link2;
             network.edges[i].link2->outer = network.edges[i].link1;
         }
+    }
 
-        // Set the links for the reticulation datas
+    void setReticulationLinks(Network &network, const Network& other) {
         for (size_t i = 0; i < other.reticulation_nodes.size(); ++i) {
             ReticulationData* other_ret_data = other.nodes[i].getReticulationData().get();
             ReticulationData* my_ret_data = network.nodes[i].getReticulationData().get();
@@ -121,6 +122,35 @@ namespace netrax {
             my_ret_data->link_to_second_parent = network.edges_by_index[second_parent_edge_index]->link2; // because it is an incoming link
             my_ret_data->link_to_child = network.edges_by_index[child_edge_index]->link1; // because it is an outgoing link
         }
+    }
+
+    Network cloneNetwork(const Network& other) {
+        std::cout << "clone network called\n";
+        Network network;
+        network.nodeCount = other.nodeCount;
+        network.branchCount = other.branchCount;
+        network.tipCount = other.tipCount;
+
+        network.nodes.resize(other.nodes.size());
+        network.edges.resize(other.edges.size());
+
+        // Clone the nodes and edges, first without any links
+        cloneNodesAndEdges(network, other);
+
+        // Fill the by-index references
+        fillByIndexReferences(network, other);
+
+        // Create the links
+        createTheLinks(network, other);
+
+        // Set the links for the edges
+        setLinksForEdges(network, other);
+
+        // Set the outer links
+        setOuterLinks(network, other);
+
+        // Set the links for the reticulation datas
+        setReticulationLinks(network, other);
 
         // Set the root
         assert(other.root);
