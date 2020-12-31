@@ -83,11 +83,9 @@ namespace netrax {
         }
 
         // Set the links for the edges
-        std::cout << "Set links for the edges\n";
         for (size_t i = 0; i < network.nodes.size(); ++i) {
             for (size_t j = 0; j < network.nodes[i].links.size(); ++j) {
                 size_t pmatrix_index = network.nodes[i].links[j].edge_pmatrix_index;
-                std::cout << "pmatrix index: " << pmatrix_index << "\n";
                 if (network.nodes[i].links[j].direction == Direction::OUTGOING) {
                     assert(!network.edges_by_index[pmatrix_index]->link1);
                     network.edges_by_index[pmatrix_index]->link1 = &network.nodes[i].links[j];
@@ -99,10 +97,10 @@ namespace netrax {
         }
 
         // Set the outer links
-        std::cout << "Set outer links\n";
         for (size_t i = 0; i < network.edges.size(); ++i) {
-            std::cout << "i: " << i << "\n";
-            std::cout << "edge_pmatrix_index: " << network.edges[i].pmatrix_index << "\n";
+            if (network.edges[i].pmatrix_index == std::numeric_limits<size_t>::max()) {
+                continue;
+            }
             assert(network.edges_by_index[network.edges[i].pmatrix_index] == &network.edges[i]);
             assert(network.edges[i].link1);
             assert(network.edges[i].link2);

@@ -87,9 +87,8 @@ bool partition_brlens_equal(const NetworkState& old_state, const NetworkState& a
                     std::cout << "idx " << k << ": " << act_state.partition_brlens[i][k] << "\n";
                 }
                 std::cout << "\n";
+                all_fine = false;
             }
-
-            all_fine = false;
         }
     }
     return all_fine;
@@ -97,7 +96,7 @@ bool partition_brlens_equal(const NetworkState& old_state, const NetworkState& a
 
 bool network_states_equal(const NetworkState& old_state, const NetworkState &act_state) {
     // TODO: Also check for model equality
-    return reticulation_probs_equal(old_state, act_state) & partition_brlens_equal(old_state, act_state);
+    return reticulation_probs_equal(old_state, act_state) && partition_brlens_equal(old_state, act_state);
 }
 
 AnnotatedNetwork build_annotated_network_from_state(NetworkState& state, const NetraxOptions& options) {
