@@ -12,6 +12,7 @@
 #include <memory>
 #include <cassert>
 #include <vector>
+#include <limits>
 #include <algorithm>
 
 namespace netrax {
@@ -100,7 +101,7 @@ public:
 
     NodeType type = NodeType::BASIC_NODE;
     int scaler_index = -1;
-    size_t clv_index = 0;
+    size_t clv_index = std::numeric_limits<size_t>::max();
     std::vector<Link> links;
     std::unique_ptr<ReticulationData> reticulationData = nullptr;
     std::string label = "";

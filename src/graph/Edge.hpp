@@ -8,6 +8,7 @@
 #pragma once
 
 #include <cstddef>
+#include <limits>
 
 namespace netrax {
 
@@ -23,7 +24,7 @@ struct Edge {
     }
 
     void clear() {
-        pmatrix_index = 0;
+        pmatrix_index = std::numeric_limits<size_t>::max();
         link1 = nullptr;
         link2 = nullptr;
         length = 0.0;
@@ -31,7 +32,7 @@ struct Edge {
         prob = 1.0;
     }
 
-    size_t pmatrix_index = 0;
+    size_t pmatrix_index = std::numeric_limits<size_t>::max();
     Link *link1 = nullptr;
     Link *link2 = nullptr;
     double length = 0.0;
