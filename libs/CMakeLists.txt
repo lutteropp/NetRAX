@@ -10,6 +10,7 @@ file(COPY ${PROJECT_SOURCE_DIR}/libs/raxml-ng/src/PartitionedMSA.hpp
           ${PROJECT_SOURCE_DIR}/libs/raxml-ng/src/constants.hpp
           ${PROJECT_SOURCE_DIR}/libs/raxml-ng/src/common.h
           ${PROJECT_SOURCE_DIR}/libs/raxml-ng/src/TreeInfo.hpp
+          ${PROJECT_SOURCE_DIR}/libs/raxml-ng/src/Model.hpp
           ${PROJECT_SOURCE_DIR}/libs/raxml-ng/src/Optimizer.hpp
 	  ${PROJECT_SOURCE_DIR}/libs/raxml-ng/src/main.hpp
           ${PROJECT_SOURCE_DIR}/libs/raxml-ng/src/log.hpp
