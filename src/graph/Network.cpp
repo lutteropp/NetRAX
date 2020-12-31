@@ -93,6 +93,8 @@ namespace netrax {
 
         // Set the outer links
         for (size_t i = 0; i < network.edges.size(); ++i) {
+            assert(network.edges[i].link1);
+            assert(network.edges[i].link2);
             network.edges[i].link1->outer = network.edges[i].link2;
             network.edges[i].link2->outer = network.edges[i].link1;
         }
