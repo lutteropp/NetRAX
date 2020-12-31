@@ -20,37 +20,17 @@ namespace netrax {
 
 class Network {
 public:
-    size_t num_tips() const {
-        return tipCount;
-    }
+    size_t num_tips() const;
 
-    size_t num_inner() const {
-        return nodeCount - tipCount;
-    }
+    size_t num_inner() const;
 
-    size_t num_branches() const {
-        return branchCount;
-    }
+    size_t num_branches() const;
 
-    size_t num_reticulations() const {
-        return reticulation_nodes.size();
-    }
+    size_t num_reticulations() const;
 
-    size_t num_nodes() const {
-        return nodeCount;
-    }
+    size_t num_nodes() const;
 
-    Node* getNodeByLabel(const std::string &label) {
-        Node *result = nullptr;
-        for (size_t i = 0; i < nodes.size(); ++i) {
-            if (nodes[i].getLabel() == label) {
-                result = &nodes[i];
-                break;
-            }
-        }
-        assert(result);
-        return result;
-    }
+    Node* getNodeByLabel(const std::string &label);
 
     unsigned int nodeCount = 0;
     unsigned int branchCount = 0;
@@ -64,5 +44,7 @@ public:
     std::vector<Node> nodes;
     std::vector<Edge> edges;
 };
+
+Network cloneNetwork(const Network& other);
 
 }
