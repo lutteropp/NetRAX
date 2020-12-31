@@ -50,6 +50,9 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
     }
 
     ann_network.reticulation_probs = state.reticulation_probs;
+
+    ann_network.travbuffer = reversed_topological_sort(ann_network.network);
+    ann_network.blobInfo = partitionNetworkIntoBlobs(ann_network.network, ann_network.travbuffer);
 }
 
 bool reticulation_probs_equal(const NetworkState& old_state, const NetworkState& act_state) {
