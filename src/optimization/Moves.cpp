@@ -195,10 +195,10 @@ void exchangeEdges(Network &network, Node *u, Node *v, Node *s, Node *t) {
     from_v_link->outer = from_s_link;
     from_s_link->outer = from_v_link;
 
-    assert(from_u_link->link_clv_index != from_u_link->outer->link_clv_index);
-    assert(from_t_link->link_clv_index != from_t_link->outer->link_clv_index);
-    assert(from_v_link->link_clv_index != from_v_link->outer->link_clv_index);
-    assert(from_s_link->link_clv_index != from_s_link->outer->link_clv_index);
+    assert(from_u_link->node_clv_index != from_u_link->outer->node_clv_index);
+    assert(from_t_link->node_clv_index != from_t_link->outer->node_clv_index);
+    assert(from_v_link->node_clv_index != from_v_link->outer->node_clv_index);
+    assert(from_s_link->node_clv_index != from_s_link->outer->node_clv_index);
 
     // u_s_edge now becomes u_t edge
     Edge *u_t_edge = u_s_edge;
@@ -910,7 +910,7 @@ std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_ne
             if (c->links[i].direction == Direction::INCOMING) {
                 continue;
             }
-            Node *d_cand = network.nodes_by_index[c->links[i].outer->link_clv_index];
+            Node *d_cand = network.nodes_by_index[c->links[i].outer->node_clv_index];
             if (a->clv_index == c_cand->clv_index && b->clv_index == d_cand->clv_index) {
                 continue;
             }
@@ -941,7 +941,7 @@ std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_ne
                 if (d->links[i].direction == Direction::OUTGOING) {
                     continue;
                 }
-                Node *c_cand = network.nodes_by_index[d->links[i].outer->link_clv_index];
+                Node *c_cand = network.nodes_by_index[d->links[i].outer->node_clv_index];
                 if (a->clv_index == c_cand->clv_index && b->clv_index == d_cand->clv_index) {
                     continue;
                 }
