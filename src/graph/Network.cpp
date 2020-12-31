@@ -1,4 +1,5 @@
 #include "Network.hpp"
+#include <iostream>
 
 namespace netrax {
     size_t Network::num_tips() const {
@@ -34,6 +35,7 @@ namespace netrax {
     }
     
     Network cloneNetwork(const Network& other) {
+        std::cout << "clone network called\n";
         Network network;
         network.nodeCount = other.nodeCount;
         network.branchCount = other.branchCount;
@@ -81,20 +83,27 @@ namespace netrax {
         }
 
         // Set the links for the edges
+        std::cout << "Set links for the edges\n";
         for (size_t i = 0; i < network.nodes.size(); ++i) {
             for (size_t j = 0; j < network.nodes[i].links.size(); ++j) {
+                size_t pmatrix_index = network.nodes[i].links[j].edge_pmatrix_index;
+                std::cout << "pmatrix index: " << pmatrix_index << "\n";
                 if (network.nodes[i].links[j].direction == Direction::OUTGOING) {
-                    assert(!network.edges_by_index[network.nodes[i].links[j].edge_pmatrix_index]->link1);
-                    network.edges_by_index[network.nodes[i].links[j].edge_pmatrix_index]->link1 = &network.nodes[i].links[j];
+                    assert(!network.edges_by_index[pmatrix_index]->link1);
+                    network.edges_by_index[pmatrix_index]->link1 = &network.nodes[i].links[j];
                 } else {
-                    assert(!network.edges_by_index[network.nodes[i].links[j].edge_pmatrix_index]->link2);
-                    network.edges_by_index[network.nodes[i].links[j].edge_pmatrix_index]->link2 = &network.nodes[i].links[j];
+                    assert(!network.edges_by_index[pmatrix_index]->link2);
+                    network.edges_by_index[pmatrix_index]->link2 = &network.nodes[i].links[j];
                 }
             }
         }
 
         // Set the outer links
+        std::cout << "Set outer links\n";
         for (size_t i = 0; i < network.edges.size(); ++i) {
+            std::cout << "i: " << i << "\n";
+            std::cout << "edge_pmatrix_index: " << network.edges[i].pmatrix_index << "\n";
+            assert(network.edges_by_index[network.edges[i].pmatrix_index] == &network.edges[i]);
             assert(network.edges[i].link1);
             assert(network.edges[i].link2);
             network.edges[i].link1->outer = network.edges[i].link2;
