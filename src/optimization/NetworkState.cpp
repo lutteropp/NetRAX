@@ -16,7 +16,7 @@ NetworkState extract_network_state(AnnotatedNetwork &ann_network) {
     }
     for (size_t p = 0; p < state.partition_brlens.size(); ++p) {
         state.partition_brlens[p].resize(ann_network.network.edges.size()+1);
-        for (size_t pmatrix_index = 0; pmatrix_index <= ann_network.network.edges.size(); ++pmatrix_index) {
+        for (size_t pmatrix_index = 0; pmatrix_index < ann_network.network.edges.size(); ++pmatrix_index) {
             state.partition_brlens[p][pmatrix_index] = ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index];
         }
     }
@@ -32,7 +32,7 @@ NetworkState extract_network_state(AnnotatedNetwork &ann_network) {
 void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &state) {
     ann_network.network = cloneNetwork(state.network);
     for (size_t p = 0; p < state.partition_brlens.size(); ++p) {
-        for (size_t pmatrix_index = 0; pmatrix_index <= ann_network.network.edges.size(); ++pmatrix_index) {
+        for (size_t pmatrix_index = 0; pmatrix_index < ann_network.network.edges.size(); ++pmatrix_index) {
             ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] = state.partition_brlens[p][pmatrix_index];
             ann_network.fake_treeinfo->pmatrix_valid[p][pmatrix_index] = 0;
         }
@@ -40,7 +40,7 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
     pllmod_treeinfo_update_prob_matrices(ann_network.fake_treeinfo, 1);
 
     for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-        for (size_t clv_index = 0; clv_index <= ann_network.network.nodes.size(); ++clv_index) {
+        for (size_t clv_index = 0; clv_index < ann_network.network.nodes.size(); ++clv_index) {
             ann_network.fake_treeinfo->clv_valid[p][clv_index] = 0;
         }
     }
