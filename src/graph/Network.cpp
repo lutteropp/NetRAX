@@ -125,7 +125,6 @@ namespace netrax {
     }
 
     Network cloneNetwork(const Network& other) {
-        std::cout << "clone network called\n";
         Network network;
         network.nodeCount = other.nodeCount;
         network.branchCount = other.branchCount;
