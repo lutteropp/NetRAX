@@ -84,8 +84,10 @@ namespace netrax {
         for (size_t i = 0; i < network.nodes.size(); ++i) {
             for (size_t j = 0; j < network.nodes[i].links.size(); ++j) {
                 if (network.nodes[i].links[j].direction == Direction::OUTGOING) {
+                    assert(!network.edges_by_index[network.nodes[i].links[j].edge_pmatrix_index]->link1);
                     network.edges_by_index[network.nodes[i].links[j].edge_pmatrix_index]->link1 = &network.nodes[i].links[j];
                 } else {
+                    assert(!network.edges_by_index[network.nodes[i].links[j].edge_pmatrix_index]->link2);
                     network.edges_by_index[network.nodes[i].links[j].edge_pmatrix_index]->link2 = &network.nodes[i].links[j];
                 }
             }
