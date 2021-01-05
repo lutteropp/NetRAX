@@ -345,6 +345,9 @@ double computeLoglikelihoodNaiveUtree(AnnotatedNetwork &ann_network, int increme
 
 
 double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices) {
+    //just for debug
+    incremental = 0;
+    update_pmatrices = 1;
     return computeLoglikelihood_new(ann_network, incremental, update_pmatrices);
 }
 
