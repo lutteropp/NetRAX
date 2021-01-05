@@ -276,13 +276,17 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     return best_score;
 }
 
-double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, MoveType type, size_t max_iterations) {
+double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, MoveType type, bool enforce_apply_move, size_t max_iterations) {
     double old_logl = ann_network.raxml_treeinfo->loglh(true);
     double old_bic = bic(ann_network, old_logl);
     //std::cout << "start_logl: " << old_logl <<", start_bic: " << old_bic << "\n";
     std::cout << "Using move type: " << toString(type) << "\n";
 
     size_t act_iterations = 0;
+
+    if (enforce_apply_move) {
+        old_bic = std::numeric_limits<double>::max();
+    }
 
     double new_score = old_bic;
     do {

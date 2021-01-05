@@ -128,7 +128,7 @@ void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
 
                 // new version: search for best place to add the new reticulation
                 MoveType insertionType = MoveType::ArcInsertionMove;
-                netrax::greedyHillClimbingTopology(ann_network, insertionType, 1);
+                netrax::greedyHillClimbingTopology(ann_network, insertionType, true, 1);
 
                 NetraxInstance::optimizeBranches(ann_network);
                 NetraxInstance::optimizeModel(ann_network);
