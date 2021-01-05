@@ -144,43 +144,6 @@ double optimize_reticulation(AnnotatedNetwork &ann_network, size_t reticulation_
     assert(old_brprob >= min_brprob);
     assert(old_brprob <= max_brprob);
 
-    // before doing Brent, try the naive way of setting reticulation prob to 1.0 or 0.0....
-    // case 1: prob is 1.0:
-    ann_network.reticulation_probs[reticulation_index] = 1.0;
-    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-        for (size_t i = 0; i < ann_network.old_displayed_trees[p].size(); ++i) {
-            ann_network.old_displayed_trees[p][i].tree_logprob = displayed_tree_logprob(ann_network, ann_network.old_displayed_trees[p][i].tree_idx);
-        }
-    }
-    double act_logl = computeLoglikelihood(ann_network, 1, 1);
-    //std::cout << "NETWORK LOGL WITH SETTING PROB TO 1: " << act_logl << "\n";
-    if (act_logl > best_logl) {
-        best_logl = act_logl;
-        old_brprob = 1.0;
-    } else { // try setting it to 0.0 next
-        ann_network.reticulation_probs[reticulation_index] = 0.0;
-        for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-            for (size_t i = 0; i < ann_network.old_displayed_trees[p].size(); ++i) {
-                ann_network.old_displayed_trees[p][i].tree_logprob = displayed_tree_logprob(ann_network, ann_network.old_displayed_trees[p][i].tree_idx);
-            }
-        }
-        act_logl = computeLoglikelihood(ann_network, 1, 1);
-        //std::cout << "NETWORK LOGL WITH SETTING PROB TO 0: " << act_logl << "\n";
-        if (act_logl > best_logl) {
-            best_logl = act_logl;
-            old_brprob = 0.0;
-        } else {
-            // revert to normal
-            ann_network.reticulation_probs[reticulation_index] = old_brprob;
-            for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-                for (size_t i = 0; i < ann_network.old_displayed_trees[p].size(); ++i) {
-                    ann_network.old_displayed_trees[p][i].tree_logprob = displayed_tree_logprob(ann_network, ann_network.old_displayed_trees[p][i].tree_idx);
-                }
-            }
-            act_logl = computeLoglikelihood(ann_network, 1, 1);
-        }
-    }
-
     // Do Brent's method to find a better branch length
     //std::cout << " optimizing branch " << pmatrix_index << ":\n";
     double score = 0;
@@ -197,6 +160,48 @@ double optimize_reticulation(AnnotatedNetwork &ann_network, size_t reticulation_
     //std::cout << "  score: " << score << "\n";
     //std::cout << "  old_brlen: " << old_brlen << ", new_brlen: " << new_brlen << "\n";
     best_logl = computeLoglikelihood(ann_network, 1, 1);
+
+
+    // after doing Brent, try the naive way of setting reticulation prob to 1.0 or 0.0....
+    // case 1: prob is 1.0:
+    ann_network.reticulation_probs[reticulation_index] = 1.0;
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        for (size_t i = 0; i < ann_network.old_displayed_trees[p].size(); ++i) {
+            ann_network.old_displayed_trees[p][i].tree_logprob = displayed_tree_logprob(ann_network, ann_network.old_displayed_trees[p][i].tree_idx);
+        }
+    }
+    double act_logl = computeLoglikelihood(ann_network, 1, 1);
+    //std::cout << "NETWORK LOGL WITH SETTING PROB TO 1: " << act_logl << "\n";
+    if (act_logl > best_logl) {
+        best_logl = act_logl;
+        new_brprob = 1.0;
+    } else { // try setting it to 0.0 next
+        ann_network.reticulation_probs[reticulation_index] = 0.0;
+        for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+            for (size_t i = 0; i < ann_network.old_displayed_trees[p].size(); ++i) {
+                ann_network.old_displayed_trees[p][i].tree_logprob = displayed_tree_logprob(ann_network, ann_network.old_displayed_trees[p][i].tree_idx);
+            }
+        }
+        act_logl = computeLoglikelihood(ann_network, 1, 1);
+        //std::cout << "NETWORK LOGL WITH SETTING PROB TO 0: " << act_logl << "\n";
+        if (act_logl > best_logl) {
+            best_logl = act_logl;
+            new_brprob = 0.0;
+        } else {
+            // revert to normal
+            ann_network.reticulation_probs[reticulation_index] = old_brprob;
+            for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+                for (size_t i = 0; i < ann_network.old_displayed_trees[p].size(); ++i) {
+                    ann_network.old_displayed_trees[p][i].tree_logprob = displayed_tree_logprob(ann_network, ann_network.old_displayed_trees[p][i].tree_idx);
+                }
+            }
+            act_logl = computeLoglikelihood(ann_network, 1, 1);
+        }
+    }
+
+    ann_network.reticulation_probs[reticulation_index] = new_brprob;
+    best_logl = computeLoglikelihood(ann_network, 1, 1);
+
     //std::cout << " start logl for branch " << pmatrix_index << " with length " << start_brlen << ": " << start_logl
     //        << "\n";
     //std::cout << "   end logl for branch " << pmatrix_index << " with length " << new_brlen << ": " << best_logl

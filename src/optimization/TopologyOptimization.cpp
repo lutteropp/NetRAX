@@ -276,11 +276,13 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     return best_score;
 }
 
-double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, MoveType type) {
+double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, MoveType type, size_t max_iterations) {
     double old_logl = ann_network.raxml_treeinfo->loglh(true);
     double old_bic = bic(ann_network, old_logl);
     //std::cout << "start_logl: " << old_logl <<", start_bic: " << old_bic << "\n";
     std::cout << "Using move type: " << toString(type) << "\n";
+
+    size_t act_iterations = 0;
 
     double new_score = old_bic;
     do {
@@ -336,17 +338,23 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, MoveType type) 
             new_score = bic(ann_network, new_logl);
         }
         */
+
+       act_iterations++;
+       if (act_iterations >= max_iterations) {
+           break;
+       }
     } while (old_bic - new_score > ann_network.options.lh_epsilon);
     return ann_network.raxml_treeinfo->loglh(true);
 }
 
-double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, const std::vector<MoveType>& types) {
+double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, const std::vector<MoveType>& types, size_t max_iterations) {
     unsigned int type_idx = 0;
     double old_logl = ann_network.raxml_treeinfo->loglh(true);
     double new_logl = old_logl;
     double old_bic = bic(ann_network, old_logl);
     double new_score = old_bic;
     unsigned int moves_cnt = 0;
+    size_t act_iterations = 0;
     do {
         if (ann_network.network.num_reticulations() == 0
               && (types[type_idx] == MoveType::DeltaMinusMove || types[type_idx] == MoveType::ArcRemovalMove)) {
@@ -354,7 +362,7 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, const std::vect
             moves_cnt++;
         }
         //std::cout << "Using move type: " << toString(types[type_idx]) << "\n";
-        new_logl = greedyHillClimbingTopology(ann_network, types[type_idx]);
+        new_logl = greedyHillClimbingTopology(ann_network, types[type_idx], max_iterations);
         new_score = bic(ann_network, new_logl);
         type_idx = (type_idx + 1) % types.size();
         moves_cnt++;
@@ -363,6 +371,10 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, const std::vect
             //std::cout << "Improved bic from " << old_bic << " to " << new_score << "\n";
             old_bic = new_score;
             moves_cnt = 0;
+        }
+        act_iterations++;
+        if (act_iterations >= max_iterations) {
+            break;
         }
     } while (moves_cnt < types.size());
     return new_logl;

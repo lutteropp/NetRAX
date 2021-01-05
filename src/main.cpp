@@ -8,6 +8,7 @@
 #include "NetraxOptions.hpp"
 #include "NetworkIO.hpp"
 #include "DebugPrintFunctions.hpp"
+#include "optimization/TopologyOptimization.hpp"
 
 using namespace netrax;
 
@@ -121,7 +122,14 @@ void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
         if (new_score <= best_score) { // score did not get worse
             if (ann_network.network.num_reticulations() < ann_network.options.max_reticulations) {
                 seen_improvement = true;
-                NetraxInstance::add_extra_reticulations(ann_network, ann_network.network.num_reticulations() + 1);
+
+                // old and deprecated: randomly add new reticulation
+                //NetraxInstance::add_extra_reticulations(ann_network, ann_network.network.num_reticulations() + 1);
+
+                // new version: search for best place to add the new reticulation
+                MoveType insertionType = MoveType::ArcInsertionMove;
+                netrax::greedyHillClimbingTopology(ann_network, insertionType, 1);
+
                 NetraxInstance::optimizeBranches(ann_network);
                 NetraxInstance::optimizeModel(ann_network);
                 NetraxInstance::updateReticulationProbs(ann_network);
