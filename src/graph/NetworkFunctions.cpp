@@ -515,7 +515,7 @@ std::vector<Node*> reversed_topological_sort(Network &network) {
 
 // compute outdegree of all nodes
     for (size_t i = 0; i < network.num_nodes(); ++i) {
-        Node *actNode = &network.nodes[i];
+        Node *actNode = &network.nodes_by_index[i];
         size_t act_clv_idx = actNode->clv_index;
         outdeg[act_clv_idx] = getChildren(network, actNode).size();
         if (outdeg[act_clv_idx] == 0) {
