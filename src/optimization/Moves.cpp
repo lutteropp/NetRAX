@@ -1383,7 +1383,7 @@ Edge* addEdge(AnnotatedNetwork &ann_network, Link *link1, Link *link2, std::vect
         std::swap(link1, link2);
     }
     size_t pmatrix_index = 0;
-    if (wanted_pmatrix_index < ann_network.network.edges.size()) {
+    if (wanted_pmatrix_index < ann_network.network.edges.size() && ann_network.network.edges_by_index[wanted_pmatrix_index] == nullptr) {
         pmatrix_index = wanted_pmatrix_index;
     } else {
         // find smallest free non-tip pmatrix index
@@ -1481,7 +1481,7 @@ Node* addInnerNode(Network &network, ReticulationData *retData, size_t wanted_cl
     assert(network.num_nodes() < network.nodes.size());
     unsigned int clv_index;
 
-    if (wanted_clv_index < network.nodes.size()) {
+    if (wanted_clv_index < network.nodes.size() && network.nodes_by_index[wanted_clv_index] == nullptr) {
         clv_index = wanted_clv_index;
     } else {
         clv_index = network.nodes.size() - 1;
