@@ -1986,6 +1986,7 @@ std::string toString(ArcInsertionMove &move) {
 }
 
 std::string toString(ArcRemovalMove &move) {
+    assert(move.a_clv_index != move.u_clv_index);
     std::stringstream ss;
     ss << "arc removal move:\n";
     ss << "  a = " << move.a_clv_index << "\n";
