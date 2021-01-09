@@ -118,7 +118,8 @@ void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
             if (disabledReticulations) {
                 if (ann_network.network.num_reticulations() == old_num_reticulations) {
                     for (size_t i = 0; i < ann_network.network.reticulation_nodes.size(); ++i) {
-                        if (ann_network.reticulation_probs[i] == 1.0 || ann_network.reticulation_probs[i] == 1.0) {
+                        std::cout << "reticulation " << i << " has prob " << ann_network.reticulation_probs[i] << "\n";
+                        if (ann_network.reticulation_probs[i] == 1.0 || ann_network.reticulation_probs[i] == 0.0) {
                             Edge* edgeToRemove = nullptr;
                             if (ann_network.reticulation_probs[i] == 0.0) {
                                 edgeToRemove = ann_network.network.edges_by_index[netrax::getReticulationFirstParentPmatrixIndex(ann_network.network.reticulation_nodes[i])];
