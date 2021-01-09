@@ -19,7 +19,7 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
     app.add_option("--model", options->model_file, "The partitions assignment in case of a partitioned MSA.");
     app.add_option("-o,--output", options->output_file, "File where to write the final network to");
     app.add_option("--start_network", options->start_network_file, "A network file (in Extended Newick format) to start the search on");
-    app.add_option("-r,--reticulations", options->max_reticulations,
+    app.add_option("-r,--max_reticulations", options->max_reticulations,
             "Maximum number of reticulations to consider (default: 32)");
     app.add_option("-n,--num_random_start_networks", options->num_random_start_networks,
             "Number of random start networks (default: 10)");

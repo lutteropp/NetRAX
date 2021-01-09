@@ -1708,6 +1708,7 @@ void repairConsecutiveClvIndices(AnnotatedNetwork &ann_network, ArcRemovalMove& 
 
             // update all references to this clv index
             ann_network.network.nodes[i].clv_index = new_clv_index;
+            ann_network.network.nodes[i].scaler_index = new_clv_index - ann_network.network.num_tips();
             ann_network.network.nodes_by_index[new_clv_index] = &ann_network.network.nodes[i];
             ann_network.network.nodes_by_index[old_clv_index] = nullptr;
             for (size_t j = 0; j < ann_network.network.nodes[i].links.size(); ++j) {
