@@ -239,6 +239,7 @@ void NetraxInstance::optimizeModel(AnnotatedNetwork &ann_network) {
     }
     assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
     double old_score = scoreNetwork(ann_network);
+    std::cout << "BIC score before model optimization: " << old_score << "\n";
     ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
     double new_score = scoreNetwork(ann_network);
     std::cout << "BIC score after model optimization: " << new_score << "\n";

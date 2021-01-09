@@ -1695,6 +1695,7 @@ void repairConsecutiveClvIndices(AnnotatedNetwork &ann_network, ArcRemovalMove& 
     for (size_t i = 0; i < ann_network.network.num_nodes(); ++i) {
         if (!ann_network.network.nodes_by_index[i]) {
             missing_clv_indices.emplace_back(i);
+            std::cout << i << " is missing\n";
             invalidateSingleClv(ann_network.fake_treeinfo, i);
         }
     }
@@ -1769,16 +1770,29 @@ void repairConsecutivePmatrixIndices(AnnotatedNetwork &ann_network, ArcRemovalMo
     }
 }
 
+void checkSanity(AnnotatedNetwork& ann_network, ArcRemovalMove& move) {
+    assert(move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::DeltaMinusMove);
+    assert(ann_network.network.nodes_by_index[move.a_clv_index]);
+    assert(ann_network.network.nodes_by_index[move.b_clv_index]);
+    assert(ann_network.network.nodes_by_index[move.c_clv_index]);
+    assert(ann_network.network.nodes_by_index[move.d_clv_index]);
+    assert(ann_network.network.nodes_by_index[move.u_clv_index]);
+    assert(ann_network.network.nodes_by_index[move.v_clv_index]);
+    assert(ann_network.network.edges_by_index[move.au_pmatrix_index]);
+    assert(ann_network.network.edges_by_index[move.ub_pmatrix_index]);
+    assert(ann_network.network.edges_by_index[move.uv_pmatrix_index]);
+    assert(ann_network.network.edges_by_index[move.cv_pmatrix_index]);
+    assert(ann_network.network.edges_by_index[move.vd_pmatrix_index]);
+}
+
 void repairConsecutiveIndices(AnnotatedNetwork &ann_network, ArcRemovalMove& move) {
     // ensure that pmatrix indices and clv indices remain consecutive. Do the neccessary relabelings.
-    assert(move.a_clv_index != move.u_clv_index);
     repairConsecutiveClvIndices(ann_network, move);
     repairConsecutivePmatrixIndices(ann_network, move);
-    assert(move.a_clv_index != move.u_clv_index);
 }
 
 void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
-    assert(move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::DeltaMinusMove);
+    checkSanity(ann_network, move);
     Network &network = ann_network.network;
     assert(move.a_clv_index != move.u_clv_index);
     std::vector<Node*> previous_megablob_roots = ann_network.blobInfo.megablob_roots;
@@ -1988,7 +2002,6 @@ std::string toString(ArcInsertionMove &move) {
 }
 
 std::string toString(ArcRemovalMove &move) {
-    assert(move.a_clv_index != move.u_clv_index);
     std::stringstream ss;
     ss << "arc removal move:\n";
     ss << "  a = " << move.a_clv_index << "\n";
