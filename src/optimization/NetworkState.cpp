@@ -5,12 +5,12 @@
 namespace netrax {
 
 
-bool consecutive_indices(const NetworkState& state) {
-    for (size_t i = 0; i < state.network.num_nodes(); ++i) {
-        assert(state.network.nodes_by_index[i]);
+bool consecutive_indices(const Network& network) {
+    for (size_t i = 0; i < network.num_nodes(); ++i) {
+        assert(network.nodes_by_index[i]);
     }
-    for (size_t i = 0; i < state.network.num_branches(); ++i) {
-        assert(state.network.edges_by_index[i]);
+    for (size_t i = 0; i < network.num_branches(); ++i) {
+        assert(network.edges_by_index[i]);
     }
     return true;
 }
@@ -37,7 +37,7 @@ NetworkState extract_network_state(AnnotatedNetwork &ann_network) {
         assign(state.partition_models[i], ann_network.fake_treeinfo->partitions[i]);
     }
     state.reticulation_probs = ann_network.reticulation_probs;
-    assert(consecutive_indices(state));
+    assert(consecutive_indices(state.network));
     return state;
 }
 
@@ -65,6 +65,8 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
 
     ann_network.travbuffer = reversed_topological_sort(ann_network.network);
     ann_network.blobInfo = partitionNetworkIntoBlobs(ann_network.network, ann_network.travbuffer);
+    assert(consecutive_indices(state.network));
+    assert(consecutive_indices(ann_network.network));
 }
 
 bool reticulation_probs_equal(const NetworkState& old_state, const NetworkState& act_state) {
