@@ -1771,8 +1771,10 @@ void repairConsecutivePmatrixIndices(AnnotatedNetwork &ann_network, ArcRemovalMo
 
 void repairConsecutiveIndices(AnnotatedNetwork &ann_network, ArcRemovalMove& move) {
     // ensure that pmatrix indices and clv indices remain consecutive. Do the neccessary relabelings.
+    assert(move.a_clv_index != move.u_clv_index);
     repairConsecutiveClvIndices(ann_network, move);
     repairConsecutivePmatrixIndices(ann_network, move);
+    assert(move.a_clv_index != move.u_clv_index);
 }
 
 void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
