@@ -155,16 +155,17 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     NetworkState best_state = extract_network_state(ann_network);
 
     for (size_t i = 0; i < candidates.size(); ++i) {
-        if (verbose) std::cout << toString(candidates[i].moveType) << " move " << i+1 << "/ " << candidates.size() << "\n";
+        T move = candidates[i];
+        if (verbose) std::cout << toString(move.moveType) << " move " << i+1 << "/ " << candidates.size() << "\n";
 
-        if (verbose) std::cout << "Extensive BIC info before applying current " << toString(candidates[i].moveType) << " move " << i+1 << "/ " << candidates.size() << ":\n";
+        if (verbose) std::cout << "Extensive BIC info before applying current " << toString(move.moveType) << " move " << i+1 << "/ " << candidates.size() << ":\n";
         if (verbose) printExtensiveBICInfo(ann_network);
         if (verbose) printOldDisplayedTrees(ann_network);
         if (verbose) std::cout << "network before performing move: \n";
         if (verbose) std::cout << toExtendedNewick(ann_network) << "\n";
 
         //std::cout << " " << toString(candidates[i].moveType) << " " << i+1 << "/ " << candidates.size() << "\n";
-        performMove(ann_network, candidates[i]);
+        performMove(ann_network, move);
         optimize_reticulations(ann_network, 100);
         
         if (brlenopt_inside) { // Do brlen optimization locally around the move
@@ -172,7 +173,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
             if (verbose) printOldDisplayedTrees(ann_network);
             if (verbose) std::cout << toExtendedNewick(ann_network) << "\n";
 
-            std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, candidates[i]);
+            std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
             optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
             optimize_branches(ann_network, max_iters, radius);
 
@@ -184,7 +185,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
             if (verbose) printOldDisplayedTrees(ann_network);
             if (verbose) std::cout << toExtendedNewick(ann_network) << "\n";
 
-            if (candidates[i].moveType == MoveType::ArcRemovalMove || candidates[i].moveType == MoveType::ArcInsertionMove || candidates[i].moveType == MoveType::DeltaMinusMove || candidates[i].moveType == MoveType::DeltaPlusMove) {
+            if (move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::ArcInsertionMove || move.moveType == MoveType::DeltaMinusMove || move.moveType == MoveType::DeltaPlusMove) {
                 std::cout << "BIC score before internal model optimization: " << bic(ann_network, ann_network.raxml_treeinfo->loglh(true)) << "\n";
                 ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
                 std::cout << "BIC score after internal model optimization: " << bic(ann_network, ann_network.raxml_treeinfo->loglh(true)) << "\n";
@@ -198,7 +199,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         if (verbose) std::cout << toExtendedNewick(ann_network) << "\n";
         double new_logl = ann_network.raxml_treeinfo->loglh(true);
 
-        if (candidates[i].moveType == MoveType::ArcInsertionMove || candidates[i].moveType == MoveType::DeltaPlusMove) {
+        if (move.moveType == MoveType::ArcInsertionMove || move.moveType == MoveType::DeltaPlusMove) {
             if (verbose) std::cout << "start_logl: " << start_logl << "\n";
             if (verbose) std::cout << "new_logl: " << new_logl << "\n";
             if (verbose) printOldDisplayedTrees(ann_network);
@@ -208,7 +209,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         double new_score = bic(ann_network, new_logl);
 
         if (candidates[i].moveType == MoveType::ArcRemovalMove) {
-            std::cout << "Tested " << toString(candidates[i]) << ", got " << new_score << "\n";
+            std::cout << "Tested " << toString(move) << ", got " << new_score << "\n";
             std::cout << toExtendedNewick(ann_network) << "\n";
         }
 
@@ -216,7 +217,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         if (verbose) std::cout << "new_logl: " << new_logl << "\n";
         if (verbose) std::cout << "new_score: " << new_score << "\n";
 
-        if (verbose) std::cout << "Extensive BIC info after applying current " << toString(candidates[i].moveType) << " move " << i+1 << "/ " << candidates.size() << ":\n";
+        if (verbose) std::cout << "Extensive BIC info after applying current " << toString(move.moveType) << " move " << i+1 << "/ " << candidates.size() << ":\n";
         if (verbose) printExtensiveBICInfo(ann_network);
 
         bool foundBetterScore = false;
@@ -228,7 +229,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
             }
             foundBetterScore = true;
         }
-        undoMove(ann_network, candidates[i]);
+        undoMove(ann_network, move);
         if (brlenopt_inside) {
             apply_network_state(ann_network, start_state);
             NetworkState act_state = extract_network_state(ann_network);
@@ -245,11 +246,12 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     }
 
     if (best_idx < candidates.size()) {
-        performMove(ann_network, candidates[best_idx]);
+        T bestMove = candidates[best_idx];
+        performMove(ann_network, bestMove);
         if (brlenopt_inside) {
             apply_network_state(ann_network, best_state);
         } else {
-            std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, candidates[best_idx]);
+            std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, bestMove);
             optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
             if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED) {
                 pllmod_algo_opt_brlen_scalers_treeinfo(ann_network.fake_treeinfo,
