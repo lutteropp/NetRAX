@@ -12,6 +12,7 @@ bool consecutive_indices(const NetworkState& state) {
     for (size_t i = 0; i < state.network.num_branches(); ++i) {
         assert(state.network.edges_by_index[i]);
     }
+    return true;
 }
 
 NetworkState extract_network_state(AnnotatedNetwork &ann_network) {
