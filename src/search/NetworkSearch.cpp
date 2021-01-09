@@ -9,6 +9,7 @@
 #include "../io/NetworkIO.hpp"
 #include "../DebugPrintFunctions.hpp"
 #include "../optimization/TopologyOptimization.hpp"
+#include "../optimization/Moves.hpp"
 
 namespace netrax {
 
@@ -112,12 +113,34 @@ void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
             }
 
             MoveType removalType = MoveType::ArcRemovalMove;
-            size_t old_taken_arc_removals = ann_network.stats.moves_taken[MoveType::ArcRemovalMove];
+            size_t old_num_reticulations = ann_network.network.num_reticulations();
             netrax::greedyHillClimbingTopology(ann_network, removalType);
             if (disabledReticulations) {
-                assert(ann_network.stats.moves_taken[MoveType::ArcRemovalMove] > old_taken_arc_removals);
+                if (ann_network.network.num_reticulations() == old_num_reticulations) {
+                    for (size_t i = 0; i < ann_network.network.reticulation_nodes.size(); ++i) {
+                        if (ann_network.reticulation_probs[i] == 1.0 || ann_network.reticulation_probs[i] == 1.0) {
+                            Edge* edgeToRemove = nullptr;
+                            if (ann_network.reticulation_probs[i] == 0.0) {
+                                edgeToRemove = ann_network.network.edges_by_index[netrax::getReticulationFirstParentPmatrixIndex(ann_network.network.reticulation_nodes[i])];
+                            } else {
+                                edgeToRemove = ann_network.network.edges_by_index[netrax::getReticulationSecondParentPmatrixIndex(ann_network.network.reticulation_nodes[i])];
+                            }
+
+                            double logl_before = NetraxInstance::computeLoglikelihood(ann_network);
+                            double bic_before = NetraxInstance::scoreNetwork(ann_network);
+                            netrax::removeEdge(ann_network.network, edgeToRemove);
+                            double logl_after = NetraxInstance::computeLoglikelihood(ann_network);
+                            double bic_after = NetraxInstance::scoreNetwork(ann_network);
+                            std::cout << "logl_before: " << logl_before << ", bic_before: " << bic_before << "\n";
+                            std::cout << "logl_after: " << logl_after << ", bic_after: " << bic_after << "\n";
+                            break;
+                        }
+                    }
+                    assert(false);
+                }
+                assert(ann_network.network.num_reticulations() < old_num_reticulations);
             }
-            if (ann_network.stats.moves_taken[MoveType::ArcRemovalMove] > old_taken_arc_removals) {
+            if (ann_network.network.num_reticulations() < old_num_reticulations) {
                 NetraxInstance::optimizeBranches(ann_network);
                 NetraxInstance::optimizeModel(ann_network);
                 NetraxInstance::updateReticulationProbs(ann_network);

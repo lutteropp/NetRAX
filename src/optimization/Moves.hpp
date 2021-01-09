@@ -20,6 +20,7 @@
 
 namespace netrax {
 struct AnnotatedNetwork;
+struct Network;
 struct Edge;
 struct Node;
 // The moves correspond to the rNNI moves and rSPR moves from this paper: https://doi.org/10.1371/journal.pcbi.1005611
@@ -174,6 +175,8 @@ std::unordered_set<size_t> brlenOptCandidatesUndo(AnnotatedNetwork &ann_network,
         ArcInsertionMove &move);
 std::unordered_set<size_t> brlenOptCandidatesUndo(AnnotatedNetwork &ann_network,
         ArcRemovalMove &move);
+
+void removeEdge(Network &network, Edge *edge);
 
 void performMove(AnnotatedNetwork &ann_network, GeneralMove *move);
 void undoMove(AnnotatedNetwork &ann_network, GeneralMove *move);
