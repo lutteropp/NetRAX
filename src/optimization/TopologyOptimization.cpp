@@ -204,6 +204,10 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
 
         double new_score = bic(ann_network, new_logl);
 
+        if (candidates[i].moveType == MoveType::ArcRemovalMove) {
+            std::cout << "Tested " << toString(candidates[i]) << ", got " << new_score << "\n";
+        }
+
         if (verbose) std::cout << "start_logl: " << start_logl << "\n";
         if (verbose) std::cout << "new_logl: " << new_logl << "\n";
         if (verbose) std::cout << "new_score: " << new_score << "\n";

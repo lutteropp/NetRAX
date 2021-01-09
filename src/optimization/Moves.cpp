@@ -605,6 +605,7 @@ void invalidateLostMegablobRoots(AnnotatedNetwork &ann_network,
 }
 
 void performMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
+    assert(move.moveType == MoveType::RNNIMove);
     Network &network = ann_network.network;
     std::vector<Node*> previous_megablob_roots = ann_network.blobInfo.megablob_roots;
     Node *u = network.nodes_by_index[move.u_clv_index];
@@ -634,6 +635,7 @@ void performMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
 }
 
 void undoMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
+    assert(move.moveType == MoveType::RNNIMove);
     Network &network = ann_network.network;
     std::vector<Node*> previous_megablob_roots = ann_network.blobInfo.megablob_roots;
     Node *u = network.nodes_by_index[move.u_clv_index];
@@ -1124,6 +1126,8 @@ std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_networ
         move.vd_pmatrix_index = getEdgeTo(network, v, d)->pmatrix_index;
         move.uv_pmatrix_index = getEdgeTo(network, u, v)->pmatrix_index;
 
+        assert(move.a_clv_index != move.u_clv_index);
+
         res.emplace_back(move);
     }
     return res;
@@ -1178,6 +1182,7 @@ std::vector<ArcRemovalMove> possibleDeltaMinusMoves(AnnotatedNetwork &ann_networ
 }
 
 void performMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
+    assert(move.moveType == MoveType::RSPRMove || move.moveType == MoveType::RSPR1Move || move.moveType == MoveType::HeadMove || move.moveType == MoveType::TailMove);
     Network &network = ann_network.network;
     std::vector<Node*> previous_megablob_roots = ann_network.blobInfo.megablob_roots;
     Node *x_prime = network.nodes_by_index[move.x_prime_clv_index];
@@ -1272,6 +1277,7 @@ void performMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
 }
 
 void undoMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
+    assert(move.moveType == MoveType::RSPRMove || move.moveType == MoveType::RSPR1Move || move.moveType == MoveType::HeadMove || move.moveType == MoveType::TailMove);
     Network &network = ann_network.network;
     std::vector<Node*> previous_megablob_roots = ann_network.blobInfo.megablob_roots;
     Node *x_prime = network.nodes_by_index[move.x_prime_clv_index];
@@ -1531,6 +1537,7 @@ void invalidate_pmatrices(AnnotatedNetwork &ann_network,
 }
 
 void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
+    assert(move.moveType == MoveType::ArcInsertionMove || move.moveType == MoveType::DeltaPlusMove);
     Network &network = ann_network.network;
     std::vector<Node*> previous_megablob_roots = ann_network.blobInfo.megablob_roots;
 
@@ -1769,7 +1776,9 @@ void repairConsecutiveIndices(AnnotatedNetwork &ann_network, ArcRemovalMove& mov
 }
 
 void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
+    assert(move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::DeltaMinusMove);
     Network &network = ann_network.network;
+    assert(move.a_clv_index != move.u_clv_index);
     std::vector<Node*> previous_megablob_roots = ann_network.blobInfo.megablob_roots;
     Link *from_a_link = getLinkToNode(network, move.a_clv_index, move.u_clv_index);
     Link *to_b_link = getLinkToNode(network, move.b_clv_index, move.u_clv_index);
@@ -1875,6 +1884,7 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
 }
 
 void undoMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
+    assert(move.moveType == MoveType::ArcInsertionMove || move.moveType == MoveType::DeltaPlusMove);
     Network &network = ann_network.network;
     Node *a = network.nodes_by_index[move.a_clv_index];
     Node *b = network.nodes_by_index[move.b_clv_index];
@@ -1919,6 +1929,7 @@ void undoMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
 }
 
 void undoMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
+    assert(move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::DeltaMinusMove);
     ArcInsertionMove insertion = buildArcInsertionMove(move.a_clv_index, move.b_clv_index,
             move.c_clv_index, move.d_clv_index, move.u_v_len, move.c_v_len, move.a_u_len, move.a_b_len, move.c_d_len, move.v_d_len, move.u_b_len, MoveType::ArcInsertionMove);
 
