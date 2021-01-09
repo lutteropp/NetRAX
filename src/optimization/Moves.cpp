@@ -1120,7 +1120,7 @@ std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_networ
 
         move.au_pmatrix_index = getEdgeTo(network, a, u)->pmatrix_index;
         move.ub_pmatrix_index = getEdgeTo(network, u, b)->pmatrix_index;
-        move.cv_pmatric_index = getEdgeTo(network, c, v)->pmatrix_index;
+        move.cv_pmatrix_index = getEdgeTo(network, c, v)->pmatrix_index;
         move.vd_pmatrix_index = getEdgeTo(network, v, d)->pmatrix_index;
         move.uv_pmatrix_index = getEdgeTo(network, u, v)->pmatrix_index;
 
@@ -1668,8 +1668,8 @@ void updateMovePmatrixIndex(ArcRemovalMove& move, size_t old_pmatrix_index, size
     if (move.au_pmatrix_index == old_pmatrix_index) {
         move.au_pmatrix_index = new_pmatrix_index;    
     }
-    if (move.cv_pmatric_index == old_pmatrix_index) {
-        move.cv_pmatric_index = new_pmatrix_index;
+    if (move.cv_pmatrix_index == old_pmatrix_index) {
+        move.cv_pmatrix_index = new_pmatrix_index;
     }
     if (move.ub_pmatrix_index == old_pmatrix_index) {
         move.ub_pmatrix_index = new_pmatrix_index;
@@ -1721,7 +1721,7 @@ void repairConsecutiveClvIndices(AnnotatedNetwork &ann_network, ArcRemovalMove& 
 }
 
 void repairConsecutivePmatrixIndices(AnnotatedNetwork &ann_network, ArcRemovalMove& move) {
-    std::unordered_set<size_t> move_pmatrix_indices = {move.au_pmatrix_index, move.cv_pmatric_index, move.ub_pmatrix_index, move.uv_pmatrix_index, move.vd_pmatrix_index};
+    std::unordered_set<size_t> move_pmatrix_indices = {move.au_pmatrix_index, move.cv_pmatrix_index, move.ub_pmatrix_index, move.uv_pmatrix_index, move.vd_pmatrix_index};
     std::vector<size_t> missing_pmatrix_indices;
     for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
         if (!ann_network.network.edges_by_index[i]) {
@@ -1927,7 +1927,7 @@ void undoMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     insertion.wanted_v_clv_index = move.v_clv_index;
     insertion.wanted_au_pmatrix_index = move.au_pmatrix_index;
     insertion.wanted_ub_pmatrix_index = move.ub_pmatrix_index;
-    insertion.wanted_cv_pmatrix_index = move.cv_pmatric_index;
+    insertion.wanted_cv_pmatrix_index = move.cv_pmatrix_index;
     insertion.wanted_vd_pmatrix_index = move.vd_pmatrix_index;
     insertion.wanted_uv_pmatrix_index = move.uv_pmatrix_index;
 

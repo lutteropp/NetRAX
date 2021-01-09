@@ -20,7 +20,6 @@
 
 namespace netrax {
 struct AnnotatedNetwork;
-struct Network;
 struct Edge;
 struct Node;
 // The moves correspond to the rNNI moves and rSPR moves from this paper: https://doi.org/10.1371/journal.pcbi.1005611
@@ -113,7 +112,7 @@ struct ArcRemovalMove: public GeneralMove {
 
     size_t au_pmatrix_index = std::numeric_limits<size_t>::max();
     size_t ub_pmatrix_index = std::numeric_limits<size_t>::max();
-    size_t cv_pmatric_index = std::numeric_limits<size_t>::max();
+    size_t cv_pmatrix_index = std::numeric_limits<size_t>::max();
     size_t vd_pmatrix_index = std::numeric_limits<size_t>::max();
     size_t uv_pmatrix_index = std::numeric_limits<size_t>::max();
 
@@ -125,6 +124,8 @@ struct ArcRemovalMove: public GeneralMove {
     std::vector<double> v_d_len = {0};
     std::vector<double> u_b_len = {0};
 };
+
+std::vector<double> get_edge_lengths(AnnotatedNetwork &ann_network, size_t pmatrix_index);
 
 std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network, const Edge *edge);
 std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, const Edge *edge);
@@ -175,8 +176,6 @@ std::unordered_set<size_t> brlenOptCandidatesUndo(AnnotatedNetwork &ann_network,
         ArcInsertionMove &move);
 std::unordered_set<size_t> brlenOptCandidatesUndo(AnnotatedNetwork &ann_network,
         ArcRemovalMove &move);
-
-void removeEdge(Network &network, Edge *edge);
 
 void performMove(AnnotatedNetwork &ann_network, GeneralMove *move);
 void undoMove(AnnotatedNetwork &ann_network, GeneralMove *move);

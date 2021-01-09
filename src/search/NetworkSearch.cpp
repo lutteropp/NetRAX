@@ -116,20 +116,44 @@ void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
             size_t old_num_reticulations = ann_network.network.num_reticulations();
             netrax::greedyHillClimbingTopology(ann_network, removalType);
             if (disabledReticulations) {
-                if (ann_network.network.num_reticulations() == old_num_reticulations) {
-                    for (size_t i = 0; i < ann_network.network.reticulation_nodes.size(); ++i) {
+                Network& network = ann_network.network;
+                if (network.num_reticulations() == old_num_reticulations) {
+                    for (size_t i = 0; i < network.reticulation_nodes.size(); ++i) {
                         std::cout << "reticulation " << i << " has prob " << ann_network.reticulation_probs[i] << "\n";
                         if (ann_network.reticulation_probs[i] == 1.0 || ann_network.reticulation_probs[i] == 0.0) {
-                            Edge* edgeToRemove = nullptr;
-                            if (ann_network.reticulation_probs[i] == 0.0) {
-                                edgeToRemove = ann_network.network.edges_by_index[netrax::getReticulationFirstParentPmatrixIndex(ann_network.network.reticulation_nodes[i])];
+                            ArcRemovalMove removalMove;
+                            removalMove.moveType = MoveType::ArcRemovalMove;
+                            if (ann_network.reticulation_probs[i] == 0.0) { // remove edge to first parent
+                                removalMove.a_clv_index = getActiveParent(network, getReticulationFirstParent(network, network.reticulation_nodes[i]))->clv_index;
+                                removalMove.b_clv_index = getOtherChild(network, getReticulationFirstParent(network, network.reticulation_nodes[i]), network.reticulation_nodes[i])->clv_index;
+                                removalMove.c_clv_index = getReticulationSecondParent(network, network.reticulation_nodes[i])->clv_index;
+                                removalMove.d_clv_index = getReticulationChild(network, network.reticulation_nodes[i])->clv_index;
+                                removalMove.u_clv_index = getReticulationFirstParent(network, network.reticulation_nodes[i])->clv_index;
+                                removalMove.v_clv_index = network.reticulation_nodes[i]->clv_index;
                             } else {
-                                edgeToRemove = ann_network.network.edges_by_index[netrax::getReticulationSecondParentPmatrixIndex(ann_network.network.reticulation_nodes[i])];
+                                removalMove.a_clv_index = getActiveParent(network, getReticulationSecondParent(network, network.reticulation_nodes[i]))->clv_index;
+                                removalMove.b_clv_index = getOtherChild(network, getReticulationSecondParent(network, network.reticulation_nodes[i]), network.reticulation_nodes[i])->clv_index;
+                                removalMove.c_clv_index = getReticulationFirstParent(network, network.reticulation_nodes[i])->clv_index;
+                                removalMove.d_clv_index = getReticulationChild(network, network.reticulation_nodes[i])->clv_index;
+                                removalMove.u_clv_index = getReticulationSecondParent(network, network.reticulation_nodes[i])->clv_index;
+                                removalMove.v_clv_index = network.reticulation_nodes[i]->clv_index;
                             }
+                            removalMove.au_pmatrix_index = getEdgeTo(network, network.nodes_by_index[removalMove.a_clv_index], network.nodes_by_index[removalMove.u_clv_index])->pmatrix_index;
+                            removalMove.a_u_len = get_edge_lengths(ann_network, removalMove.au_pmatrix_index);
+                            removalMove.ub_pmatrix_index = getEdgeTo(network, network.nodes_by_index[removalMove.u_clv_index], network.nodes_by_index[removalMove.b_clv_index])->pmatrix_index;
+                            removalMove.u_b_len = get_edge_lengths(ann_network, removalMove.ub_pmatrix_index);
+                            removalMove.uv_pmatrix_index = getEdgeTo(network, network.nodes_by_index[removalMove.u_clv_index], network.nodes_by_index[removalMove.v_clv_index])->pmatrix_index;
+                            removalMove.u_v_len = get_edge_lengths(ann_network, removalMove.uv_pmatrix_index);
+                            removalMove.cv_pmatrix_index = getEdgeTo(network, network.nodes_by_index[removalMove.c_clv_index], network.nodes_by_index[removalMove.v_clv_index])->pmatrix_index;
+                            removalMove.c_v_len = get_edge_lengths(ann_network, removalMove.cv_pmatrix_index);
+                            removalMove.vd_pmatrix_index = getEdgeTo(network, network.nodes_by_index[removalMove.v_clv_index], network.nodes_by_index[removalMove.d_clv_index])->pmatrix_index;
+                            removalMove.v_d_len = get_edge_lengths(ann_network, removalMove.vd_pmatrix_index);
 
                             double logl_before = NetraxInstance::computeLoglikelihood(ann_network);
                             double bic_before = NetraxInstance::scoreNetwork(ann_network);
-                            netrax::removeEdge(ann_network.network, edgeToRemove);
+
+                            netrax::performMove(ann_network, removalMove);
+
                             double logl_after = NetraxInstance::computeLoglikelihood(ann_network);
                             double bic_after = NetraxInstance::scoreNetwork(ann_network);
                             std::cout << "logl_before: " << logl_before << ", bic_before: " << bic_before << "\n";
