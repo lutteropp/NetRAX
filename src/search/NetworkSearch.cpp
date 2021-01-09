@@ -115,7 +115,14 @@ void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
 
             MoveType removalType = MoveType::ArcRemovalMove;
             size_t old_num_reticulations = ann_network.network.num_reticulations();
+            double logl_before_removal = NetraxInstance::computeLoglikelihood(ann_network);
+            double bic_before_removal = NetraxInstance::scoreNetwork(ann_network);
             netrax::greedyHillClimbingTopology(ann_network, removalType);
+            double logl_after_removal = NetraxInstance::computeLoglikelihood(ann_network);
+            double bic_after_removal = NetraxInstance::scoreNetwork(ann_network);
+            std::cout << "logl_before_removal: " << logl_before_removal << ", bic_before_removal: " << bic_before_removal << "\n";
+            std::cout << "logl_after_removal: " << logl_after_removal << ", bic_after_removal: " << bic_after_removal << "\n";
+
             if (disabledReticulations) {
                 if (ann_network.network.num_reticulations() == old_num_reticulations) {
                     for (size_t i = 0; i < ann_network.network.reticulation_nodes.size(); ++i) {
@@ -139,7 +146,14 @@ void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
                             double logl_before = NetraxInstance::computeLoglikelihood(ann_network);
                             double bic_before = NetraxInstance::scoreNetwork(ann_network);
 
+                            std::cout << "Network before move:\n";
+                            std::cout << toExtendedNewick(ann_network) << "\n";
                             netrax::performMove(ann_network, removalMove);
+                            NetraxInstance::optimizeBranches(ann_network);
+                            NetraxInstance::optimizeModel(ann_network);
+                            NetraxInstance::updateReticulationProbs(ann_network);
+                            std::cout << "Network after move:\n";
+                            std::cout << toExtendedNewick(ann_network) << "\n";
 
                             double logl_after = NetraxInstance::computeLoglikelihood(ann_network);
                             double bic_after = NetraxInstance::scoreNetwork(ann_network);

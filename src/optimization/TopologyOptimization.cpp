@@ -182,6 +182,13 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
             if (verbose) std::cout << "AFTER MOVE, AFTER BRLEN OPT + SCALER OPT + RETICULATION OPT: \n";
             if (verbose) printOldDisplayedTrees(ann_network);
             if (verbose) std::cout << toExtendedNewick(ann_network) << "\n";
+
+            if (candidates[i].moveType == MoveType::ArcRemovalMove || candidates[i].moveType == MoveType::ArcInsertionMove || candidates[i].moveType == MoveType::DeltaMinusMove || candidates[i].moveType == MoveType::DeltaPlusMove) {
+                ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
+                if (verbose) std::cout << "AFTER MOVE, AFTER BRLEN OPT + SCALER OPT + RETICULATION OPT + MODEL OPT: \n";
+                if (verbose) printOldDisplayedTrees(ann_network);
+                if (verbose) std::cout << toExtendedNewick(ann_network) << "\n";
+            }
         }
 
         if (verbose) std::cout << "COMPUTING NEW LOGL\n";
