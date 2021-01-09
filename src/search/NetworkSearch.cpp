@@ -103,9 +103,20 @@ void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
         }
 
         if (!seen_improvement && ann_network.network.num_reticulations() > 0) { // try removing arcs
+            bool disabledReticulations = false;
+            for (size_t i = 0; i < ann_network.reticulation_probs.size(); ++i) {
+                if (ann_network.reticulation_probs[i] == 0.0 || ann_network.reticulation_probs[i] == 1.0) {
+                    disabledReticulations = true;
+                    break;
+                }
+            }
+
             MoveType removalType = MoveType::ArcRemovalMove;
             size_t old_taken_arc_removals = ann_network.stats.moves_taken[MoveType::ArcRemovalMove];
             netrax::greedyHillClimbingTopology(ann_network, removalType);
+            if (disabledReticulations) {
+                assert(ann_network.stats.moves_taken[MoveType::ArcRemovalMove] > old_taken_arc_removals);
+            }
             if (ann_network.stats.moves_taken[MoveType::ArcRemovalMove] > old_taken_arc_removals) {
                 NetraxInstance::optimizeBranches(ann_network);
                 NetraxInstance::optimizeModel(ann_network);
