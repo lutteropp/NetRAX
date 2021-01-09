@@ -398,6 +398,12 @@ Link* make_link(Node *node, Edge *edge, Direction dir) {
     return node->addLink(link);
 }
 
+void invalidateSingleClv(pllmod_treeinfo_t *treeinfo, unsigned int clv_index) {
+    for (size_t p = 0; p < treeinfo->partition_count; ++p) {
+        treeinfo->clv_valid[p][clv_index] = 0;
+    }
+}
+
 void invalidateHigherClvs(AnnotatedNetwork &ann_network, pllmod_treeinfo_t *treeinfo, Node *node,
         bool invalidate_myself, std::vector<bool> &visited) {
     Network& network = ann_network.network;
