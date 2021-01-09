@@ -43,8 +43,37 @@ public:
 
     std::vector<Node> nodes;
     std::vector<Edge> edges;
-};
 
-Network cloneNetwork(const Network& other);
+    // reule of five
+    Network() = default; // default constructor
+    ~Network() = default; // destructor
+    Network(Network&& other) noexcept { // move constructor
+        this->nodeCount = other.nodeCount;
+        this->branchCount = other.branchCount;
+        this->tipCount = other.tipCount;
+        std::swap(edges_by_index, other.edges_by_index);
+        std::swap(nodes_by_index, other.nodes_by_index);
+        std::swap(reticulation_nodes, other.reticulation_nodes);
+        std::swap(nodes, other.nodes);
+        std::swap(edges, other.edges);
+        std::swap(root, other.root);
+    }
+    Network(const Network& other); // copy constructor
+    Network& operator=(const Network& other) { // copy assignment
+        return *this = Network(other);
+    }
+    Network& operator=(Network&& other) noexcept { // move assignment
+        this->nodeCount = other.nodeCount;
+        this->branchCount = other.branchCount;
+        this->tipCount = other.tipCount;
+        std::swap(edges_by_index, other.edges_by_index);
+        std::swap(nodes_by_index, other.nodes_by_index);
+        std::swap(reticulation_nodes, other.reticulation_nodes);
+        std::swap(nodes, other.nodes);
+        std::swap(edges, other.edges);
+        std::swap(root, other.root);
+        return *this;
+    }
+};
 
 }

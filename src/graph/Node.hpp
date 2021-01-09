@@ -14,6 +14,7 @@
 #include <vector>
 #include <limits>
 #include <algorithm>
+#include <iostream>
 
 namespace netrax {
 
@@ -97,6 +98,46 @@ public:
         }
         reticulationData = nullptr;
         label = "";
+    }
+
+    Node() = default;
+    ~Node() = default;
+
+    Node(const Node& other) { // copy constructor
+        if (other.type == NodeType::BASIC_NODE) {
+            initBasic(other.clv_index, other.scaler_index, other.label);
+        } else {
+            ReticulationData *other_ret_data = other.getReticulationData().get();
+            ReticulationData ret_data;
+            ret_data.init(other_ret_data->reticulation_index, other_ret_data->label, other_ret_data->active_parent_toggle, nullptr, nullptr, nullptr);
+            initReticulation(other.clv_index, other.scaler_index, other.label, ret_data);
+        }
+        std::cout << "Node copy constructor called\n";
+    }
+
+    Node(Node&& other) { // move constructor
+        type = other.type;
+        scaler_index = other.scaler_index;
+        clv_index = other.clv_index;
+        std::swap(links, other.links);
+        std::swap(reticulationData, other.reticulationData);
+        std::swap(label, other.label);
+    }
+
+    Node& operator=(const Node& other) // copy assignment
+    {
+         return *this = Node(other);
+    }
+
+    Node& operator=(Node&& other) noexcept // move assignment
+    {
+        type = other.type;
+        scaler_index = other.scaler_index;
+        clv_index = other.clv_index;
+        std::swap(links, other.links);
+        std::swap(reticulationData, other.reticulationData);
+        std::swap(label, other.label);
+        return *this;
     }
 
     NodeType type = NodeType::BASIC_NODE;

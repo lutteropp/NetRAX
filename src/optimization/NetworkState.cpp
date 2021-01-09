@@ -18,7 +18,7 @@ bool consecutive_indices(const Network& network) {
 NetworkState extract_network_state(AnnotatedNetwork &ann_network) {
     NetworkState state;
     
-    state.network = cloneNetwork(ann_network.network);
+    state.network = ann_network.network;
     
     if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
         state.partition_brlens.resize(ann_network.fake_treeinfo->partition_count);
@@ -42,7 +42,7 @@ NetworkState extract_network_state(AnnotatedNetwork &ann_network) {
 }
 
 void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &state) {
-    ann_network.network = cloneNetwork(state.network);
+    ann_network.network = state.network;
     for (size_t p = 0; p < state.partition_brlens.size(); ++p) {
         for (size_t pmatrix_index = 0; pmatrix_index < ann_network.network.edges.size(); ++pmatrix_index) {
             ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] = state.partition_brlens[p][pmatrix_index];

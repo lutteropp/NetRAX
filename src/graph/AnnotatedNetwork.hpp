@@ -31,12 +31,13 @@ struct Statistics {
 };
 
 struct AnnotatedNetwork {
+    NetraxOptions options;
     Network network; // The network topology itself
-    size_t total_num_model_parameters;
-    size_t total_num_sites;
+    
+    size_t total_num_model_parameters = 0;
+    size_t total_num_sites = 0;
     std::unique_ptr<TreeInfo> raxml_treeinfo = nullptr;
     pllmod_treeinfo_t *fake_treeinfo = nullptr;
-    NetraxOptions options;
     BlobInformation blobInfo; // mapping of edges to blobs, megablob roots, mapping of megablob roots to set of reticulation nodes within the megablob
     std::vector<double> reticulation_probs; // the first-parent reticulation probs
 
