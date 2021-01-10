@@ -4,6 +4,11 @@
 
 namespace netrax {
 
+void assert_tip_links(const Network& network) {
+    for (size_t i = 0; i < network.num_tips(); ++i) {
+        assert(network.nodes_by_index[i]->links.size() == 1);
+    }
+}
 
 bool consecutive_indices(const Network& network) {
     for (size_t i = 0; i < network.num_nodes(); ++i) {
@@ -16,6 +21,7 @@ bool consecutive_indices(const Network& network) {
 }
 
 NetworkState extract_network_state(AnnotatedNetwork &ann_network) {
+    assert_tip_links(ann_network.network);
     NetworkState state;
     
     state.network = ann_network.network;
@@ -38,10 +44,12 @@ NetworkState extract_network_state(AnnotatedNetwork &ann_network) {
     }
     state.reticulation_probs = ann_network.reticulation_probs;
     assert(consecutive_indices(state.network));
+    assert_tip_links(state.network);
     return state;
 }
 
 void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &state) {
+    assert_tip_links(state.network);
     ann_network.network = state.network;
     for (size_t p = 0; p < state.partition_brlens.size(); ++p) {
         for (size_t pmatrix_index = 0; pmatrix_index < ann_network.network.edges.size(); ++pmatrix_index) {
@@ -67,6 +75,7 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
     ann_network.blobInfo = partitionNetworkIntoBlobs(ann_network.network, ann_network.travbuffer);
     assert(consecutive_indices(state.network));
     assert(consecutive_indices(ann_network.network));
+    assert_tip_links(ann_network.network);
 }
 
 bool reticulation_probs_equal(const NetworkState& old_state, const NetworkState& act_state) {
