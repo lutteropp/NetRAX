@@ -71,13 +71,6 @@ void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
                 std::cout << entry.second << "\n";
             }
 
-            if (ann_network.network.num_reticulations() > 0) {
-                for (size_t i = 0; i < ann_network.reticulation_probs.size(); ++i) {
-                    assert(ann_network.reticulation_probs[i] != 1.0);
-                    assert(ann_network.reticulation_probs[i] != 0.0);
-                }
-            }
-
             best_score_by_reticulations[ann_network.network.num_reticulations()] = new_score;
         } else {
             std::cout << "REMAINED BEST SCORE FOUND SO FAR: " << best_score << "\n";
