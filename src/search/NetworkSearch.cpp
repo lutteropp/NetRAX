@@ -136,20 +136,48 @@ void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
                             }
 
                             std::cout << "Chosen removal move: " << toString(removalMove) << "\n";
-                            
-                            std::cout << exportDebugInfo(ann_network) << "\n";
 
                             double logl_before = NetraxInstance::computeLoglikelihood(ann_network);
                             double bic_before = NetraxInstance::scoreNetwork(ann_network);
 
                             std::cout << "Network before move:\n";
                             std::cout << toExtendedNewick(ann_network) << "\n";
-                            netrax::performMove(ann_network, removalMove);
-                            NetraxInstance::optimizeBranches(ann_network);
+                            std::cout << "logl directly before move: " << NetraxInstance::computeLoglikelihood(ann_network) << "\n";
+                            std::cout << "bic directly before move: " << NetraxInstance::scoreNetwork(ann_network) << "\n";
                             NetraxInstance::optimizeModel(ann_network);
+                            std::cout << "logl directly before move, after modelopt: " << NetraxInstance::computeLoglikelihood(ann_network) << "\n";
+                            std::cout << "bic directly before move, after modelopt: " << NetraxInstance::scoreNetwork(ann_network) << "\n";
+                            NetraxInstance::optimizeBranches(ann_network);
                             NetraxInstance::updateReticulationProbs(ann_network);
-                            std::cout << "Network after move:\n";
+                            std::cout << "Network before, after modelopt+brlenopt+reticulation opt:\n";
                             std::cout << toExtendedNewick(ann_network) << "\n";
+                            std::cout << "logl directly before move, after modelopt+brlenopt+reticulation opt: " << NetraxInstance::computeLoglikelihood(ann_network) << "\n";
+                            std::cout << "bic directly before move, after modelopt+brlenopt+reticulation opt: " << NetraxInstance::scoreNetwork(ann_network) << "\n";
+
+
+                            std::cout << "Network after move:\n";
+                            netrax::performMove(ann_network, removalMove);
+                            std::cout << toExtendedNewick(ann_network) << "\n";
+                            std::cout << "logl directly after move: " << NetraxInstance::computeLoglikelihood(ann_network) << "\n";
+                            std::cout << "bic directly after move: " << NetraxInstance::scoreNetwork(ann_network) << "\n";
+                            NetraxInstance::optimizeModel(ann_network);
+                            std::cout << "logl directly after move + modelopt: " << NetraxInstance::computeLoglikelihood(ann_network) << "\n";
+                            std::cout << "bic directly after move + modelopt: " << NetraxInstance::scoreNetwork(ann_network) << "\n";
+                            NetraxInstance::optimizeBranches(ann_network);
+                            NetraxInstance::updateReticulationProbs(ann_network);
+                            std::cout << "logl directly after move + modelopt+brlenopt+reticulation opt: " << NetraxInstance::computeLoglikelihood(ann_network) << "\n";
+                            std::cout << "bic directly after move + modelopt+brlenopt+reticulation opt: " << NetraxInstance::scoreNetwork(ann_network) << "\n";
+                            std::cout << "logl before output: " << NetraxInstance::computeLoglikelihood(ann_network) << "\n";
+                            double logl_before_output = NetraxInstance::computeLoglikelihood(ann_network);
+                            std::cout << toExtendedNewick(ann_network) << "\n";
+                            double logl_after_output = NetraxInstance::computeLoglikelihood(ann_network);
+                            assert(logl_before_output == logl_after_output);
+                            std::cout << "calling logl computation again: " << NetraxInstance::computeLoglikelihood(ann_network) << "\n";
+                            std::cout << "Calling bic again " << NetraxInstance::scoreNetwork(ann_network) << "\n";
+                            std::cout << "printing the network again:\n";
+                            std::cout << toExtendedNewick(ann_network) << "\n";
+                            std::cout << "calling logl computation again: " << NetraxInstance::computeLoglikelihood(ann_network) << "\n";
+                            std::cout << "Calling bic again " << NetraxInstance::scoreNetwork(ann_network) << "\n";
 
                             double logl_after = NetraxInstance::computeLoglikelihood(ann_network);
                             double bic_after = NetraxInstance::scoreNetwork(ann_network);
