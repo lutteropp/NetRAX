@@ -332,7 +332,7 @@ double computeLoglikelihoodNaiveUtree(AnnotatedNetwork &ann_network, int increme
 
     // Iterate over all displayed trees
     for (size_t i = 0; i < num_trees; ++i) {
-        tree_logprob[i] = displayed_tree_nonblob_prob(ann_network, i).toDouble();
+        tree_logprob[i] =  displayed_tree_logprob(ann_network, i);
         if (tree_logprob[i] == std::numeric_limits<double>::infinity()) {
             continue;
         }

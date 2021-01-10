@@ -137,6 +137,8 @@ void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
 
                             std::cout << "Chosen removal move: " << toString(removalMove) << "\n";
                             
+                            std::cout << exportDebugInfo(ann_network) << "\n";
+
                             double logl_before = NetraxInstance::computeLoglikelihood(ann_network);
                             double bic_before = NetraxInstance::scoreNetwork(ann_network);
 
