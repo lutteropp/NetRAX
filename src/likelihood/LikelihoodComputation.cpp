@@ -319,37 +319,64 @@ double computeLoglikelihoodNaiveUtree(AnnotatedNetwork &ann_network, int increme
     (void) update_pmatrices;
     Network &network = ann_network.network;
     RaxmlWrapper wrapper(ann_network.options);
+    size_t num_partitions = ann_network.fake_treeinfo->partition_count;
+    size_t num_trees = (1 << ann_network.network.num_reticulations());
 
-    std::vector<Model> partition_models(ann_network.fake_treeinfo->partition_count);
-    for (size_t i = 0; i < partition_models.size(); ++i) {
+    std::vector<Model> partition_models(num_partitions);
+    for (size_t i = 0; i < num_partitions; ++i) {
         assign(partition_models[i], ann_network.fake_treeinfo->partitions[i]);
     }
-    assert(wrapper.num_partitions() == 1);
 
-    size_t n_trees = 1 << network.num_reticulations();
-    mpfr::mpreal network_l = 0.0;
+    std::vector<std::vector<double> > tree_logl_per_partition(num_partitions, std::vector<double>(num_trees, -std::numeric_limits<double>::infinity()));
+    std::vector<double> tree_logprob(num_trees, 0.0);
+
     // Iterate over all displayed trees
-    for (size_t i = 0; i < n_trees; ++i) {
-        mpfr::mpreal tree_prob = displayed_tree_nonblob_prob(ann_network, i);
-        if (tree_prob == 0.0) {
+    for (size_t i = 0; i < num_trees; ++i) {
+        tree_logprob[i] = displayed_tree_nonblob_prob(ann_network, i).toDouble();
+        if (tree_logprob[i] == std::numeric_limits<double>::infinity()) {
             continue;
         }
         pll_utree_t *displayed_tree = netrax::displayed_tree_to_utree(network, i);
         TreeInfo *displayedTreeinfo = wrapper.createRaxmlTreeinfo(displayed_tree, partition_models);
 
-        mpfr::mpreal tree_logl = displayedTreeinfo->loglh(0);
+        double tree_logl = displayedTreeinfo->loglh(0);
+        std::vector<double> partition_tree_logl(num_partitions);
+        for (size_t p = 0; p < num_partitions; ++p) {
+            tree_logl_per_partition[p][i] = displayedTreeinfo->pll_treeinfo().partition_loglh[p];
+        }
         delete displayedTreeinfo;
 
         if (treewise_logl) {
-            treewise_logl->emplace_back(tree_logl.toDouble());
+            treewise_logl->emplace_back(tree_logl);
         }
         assert(tree_logl != -std::numeric_limits<double>::infinity());
-        network_l += mpfr::exp(tree_logl) * tree_prob;
     }
 
+    mpfr::mpreal network_logl = 0.0;
+    for (size_t partition_idx = 0; partition_idx < num_partitions; ++partition_idx) {
+        if (ann_network.options.likelihood_variant == LikelihoodVariant::AVERAGE_DISPLAYED_TREES) {
+            mpfr::mpreal partition_lh = 0.0;
+            for (size_t i = 0; i < num_trees; ++i) {
+                //std::cout << "tree " << tree.tree_idx << " logl: " << tree.tree_logl << "\n";
+                if (tree_logprob[i] != std::numeric_limits<double>::infinity()) {
+                    partition_lh += mpfr::exp(tree_logl_per_partition[partition_idx][i]) * mpfr::exp(tree_logprob[i]);
+                }
+            }
+            network_logl += mpfr::log(partition_lh);
+        } else { // LikelihoodVariant::BEST_DISPLAYED_TREE
+            double partition_logl = -std::numeric_limits<double>::infinity();
+            for (size_t i = 0; i < num_trees; ++i) {
+                //std::cout << "tree " << tree.tree_idx << " logl: " << tree.tree_logl << "\n";
+                if (tree_logprob[i] != std::numeric_limits<double>::infinity()) {
+                    partition_logl = std::max(partition_logl, tree_logl_per_partition[partition_idx][i] + tree_logprob[i]);
+                }
+            }
+            //std::cout << "partiion " << partition_idx << " logl: " << partition_logl << "\n";
+            network_logl += partition_logl;
+        }
+    }
 
-
-    return mpfr::log(network_l).toDouble();
+    return network_logl.toDouble();
 }
 
 
