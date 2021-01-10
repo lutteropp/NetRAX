@@ -94,13 +94,14 @@ namespace netrax
 
     void createTheLinks(Network &network, const Network &other)
     {
-        for (size_t i = 0; i < other.nodes.size(); ++i)
+        assert(network.num_nodes() == other.num_nodes());
+        for (size_t i = 0; i < other.num_nodes(); ++i)
         {
-            for (size_t j = 0; j < other.nodes[i].links.size(); ++j)
+            for (size_t j = 0; j < other.nodes_by_index[i]->links.size(); ++j)
             {
                 Link link;
-                link.init(other.nodes[i].links[j].node_clv_index, other.nodes[i].links[j].edge_pmatrix_index, nullptr, nullptr, other.nodes[i].links[j].direction);
-                network.nodes[i].addLink(link);
+                link.init(other.nodes_by_index[i]->links[j].node_clv_index, other.nodes_by_index[i]->links[j].edge_pmatrix_index, nullptr, nullptr, other.nodes_by_index[i]->links[j].direction);
+                network.nodes_by_index[i]->addLink(link);
             }
         }
         for (size_t i = 0; i < other.num_tips(); ++i) {
