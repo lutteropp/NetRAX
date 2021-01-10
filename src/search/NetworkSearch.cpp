@@ -97,15 +97,14 @@ void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
             }
         }
 
-        if (!seen_improvement && ann_network.network.num_reticulations() > 0) { // try removing arcs
-            bool disabledReticulations = false;
-            for (size_t i = 0; i < ann_network.reticulation_probs.size(); ++i) {
-                if (ann_network.reticulation_probs[i] == 0.0 || ann_network.reticulation_probs[i] == 1.0) {
-                    disabledReticulations = true;
-                    break;
-                }
+        bool disabledReticulations = false;
+        for (size_t i = 0; i < ann_network.reticulation_probs.size(); ++i) {
+            if (ann_network.reticulation_probs[i] == 0.0 || ann_network.reticulation_probs[i] == 1.0) {
+                disabledReticulations = true;
+                break;
             }
-
+        }
+        if ((!seen_improvement || disabledReticulations) && ann_network.network.num_reticulations() > 0) { // try removing arcs
             MoveType removalType = MoveType::ArcRemovalMove;
             size_t old_num_reticulations = ann_network.network.num_reticulations();
             double logl_before_removal = NetraxInstance::computeLoglikelihood(ann_network);
