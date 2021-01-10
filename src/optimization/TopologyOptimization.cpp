@@ -164,6 +164,13 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         if (verbose) std::cout << "network before performing move: \n";
         if (verbose) std::cout << toExtendedNewick(ann_network) << "\n";
 
+
+        if (candidates[i].moveType == MoveType::ArcRemovalMove) {
+            std::cout << "Network before " << toString(candidates[i]) << ":\n";
+            std::cout << toExtendedNewick(ann_network) << "\n";
+            std::cout << "logl: " << ann_network.raxml_treeinfo->loglh(true) << ", bic: " << bic(ann_network, ann_network.raxml_treeinfo->loglh(true)) << "\n";
+        }
+
         //std::cout << " " << toString(candidates[i].moveType) << " " << i+1 << "/ " << candidates.size() << "\n";
         performMove(ann_network, move);
         optimize_reticulations(ann_network, 100);
@@ -180,6 +187,15 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
             if (verbose) std::cout << "AFTER MOVE, AFTER BRLEN OPT: \n";
             if (verbose) printOldDisplayedTrees(ann_network);
             if (verbose) std::cout << toExtendedNewick(ann_network) << "\n";
+
+            // optimize brlen scalers
+            pllmod_algo_opt_brlen_scalers_treeinfo(ann_network.fake_treeinfo,
+                                                                    RAXML_BRLEN_SCALER_MIN,
+                                                                    RAXML_BRLEN_SCALER_MAX,
+                                                                    ann_network.options.brlen_min,
+                                                                    ann_network.options.brlen_max,
+                                                                    RAXML_PARAM_EPSILON);
+
             optimize_reticulations(ann_network, 100);
             if (verbose) std::cout << "AFTER MOVE, AFTER BRLEN OPT + SCALER OPT + RETICULATION OPT: \n";
             if (verbose) printOldDisplayedTrees(ann_network);
@@ -189,6 +205,8 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
                 std::cout << "BIC score before internal model optimization: " << bic(ann_network, ann_network.raxml_treeinfo->loglh(true)) << "\n";
                 ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
                 std::cout << "BIC score after internal model optimization: " << bic(ann_network, ann_network.raxml_treeinfo->loglh(true)) << "\n";
+                optimize_branches(ann_network, max_iters, radius);
+                std::cout << "BIC score after internal brlen optimization: " << bic(ann_network, ann_network.raxml_treeinfo->loglh(true)) << "\n";
                 if (verbose) std::cout << "AFTER MOVE, AFTER BRLEN OPT + SCALER OPT + RETICULATION OPT + MODEL OPT: \n";
                 if (verbose) printOldDisplayedTrees(ann_network);
                 if (verbose) std::cout << toExtendedNewick(ann_network) << "\n";
@@ -209,7 +227,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         double new_score = bic(ann_network, new_logl);
 
         if (candidates[i].moveType == MoveType::ArcRemovalMove) {
-            std::cout << "Tested " << toString(move) << ", got " << new_score << "\n";
+            std::cout << "Tested " << toString(candidates[i]) << ", got " << new_score << "\n";
             std::cout << toExtendedNewick(ann_network) << "\n";
         }
 
