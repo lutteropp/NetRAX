@@ -366,6 +366,7 @@ double computeLoglikelihoodNaiveUtree(AnnotatedNetwork &ann_network, int increme
                 }
             }
             network_logl += mpfr::log(partition_lh);
+            ann_network.fake_treeinfo->partition_loglh[partition_idx] = mpfr::log(partition_lh).toDouble();
         } else { // LikelihoodVariant::BEST_DISPLAYED_TREE
             double partition_logl = -std::numeric_limits<double>::infinity();
             for (size_t i = 0; i < num_trees; ++i) {
@@ -376,6 +377,7 @@ double computeLoglikelihoodNaiveUtree(AnnotatedNetwork &ann_network, int increme
             }
             //std::cout << "partiion " << partition_idx << " logl: " << partition_logl << "\n";
             network_logl += partition_logl;
+            ann_network.fake_treeinfo->partition_loglh[partition_idx] = partition_logl;
         }
     }
 
