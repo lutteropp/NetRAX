@@ -8,6 +8,7 @@
 #pragma once
 
 #include <raxml-ng/main.hpp>
+#include <raxml-ng/Model.hpp>
 
 #include "NetraxOptions.hpp"
 #include "graph/Network.hpp"
@@ -30,6 +31,7 @@ public:
 
     TreeInfo* createRaxmlTreeinfo(AnnotatedNetwork &ann_network); // Creates a network treeinfo
     TreeInfo* createRaxmlTreeinfo(pll_utree_t *utree); // Creates a tree treeinfo
+    TreeInfo* createRaxmlTreeinfo(pll_utree_t *utree, std::vector<Model>& partition_models);
     TreeInfo* createRaxmlTreeinfo(pll_utree_t *utree, const pllmod_treeinfo_t &model_treeinfo); // Creates a tree treeinfo, taking the model from the given treeinfo
 
     // and now, the things only neccessary to be visible in this header because of the unit tests...

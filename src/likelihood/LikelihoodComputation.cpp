@@ -319,6 +319,11 @@ double computeLoglikelihoodNaiveUtree(AnnotatedNetwork &ann_network, int increme
     (void) update_pmatrices;
     Network &network = ann_network.network;
     RaxmlWrapper wrapper(ann_network.options);
+
+    std::vector<Model> partition_models(ann_network.fake_treeinfo->partition_count);
+    for (size_t i = 0; i < partition_models.size(); ++i) {
+        assign(partition_models[i], ann_network.fake_treeinfo->partitions[i]);
+    }
     assert(wrapper.num_partitions() == 1);
 
     size_t n_trees = 1 << network.num_reticulations();
@@ -330,15 +335,19 @@ double computeLoglikelihoodNaiveUtree(AnnotatedNetwork &ann_network, int increme
             continue;
         }
         pll_utree_t *displayed_tree = netrax::displayed_tree_to_utree(network, i);
-        TreeInfo *displayedTreeinfo = wrapper.createRaxmlTreeinfo(displayed_tree);
+        TreeInfo *displayedTreeinfo = wrapper.createRaxmlTreeinfo(displayed_tree, partition_models);
+
         mpfr::mpreal tree_logl = displayedTreeinfo->loglh(0);
         delete displayedTreeinfo;
+
         if (treewise_logl) {
             treewise_logl->emplace_back(tree_logl.toDouble());
         }
         assert(tree_logl != -std::numeric_limits<double>::infinity());
         network_l += mpfr::exp(tree_logl) * tree_prob;
     }
+
+
 
     return mpfr::log(network_l).toDouble();
 }
