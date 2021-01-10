@@ -184,21 +184,6 @@ pllmod_treeinfo_t* RaxmlWrapper::createStandardPllTreeinfo(const pll_utree_t *ut
     return pllmod_treeinfo_create(utree->vroot, utree->tip_count, partitions, brlen_linkage);
 }
 
-TreeInfo* RaxmlWrapper::createRaxmlTreeinfo(pll_utree_t *utree, std::vector<Model>& partition_models) {
-    // Check that the MSA has already been loaded
-    assert(!instance.tip_id_map.empty());
-    reset_tip_ids(utree, instance.tip_id_map);
-    pllmod_treeinfo_t *pllTreeinfo = createStandardPllTreeinfo(utree,
-            instance.parted_msa->part_count(), instance.opts.brlen_linkage);
-
-    for (size_t i = 0; i < partition_models.size(); ++i) {
-        assign(pllTreeinfo->partitions[i], partition_models[i]);
-    }
-
-    TreeInfo::tinfo_behaviour standard_behaviour;
-    return createRaxmlTreeinfo(pllTreeinfo, standard_behaviour);
-}
-
 TreeInfo* RaxmlWrapper::createRaxmlTreeinfo(pll_utree_t *utree) {
     // Check that the MSA has already been loaded
     assert(!instance.tip_id_map.empty());

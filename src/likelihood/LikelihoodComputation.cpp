@@ -337,7 +337,10 @@ double computeLoglikelihoodNaiveUtree(AnnotatedNetwork &ann_network, int increme
             continue;
         }
         pll_utree_t *displayed_tree = netrax::displayed_tree_to_utree(network, i);
-        TreeInfo *displayedTreeinfo = wrapper.createRaxmlTreeinfo(displayed_tree, partition_models);
+        TreeInfo *displayedTreeinfo = wrapper.createRaxmlTreeinfo(displayed_tree);
+        for (size_t p = 0; p < num_partitions; ++p) {
+            displayedTreeinfo->model(p, partition_models[p]);
+        }
 
         double tree_logl = displayedTreeinfo->loglh(0);
         std::vector<double> partition_tree_logl(num_partitions);
@@ -384,7 +387,8 @@ double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int 
     //just for debug
     incremental = 0;
     update_pmatrices = 1;
-    return computeLoglikelihood_new(ann_network, incremental, update_pmatrices);
+    //return computeLoglikelihood_new(ann_network, incremental, update_pmatrices);
+    return computeLoglikelihoodNaiveUtree(ann_network, incremental, update_pmatrices);
 }
 
 }
