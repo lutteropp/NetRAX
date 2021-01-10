@@ -66,9 +66,11 @@ static double brent_target_networks_prob(void *p, double x) {
     } else {
         ann_network->reticulation_probs[reticulation_index] = x;
 
-        for (size_t p = 0; p < ann_network->fake_treeinfo->partition_count; ++p) {
-            for (size_t i = 0; i < ann_network->old_displayed_trees[p].size(); ++i) {
-                ann_network->old_displayed_trees[p][i].tree_logprob = displayed_tree_logprob(*ann_network, ann_network->old_displayed_trees[p][i].tree_idx);
+        if (!ann_network->old_displayed_trees.empty()) {
+            for (size_t p = 0; p < ann_network->fake_treeinfo->partition_count; ++p) {
+                for (size_t i = 0; i < ann_network->old_displayed_trees[p].size(); ++i) {
+                    ann_network->old_displayed_trees[p][i].tree_logprob = displayed_tree_logprob(*ann_network, ann_network->old_displayed_trees[p][i].tree_idx);
+                }
             }
         }
 
@@ -165,9 +167,11 @@ double optimize_reticulation(AnnotatedNetwork &ann_network, size_t reticulation_
     // after doing Brent, try the naive way of setting reticulation prob to 1.0 or 0.0....
     // case 1: prob is 1.0:
     ann_network.reticulation_probs[reticulation_index] = 1.0;
-    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-        for (size_t i = 0; i < ann_network.old_displayed_trees[p].size(); ++i) {
-            ann_network.old_displayed_trees[p][i].tree_logprob = displayed_tree_logprob(ann_network, ann_network.old_displayed_trees[p][i].tree_idx);
+    if (!ann_network.old_displayed_trees.empty()) {
+        for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+            for (size_t i = 0; i < ann_network.old_displayed_trees[p].size(); ++i) {
+                ann_network.old_displayed_trees[p][i].tree_logprob = displayed_tree_logprob(ann_network, ann_network.old_displayed_trees[p][i].tree_idx);
+            }
         }
     }
     double act_logl = computeLoglikelihood(ann_network, 1, 1);
@@ -177,9 +181,11 @@ double optimize_reticulation(AnnotatedNetwork &ann_network, size_t reticulation_
         new_brprob = 1.0;
     } else { // try setting it to 0.0 next
         ann_network.reticulation_probs[reticulation_index] = 0.0;
-        for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-            for (size_t i = 0; i < ann_network.old_displayed_trees[p].size(); ++i) {
-                ann_network.old_displayed_trees[p][i].tree_logprob = displayed_tree_logprob(ann_network, ann_network.old_displayed_trees[p][i].tree_idx);
+        if (!ann_network.old_displayed_trees.empty()) {
+            for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+                for (size_t i = 0; i < ann_network.old_displayed_trees[p].size(); ++i) {
+                    ann_network.old_displayed_trees[p][i].tree_logprob = displayed_tree_logprob(ann_network, ann_network.old_displayed_trees[p][i].tree_idx);
+                }
             }
         }
         act_logl = computeLoglikelihood(ann_network, 1, 1);
@@ -190,9 +196,11 @@ double optimize_reticulation(AnnotatedNetwork &ann_network, size_t reticulation_
         } else {
             // revert to normal
             ann_network.reticulation_probs[reticulation_index] = old_brprob;
-            for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-                for (size_t i = 0; i < ann_network.old_displayed_trees[p].size(); ++i) {
-                    ann_network.old_displayed_trees[p][i].tree_logprob = displayed_tree_logprob(ann_network, ann_network.old_displayed_trees[p][i].tree_idx);
+            if (!ann_network.old_displayed_trees.empty()) {
+                for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+                    for (size_t i = 0; i < ann_network.old_displayed_trees[p].size(); ++i) {
+                        ann_network.old_displayed_trees[p][i].tree_logprob = displayed_tree_logprob(ann_network, ann_network.old_displayed_trees[p][i].tree_idx);
+                    }
                 }
             }
             act_logl = computeLoglikelihood(ann_network, 1, 1);
