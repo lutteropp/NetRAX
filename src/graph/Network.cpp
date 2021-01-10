@@ -103,6 +103,10 @@ namespace netrax
                 network.nodes[i].addLink(link);
             }
         }
+        for (size_t i = 0; i < other.num_tips(); ++i) {
+            assert(other.nodes_by_index[i]->links.size() == 1);
+            assert(network.nodes_by_index[i]->links.size() == 1);
+        }
     }
 
     void setLinksForEdges(Network &network)
