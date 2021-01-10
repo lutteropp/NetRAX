@@ -189,12 +189,14 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
             if (verbose) std::cout << toExtendedNewick(ann_network) << "\n";
 
             // optimize brlen scalers
-            pllmod_algo_opt_brlen_scalers_treeinfo(ann_network.fake_treeinfo,
-                                                                    RAXML_BRLEN_SCALER_MIN,
-                                                                    RAXML_BRLEN_SCALER_MAX,
-                                                                    ann_network.options.brlen_min,
-                                                                    ann_network.options.brlen_max,
-                                                                    RAXML_PARAM_EPSILON);
+            if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED) {
+                pllmod_algo_opt_brlen_scalers_treeinfo(ann_network.fake_treeinfo,
+                                                                        RAXML_BRLEN_SCALER_MIN,
+                                                                        RAXML_BRLEN_SCALER_MAX,
+                                                                        ann_network.options.brlen_min,
+                                                                        ann_network.options.brlen_max,
+                                                                        RAXML_PARAM_EPSILON);
+            }
 
             optimize_reticulations(ann_network, 100);
             if (verbose) std::cout << "AFTER MOVE, AFTER BRLEN OPT + SCALER OPT + RETICULATION OPT: \n";
