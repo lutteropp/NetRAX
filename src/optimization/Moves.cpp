@@ -1669,41 +1669,82 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
 }
 
 void updateMoveClvIndex(ArcRemovalMove& move, size_t old_clv_index, size_t new_clv_index) {
-    if (move.a_clv_index == old_clv_index) {
+    ArcRemovalMove origMove = move;
+    // set new to old
+    if (origMove.a_clv_index == new_clv_index) {
+        move.a_clv_index = old_clv_index;
+    }
+    if (origMove.b_clv_index == new_clv_index) {
+        move.b_clv_index = old_clv_index;
+    }
+    if (origMove.c_clv_index == new_clv_index) {
+        move.c_clv_index = old_clv_index;
+    }
+    if (origMove.d_clv_index == new_clv_index) {
+        move.d_clv_index = old_clv_index;
+    }
+    if (origMove.u_clv_index == new_clv_index) {
+        move.u_clv_index = old_clv_index;
+    }
+    if (origMove.v_clv_index == new_clv_index) {
+        move.v_clv_index = old_clv_index;
+    }
+
+    // set old to new
+    if (origMove.a_clv_index == old_clv_index) {
         move.a_clv_index = new_clv_index;    
     }
-    if (move.b_clv_index == old_clv_index) {
+    if (origMove.b_clv_index == old_clv_index) {
         move.b_clv_index = new_clv_index;
     }
-    if (move.c_clv_index == old_clv_index) {
+    if (origMove.c_clv_index == old_clv_index) {
         move.c_clv_index = new_clv_index;
     }
-    if (move.d_clv_index == old_clv_index) {
+    if (origMove.d_clv_index == old_clv_index) {
         move.d_clv_index = new_clv_index;
     }
-    if (move.u_clv_index == old_clv_index) {
+    if (origMove.u_clv_index == old_clv_index) {
         move.u_clv_index = new_clv_index;
     }
-    if (move.v_clv_index == old_clv_index) {
+    if (origMove.v_clv_index == old_clv_index) {
         move.v_clv_index = new_clv_index;
     }
 }
 
 
 void updateMovePmatrixIndex(ArcRemovalMove& move, size_t old_pmatrix_index, size_t new_pmatrix_index) {
-    if (move.au_pmatrix_index == old_pmatrix_index) {
+    ArcRemovalMove origMove = move;
+    // set new to old
+    if (origMove.au_pmatrix_index == new_pmatrix_index) {
+        move.au_pmatrix_index = old_pmatrix_index;
+    }
+    if (origMove.cv_pmatrix_index == new_pmatrix_index) {
+        move.cv_pmatrix_index = old_pmatrix_index;
+    }
+    if (origMove.ub_pmatrix_index == new_pmatrix_index) {
+        move.ub_pmatrix_index = old_pmatrix_index;
+    }
+    if (origMove.uv_pmatrix_index == new_pmatrix_index) {
+        move.uv_pmatrix_index = old_pmatrix_index;
+    }
+    if (origMove.vd_pmatrix_index == new_pmatrix_index) {
+        move.vd_pmatrix_index = old_pmatrix_index;
+    }
+
+    // set old to new
+    if (origMove.au_pmatrix_index == old_pmatrix_index) {
         move.au_pmatrix_index = new_pmatrix_index;    
     }
-    if (move.cv_pmatrix_index == old_pmatrix_index) {
+    if (origMove.cv_pmatrix_index == old_pmatrix_index) {
         move.cv_pmatrix_index = new_pmatrix_index;
     }
-    if (move.ub_pmatrix_index == old_pmatrix_index) {
+    if (origMove.ub_pmatrix_index == old_pmatrix_index) {
         move.ub_pmatrix_index = new_pmatrix_index;
     }
-    if (move.uv_pmatrix_index == old_pmatrix_index) {
+    if (origMove.uv_pmatrix_index == old_pmatrix_index) {
         move.uv_pmatrix_index = new_pmatrix_index;
     }
-    if (move.vd_pmatrix_index == old_pmatrix_index) {
+    if (origMove.vd_pmatrix_index == old_pmatrix_index) {
         move.vd_pmatrix_index = new_pmatrix_index;
     }
 }
@@ -1720,7 +1761,7 @@ void repairConsecutiveClvIndices(AnnotatedNetwork &ann_network, ArcRemovalMove& 
     for (size_t i = 0; i < ann_network.network.num_nodes(); ++i) {
         if (!ann_network.network.nodes_by_index[i]) {
             missing_clv_indices.emplace_back(i);
-            std::cout << i << " is missing\n";
+            //std::cout << i << " is missing\n";
             invalidateSingleClv(ann_network.fake_treeinfo, i);
         }
     }
@@ -1728,8 +1769,6 @@ void repairConsecutiveClvIndices(AnnotatedNetwork &ann_network, ArcRemovalMove& 
     if (missing_clv_indices.empty()) {
         return;
     }
-
-    std::cout << "move before: " << toString(move) << "\n";
 
     for (size_t i = 0; i < ann_network.network.nodes.size(); ++i) {
         if (ann_network.network.nodes[i].clv_index >= ann_network.network.num_nodes() && ann_network.network.nodes[i].clv_index < std::numeric_limits<size_t>::max()) {
@@ -1754,8 +1793,6 @@ void repairConsecutiveClvIndices(AnnotatedNetwork &ann_network, ArcRemovalMove& 
             missing_clv_indices.pop_back();
         }
     }
-
-    std::cout << "move after: " << toString(move) << "\n";
 
     assert(move.a_clv_index != move.u_clv_index);
     assert(move.u_clv_index != move.b_clv_index);
@@ -1947,6 +1984,12 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     assertReticulationProbs(ann_network);
     invalidateLostMegablobRoots(ann_network, previous_megablob_roots);
     assertConsecutiveIndices(ann_network);
+
+    bool all_clvs_valid = true;
+    for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
+        all_clvs_valid &= ann_network.fake_treeinfo->clv_valid[i][ann_network.network.root->clv_index];
+    }
+    assert(!all_clvs_valid);
 }
 
 void undoMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
