@@ -99,7 +99,7 @@ void wavesearch(AnnotatedNetwork& ann_network, double* global_best, std::mt19937
 
                 // new version: search for best place to add the new reticulation
                 MoveType insertionType = MoveType::ArcInsertionMove;
-                netrax::greedyHillClimbingTopology(ann_network, insertionType, true);
+                netrax::greedyHillClimbingTopology(ann_network, insertionType, true, 1);
 
                 NetraxInstance::optimizeAllNonTopology(ann_network);
                 new_score = NetraxInstance::scoreNetwork(ann_network);
@@ -121,7 +121,7 @@ void wavesearch(AnnotatedNetwork& ann_network, double* global_best, std::mt19937
             size_t old_num_reticulations = ann_network.network.num_reticulations();
             double logl_before_removal = NetraxInstance::computeLoglikelihood(ann_network);
             double bic_before_removal = NetraxInstance::scoreNetwork(ann_network);
-            netrax::greedyHillClimbingTopology(ann_network, removalType, false, 1); // TODO: Using the 1 here is likely just hiding a bug
+            netrax::greedyHillClimbingTopology(ann_network, removalType, false);
             double logl_after_removal = NetraxInstance::computeLoglikelihood(ann_network);
             double bic_after_removal = NetraxInstance::scoreNetwork(ann_network);
             std::cout << "logl_before_removal: " << logl_before_removal << ", bic_before_removal: " << bic_before_removal << "\n";
