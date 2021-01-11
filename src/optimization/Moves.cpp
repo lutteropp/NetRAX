@@ -1729,6 +1729,8 @@ void repairConsecutiveClvIndices(AnnotatedNetwork &ann_network, ArcRemovalMove& 
         return;
     }
 
+    std::cout << "move before: " << toString(move) << "\n";
+
     for (size_t i = 0; i < ann_network.network.nodes.size(); ++i) {
         if (ann_network.network.nodes[i].clv_index >= ann_network.network.num_nodes() && ann_network.network.nodes[i].clv_index < std::numeric_limits<size_t>::max()) {
             size_t old_clv_index = ann_network.network.nodes[i].clv_index;
@@ -1736,6 +1738,7 @@ void repairConsecutiveClvIndices(AnnotatedNetwork &ann_network, ArcRemovalMove& 
             // invalidate the clv entry
             invalidateSingleClv(ann_network.fake_treeinfo, old_clv_index);
             if (move_clv_indices.find(old_clv_index) != move_clv_indices.end()) {
+                std::cout << "replacing " << old_clv_index << " by " << new_clv_index << "\n";
                 updateMoveClvIndex(move, old_clv_index, new_clv_index);
             }
 
@@ -1751,6 +1754,9 @@ void repairConsecutiveClvIndices(AnnotatedNetwork &ann_network, ArcRemovalMove& 
             missing_clv_indices.pop_back();
         }
     }
+
+    std::cout << "move after: " << toString(move) << "\n";
+
     assert(move.a_clv_index != move.u_clv_index);
     assert(move.u_clv_index != move.b_clv_index);
     assert(move.c_clv_index != move.v_clv_index);
