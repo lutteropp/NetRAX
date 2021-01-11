@@ -1709,6 +1709,12 @@ void updateMovePmatrixIndex(ArcRemovalMove& move, size_t old_pmatrix_index, size
 }
 
 void repairConsecutiveClvIndices(AnnotatedNetwork &ann_network, ArcRemovalMove& move) {
+    assert(move.a_clv_index != move.u_clv_index);
+    assert(move.u_clv_index != move.b_clv_index);
+    assert(move.c_clv_index != move.v_clv_index);
+    assert(move.v_clv_index != move.d_clv_index);
+    assert(move.u_clv_index != move.v_clv_index);
+
     std::unordered_set<size_t> move_clv_indices = {move.a_clv_index, move.b_clv_index, move.c_clv_index, move.d_clv_index, move.u_clv_index, move.v_clv_index};
     std::vector<size_t> missing_clv_indices;
     for (size_t i = 0; i < ann_network.network.num_nodes(); ++i) {
@@ -1745,10 +1751,16 @@ void repairConsecutiveClvIndices(AnnotatedNetwork &ann_network, ArcRemovalMove& 
             missing_clv_indices.pop_back();
         }
     }
+    assert(move.a_clv_index != move.u_clv_index);
+    assert(move.u_clv_index != move.b_clv_index);
+    assert(move.c_clv_index != move.v_clv_index);
+    assert(move.v_clv_index != move.d_clv_index);
+    assert(move.u_clv_index != move.v_clv_index);
 }
 
 void repairConsecutivePmatrixIndices(AnnotatedNetwork &ann_network, ArcRemovalMove& move) {
     std::unordered_set<size_t> move_pmatrix_indices = {move.au_pmatrix_index, move.cv_pmatrix_index, move.ub_pmatrix_index, move.uv_pmatrix_index, move.vd_pmatrix_index};
+    assert(move_pmatrix_indices.size() == 5);
     std::vector<size_t> missing_pmatrix_indices;
     for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
         if (!ann_network.network.edges_by_index[i]) {
@@ -1787,6 +1799,8 @@ void repairConsecutivePmatrixIndices(AnnotatedNetwork &ann_network, ArcRemovalMo
             missing_pmatrix_indices.pop_back();
         }
     }
+    move_pmatrix_indices = {move.au_pmatrix_index, move.cv_pmatrix_index, move.ub_pmatrix_index, move.uv_pmatrix_index, move.vd_pmatrix_index};
+    assert(move_pmatrix_indices.size() == 5);
 }
 
 void checkSanity(AnnotatedNetwork& ann_network, ArcRemovalMove& move) {
@@ -1802,9 +1816,18 @@ void checkSanity(AnnotatedNetwork& ann_network, ArcRemovalMove& move) {
     assert(ann_network.network.edges_by_index[move.uv_pmatrix_index]);
     assert(ann_network.network.edges_by_index[move.cv_pmatrix_index]);
     assert(ann_network.network.edges_by_index[move.vd_pmatrix_index]);
+
+    assert(move.a_clv_index != move.u_clv_index);
+    assert(move.u_clv_index != move.b_clv_index);
+    assert(move.c_clv_index != move.v_clv_index);
+    assert(move.v_clv_index != move.d_clv_index);
+    assert(move.u_clv_index != move.v_clv_index);
 }
 
 void repairConsecutiveIndices(AnnotatedNetwork &ann_network, ArcRemovalMove& move) {
+    // TODO: This relabeling procedure will invalidate remaining arc removal move candidates.
+    //       This can be circumvented by reloading the network state...
+
     // ensure that pmatrix indices and clv indices remain consecutive. Do the neccessary relabelings.
     repairConsecutiveClvIndices(ann_network, move);
     repairConsecutivePmatrixIndices(ann_network, move);
