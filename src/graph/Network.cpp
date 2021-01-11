@@ -45,22 +45,22 @@ namespace netrax
 
     void cloneNodesAndEdges(Network &network, const Network &other)
     {
-        for (size_t i = 0; i < other.nodes.size(); ++i)
+        for (size_t i = 0; i < other.num_nodes(); ++i)
         {
-            if (other.nodes[i].type == NodeType::BASIC_NODE)
+            if (other.nodes_by_index[i]->type == NodeType::BASIC_NODE)
             {
-                network.nodes[i].initBasic(other.nodes[i].clv_index, other.nodes[i].scaler_index, other.nodes[i].label);
-                if (other.nodes[i].clv_index < other.num_tips()) {
-                    assert(!other.nodes[i].label.empty());
+                network.nodes[i].initBasic(other.nodes_by_index[i]->clv_index, other.nodes_by_index[i]->scaler_index, other.nodes_by_index[i]->label);
+                if (i < other.num_tips()) {
+                    assert(!other.nodes_by_index[i]->label.empty());
                     assert(!network.nodes[i].label.empty());
                 }
             }
             else
             { // reticulation node
-                ReticulationData *other_ret_data = other.nodes[i].getReticulationData().get();
+                ReticulationData *other_ret_data = other.nodes_by_index[i]->getReticulationData().get();
                 ReticulationData ret_data;
                 ret_data.init(other_ret_data->reticulation_index, other_ret_data->label, other_ret_data->active_parent_toggle, nullptr, nullptr, nullptr);
-                network.nodes[i].initReticulation(other.nodes[i].clv_index, other.nodes[i].scaler_index, other.nodes[i].label, ret_data);
+                network.nodes[i].initReticulation(i, other.nodes_by_index[i]->scaler_index, other.nodes_by_index[i]->label, ret_data);
             }
         }
         for (size_t i = 0; i < other.edges.size(); ++i)
