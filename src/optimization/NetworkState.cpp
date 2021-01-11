@@ -71,11 +71,13 @@ NetworkState extract_network_state(AnnotatedNetwork &ann_network) {
     return state;
 }
 
-void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &state) {
+void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &state, bool copy_network) {
     ann_network.options.brlen_linkage = state.brlen_linkage;
     assert_tip_links(state.network);
     assert_links_in_range(state.network);
-    ann_network.network = state.network;
+    if (copy_network) {
+        ann_network.network = state.network;
+    }
     for (size_t p = 0; p < state.partition_brlens.size(); ++p) {
         for (size_t pmatrix_index = 0; pmatrix_index < ann_network.network.edges.size(); ++pmatrix_index) {
             ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] = state.partition_brlens[p][pmatrix_index];

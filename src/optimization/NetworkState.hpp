@@ -16,7 +16,7 @@ struct NetworkState {
 };
 
 NetworkState extract_network_state(AnnotatedNetwork &ann_network);
-void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &state);
+void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &state, bool copy_network = true);
 bool network_states_equal(const NetworkState& old_state, const NetworkState &act_state);
 AnnotatedNetwork build_annotated_network_from_state(NetworkState& state, const NetraxOptions& options);
 
