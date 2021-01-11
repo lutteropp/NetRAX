@@ -62,26 +62,6 @@ std::vector<bool> init_clv_touched(AnnotatedNetwork& ann_network, bool increment
     return clv_touched;
 }
 
-void recompute_pmatrix_entry(AnnotatedNetwork &ann_network, unsigned int pmatrix_index, unsigned int partition_index) {
-    double p_brlen = ann_network.fake_treeinfo->branch_lengths[partition_index][pmatrix_index];
-    if (ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED) {
-        p_brlen *= ann_network.fake_treeinfo->brlen_scalers[partition_index];
-    }
-
-    int ret = pll_update_prob_matrices(ann_network.fake_treeinfo->partitions[partition_index],
-                                ann_network.fake_treeinfo->param_indices[partition_index],
-                                &pmatrix_index,
-                                &p_brlen,
-                                1);
-    assert(ret != 0);
-    ann_network.fake_treeinfo->pmatrix_valid[partition_index][pmatrix_index] = 1;
-}
-
-void recompute_pmatrix_entry(AnnotatedNetwork &ann_network, int pmatrix_index) {
-    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-        recompute_pmatrix_entry(ann_network, pmatrix_index, p);
-    }
-}
 
 void setup_pmatrices(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices) {
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
@@ -410,10 +390,7 @@ double computeLoglikelihoodNaiveUtree(AnnotatedNetwork &ann_network, int increme
 double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices) {
     //just for debug
     //incremental = 0;
-
-    if (ann_network.options.brlen_linkage != PLLMOD_COMMON_BRLEN_SCALED) {
-        //update_pmatrices = 0;
-    }
+    //update_pmatrices = 1;
     return computeLoglikelihood_new(ann_network, incremental, update_pmatrices);
     //return computeLoglikelihoodNaiveUtree(ann_network, incremental, update_pmatrices);
 }

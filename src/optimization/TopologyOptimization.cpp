@@ -216,9 +216,13 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
             }
             foundBetterScore = true;
         }
-        if (!complexityChanging) {
-            undoMove(ann_network, move);
+        undoMove(ann_network, move);
+        
+        all_clvs_valid = true;
+        for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
+            all_clvs_valid &= ann_network.fake_treeinfo->clv_valid[i][ann_network.network.root->clv_index];
         }
+        assert(!all_clvs_valid);
 
         if (brlenopt_inside) {
             apply_network_state(ann_network, start_state, complexityChanging);

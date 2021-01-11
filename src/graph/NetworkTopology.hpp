@@ -74,6 +74,4 @@ void assertReticulationProbs(AnnotatedNetwork &ann_network);
 
 std::unordered_set<size_t> getNeighborPmatrixIndices(Network &network, Edge *edge);
 
-void setBranchLength(AnnotatedNetwork& ann_network, unsigned int partition_index, unsigned int pmatrix_index, double value);
-
 }

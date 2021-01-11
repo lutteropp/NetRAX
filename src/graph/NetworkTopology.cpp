@@ -14,11 +14,6 @@
 #include "Network.hpp"
 #include "../DebugPrintFunctions.hpp"
 
-extern "C" {
-#include <libpll/pll.h>
-#include <libpll/pll_tree.h>
-}
-
 namespace netrax {
 
 Node* getTargetNode(Network &network, const Link *link) {
@@ -490,28 +485,6 @@ std::unordered_set<size_t> getNeighborPmatrixIndices(Network &network, Edge *edg
     }
     res.erase(edge->pmatrix_index);
     return res;
-}
-
-void setBranchLength(AnnotatedNetwork& ann_network, unsigned int partition_index, unsigned int pmatrix_index, double value) {
-    if (ann_network.fake_treeinfo->branch_lengths[partition_index][pmatrix_index] == value) {
-        return;
-    }
-    std::vector<bool> visited(ann_network.network.num_nodes(), false);
-    invalidateHigherCLVs(ann_network, getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]), true, visited);
-
-    // now, set the branch length and recompute the pmatrix entry
-    ann_network.fake_treeinfo->branch_lengths[partition_index][pmatrix_index] = value;
-    double p_brlen = value;
-    if (ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED) {
-        p_brlen *= ann_network.fake_treeinfo->brlen_scalers[partition_index];
-    }
-    int ret = pll_update_prob_matrices(ann_network.fake_treeinfo->partitions[partition_index],
-                                ann_network.fake_treeinfo->param_indices[partition_index],
-                                &pmatrix_index,
-                                &p_brlen,
-                                1);
-    assert(ret != 0);
-    ann_network.fake_treeinfo->pmatrix_valid[partition_index][pmatrix_index] = 1;
 }
 
 }

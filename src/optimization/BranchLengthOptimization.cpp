@@ -49,10 +49,19 @@ static double brent_target_networks(void *p, double x) {
         score = -1 * computeLoglikelihood(*ann_network, 1, 1);
         checkLoglBeforeAfter(*ann_network);
     } else {
-        checkLoglBeforeAfter(*ann_network);
-        setBranchLength(*ann_network, partition_index, pmatrix_index, x);
-        checkLoglBeforeAfter(*ann_network);
-        
+        ann_network->fake_treeinfo->branch_lengths[partition_index][pmatrix_index] = x;
+        ann_network->fake_treeinfo->pmatrix_valid[partition_index][pmatrix_index] = 0;
+        setup_pmatrices(*ann_network, false, true);
+        invalidateHigherCLVs(*ann_network,
+                getTarget(ann_network->network, ann_network->network.edges_by_index[pmatrix_index]),
+                true);
+
+        bool all_clvs_valid = true;
+        for (size_t i = 0; i < ann_network->fake_treeinfo->partition_count; ++i) {
+            all_clvs_valid &= ann_network->fake_treeinfo->clv_valid[i][ann_network->network.root->clv_index];
+        }
+        assert(!all_clvs_valid);
+
         score = -1 * computeLoglikelihood(*ann_network, 1, 1);
         assert(ann_network->fake_treeinfo->pmatrix_valid[partition_index][pmatrix_index]);
         //std::cout << "    score: " << score << ", x: " << x << ", old_x: " << old_x << ", pmatrix index:"

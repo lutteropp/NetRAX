@@ -30,6 +30,4 @@ double computeLoglikelihoodNaiveUtree(AnnotatedNetwork &ann_network, int increme
 void setup_pmatrices(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices);
 double displayed_tree_logprob(AnnotatedNetwork &ann_network, size_t tree_index);
 
-void recompute_pmatrix_entry(AnnotatedNetwork &ann_network, int pmatrix_index);
-
 }
