@@ -50,6 +50,10 @@ namespace netrax
             if (other.nodes[i].type == NodeType::BASIC_NODE)
             {
                 network.nodes[i].initBasic(other.nodes[i].clv_index, other.nodes[i].scaler_index, other.nodes[i].label);
+                if (other.nodes[i].clv_index < other.num_tips()) {
+                    assert(!other.nodes[i].label.empty());
+                    assert(!network.nodes[i].label.empty());
+                }
             }
             else
             { // reticulation node
