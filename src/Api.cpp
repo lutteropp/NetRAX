@@ -502,4 +502,10 @@ void NetraxInstance::double_check_likelihood(AnnotatedNetwork &ann_network) {
     assert(similar_logl);
 }
 
+void NetraxInstance::optimizeAllNonTopology(AnnotatedNetwork &ann_network) {
+    NetraxInstance::optimizeModel(ann_network);
+    NetraxInstance::optimizeBranches(ann_network);
+    NetraxInstance::updateReticulationProbs(ann_network);
+}
+
 }
