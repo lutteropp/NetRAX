@@ -14,16 +14,14 @@
 
 namespace netrax {
 
-void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
+void wavesearch(AnnotatedNetwork& ann_network, double* global_best, std::mt19937& rng) {
     std::vector<MoveType> typesBySpeed = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::HeadMove};
 
-    std::vector<double> best_score_by_reticulations(netraxOptions.max_reticulations + 1, std::numeric_limits<double>::infinity());
+    std::vector<double> best_score_by_reticulations(ann_network.options.max_reticulations + 1, std::numeric_limits<double>::infinity());
 
     auto start_time = std::chrono::high_resolution_clock::now();
     double best_score = std::numeric_limits<double>::infinity();
     int best_num_reticulations = 0;
-    netrax::AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(netraxOptions);
-    NetraxInstance::init_annotated_network(ann_network, rng);
 
     std::cout << "Initial network is:\n" << toExtendedNewick(ann_network) << "\n\n";
     NetraxInstance::optimizeAllNonTopology(ann_network);
@@ -54,10 +52,13 @@ void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
             best_score_by_reticulations[ann_network.network.num_reticulations()] = new_score;
             best_num_reticulations = ann_network.network.num_reticulations();
             std::cout << "IMPROVED BEST SCORE FOUND SO FAR: " << best_score << "\n\n";
-            NetraxInstance::writeNetwork(ann_network, netraxOptions.output_file);
-            best_network = toExtendedNewick(ann_network);
-            std::cout << best_network << "\n";
-            std::cout << "Better network written to " << netraxOptions.output_file << "\n";
+            if (best_score < *global_best) {
+                *global_best = best_score;
+                NetraxInstance::writeNetwork(ann_network, ann_network.options.output_file);
+                best_network = toExtendedNewick(ann_network);
+                std::cout << best_network << "\n";
+                std::cout << "Better network written to " << ann_network.options.output_file << "\n";
+            }
 
             //print displayed trees
             std::vector<std::pair<std::string, double>> displayed_trees;
@@ -138,6 +139,13 @@ void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
                     if (new_score < best_score) {
                         best_score = new_score;
                         std::cout << "IMPROVED BEST SCORE FOUND SO FAR: " << best_score << "\n\n";
+                        if (best_score < *global_best) {
+                            *global_best = best_score;
+                            NetraxInstance::writeNetwork(ann_network, ann_network.options.output_file);
+                            best_network = toExtendedNewick(ann_network);
+                            std::cout << best_network << "\n";
+                            std::cout << "Better network written to " << ann_network.options.output_file << "\n";
+                        }
                     }
                     seen_improvement = true;
                     std::cout << "Got better by removing arcs\n";
@@ -158,7 +166,18 @@ void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
     }
 }
 
+void oldsearch(AnnotatedNetwork& ann_network, double* global_best, std::mt19937& rng) {
+}
+
+void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
+    netrax::AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(netraxOptions);
+    NetraxInstance::init_annotated_network(ann_network, rng);
+    double global_best = std::numeric_limits<double>::infinity();
+    wavesearch(ann_network, &global_best, rng);
+}
+
 void run_single_start(NetraxOptions& netraxOptions, std::mt19937& rng) {
+    throw std::runtime_error("This is deprecated code");
     double best_score = std::numeric_limits<double>::infinity();
 
     netrax::AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(netraxOptions);
@@ -186,7 +205,8 @@ void run_single_start(NetraxOptions& netraxOptions, std::mt19937& rng) {
 }
 
 void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {
-    double best_score = std::numeric_limits<double>::infinity();
+    double global_best = std::numeric_limits<double>::infinity();
+
     auto start_time = std::chrono::high_resolution_clock::now();
     size_t start_reticulations = 0;
     size_t n_iterations = 0;
@@ -197,17 +217,8 @@ void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {
         netrax::AnnotatedNetwork ann_network = NetraxInstance::build_random_annotated_network(netraxOptions);
         NetraxInstance::init_annotated_network(ann_network, rng);
         NetraxInstance::add_extra_reticulations(ann_network, start_reticulations);
-        NetraxInstance::optimizeEverythingInWaves(ann_network);
-        double final_bic = NetraxInstance::scoreNetwork(ann_network);
-        std::cout << "The inferred network has " << ann_network.network.num_reticulations() << " reticulations and this BIC score: " << final_bic << "\n\n";
-        if (final_bic < best_score) {
-            best_score = final_bic;
-            std::cout << "IMPROVED BEST SCORE FOUND SO FAR: " << best_score << "\n\n";
-            NetraxInstance::writeNetwork(ann_network, netraxOptions.output_file);
-            std::cout << "Better network written to " << netraxOptions.output_file << "\n";  
-        } else {
-            std::cout << "REMAINED BEST SCORE FOUND SO FAR: " << best_score << "\n";
-        }
+
+        wavesearch(ann_network, &global_best, rng);
         if (netraxOptions.timeout > 0) {
             auto act_time = std::chrono::high_resolution_clock::now();
             if (std::chrono::duration_cast<std::chrono::seconds>(act_time - start_time).count() >= netraxOptions.timeout) {
@@ -227,17 +238,7 @@ void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {
         netrax::AnnotatedNetwork ann_network = NetraxInstance::build_parsimony_annotated_network(netraxOptions);
         NetraxInstance::init_annotated_network(ann_network, rng);
         NetraxInstance::add_extra_reticulations(ann_network, start_reticulations);
-        NetraxInstance::optimizeEverythingInWaves(ann_network);
-        double final_bic = NetraxInstance::scoreNetwork(ann_network);
-        std::cout << "The inferred network has " << ann_network.network.num_reticulations() << " reticulations and this BIC score: " << final_bic << "\n\n";
-        if (final_bic < best_score) {
-            best_score = final_bic;
-            std::cout << "IMPROVED BEST SCORE FOUND SO FAR: " << best_score << "\n\n";
-            NetraxInstance::writeNetwork(ann_network, netraxOptions.output_file);
-            std::cout << "Better network written to " << netraxOptions.output_file << "\n";  
-        } else {
-            std::cout << "REMAINED BEST SCORE FOUND SO FAR: " << best_score << "\n";
-        }
+        wavesearch(ann_network, &global_best, rng);
         if (netraxOptions.timeout > 0) {
             auto act_time = std::chrono::high_resolution_clock::now();
             if (std::chrono::duration_cast<std::chrono::seconds>(act_time - start_time).count() >= netraxOptions.timeout) {
