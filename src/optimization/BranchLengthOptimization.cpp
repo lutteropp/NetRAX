@@ -209,9 +209,6 @@ void add_branches_within_radius(AnnotatedNetwork& ann_network, int radius, size_
 
 double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radius,
         std::unordered_set<size_t> &candidates) {
-    if (radius == PLLMOD_OPT_BRLEN_OPTIMIZE_ALL) {
-        radius = 3;
-    }
     assert(radius >= 1);
     assert(!candidates.empty());
     for (size_t idx : candidates) {
