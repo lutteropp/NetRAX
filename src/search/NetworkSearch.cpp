@@ -99,7 +99,7 @@ void wavesearch(AnnotatedNetwork& ann_network, double* global_best, std::mt19937
 
                 // new version: search for best place to add the new reticulation
                 MoveType insertionType = MoveType::ArcInsertionMove;
-                netrax::greedyHillClimbingTopology(ann_network, insertionType, true, 1);
+                netrax::greedyHillClimbingTopology(ann_network, insertionType, true);
 
                 NetraxInstance::optimizeAllNonTopology(ann_network);
                 new_score = NetraxInstance::scoreNetwork(ann_network);
@@ -121,7 +121,7 @@ void wavesearch(AnnotatedNetwork& ann_network, double* global_best, std::mt19937
             size_t old_num_reticulations = ann_network.network.num_reticulations();
             double logl_before_removal = NetraxInstance::computeLoglikelihood(ann_network);
             double bic_before_removal = NetraxInstance::scoreNetwork(ann_network);
-            netrax::greedyHillClimbingTopology(ann_network, removalType, false, 1);
+            netrax::greedyHillClimbingTopology(ann_network, removalType, false, 1); // TODO: Using the 1 here is likely just hiding a bug
             double logl_after_removal = NetraxInstance::computeLoglikelihood(ann_network);
             double bic_after_removal = NetraxInstance::scoreNetwork(ann_network);
             std::cout << "logl_before_removal: " << logl_before_removal << ", bic_before_removal: " << bic_before_removal << "\n";
@@ -150,7 +150,7 @@ void wavesearch(AnnotatedNetwork& ann_network, double* global_best, std::mt19937
                             best_network = toExtendedNewick(ann_network);
                             std::cout << best_network << "\n";
                             std::cout << "Better network written to " << ann_network.options.output_file << "\n";
-                            first_run = true; // treat it like first run, because the global score got better
+                            //first_run = true; // treat it like first run, because the global score got better
                         }
                     }
                     std::cout << "Initial optimized " << ann_network.network.num_reticulations() << "-reticulation network loglikelihood: " << NetraxInstance::computeLoglikelihood(ann_network) << "\n";
