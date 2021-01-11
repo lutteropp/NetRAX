@@ -1986,6 +1986,11 @@ void undoMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
             move.a_u_len, move.a_b_len, move.c_d_len, move.v_d_len, move.u_b_len, MoveType::ArcRemovalMove);
     removal.wanted_ab_pmatrix_index = move.ab_pmatrix_index;
     removal.wanted_cd_pmatrix_index = move.cd_pmatrix_index;
+    removal.au_pmatrix_index = getEdgeTo(network, a, u)->pmatrix_index;
+    removal.cv_pmatrix_index = getEdgeTo(network, c, v)->pmatrix_index;
+    removal.uv_pmatrix_index = getEdgeTo(network, u, v)->pmatrix_index;
+    removal.ub_pmatrix_index = getEdgeTo(network, u, b)->pmatrix_index;
+    removal.vd_pmatrix_index = getEdgeTo(network, v, d)->pmatrix_index;
     performMove(ann_network, removal);
     assertConsecutiveIndices(ann_network);
 }
