@@ -105,7 +105,7 @@ void print_brlens(AnnotatedNetwork &ann_network) {
     for (size_t p = 0; p < n_partitions; ++p) {
         for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
             std::cout << "brlens[" << p << "][" << ann_network.network.edges[i].pmatrix_index
-                    << "]: " << ann_network.network.edges[i].length << "\n";
+                    << "]: " << ann_network.fake_treeinfo->branch_lengths[p][ann_network.network.edges[i].pmatrix_index] << "\n";
         }
     }
     std::cout << "\n";

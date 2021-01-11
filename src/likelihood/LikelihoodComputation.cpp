@@ -327,6 +327,12 @@ double computeLoglikelihoodNaiveUtree(AnnotatedNetwork &ann_network, int increme
         assign(partition_models[i], ann_network.fake_treeinfo->partitions[i]);
     }
 
+    assert(ann_network.options.brlen_linkage != PLLMOD_COMMON_BRLEN_UNLINKED);
+    // ensure the network edge lengths are up-to-date (needed for displayed tree to utree)
+    for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
+        ann_network.network.edges_by_index[i]->length = ann_network.fake_treeinfo->branch_lengths[0][i];
+    }
+
     std::vector<std::vector<double> > tree_logl_per_partition(num_partitions, std::vector<double>(num_trees, -std::numeric_limits<double>::infinity()));
     std::vector<double> tree_logprob(num_trees, 0.0);
 
