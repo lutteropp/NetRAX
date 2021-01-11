@@ -84,14 +84,13 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
         assert(state.network_valid);
         ann_network.network = state.network;
     }
-    for (size_t p = 0; p < state.partition_brlens.size(); ++p) {
-        for (size_t pmatrix_index = 0; pmatrix_index < ann_network.network.edges.size(); ++pmatrix_index) {
-            ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] = state.partition_brlens[p][pmatrix_index];
-            ann_network.fake_treeinfo->pmatrix_valid[p][pmatrix_index] = 0;
-        }
-    }
     for (size_t p = 0; p < state.partition_brlen_scalers.size(); ++p) {
         ann_network.fake_treeinfo->brlen_scalers[p] = state.partition_brlen_scalers[p];
+    }
+    for (size_t p = 0; p < state.partition_brlens.size(); ++p) {
+        for (size_t pmatrix_index = 0; pmatrix_index < ann_network.network.edges.size(); ++pmatrix_index) {
+            setBranchLength(ann_network, p, pmatrix_index, state.partition_brlens[p][pmatrix_index]);
+        }
     }
     pllmod_treeinfo_update_prob_matrices(ann_network.fake_treeinfo, 1);
 

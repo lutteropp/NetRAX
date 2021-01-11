@@ -31,6 +31,7 @@
 #include "../graph/NodeType.hpp"
 #include "../graph/ReticulationData.hpp"
 #include "../NetraxOptions.hpp"
+#include "../likelihood/LikelihoodComputation.hpp"
 
 extern "C" {
 #include <libpll/pll.h>
@@ -60,7 +61,7 @@ std::vector<double> get_edge_lengths(AnnotatedNetwork &ann_network, size_t pmatr
 
 void set_edge_lengths(AnnotatedNetwork &ann_network, size_t pmatrix_index, const std::vector<double> &lengths) {
     for (size_t p = 0; p < lengths.size(); ++p) {
-        ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] = lengths[p];
+        setBranchLength(ann_network, p, pmatrix_index, lengths[p]);
         assert(lengths[p] >= ann_network.options.brlen_min);
         assert(lengths[p] <= ann_network.options.brlen_max);
     }
@@ -1820,14 +1821,13 @@ void repairConsecutivePmatrixIndices(AnnotatedNetwork &ann_network, ArcRemovalMo
         return;
     }
 
+    std::vector<bool> visited(ann_network.network.nodes.size(), false);
     for (size_t i = 0; i < ann_network.network.edges.size(); ++i) {
         if (ann_network.network.edges[i].pmatrix_index >= ann_network.network.num_branches() && ann_network.network.edges[i].pmatrix_index < std::numeric_limits<size_t>::max()) {
             size_t old_pmatrix_index = ann_network.network.edges[i].pmatrix_index;
             size_t new_pmatrix_index = missing_pmatrix_indices.back();
             // invalidate the pmatrix entry
-            for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-                ann_network.fake_treeinfo->pmatrix_valid[p][old_pmatrix_index] = 0;
-            }
+            invalidatePmatrixIndex(ann_network, old_pmatrix_index, visited);
             if (move_pmatrix_indices.find(old_pmatrix_index) != move_pmatrix_indices.end()) {
                 updateMovePmatrixIndex(move, old_pmatrix_index, new_pmatrix_index);
             }
