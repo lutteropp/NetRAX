@@ -270,6 +270,11 @@ Network convertNetworkToplevel(RootedNetwork &rnetwork, size_t node_count,
     // TODO: Update changed memory layout in the Google Doc
     network.root = &network.nodes[network.num_nodes() - 1 - rnetwork.reticulationCount];
 
+    // ensure that the tips all have labels
+    for (size_t i = 0; i < network.num_tips(); ++i) {
+        assert(!network.nodes_by_index[i]->label.empty());
+    }
+
     return network;
 }
 
