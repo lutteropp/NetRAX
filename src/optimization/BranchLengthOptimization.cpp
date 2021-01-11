@@ -163,10 +163,6 @@ double optimize_reticulation(AnnotatedNetwork &ann_network, size_t reticulation_
     //std::cout << "  old_brlen: " << old_brlen << ", new_brlen: " << new_brlen << "\n";
     best_logl = computeLoglikelihood(ann_network, 1, 1);
 
-
-    ann_network.reticulation_probs[reticulation_index] = new_brprob;
-    best_logl = computeLoglikelihood(ann_network, 1, 1);
-
     //std::cout << " start logl for branch " << pmatrix_index << " with length " << start_brlen << ": " << start_logl
     //        << "\n";
     //std::cout << "   end logl for branch " << pmatrix_index << " with length " << new_brlen << ": " << best_logl
