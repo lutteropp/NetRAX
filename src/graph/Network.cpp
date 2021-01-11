@@ -179,6 +179,11 @@ namespace netrax
         // Fill the by-index references
         fillByIndexReferences(*this, other);
 
+        for (size_t i = 0; i < tipCount; ++i) {
+            assert(!other.nodes_by_index[i]->label.empty());
+            assert(!nodes_by_index[i]->label.empty());
+        }
+
         // Create the links
         createTheLinks(*this, other);
 
