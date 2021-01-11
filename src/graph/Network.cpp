@@ -63,9 +63,9 @@ namespace netrax
                 network.nodes[i].initReticulation(i, other.nodes_by_index[i]->scaler_index, other.nodes_by_index[i]->label, ret_data);
             }
         }
-        for (size_t i = 0; i < other.edges.size(); ++i)
+        for (size_t i = 0; i < other.num_edges(); ++i)
         {
-            network.edges[i].init(other.edges[i].pmatrix_index, nullptr, nullptr, other.edges[i].length, other.edges[i].prob);
+            network.edges[i].init(i, nullptr, nullptr, other.edges_by_index[i]->length, other.edges_by_index[i]->prob);
         }
     }
 
