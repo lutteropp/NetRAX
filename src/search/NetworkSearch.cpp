@@ -32,7 +32,7 @@ void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
     std::cout << "Initial network after brlenopt+modelopt+reticulation opt is:\n" << toExtendedNewick(ann_network) << "\n\n";
     std::string best_network = toExtendedNewick(ann_network);
     std::cout << "Initial optimized " << ann_network.network.num_reticulations() << "-reticulation network loglikelihood: " << NetraxInstance::computeLoglikelihood(ann_network) << "\n";
-    std::cout << "Initial optimized " << ann_network.network.num_reticulations() << "-reticulation network BIC score: " << new_score << "\n";
+    std::cout << "Initial optimized " << ann_network.network.num_reticulations() << "-reticulation network BIC score: " << NetraxInstance::scoreNetwork(ann_network) << "\n";
 
     bool seen_improvement = true;
     while (seen_improvement) {
