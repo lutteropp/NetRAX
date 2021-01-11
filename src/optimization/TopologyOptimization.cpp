@@ -219,12 +219,12 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         if (verbose) std::cout << toExtendedNewick(ann_network) << "\n";
         double new_logl = ann_network.raxml_treeinfo->loglh(true);
 
-        if (move.moveType == MoveType::ArcInsertionMove || move.moveType == MoveType::DeltaPlusMove) {
+        /*if (move.moveType == MoveType::ArcInsertionMove || move.moveType == MoveType::DeltaPlusMove) {
             if (verbose) std::cout << "start_logl: " << start_logl << "\n";
             if (verbose) std::cout << "new_logl: " << new_logl << "\n";
             if (verbose) printOldDisplayedTrees(ann_network);
             assert(start_logl - new_logl < ann_network.options.lh_epsilon);
-        }
+        }*/
 
         double new_score = bic(ann_network, new_logl);
 
