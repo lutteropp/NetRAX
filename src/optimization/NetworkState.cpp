@@ -6,6 +6,7 @@ namespace netrax {
 
 void assert_tip_links(const Network& network) {
     for (size_t i = 0; i < network.num_tips(); ++i) {
+        assert(network.nodes_by_index[i]->clv_index == i);
         assert(network.nodes_by_index[i]->links.size() == 1);
     }
 }
