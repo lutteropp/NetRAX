@@ -137,6 +137,10 @@ void printOldDisplayedTrees(AnnotatedNetwork &ann_network) {
     }
 }
 
+bool isComplexityChanging(MoveType& moveType) {
+    return (moveType == MoveType::ArcRemovalMove || moveType == MoveType::ArcInsertionMove || moveType == MoveType::DeltaMinusMove || moveType == MoveType::DeltaPlusMove);
+}
+
 template<typename T>
 double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates, double old_score, bool greedy=true, bool randomizeCandidates=false, bool brlenopt_inside=true) {
     if (randomizeCandidates) {
@@ -150,37 +154,15 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     size_t best_idx = candidates.size();
     double best_score = old_score;
 
-    bool verbose = false;
-
     NetworkState best_state = extract_network_state(ann_network);
 
     for (size_t i = 0; i < candidates.size(); ++i) {
         T move = candidates[i];
-        if (verbose) std::cout << toString(move.moveType) << " move " << i+1 << "/ " << candidates.size() << "\n";
-
-        if (verbose) std::cout << "Extensive BIC info before applying current " << toString(move.moveType) << " move " << i+1 << "/ " << candidates.size() << ":\n";
-        if (verbose) printExtensiveBICInfo(ann_network);
-        if (verbose) printOldDisplayedTrees(ann_network);
-        if (verbose) std::cout << "network before performing move: \n";
-        if (verbose) std::cout << toExtendedNewick(ann_network) << "\n";
-
-
-        if (candidates[i].moveType == MoveType::ArcRemovalMove) {
-            std::cout << "Network before " << toString(candidates[i]) << ":\n";
-            std::cout << toExtendedNewick(ann_network) << "\n";
-            std::cout << "logl: " << ann_network.raxml_treeinfo->loglh(true) << ", bic: " << bic(ann_network, ann_network.raxml_treeinfo->loglh(true)) << "\n";
-        }
-
-        //std::cout << " " << toString(candidates[i].moveType) << " " << i+1 << "/ " << candidates.size() << "\n";
         performMove(ann_network, move);
         optimize_reticulations(ann_network, 100);
         
         if (brlenopt_inside) { // Do brlen optimization locally around the move
-            if (verbose) std::cout << "AFTER MOVE, BUT BEFORE ANY OPT: \n";
-            if (verbose) printOldDisplayedTrees(ann_network);
-            if (verbose) std::cout << toExtendedNewick(ann_network) << "\n";
-
-            if (move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::ArcInsertionMove || move.moveType == MoveType::DeltaMinusMove || move.moveType == MoveType::DeltaPlusMove) {
+            if (isComplexityChanging(move.moveType)) {
                 std::cout << "BIC score before internal model optimization: " << bic(ann_network, ann_network.raxml_treeinfo->loglh(true)) << "\n";
                 ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
                 std::cout << "BIC score after internal model optimization: " << bic(ann_network, ann_network.raxml_treeinfo->loglh(true)) << "\n";
@@ -189,10 +171,6 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
             std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
             optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
             optimize_branches(ann_network, max_iters, radius);
-
-            if (verbose) std::cout << "AFTER MOVE, AFTER BRLEN OPT: \n";
-            if (verbose) printOldDisplayedTrees(ann_network);
-            if (verbose) std::cout << toExtendedNewick(ann_network) << "\n";
 
             // optimize brlen scalers
             if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED) {
@@ -205,46 +183,17 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
             }
 
             optimize_reticulations(ann_network, 100);
-            if (verbose) std::cout << "AFTER MOVE, AFTER BRLEN OPT + SCALER OPT + RETICULATION OPT: \n";
-            if (verbose) printOldDisplayedTrees(ann_network);
-            if (verbose) std::cout << toExtendedNewick(ann_network) << "\n";
 
-            if (move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::ArcInsertionMove || move.moveType == MoveType::DeltaMinusMove || move.moveType == MoveType::DeltaPlusMove) {
+            if (isComplexityChanging(move.moveType)) {
                 std::cout << "BIC score before internal model optimization: " << bic(ann_network, ann_network.raxml_treeinfo->loglh(true)) << "\n";
                 ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
                 std::cout << "BIC score after internal model optimization: " << bic(ann_network, ann_network.raxml_treeinfo->loglh(true)) << "\n";
                 optimize_branches(ann_network, max_iters, radius);
                 std::cout << "BIC score after internal brlen optimization: " << bic(ann_network, ann_network.raxml_treeinfo->loglh(true)) << "\n";
-                if (verbose) std::cout << "AFTER MOVE, AFTER BRLEN OPT + SCALER OPT + RETICULATION OPT + MODEL OPT: \n";
-                if (verbose) printOldDisplayedTrees(ann_network);
-                if (verbose) std::cout << toExtendedNewick(ann_network) << "\n";
             }
         }
-
-        if (verbose) std::cout << "COMPUTING NEW LOGL\n";
-        if (verbose) std::cout << toExtendedNewick(ann_network) << "\n";
         double new_logl = ann_network.raxml_treeinfo->loglh(true);
-
-        /*if (move.moveType == MoveType::ArcInsertionMove || move.moveType == MoveType::DeltaPlusMove) {
-            if (verbose) std::cout << "start_logl: " << start_logl << "\n";
-            if (verbose) std::cout << "new_logl: " << new_logl << "\n";
-            if (verbose) printOldDisplayedTrees(ann_network);
-            assert(start_logl - new_logl < ann_network.options.lh_epsilon);
-        }*/
-
         double new_score = bic(ann_network, new_logl);
-
-        if (candidates[i].moveType == MoveType::ArcRemovalMove) {
-            std::cout << "Tested " << toString(candidates[i]) << ", got " << new_score << "\n";
-            std::cout << toExtendedNewick(ann_network) << "\n";
-        }
-
-        if (verbose) std::cout << "start_logl: " << start_logl << "\n";
-        if (verbose) std::cout << "new_logl: " << new_logl << "\n";
-        if (verbose) std::cout << "new_score: " << new_score << "\n";
-
-        if (verbose) std::cout << "Extensive BIC info after applying current " << toString(move.moveType) << " move " << i+1 << "/ " << candidates.size() << ":\n";
-        if (verbose) printExtensiveBICInfo(ann_network);
 
         bool foundBetterScore = false;
         if (new_score < old_score - ann_network.options.score_epsilon) {
@@ -303,15 +252,6 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         double aicc_score = aicc(ann_network, logl);
 
         std::cout << "  Logl: " << logl << ", BIC: " << bic_score << ", AIC: " << aic_score << ", AICc: " << aicc_score <<  "\n";
-
-        // just for debug
-        /*double naive_logl = computeLoglikelihoodNaiveUtree(ann_network, 1, 1);
-        double bic_naive = bic(ann_network, naive_logl);
-        double aic_naive = aic(ann_network, naive_logl);
-        double aicc_naive = aicc(ann_network, naive_logl);
-        std::cout << "  Logl_naive: " << naive_logl << ", BIC_naive: " << bic_naive << ", AIC_naive: " << aic_naive << ", AICc_naive: " << aicc_naive << "\n";
-        */
-
         std::cout << "  param_count: " << get_param_count(ann_network) << ", sample_size:" << get_sample_size(ann_network) << "\n";
         std::cout << "  num_reticulations: " << ann_network.network.num_reticulations() << "\n";
         std::cout << toExtendedNewick(ann_network) << "\n";
@@ -370,21 +310,6 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, MoveType type, 
         default:
             throw std::runtime_error("Invalid move type");
         }
-
-        /*
-        if ((type == MoveType::ArcInsertionMove) || (type == MoveType::DeltaPlusMove)) {
-            //doing reticulation opt, full global brlen opt and model opt:
-            ann_network.raxml_treeinfo->optimize_branches(ann_network.options.lh_epsilon, 1);
-            ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
-            double new_logl;
-            if (ann_network.options.use_nepal_prob_estimation) {
-                new_logl = netrax::computeLoglikelihood(ann_network, 1, 1, true);
-            } else {
-                new_logl = netrax::optimize_reticulations(ann_network, 100);
-            }
-            new_score = bic(ann_network, new_logl);
-        }
-        */
 
        act_iterations++;
        if (act_iterations >= max_iterations) {
