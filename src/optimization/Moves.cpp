@@ -1888,8 +1888,6 @@ void repairConsecutiveIndices(AnnotatedNetwork &ann_network, ArcRemovalMove& mov
     // ensure that pmatrix indices and clv indices remain consecutive. Do the neccessary relabelings.
     repairConsecutiveClvIndices(ann_network, move);
     repairConsecutivePmatrixIndices(ann_network, move);
-
-    assert_links_in_range2(ann_network.network);
 }
 
 void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
@@ -2008,6 +2006,8 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
         all_clvs_valid &= ann_network.fake_treeinfo->clv_valid[i][ann_network.network.root->clv_index];
     }
     assert(!all_clvs_valid);
+
+    assert_links_in_range2(ann_network.network);
 }
 
 void undoMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
