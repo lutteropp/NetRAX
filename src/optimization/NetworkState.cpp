@@ -79,6 +79,12 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
     assert(consecutive_indices(state.network));
     assert(consecutive_indices(ann_network.network));
     assert_tip_links(ann_network.network);
+
+    bool all_clvs_valid = true;
+    for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
+        all_clvs_valid &= ann_network.fake_treeinfo->clv_valid[i][ann_network.network.root->clv_index];
+    }
+    assert(!all_clvs_valid);
 }
 
 bool reticulation_probs_equal(const NetworkState& old_state, const NetworkState& act_state) {
@@ -123,9 +129,24 @@ bool partition_brlens_equal(const NetworkState& old_state, const NetworkState& a
     return all_fine;
 }
 
+bool topology_equal(const Network& n1, const Network& n2) {
+    if (n1.num_branches() != n2.num_branches()) {
+        return false;
+    }
+    for (size_t i = 0; i < n1.num_branches(); ++i) {
+        if (n1.edges_by_index[i]->link1->node_clv_index != n2.edges_by_index[i]->link1->node_clv_index) {
+            return false;
+        }
+        if (n1.edges_by_index[i]->link2->node_clv_index != n2.edges_by_index[i]->link2->node_clv_index) {
+            return false;
+        }
+    }
+    return true;
+}
+
 bool network_states_equal(const NetworkState& old_state, const NetworkState &act_state) {
     // TODO: Also check for model equality
-    return reticulation_probs_equal(old_state, act_state) && partition_brlens_equal(old_state, act_state);
+    return topology_equal(old_state.network, act_state.network) && reticulation_probs_equal(old_state, act_state) && partition_brlens_equal(old_state, act_state);
 }
 
 AnnotatedNetwork build_annotated_network_from_state(NetworkState& state, const NetraxOptions& options) {

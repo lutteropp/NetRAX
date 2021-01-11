@@ -159,6 +159,13 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     for (size_t i = 0; i < candidates.size(); ++i) {
         T move = candidates[i];
         performMove(ann_network, move);
+
+        bool all_clvs_valid = true;
+        for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
+            all_clvs_valid &= ann_network.fake_treeinfo->clv_valid[i][ann_network.network.root->clv_index];
+        }
+        assert(!all_clvs_valid);
+
         optimize_reticulations(ann_network, 100);
         
         if (brlenopt_inside) { // Do brlen optimization locally around the move
@@ -196,6 +203,13 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
             foundBetterScore = true;
         }
         undoMove(ann_network, move);
+        
+        all_clvs_valid = true;
+        for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
+            all_clvs_valid &= ann_network.fake_treeinfo->clv_valid[i][ann_network.network.root->clv_index];
+        }
+        assert(!all_clvs_valid);
+
         if (brlenopt_inside) {
             apply_network_state(ann_network, start_state);
             NetworkState act_state = extract_network_state(ann_network);
@@ -214,6 +228,13 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     if (best_idx < candidates.size()) {
         T bestMove = candidates[best_idx];
         performMove(ann_network, bestMove);
+
+        bool all_clvs_valid = true;
+        for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
+            all_clvs_valid &= ann_network.fake_treeinfo->clv_valid[i][ann_network.network.root->clv_index];
+        }
+        assert(!all_clvs_valid);
+
         if (brlenopt_inside) {
             apply_network_state(ann_network, best_state);
         } else {
