@@ -1775,8 +1775,7 @@ void repairConsecutiveClvIndices(AnnotatedNetwork &ann_network, ArcRemovalMove& 
             size_t old_clv_index = ann_network.network.nodes[i].clv_index;
             size_t new_clv_index = missing_clv_indices.back();
             // invalidate the clv entry
-            //invalidateSingleClv(ann_network.fake_treeinfo, old_clv_index);
-            invalidateHigherCLVs(ann_network, ann_network.network.nodes_by_index[old_clv_index], true);
+            invalidateSingleClv(ann_network.fake_treeinfo, old_clv_index);
 
             if (move_clv_indices.find(old_clv_index) != move_clv_indices.end()) {
                 std::cout << "replacing " << old_clv_index << " by " << new_clv_index << "\n";
