@@ -325,11 +325,8 @@ double NetraxInstance::optimizeEverythingRun(AnnotatedNetwork & ann_network, std
             break;
         }
         //std::cout << "Using move type: " << toString(typesBySpeed[type_idx]) << "\n";
-
-           double old_logl = computeLoglikelihood(ann_network);
         double old_score = scoreNetwork(ann_network);
         optimizeTopology(ann_network, typesBySpeed[type_idx]);
-        double new_logl = computeLoglikelihood(ann_network);
         double new_score = scoreNetwork(ann_network);
         if (old_score - new_score > ann_network.options.score_epsilon) { // score got better
             //std::cout << "BIC after topology optimization: " << new_score << "\n";

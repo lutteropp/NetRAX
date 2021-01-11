@@ -225,7 +225,7 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
 double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radius) {
     std::unordered_set<size_t> candidates;
     for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
-        candidates.emplace(ann_network.network.edges[i].pmatrix_index);
+        candidates.emplace(i);
     }
     return optimize_branches(ann_network, max_iters, radius, candidates);
 }

@@ -230,7 +230,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         }
         // just for debug, doing reticulation opt, full global brlen opt and model opt:
         ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
-        optimize_reticulations(ann_network, 100);
+        //optimize_reticulations(ann_network, 100);
         optimize_branches(ann_network, max_iters, radius);
 
         best_score = bic(ann_network, ann_network.raxml_treeinfo->loglh(true));
