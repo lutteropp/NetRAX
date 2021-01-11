@@ -193,25 +193,23 @@ double optimize_branch(AnnotatedNetwork &ann_network, int max_iters, int *act_it
     return logl;
 }
 
-void add_branches_within_radius(AnnotatedNetwork& ann_network, int radius, size_t pmatrix_index, std::unordered_set<size_t> &candidates) {
-    if (radius <= 0 || candidates.size() == ann_network.network.num_branches()) {
+void add_branches_within_radius(AnnotatedNetwork& ann_network, int radius, std::unordered_set<size_t>& candidates) {
+    if (radius <= 0) {
         return;
     }
-    std::unordered_set<size_t> neighbor_indices = getNeighborPmatrixIndices(
-                    ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
-    for (size_t idx : neighbor_indices) {
-        if (candidates.count(idx) == 0) {
+    for (size_t pmatrix_index : candidates) {
+        std::unordered_set<size_t> neighbor_indices = getNeighborPmatrixIndices(
+                        ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
+        for (size_t idx : neighbor_indices) {
             candidates.emplace(idx);
-            add_branches_within_radius(ann_network, radius - 1, idx, candidates);
         }
     }
+    add_branches_within_radius(ann_network, radius - 1, candidates);
 }
 
 double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radius,
         std::unordered_set<size_t> &candidates) {
-    for (size_t idx : candidates) {
-        add_branches_within_radius(ann_network, radius, idx, candidates);
-    }
+    add_branches_within_radius(ann_network, radius, candidates);
 
     double lh_epsilon = ann_network.options.lh_epsilon;
     int act_iters = 0;
@@ -228,7 +226,7 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
         assert(start_logl == recomputed_logl);
 
         if (new_logl - old_logl > lh_epsilon) { // add all neighbors of the branch to the candidates
-            add_branches_within_radius(ann_network, radius, pmatrix_index, candidates);
+            add_branches_within_radius(ann_network, radius, candidates);
         }
         old_logl = new_logl;
     }
