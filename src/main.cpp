@@ -160,6 +160,7 @@ void generate_random_network_only(NetraxOptions& netraxOptions, std::mt19937& rn
 }
 
 int main(int argc, char **argv) {
+    std::cout << std::setprecision(10);
     //mpfr::mpreal::set_default_prec(mpfr::digits2bits(1000));
 
     //std::ios::sync_with_stdio(false);
