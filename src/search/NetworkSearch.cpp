@@ -32,11 +32,17 @@ void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
     std::cout << "Initial optimized " << ann_network.network.num_reticulations() << "-reticulation network loglikelihood: " << NetraxInstance::computeLoglikelihood(ann_network) << "\n";
     std::cout << "Initial optimized " << ann_network.network.num_reticulations() << "-reticulation network BIC score: " << NetraxInstance::scoreNetwork(ann_network) << "\n";
 
+    bool first_run = true;
+
     bool seen_improvement = true;
     while (seen_improvement) {
         seen_improvement = false;
 
+        double old_score = NetraxInstance::scoreNetwork(ann_network);
         double new_score = NetraxInstance::optimizeEverythingRun(ann_network, typesBySpeed, start_time);
+        if (old_score == new_score && !first_run) {
+            break;
+        }
         std::cout << "Best optimized " << ann_network.network.num_reticulations() << "-reticulation network loglikelihood: " << NetraxInstance::computeLoglikelihood(ann_network) << "\n";
         std::cout << "Best optimized " << ann_network.network.num_reticulations() << "-reticulation network BIC score: " << new_score << "\n";
 
@@ -135,6 +141,7 @@ void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
                     }
                     seen_improvement = true;
                     std::cout << "Got better by removing arcs\n";
+                    first_run = false;
                     std::cout << "Initial optimized " << ann_network.network.num_reticulations() << "-reticulation network loglikelihood: " << NetraxInstance::computeLoglikelihood(ann_network) << "\n";
                     std::cout << "Initial optimized " << ann_network.network.num_reticulations() << "-reticulation network BIC score: " << new_score << "\n";
                 }
