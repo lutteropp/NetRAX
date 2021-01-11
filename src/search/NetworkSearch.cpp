@@ -40,7 +40,9 @@ void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
         std::cout << "Best optimized " << ann_network.network.num_reticulations() << "-reticulation network loglikelihood: " << NetraxInstance::computeLoglikelihood(ann_network) << "\n";
         std::cout << "Best optimized " << ann_network.network.num_reticulations() << "-reticulation network BIC score: " << new_score << "\n";
 
-        if (new_score < best_score) {
+        double score_diff = best_score - new_score;
+        if (score_diff > 0.0001) {
+            std::cout << "SCORE DIFF: " << score_diff << "\n";
             std::cout << "OLD BEST SCORE WAS: " << best_score << "\n";
             best_score = new_score;
             best_score_by_reticulations[ann_network.network.num_reticulations()] = new_score;
@@ -124,8 +126,13 @@ void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
             if (ann_network.network.num_reticulations() < old_num_reticulations) {
                 NetraxInstance::optimizeAllNonTopology(ann_network);
                 new_score = NetraxInstance::scoreNetwork(ann_network);
-                if (new_score < best_score_by_reticulations[ann_network.network.num_reticulations()]) {
+                double score_diff = best_score_by_reticulations[ann_network.network.num_reticulations()] - new_score;
+                if (score_diff > 0.0001) {
                     best_score_by_reticulations[ann_network.network.num_reticulations()] = new_score;
+                    if (new_score < best_score) {
+                        best_score = new_score;
+                        std::cout << "IMPROVED BEST SCORE FOUND SO FAR: " << best_score << "\n\n";
+                    }
                     seen_improvement = true;
                     std::cout << "Got better by removing arcs\n";
                     std::cout << "Initial optimized " << ann_network.network.num_reticulations() << "-reticulation network loglikelihood: " << NetraxInstance::computeLoglikelihood(ann_network) << "\n";
