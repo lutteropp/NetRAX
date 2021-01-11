@@ -84,10 +84,6 @@ void recompute_pmatrix_entry(AnnotatedNetwork &ann_network, int pmatrix_index) {
 }
 
 void setup_pmatrices(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices) {
-    // just for debug
-    incremental = 0;
-    update_pmatrices = 1;
-
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
     if (update_pmatrices) {
         pllmod_treeinfo_update_prob_matrices(&fake_treeinfo, !incremental);
