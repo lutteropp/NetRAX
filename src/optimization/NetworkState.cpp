@@ -22,8 +22,21 @@ bool consecutive_indices(const Network& network) {
     return true;
 }
 
+void assert_links_in_range(const Network& network) {
+    for (size_t i = 0; i < network.num_nodes(); ++i) {
+        for (size_t j = 0; j < network.nodes_by_index[i]->links.size(); ++j) {
+            assert(network.nodes_by_index[i]->links[j].edge_pmatrix_index < network.num_branches());
+        }
+    }
+    for (size_t i = 0; i < network.num_branches(); ++i) {
+        assert(network.edges_by_index[i]->link1->edge_pmatrix_index == i);
+        assert(network.edges_by_index[i]->link2->edge_pmatrix_index == i);
+    }
+}
+
 NetworkState extract_network_state(AnnotatedNetwork &ann_network) {
     assert_tip_links(ann_network.network);
+    assert_links_in_range(ann_network.network);
     NetworkState state;
     state.brlen_linkage = ann_network.options.brlen_linkage;
     
@@ -61,6 +74,7 @@ NetworkState extract_network_state(AnnotatedNetwork &ann_network) {
 void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &state) {
     ann_network.options.brlen_linkage = state.brlen_linkage;
     assert_tip_links(state.network);
+    assert_links_in_range(state.network);
     ann_network.network = state.network;
     for (size_t p = 0; p < state.partition_brlens.size(); ++p) {
         for (size_t pmatrix_index = 0; pmatrix_index < ann_network.network.edges.size(); ++pmatrix_index) {
@@ -90,6 +104,7 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
     assert(consecutive_indices(state.network));
     assert(consecutive_indices(ann_network.network));
     assert_tip_links(ann_network.network);
+    assert_links_in_range(ann_network.network);
 
     bool all_clvs_valid = true;
     for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {

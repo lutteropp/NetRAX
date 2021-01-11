@@ -1777,6 +1777,7 @@ void repairConsecutiveClvIndices(AnnotatedNetwork &ann_network, ArcRemovalMove& 
             // invalidate the clv entry
             //invalidateSingleClv(ann_network.fake_treeinfo, old_clv_index);
             invalidateHigherCLVs(ann_network, ann_network.network.nodes_by_index[old_clv_index], true);
+
             if (move_clv_indices.find(old_clv_index) != move_clv_indices.end()) {
                 std::cout << "replacing " << old_clv_index << " by " << new_clv_index << "\n";
                 updateMoveClvIndex(move, old_clv_index, new_clv_index);
@@ -1868,6 +1869,18 @@ void checkSanity(AnnotatedNetwork& ann_network, ArcRemovalMove& move) {
     assert(move.u_clv_index != move.v_clv_index);
 }
 
+void assert_links_in_range2(const Network& network) {
+    for (size_t i = 0; i < network.num_nodes(); ++i) {
+        for (size_t j = 0; j < network.nodes_by_index[i]->links.size(); ++j) {
+            assert(network.nodes_by_index[i]->links[j].edge_pmatrix_index < network.num_branches());
+        }
+    }
+    for (size_t i = 0; i < network.num_branches(); ++i) {
+        assert(network.edges_by_index[i]->link1->edge_pmatrix_index == i);
+        assert(network.edges_by_index[i]->link2->edge_pmatrix_index == i);
+    }
+}
+
 void repairConsecutiveIndices(AnnotatedNetwork &ann_network, ArcRemovalMove& move) {
     // TODO: This relabeling procedure will invalidate remaining arc removal move candidates.
     //       This can be circumvented by reloading the network state...
@@ -1875,9 +1888,13 @@ void repairConsecutiveIndices(AnnotatedNetwork &ann_network, ArcRemovalMove& mov
     // ensure that pmatrix indices and clv indices remain consecutive. Do the neccessary relabelings.
     repairConsecutiveClvIndices(ann_network, move);
     repairConsecutivePmatrixIndices(ann_network, move);
+
+    assert_links_in_range2(ann_network.network);
 }
 
 void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
+    assert_links_in_range2(ann_network.network);
+
     checkSanity(ann_network, move);
     assert(move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::DeltaMinusMove);
     assertConsecutiveIndices(ann_network);
