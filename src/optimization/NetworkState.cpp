@@ -27,6 +27,7 @@ NetworkState extract_network_state(AnnotatedNetwork &ann_network) {
     NetworkState state;
     
     state.network = ann_network.network;
+    assert_tip_links(state.network);
     
     if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
         state.partition_brlens.resize(ann_network.fake_treeinfo->partition_count);
