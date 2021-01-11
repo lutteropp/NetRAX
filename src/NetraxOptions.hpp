@@ -60,6 +60,7 @@ public:
     double brprob_min = 0.0;
     double brprob_max = 1.0;
     double lh_epsilon = DEF_LH_EPSILON;
+    double score_epsilon = 0.00001;
     double tolerance = DEF_LH_EPSILON; //RAXML_BRLEN_TOLERANCE;
     double brlen_smoothings = RAXML_BRLEN_SMOOTHINGS;
 

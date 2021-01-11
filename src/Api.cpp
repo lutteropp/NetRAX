@@ -218,11 +218,7 @@ void NetraxInstance::updateReticulationProbs(AnnotatedNetwork &ann_network) {
     netrax::optimize_reticulations(ann_network, 100);
     double new_score = scoreNetwork(ann_network);
     std::cout << "BIC score after updating reticulation probs: " << new_score << "\n";
-    if (definitelyGreaterThan(new_score, old_score)) {
-        std::cout << "old score: " << old_score << "\n";
-        std::cout << "new score: " << new_score << "\n";
-        assert(new_score <= old_score);
-    }
+    assert(new_score <= old_score + ann_network.options.score_epsilon);
 }
 
 /**
@@ -243,11 +239,7 @@ void NetraxInstance::optimizeModel(AnnotatedNetwork &ann_network) {
     ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
     double new_score = scoreNetwork(ann_network);
     std::cout << "BIC score after model optimization: " << new_score << "\n";
-    if (definitelyGreaterThan(new_score, old_score)) {
-        std::cout << "old score: " << old_score << "\n";
-        std::cout << "new score: " << new_score << "\n";
-        assert(new_score <= old_score);
-    }
+    assert(new_score <= old_score + ann_network.options.score_epsilon);
 }
 
 /**
@@ -262,11 +254,7 @@ void NetraxInstance::optimizeBranches(AnnotatedNetwork &ann_network) {
     assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
     double new_score = scoreNetwork(ann_network);
     std::cout << "BIC score after branch length optimization: " << new_score << "\n";
-    if (definitelyGreaterThan(new_score, old_score)) {
-        std::cout << "old score: " << old_score << "\n";
-        std::cout << "new score: " << new_score << "\n";
-        assert(new_score <= old_score);
-    }
+    assert(new_score <= old_score + ann_network.options.score_epsilon);
     if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED) {
         old_score = scoreNetwork(ann_network);
         pllmod_algo_opt_brlen_scalers_treeinfo(ann_network.fake_treeinfo,
@@ -277,11 +265,7 @@ void NetraxInstance::optimizeBranches(AnnotatedNetwork &ann_network) {
                                                         RAXML_PARAM_EPSILON);
         new_score = scoreNetwork(ann_network);
         std::cout << "BIC score after branch length scaler optimization: " << new_score << "\n";
-        if (definitelyGreaterThan(new_score, old_score)) {
-            std::cout << "old score: " << old_score << "\n";
-            std::cout << "new score: " << new_score << "\n";
-            assert(new_score <= old_score);
-        }
+        assert(new_score <= old_score + ann_network.options.score_epsilon);
     }
 }
 
@@ -296,11 +280,8 @@ void NetraxInstance::optimizeTopology(AnnotatedNetwork &ann_network, const std::
     greedyHillClimbingTopology(ann_network, types);
     double new_score = scoreNetwork(ann_network);
     std::cout << "BIC after topology optimization: " << new_score << "\n";
-    if (definitelyGreaterThan(new_score, old_score)) {
-        std::cout << "old score: " << old_score << "\n";
-        std::cout << "new score: " << new_score << "\n";
-        assert(new_score <= old_score);
-    }
+
+    assert(new_score <= old_score + ann_network.options.score_epsilon);
 }
 
 /**
@@ -419,6 +400,7 @@ void NetraxInstance::optimizeEverything(AnnotatedNetwork &ann_network) {
  * @param ann_network The network.
  */
 void NetraxInstance::optimizeEverythingInWaves(AnnotatedNetwork &ann_network) {
+    throw std::runtime_error("this is deprecated code");
     std::vector<MoveType> typesBySpeed = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::HeadMove};
     auto start_time = std::chrono::high_resolution_clock::now();
 

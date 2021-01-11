@@ -241,7 +241,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         if (verbose) printExtensiveBICInfo(ann_network);
 
         bool foundBetterScore = false;
-        if (new_score < best_score) {
+        if (new_score < old_score - ann_network.options.score_epsilon) {
             best_score = new_score;
             best_idx = i;
             if (brlenopt_inside) {
@@ -384,7 +384,7 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, MoveType type, 
        if (act_iterations >= max_iterations) {
            break;
        }
-    } while (old_bic - new_score > ann_network.options.lh_epsilon);
+    } while (old_bic - new_score > ann_network.options.score_epsilon);
     return ann_network.raxml_treeinfo->loglh(true);
 }
 
@@ -408,7 +408,7 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, const std::vect
         type_idx = (type_idx + 1) % types.size();
         moves_cnt++;
 
-        if (old_bic - new_score > ann_network.options.lh_epsilon) {
+        if (old_bic - new_score > ann_network.options.score_epsilon) {
             //std::cout << "Improved bic from " << old_bic << " to " << new_score << "\n";
             old_bic = new_score;
             moves_cnt = 0;
