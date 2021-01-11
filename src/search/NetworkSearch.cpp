@@ -26,8 +26,8 @@ void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
     NetraxInstance::init_annotated_network(ann_network, rng);
 
     std::cout << "Initial network is:\n" << toExtendedNewick(ann_network) << "\n\n";
-    NetraxInstance::optimizeBranches(ann_network);
     NetraxInstance::optimizeModel(ann_network);
+    NetraxInstance::optimizeBranches(ann_network);
     NetraxInstance::updateReticulationProbs(ann_network);
     std::cout << "Initial network after brlenopt+modelopt+reticulation opt is:\n" << toExtendedNewick(ann_network) << "\n\n";
     std::string best_network = toExtendedNewick(ann_network);
@@ -93,8 +93,8 @@ void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
                 MoveType insertionType = MoveType::ArcInsertionMove;
                 netrax::greedyHillClimbingTopology(ann_network, insertionType, true, 1);
 
-                NetraxInstance::optimizeBranches(ann_network);
                 NetraxInstance::optimizeModel(ann_network);
+                NetraxInstance::optimizeBranches(ann_network);
                 NetraxInstance::updateReticulationProbs(ann_network);
                 new_score = NetraxInstance::scoreNetwork(ann_network);
                 best_score_by_reticulations[ann_network.network.num_reticulations()] = new_score;
@@ -197,8 +197,8 @@ void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
                 assert(ann_network.network.num_reticulations() < old_num_reticulations);
             }
             if (ann_network.network.num_reticulations() < old_num_reticulations) {
-                NetraxInstance::optimizeBranches(ann_network);
                 NetraxInstance::optimizeModel(ann_network);
+                NetraxInstance::optimizeBranches(ann_network);
                 NetraxInstance::updateReticulationProbs(ann_network);
                 new_score = NetraxInstance::scoreNetwork(ann_network);
                 if (new_score < best_score_by_reticulations[ann_network.network.num_reticulations()]) {
