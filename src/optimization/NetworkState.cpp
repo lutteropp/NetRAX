@@ -34,13 +34,16 @@ void assert_links_in_range(const Network& network) {
     }
 }
 
-NetworkState extract_network_state(AnnotatedNetwork &ann_network) {
+NetworkState extract_network_state(AnnotatedNetwork &ann_network, bool extract_network) {
     assert_tip_links(ann_network.network);
     assert_links_in_range(ann_network.network);
     NetworkState state;
     state.brlen_linkage = ann_network.options.brlen_linkage;
     
-    state.network = ann_network.network;
+    if (extract_network) {
+        state.network = ann_network.network;
+        state.network_valid = true;
+    }
     assert_tip_links(state.network);
     
     if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
@@ -66,8 +69,10 @@ NetworkState extract_network_state(AnnotatedNetwork &ann_network) {
         assign(state.partition_models[i], ann_network.fake_treeinfo->partitions[i]);
     }
     state.reticulation_probs = ann_network.reticulation_probs;
-    assert(consecutive_indices(state.network));
-    assert_tip_links(state.network);
+    if (extract_network) {
+        assert(consecutive_indices(state.network));
+        assert_tip_links(state.network);
+    }
     return state;
 }
 
@@ -76,6 +81,7 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
     assert_tip_links(state.network);
     assert_links_in_range(state.network);
     if (copy_network) {
+        assert(state.network_valid);
         ann_network.network = state.network;
     }
     for (size_t p = 0; p < state.partition_brlens.size(); ++p) {
@@ -101,18 +107,19 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
 
     ann_network.reticulation_probs = state.reticulation_probs;
 
-    ann_network.travbuffer = reversed_topological_sort(ann_network.network);
-    ann_network.blobInfo = partitionNetworkIntoBlobs(ann_network.network, ann_network.travbuffer);
-    assert(consecutive_indices(state.network));
-    assert(consecutive_indices(ann_network.network));
-    assert_tip_links(ann_network.network);
-    assert_links_in_range(ann_network.network);
-
-    bool all_clvs_valid = true;
-    for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
-        all_clvs_valid &= ann_network.fake_treeinfo->clv_valid[i][ann_network.network.root->clv_index];
+    if (copy_network) {
+        ann_network.travbuffer = reversed_topological_sort(ann_network.network);
+        ann_network.blobInfo = partitionNetworkIntoBlobs(ann_network.network, ann_network.travbuffer);
+        assert(consecutive_indices(state.network));
+        assert(consecutive_indices(ann_network.network));
+        assert_tip_links(ann_network.network);
+        assert_links_in_range(ann_network.network);
+        bool all_clvs_valid = true;
+        for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
+            all_clvs_valid &= ann_network.fake_treeinfo->clv_valid[i][ann_network.network.root->clv_index];
+        }
+        assert(!all_clvs_valid);
     }
-    assert(!all_clvs_valid);
 }
 
 bool reticulation_probs_equal(const NetworkState& old_state, const NetworkState& act_state) {
@@ -196,7 +203,11 @@ bool model_equal(const NetworkState& old_state, const NetworkState& act_state) {
 }
 
 bool network_states_equal(const NetworkState& old_state, const NetworkState &act_state) {
-    return model_equal(old_state, act_state) && topology_equal(old_state.network, act_state.network) && reticulation_probs_equal(old_state, act_state) && partition_brlens_equal(old_state, act_state) && brlen_scalers_equal(old_state, act_state);
+    return model_equal(old_state, act_state) && 
+           ((!old_state.network_valid && !act_state.network_valid) || topology_equal(old_state.network, act_state.network)) && 
+           reticulation_probs_equal(old_state, act_state) && 
+           partition_brlens_equal(old_state, act_state) && 
+           brlen_scalers_equal(old_state, act_state);
 }
 
 AnnotatedNetwork build_annotated_network_from_state(NetworkState& state, const NetraxOptions& options) {

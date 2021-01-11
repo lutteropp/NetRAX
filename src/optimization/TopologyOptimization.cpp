@@ -143,18 +143,25 @@ bool isComplexityChanging(MoveType& moveType) {
 
 template<typename T>
 double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates, double old_score, bool greedy=true, bool randomizeCandidates=false, bool brlenopt_inside=true) {
+    if (candidates.empty()) {
+        return bic(ann_network, ann_network.raxml_treeinfo->loglh(true));
+    }
+    
     if (randomizeCandidates) {
         std::random_shuffle(candidates.begin(), candidates.end());
     }
     int max_iters = 1;
     int radius = 1;
     double start_logl = ann_network.raxml_treeinfo->loglh(true);
-    NetworkState start_state = extract_network_state(ann_network);
+
+    bool complexityChanging = isComplexityChanging(candidates[0].moveType);
+
+    NetworkState start_state = extract_network_state(ann_network, complexityChanging);
 
     size_t best_idx = candidates.size();
     double best_score = old_score;
 
-    NetworkState best_state = extract_network_state(ann_network);
+    NetworkState best_state = extract_network_state(ann_network, complexityChanging);
 
     for (size_t i = 0; i < candidates.size(); ++i) {
         T move = candidates[i];
@@ -205,7 +212,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
             best_score = new_score;
             best_idx = i;
             if (brlenopt_inside) {
-                best_state = extract_network_state(ann_network);
+                best_state = extract_network_state(ann_network, complexityChanging);
             }
             foundBetterScore = true;
         }
@@ -218,8 +225,8 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         assert(!all_clvs_valid);
 
         if (brlenopt_inside) {
-            apply_network_state(ann_network, start_state);
-            NetworkState act_state = extract_network_state(ann_network);
+            apply_network_state(ann_network, start_state, complexityChanging);
+            NetworkState act_state = extract_network_state(ann_network, complexityChanging);
             assert(network_states_equal(start_state, act_state));
         }
         if (fabs(ann_network.raxml_treeinfo->loglh(true) - start_logl) >= ann_network.options.lh_epsilon) {
@@ -243,7 +250,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         assert(!all_clvs_valid);
 
         if (brlenopt_inside) {
-            apply_network_state(ann_network, best_state);
+            apply_network_state(ann_network, best_state, complexityChanging);
         } else {
             std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, bestMove);
             optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
