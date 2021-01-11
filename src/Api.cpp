@@ -296,11 +296,7 @@ void NetraxInstance::optimizeTopology(AnnotatedNetwork &ann_network, MoveType& t
     double new_score = scoreNetwork(ann_network);
     //std::cout << "BIC after topology optimization: " << new_score << "\n";
 
-    if (definitelyGreaterThan(new_score, old_score)) {
-        std::cout << "old score: " << old_score << "\n";
-        std::cout << "new score: " << new_score << "\n";
-        assert(new_score <= old_score);
-    }
+    assert(new_score <= old_score + ann_network.options.score_epsilon);
 }
 
 double NetraxInstance::optimizeEverythingRun(AnnotatedNetwork & ann_network, std::vector<MoveType>& typesBySpeed, const std::chrono::high_resolution_clock::time_point& start_time) {
@@ -349,7 +345,7 @@ double NetraxInstance::optimizeEverythingRun(AnnotatedNetwork & ann_network, std
         } else { // try next-slower move type
             type_idx++;
         }
-        assert(new_score <= old_score);
+        assert(new_score <= old_score + ann_network.options.score_epsilon);
 
         if (max_seconds != 0) {
             auto act_time = std::chrono::high_resolution_clock::now();
