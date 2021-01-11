@@ -25,6 +25,7 @@ bool consecutive_indices(const Network& network) {
 NetworkState extract_network_state(AnnotatedNetwork &ann_network) {
     assert_tip_links(ann_network.network);
     NetworkState state;
+    state.brlen_linkage = ann_network.options.brlen_linkage;
     
     state.network = ann_network.network;
     assert_tip_links(state.network);
@@ -33,6 +34,12 @@ NetworkState extract_network_state(AnnotatedNetwork &ann_network) {
         state.partition_brlens.resize(ann_network.fake_treeinfo->partition_count);
     } else {
         state.partition_brlens.resize(1);
+    }
+    if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED) {
+        state.partition_brlen_scalers.resize(ann_network.fake_treeinfo->partition_count);
+        for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+            state.partition_brlen_scalers[p] = ann_network.fake_treeinfo->brlen_scalers[p];
+        }
     }
     for (size_t p = 0; p < state.partition_brlens.size(); ++p) {
         state.partition_brlens[p].resize(ann_network.network.edges.size()+1);
@@ -52,6 +59,7 @@ NetworkState extract_network_state(AnnotatedNetwork &ann_network) {
 }
 
 void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &state) {
+    ann_network.options.brlen_linkage = state.brlen_linkage;
     assert_tip_links(state.network);
     ann_network.network = state.network;
     for (size_t p = 0; p < state.partition_brlens.size(); ++p) {
@@ -59,6 +67,9 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
             ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] = state.partition_brlens[p][pmatrix_index];
             ann_network.fake_treeinfo->pmatrix_valid[p][pmatrix_index] = 0;
         }
+    }
+    for (size_t p = 0; p < state.partition_brlen_scalers.size(); ++p) {
+        ann_network.fake_treeinfo->brlen_scalers[p] = state.partition_brlen_scalers[p];
     }
     pllmod_treeinfo_update_prob_matrices(ann_network.fake_treeinfo, 1);
 
@@ -105,6 +116,17 @@ bool reticulation_probs_equal(const NetworkState& old_state, const NetworkState&
     return all_fine;
 }
 
+bool brlen_scalers_equal(const NetworkState& old_state, const NetworkState& act_state) {
+    assert(old_state.partition_brlen_scalers.size() == act_state.partition_brlen_scalers.size());
+    bool all_fine = true;
+    for (size_t i = 0; i < act_state.partition_brlen_scalers.size(); ++i) {
+        if (fabs(act_state.partition_brlen_scalers[i] - old_state.partition_brlen_scalers[i]) >= 1E-5) {
+            return false;
+        }
+    }
+    return true;
+}
+
 bool partition_brlens_equal(const NetworkState& old_state, const NetworkState& act_state) {
     assert(old_state.partition_brlens.size() == act_state.partition_brlens.size());
     bool all_fine = true;
@@ -144,9 +166,20 @@ bool topology_equal(const Network& n1, const Network& n2) {
     return true;
 }
 
+bool model_equal(const NetworkState& old_state, const NetworkState& act_state) {
+    if (old_state.partition_models.size() != act_state.partition_models.size()) {
+        return false;
+    }
+    for (size_t p = 0; p < old_state.partition_models.size(); ++p) {
+        if (old_state.partition_models[p].to_string(true) != act_state.partition_models[p].to_string(true)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 bool network_states_equal(const NetworkState& old_state, const NetworkState &act_state) {
-    // TODO: Also check for model equality
-    return topology_equal(old_state.network, act_state.network) && reticulation_probs_equal(old_state, act_state) && partition_brlens_equal(old_state, act_state);
+    return model_equal(old_state, act_state) && topology_equal(old_state.network, act_state.network) && reticulation_probs_equal(old_state, act_state) && partition_brlens_equal(old_state, act_state) && brlen_scalers_equal(old_state, act_state);
 }
 
 AnnotatedNetwork build_annotated_network_from_state(NetworkState& state, const NetraxOptions& options) {

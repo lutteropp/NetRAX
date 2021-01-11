@@ -7,8 +7,10 @@
 namespace netrax {
 
 struct NetworkState {
+    int brlen_linkage;
     Network network;
     std::vector<std::vector<double> > partition_brlens;
+    std::vector<double> partition_brlen_scalers;
     std::vector<Model> partition_models;
     std::vector<double> reticulation_probs; // the first-parent reticulation probs
 };
