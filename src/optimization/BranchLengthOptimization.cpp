@@ -193,24 +193,8 @@ double optimize_branch(AnnotatedNetwork &ann_network, int max_iters, int *act_it
     return logl;
 }
 
-void add_branches_within_radius(AnnotatedNetwork& ann_network, int radius, std::unordered_set<size_t>& candidates) {
-    if (radius <= 0) {
-        return;
-    }
-    for (size_t pmatrix_index : candidates) {
-        std::unordered_set<size_t> neighbor_indices = getNeighborPmatrixIndices(
-                        ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
-        for (size_t idx : neighbor_indices) {
-            candidates.emplace(idx);
-        }
-    }
-    add_branches_within_radius(ann_network, radius - 1, candidates);
-}
-
 double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radius,
         std::unordered_set<size_t> &candidates) {
-    add_branches_within_radius(ann_network, radius, candidates);
-
     double lh_epsilon = ann_network.options.lh_epsilon;
     int act_iters = 0;
     double old_logl = ann_network.raxml_treeinfo->loglh(true);
@@ -226,7 +210,11 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
         assert(start_logl == recomputed_logl);
 
         if (new_logl - old_logl > lh_epsilon) { // add all neighbors of the branch to the candidates
-            add_branches_within_radius(ann_network, radius, candidates);
+            std::unordered_set<size_t> neighbor_indices = getNeighborPmatrixIndices(
+                    ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
+            for (size_t idx : neighbor_indices) {
+                candidates.emplace(idx);
+            }
         }
         old_logl = new_logl;
     }
