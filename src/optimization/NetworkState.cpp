@@ -58,8 +58,8 @@ NetworkState extract_network_state(AnnotatedNetwork &ann_network, bool extract_n
         }
     }
     for (size_t p = 0; p < state.partition_brlens.size(); ++p) {
-        state.partition_brlens[p].resize(ann_network.network.edges.size()+1);
-        for (size_t pmatrix_index = 0; pmatrix_index < ann_network.network.edges.size(); ++pmatrix_index) {
+        state.partition_brlens[p].resize(ann_network.network.num_branches());
+        for (size_t pmatrix_index = 0; pmatrix_index < ann_network.network.num_branches(); ++pmatrix_index) {
             state.partition_brlens[p][pmatrix_index] = ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index];
         }
     }
@@ -87,8 +87,9 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
     for (size_t p = 0; p < state.partition_brlen_scalers.size(); ++p) {
         ann_network.fake_treeinfo->brlen_scalers[p] = state.partition_brlen_scalers[p];
     }
+    assert(state.partition_brlens[0].size() == ann_network.network.num_branches());
     for (size_t p = 0; p < state.partition_brlens.size(); ++p) {
-        for (size_t pmatrix_index = 0; pmatrix_index < ann_network.network.edges.size(); ++pmatrix_index) {
+        for (size_t pmatrix_index = 0; pmatrix_index < ann_network.network.num_branches(); ++pmatrix_index) {
             setBranchLength(ann_network, p, pmatrix_index, state.partition_brlens[p][pmatrix_index]);
         }
     }
@@ -153,7 +154,7 @@ bool brlen_scalers_equal(const NetworkState& old_state, const NetworkState& act_
 bool partition_brlens_equal(const NetworkState& old_state, const NetworkState& act_state) {
     assert(old_state.partition_brlens.size() == act_state.partition_brlens.size());
     bool all_fine = true;
-    for (size_t i = 0; i < act_state.partition_brlens.size(); ++i) {
+    for (size_t i = 0; i < old_state.partition_brlens.size(); ++i) {
         assert(old_state.partition_brlens[i].size() == act_state.partition_brlens[i].size());
         for (size_t j = 0; j < act_state.partition_brlens[i].size(); ++j) {
             if (fabs(act_state.partition_brlens[i][j] - old_state.partition_brlens[i][j]) >= 1E-5) {

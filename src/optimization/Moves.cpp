@@ -1259,16 +1259,16 @@ void performMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
     z_y_prime_edge->link1 = z_out_link;
     z_y_prime_edge->link2 = y_prime_in_link;
 
-    set_edge_lengths(ann_network, x_y_edge->pmatrix_index, x_y_len);
-    set_edge_lengths(ann_network, x_prime_z_edge->pmatrix_index, x_prime_z_len);
-    set_edge_lengths(ann_network, z_y_prime_edge->pmatrix_index, z_y_prime_len);
-
     x_out_link->edge_pmatrix_index = x_y_edge->pmatrix_index;
     y_in_link->edge_pmatrix_index = x_y_edge->pmatrix_index;
     x_prime_out_link->edge_pmatrix_index = x_prime_z_edge->pmatrix_index;
     z_in_link->edge_pmatrix_index = x_prime_z_edge->pmatrix_index;
     z_out_link->edge_pmatrix_index = z_y_prime_edge->pmatrix_index;
     y_prime_in_link->edge_pmatrix_index = z_y_prime_edge->pmatrix_index;
+
+    set_edge_lengths(ann_network, x_y_edge->pmatrix_index, x_y_len);
+    set_edge_lengths(ann_network, x_prime_z_edge->pmatrix_index, x_prime_z_len);
+    set_edge_lengths(ann_network, z_y_prime_edge->pmatrix_index, z_y_prime_len);
 
     fixReticulations(network, move);
 
@@ -1342,16 +1342,16 @@ void undoMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
     z_y_edge->link1 = z_out_link;
     z_y_edge->link2 = y_in_link;
 
-    set_edge_lengths(ann_network, x_prime_y_prime_edge->pmatrix_index, x_prime_y_prime_len);
-    set_edge_lengths(ann_network, x_z_edge->pmatrix_index, x_z_len);
-    set_edge_lengths(ann_network, z_y_edge->pmatrix_index, z_y_len);
-
     x_prime_out_link->edge_pmatrix_index = x_prime_y_prime_edge->pmatrix_index;
     y_prime_in_link->edge_pmatrix_index = x_prime_y_prime_edge->pmatrix_index;
     x_out_link->edge_pmatrix_index = x_z_edge->pmatrix_index;
     z_in_link->edge_pmatrix_index = x_z_edge->pmatrix_index;
     z_out_link->edge_pmatrix_index = z_y_edge->pmatrix_index;
     y_in_link->edge_pmatrix_index = z_y_edge->pmatrix_index;
+
+    set_edge_lengths(ann_network, x_prime_y_prime_edge->pmatrix_index, x_prime_y_prime_len);
+    set_edge_lengths(ann_network, x_z_edge->pmatrix_index, x_z_len);
+    set_edge_lengths(ann_network, z_y_edge->pmatrix_index, z_y_len);
 
     fixReticulations(network, move);
 
@@ -1385,7 +1385,7 @@ void removeEdge(Network &network, Edge *edge) {
     network.branchCount--;
 }
 
-Edge* addEdgeInternal(AnnotatedNetwork &ann_network, Link *link1, Link *link2, std::vector<double> length,
+Edge* addEdgeInternal(AnnotatedNetwork &ann_network, Link *link1, Link *link2, double length,
         size_t pmatrix_index) {
     assert(ann_network.network.num_branches() < ann_network.network.edges.size());
     if (link1->direction == Direction::INCOMING) {
@@ -1393,15 +1393,14 @@ Edge* addEdgeInternal(AnnotatedNetwork &ann_network, Link *link1, Link *link2, s
     }
 
     assert(ann_network.network.edges_by_index[pmatrix_index] == nullptr);
-    ann_network.network.edges[ann_network.network.branchCount].init(pmatrix_index, link1, link2, length[0], 1.0);
-    set_edge_lengths(ann_network, pmatrix_index, length);
+    ann_network.network.edges[ann_network.network.branchCount].init(pmatrix_index, link1, link2, length, 1.0);
     ann_network.network.edges_by_index[pmatrix_index] = &ann_network.network.edges[ann_network.network.branchCount];
     ann_network.network.branchCount++;
 
     return ann_network.network.edges_by_index[pmatrix_index];
 }
 
-Edge* addEdge(AnnotatedNetwork &ann_network, Link *link1, Link *link2, std::vector<double> length,
+Edge* addEdge(AnnotatedNetwork &ann_network, Link *link1, Link *link2, double length,
         size_t wanted_pmatrix_index) {
     if (link1->direction == Direction::INCOMING) {
         std::swap(link1, link2);
@@ -1600,15 +1599,15 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
         removeEdge(network, network.edges_by_index[c_d_edge_index]);
     }
 
-    Edge *u_b_edge = addEdge(ann_network, u_b_link, to_b_link, u_b_edge_length,
+    Edge *u_b_edge = addEdge(ann_network, u_b_link, to_b_link, u_b_edge_length[0],
             move.wanted_ub_pmatrix_index);
-    Edge *v_d_edge = addEdge(ann_network, v_d_link, to_d_link, v_d_edge_length,
+    Edge *v_d_edge = addEdge(ann_network, v_d_link, to_d_link, v_d_edge_length[0],
             move.wanted_vd_pmatrix_index);
-    Edge *a_u_edge = addEdge(ann_network, from_a_link, to_u_link, a_u_edge_length,
+    Edge *a_u_edge = addEdge(ann_network, from_a_link, to_u_link, a_u_edge_length[0],
             move.wanted_au_pmatrix_index);
-    Edge *c_v_edge = addEdge(ann_network, from_c_link, v_c_link, c_v_edge_length,
+    Edge *c_v_edge = addEdge(ann_network, from_c_link, v_c_link, c_v_edge_length[0],
             move.wanted_cv_pmatrix_index);
-    Edge *u_v_edge = addEdge(ann_network, u_v_link, v_u_link, u_v_edge_length,
+    Edge *u_v_edge = addEdge(ann_network, u_v_link, v_u_link, u_v_edge_length[0],
             move.wanted_uv_pmatrix_index);
 
     v->getReticulationData()->link_to_first_parent = v_u_link;
@@ -1641,6 +1640,12 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     from_c_link->outer = v_c_link;
     v_d_link->outer = to_d_link;
     to_d_link->outer = v_d_link;
+
+    set_edge_lengths(ann_network, u_b_edge->pmatrix_index, u_b_edge_length);
+    set_edge_lengths(ann_network, v_d_edge->pmatrix_index, v_d_edge_length);
+    set_edge_lengths(ann_network, a_u_edge->pmatrix_index, a_u_edge_length);
+    set_edge_lengths(ann_network, c_v_edge->pmatrix_index, c_v_edge_length);
+    set_edge_lengths(ann_network, u_v_edge->pmatrix_index, u_v_edge_length);
 
     std::vector<size_t> updateMe = { u_v_edge->pmatrix_index, c_v_edge->pmatrix_index,
             v_d_edge->pmatrix_index, a_u_edge->pmatrix_index, u_b_edge->pmatrix_index };
@@ -1932,10 +1937,12 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
         assert(network.reticulation_nodes[i]->type == NodeType::RETICULATION_NODE);
     }
 
-    Edge *a_b_edge = addEdge(ann_network, from_a_link, to_b_link, a_b_edge_length,
+    Edge *a_b_edge = addEdge(ann_network, from_a_link, to_b_link, a_b_edge_length[0],
             move.wanted_ab_pmatrix_index); // was ub before
-    Edge *c_d_edge = addEdge(ann_network, from_c_link, to_d_link, c_d_edge_length,
+    Edge *c_d_edge = addEdge(ann_network, from_c_link, to_d_link, c_d_edge_length[0],
             move.wanted_cd_pmatrix_index); // was vd before
+    set_edge_lengths(ann_network, a_b_edge->pmatrix_index, a_b_edge_length);
+    set_edge_lengths(ann_network, c_d_edge->pmatrix_index, c_d_edge_length);
 
     repairConsecutiveIndices(ann_network, move);
 
