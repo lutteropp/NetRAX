@@ -64,6 +64,10 @@ std::vector<bool> init_clv_touched(AnnotatedNetwork& ann_network, bool increment
 
 
 void setup_pmatrices(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices) {
+    // just for debug
+    incremental = 0;
+    update_pmatrices = 1;
+
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
     if (update_pmatrices) {
         pllmod_treeinfo_update_prob_matrices(&fake_treeinfo, !incremental);
@@ -389,10 +393,10 @@ double computeLoglikelihoodNaiveUtree(AnnotatedNetwork &ann_network, int increme
 
 double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices) {
     //just for debug
-    //incremental = 0;
-    //update_pmatrices = 1;
-    //return computeLoglikelihood_new(ann_network, incremental, update_pmatrices);
-    return computeLoglikelihoodNaiveUtree(ann_network, incremental, update_pmatrices);
+    incremental = 0;
+    update_pmatrices = 1;
+    return computeLoglikelihood_new(ann_network, incremental, update_pmatrices);
+    //return computeLoglikelihoodNaiveUtree(ann_network, incremental, update_pmatrices);
 }
 
 }
