@@ -162,12 +162,6 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         optimize_reticulations(ann_network, 100);
         
         if (brlenopt_inside) { // Do brlen optimization locally around the move
-            if (isComplexityChanging(move.moveType)) {
-                std::cout << "BIC score before internal model optimization: " << bic(ann_network, ann_network.raxml_treeinfo->loglh(true)) << "\n";
-                ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
-                std::cout << "BIC score after internal model optimization: " << bic(ann_network, ann_network.raxml_treeinfo->loglh(true)) << "\n";
-            }
-
             std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
             optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
             optimize_branches(ann_network, max_iters, radius);
@@ -185,11 +179,8 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
             optimize_reticulations(ann_network, 100);
 
             if (isComplexityChanging(move.moveType)) {
-                std::cout << "BIC score before internal model optimization: " << bic(ann_network, ann_network.raxml_treeinfo->loglh(true)) << "\n";
                 ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
-                std::cout << "BIC score after internal model optimization: " << bic(ann_network, ann_network.raxml_treeinfo->loglh(true)) << "\n";
                 optimize_branches(ann_network, max_iters, radius);
-                std::cout << "BIC score after internal brlen optimization: " << bic(ann_network, ann_network.raxml_treeinfo->loglh(true)) << "\n";
             }
         }
         double new_logl = ann_network.raxml_treeinfo->loglh(true);
