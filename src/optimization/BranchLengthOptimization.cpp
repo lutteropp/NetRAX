@@ -231,6 +231,11 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
 }
 
 double optimize_reticulations(AnnotatedNetwork &ann_network, int max_iters) {
+    // set all reticulation probabilities to 0.5 before optimizing reticulations
+    for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
+        ann_network.reticulation_probs[i] = 0.5;
+    } 
+
     double act_logl = ann_network.raxml_treeinfo->loglh(true);
     int act_iters = 0;
     while (act_iters < max_iters) {
