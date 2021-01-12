@@ -338,6 +338,9 @@ double NetraxInstance::optimizeEverythingRun(AnnotatedNetwork & ann_network, std
             //std::cout << "network (BIC = " << new_score << ", logl = " << computeLoglikelihood(ann_network) << ") after brlen opt:\n" << toExtendedNewick(ann_network.network) << "\n\n";
             //updateReticulationProbs(ann_network);
             //optimizeModel(ann_network);
+
+            //NetraxInstance::optimizeAllNonTopology(ann_network);
+
             new_score = scoreNetwork(ann_network);
             best_score = new_score;
 

@@ -183,9 +183,9 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         assert(before_logl == recomputed_logl);
         
         if (brlenopt_inside) { // Do brlen optimization locally around the move
-            std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
-            optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
-            //optimize_branches(ann_network, max_iters, radius);
+            //std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
+            //optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
+            optimize_branches(ann_network, max_iters, radius);
 
             /*
             // optimize brlen scalers
@@ -198,7 +198,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
                                                                         RAXML_PARAM_EPSILON);
             }*/
 
-            //optimize_reticulations(ann_network, 100);
+            optimize_reticulations(ann_network, 100);
 
             if (isComplexityChanging(move.moveType)) {
                 //ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
