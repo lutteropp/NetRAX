@@ -183,8 +183,8 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         assert(before_logl == recomputed_logl);
         
         if (brlenopt_inside) { // Do brlen optimization locally around the move
-            //std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
-            //optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
+            std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
+            optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
             optimize_branches(ann_network, max_iters, radius);
 
             /*
