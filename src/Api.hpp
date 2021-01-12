@@ -45,7 +45,7 @@ struct NetraxInstance {
         static void optimizeBranches(AnnotatedNetwork &ann_network);
         static void optimizeTopology(AnnotatedNetwork &ann_network, const std::vector<MoveType>& types);
         static void optimizeTopology(AnnotatedNetwork &ann_network, MoveType& type);
-        static void optimizeAllNonTopology(AnnotatedNetwork &ann_network);
+        static void optimizeAllNonTopology(AnnotatedNetwork &ann_network, bool extremeOpt = false);
         
         static double optimizeEverythingRun(AnnotatedNetwork & ann_network, std::vector<MoveType>& typesBySpeed, const std::chrono::high_resolution_clock::time_point& start_time);
         static void optimizeEverything(AnnotatedNetwork &ann_network);

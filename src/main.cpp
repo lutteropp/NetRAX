@@ -82,9 +82,7 @@ void score_only(NetraxOptions& netraxOptions, std::mt19937& rng) {
     std::cout << "Initial (before brlen and reticulation opt) BIC Score: " << start_bic << "\n";
     std::cout << "Initial (before brlen and reticulation opt) loglikelihood: " << start_logl << "\n";
 
-    NetraxInstance::optimizeModel(ann_network);
-    NetraxInstance::optimizeBranches(ann_network);
-    NetraxInstance::updateReticulationProbs(ann_network);
+    NetraxInstance::optimizeAllNonTopology(ann_network, true);
 
     std::cout << "Network after optimization of brlens and reticulation probs:\n";
     std::cout << toExtendedNewick(ann_network) << "\n";

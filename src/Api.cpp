@@ -355,17 +355,8 @@ double NetraxInstance::optimizeEverythingRun(AnnotatedNetwork & ann_network, std
         }
     } while (type_idx < typesBySpeed.size());
 
-    bool score_improved = true;
-    while (score_improved) {
-        score_improved = false;
-        double score_before = scoreNetwork(ann_network);
-        optimizeAllNonTopology(ann_network);
-        double score_after = scoreNetwork(ann_network);
-        if (score_after < score_before - ann_network.options.score_epsilon) {
-            score_improved = true;
-        }
-    }
-    scoreNetwork(ann_network);
+    NetraxInstance::optimizeAllNonTopology(ann_network, true);
+    best_score = scoreNetwork(ann_network);
 
     return best_score;
 }
@@ -490,10 +481,20 @@ void NetraxInstance::double_check_likelihood(AnnotatedNetwork &ann_network) {
     assert(similar_logl);
 }
 
-void NetraxInstance::optimizeAllNonTopology(AnnotatedNetwork &ann_network) {
-    NetraxInstance::optimizeModel(ann_network);
-    NetraxInstance::optimizeBranches(ann_network);
-    NetraxInstance::updateReticulationProbs(ann_network);
+void NetraxInstance::optimizeAllNonTopology(AnnotatedNetwork &ann_network, bool extremeOpt) {
+    bool gotBetter = true;
+    while (gotBetter) {
+        gotBetter = false;
+        double score_before = scoreNetwork(ann_network);
+        NetraxInstance::optimizeModel(ann_network);
+        NetraxInstance::optimizeBranches(ann_network);
+        NetraxInstance::updateReticulationProbs(ann_network);
+        double score_after = scoreNetwork(ann_network);
+
+        if (score_after < score_before - ann_network.options.score_epsilon && extremeOpt) {
+            gotBetter = true;
+        }
+    }
 }
 
 }
