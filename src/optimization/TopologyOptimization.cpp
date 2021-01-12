@@ -217,15 +217,16 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
             }
             foundBetterScore = true;
         }
-        undoMove(ann_network, move);
-        
-        all_clvs_valid = true;
-        for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
-            all_clvs_valid &= ann_network.fake_treeinfo->clv_valid[i][ann_network.network.root->clv_index];
+        if (!isComplexityChanging(move.moveType)) {
+            undoMove(ann_network, move);
+            all_clvs_valid = true;
+            for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
+                all_clvs_valid &= ann_network.fake_treeinfo->clv_valid[i][ann_network.network.root->clv_index];
+            }
+            assert(!all_clvs_valid);
         }
-        assert(!all_clvs_valid);
 
-        if (brlenopt_inside) {
+        if (brlenopt_inside || isComplexityChanging(move.moveType)) {
             apply_network_state(ann_network, start_state, complexityChanging);
             NetworkState act_state = extract_network_state(ann_network, complexityChanging);
             assert(network_states_equal(start_state, act_state));
@@ -250,7 +251,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         }
         assert(!all_clvs_valid);
 
-        if (brlenopt_inside) {
+        if (brlenopt_inside || isComplexityChanging(bestMove.moveType)) {
             apply_network_state(ann_network, best_state, complexityChanging);
         } else {
             std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, bestMove);

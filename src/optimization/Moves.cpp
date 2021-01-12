@@ -1809,6 +1809,11 @@ void repairConsecutiveClvIndices(AnnotatedNetwork &ann_network, ArcRemovalMove& 
     assert(move.c_clv_index != move.v_clv_index);
     assert(move.v_clv_index != move.d_clv_index);
     assert(move.u_clv_index != move.v_clv_index);
+
+    assert(move.a_clv_index < ann_network.network.num_nodes());
+    assert(move.b_clv_index < ann_network.network.num_nodes());
+    assert(move.c_clv_index < ann_network.network.num_nodes());
+    assert(move.d_clv_index < ann_network.network.num_nodes());
 }
 
 void repairConsecutivePmatrixIndices(AnnotatedNetwork &ann_network, ArcRemovalMove& move) {
