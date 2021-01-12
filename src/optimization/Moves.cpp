@@ -1846,6 +1846,12 @@ void repairConsecutivePmatrixIndices(AnnotatedNetwork &ann_network, ArcRemovalMo
             ann_network.network.edges_by_index[new_pmatrix_index] = &ann_network.network.edges[i];
             ann_network.network.edges_by_index[old_pmatrix_index] = nullptr;
 
+            // also update entries in branch length array
+            for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+                ann_network.fake_treeinfo->branch_lengths[p][i] = ann_network.fake_treeinfo->branch_lengths[p][old_pmatrix_index];
+                ann_network.fake_treeinfo->branch_lengths[p][old_pmatrix_index] = 0.0;
+            }
+
             ann_network.network.edges[i].link1->edge_pmatrix_index = new_pmatrix_index;
             ann_network.network.edges[i].link2->edge_pmatrix_index = new_pmatrix_index;
 
