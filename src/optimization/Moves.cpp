@@ -1440,6 +1440,9 @@ void checkSanity(Network &network) {
 void removeNode(Network &network, Node *node) {
     assert(node);
     assert(!node->isTip());
+
+    NodeType nodeType = node->type;
+
     size_t root_idx = network.root->clv_index;
     size_t index = node->clv_index;
     size_t other_index = network.nodes[network.nodeCount - 1].clv_index;
@@ -1450,7 +1453,7 @@ void removeNode(Network &network, Node *node) {
     network.nodes_by_index[index] = &network.nodes[network.nodeCount - 1];
     node = network.nodes_by_index[index];
 
-    if (node->type == NodeType::RETICULATION_NODE) {
+    if (nodeType == NodeType::RETICULATION_NODE) {
         network.reticulation_nodes[node->getReticulationData()->reticulation_index] =
                 &network.nodes[network.nodeCount - 1];
     }
@@ -1461,7 +1464,7 @@ void removeNode(Network &network, Node *node) {
     }
 
     if (network.nodes_by_index[other_index]->type == NodeType::RETICULATION_NODE
-            && node->type == NodeType::RETICULATION_NODE) {
+            && nodeType == NodeType::RETICULATION_NODE) {
         unsigned int other_ret_index =
                 network.nodes_by_index[other_index]->getReticulationData()->reticulation_index;
         unsigned int node_ret_index = node->getReticulationData()->reticulation_index;
@@ -1478,7 +1481,7 @@ void removeNode(Network &network, Node *node) {
         network.reticulation_nodes[other_ret_index] = network.nodes_by_index[other_index];
     }
 
-    if (node->type == NodeType::RETICULATION_NODE) {
+    if (nodeType == NodeType::RETICULATION_NODE) {
         if (network.num_reticulations() > 1) {
 // update reticulation indices
             unsigned int bad_reticulation_index = node->getReticulationData()->reticulation_index;
