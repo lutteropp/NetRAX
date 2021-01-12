@@ -34,9 +34,9 @@ struct BrentBrprobParams {
 };
 
 void checkLoglBeforeAfter(AnnotatedNetwork& ann_network) {
-    double start_logl = computeLoglikelihood(ann_network, 1, 1);
-    double recomputed_logl = computeLoglikelihood(ann_network, 0, 1);
-    assert(start_logl == recomputed_logl);
+    //double start_logl = computeLoglikelihood(ann_network, 1, 1);
+    //double recomputed_logl = computeLoglikelihood(ann_network, 0, 1);
+    //assert(start_logl == recomputed_logl);
 }
 
 static double brent_target_networks(void *p, double x) {
