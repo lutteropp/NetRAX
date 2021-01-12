@@ -355,11 +355,15 @@ double NetraxInstance::optimizeEverythingRun(AnnotatedNetwork & ann_network, std
         }
     } while (type_idx < typesBySpeed.size());
 
-    double score_before = scoreNetwork(ann_network);
-    optimizeAllNonTopology(ann_network);
-    double score_after = scoreNetwork(ann_network);
-    if (score_after < score_before - ann_network.options.score_epsilon) {
-        optimizeEverythingRun(ann_network, typesBySpeed, start_time);
+    bool score_improved = true;
+    while (score_improved) {
+        score_improved = false;
+        double score_before = scoreNetwork(ann_network);
+        optimizeAllNonTopology(ann_network);
+        double score_after = scoreNetwork(ann_network);
+        if (score_after < score_before - ann_network.options.score_epsilon) {
+            score_improved = true;
+        }
     }
     scoreNetwork(ann_network);
 
