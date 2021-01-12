@@ -1493,6 +1493,7 @@ void removeNode(Network &network, Node *node) {
             assert(network.reticulation_nodes[i]->type == NodeType::RETICULATION_NODE);
         }
     }
+
     network.nodes_by_index[index] = nullptr;
     network.nodes[network.nodeCount - 1].clear();
     network.root = network.nodes_by_index[root_idx];
@@ -1766,7 +1767,7 @@ void repairConsecutiveClvIndices(AnnotatedNetwork &ann_network, ArcRemovalMove& 
     for (size_t i = 0; i < ann_network.network.num_nodes(); ++i) {
         if (!ann_network.network.nodes_by_index[i]) {
             missing_clv_indices.emplace_back(i);
-            //std::cout << i << " is missing\n";
+            std::cout << i << " is missing\n";
             invalidateSingleClv(ann_network.fake_treeinfo, i);
         }
     }

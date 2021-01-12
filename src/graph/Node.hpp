@@ -91,7 +91,7 @@ public:
     void clear() {
         type = NodeType::BASIC_NODE;
         scaler_index = -1;
-        clv_index = 0;
+        clv_index = std::numeric_limits<size_t>::max();
         links.clear();
         if (reticulationData) {
             reticulationData.release();

@@ -168,7 +168,7 @@ std::vector<DisplayedTreeData> process_partition_new(AnnotatedNetwork &ann_netwo
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
 
     fake_treeinfo.active_partition = partition_idx;
-    setup_pmatrices(ann_network, ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_LINKED ? false : incremental, ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED ? true : (partition_idx == 0));
+    setup_pmatrices(ann_network, incremental, true);
 
     std::vector<bool> clv_touched = init_clv_touched(ann_network, incremental, partition_idx);
     size_t n_trees = 1 << network.num_reticulations();
@@ -389,8 +389,8 @@ double computeLoglikelihoodNaiveUtree(AnnotatedNetwork &ann_network, int increme
 
 double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices) {
     //just for debug
-    //incremental = 0;
-    //update_pmatrices = 1;
+    incremental = 0;
+    update_pmatrices = 1;
     return computeLoglikelihood_new(ann_network, incremental, update_pmatrices);
     //return computeLoglikelihoodNaiveUtree(ann_network, incremental, update_pmatrices);
 }
