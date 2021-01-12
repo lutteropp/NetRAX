@@ -201,7 +201,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
             optimize_reticulations(ann_network, 100);
 
             if (isComplexityChanging(move.moveType)) {
-                //ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
+                ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
                 //optimize_branches(ann_network, max_iters, radius);
             }
         }
