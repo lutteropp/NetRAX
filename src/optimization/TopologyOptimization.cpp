@@ -185,8 +185,9 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         if (brlenopt_inside) { // Do brlen optimization locally around the move
             std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
             optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
-            optimize_branches(ann_network, max_iters, radius);
+            //optimize_branches(ann_network, max_iters, radius);
 
+            /*
             // optimize brlen scalers
             if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED) {
                 pllmod_algo_opt_brlen_scalers_treeinfo(ann_network.fake_treeinfo,
@@ -195,13 +196,13 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
                                                                         ann_network.options.brlen_min,
                                                                         ann_network.options.brlen_max,
                                                                         RAXML_PARAM_EPSILON);
-            }
+            }*/
 
             optimize_reticulations(ann_network, 100);
 
             if (isComplexityChanging(move.moveType)) {
-                ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
-                optimize_branches(ann_network, max_iters, radius);
+                //ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
+                //optimize_branches(ann_network, max_iters, radius);
             }
         }
         double new_logl = ann_network.raxml_treeinfo->loglh(true);
@@ -254,19 +255,19 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         } else {
             std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, bestMove);
             optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
-            if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED) {
+            /*if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED) {
                 pllmod_algo_opt_brlen_scalers_treeinfo(ann_network.fake_treeinfo,
                                                                 RAXML_BRLEN_SCALER_MIN,
                                                                 RAXML_BRLEN_SCALER_MAX,
                                                                 ann_network.options.brlen_min,
                                                                 ann_network.options.brlen_max,
                                                                 RAXML_PARAM_EPSILON);
-            }
+            }*/
         }
         // just for debug, doing reticulation opt, full global brlen opt and model opt:
-        ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
+        //ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
         //optimize_reticulations(ann_network, 100);
-        optimize_branches(ann_network, max_iters, radius);
+        //optimize_branches(ann_network, max_iters, radius);
 
         best_score = bic(ann_network, ann_network.raxml_treeinfo->loglh(true));
         ann_network.stats.moves_taken[candidates[best_idx].moveType]++;
