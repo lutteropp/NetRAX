@@ -333,11 +333,11 @@ double NetraxInstance::optimizeEverythingRun(AnnotatedNetwork & ann_network, std
             //std::cout << "BIC after topology optimization: " << new_score << "\n";
             //std::cout << "Current number of reticulations: " << ann_network.network.num_reticulations() << "\n";
             //std::cout << "network (BIC = " << new_score << ", logl = " << computeLoglikelihood(ann_network) << ") before brlen opt:\n" << toExtendedNewick(ann_network.network) << "\n";
-            optimizeBranches(ann_network);
+            //optimizeBranches(ann_network);
             //new_score = scoreNetwork(ann_network);
             //std::cout << "network (BIC = " << new_score << ", logl = " << computeLoglikelihood(ann_network) << ") after brlen opt:\n" << toExtendedNewick(ann_network.network) << "\n\n";
-            updateReticulationProbs(ann_network);
-            optimizeModel(ann_network);
+            //updateReticulationProbs(ann_network);
+            //optimizeModel(ann_network);
             new_score = scoreNetwork(ann_network);
             best_score = new_score;
 
@@ -355,6 +355,12 @@ double NetraxInstance::optimizeEverythingRun(AnnotatedNetwork & ann_network, std
         }
     } while (type_idx < typesBySpeed.size());
 
+    double score_before = scoreNetwork(ann_network);
+    optimizeAllNonTopology(ann_network);
+    double score_after = scoreNetwork(ann_network);
+    if (score_after < score_before - ann_network.options.score_epsilon) {
+        optimizeEverythingRun(ann_network, typesBySpeed, start_time);
+    }
     scoreNetwork(ann_network);
 
     return best_score;

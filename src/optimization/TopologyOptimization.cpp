@@ -177,7 +177,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         double recomputed_logl = computeLoglikelihood(ann_network, 0, 1);
         assert(before_logl == recomputed_logl);
 
-        optimize_reticulations(ann_network, 100);
+        //optimize_reticulations(ann_network, 100);
         before_logl = computeLoglikelihood(ann_network, 1, 1);
         recomputed_logl = computeLoglikelihood(ann_network, 0, 1);
         assert(before_logl == recomputed_logl);
@@ -198,7 +198,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
                                                                         RAXML_PARAM_EPSILON);
             }*/
 
-            optimize_reticulations(ann_network, 100);
+            //optimize_reticulations(ann_network, 100);
 
             if (isComplexityChanging(move.moveType)) {
                 //ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
