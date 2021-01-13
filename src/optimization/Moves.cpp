@@ -1371,17 +1371,15 @@ void undoMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
     assertConsecutiveIndices(ann_network);
 }
 
-void removeEdge(Network &network, Edge *edge) {
+void removeEdge(AnnotatedNetwork &ann_network, Edge *edge) {
     assert(edge);
     size_t index = edge->pmatrix_index;
-    size_t other_index = network.edges[network.branchCount - 1].pmatrix_index;
-    size_t index_in_edges_array = network.edges_by_index[index] - &network.edges[0];
-    assert(network.edges[index_in_edges_array].pmatrix_index == index);
-    std::swap(network.edges[index_in_edges_array], network.edges[network.branchCount - 1]);
-    network.edges_by_index[other_index] = &network.edges[index_in_edges_array];
-    network.edges_by_index[index] = nullptr;
-    network.edges[network.branchCount - 1].clear();
-    network.branchCount--;
+    edge->clear();
+    ann_network.network.edges_by_index[index] = nullptr;
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        ann_network.fake_treeinfo->branch_lengths[p][index] = 0.0;
+    }
+    ann_network.network.branchCount--;
 }
 
 Edge* addEdgeInternal(AnnotatedNetwork &ann_network, Link *link1, Link *link2, double length,
@@ -1437,58 +1435,28 @@ void checkSanity(Network &network) {
     }
 }
 
-void removeNode(Network &network, Node *node) {
+void removeNode(AnnotatedNetwork &ann_network, Node *node) {
     assert(node);
     assert(!node->isTip());
+    Network& network = ann_network.network;
 
     NodeType nodeType = node->type;
-
-    size_t root_idx = network.root->clv_index;
     size_t index = node->clv_index;
-    size_t other_index = network.nodes[network.nodeCount - 1].clv_index;
     size_t index_in_nodes_array = network.nodes_by_index[index] - &network.nodes[0];
     assert(network.nodes[index_in_nodes_array].clv_index == index);
-    std::swap(network.nodes[index_in_nodes_array], network.nodes[network.nodeCount - 1]);
-    network.nodes_by_index[other_index] = &network.nodes[index_in_nodes_array];
-    network.nodes_by_index[index] = &network.nodes[network.nodeCount - 1];
-    node = network.nodes_by_index[index];
-
-    if (nodeType == NodeType::RETICULATION_NODE) {
-        network.reticulation_nodes[node->getReticulationData()->reticulation_index] =
-                &network.nodes[network.nodeCount - 1];
-    }
-
-    if (network.nodes_by_index[other_index]->type == NodeType::RETICULATION_NODE) {
-        network.reticulation_nodes[network.nodes_by_index[other_index]->getReticulationData()->getReticulationIndex()] =
-                &network.nodes[index_in_nodes_array];
-    }
-
-    if (network.nodes_by_index[other_index]->type == NodeType::RETICULATION_NODE
-            && nodeType == NodeType::RETICULATION_NODE) {
-        unsigned int other_ret_index =
-                network.nodes_by_index[other_index]->getReticulationData()->reticulation_index;
-        unsigned int node_ret_index = node->getReticulationData()->reticulation_index;
-        if (node_ret_index < other_ret_index) {
-// swap the reticulation indices
-            network.reticulation_nodes[other_ret_index]->getReticulationData()->reticulation_index =
-                    node_ret_index;
-            network.reticulation_nodes[node_ret_index]->getReticulationData()->reticulation_index =
-                    other_ret_index;
-            network.reticulation_nodes[other_ret_index] = network.nodes_by_index[index];
-            network.reticulation_nodes[node_ret_index] = network.nodes_by_index[other_index];
-            std::swap(node_ret_index, other_ret_index);
-        }
-        network.reticulation_nodes[other_ret_index] = network.nodes_by_index[other_index];
-    }
 
     if (nodeType == NodeType::RETICULATION_NODE) {
         if (network.num_reticulations() > 1) {
-// update reticulation indices
-            unsigned int bad_reticulation_index = node->getReticulationData()->reticulation_index;
-            network.reticulation_nodes[network.reticulation_nodes.size() - 1]->getReticulationData()->reticulation_index =
-                    bad_reticulation_index;
-            std::swap(network.reticulation_nodes[bad_reticulation_index],
-                    network.reticulation_nodes[network.reticulation_nodes.size() - 1]);
+            unsigned int node_reticulation_index = node->getReticulationData()->reticulation_index;
+            if (node_reticulation_index < network.num_reticulations() - 1) {
+                size_t last_reticulation_index = ann_network.network.num_reticulations() - 1;
+                // update reticulation indices
+                std::swap(ann_network.reticulation_probs[node_reticulation_index], ann_network.reticulation_probs[last_reticulation_index]);
+                std::swap(network.reticulation_nodes[node_reticulation_index],
+                        network.reticulation_nodes[last_reticulation_index]);
+                network.reticulation_nodes[node_reticulation_index]->getReticulationData()->reticulation_index =
+                        node_reticulation_index;
+            }
         }
         network.reticulation_nodes.resize(network.reticulation_nodes.size() - 1);
 
@@ -1498,8 +1466,7 @@ void removeNode(Network &network, Node *node) {
     }
 
     network.nodes_by_index[index] = nullptr;
-    network.nodes[network.nodeCount - 1].clear();
-    network.root = network.nodes_by_index[root_idx];
+    node->clear();
     network.nodeCount--;
 }
 
@@ -1606,9 +1573,9 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     std::vector<double> a_u_edge_length = move.a_u_len;
     std::vector<double> u_b_edge_length = move.u_b_len;
 
-    removeEdge(network, network.edges_by_index[a_b_edge_index]);
+    removeEdge(ann_network, network.edges_by_index[a_b_edge_index]);
     if (c_d_edge_index != a_b_edge_index) {
-        removeEdge(network, network.edges_by_index[c_d_edge_index]);
+        removeEdge(ann_network, network.edges_by_index[c_d_edge_index]);
     }
 
     Edge *u_b_edge = addEdge(ann_network, u_b_link, to_b_link, u_b_edge_length[0],
@@ -1945,19 +1912,19 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     for (size_t i = 0; i < network.num_reticulations(); ++i) {
         assert(network.reticulation_nodes[i]->type == NodeType::RETICULATION_NODE);
     }
-    removeNode(network, network.nodes_by_index[move.u_clv_index]);
+    removeNode(ann_network, network.nodes_by_index[move.u_clv_index]);
     for (size_t i = 0; i < network.num_reticulations(); ++i) {
         assert(network.reticulation_nodes[i]->type == NodeType::RETICULATION_NODE);
     }
-    removeNode(network, network.nodes_by_index[move.v_clv_index]);
+    removeNode(ann_network, network.nodes_by_index[move.v_clv_index]);
     for (size_t i = 0; i < network.num_reticulations(); ++i) {
         assert(network.reticulation_nodes[i]->type == NodeType::RETICULATION_NODE);
     }
-    removeEdge(network, network.edges_by_index[a_u_edge_index]);
-    removeEdge(network, network.edges_by_index[u_b_edge_index]);
-    removeEdge(network, network.edges_by_index[c_v_edge_index]);
-    removeEdge(network, network.edges_by_index[v_d_edge_index]);
-    removeEdge(network, network.edges_by_index[u_v_edge_index]);
+    removeEdge(ann_network, network.edges_by_index[a_u_edge_index]);
+    removeEdge(ann_network, network.edges_by_index[u_b_edge_index]);
+    removeEdge(ann_network, network.edges_by_index[c_v_edge_index]);
+    removeEdge(ann_network, network.edges_by_index[v_d_edge_index]);
+    removeEdge(ann_network, network.edges_by_index[u_v_edge_index]);
 
     for (size_t i = 0; i < network.num_reticulations(); ++i) {
         assert(network.reticulation_nodes[i]->type == NodeType::RETICULATION_NODE);
