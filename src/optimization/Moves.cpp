@@ -1390,8 +1390,19 @@ Edge* addEdgeInternal(AnnotatedNetwork &ann_network, Link *link1, Link *link2, d
     }
 
     assert(ann_network.network.edges_by_index[pmatrix_index] == nullptr);
-    ann_network.network.edges[ann_network.network.branchCount].init(pmatrix_index, link1, link2, length, 1.0);
-    ann_network.network.edges_by_index[pmatrix_index] = &ann_network.network.edges[ann_network.network.branchCount];
+
+    // find an empty place in the edges array
+    size_t index_in_edges_array = std::numeric_limits<size_t>::max();
+    for (size_t i = 0; i < ann_network.network.edges.size(); ++i) {
+        if (ann_network.network.edges[i].pmatrix_index == std::numeric_limits<size_t>::max()) {
+            index_in_edges_array = i;
+            break;
+        }
+    }
+    assert(index_in_edges_array < std::numeric_limits<size_t>::max());
+
+    ann_network.network.edges[index_in_edges_array].init(pmatrix_index, link1, link2, length, 1.0);
+    ann_network.network.edges_by_index[pmatrix_index] = &ann_network.network.edges[index_in_edges_array];
     ann_network.network.branchCount++;
 
     return ann_network.network.edges_by_index[pmatrix_index];
@@ -1488,18 +1499,30 @@ Node* addInnerNode(Network &network, ReticulationData *retData, size_t wanted_cl
     }
     assert(network.nodes_by_index[clv_index] == nullptr);
     unsigned int scaler_index = clv_index - network.num_tips();
-    network.nodes_by_index[clv_index] = &network.nodes[network.nodeCount];
+
+    // find an empty place in the edges array
+    size_t index_in_nodes_array = std::numeric_limits<size_t>::max();
+    for (size_t i = 0; i < network.nodes.size(); ++i) {
+        if (network.nodes[i].clv_index == std::numeric_limits<size_t>::max()) {
+            index_in_nodes_array = i;
+            break;
+        }
+    }
+    assert(index_in_nodes_array < std::numeric_limits<size_t>::max());
+
+
+    network.nodes_by_index[clv_index] = &network.nodes[index_in_nodes_array];
 
     if (retData) {
-        network.nodes[network.nodeCount].initReticulation(clv_index, scaler_index, "", *retData);
+        network.nodes[index_in_nodes_array].initReticulation(clv_index, scaler_index, "", *retData);
         network.reticulation_nodes.emplace_back(network.nodes_by_index[clv_index]);
-        network.nodes[network.nodeCount].getReticulationData()->reticulation_index =
+        network.nodes[index_in_nodes_array].getReticulationData()->reticulation_index =
                 network.reticulation_nodes.size() - 1;
         for (size_t i = 0; i < network.reticulation_nodes.size(); ++i) {
             assert(network.reticulation_nodes[i]->type == NodeType::RETICULATION_NODE);
         }
     } else {
-        network.nodes[network.nodeCount].initBasic(clv_index, scaler_index, "");
+        network.nodes[index_in_nodes_array].initBasic(clv_index, scaler_index, "");
     }
 
     network.nodeCount++;
