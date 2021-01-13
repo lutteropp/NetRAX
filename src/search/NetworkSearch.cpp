@@ -83,7 +83,6 @@ void wavesearch(AnnotatedNetwork& ann_network, double* global_best, std::mt19937
 
     auto start_time = std::chrono::high_resolution_clock::now();
     double best_score = std::numeric_limits<double>::infinity();
-    int best_num_reticulations = 0;
 
     std::cout << "Initial network is:\n" << toExtendedNewick(ann_network) << "\n\n";
     NetraxInstance::optimizeAllNonTopology(ann_network, true);
@@ -143,14 +142,6 @@ void wavesearch(AnnotatedNetwork& ann_network, double* global_best, std::mt19937
             }
         }
     }
-
-    std::cout << "The inferred network has " << best_num_reticulations << " reticulations and this BIC score: " << best_score << "\n\n";
-    std::cout << "Best found network is:\n" << best_network << "\n\n";
-
-    std::cout << "Statistics on which moves were taken:\n";
-    for (const auto& entry : ann_network.stats.moves_taken) {
-        std::cout << toString(entry.first) << ": " << entry.second << "\n";
-    }
 }
 
 void oldsearch(AnnotatedNetwork& ann_network, double* global_best, std::mt19937& rng) {
@@ -161,6 +152,11 @@ void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
     NetraxInstance::init_annotated_network(ann_network, rng);
     double global_best = std::numeric_limits<double>::infinity();
     wavesearch(ann_network, &global_best, rng);
+
+    std::cout << "Statistics on which moves were taken:\n";
+    for (const auto& entry : ann_network.stats.moves_taken) {
+        std::cout << toString(entry.first) << ": " << entry.second << "\n";
+    }
 }
 
 void run_single_start(NetraxOptions& netraxOptions, std::mt19937& rng) {
