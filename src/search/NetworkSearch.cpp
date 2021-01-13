@@ -66,7 +66,11 @@ ScoreImprovementResult check_score_improvement(AnnotatedNetwork& ann_network, do
                 std::cout << toExtendedNewick(ann_network) << "\n";
                 std::cout << "Better network written to " << ann_network.options.output_file << "\n";
                 printDisplayedTrees(ann_network);
+            } else {
+                std::cout << "REMAINED GLOBAL BEST SCORE FOUND SO FAR: " << *global_best << "\n\n";
             }
+        } else {
+            std::cout << "REMAINED LOCAL BEST SCORE FOUND SO FAR: " << *local_best << "\n\n";
         }
     }
     return ScoreImprovementResult{local_improved, global_improved};
@@ -82,19 +86,24 @@ void wavesearch(AnnotatedNetwork& ann_network, double* global_best, std::mt19937
     int best_num_reticulations = 0;
 
     std::cout << "Initial network is:\n" << toExtendedNewick(ann_network) << "\n\n";
-    NetraxInstance::optimizeAllNonTopology(ann_network);
+    NetraxInstance::optimizeAllNonTopology(ann_network, true);
     std::cout << "Initial network after modelopt+brlenopt+reticulation opt is:\n" << toExtendedNewick(ann_network) << "\n\n";
     std::string best_network = toExtendedNewick(ann_network);
     ScoreImprovementResult score_improvement;
 
     score_improvement = check_score_improvement(ann_network, &best_score_by_reticulations[ann_network.network.num_reticulations()], &best_score, global_best);
 
-    while (score_improvement.local_improved) {
-        score_improvement = {false, false};
+    // try horizontal moves
+    NetraxInstance::optimizeEverythingRun(ann_network, typesBySpeed, start_time);
+    score_improvement = check_score_improvement(ann_network, &best_score_by_reticulations[ann_network.network.num_reticulations()], &best_score, global_best);
+
+    bool keepSearching = true;
+    while (keepSearching) {
+        keepSearching = false;
         std::cout << "Initial optimized " << ann_network.network.num_reticulations() << "-reticulation network loglikelihood: " << NetraxInstance::computeLoglikelihood(ann_network) << "\n";
         std::cout << "Initial optimized " << ann_network.network.num_reticulations() << "-reticulation network BIC score: " << NetraxInstance::scoreNetwork(ann_network) << "\n";
-    
-        // first try removing reticulations
+
+        // try removing reticulations
         if (ann_network.network.num_reticulations() > 0) { // try removing arcs
             MoveType removalType = MoveType::ArcRemovalMove;
             size_t old_num_reticulations = ann_network.network.num_reticulations();
@@ -111,15 +120,9 @@ void wavesearch(AnnotatedNetwork& ann_network, double* global_best, std::mt19937
                 score_improvement = check_score_improvement(ann_network, &best_score_by_reticulations[ann_network.network.num_reticulations()], &best_score, global_best);
             }
             if (score_improvement.local_improved) {
+                keepSearching = true;
                 continue;
             }
-        }
-
-        // then try horizontal moves
-        NetraxInstance::optimizeEverythingRun(ann_network, typesBySpeed, start_time);
-        score_improvement = check_score_improvement(ann_network, &best_score_by_reticulations[ann_network.network.num_reticulations()], &best_score, global_best);
-        if (!score_improvement.local_improved) {
-            std::cout << "REMAINED LOCAL BEST SCORE FOUND SO FAR: " << best_score << "\n";
         }
 
         // then try adding a reticulation
@@ -130,9 +133,14 @@ void wavesearch(AnnotatedNetwork& ann_network, double* global_best, std::mt19937
             // new version: search for best place to add the new reticulation
             MoveType insertionType = MoveType::ArcInsertionMove;
             netrax::greedyHillClimbingTopology(ann_network, insertionType, true, 1);
-
             NetraxInstance::optimizeAllNonTopology(ann_network);
-            check_score_improvement(ann_network, &best_score_by_reticulations[ann_network.network.num_reticulations()], &best_score, global_best);
+
+            NetraxInstance::optimizeEverythingRun(ann_network, typesBySpeed, start_time);
+            score_improvement = check_score_improvement(ann_network, &best_score_by_reticulations[ann_network.network.num_reticulations()], &best_score, global_best);
+            if (score_improvement.local_improved) {
+                keepSearching = true;
+                continue;
+            }
         }
     }
 
