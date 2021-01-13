@@ -98,6 +98,7 @@ void wavesearch(AnnotatedNetwork& ann_network, double* global_best, std::mt19937
 
     bool keepSearching = true;
     while (keepSearching) {
+        score_improvement = {false, false};
         keepSearching = false;
         std::cout << "Initial optimized " << ann_network.network.num_reticulations() << "-reticulation network loglikelihood: " << NetraxInstance::computeLoglikelihood(ann_network) << "\n";
         std::cout << "Initial optimized " << ann_network.network.num_reticulations() << "-reticulation network BIC score: " << NetraxInstance::scoreNetwork(ann_network) << "\n";
