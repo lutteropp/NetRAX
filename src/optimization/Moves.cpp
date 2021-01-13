@@ -1556,9 +1556,18 @@ void invalidate_pmatrices(AnnotatedNetwork &ann_network,
     pllmod_treeinfo_update_prob_matrices(fake_treeinfo, 0);
 }
 
+void assertBranchLengths(AnnotatedNetwork& ann_network) {
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
+            assert(ann_network.fake_treeinfo->branch_lengths[p][i] >= ann_network.options.brlen_min);
+        }
+    }
+}
+
 void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     assert(move.moveType == MoveType::ArcInsertionMove || move.moveType == MoveType::DeltaPlusMove);
     assertConsecutiveIndices(ann_network);
+    assertBranchLengths(ann_network);
     Network &network = ann_network.network;
     std::vector<Node*> previous_megablob_roots = ann_network.blobInfo.megablob_roots;
 
@@ -1675,6 +1684,7 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     assertReticulationProbs(ann_network);
     invalidateLostMegablobRoots(ann_network, previous_megablob_roots);
     assertConsecutiveIndices(ann_network);
+    assertBranchLengths(ann_network);
 }
 
 void updateMoveClvIndex(ArcRemovalMove& move, size_t old_clv_index, size_t new_clv_index) {
@@ -1911,6 +1921,7 @@ void repairConsecutiveIndices(AnnotatedNetwork &ann_network, ArcRemovalMove& mov
 
 void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     assert_links_in_range2(ann_network.network);
+    assertBranchLengths(ann_network);
 
     checkSanity(ann_network, move);
     assert(move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::DeltaMinusMove);
@@ -2029,11 +2040,13 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     assert(!all_clvs_valid);
 
     assert_links_in_range2(ann_network.network);
+    assertBranchLengths(ann_network);
 }
 
 void undoMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     assert(move.moveType == MoveType::ArcInsertionMove || move.moveType == MoveType::DeltaPlusMove);
     assertConsecutiveIndices(ann_network);
+    assertBranchLengths(ann_network);
     Network &network = ann_network.network;
     Node *a = network.nodes_by_index[move.a_clv_index];
     Node *b = network.nodes_by_index[move.b_clv_index];
@@ -2081,11 +2094,13 @@ void undoMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     removal.vd_pmatrix_index = getEdgeTo(network, v, d)->pmatrix_index;
     performMove(ann_network, removal);
     assertConsecutiveIndices(ann_network);
+    assertBranchLengths(ann_network);
 }
 
 void undoMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     assert(move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::DeltaMinusMove);
     assertConsecutiveIndices(ann_network);
+    assertBranchLengths(ann_network);
     ArcInsertionMove insertion = buildArcInsertionMove(move.a_clv_index, move.b_clv_index,
             move.c_clv_index, move.d_clv_index, move.u_v_len, move.c_v_len, move.a_u_len, move.a_b_len, move.c_d_len, move.v_d_len, move.u_b_len, MoveType::ArcInsertionMove);
 
@@ -2100,6 +2115,7 @@ void undoMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
 
     performMove(ann_network, insertion);
     assertConsecutiveIndices(ann_network);
+    assertBranchLengths(ann_network);
 }
 
 std::string toString(RNNIMove &move) {

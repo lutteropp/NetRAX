@@ -34,9 +34,18 @@ void assert_links_in_range(const Network& network) {
     }
 }
 
+void assert_branch_lengths(AnnotatedNetwork& ann_network) {
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
+            assert(ann_network.fake_treeinfo->branch_lengths[p][i] >= ann_network.options.brlen_min);
+        }
+    }
+}
+
 NetworkState extract_network_state(AnnotatedNetwork &ann_network, bool extract_network) {
     assert_tip_links(ann_network.network);
     assert_links_in_range(ann_network.network);
+    assert_branch_lengths(ann_network);
     NetworkState state;
     state.brlen_linkage = ann_network.options.brlen_linkage;
     
@@ -120,6 +129,7 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
         }
         assert(!all_clvs_valid);
     }
+    assert_branch_lengths(ann_network);
 }
 
 bool reticulation_probs_equal(const NetworkState& old_state, const NetworkState& act_state) {
