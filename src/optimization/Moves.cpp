@@ -1853,7 +1853,7 @@ void repairConsecutivePmatrixIndices(AnnotatedNetwork &ann_network, ArcRemovalMo
 
             // also update entries in branch length array
             for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-                ann_network.fake_treeinfo->branch_lengths[p][i] = ann_network.fake_treeinfo->branch_lengths[p][old_pmatrix_index];
+                ann_network.fake_treeinfo->branch_lengths[p][new_pmatrix_index] = ann_network.fake_treeinfo->branch_lengths[p][old_pmatrix_index];
                 ann_network.fake_treeinfo->branch_lengths[p][old_pmatrix_index] = 0.0;
             }
 
