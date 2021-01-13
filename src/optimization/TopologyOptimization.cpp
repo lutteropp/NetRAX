@@ -281,7 +281,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
 
         double before_logl = computeLoglikelihood(ann_network, 1, 1);
         double recomputed_logl = computeLoglikelihood(ann_network, 0, 1);
-        assert(before_logl == recomputed_logl);
+        assert(fabs(before_logl - recomputed_logl) < ann_network.options.lh_epsilon);
 
         std::cout << "  Logl: " << logl << ", BIC: " << bic_score << ", AIC: " << aic_score << ", AICc: " << aicc_score <<  "\n";
         std::cout << "  param_count: " << get_param_count(ann_network) << ", sample_size:" << get_sample_size(ann_network) << "\n";
