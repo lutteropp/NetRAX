@@ -1376,7 +1376,11 @@ void removeEdge(AnnotatedNetwork &ann_network, Edge *edge) {
     size_t index = edge->pmatrix_index;
     edge->clear();
     ann_network.network.edges_by_index[index] = nullptr;
-    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+    size_t n_p = ann_network.fake_treeinfo->partition_count;
+    if (ann_network.fake_treeinfo->branch_lengths[0] == ann_network.fake_treeinfo->branch_lengths[n_p-1]) {
+        n_p = 1;
+    }
+    for (size_t p = 0; p < n_p; ++p) {
         ann_network.fake_treeinfo->branch_lengths[p][index] = 0.0;
     }
     ann_network.network.branchCount--;

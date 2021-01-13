@@ -178,9 +178,9 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         assert(before_logl == recomputed_logl);
 
         //optimize_reticulations(ann_network, 100);
-        before_logl = computeLoglikelihood(ann_network, 1, 1);
-        recomputed_logl = computeLoglikelihood(ann_network, 0, 1);
-        assert(before_logl == recomputed_logl);
+        //before_logl = computeLoglikelihood(ann_network, 1, 1);
+        //recomputed_logl = computeLoglikelihood(ann_network, 0, 1);
+        //assert(before_logl == recomputed_logl);
         
         if (brlenopt_inside) { // Do brlen optimization locally around the move
             std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);

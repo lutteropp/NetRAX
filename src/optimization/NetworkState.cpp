@@ -129,6 +129,18 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
         }
         assert(!all_clvs_valid);
     }
+
+    // invalidate all clv and pmatrix entries... TODO: can be optimized, only needs to be done if model or brlens changed
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        for (size_t i = 0; i < ann_network.network.nodes.size(); ++i) {
+            ann_network.fake_treeinfo->clv_valid[p][i] = 0;
+        }
+        for (size_t i = 0; i < ann_network.network.edges.size(); ++i) {
+             ann_network.fake_treeinfo->pmatrix_valid[p][i] = 0;
+        }
+    }
+
+
     //assert_branch_lengths(ann_network);
 }
 
