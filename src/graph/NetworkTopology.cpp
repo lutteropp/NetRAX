@@ -104,7 +104,8 @@ double getReticulationActiveProb(AnnotatedNetwork &ann_network, const Node *node
     assert(node);
     assert(node->type == NodeType::RETICULATION_NODE);
     size_t first_parent_pmatrix_index = getReticulationFirstParentPmatrixIndex(node);
-    size_t active_pmatrix_index = node->getReticulationData()->getLinkToActiveParent()->edge_pmatrix_index;
+    size_t active_pmatrix_index =
+            node->getReticulationData()->getLinkToActiveParent()->edge_pmatrix_index;
 
     if (first_parent_pmatrix_index == active_pmatrix_index) {
         return getReticulationFirstParentProb(ann_network, node);
@@ -373,12 +374,12 @@ std::vector<Edge*> getAdjacentEdges(Network &network, const Node *node) {
 std::vector<Edge*> getAdjacentEdges(Network &network, const Edge *edge) {
     std::vector<Edge*> res;
 
-    Node* node1 = network.nodes_by_index[edge->link1->node_clv_index];
-    Node* node2 = network.nodes_by_index[edge->link2->node_clv_index];
+    Node *node1 = network.nodes_by_index[edge->link1->node_clv_index];
+    Node *node2 = network.nodes_by_index[edge->link2->node_clv_index];
 
     for (size_t i = 0; i < node1->links.size(); ++i) {
         if (node1->links[i].edge_pmatrix_index != edge->pmatrix_index) {
-            Edge* neigh = network.edges_by_index[node1->links[i].edge_pmatrix_index];
+            Edge *neigh = network.edges_by_index[node1->links[i].edge_pmatrix_index];
             if (std::find(res.begin(), res.end(), neigh) == res.end()) {
                 res.emplace_back(neigh);
             }
@@ -387,13 +388,15 @@ std::vector<Edge*> getAdjacentEdges(Network &network, const Edge *edge) {
 
     for (size_t i = 0; i < node2->links.size(); ++i) {
         if (node2->links[i].edge_pmatrix_index != edge->pmatrix_index) {
-            Edge* neigh = network.edges_by_index[node2->links[i].edge_pmatrix_index];
+            Edge *neigh = network.edges_by_index[node2->links[i].edge_pmatrix_index];
             if (std::find(res.begin(), res.end(), neigh) == res.end()) {
                 res.emplace_back(neigh);
             }
         }
     }
-    assert(res.size() == 2 || res.size() == 4 || (node1 == network.root && res.size() == 3));
+    assert(
+            res.size() == 2 || res.size() == 4 || (node1 == network.root && res.size() == 3)
+                    || (node1 == network.root && node2->isTip() && res.size() == 1));
     return res;
 }
 
@@ -433,7 +436,7 @@ void invalidateSingleClv(pllmod_treeinfo_t *treeinfo, unsigned int clv_index) {
 
 void invalidateHigherClvs(AnnotatedNetwork &ann_network, pllmod_treeinfo_t *treeinfo, Node *node,
         bool invalidate_myself, std::vector<bool> &visited) {
-    Network& network = ann_network.network;
+    Network &network = ann_network.network;
     if (!node) {
         return;
     }
@@ -454,8 +457,8 @@ void invalidateHigherClvs(AnnotatedNetwork &ann_network, pllmod_treeinfo_t *tree
     if (node->type == NodeType::RETICULATION_NODE) {
         invalidateHigherClvs(ann_network, treeinfo, getReticulationFirstParent(network, node), true,
                 visited);
-        invalidateHigherClvs(ann_network, treeinfo, getReticulationSecondParent(network, node), true,
-                visited);
+        invalidateHigherClvs(ann_network, treeinfo, getReticulationSecondParent(network, node),
+                true, visited);
     } else {
         invalidateHigherClvs(ann_network, treeinfo, getActiveParent(network, node), true, visited);
     }
@@ -511,7 +514,9 @@ std::unordered_set<size_t> getNeighborPmatrixIndices(Network &network, Edge *edg
         res.emplace(target->links[i].edge_pmatrix_index);
     }
     res.erase(edge->pmatrix_index);
-    assert(res.size() == 2 || res.size() == 4 || (source == network.root && res.size() == 3));
+    assert(
+            res.size() == 2 || res.size() == 4 || (source == network.root && res.size() == 3)
+                    || (source == network.root && target->isTip() && res.size() == 1));
     return res;
 }
 
