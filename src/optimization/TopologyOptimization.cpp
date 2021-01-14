@@ -143,13 +143,15 @@ bool isComplexityChanging(MoveType& moveType) {
 
 
 void add_neighbors_in_radius(AnnotatedNetwork& ann_network, std::unordered_set<size_t>& candidates, int pmatrix_index, int radius) {
-    if (radius == 0) {
+    if (radius == 0 || candidates.size() == ann_network.network.num_branches()) {
         return;
     }
     std::vector<Edge*> neighs = netrax::getAdjacentEdges(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
     for (size_t i = 0; i < neighs.size(); ++i) {
-        candidates.emplace(neighs[i]->pmatrix_index);
-        add_neighbors_in_radius(ann_network, candidates, neighs[i]->pmatrix_index, radius - 1);
+        if (candidates.count(neighs[i]->pmatrix_index) == 0) {
+            candidates.emplace(neighs[i]->pmatrix_index);
+            add_neighbors_in_radius(ann_network, candidates, neighs[i]->pmatrix_index, radius - 1);
+        }
     }
 }
 
