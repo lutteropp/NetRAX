@@ -117,6 +117,7 @@ void wavesearch(AnnotatedNetwork& ann_network, double* global_best, std::mt19937
 
             if (ann_network.network.num_reticulations() < old_num_reticulations) {
                 NetraxInstance::optimizeAllNonTopology(ann_network);
+                NetraxInstance::optimizeEverythingRun(ann_network, typesBySpeed, start_time);
                 score_improvement = check_score_improvement(ann_network, &best_score_by_reticulations[ann_network.network.num_reticulations()], &best_score, global_best);
             }
             if (score_improvement.local_improved) {
