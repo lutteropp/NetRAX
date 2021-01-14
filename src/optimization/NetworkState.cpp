@@ -66,6 +66,9 @@ NetworkState extract_network_state(AnnotatedNetwork &ann_network, bool extract_n
             state.partition_brlen_scalers[p] = ann_network.fake_treeinfo->brlen_scalers[p];
         }
     }
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        state.alphas[p] = ann_network.fake_treeinfo->alphas[p];
+    }
     for (size_t p = 0; p < state.partition_brlens.size(); ++p) {
         state.partition_brlens[p].resize(ann_network.network.num_branches());
         for (size_t pmatrix_index = 0; pmatrix_index < ann_network.network.num_branches(); ++pmatrix_index) {
@@ -114,6 +117,9 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
     for (size_t p = 0; p < state.partition_brlen_scalers.size(); ++p) {
         ann_network.fake_treeinfo->brlen_scalers[p] = state.partition_brlen_scalers[p];
     }
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        ann_network.fake_treeinfo->alphas[p] = state.alphas[p];
+    }
     pllmod_treeinfo_update_prob_matrices(ann_network.fake_treeinfo, 1);
 
     for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
@@ -146,7 +152,7 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
         }
     }
     //assert_branch_lengths(ann_network);
-    assert_rates(ann_network);
+    //assert_rates(ann_network);
 }
 
 bool reticulation_probs_equal(const NetworkState& old_state, const NetworkState& act_state) {
@@ -229,11 +235,24 @@ bool model_equal(const NetworkState& old_state, const NetworkState& act_state) {
     return true;
 }
 
-bool network_states_equal(const NetworkState& old_state, const NetworkState &act_state) {
+bool alphas_equal(const NetworkState& old_state, const NetworkState& act_state) {
+    if (old_state.alphas.size() != act_state.alphas.size()) {
+        return false;
+    }
+    for (size_t i = 0; i < old_state.alphas.size(); ++i) {
+        if (old_state.alphas[i] == act_state.alphas[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool network_states_equal(const NetworkState& old_state, const NetworkState& act_state) {
     return model_equal(old_state, act_state) && 
            ((!old_state.network_valid && !act_state.network_valid) || topology_equal(old_state.network, act_state.network)) && 
            reticulation_probs_equal(old_state, act_state) && 
            partition_brlens_equal(old_state, act_state) && 
+           alphas_equal(old_state, act_state) &&
            brlen_scalers_equal(old_state, act_state);
 }
 
