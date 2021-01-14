@@ -147,9 +147,7 @@ void add_neighbors_in_radius(AnnotatedNetwork& ann_network, std::unordered_set<s
         return;
     }
     std::vector<Edge*> neighs = netrax::getAdjacentEdges(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
-    std::cout << "the neighbors of edge " << pmatrix_index << " are: \n";
     for (size_t i = 0; i < neighs.size(); ++i) {
-        std::cout << " " << neighs[i]->pmatrix_index << "\n";
         candidates.emplace(neighs[i]->pmatrix_index);
         add_neighbors_in_radius(ann_network, candidates, neighs[i]->pmatrix_index, radius - 1);
     }
