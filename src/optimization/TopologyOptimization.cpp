@@ -184,9 +184,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         if (new_score < old_score - ann_network.options.score_epsilon) {
             best_score = new_score;
             best_idx = i;
-            if (brlenopt_inside) {
-                best_state = extract_network_state(ann_network, complexityChanging);
-            }
+            best_state = extract_network_state(ann_network, complexityChanging);
             foundBetterScore = true;
         }
         if (!isComplexityChanging(move.moveType)) {
