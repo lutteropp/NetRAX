@@ -374,7 +374,7 @@ std::vector<Edge*> getAdjacentEdges(Network &network, const Edge *edge) {
     std::vector<Edge*> res;
 
     Node* node1 = network.nodes_by_index[edge->link1->node_clv_index];
-    Node* node2 = network.nodes_by_index[edge->link1->node_clv_index];
+    Node* node2 = network.nodes_by_index[edge->link2->node_clv_index];
 
     for (size_t i = 0; i < node1->links.size(); ++i) {
         if (node1->links[i].edge_pmatrix_index != edge->pmatrix_index) {
