@@ -150,7 +150,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     if (randomizeCandidates) {
         std::random_shuffle(candidates.begin(), candidates.end());
     }
-    int max_iters = 1;
+    int max_iters = 10;
     int radius = 1;
     double start_logl = ann_network.raxml_treeinfo->loglh(true);
 
@@ -174,12 +174,11 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         if (brlenopt_inside) { // Do brlen optimization locally around the move
             std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
             assert(!brlen_opt_candidates.empty());
-            //add_neighbors_in_radius(ann_network, brlen_opt_candidates, 1);
+            add_neighbors_in_radius(ann_network, brlen_opt_candidates, 1);
             optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
-            add_neighbors_in_radius(ann_network, brlen_opt_candidates, 9999);
-            assert(brlen_opt_candidates.size() == ann_network.network.num_branches());
+            //assert(brlen_opt_candidates.size() == ann_network.network.num_branches());
             //optimize_branches(ann_network, max_iters, radius);
-            optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
+            //optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
             
             /*
             // optimize brlen scalers
