@@ -118,7 +118,7 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
     for (size_t p = 0; p < state.partition_brlen_scalers.size(); ++p) {
         ann_network.fake_treeinfo->brlen_scalers[p] = state.partition_brlen_scalers[p];
     }
-    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+    for (size_t p = 0; p < state.alphas.size(); ++p) {
         ann_network.fake_treeinfo->alphas[p] = state.alphas[p];
     }
     pllmod_treeinfo_update_prob_matrices(ann_network.fake_treeinfo, 1);
