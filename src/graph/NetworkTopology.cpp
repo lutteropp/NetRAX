@@ -366,7 +366,7 @@ std::vector<Edge*> getAdjacentEdges(Network &network, const Node *node) {
     for (size_t i = 0; i < neighs.size(); ++i) {
         res.emplace_back(getEdgeTo(network, node, neighs[i]));
     }
-    assert(res.size() == 1 || res.size() == 3);
+    assert(res.size() == 1 || res.size() == 3 || (node == network.root && res.size() == 2));
     return res;
 }
 
@@ -393,7 +393,7 @@ std::vector<Edge*> getAdjacentEdges(Network &network, const Edge *edge) {
             }
         }
     }
-    assert(res.size() == 2 || res.size() == 4);
+    assert(res.size() == 2 || res.size() == 4 || (node1 == network.root && res.size() == 3));
     return res;
 }
 
@@ -511,7 +511,7 @@ std::unordered_set<size_t> getNeighborPmatrixIndices(Network &network, Edge *edg
         res.emplace(target->links[i].edge_pmatrix_index);
     }
     res.erase(edge->pmatrix_index);
-    assert(res.size() == 2 || res.size() == 4);
+    assert(res.size() == 2 || res.size() == 4 || (source == network.root && res.size() == 3));
     return res;
 }
 
