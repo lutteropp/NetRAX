@@ -209,7 +209,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, int max_iters, int *act_it
 }
 
 double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radius,
-        std::unordered_set<size_t> &candidates) {
+        std::unordered_set<size_t> candidates) {
     double lh_epsilon = ann_network.options.lh_epsilon;
     int act_iters = 0;
     double old_logl = ann_network.raxml_treeinfo->loglh(true);
@@ -227,6 +227,7 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
         if (new_logl - old_logl > lh_epsilon) { // add all neighbors of the branch to the candidates
             std::unordered_set<size_t> neighbor_indices = getNeighborPmatrixIndices(
                     ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
+            assert(!neighbor_indices.empty());
             for (size_t idx : neighbor_indices) {
                 candidates.emplace(idx);
             }

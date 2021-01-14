@@ -54,6 +54,7 @@ std::vector<Node*> getAllParents(Network &network, const Node *node);
 Edge* getEdgeTo(Network &network, const Node *node, const Node *target);
 Edge* getEdgeTo(Network &network, size_t from_clv_index, size_t to_clv_index);
 std::vector<Edge*> getAdjacentEdges(Network &network, const Node *node);
+std::vector<Edge*> getAdjacentEdges(Network &network, const Edge *edge);
 
 Node* getSource(Network &network, const Edge *edge);
 Node* getTarget(Network &network, const Edge *edge);

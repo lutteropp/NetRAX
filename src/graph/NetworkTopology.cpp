@@ -370,6 +370,32 @@ std::vector<Edge*> getAdjacentEdges(Network &network, const Node *node) {
     return res;
 }
 
+std::vector<Edge*> getAdjacentEdges(Network &network, const Edge *edge) {
+    std::vector<Edge*> res;
+
+    Node* node1 = network.nodes_by_index[edge->link1->node_clv_index];
+    Node* node2 = network.nodes_by_index[edge->link1->node_clv_index];
+
+    for (size_t i = 0; i < node1->links.size(); ++i) {
+        if (node1->links[i].edge_pmatrix_index != edge->pmatrix_index) {
+            Edge* neigh = network.edges_by_index[node1->links[i].edge_pmatrix_index];
+            if (std::find(res.begin(), res.end(), neigh) == res.end()) {
+                res.emplace_back(neigh);
+            }
+        }
+    }
+
+    for (size_t i = 0; i < node2->links.size(); ++i) {
+        if (node2->links[i].edge_pmatrix_index != edge->pmatrix_index) {
+            Edge* neigh = network.edges_by_index[node2->links[i].edge_pmatrix_index];
+            if (std::find(res.begin(), res.end(), neigh) == res.end()) {
+                res.emplace_back(neigh);
+            }
+        }
+    }
+    return res;
+}
+
 Node* getSource(Network &network, const Edge *edge) {
     assert(edge->link1->direction == Direction::OUTGOING);
     return network.nodes_by_index[edge->link1->node_clv_index];

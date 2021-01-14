@@ -21,7 +21,7 @@ namespace netrax {
 
 double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radius);
 double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radius,
-        std::unordered_set<size_t> &candidates);
+        std::unordered_set<size_t> candidates);
 double optimize_reticulations(AnnotatedNetwork &ann_network, int max_iters);
 double optimize_reticulation(AnnotatedNetwork &ann_network, size_t reticulation_index);
 

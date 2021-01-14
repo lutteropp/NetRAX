@@ -141,6 +141,29 @@ bool isComplexityChanging(MoveType& moveType) {
     return (moveType == MoveType::ArcRemovalMove || moveType == MoveType::ArcInsertionMove || moveType == MoveType::DeltaMinusMove || moveType == MoveType::DeltaPlusMove);
 }
 
+
+void add_neighbors_in_radius(AnnotatedNetwork& ann_network, std::unordered_set<size_t>& candidates, int pmatrix_index, int radius) {
+    if (radius == 0) {
+        return;
+    }
+    std::vector<Edge*> neighs = netrax::getAdjacentEdges(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
+    for (size_t i = 0; i < neighs.size(); ++i) {
+        if (candidates.count(neighs[i]->pmatrix_index) == 0) {
+            candidates.emplace(neighs[i]->pmatrix_index);
+            add_neighbors_in_radius(ann_network, candidates, neighs[i]->pmatrix_index, radius - 1);
+        }
+    }
+}
+
+void add_neighbors_in_radius(AnnotatedNetwork& ann_network, std::unordered_set<size_t>& candidates, int radius) {
+    if (radius == 0) {
+        return;
+    }
+    for (size_t pmatrix_index : candidates) {
+        add_neighbors_in_radius(ann_network, candidates, pmatrix_index, radius);
+    }
+}
+
 template<typename T>
 double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates, double old_score, bool greedy=true, bool randomizeCandidates=false, bool brlenopt_inside=true) {
     if (candidates.empty()) {
@@ -166,17 +189,6 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     for (size_t i = 0; i < candidates.size(); ++i) {
         T move = candidates[i];
         performMove(ann_network, move);
-
-        bool all_clvs_valid = true;
-        for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
-            all_clvs_valid &= ann_network.fake_treeinfo->clv_valid[i][ann_network.network.root->clv_index];
-        }
-        assert(!all_clvs_valid);
-
-        double before_logl = computeLoglikelihood(ann_network, 1, 1);
-        double recomputed_logl = computeLoglikelihood(ann_network, 0, 1);
-        assert(before_logl == recomputed_logl);
-
         //optimize_reticulations(ann_network, 100);
         //before_logl = computeLoglikelihood(ann_network, 1, 1);
         //recomputed_logl = computeLoglikelihood(ann_network, 0, 1);
@@ -184,7 +196,12 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         
         if (brlenopt_inside) { // Do brlen optimization locally around the move
             std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
+            assert(!brlen_opt_candidates.empty());
             optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
+            add_neighbors_in_radius(ann_network, brlen_opt_candidates, 1000);
+            assert(!brlen_opt_candidates.empty());
+            assert(brlen_opt_candidates.size() == ann_network.network.num_branches());
+            //optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
             optimize_branches(ann_network, max_iters, radius);
 
             /*
@@ -219,11 +236,6 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         }
         if (!isComplexityChanging(move.moveType)) {
             undoMove(ann_network, move);
-            all_clvs_valid = true;
-            for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
-                all_clvs_valid &= ann_network.fake_treeinfo->clv_valid[i][ann_network.network.root->clv_index];
-            }
-            assert(!all_clvs_valid);
         }
 
         if (brlenopt_inside || isComplexityChanging(move.moveType)) {
@@ -243,12 +255,6 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     if (best_idx < candidates.size()) {
         T bestMove = candidates[best_idx];
         performMove(ann_network, bestMove);
-
-        bool all_clvs_valid = true;
-        for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
-            all_clvs_valid &= ann_network.fake_treeinfo->clv_valid[i][ann_network.network.root->clv_index];
-        }
-        assert(!all_clvs_valid);
 
         if (brlenopt_inside || isComplexityChanging(bestMove.moveType)) {
             apply_network_state(ann_network, best_state, complexityChanging);
