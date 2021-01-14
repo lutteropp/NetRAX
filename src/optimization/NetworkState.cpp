@@ -241,7 +241,7 @@ bool alphas_equal(const NetworkState& old_state, const NetworkState& act_state) 
         return false;
     }
     for (size_t i = 0; i < old_state.alphas.size(); ++i) {
-        if (old_state.alphas[i] == act_state.alphas[i]) {
+        if (old_state.alphas[i] != act_state.alphas[i]) {
             return false;
         }
     }
