@@ -235,7 +235,6 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
             std::cout << "new value: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
             std::cout << "old value: " << start_logl << "\n";
         }
-        assert(fabs(ann_network.raxml_treeinfo->loglh(true) - start_logl) < ann_network.options.lh_epsilon);
         if (greedy && foundBetterScore) {
             break;
         }

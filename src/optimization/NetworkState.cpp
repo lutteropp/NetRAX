@@ -85,6 +85,18 @@ NetworkState extract_network_state(AnnotatedNetwork &ann_network, bool extract_n
     return state;
 }
 
+void assert_rates(AnnotatedNetwork& ann_network) {
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        std::vector<double> recomputed_rates(ann_network.fake_treeinfo->partitions[p]->rate_cats);
+        pll_compute_gamma_cats(ann_network.fake_treeinfo->alphas[p],
+                ann_network.fake_treeinfo->partitions[p]->rate_cats, recomputed_rates.data(),
+                ann_network.fake_treeinfo->gamma_mode[p]);
+        for (size_t k = 0; k < recomputed_rates.size(); ++k) {
+            assert(ann_network.fake_treeinfo->partitions[p]->rates[k] == recomputed_rates[k]);
+        }
+    }
+}
+
 void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &state, bool copy_network) {
     ann_network.options.brlen_linkage = state.brlen_linkage;
     assert_tip_links(state.network);
@@ -134,6 +146,7 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
         }
     }
     //assert_branch_lengths(ann_network);
+    assert_rates(ann_network);
 }
 
 bool reticulation_probs_equal(const NetworkState& old_state, const NetworkState& act_state) {
