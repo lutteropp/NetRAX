@@ -176,10 +176,10 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
             assert(!brlen_opt_candidates.empty());
             //add_neighbors_in_radius(ann_network, brlen_opt_candidates, 1);
             optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
-            //add_neighbors_in_radius(ann_network, brlen_opt_candidates, 9999);
-            //assert(brlen_opt_candidates.size() == ann_network.network.num_branches());
-            optimize_branches(ann_network, max_iters, radius);
-            //optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
+            add_neighbors_in_radius(ann_network, brlen_opt_candidates, 9999);
+            assert(brlen_opt_candidates.size() == ann_network.network.num_branches());
+            //optimize_branches(ann_network, max_iters, radius);
+            optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
             
             /*
             // optimize brlen scalers

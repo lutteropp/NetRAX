@@ -240,6 +240,9 @@ double optimize_branch(AnnotatedNetwork &ann_network, int max_iters, int *act_it
 
 double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radius,
         std::unordered_set<size_t> candidates) {
+    for (size_t idx : candidates) {
+        assert(idx < ann_network.network.num_branches());
+    }
     double lh_epsilon = ann_network.options.lh_epsilon;
     int act_iters = 0;
     double old_logl = ann_network.raxml_treeinfo->loglh(true);
