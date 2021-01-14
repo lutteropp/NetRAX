@@ -142,16 +142,15 @@ bool isComplexityChanging(MoveType& moveType) {
 }
 
 
-void add_neighbors_in_radius(AnnotatedNetwork& ann_network, std::unordered_set<size_t>& candidates, int pmatrix_index, int radius) {
-    if (radius == 0 || candidates.size() == ann_network.network.num_branches()) {
+void add_neighbors_in_radius(AnnotatedNetwork& ann_network, std::unordered_set<size_t>& candidates, int pmatrix_index, int radius, std::unordered_set<size_t> &seen) {
+    if (seen.count(pmatrix_index) ==1 || radius == 0 || candidates.size() == ann_network.network.num_branches()) {
         return;
     }
+    seen.emplace(pmatrix_index);
     std::vector<Edge*> neighs = netrax::getAdjacentEdges(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
     for (size_t i = 0; i < neighs.size(); ++i) {
-        if (candidates.count(neighs[i]->pmatrix_index) == 0) {
-            candidates.emplace(neighs[i]->pmatrix_index);
-            add_neighbors_in_radius(ann_network, candidates, neighs[i]->pmatrix_index, radius - 1);
-        }
+        candidates.emplace(neighs[i]->pmatrix_index);
+        add_neighbors_in_radius(ann_network, candidates, neighs[i]->pmatrix_index, radius - 1, seen);
     }
 }
 
@@ -159,8 +158,9 @@ void add_neighbors_in_radius(AnnotatedNetwork& ann_network, std::unordered_set<s
     if (radius == 0) {
         return;
     }
+    std::unordered_set<size_t> seen;
     for (size_t pmatrix_index : candidates) {
-        add_neighbors_in_radius(ann_network, candidates, pmatrix_index, radius);
+        add_neighbors_in_radius(ann_network, candidates, pmatrix_index, radius, seen);
     }
 }
 
