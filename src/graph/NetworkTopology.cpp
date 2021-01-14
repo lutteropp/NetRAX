@@ -393,6 +393,7 @@ std::vector<Edge*> getAdjacentEdges(Network &network, const Edge *edge) {
             }
         }
     }
+    assert(edge->pmatrix_index < network.tipCount || res.size() > 1);
     return res;
 }
 
@@ -510,6 +511,7 @@ std::unordered_set<size_t> getNeighborPmatrixIndices(Network &network, Edge *edg
         res.emplace(target->links[i].edge_pmatrix_index);
     }
     res.erase(edge->pmatrix_index);
+    assert(edge->pmatrix_index < network.tipCount || res.size() > 1);
     return res;
 }
 
