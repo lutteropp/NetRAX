@@ -19,6 +19,9 @@ extern "C" {
 
 namespace netrax {
 
+void add_neighbors_in_radius(AnnotatedNetwork& ann_network, std::unordered_set<size_t>& candidates, int radius);
+void add_neighbors_in_radius(AnnotatedNetwork& ann_network, std::unordered_set<size_t>& candidates, size_t pmatrix_index, int radius);
+
 double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radius);
 double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radius,
         std::unordered_set<size_t> candidates);

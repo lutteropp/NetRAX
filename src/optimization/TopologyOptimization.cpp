@@ -141,29 +141,6 @@ bool isComplexityChanging(MoveType& moveType) {
     return (moveType == MoveType::ArcRemovalMove || moveType == MoveType::ArcInsertionMove || moveType == MoveType::DeltaMinusMove || moveType == MoveType::DeltaPlusMove);
 }
 
-
-void add_neighbors_in_radius(AnnotatedNetwork& ann_network, std::unordered_set<size_t>& candidates, int pmatrix_index, int radius, std::unordered_set<size_t> &seen) {
-    if (seen.count(pmatrix_index) ==1 || radius == 0 || candidates.size() == ann_network.network.num_branches()) {
-        return;
-    }
-    seen.emplace(pmatrix_index);
-    std::vector<Edge*> neighs = netrax::getAdjacentEdges(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
-    for (size_t i = 0; i < neighs.size(); ++i) {
-        candidates.emplace(neighs[i]->pmatrix_index);
-        add_neighbors_in_radius(ann_network, candidates, neighs[i]->pmatrix_index, radius - 1, seen);
-    }
-}
-
-void add_neighbors_in_radius(AnnotatedNetwork& ann_network, std::unordered_set<size_t>& candidates, int radius) {
-    if (radius == 0) {
-        return;
-    }
-    std::unordered_set<size_t> seen;
-    for (size_t pmatrix_index : candidates) {
-        add_neighbors_in_radius(ann_network, candidates, pmatrix_index, radius, seen);
-    }
-}
-
 template<typename T>
 double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates, double old_score, bool greedy=true, bool randomizeCandidates=false, bool brlenopt_inside=true) {
     if (candidates.empty()) {
@@ -197,13 +174,9 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         if (brlenopt_inside) { // Do brlen optimization locally around the move
             std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
             assert(!brlen_opt_candidates.empty());
+            add_neighbors_in_radius(ann_network, brlen_opt_candidates, 2);
             optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
-            add_neighbors_in_radius(ann_network, brlen_opt_candidates, 1000);
-            assert(!brlen_opt_candidates.empty());
-            assert(brlen_opt_candidates.size() == ann_network.network.num_branches());
-            //optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
-            optimize_branches(ann_network, max_iters, radius);
-
+            
             /*
             // optimize brlen scalers
             if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED) {

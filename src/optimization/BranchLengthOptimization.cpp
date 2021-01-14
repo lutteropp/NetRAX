@@ -95,6 +95,36 @@ static double brent_target_networks_prob(void *p, double x) {
     return score;
 }
 
+void add_neighbors_in_radius(AnnotatedNetwork& ann_network, std::unordered_set<size_t>& candidates, int pmatrix_index, int radius, std::unordered_set<size_t> &seen) {
+    if (seen.count(pmatrix_index) ==1 || radius == 0 || candidates.size() == ann_network.network.num_branches()) {
+        return;
+    }
+    seen.emplace(pmatrix_index);
+    std::vector<Edge*> neighs = netrax::getAdjacentEdges(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
+    for (size_t i = 0; i < neighs.size(); ++i) {
+        candidates.emplace(neighs[i]->pmatrix_index);
+        add_neighbors_in_radius(ann_network, candidates, neighs[i]->pmatrix_index, radius - 1, seen);
+    }
+}
+
+void add_neighbors_in_radius(AnnotatedNetwork& ann_network, std::unordered_set<size_t>& candidates, int radius) {
+    if (radius == 0) {
+        return;
+    }
+    std::unordered_set<size_t> seen;
+    for (size_t pmatrix_index : candidates) {
+        add_neighbors_in_radius(ann_network, candidates, pmatrix_index, radius, seen);
+    }
+}
+
+void add_neighbors_in_radius(AnnotatedNetwork& ann_network, std::unordered_set<size_t>& candidates, size_t pmatrix_index, int radius) {
+    if (radius == 0) {
+        return;
+    }
+    std::unordered_set<size_t> seen;
+    add_neighbors_in_radius(ann_network, candidates, pmatrix_index, radius, seen);
+}
+
 double optimize_branch(AnnotatedNetwork &ann_network, int max_iters, int *act_iters,
         size_t pmatrix_index, size_t partition_index) {
     double min_brlen = ann_network.options.brlen_min;
@@ -225,12 +255,7 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
         checkLoglBeforeAfter(ann_network);
 
         if (new_logl - old_logl > lh_epsilon) { // add all neighbors of the branch to the candidates
-            std::unordered_set<size_t> neighbor_indices = getNeighborPmatrixIndices(
-                    ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
-            assert(!neighbor_indices.empty());
-            for (size_t idx : neighbor_indices) {
-                candidates.emplace(idx);
-            }
+            add_neighbors_in_radius(ann_network, candidates, pmatrix_index, 1);
         }
         old_logl = new_logl;
     }
