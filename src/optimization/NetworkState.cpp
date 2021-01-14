@@ -66,6 +66,7 @@ NetworkState extract_network_state(AnnotatedNetwork &ann_network, bool extract_n
             state.partition_brlen_scalers[p] = ann_network.fake_treeinfo->brlen_scalers[p];
         }
     }
+    state.alphas.resize(ann_network.fake_treeinfo->partition_count);
     for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
         state.alphas[p] = ann_network.fake_treeinfo->alphas[p];
     }
