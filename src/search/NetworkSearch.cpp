@@ -60,7 +60,7 @@ ScoreImprovementResult check_score_improvement(AnnotatedNetwork& ann_network, do
             std::cout << "IMPROVED LOCAL BEST SCORE FOUND SO FAR: " << new_score << "\n\n";
             if (*local_best < *global_best) {
                 global_improved = true;
-                std::cout << "OLD LOCAL BEST SCORE WAS: " << *global_best << "\n";
+                std::cout << "OLD GLOBAL BEST SCORE WAS: " << *global_best << "\n";
                 *global_best = *local_best;
                 std::cout << "IMPROVED GLOBAL BEST SCORE FOUND SO FAR: " << new_score << "\n\n";
                 NetraxInstance::writeNetwork(ann_network, ann_network.options.output_file);
