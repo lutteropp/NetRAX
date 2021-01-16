@@ -90,7 +90,7 @@ bool wantedMove(T *move) {
 }
 
 
-void assertBranchesWithinBounds(const AnnotatedNetwork& ann_network) {
+bool assertBranchesWithinBounds(const AnnotatedNetwork& ann_network) {
     double min_brlen = ann_network.options.brlen_min;
     double max_brlen = ann_network.options.brlen_max;
     for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
@@ -101,6 +101,7 @@ void assertBranchesWithinBounds(const AnnotatedNetwork& ann_network) {
         assert(w>=min_brlen);
         assert(w<=max_brlen);
     }
+    return true;
 }
 
 void printExtensiveBICInfo(AnnotatedNetwork &ann_network) {
@@ -150,7 +151,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     if (randomizeCandidates) {
         std::random_shuffle(candidates.begin(), candidates.end());
     }
-    double brlen_smooth_factor = 0.3;
+    double brlen_smooth_factor = 0.25;
     int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;;
     int radius = 1;
     double start_logl = ann_network.raxml_treeinfo->loglh(true);

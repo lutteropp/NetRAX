@@ -142,7 +142,7 @@ std::vector<pll_operation_t> createOperationsUpdatedReticulation(AnnotatedNetwor
         size_t partition_idx, const std::vector<Node*> &parent, Node *actNode,
         const std::vector<bool> &dead_nodes, bool incremental, Node *displayed_tree_root);
 
-void assertNoDuplicateOperations(const std::vector<pll_operation_t> &ops) {
+bool assertNoDuplicateOperations(const std::vector<pll_operation_t> &ops) {
     for (size_t i = 0; i < ops.size(); ++i) {
         for (size_t j = i + 1; j < ops.size(); ++j) {
             assert(
@@ -151,6 +151,7 @@ void assertNoDuplicateOperations(const std::vector<pll_operation_t> &ops) {
                             || ops[i].child2_clv_index != ops[j].child2_clv_index);
         }
     }
+    return true;
 }
 
 std::vector<pll_operation_t> createOperationsTowardsRoot(AnnotatedNetwork &ann_network,
@@ -218,7 +219,7 @@ std::vector<pll_operation_t> createOperationsTowardsRoot(AnnotatedNetwork &ann_n
                             fake_pmatrix_index));
     }
 
-    assertNoDuplicateOperations(ops);
+    assert(assertNoDuplicateOperations(ops));
 
     // just for debug
     /*std::cout << exportDebugInfo(ann_network.network) << "\n";

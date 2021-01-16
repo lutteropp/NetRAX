@@ -487,7 +487,7 @@ void invalidatePmatrixIndex(AnnotatedNetwork &ann_network, size_t pmatrix_index,
             visited);
 }
 
-void assertReticulationProbs(AnnotatedNetwork &ann_network) {
+bool assertReticulationProbs(AnnotatedNetwork &ann_network) {
     bool unlinkedMode = (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
     size_t n_partitions = 1;
     if (unlinkedMode) {
@@ -500,6 +500,7 @@ void assertReticulationProbs(AnnotatedNetwork &ann_network) {
             assert(actProb >= 0 && actProb <= 1);
         }
     }
+    return true;
 }
 
 std::unordered_set<size_t> getNeighborPmatrixIndices(Network &network, Edge *edge) {

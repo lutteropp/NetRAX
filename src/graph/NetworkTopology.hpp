@@ -71,7 +71,7 @@ void invalidateHigherCLVs(AnnotatedNetwork &ann_network, Node *node, bool invali
 void invalidatePmatrixIndex(AnnotatedNetwork &ann_network, size_t pmatrix_index,
         std::vector<bool> &visited);
 
-void assertReticulationProbs(AnnotatedNetwork &ann_network);
+bool assertReticulationProbs(AnnotatedNetwork &ann_network);
 
 std::unordered_set<size_t> getNeighborPmatrixIndices(Network &network, Edge *edge);
 

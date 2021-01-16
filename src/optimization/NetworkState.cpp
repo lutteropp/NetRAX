@@ -4,12 +4,13 @@
 
 namespace netrax {
 
-void assert_tip_links(const Network& network) {
+bool assert_tip_links(const Network& network) {
     for (size_t i = 0; i < network.num_tips(); ++i) {
         assert(network.nodes_by_index[i]->clv_index == i);
         assert(!network.nodes_by_index[i]->label.empty());
         assert(network.nodes_by_index[i]->links.size() == 1);
     }
+    return true;
 }
 
 bool consecutive_indices(const Network& network) {
@@ -22,7 +23,7 @@ bool consecutive_indices(const Network& network) {
     return true;
 }
 
-void assert_links_in_range(const Network& network) {
+bool assert_links_in_range(const Network& network) {
     for (size_t i = 0; i < network.num_nodes(); ++i) {
         for (size_t j = 0; j < network.nodes_by_index[i]->links.size(); ++j) {
             assert(network.nodes_by_index[i]->links[j].edge_pmatrix_index < network.num_branches());
@@ -32,19 +33,21 @@ void assert_links_in_range(const Network& network) {
         assert(network.edges_by_index[i]->link1->edge_pmatrix_index == i);
         assert(network.edges_by_index[i]->link2->edge_pmatrix_index == i);
     }
+    return true;
 }
 
-void assert_branch_lengths(AnnotatedNetwork& ann_network) {
+bool assert_branch_lengths(AnnotatedNetwork& ann_network) {
     for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
         for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
             assert(ann_network.fake_treeinfo->branch_lengths[p][i] >= ann_network.options.brlen_min);
         }
     }
+    return true;
 }
 
 NetworkState extract_network_state(AnnotatedNetwork &ann_network, bool extract_network) {
-    assert_tip_links(ann_network.network);
-    assert_links_in_range(ann_network.network);
+    assert(assert_tip_links(ann_network.network));
+    assert(assert_links_in_range(ann_network.network));
     //assert_branch_lengths(ann_network);
     NetworkState state;
     state.brlen_linkage = ann_network.options.brlen_linkage;
@@ -53,7 +56,7 @@ NetworkState extract_network_state(AnnotatedNetwork &ann_network, bool extract_n
         state.network = ann_network.network;
         state.network_valid = true;
     }
-    assert_tip_links(state.network);
+    assert(assert_tip_links(state.network));
     
     if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
         state.partition_brlens.resize(ann_network.fake_treeinfo->partition_count);
@@ -84,12 +87,12 @@ NetworkState extract_network_state(AnnotatedNetwork &ann_network, bool extract_n
     state.reticulation_probs = ann_network.reticulation_probs;
     if (extract_network) {
         assert(consecutive_indices(state.network));
-        assert_tip_links(state.network);
+        assert(assert_tip_links(state.network));
     }
     return state;
 }
 
-void assert_rates(AnnotatedNetwork& ann_network) {
+bool assert_rates(AnnotatedNetwork& ann_network) {
     for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
         std::vector<double> recomputed_rates(ann_network.fake_treeinfo->partitions[p]->rate_cats);
         pll_compute_gamma_cats(ann_network.fake_treeinfo->alphas[p],
@@ -99,12 +102,13 @@ void assert_rates(AnnotatedNetwork& ann_network) {
             assert(ann_network.fake_treeinfo->partitions[p]->rates[k] == recomputed_rates[k]);
         }
     }
+    return true;
 }
 
 void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &state, bool copy_network) {
     ann_network.options.brlen_linkage = state.brlen_linkage;
-    assert_tip_links(state.network);
-    assert_links_in_range(state.network);
+    assert(assert_tip_links(state.network));
+    assert(assert_links_in_range(state.network));
     if (copy_network) {
         assert(state.network_valid);
         ann_network.network = state.network;
@@ -140,8 +144,8 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
         ann_network.blobInfo = partitionNetworkIntoBlobs(ann_network.network, ann_network.travbuffer);
         assert(consecutive_indices(state.network));
         assert(consecutive_indices(ann_network.network));
-        assert_tip_links(ann_network.network);
-        assert_links_in_range(ann_network.network);
+        assert(assert_tip_links(ann_network.network));
+        assert(assert_links_in_range(ann_network.network));
         // invalidate all clv and pmatrix entries... TODO: can be optimized, only needs to be done if model or brlens changed
         for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
             for (size_t i = 0; i < ann_network.network.nodes.size(); ++i) {
@@ -176,7 +180,6 @@ bool reticulation_probs_equal(const NetworkState& old_state, const NetworkState&
 
 bool brlen_scalers_equal(const NetworkState& old_state, const NetworkState& act_state) {
     assert(old_state.partition_brlen_scalers.size() == act_state.partition_brlen_scalers.size());
-    bool all_fine = true;
     for (size_t i = 0; i < act_state.partition_brlen_scalers.size(); ++i) {
         if (fabs(act_state.partition_brlen_scalers[i] - old_state.partition_brlen_scalers[i]) >= 1E-5) {
             return false;
