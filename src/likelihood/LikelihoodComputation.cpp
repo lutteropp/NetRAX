@@ -170,6 +170,12 @@ std::vector<DisplayedTreeData> process_partition_new(AnnotatedNetwork &ann_netwo
     fake_treeinfo.active_partition = partition_idx;
     setup_pmatrices(ann_network, incremental, true);
 
+    // TODO: Not sure if really needed, but just to be sure
+    // Invalidate all clvs before starting with the first displayed tree
+    for (size_t i = 0; i < ann_network.network.num_nodes(); ++i) {
+        ann_network.fake_treeinfo->clv_valid[partition_idx][i] = 0;
+    }
+
     std::vector<bool> clv_touched = init_clv_touched(ann_network, incremental, partition_idx);
     size_t n_trees = 1 << network.num_reticulations();
     std::vector<DisplayedTreeData> displayed_trees;
