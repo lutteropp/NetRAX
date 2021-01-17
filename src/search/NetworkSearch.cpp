@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <fstream>
 
 #include <mpreal.h>
 #include "../Api.hpp"
@@ -189,9 +190,14 @@ void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
             continue;
         }
         std::cout << i << ", " << bestNetworkData.logl[i] << ", " << bestNetworkData.bic[i] << ", " << bestNetworkData.newick[i] << "\n";
-        NetraxInstance::writeNetwork(ann_network, ann_network.options.output_file + "_" + std::to_string(i) + "_reticulations.nw");
+        
+        std::ofstream outfile(ann_network.options.output_file + "_" + std::to_string(i) + "_reticulations.nw");
+        outfile << bestNetworkData.newick[i] << "\n";
+        outfile.close();
     }
-    NetraxInstance::writeNetwork(ann_network, ann_network.options.output_file + "_bestNetwork.nw");
+    std::ofstream outfile(ann_network.options.output_file + "_bestNetwork.nw");
+    outfile << bestNetworkData.newick[bestNetworkData.best_n_reticulations] << "\n";
+    outfile.close();
 }
 
 void run_single_start(NetraxOptions& netraxOptions, std::mt19937& rng) {
