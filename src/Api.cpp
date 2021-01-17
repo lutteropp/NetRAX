@@ -186,16 +186,4 @@ AnnotatedNetwork NetraxInstance::build_best_raxml_annotated_network(NetraxOption
     return ann_network;
 }
 
-/**
- * Writes a network to a file in Extended Newick Format.
- * 
- * @param ann_network The network.
- * @param filepath The file where to write the network to.
- */
-void NetraxInstance::writeNetwork(AnnotatedNetwork &ann_network, const std::string &filepath) {
-    std::ofstream outfile(filepath);
-    outfile << netrax::toExtendedNewick(ann_network) << "\n";
-    outfile.close();
-}
-
 }

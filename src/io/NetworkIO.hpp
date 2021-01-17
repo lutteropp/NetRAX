@@ -20,4 +20,6 @@ std::string toExtendedNewick(Network &network);
 Network convertUtreeToNetwork(const pll_utree_t &utree, unsigned int maxReticulations);
 void updateNetwork(AnnotatedNetwork &ann_network);
 
+void writeNetwork(AnnotatedNetwork &ann_network, const std::string &filepath);
+
 }

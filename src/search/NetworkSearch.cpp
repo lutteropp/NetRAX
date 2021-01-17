@@ -104,7 +104,7 @@ ScoreImprovementResult check_score_improvement(AnnotatedNetwork& ann_network, do
                 global_improved = true;
                 std::cout << "OLD GLOBAL BEST SCORE WAS: " << old_global_best << "\n";
                 std::cout << "IMPROVED GLOBAL BEST SCORE FOUND SO FAR: " << new_score << "\n\n";
-                NetraxInstance::writeNetwork(ann_network, ann_network.options.output_file);
+                writeNetwork(ann_network, ann_network.options.output_file);
                 std::cout << toExtendedNewick(ann_network) << "\n";
                 std::cout << "Better network written to " << ann_network.options.output_file << "\n";
                 printDisplayedTrees(ann_network);

@@ -437,4 +437,16 @@ Network convertUtreeToNetwork(const pll_utree_t &utree, unsigned int maxReticula
     return readNetworkFromString(newick, maxReticulations);
 }
 
+/**
+ * Writes a network to a file in Extended Newick Format.
+ * 
+ * @param ann_network The network.
+ * @param filepath The file where to write the network to.
+ */
+void writeNetwork(AnnotatedNetwork &ann_network, const std::string &filepath) {
+    std::ofstream outfile(filepath);
+    outfile << netrax::toExtendedNewick(ann_network) << "\n";
+    outfile.close();
+}
+
 }

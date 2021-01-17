@@ -155,7 +155,7 @@ void generate_random_network_only(NetraxOptions& netraxOptions, std::mt19937& rn
     netrax::AnnotatedNetwork ann_network = NetraxInstance::build_random_annotated_network(netraxOptions);
     NetraxInstance::init_annotated_network(ann_network, rng);
     NetraxInstance::add_extra_reticulations(ann_network, netraxOptions.max_reticulations);
-    NetraxInstance::writeNetwork(ann_network, netraxOptions.output_file);
+    writeNetwork(ann_network, netraxOptions.output_file);
     std::cout << "Final network written to " << netraxOptions.output_file << "\n";
 }
 
