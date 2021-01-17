@@ -224,20 +224,4 @@ void NetraxInstance::double_check_likelihood(AnnotatedNetwork &ann_network) {
     assert(similar_logl);
 }
 
-void NetraxInstance::optimizeAllNonTopology(AnnotatedNetwork &ann_network, bool extremeOpt) {
-    bool gotBetter = true;
-    while (gotBetter) {
-        gotBetter = false;
-        double score_before = scoreNetwork(ann_network);
-        optimizeModel(ann_network);
-        optimizeBranches(ann_network);
-        optimizeReticulationProbs(ann_network);
-        double score_after = scoreNetwork(ann_network);
-
-        if (score_after < score_before - ann_network.options.score_epsilon && extremeOpt) {
-            gotBetter = true;
-        }
-    }
-}
-
 }

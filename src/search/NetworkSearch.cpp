@@ -10,6 +10,9 @@
 #include "../io/NetworkIO.hpp"
 #include "../DebugPrintFunctions.hpp"
 #include "../optimization/TopologyOptimization.hpp"
+#include "../optimization/ModelOptimization.hpp"
+#include "../optimization/ReticulationOptimization.hpp"
+#include "../optimization/BranchLengthOptimization.hpp"
 #include "../optimization/Moves.hpp"
 #include "../optimization/MoveType.hpp"
 #include "../likelihood/LikelihoodComputation.hpp"
@@ -20,6 +23,22 @@ struct ScoreImprovementResult {
     bool local_improved = false;
     bool global_improved = false;
 };
+
+void optimizeAllNonTopology(AnnotatedNetwork &ann_network, bool extremeOpt) {
+    bool gotBetter = true;
+    while (gotBetter) {
+        gotBetter = false;
+        double score_before = scoreNetwork(ann_network);
+        optimizeModel(ann_network);
+        optimizeBranches(ann_network);
+        optimizeReticulationProbs(ann_network);
+        double score_after = scoreNetwork(ann_network);
+
+        if (score_after < score_before - ann_network.options.score_epsilon && extremeOpt) {
+            gotBetter = true;
+        }
+    }
+}
 
 void printDisplayedTrees(AnnotatedNetwork& ann_network) {
     std::vector<std::pair<std::string, double>> displayed_trees;
@@ -154,7 +173,7 @@ double optimizeEverythingRun(AnnotatedNetwork & ann_network, std::vector<MoveTyp
         }
     } while (type_idx < typesBySpeed.size());
 
-    NetraxInstance::optimizeAllNonTopology(ann_network, true);
+    optimizeAllNonTopology(ann_network, true);
     best_score = scoreNetwork(ann_network);
 
     return best_score;
@@ -167,7 +186,7 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
     double best_score = std::numeric_limits<double>::infinity();
 
     std::cout << "Initial network is:\n" << toExtendedNewick(ann_network) << "\n\n";
-    NetraxInstance::optimizeAllNonTopology(ann_network, true);
+    optimizeAllNonTopology(ann_network, true);
     std::cout << "Initial network after modelopt+brlenopt+reticulation opt is:\n" << toExtendedNewick(ann_network) << "\n\n";
     std::string best_network = toExtendedNewick(ann_network);
     ScoreImprovementResult score_improvement;
@@ -198,7 +217,7 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
             std::cout << "logl_after_removal: " << logl_after_removal << ", bic_after_removal: " << bic_after_removal << "\n";
 
             if (ann_network.network.num_reticulations() < old_num_reticulations) {
-                NetraxInstance::optimizeAllNonTopology(ann_network);
+                optimizeAllNonTopology(ann_network);
                 score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
                 if (score_improvement.local_improved) { // only redo (n-1) reticulation search if he arc removal led to a better network
                     optimizeEverythingRun(ann_network, typesBySpeed, start_time, true);
@@ -224,8 +243,8 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
 
             // new version: search for best place to add the new reticulation
             MoveType insertionType = MoveType::ArcInsertionMove;
-            netrax::greedyHillClimbingTopology(ann_network, insertionType, false, true, 1);
-            NetraxInstance::optimizeAllNonTopology(ann_network);
+            greedyHillClimbingTopology(ann_network, insertionType, false, true, 1);
+            optimizeAllNonTopology(ann_network);
 
             // ensure that we don't have a reticulation with prob near 0.0 or 1.0 now. If we have one, stop the search.
             if (hasBadReticulation(ann_network)) {
