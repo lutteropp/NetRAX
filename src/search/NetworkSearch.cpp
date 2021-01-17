@@ -165,8 +165,10 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
                 }
             }
             if (badReticulationFound) {
+                std::cout << "BAD RETICULATION FOUND/n";
                 continue;
             }
+            score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
 
             NetraxInstance::optimizeEverythingRun(ann_network, typesBySpeed, start_time);
             score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
