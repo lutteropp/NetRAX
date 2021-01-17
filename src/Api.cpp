@@ -198,30 +198,4 @@ void NetraxInstance::writeNetwork(AnnotatedNetwork &ann_network, const std::stri
     outfile.close();
 }
 
-void NetraxInstance::double_check_likelihood(AnnotatedNetwork &ann_network) {
-    double logl = ann_network.raxml_treeinfo->loglh(true);
-    std::string newick = toExtendedNewick(ann_network.network);
-
-    AnnotatedNetwork ann_network2;
-    ann_network2.options = ann_network.options;
-    ann_network2.network = netrax::readNetworkFromString(newick,
-            ann_network.options.max_reticulations);
-    init_annotated_network(ann_network2, ann_network.rng);
-    optimizeModel(ann_network2);
-    double reread_logl = computeLoglikelihood(ann_network2, 1, 1);
-
-    bool similar_logl = (abs(logl - reread_logl < 1.0));
-
-    if (!similar_logl) {
-        std::cout << "logl: " << logl << "\n";
-        std::cout << "reread_logl: " << reread_logl << "\n";
-        std::cout << "current network:\n" << newick << "\n";
-        std::cout << exportDebugInfo(ann_network) << "\n";
-        std::cout << "reread_network:\n" << toExtendedNewick(ann_network2) << "\n";
-        std::cout << exportDebugInfo(ann_network2) << "\n";
-    }
-
-    assert(similar_logl);
-}
-
 }
