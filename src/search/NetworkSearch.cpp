@@ -146,7 +146,10 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
 
             if (ann_network.network.num_reticulations() < old_num_reticulations) {
                 NetraxInstance::optimizeAllNonTopology(ann_network);
-                NetraxInstance::optimizeEverythingRun(ann_network, typesBySpeed, start_time);
+                score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
+                if (score_improvement.local_improved) { // only redo (n-1) reticulation search if he arc removal led to a better network
+                    NetraxInstance::optimizeEverythingRun(ann_network, typesBySpeed, start_time);
+                }
                 score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
             }
             if (score_improvement.local_improved) {
