@@ -20,6 +20,7 @@
 #include "../graph/AnnotatedNetwork.hpp"
 #include "../optimization/Moves.hpp"
 #include "../optimization/BranchLengthOptimization.hpp"
+#include "../optimization/ReticulationOptimization.hpp"
 #include "../likelihood/LikelihoodComputation.hpp"
 #include "../graph/Network.hpp"
 #include "../graph/NetworkTopology.hpp"
@@ -30,52 +31,6 @@
 #include "../utils.hpp"
 
 namespace netrax {
-
-double aic(double logl, double k) {
-    return -2 * logl + 2 * k;
-}
-double aicc(double logl, double k, double n) {
-    return aic(logl, k) + (2*k*k + 2*k) / (n - k - 1);
-}
-double bic(double logl, double k, double n) {
-    return -2 * logl + k * log(n);
-}
-
-size_t get_param_count(AnnotatedNetwork& ann_network) {
-    Network &network = ann_network.network;
-
-    size_t param_count = ann_network.total_num_model_parameters;
-    // reticulation probs as free parameters
-    param_count += ann_network.network.num_reticulations();
-    if (ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
-        assert(ann_network.fake_treeinfo->partition_count > 1);
-        param_count += ann_network.fake_treeinfo->partition_count * network.num_branches();
-    } else { // branch lengths are shared among partitions
-        param_count += network.num_branches();
-        if (ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED) {
-            assert(ann_network.fake_treeinfo->partition_count > 1);
-            // each partition can scale the branch lengths by its own scaling factor
-            param_count += ann_network.fake_treeinfo->partition_count - 1;
-        }
-    }
-    return param_count;
-}
-
-size_t get_sample_size(AnnotatedNetwork& ann_network) {
-    return ann_network.total_num_sites * ann_network.network.num_tips();
-}
-
-double aic(AnnotatedNetwork &ann_network, double logl) {
-    return aic(logl, get_param_count(ann_network));
-}
-
-double aicc(AnnotatedNetwork &ann_network, double logl) {
-    return aicc(logl, get_param_count(ann_network), get_sample_size(ann_network));
-}
-
-double bic(AnnotatedNetwork &ann_network, double logl) {
-    return bic(logl, get_param_count(ann_network), get_sample_size(ann_network));
-}
 
 template<typename T>
 bool wantedMove(T *move) {
@@ -102,29 +57,6 @@ bool assertBranchesWithinBounds(const AnnotatedNetwork& ann_network) {
         assert(w<=max_brlen);
     }
     return true;
-}
-
-void printExtensiveBICInfo(AnnotatedNetwork &ann_network) {
-    std::cout << " brlen_linkage: ";
-    if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED) {
-        std::cout << "PLLMOD_COMMON_BRLEN_SCALED";
-    } else if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
-        std::cout << "PLLMOD_COMMON_BRLEN_UNLINKED";
-    } else {
-        std::cout << "PLLMOD_COMMON_BRLEN_LINKED";
-    }
-    std::cout << "\n";
-    std::cout << " network.num_reticulations: " << ann_network.network.num_reticulations() << "\n";
-    std::cout << " network.num_branches: " << ann_network.network.num_branches() << "\n";
-    std::cout << " ann_network.total_num_model_parameters: " << ann_network.total_num_model_parameters << "\n";
-    std::cout << " ann_network.total_num_sites: " << ann_network.total_num_sites << "\n";
-    std::cout << " ann_network.network.num_tips: " << ann_network.network.num_tips() << "\n";
-    std::cout << " number of partitions in the MSA: " << ann_network.fake_treeinfo->partition_count << "\n";
-    std::cout << " sample_size n: " << get_sample_size(ann_network) << "\n";
-    std::cout << " param_count k: " << get_param_count(ann_network) << "\n";
-    double logl = ann_network.raxml_treeinfo->loglh(true);
-    std::cout << " logl: " << logl << "\n";
-    std::cout << " bic: " << bic(ann_network, logl) << "\n";
 }
 
 void printOldDisplayedTrees(AnnotatedNetwork &ann_network) {
@@ -173,7 +105,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         assert(!brlen_opt_candidates.empty());
         add_neighbors_in_radius(ann_network, brlen_opt_candidates, 1);
         optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
-        optimize_reticulations(ann_network, 100);
+        optimizeReticulationProbs(ann_network);
 
         if (isComplexityChanging(move.moveType)) {
             ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
@@ -330,12 +262,33 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, const std::vect
     return new_logl;
 }
 
-double simulatedAnnealingTopology(AnnotatedNetwork &ann_network, MoveType type) {
-    throw std::runtime_error("Not implemented yet");
+/**
+ * Re-infers the topology of a given network.
+ * 
+ * @param ann_network The network.
+ */
+void optimizeTopology(AnnotatedNetwork &ann_network, const std::vector<MoveType>& types, bool greedy, size_t max_iterations) {
+    assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
+    double old_score = scoreNetwork(ann_network);
+    greedyHillClimbingTopology(ann_network, types, greedy, max_iterations);
+    double new_score = scoreNetwork(ann_network);
+    std::cout << "BIC after topology optimization: " << new_score << "\n";
+    assert(new_score <= old_score + ann_network.options.score_epsilon);
 }
 
-double simulatedAnnealingTopology(AnnotatedNetwork &ann_network) {
-    throw std::runtime_error("Not implemented yet");
+/**
+ * Re-infers the topology of a given network.
+ * 
+ * @param ann_network The network.
+ */
+void optimizeTopology(AnnotatedNetwork &ann_network, MoveType& type, bool greedy, bool enforce_apply_move, size_t max_iterations) {
+    assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
+    double old_score = scoreNetwork(ann_network);
+    greedyHillClimbingTopology(ann_network, type, greedy, enforce_apply_move, max_iterations);
+    double new_score = scoreNetwork(ann_network);
+    //std::cout << "BIC after topology optimization: " << new_score << "\n";
+
+    assert(new_score <= old_score + ann_network.options.score_epsilon);
 }
 
 }

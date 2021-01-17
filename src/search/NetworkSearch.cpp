@@ -12,6 +12,7 @@
 #include "../optimization/TopologyOptimization.hpp"
 #include "../optimization/Moves.hpp"
 #include "../optimization/MoveType.hpp"
+#include "../likelihood/LikelihoodComputation.hpp"
 
 namespace netrax {
 
@@ -61,11 +62,11 @@ struct BestNetworkData {
 ScoreImprovementResult check_score_improvement(AnnotatedNetwork& ann_network, double* local_best, BestNetworkData* bestNetworkData) {
     bool local_improved = false;
     bool global_improved = false;
-    double new_score = NetraxInstance::scoreNetwork(ann_network);
+    double new_score = scoreNetwork(ann_network);
     double score_diff = bestNetworkData->bic[ann_network.network.num_reticulations()] - new_score;
     if (score_diff > 0.0001) {
         bestNetworkData->bic[ann_network.network.num_reticulations()] = new_score;
-        bestNetworkData->logl[ann_network.network.num_reticulations()] = NetraxInstance::computeLoglikelihood(ann_network);
+        bestNetworkData->logl[ann_network.network.num_reticulations()] = computeLoglikelihood(ann_network, 1, 1);
         bestNetworkData->newick[ann_network.network.num_reticulations()] = toExtendedNewick(ann_network);
         
         local_improved = true;
@@ -107,6 +108,58 @@ bool hasBadReticulation(AnnotatedNetwork& ann_network) {
     return false;
 }
 
+double optimizeEverythingRun(AnnotatedNetwork & ann_network, std::vector<MoveType>& typesBySpeed, const std::chrono::high_resolution_clock::time_point& start_time, bool greedy = true) {
+    unsigned int type_idx = 0;
+    unsigned int max_seconds = ann_network.options.timeout;
+    double best_score = scoreNetwork(ann_network);
+    do {
+        while (ann_network.network.num_reticulations() == 0
+            && (typesBySpeed[type_idx] == MoveType::DeltaMinusMove || typesBySpeed[type_idx] == MoveType::ArcRemovalMove)) {
+            type_idx++;
+            if (type_idx >= typesBySpeed.size()) {
+                break;
+            }
+        }
+        if (type_idx >= typesBySpeed.size()) {
+            break;
+        }
+        while (ann_network.network.num_reticulations() == ann_network.options.max_reticulations
+            && (typesBySpeed[type_idx] == MoveType::DeltaPlusMove || typesBySpeed[type_idx] == MoveType::ArcInsertionMove)) {
+            type_idx++;
+            if (type_idx >= typesBySpeed.size()) {
+                break;
+            }
+        }
+        if (type_idx >= typesBySpeed.size()) {
+            break;
+        }
+        double old_score = scoreNetwork(ann_network);
+        optimizeTopology(ann_network, typesBySpeed[type_idx], greedy, false, 1);
+        double new_score = scoreNetwork(ann_network);
+        if (old_score - new_score > ann_network.options.score_epsilon) { // score got better
+            new_score = scoreNetwork(ann_network);
+            best_score = new_score;
+
+            type_idx = 0; // go back to fastest move type        
+        } else { // try next-slower move type
+            type_idx++;
+        }
+        assert(new_score <= old_score + ann_network.options.score_epsilon);
+
+        if (max_seconds != 0) {
+            auto act_time = std::chrono::high_resolution_clock::now();
+            if (std::chrono::duration_cast<std::chrono::seconds>( act_time - start_time ).count() >= max_seconds) {
+                break;
+            }
+        }
+    } while (type_idx < typesBySpeed.size());
+
+    NetraxInstance::optimizeAllNonTopology(ann_network, true);
+    best_score = scoreNetwork(ann_network);
+
+    return best_score;
+}
+
 void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData, std::mt19937& rng) {
     std::vector<MoveType> typesBySpeed = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::HeadMove};
 
@@ -122,25 +175,25 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
     score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
 
     // try horizontal moves
-    NetraxInstance::optimizeEverythingRun(ann_network, typesBySpeed, start_time);
+    optimizeEverythingRun(ann_network, typesBySpeed, start_time, true);
     score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
 
     bool keepSearching = true;
     while (keepSearching) {
         score_improvement = {false, false};
         keepSearching = false;
-        std::cout << "Initial optimized " << ann_network.network.num_reticulations() << "-reticulation network loglikelihood: " << NetraxInstance::computeLoglikelihood(ann_network) << "\n";
-        std::cout << "Initial optimized " << ann_network.network.num_reticulations() << "-reticulation network BIC score: " << NetraxInstance::scoreNetwork(ann_network) << "\n";
+        std::cout << "Initial optimized " << ann_network.network.num_reticulations() << "-reticulation network loglikelihood: " << computeLoglikelihood(ann_network, 1, 1) << "\n";
+        std::cout << "Initial optimized " << ann_network.network.num_reticulations() << "-reticulation network BIC score: " << scoreNetwork(ann_network) << "\n";
 
         // try removing reticulations
         if (ann_network.network.num_reticulations() > 0) { // try removing arcs
             MoveType removalType = MoveType::ArcRemovalMove;
             size_t old_num_reticulations = ann_network.network.num_reticulations();
-            double logl_before_removal = NetraxInstance::computeLoglikelihood(ann_network);
-            double bic_before_removal = NetraxInstance::scoreNetwork(ann_network);
+            double logl_before_removal = computeLoglikelihood(ann_network, 1, 1);
+            double bic_before_removal = scoreNetwork(ann_network);
             netrax::greedyHillClimbingTopology(ann_network, removalType, false);
-            double logl_after_removal = NetraxInstance::computeLoglikelihood(ann_network);
-            double bic_after_removal = NetraxInstance::scoreNetwork(ann_network);
+            double logl_after_removal = computeLoglikelihood(ann_network, 1, 1);
+            double bic_after_removal = scoreNetwork(ann_network);
             std::cout << "logl_before_removal: " << logl_before_removal << ", bic_before_removal: " << bic_before_removal << "\n";
             std::cout << "logl_after_removal: " << logl_after_removal << ", bic_after_removal: " << bic_after_removal << "\n";
 
@@ -148,7 +201,7 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
                 NetraxInstance::optimizeAllNonTopology(ann_network);
                 score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
                 if (score_improvement.local_improved) { // only redo (n-1) reticulation search if he arc removal led to a better network
-                    NetraxInstance::optimizeEverythingRun(ann_network, typesBySpeed, start_time);
+                    optimizeEverythingRun(ann_network, typesBySpeed, start_time, true);
                 }
                 score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
             }
@@ -181,7 +234,7 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
             }
             score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
 
-            NetraxInstance::optimizeEverythingRun(ann_network, typesBySpeed, start_time);
+            optimizeEverythingRun(ann_network, typesBySpeed, start_time, true);
             score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
             if (score_improvement.local_improved) {
                 keepSearching = true;
@@ -189,10 +242,6 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
             }
         }
     }
-}
-
-void oldsearch(AnnotatedNetwork& ann_network, double* global_best, std::mt19937& rng) {
-    throw std::runtime_error("Not implemented yet");
 }
 
 void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
@@ -223,34 +272,6 @@ void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
     std::ofstream outfile(ann_network.options.output_file);
     outfile << bestNetworkData.newick[bestNetworkData.best_n_reticulations] << "\n";
     outfile.close();
-}
-
-void run_single_start(NetraxOptions& netraxOptions, std::mt19937& rng) {
-    throw std::runtime_error("This is deprecated code");
-    double best_score = std::numeric_limits<double>::infinity();
-
-    netrax::AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(netraxOptions);
-    NetraxInstance::init_annotated_network(ann_network, rng);
-
-    std::cout << "Initial network is:\n" << toExtendedNewick(ann_network) << "\n\n";
-    std::string best_network = toExtendedNewick(ann_network);
-
-    NetraxInstance::optimizeEverything(ann_network);
-    double final_bic = NetraxInstance::scoreNetwork(ann_network);
-    std::cout << "The inferred network has " << ann_network.network.num_reticulations() << " reticulations and this BIC score: " << final_bic << "\n\n";
-    if (final_bic < best_score) {
-        best_score = final_bic;
-        std::cout << "IMPROVED BEST SCORE FOUND SO FAR: " << best_score << "\n\n";
-        NetraxInstance::writeNetwork(ann_network, netraxOptions.output_file);
-        best_network = toExtendedNewick(ann_network);
-        std::cout << best_network << "\n";
-        std::cout << "Better network written to " << netraxOptions.output_file << "\n";  
-    } else {
-        std::cout << "REMAINED BEST SCORE FOUND SO FAR: " << best_score << "\n";
-    }
-
-    std::cout << "Best found network is:\n" << best_network << "\n\n";
-    std::cout << "Recomputing BIC on exactly this network gives: " << NetraxInstance::scoreNetwork(ann_network) << "\n";
 }
 
 void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {

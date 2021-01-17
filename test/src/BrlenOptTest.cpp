@@ -6,6 +6,8 @@
  */
 
 #include "src/likelihood/LikelihoodComputation.hpp"
+#include "src/optimization/BranchLengthOptimization.hpp"
+#include "src/optimization/ModelOptimization.hpp"
 #include "src/io/NetworkIO.hpp"
 #include "src/RaxmlWrapper.hpp"
 #include "src/Api.hpp"
@@ -50,7 +52,7 @@ TEST (BrlenOptTest, DISABLED_tree_exact) {
     // initial logl computation
     double initial_logl_raxml = infoRaxml->loglh(false);
     std::cout << "RAXML - Initial loglikelihood: " << initial_logl_raxml << "\n";
-    double initial_logl_network = NetraxInstance::computeLoglikelihood(annTreeNetwork);
+    double initial_logl_network = computeLoglikelihood(annTreeNetwork, 1, 1);
     std::cout << "NETWORK - Initial loglikelihood: " << initial_logl_network << "\n";
     ASSERT_FLOAT_EQ(initial_logl_raxml, initial_logl_network);
 
@@ -148,7 +150,7 @@ TEST (BrlenOptTest, tree) {
     // initial logl computation
     double initial_logl_raxml = infoRaxml->loglh(false);
     std::cout << "RAXML - Initial loglikelihood: " << initial_logl_raxml << "\n";
-    double initial_logl_network = NetraxInstance::computeLoglikelihood(annTreeNetwork);
+    double initial_logl_network = computeLoglikelihood(annTreeNetwork, 1, 1);
     std::cout << "NETWORK - Initial loglikelihood: " << initial_logl_network << "\n";
     ASSERT_FLOAT_EQ(initial_logl_raxml, initial_logl_network);
 
@@ -192,12 +194,12 @@ TEST (BrlenOptTest, small) {
     NetraxInstance::init_annotated_network(annTreeNetwork);
 
     // initial logl computation
-    double initial_logl_network = NetraxInstance::computeLoglikelihood(annTreeNetwork);
+    double initial_logl_network = computeLoglikelihood(annTreeNetwork, 1, 1);
     std::cout << "NETWORK - Initial loglikelihood: " << initial_logl_network << "\n";
 
     // branch length optimization
-    NetraxInstance::optimizeBranches(annTreeNetwork);
-    double brlenopt_logl_network = NetraxInstance::computeLoglikelihood(annTreeNetwork);
+    optimizeBranches(annTreeNetwork);
+    double brlenopt_logl_network = computeLoglikelihood(annTreeNetwork, 1, 1);
     std::cout << "NETWORK - Loglikelihood after branch length optimization: "
             << brlenopt_logl_network << "\n";
 }
@@ -217,12 +219,12 @@ TEST (BrlenOptTest, celineFake) {
     NetraxInstance::init_annotated_network(annTreeNetwork);
 
     // initial logl computation
-    double initial_logl_network = NetraxInstance::computeLoglikelihood(annTreeNetwork);
+    double initial_logl_network = computeLoglikelihood(annTreeNetwork);
     std::cout << "NETWORK - Initial loglikelihood: " << initial_logl_network << "\n";
 
     // branch length optimization
-    NetraxInstance::optimizeBranches(annTreeNetwork);
-    double brlenopt_logl_network = NetraxInstance::computeLoglikelihood(annTreeNetwork);
+    optimizeBranches(annTreeNetwork);
+    double brlenopt_logl_network = computeLoglikelihood(annTreeNetwork);
     std::cout << "NETWORK - Loglikelihood after branch length optimization: "
             << brlenopt_logl_network << "\n";
 }
@@ -241,12 +243,12 @@ TEST (BrlenOptTest, celineFakeWithModelopt) {
     NetraxInstance::init_annotated_network(annTreeNetwork);
 
     // initial logl computation
-    double initial_logl_network = NetraxInstance::computeLoglikelihood(annTreeNetwork);
+    double initial_logl_network = computeLoglikelihood(annTreeNetwork);
     std::cout << "NETWORK - Initial loglikelihood: " << initial_logl_network << "\n";
 
     // model parameter optimization
-    NetraxInstance::optimizeModel(annTreeNetwork);
-    double modelopt_logl = NetraxInstance::computeLoglikelihood(annTreeNetwork);
+    optimizeModel(annTreeNetwork);
+    double modelopt_logl = computeLoglikelihood(annTreeNetwork);
     std::cout << "Loglikelihood after model optimization: " << modelopt_logl << "\n";
 
     std::cout << "The entire network would like these model params:\n";
@@ -254,8 +256,8 @@ TEST (BrlenOptTest, celineFakeWithModelopt) {
     std::cout << "\n";
 
     // branch length optimization
-    NetraxInstance::optimizeBranches(annTreeNetwork);
-    double brlenopt_logl_network = NetraxInstance::computeLoglikelihood(annTreeNetwork);
+    optimizeBranches(annTreeNetwork);
+    double brlenopt_logl_network = computeLoglikelihood(annTreeNetwork);
     std::cout << "NETWORK - Loglikelihood after branch length optimization: "
             << brlenopt_logl_network << "\n";
 

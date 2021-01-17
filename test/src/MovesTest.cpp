@@ -48,10 +48,9 @@ std::vector<std::vector<double> > extract_brlens(AnnotatedNetwork &ann_network) 
 
 template<typename T>
 void randomMovesStep(AnnotatedNetwork &ann_network, std::vector<T> candidates) {
-    double initial_logl = NetraxInstance::computeLoglikelihood(ann_network);
+    double initial_logl = computeLoglikelihood(ann_network);
     ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
     std::cout << "initial_logl: " << initial_logl << "\n";
-    Network &network = ann_network.network;
     //std::string initialDebugInfo = exportDebugInfo(network);
     //std::cout << initialDebugInfo << "\n";
     std::vector<std::vector<double> > old_brlens = extract_brlens(ann_network);
@@ -61,12 +60,12 @@ void randomMovesStep(AnnotatedNetwork &ann_network, std::vector<T> candidates) {
         //std::cout << "perform " << toString(candidates[j]);
         performMove(ann_network, candidates[j]);
         //std::cout << toExtendedNewick(network) << "\n";
-        double moved_logl = NetraxInstance::computeLoglikelihood(ann_network);
+        double moved_logl = computeLoglikelihood(ann_network);
         ASSERT_NE(moved_logl, -std::numeric_limits<double>::infinity());
         //std::cout << "logl after move: " << moved_logl << "\n";
         //std::cout << "undo " << toString(candidates[j]) << "\n";
         undoMove(ann_network, candidates[j]);
-        NetraxInstance::computeLoglikelihood(ann_network);
+        computeLoglikelihood(ann_network);
         std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
         for (size_t i = 0; i < act_brlens.size(); ++i) {
             for (size_t j = 0; j < act_brlens[i].size(); ++j) {
@@ -77,7 +76,7 @@ void randomMovesStep(AnnotatedNetwork &ann_network, std::vector<T> candidates) {
         //std::cout << toExtendedNewick(network) << "\n";
         //std::string debugInfoAfterUndo = exportDebugInfo(network);
         //EXPECT_EQ(initialDebugInfo, debugInfoAfterUndo);
-        double back_logl = NetraxInstance::computeLoglikelihood(ann_network);
+        double back_logl = computeLoglikelihood(ann_network);
         //ASSERT_EQ(newickBeforeMove, newickAfterUndoMove);
         ASSERT_DOUBLE_EQ(initial_logl, back_logl);
     }

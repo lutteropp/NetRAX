@@ -9,6 +9,8 @@
 #include "io/NetworkIO.hpp"
 #include "DebugPrintFunctions.hpp"
 #include "optimization/TopologyOptimization.hpp"
+#include "likelihood/LikelihoodComputation.hpp"
+#include "optimization/ModelOptimization.hpp"
 #include "search/NetworkSearch.hpp"
 
 using namespace netrax;
@@ -72,13 +74,13 @@ void score_only(NetraxOptions& netraxOptions, std::mt19937& rng) {
     }
     netrax::AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(netraxOptions);
     NetraxInstance::init_annotated_network(ann_network, rng);
-    NetraxInstance::optimizeModel(ann_network);
+    optimizeModel(ann_network);
 
     std::cout << "Initial, given network:\n";
     std::cout << toExtendedNewick(ann_network) << "\n";
 
-    double start_bic = NetraxInstance::scoreNetwork(ann_network);
-    double start_logl = NetraxInstance::computeLoglikelihood(ann_network);
+    double start_bic = scoreNetwork(ann_network);
+    double start_logl = computeLoglikelihood(ann_network, 1, 1);
     std::cout << "Initial (before brlen and reticulation opt) BIC Score: " << start_bic << "\n";
     std::cout << "Initial (before brlen and reticulation opt) loglikelihood: " << start_logl << "\n";
 
@@ -87,8 +89,8 @@ void score_only(NetraxOptions& netraxOptions, std::mt19937& rng) {
     std::cout << "Network after optimization of brlens and reticulation probs:\n";
     std::cout << toExtendedNewick(ann_network) << "\n";
 
-    double final_bic = NetraxInstance::scoreNetwork(ann_network);
-    double final_logl = NetraxInstance::computeLoglikelihood(ann_network);
+    double final_bic = scoreNetwork(ann_network);
+    double final_logl = computeLoglikelihood(ann_network, 1, 1);
     std::cout << "Number of reticulations: " << ann_network.network.num_reticulations() << "\n";
     std::cout << "BIC Score: " << final_bic << "\n";
     std::cout << "Loglikelihood: " << final_logl << "\n";

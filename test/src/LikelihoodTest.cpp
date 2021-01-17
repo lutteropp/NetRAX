@@ -6,6 +6,8 @@
  */
 
 #include "src/likelihood/LikelihoodComputation.hpp"
+#include "src/optimization/BranchLengthOptimization.hpp"
+#include "src/optimization/ReticulationOptimization.hpp"
 #include "src/io/NetworkIO.hpp"
 #include "src/RaxmlWrapper.hpp"
 #include "src/Api.hpp"
@@ -356,13 +358,13 @@ TEST_F (LikelihoodTest, updateReticulationProb) {
     NetraxOptions options = NetraxOptions(networkPath, msaPath, false);
     AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(options);
     NetraxInstance::init_annotated_network(ann_network);
-    NetraxInstance::updateReticulationProbs(ann_network);
-    double norep_logl = NetraxInstance::computeLoglikelihood(ann_network);
+    optimizeReticulationProbs(ann_network);
+    double norep_logl = computeLoglikelihood(ann_network);
     std::cout << "norep_logl: " << norep_logl << "\n";
-    NetraxInstance::updateReticulationProbs(ann_network);
-    double norep_logl_2 = NetraxInstance::computeLoglikelihood(ann_network);
+    optimizeReticulationProbs(ann_network);
+    double norep_logl_2 = computeLoglikelihood(ann_network);
     std::cout << "norep logl_2: " << norep_logl_2 << "\n";
-    double norep_logl_3 = NetraxInstance::computeLoglikelihood(ann_network);
+    double norep_logl_3 = computeLoglikelihood(ann_network);
     std::cout << "norep logl_3: " << norep_logl_3 << "\n";
 
     EXPECT_EQ(norep_logl_2, norep_logl_3);
@@ -372,7 +374,7 @@ TEST_F (LikelihoodTest, simpleTreeWithRepeats) {
     NetraxOptions options = NetraxOptions(treePath, msaPath, true);
     AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(options);
     NetraxInstance::init_annotated_network(ann_network);
-    double network_logl = NetraxInstance::computeLoglikelihood(ann_network);
+    double network_logl = computeLoglikelihood(ann_network);
     std::cout << "The computed network_logl 5 is: " << network_logl << "\n";
     EXPECT_NE(network_logl, -std::numeric_limits<double>::infinity());
 }

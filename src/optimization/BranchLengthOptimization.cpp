@@ -28,11 +28,6 @@ struct BrentBrlenParams {
     size_t partition_index;
 };
 
-struct BrentBrprobParams {
-    AnnotatedNetwork *ann_network;
-    size_t reticulation_index;
-};
-
 void checkLoglBeforeAfter(AnnotatedNetwork& ann_network) {
     //double start_logl = computeLoglikelihood(ann_network, 1, 1);
     //double recomputed_logl = computeLoglikelihood(ann_network, 0, 1);
@@ -64,31 +59,6 @@ static double brent_target_networks(void *p, double x) {
 
         score = -1 * computeLoglikelihood(*ann_network, 1, 1);
         assert(ann_network->fake_treeinfo->pmatrix_valid[partition_index][pmatrix_index]);
-        //std::cout << "    score: " << score << ", x: " << x << ", old_x: " << old_x << ", pmatrix index:"
-        //        << pmatrix_index << "\n";
-    }
-    return score;
-}
-
-static double brent_target_networks_prob(void *p, double x) {
-    AnnotatedNetwork *ann_network = ((BrentBrprobParams*) p)->ann_network;
-    size_t reticulation_index = ((BrentBrprobParams*) p)->reticulation_index;
-    double old_x = ann_network->reticulation_probs[reticulation_index];
-    double score;
-    if (old_x == x) {
-        score = -1 * computeLoglikelihood(*ann_network, 1, 1);
-    } else {
-        ann_network->reticulation_probs[reticulation_index] = x;
-
-        if (!ann_network->old_displayed_trees.empty()) {
-            for (size_t p = 0; p < ann_network->fake_treeinfo->partition_count; ++p) {
-                for (size_t i = 0; i < ann_network->old_displayed_trees[p].size(); ++i) {
-                    ann_network->old_displayed_trees[p][i].tree_logprob = displayed_tree_logprob(*ann_network, ann_network->old_displayed_trees[p][i].tree_idx);
-                }
-            }
-        }
-
-        score = -1 * computeLoglikelihood(*ann_network, 1, 1);
         //std::cout << "    score: " << score << ", x: " << x << ", old_x: " << old_x << ", pmatrix index:"
         //        << pmatrix_index << "\n";
     }
@@ -168,49 +138,6 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, size
     return best_logl;
 }
 
-double optimize_reticulation(AnnotatedNetwork &ann_network, size_t reticulation_index) {
-    double min_brprob = ann_network.options.brprob_min;
-    double max_brprob = ann_network.options.brprob_max;
-    double tolerance = ann_network.options.tolerance;
-
-    double start_logl = computeLoglikelihood(ann_network, 1, 1);
-    double old_logl = ann_network.raxml_treeinfo->loglh(true);
-    assert(start_logl == old_logl);
-
-    double best_logl = start_logl;
-    BrentBrprobParams params;
-    params.ann_network = &ann_network;
-    params.reticulation_index = reticulation_index;
-    double old_brprob = ann_network.reticulation_probs[reticulation_index];
-
-    assert(old_brprob >= min_brprob);
-    assert(old_brprob <= max_brprob);
-
-    // Do Brent's method to find a better branch length
-    //std::cout << " optimizing branch " << pmatrix_index << ":\n";
-    double score = 0;
-    double f2x;
-    double new_brprob = pllmod_opt_minimize_brent(min_brprob, old_brprob, max_brprob, tolerance, &score,
-            &f2x, (void*) &params, &brent_target_networks_prob);
-    ann_network.reticulation_probs[reticulation_index] = new_brprob;
-
-    //std::cout << "old prob for reticulation " << reticulation_index << ": " << old_brprob << "\n";
-    //std::cout << "new prob for reticulation " << reticulation_index << ": " << new_brprob << "\n";
-
-    assert(new_brprob >= min_brprob && new_brprob <= max_brprob);
-
-    //std::cout << "  score: " << score << "\n";
-    //std::cout << "  old_brlen: " << old_brlen << ", new_brlen: " << new_brlen << "\n";
-    best_logl = computeLoglikelihood(ann_network, 1, 1);
-
-    //std::cout << " start logl for branch " << pmatrix_index << " with length " << start_brlen << ": " << start_logl
-    //        << "\n";
-    //std::cout << "   end logl for branch " << pmatrix_index << " with length " << new_brlen << ": " << best_logl
-    //        << "\n";
-    //std::cout << "\n";
-    return best_logl;
-}
-
 double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index) {
     double old_logl = ann_network.raxml_treeinfo->loglh(true);
     size_t n_partitions = 1;
@@ -273,21 +200,31 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
     return optimize_branches(ann_network, max_iters, radius, candidates);
 }
 
-double optimize_reticulations(AnnotatedNetwork &ann_network, int max_iters) {
-    double act_logl = ann_network.raxml_treeinfo->loglh(true);
-    int act_iters = 0;
-    while (act_iters < max_iters) {
-        double loop_logl = act_logl;
-        for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
-            loop_logl = optimize_reticulation(ann_network, i);
-        }
-        act_iters++;
-        if (loop_logl == act_logl) {
-            break;
-        }
-        act_logl = loop_logl;
+/**
+ * Re-infers the branch lengths of a given network.
+ * 
+ * @param ann_network The network.
+ */
+void optimizeBranches(AnnotatedNetwork &ann_network) {
+    assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
+    double old_score = scoreNetwork(ann_network);
+    ann_network.raxml_treeinfo->optimize_branches(ann_network.options.lh_epsilon, 1);
+    assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
+    double new_score = scoreNetwork(ann_network);
+    std::cout << "BIC score after branch length optimization: " << new_score << "\n";
+    assert(new_score <= old_score + ann_network.options.score_epsilon);
+    if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED) {
+        old_score = scoreNetwork(ann_network);
+        pllmod_algo_opt_brlen_scalers_treeinfo(ann_network.fake_treeinfo,
+                                                        RAXML_BRLEN_SCALER_MIN,
+                                                        RAXML_BRLEN_SCALER_MAX,
+                                                        ann_network.options.brlen_min,
+                                                        ann_network.options.brlen_max,
+                                                        RAXML_PARAM_EPSILON);
+        new_score = scoreNetwork(ann_network);
+        std::cout << "BIC score after branch length scaler optimization: " << new_score << "\n";
+        assert(new_score <= old_score + ann_network.options.score_epsilon);
     }
-    return act_logl;
 }
 
 }
