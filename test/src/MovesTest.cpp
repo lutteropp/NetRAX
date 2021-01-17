@@ -9,7 +9,6 @@
 #include "src/optimization/Moves.hpp"
 #include "src/io/NetworkIO.hpp"
 #include "src/RaxmlWrapper.hpp"
-#include "src/Api.hpp"
 #include "src/DebugPrintFunctions.hpp"
 
 #include "src/graph/NetworkFunctions.hpp"
@@ -88,8 +87,8 @@ void randomMoves(const std::string &networkPath, const std::string &msaPath, boo
     options.start_network_file = networkPath;
     options.msa_file = msaPath;
     options.use_repeats = useRepeats;
-    AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(options);
-    NetraxInstance::init_annotated_network(ann_network);
+    AnnotatedNetwork ann_network = build_annotated_network(options);
+    init_annotated_network(ann_network);
     Network &network = ann_network.network;
 
     if (type == MoveType::ArcRemovalMove) {

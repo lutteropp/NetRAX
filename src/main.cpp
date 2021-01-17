@@ -3,7 +3,6 @@
 
 #include <CLI11.hpp>
 #include <mpreal.h>
-#include "Api.hpp"
 #include "graph/AnnotatedNetwork.hpp"
 #include "NetraxOptions.hpp"
 #include "io/NetworkIO.hpp"
@@ -72,8 +71,8 @@ void score_only(NetraxOptions& netraxOptions, std::mt19937& rng) {
     if (netraxOptions.start_network_file.empty()) {
         throw std::runtime_error("Need network file to be scored");
     }
-    netrax::AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(netraxOptions);
-    NetraxInstance::init_annotated_network(ann_network, rng);
+    netrax::AnnotatedNetwork ann_network = build_annotated_network(netraxOptions);
+    init_annotated_network(ann_network, rng);
     optimizeModel(ann_network);
 
     std::cout << "Initial, given network:\n";
@@ -117,8 +116,8 @@ void extract_displayed_trees(NetraxOptions& netraxOptions, std::mt19937& rng) {
         throw std::runtime_error("Need network to extract displayed trees");
     }
     std::vector<std::pair<std::string, double> > displayed_trees;
-    netrax::AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(netraxOptions);
-    NetraxInstance::init_annotated_network(ann_network, rng);
+    netrax::AnnotatedNetwork ann_network = build_annotated_network(netraxOptions);
+    init_annotated_network(ann_network, rng);
 
     if (ann_network.network.num_reticulations() == 0) {
         std::string newick = netrax::toExtendedNewick(ann_network);
@@ -152,9 +151,9 @@ void generate_random_network_only(NetraxOptions& netraxOptions, std::mt19937& rn
     if (netraxOptions.output_file.empty()) {
         throw std::runtime_error("Need output file to write the generated network");
     }
-    netrax::AnnotatedNetwork ann_network = NetraxInstance::build_random_annotated_network(netraxOptions);
-    NetraxInstance::init_annotated_network(ann_network, rng);
-    NetraxInstance::add_extra_reticulations(ann_network, netraxOptions.max_reticulations);
+    netrax::AnnotatedNetwork ann_network = build_random_annotated_network(netraxOptions);
+    init_annotated_network(ann_network, rng);
+    add_extra_reticulations(ann_network, netraxOptions.max_reticulations);
     writeNetwork(ann_network, netraxOptions.output_file);
     std::cout << "Final network written to " << netraxOptions.output_file << "\n";
 }

@@ -10,7 +10,6 @@
 #include "src/optimization/ModelOptimization.hpp"
 #include "src/io/NetworkIO.hpp"
 #include "src/RaxmlWrapper.hpp"
-#include "src/Api.hpp"
 
 #include <gtest/gtest.h>
 #include <string>
@@ -45,8 +44,8 @@ TEST (BrlenOptTest, DISABLED_tree_exact) {
 
     Tree normalTree = Tree::loadFromFile(treePath);
     TreeInfo *infoRaxml = treeWrapper.createRaxmlTreeinfo(normalTree.pll_utree_copy());
-    AnnotatedNetwork annTreeNetwork = NetraxInstance::build_annotated_network(treeOptions);
-    NetraxInstance::init_annotated_network(annTreeNetwork);
+    AnnotatedNetwork annTreeNetwork = build_annotated_network(treeOptions);
+    init_annotated_network(annTreeNetwork);
     TreeInfo *infoNetwork = annTreeNetwork.raxml_treeinfo.get();
 
     // initial logl computation
@@ -143,8 +142,8 @@ TEST (BrlenOptTest, tree) {
 
     Tree normalTree = Tree::loadFromFile(treePath);
     TreeInfo *infoRaxml = treeWrapper.createRaxmlTreeinfo(normalTree.pll_utree_copy());
-    AnnotatedNetwork annTreeNetwork = NetraxInstance::build_annotated_network(treeOptions);
-    NetraxInstance::init_annotated_network(annTreeNetwork);
+    AnnotatedNetwork annTreeNetwork = build_annotated_network(treeOptions);
+    init_annotated_network(annTreeNetwork);
     TreeInfo *infoNetwork = annTreeNetwork.raxml_treeinfo.get();
 
     // initial logl computation
@@ -190,8 +189,8 @@ TEST (BrlenOptTest, small) {
     smallOptions.use_repeats = true;
     RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
     //smallWrapper.enableRaxmlDebugOutput();
-    AnnotatedNetwork annTreeNetwork = NetraxInstance::build_annotated_network(smallOptions);
-    NetraxInstance::init_annotated_network(annTreeNetwork);
+    AnnotatedNetwork annTreeNetwork = build_annotated_network(smallOptions);
+    init_annotated_network(annTreeNetwork);
 
     // initial logl computation
     double initial_logl_network = computeLoglikelihood(annTreeNetwork, 1, 1);
@@ -215,8 +214,8 @@ TEST (BrlenOptTest, celineFake) {
     RaxmlWrapper celineWrapper = RaxmlWrapper(celineOptions);
     //smallWrapper.enableRaxmlDebugOutput();
 
-    AnnotatedNetwork annTreeNetwork = NetraxInstance::build_annotated_network(celineOptions);
-    NetraxInstance::init_annotated_network(annTreeNetwork);
+    AnnotatedNetwork annTreeNetwork = build_annotated_network(celineOptions);
+    init_annotated_network(annTreeNetwork);
 
     // initial logl computation
     double initial_logl_network = computeLoglikelihood(annTreeNetwork);
@@ -239,8 +238,8 @@ TEST (BrlenOptTest, celineFakeWithModelopt) {
     celineOptions.use_repeats = true;
     RaxmlWrapper celineWrapper = RaxmlWrapper(celineOptions);
     //smallWrapper.enableRaxmlDebugOutput();
-    AnnotatedNetwork annTreeNetwork = NetraxInstance::build_annotated_network(celineOptions);
-    NetraxInstance::init_annotated_network(annTreeNetwork);
+    AnnotatedNetwork annTreeNetwork = build_annotated_network(celineOptions);
+    init_annotated_network(annTreeNetwork);
 
     // initial logl computation
     double initial_logl_network = computeLoglikelihood(annTreeNetwork);

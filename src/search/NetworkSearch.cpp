@@ -5,7 +5,6 @@
 #include <fstream>
 
 #include <mpreal.h>
-#include "../Api.hpp"
 #include "../graph/AnnotatedNetwork.hpp"
 #include "../io/NetworkIO.hpp"
 #include "../DebugPrintFunctions.hpp"
@@ -239,7 +238,7 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
         // then try adding a reticulation
         if (ann_network.network.num_reticulations() < ann_network.options.max_reticulations) {
             // old and deprecated: randomly add new reticulation
-            //NetraxInstance::add_extra_reticulations(ann_network, ann_network.network.num_reticulations() + 1);
+            //add_extra_reticulations(ann_network, ann_network.network.num_reticulations() + 1);
 
             // new version: search for best place to add the new reticulation
             MoveType insertionType = MoveType::ArcInsertionMove;
@@ -264,8 +263,8 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
 }
 
 void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
-    netrax::AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(netraxOptions);
-    NetraxInstance::init_annotated_network(ann_network, rng);
+    netrax::AnnotatedNetwork ann_network = build_annotated_network(netraxOptions);
+    init_annotated_network(ann_network, rng);
     BestNetworkData bestNetworkData(ann_network.options.max_reticulations);
     wavesearch(ann_network, &bestNetworkData, rng);
 
@@ -303,9 +302,9 @@ void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {
     while (true) {
         n_iterations++;
         std::cout << "Starting with new random network with " << start_reticulations << " reticulations.\n";
-        netrax::AnnotatedNetwork ann_network = NetraxInstance::build_random_annotated_network(netraxOptions);
-        NetraxInstance::init_annotated_network(ann_network, rng);
-        NetraxInstance::add_extra_reticulations(ann_network, start_reticulations);
+        netrax::AnnotatedNetwork ann_network = build_random_annotated_network(netraxOptions);
+        init_annotated_network(ann_network, rng);
+        add_extra_reticulations(ann_network, start_reticulations);
 
         wavesearch(ann_network, &bestNetworkData, rng);
         if (netraxOptions.timeout > 0) {
@@ -324,9 +323,9 @@ void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {
     while (true) {
         n_iterations++;
         std::cout << "Starting with new parsimony tree with " << start_reticulations << " reticulations.\n";
-        netrax::AnnotatedNetwork ann_network = NetraxInstance::build_parsimony_annotated_network(netraxOptions);
-        NetraxInstance::init_annotated_network(ann_network, rng);
-        NetraxInstance::add_extra_reticulations(ann_network, start_reticulations);
+        netrax::AnnotatedNetwork ann_network = build_parsimony_annotated_network(netraxOptions);
+        init_annotated_network(ann_network, rng);
+        add_extra_reticulations(ann_network, start_reticulations);
         wavesearch(ann_network, &bestNetworkData, rng);
         if (netraxOptions.timeout > 0) {
             auto act_time = std::chrono::high_resolution_clock::now();
