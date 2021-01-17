@@ -195,7 +195,7 @@ void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
         outfile << bestNetworkData.newick[i] << "\n";
         outfile.close();
     }
-    std::ofstream outfile(ann_network.options.output_file + "_bestNetwork.nw");
+    std::ofstream outfile(ann_network.options.output_file);
     outfile << bestNetworkData.newick[bestNetworkData.best_n_reticulations] << "\n";
     outfile.close();
 }
