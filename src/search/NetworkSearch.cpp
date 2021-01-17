@@ -189,7 +189,9 @@ void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
             continue;
         }
         std::cout << i << ", " << bestNetworkData.logl[i] << ", " << bestNetworkData.bic[i] << ", " << bestNetworkData.newick[i] << "\n";
+        NetraxInstance::writeNetwork(ann_network, ann_network.options.output_file + "_" + std::to_string(i) + "_reticulations.nw");
     }
+    NetraxInstance::writeNetwork(ann_network, ann_network.options.output_file + "_bestNetwork.nw");
 }
 
 void run_single_start(NetraxOptions& netraxOptions, std::mt19937& rng) {
