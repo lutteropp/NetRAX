@@ -207,13 +207,7 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
         if (ann_network.network.num_reticulations() > 0) { // try removing arcs
             MoveType removalType = MoveType::ArcRemovalMove;
             size_t old_num_reticulations = ann_network.network.num_reticulations();
-            double logl_before_removal = computeLoglikelihood(ann_network, 1, 1);
-            double bic_before_removal = scoreNetwork(ann_network);
             netrax::greedyHillClimbingTopology(ann_network, removalType, false);
-            double logl_after_removal = computeLoglikelihood(ann_network, 1, 1);
-            double bic_after_removal = scoreNetwork(ann_network);
-            std::cout << "logl_before_removal: " << logl_before_removal << ", bic_before_removal: " << bic_before_removal << "\n";
-            std::cout << "logl_after_removal: " << logl_after_removal << ", bic_after_removal: " << bic_after_removal << "\n";
 
             if (ann_network.network.num_reticulations() < old_num_reticulations) {
                 optimizeAllNonTopology(ann_network);
