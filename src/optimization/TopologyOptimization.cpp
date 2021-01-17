@@ -151,8 +151,8 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     if (randomizeCandidates) {
         std::random_shuffle(candidates.begin(), candidates.end());
     }
-    double brlen_smooth_factor = 0.25;
-    int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;;
+    double brlen_smooth_factor = 0.1;
+    int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
     int radius = 1;
     double start_logl = ann_network.raxml_treeinfo->loglh(true);
 
@@ -312,7 +312,7 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, const std::vect
             moves_cnt++;
         }
         //std::cout << "Using move type: " << toString(types[type_idx]) << "\n";
-        new_logl = greedyHillClimbingTopology(ann_network, types[type_idx], max_iterations);
+        new_logl = greedyHillClimbingTopology(ann_network, types[type_idx], 1);
         new_score = bic(ann_network, new_logl);
         type_idx = (type_idx + 1) % types.size();
         moves_cnt++;

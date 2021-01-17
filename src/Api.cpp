@@ -269,10 +269,10 @@ void NetraxInstance::optimizeBranches(AnnotatedNetwork &ann_network) {
  * 
  * @param ann_network The network.
  */
-void NetraxInstance::optimizeTopology(AnnotatedNetwork &ann_network, const std::vector<MoveType>& types) {
+void NetraxInstance::optimizeTopology(AnnotatedNetwork &ann_network, const std::vector<MoveType>& types, size_t max_iterations) {
     assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
     double old_score = scoreNetwork(ann_network);
-    greedyHillClimbingTopology(ann_network, types);
+    greedyHillClimbingTopology(ann_network, types, max_iterations);
     double new_score = scoreNetwork(ann_network);
     std::cout << "BIC after topology optimization: " << new_score << "\n";
 
@@ -284,10 +284,10 @@ void NetraxInstance::optimizeTopology(AnnotatedNetwork &ann_network, const std::
  * 
  * @param ann_network The network.
  */
-void NetraxInstance::optimizeTopology(AnnotatedNetwork &ann_network, MoveType& type) {
+void NetraxInstance::optimizeTopology(AnnotatedNetwork &ann_network, MoveType& type, bool enforce_apply_move, size_t max_iterations) {
     assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
     double old_score = scoreNetwork(ann_network);
-    greedyHillClimbingTopology(ann_network, type);
+    greedyHillClimbingTopology(ann_network, type, enforce_apply_move, max_iterations);
     double new_score = scoreNetwork(ann_network);
     //std::cout << "BIC after topology optimization: " << new_score << "\n";
 
@@ -321,7 +321,7 @@ double NetraxInstance::optimizeEverythingRun(AnnotatedNetwork & ann_network, std
         }
         //std::cout << "Using move type: " << toString(typesBySpeed[type_idx]) << "\n";
         double old_score = scoreNetwork(ann_network);
-        optimizeTopology(ann_network, typesBySpeed[type_idx]);
+        optimizeTopology(ann_network, typesBySpeed[type_idx], false, 1);
         double new_score = scoreNetwork(ann_network);
         if (old_score - new_score > ann_network.options.score_epsilon) { // score got better
             //std::cout << "BIC after topology optimization: " << new_score << "\n";
