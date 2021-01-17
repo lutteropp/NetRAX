@@ -45,7 +45,14 @@ void printDisplayedTrees(AnnotatedNetwork& ann_network) {
     }
 }
 
-ScoreImprovementResult check_score_improvement(AnnotatedNetwork& ann_network, double* local_best_per_reticulation, double* local_best, double* global_best) {
+struct BestNetworkData {
+    size_t n_reticulations = 0;
+    double logl = -std::numeric_limits<double>::infinity();
+    double bic = std::numeric_limits<double>::infinity();
+    std::string newick = "";
+};
+
+ScoreImprovementResult check_score_improvement(AnnotatedNetwork& ann_network, double* local_best_per_reticulation, double* local_best, double* global_best, BestNetworkData* bestNetworkData) {
     bool local_improved = false;
     bool global_improved = false;
     double new_score = NetraxInstance::scoreNetwork(ann_network);
@@ -64,6 +71,10 @@ ScoreImprovementResult check_score_improvement(AnnotatedNetwork& ann_network, do
                 *global_best = *local_best;
                 std::cout << "IMPROVED GLOBAL BEST SCORE FOUND SO FAR: " << new_score << "\n\n";
                 NetraxInstance::writeNetwork(ann_network, ann_network.options.output_file);
+                bestNetworkData->n_reticulations = ann_network.network.num_reticulations();
+                bestNetworkData->logl = NetraxInstance::computeLoglikelihood(ann_network);
+                bestNetworkData->bic = NetraxInstance::scoreNetwork(ann_network);
+                bestNetworkData->newick = toExtendedNewick(ann_network);
                 std::cout << toExtendedNewick(ann_network) << "\n";
                 std::cout << "Better network written to " << ann_network.options.output_file << "\n";
                 printDisplayedTrees(ann_network);
@@ -77,8 +88,9 @@ ScoreImprovementResult check_score_improvement(AnnotatedNetwork& ann_network, do
     return ScoreImprovementResult{local_improved, global_improved};
 }
 
-void wavesearch(AnnotatedNetwork& ann_network, double* global_best, std::mt19937& rng) {
+BestNetworkData wavesearch(AnnotatedNetwork& ann_network, double* global_best, std::mt19937& rng) {
     std::vector<MoveType> typesBySpeed = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::HeadMove};
+    BestNetworkData bestNetworkData;
 
     std::vector<double> best_score_by_reticulations(ann_network.options.max_reticulations + 1, std::numeric_limits<double>::infinity());
 
@@ -91,11 +103,11 @@ void wavesearch(AnnotatedNetwork& ann_network, double* global_best, std::mt19937
     std::string best_network = toExtendedNewick(ann_network);
     ScoreImprovementResult score_improvement;
 
-    score_improvement = check_score_improvement(ann_network, &best_score_by_reticulations[ann_network.network.num_reticulations()], &best_score, global_best);
+    score_improvement = check_score_improvement(ann_network, &best_score_by_reticulations[ann_network.network.num_reticulations()], &best_score, global_best, &bestNetworkData);
 
     // try horizontal moves
     NetraxInstance::optimizeEverythingRun(ann_network, typesBySpeed, start_time);
-    score_improvement = check_score_improvement(ann_network, &best_score_by_reticulations[ann_network.network.num_reticulations()], &best_score, global_best);
+    score_improvement = check_score_improvement(ann_network, &best_score_by_reticulations[ann_network.network.num_reticulations()], &best_score, global_best, &bestNetworkData);
 
     bool keepSearching = true;
     while (keepSearching) {
@@ -119,7 +131,7 @@ void wavesearch(AnnotatedNetwork& ann_network, double* global_best, std::mt19937
             if (ann_network.network.num_reticulations() < old_num_reticulations) {
                 NetraxInstance::optimizeAllNonTopology(ann_network);
                 NetraxInstance::optimizeEverythingRun(ann_network, typesBySpeed, start_time);
-                score_improvement = check_score_improvement(ann_network, &best_score_by_reticulations[ann_network.network.num_reticulations()], &best_score, global_best);
+                score_improvement = check_score_improvement(ann_network, &best_score_by_reticulations[ann_network.network.num_reticulations()], &best_score, global_best, &bestNetworkData);
             }
             if (score_improvement.local_improved) {
                 keepSearching = true;
@@ -138,28 +150,34 @@ void wavesearch(AnnotatedNetwork& ann_network, double* global_best, std::mt19937
             NetraxInstance::optimizeAllNonTopology(ann_network);
 
             NetraxInstance::optimizeEverythingRun(ann_network, typesBySpeed, start_time);
-            score_improvement = check_score_improvement(ann_network, &best_score_by_reticulations[ann_network.network.num_reticulations()], &best_score, global_best);
+            score_improvement = check_score_improvement(ann_network, &best_score_by_reticulations[ann_network.network.num_reticulations()], &best_score, global_best, &bestNetworkData);
             if (score_improvement.local_improved) {
                 keepSearching = true;
                 continue;
             }
         }
     }
+    return bestNetworkData;
 }
 
 void oldsearch(AnnotatedNetwork& ann_network, double* global_best, std::mt19937& rng) {
+    throw std::runtime_error("Not implemented yet");
 }
 
 void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
     netrax::AnnotatedNetwork ann_network = NetraxInstance::build_annotated_network(netraxOptions);
     NetraxInstance::init_annotated_network(ann_network, rng);
     double global_best = std::numeric_limits<double>::infinity();
-    wavesearch(ann_network, &global_best, rng);
+    Network bestNetwork;
+    BestNetworkData bestNetworkData = wavesearch(ann_network, &global_best, rng);
 
     std::cout << "Statistics on which moves were taken:\n";
     for (const auto& entry : ann_network.stats.moves_taken) {
         std::cout << toString(entry.first) << ": " << entry.second << "\n";
     }
+    std::cout << "Best inferred network has " << bestNetworkData.n_reticulations << " reticulations, logl = " << bestNetworkData.logl << ", bic = " << bestNetworkData.bic << "\n";
+    std::cout << "Best inferred network is: \n";
+    std::cout << bestNetworkData.newick << "\n";
 }
 
 void run_single_start(NetraxOptions& netraxOptions, std::mt19937& rng) {
