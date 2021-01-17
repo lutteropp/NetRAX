@@ -121,7 +121,7 @@ void optimizeReticulationProbs(AnnotatedNetwork &ann_network) {
     double old_score = scoreNetwork(ann_network);
     netrax::optimize_reticulations(ann_network, 100);
     double new_score = scoreNetwork(ann_network);
-    std::cout << "BIC score after updating reticulation probs: " << new_score << "\n";
+    //std::cout << "BIC score after updating reticulation probs: " << new_score << "\n";
     assert(new_score <= old_score + ann_network.options.score_epsilon);
 }
 
