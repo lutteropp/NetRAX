@@ -43,11 +43,11 @@ struct NetraxInstance {
         static void updateReticulationProbs(AnnotatedNetwork &ann_network);
         static void optimizeModel(AnnotatedNetwork &ann_network);
         static void optimizeBranches(AnnotatedNetwork &ann_network);
-        static void optimizeTopology(AnnotatedNetwork &ann_network, const std::vector<MoveType>& types, size_t max_iterations = std::numeric_limits<size_t>::max());
-        static void optimizeTopology(AnnotatedNetwork &ann_network, MoveType& type,  bool enforce_apply_move = false, size_t max_iterations = std::numeric_limits<size_t>::max());
+        static void optimizeTopology(AnnotatedNetwork &ann_network, const std::vector<MoveType>& types, bool greedy = true, size_t max_iterations = std::numeric_limits<size_t>::max());
+        static void optimizeTopology(AnnotatedNetwork &ann_network, MoveType& type, bool greedy=true, bool enforce_apply_move = false, size_t max_iterations = std::numeric_limits<size_t>::max());
         static void optimizeAllNonTopology(AnnotatedNetwork &ann_network, bool extremeOpt = false);
         
-        static double optimizeEverythingRun(AnnotatedNetwork & ann_network, std::vector<MoveType>& typesBySpeed, const std::chrono::high_resolution_clock::time_point& start_time);
+        static double optimizeEverythingRun(AnnotatedNetwork & ann_network, std::vector<MoveType>& typesBySpeed, const std::chrono::high_resolution_clock::time_point& start_time, bool greedy = true);
         static void optimizeEverything(AnnotatedNetwork &ann_network);
         static void optimizeEverythingInWaves(AnnotatedNetwork &ann_network);
 

@@ -171,7 +171,7 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
 
             // new version: search for best place to add the new reticulation
             MoveType insertionType = MoveType::ArcInsertionMove;
-            netrax::greedyHillClimbingTopology(ann_network, insertionType, true, 1);
+            netrax::greedyHillClimbingTopology(ann_network, insertionType, false, true, 1);
             NetraxInstance::optimizeAllNonTopology(ann_network);
 
             // ensure that we don't have a reticulation with prob near 0.0 or 1.0 now. If we have one, stop the search.

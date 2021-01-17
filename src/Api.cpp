@@ -269,13 +269,12 @@ void NetraxInstance::optimizeBranches(AnnotatedNetwork &ann_network) {
  * 
  * @param ann_network The network.
  */
-void NetraxInstance::optimizeTopology(AnnotatedNetwork &ann_network, const std::vector<MoveType>& types, size_t max_iterations) {
+void NetraxInstance::optimizeTopology(AnnotatedNetwork &ann_network, const std::vector<MoveType>& types, bool greedy, size_t max_iterations) {
     assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
     double old_score = scoreNetwork(ann_network);
-    greedyHillClimbingTopology(ann_network, types, max_iterations);
+    greedyHillClimbingTopology(ann_network, types, greedy, max_iterations);
     double new_score = scoreNetwork(ann_network);
     std::cout << "BIC after topology optimization: " << new_score << "\n";
-
     assert(new_score <= old_score + ann_network.options.score_epsilon);
 }
 
@@ -284,17 +283,17 @@ void NetraxInstance::optimizeTopology(AnnotatedNetwork &ann_network, const std::
  * 
  * @param ann_network The network.
  */
-void NetraxInstance::optimizeTopology(AnnotatedNetwork &ann_network, MoveType& type, bool enforce_apply_move, size_t max_iterations) {
+void NetraxInstance::optimizeTopology(AnnotatedNetwork &ann_network, MoveType& type, bool greedy, bool enforce_apply_move, size_t max_iterations) {
     assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
     double old_score = scoreNetwork(ann_network);
-    greedyHillClimbingTopology(ann_network, type, enforce_apply_move, max_iterations);
+    greedyHillClimbingTopology(ann_network, type, greedy, enforce_apply_move, max_iterations);
     double new_score = scoreNetwork(ann_network);
     //std::cout << "BIC after topology optimization: " << new_score << "\n";
 
     assert(new_score <= old_score + ann_network.options.score_epsilon);
 }
 
-double NetraxInstance::optimizeEverythingRun(AnnotatedNetwork & ann_network, std::vector<MoveType>& typesBySpeed, const std::chrono::high_resolution_clock::time_point& start_time) {
+double NetraxInstance::optimizeEverythingRun(AnnotatedNetwork & ann_network, std::vector<MoveType>& typesBySpeed, const std::chrono::high_resolution_clock::time_point& start_time, bool greedy) {
     unsigned int type_idx = 0;
     unsigned int max_seconds = ann_network.options.timeout;
     double best_score = scoreNetwork(ann_network);
@@ -321,7 +320,7 @@ double NetraxInstance::optimizeEverythingRun(AnnotatedNetwork & ann_network, std
         }
         //std::cout << "Using move type: " << toString(typesBySpeed[type_idx]) << "\n";
         double old_score = scoreNetwork(ann_network);
-        optimizeTopology(ann_network, typesBySpeed[type_idx], false, 1);
+        optimizeTopology(ann_network, typesBySpeed[type_idx], greedy, false, 1);
         double new_score = scoreNetwork(ann_network);
         if (old_score - new_score > ann_network.options.score_epsilon) { // score got better
             //std::cout << "BIC after topology optimization: " << new_score << "\n";

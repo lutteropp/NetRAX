@@ -237,7 +237,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     return best_score;
 }
 
-double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, MoveType type, bool enforce_apply_move, size_t max_iterations) {
+double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, MoveType type, bool greedy, bool enforce_apply_move, size_t max_iterations) {
     double old_logl = ann_network.raxml_treeinfo->loglh(true);
     double old_bic = bic(ann_network, old_logl);
     //std::cout << "start_logl: " << old_logl <<", start_bic: " << old_bic << "\n";
@@ -255,35 +255,35 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, MoveType type, 
 
         switch (type) {
         case MoveType::RNNIMove:
-            new_score = hillClimbingStep(ann_network, possibleRNNIMoves(ann_network), old_bic);
+            new_score = hillClimbingStep(ann_network, possibleRNNIMoves(ann_network), old_bic, greedy);
             break;
         case MoveType::RSPRMove:
-            new_score = hillClimbingStep(ann_network, possibleRSPRMoves(ann_network), old_bic);
+            new_score = hillClimbingStep(ann_network, possibleRSPRMoves(ann_network), old_bic, greedy);
             break;
         case MoveType::RSPR1Move:
-            new_score = hillClimbingStep(ann_network, possibleRSPR1Moves(ann_network), old_bic);
+            new_score = hillClimbingStep(ann_network, possibleRSPR1Moves(ann_network), old_bic, greedy);
             break;
         case MoveType::HeadMove:
-            new_score = hillClimbingStep(ann_network, possibleHeadMoves(ann_network), old_bic);
+            new_score = hillClimbingStep(ann_network, possibleHeadMoves(ann_network), old_bic, greedy);
             break;
         case MoveType::TailMove:
-            new_score = hillClimbingStep(ann_network, possibleTailMoves(ann_network), old_bic);
+            new_score = hillClimbingStep(ann_network, possibleTailMoves(ann_network), old_bic, greedy);
             break;
         case MoveType::ArcInsertionMove:
             new_score = hillClimbingStep(ann_network, possibleArcInsertionMoves(ann_network),
-                    old_bic);
+                    old_bic, greedy);
             break;
         case MoveType::DeltaPlusMove:
             new_score = hillClimbingStep(ann_network, possibleDeltaPlusMoves(ann_network),
-                    old_bic);
+                    old_bic, greedy);
             break;
         case MoveType::ArcRemovalMove:
             new_score = hillClimbingStep(ann_network, possibleArcRemovalMoves(ann_network),
-                    old_bic);
+                    old_bic, greedy);
             break;
         case MoveType::DeltaMinusMove:
             new_score = hillClimbingStep(ann_network, possibleDeltaMinusMoves(ann_network),
-                    old_bic);
+                    old_bic, greedy);
             break;
         default:
             throw std::runtime_error("Invalid move type");
@@ -297,7 +297,7 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, MoveType type, 
     return ann_network.raxml_treeinfo->loglh(true);
 }
 
-double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, const std::vector<MoveType>& types, size_t max_iterations) {
+double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, const std::vector<MoveType>& types, bool greedy, size_t max_iterations) {
     unsigned int type_idx = 0;
     double old_logl = ann_network.raxml_treeinfo->loglh(true);
     double new_logl = old_logl;
@@ -312,7 +312,7 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, const std::vect
             moves_cnt++;
         }
         //std::cout << "Using move type: " << toString(types[type_idx]) << "\n";
-        new_logl = greedyHillClimbingTopology(ann_network, types[type_idx], 1);
+        new_logl = greedyHillClimbingTopology(ann_network, types[type_idx], greedy, false, 1);
         new_score = bic(ann_network, new_logl);
         type_idx = (type_idx + 1) % types.size();
         moves_cnt++;
