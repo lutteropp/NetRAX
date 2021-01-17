@@ -98,6 +98,15 @@ ScoreImprovementResult check_score_improvement(AnnotatedNetwork& ann_network, do
     return ScoreImprovementResult{local_improved, global_improved};
 }
 
+bool hasBadReticulation(AnnotatedNetwork& ann_network) {
+    for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
+        if ((1.0 - ann_network.reticulation_probs[i] < 0.001) || (ann_network.reticulation_probs[i] < 0.001)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData, std::mt19937& rng) {
     std::vector<MoveType> typesBySpeed = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::HeadMove};
 
@@ -146,6 +155,12 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
             }
         }
 
+        // ensure that we don't have a reticulation with prob near 0.0 or 1.0 now. If we have one, stop the search.
+        if (hasBadReticulation(ann_network)) {
+            std::cout << "BAD RETICULATION FOUND/n";
+            continue;
+        }
+
         // then try adding a reticulation
         if (ann_network.network.num_reticulations() < ann_network.options.max_reticulations) {
             // old and deprecated: randomly add new reticulation
@@ -157,14 +172,7 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
             NetraxInstance::optimizeAllNonTopology(ann_network);
 
             // ensure that we don't have a reticulation with prob near 0.0 or 1.0 now. If we have one, stop the search.
-            bool badReticulationFound = false;
-            for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
-                if ((1.0 - ann_network.reticulation_probs[i] < 0.001) || (ann_network.reticulation_probs[i] < 0.001)) {
-                    badReticulationFound = true;
-                    break;
-                }
-            }
-            if (badReticulationFound) {
+            if (hasBadReticulation(ann_network)) {
                 std::cout << "BAD RETICULATION FOUND/n";
                 continue;
             }
