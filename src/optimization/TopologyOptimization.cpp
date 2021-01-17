@@ -151,7 +151,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     if (randomizeCandidates) {
         std::random_shuffle(candidates.begin(), candidates.end());
     }
-    double brlen_smooth_factor = 0.5;
+    double brlen_smooth_factor = 0.25;
     int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;;
     int radius = 1;
     double start_logl = ann_network.raxml_treeinfo->loglh(true);
@@ -180,15 +180,6 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
             //optimize_branches(ann_network, max_iters, radius);
         }
 
-        // ensure that we don't have a reticulation with prob near 0.0 or 1.0 now. If we have one, stop the search.
-        bool badReticulationFound = false;
-        for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
-            if ((1.0 - ann_network.reticulation_probs[i] < 0.001) || (ann_network.reticulation_probs[i] < 0.001)) {
-                badReticulationFound = true;
-                break;
-            }
-        }
-        assert(!badReticulationFound);
 
         double new_logl = ann_network.raxml_treeinfo->loglh(true);
         double new_score = bic(ann_network, new_logl);
@@ -236,9 +227,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         double aic_score = aic(ann_network, logl);
         double aicc_score = aicc(ann_network, logl);
 
-        double before_logl = computeLoglikelihood(ann_network, 1, 1);
-        double recomputed_logl = computeLoglikelihood(ann_network, 0, 1);
-        assert(fabs(before_logl - recomputed_logl) < ann_network.options.lh_epsilon);
+        assert(fabs(computeLoglikelihood(ann_network, 1, 1) - computeLoglikelihood(ann_network, 0, 1)) < ann_network.options.lh_epsilon);
 
         std::cout << "  Logl: " << logl << ", BIC: " << bic_score << ", AIC: " << aic_score << ", AICc: " << aicc_score <<  "\n";
         std::cout << "  param_count: " << get_param_count(ann_network) << ", sample_size:" << get_sample_size(ann_network) << "\n";
