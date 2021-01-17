@@ -125,8 +125,7 @@ void add_neighbors_in_radius(AnnotatedNetwork& ann_network, std::unordered_set<s
     add_neighbors_in_radius(ann_network, candidates, pmatrix_index, radius, seen);
 }
 
-double optimize_branch(AnnotatedNetwork &ann_network, int max_iters, int *act_iters,
-        size_t pmatrix_index, size_t partition_index) {
+double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, size_t partition_index) {
     double min_brlen = ann_network.options.brlen_min;
     double max_brlen = ann_network.options.brlen_max;
     double tolerance = ann_network.options.tolerance;
@@ -137,9 +136,6 @@ double optimize_branch(AnnotatedNetwork &ann_network, int max_iters, int *act_it
     assert(start_logl == old_logl);
 
     double best_logl = start_logl;
-    if (*act_iters >= max_iters) {
-        return best_logl;
-    }
     BrentBrlenParams params;
     params.ann_network = &ann_network;
     params.pmatrix_index = pmatrix_index;
@@ -169,7 +165,6 @@ double optimize_branch(AnnotatedNetwork &ann_network, int max_iters, int *act_it
     //        << "\n";
     //std::cout << "\n";
 
-    (*act_iters)++;
     return best_logl;
 }
 
@@ -216,8 +211,7 @@ double optimize_reticulation(AnnotatedNetwork &ann_network, size_t reticulation_
     return best_logl;
 }
 
-double optimize_branch(AnnotatedNetwork &ann_network, int max_iters, int *act_iters,
-        size_t pmatrix_index) {
+double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index) {
     double old_logl = ann_network.raxml_treeinfo->loglh(true);
     size_t n_partitions = 1;
     bool unlinkedMode = (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
@@ -227,7 +221,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, int max_iters, int *act_it
     double logl = 0;
     for (size_t p = 0; p < n_partitions; ++p) {
         // TODO: Set the active partitions in the fake_treeinfo
-        logl = optimize_branch(ann_network, max_iters, act_iters, pmatrix_index, p);
+        logl = optimize_branch(ann_network, pmatrix_index, p);
     }
     // check whether new_logl >= old_logl
     if (logl < old_logl && fabs(logl - old_logl) >= 1E-3) {
@@ -244,16 +238,21 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
         assert(idx < ann_network.network.num_branches());
     }
     double lh_epsilon = ann_network.options.lh_epsilon;
-    int act_iters = 0;
     double old_logl = ann_network.raxml_treeinfo->loglh(true);
     double start_logl = old_logl;
+    std::vector<size_t> act_iters(ann_network.network.num_branches(), 0);
     while (!candidates.empty()) {
         size_t pmatrix_index = *candidates.begin();
         candidates.erase(candidates.begin());
         //std::cout << "\noptimizing branch " << pmatrix_index << "\n";
         checkLoglBeforeAfter(ann_network);
 
-        double new_logl = optimize_branch(ann_network, max_iters, &act_iters, pmatrix_index);
+        if (act_iters[pmatrix_index] >= max_iters) {
+            continue;
+        }
+        act_iters[pmatrix_index]++;
+
+        double new_logl = optimize_branch(ann_network, pmatrix_index);
 
         checkLoglBeforeAfter(ann_network);
 
