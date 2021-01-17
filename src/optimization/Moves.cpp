@@ -1779,7 +1779,6 @@ void repairConsecutiveClvIndices(AnnotatedNetwork &ann_network, ArcRemovalMove& 
     for (size_t i = 0; i < ann_network.network.num_nodes(); ++i) {
         if (!ann_network.network.nodes_by_index[i]) {
             missing_clv_indices.emplace_back(i);
-            std::cout << i << " is missing\n";
             invalidateSingleClv(ann_network.fake_treeinfo, i);
         }
     }
@@ -1796,7 +1795,6 @@ void repairConsecutiveClvIndices(AnnotatedNetwork &ann_network, ArcRemovalMove& 
             invalidateSingleClv(ann_network.fake_treeinfo, old_clv_index);
 
             if (move_clv_indices.find(old_clv_index) != move_clv_indices.end()) {
-                std::cout << "replacing " << old_clv_index << " by " << new_clv_index << "\n";
                 updateMoveClvIndex(move, old_clv_index, new_clv_index);
             }
 
