@@ -179,6 +179,17 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
             ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
             //optimize_branches(ann_network, max_iters, radius);
         }
+
+        // ensure that we don't have a reticulation with prob near 0.0 or 1.0 now. If we have one, stop the search.
+        bool badReticulationFound = false;
+        for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
+            if ((1.0 - ann_network.reticulation_probs[i] < 0.001) || (ann_network.reticulation_probs[i] < 0.001)) {
+                badReticulationFound = true;
+                break;
+            }
+        }
+        assert(!badReticulationFound);
+
         double new_logl = ann_network.raxml_treeinfo->loglh(true);
         double new_score = bic(ann_network, new_logl);
 
@@ -200,6 +211,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
             std::cout << "new value: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
             std::cout << "old value: " << start_logl << "\n";
         }
+        assert(fabs(ann_network.raxml_treeinfo->loglh(true) - start_logl) < ann_network.options.lh_epsilon);
         if (greedy && foundBetterScore) {
             break;
         }

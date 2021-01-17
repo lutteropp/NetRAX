@@ -156,6 +156,18 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
             netrax::greedyHillClimbingTopology(ann_network, insertionType, true, 1);
             NetraxInstance::optimizeAllNonTopology(ann_network);
 
+            // ensure that we don't have a reticulation with prob near 0.0 or 1.0 now. If we have one, stop the search.
+            bool badReticulationFound = false;
+            for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
+                if ((1.0 - ann_network.reticulation_probs[i] < 0.001) || (ann_network.reticulation_probs[i] < 0.001)) {
+                    badReticulationFound = true;
+                    break;
+                }
+            }
+            if (badReticulationFound) {
+                continue;
+            }
+
             NetraxInstance::optimizeEverythingRun(ann_network, typesBySpeed, start_time);
             score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
             if (score_improvement.local_improved) {
