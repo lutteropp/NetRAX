@@ -75,7 +75,7 @@ bool isComplexityChanging(MoveType& moveType) {
 }
 
 template<typename T>
-double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates, double old_score, bool greedy=true, bool randomizeCandidates=false) {
+double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates, double old_score, bool greedy=true, bool randomizeCandidates=false, bool brlenopt_inside = true) {
     if (candidates.empty()) {
         return bic(ann_network, ann_network.raxml_treeinfo->loglh(true));
     }
@@ -83,8 +83,18 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     if (randomizeCandidates) {
         std::random_shuffle(candidates.begin(), candidates.end());
     }
+
+    if (brlenopt_inside) { // first try without local brlen opt
+        double bic_before_0 = scoreNetwork(ann_network);
+        hillClimbingStep(ann_network, candidates, bic_before_0, greedy, false, false);
+        double bic_after_0 = scoreNetwork(ann_network);
+        if (bic_after_0 < bic_before_0) {
+            return bic_after_0;
+        }
+    }
+
     double brlen_smooth_factor = 0.25;
-    int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
+    int max_iters = 1; //brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
     int radius = 1;
     double start_logl = ann_network.raxml_treeinfo->loglh(true);
 
@@ -100,12 +110,14 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     for (size_t i = 0; i < candidates.size(); ++i) {
         T move = candidates[i];
         performMove(ann_network, move);
-        // Do brlen optimization locally around the move
-        std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
-        assert(!brlen_opt_candidates.empty());
-        add_neighbors_in_radius(ann_network, brlen_opt_candidates, 1);
-        optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
-        optimizeReticulationProbs(ann_network);
+        if (brlenopt_inside) {
+            // Do brlen optimization locally around the move
+            std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
+            assert(!brlen_opt_candidates.empty());
+            add_neighbors_in_radius(ann_network, brlen_opt_candidates, 1);
+            optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
+            optimizeReticulationProbs(ann_network);
+        }
 
         if (isComplexityChanging(move.moveType)) {
             ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
@@ -125,8 +137,10 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         if (!isComplexityChanging(move.moveType)) {
             undoMove(ann_network, move);
         }
-        apply_network_state(ann_network, start_state, complexityChanging);
-        assert(network_states_equal(start_state, extract_network_state(ann_network, complexityChanging)));
+        if (isComplexityChanging(move.moveType) || brlenopt_inside) {
+            apply_network_state(ann_network, start_state, complexityChanging);
+            assert(network_states_equal(start_state, extract_network_state(ann_network, complexityChanging)));
+        }
 
         if (fabs(ann_network.raxml_treeinfo->loglh(true) - start_logl) >= ann_network.options.lh_epsilon) {
             std::cout << "new value: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
@@ -144,10 +158,14 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         performMove(ann_network, bestMove);
 
         apply_network_state(ann_network, best_state, complexityChanging);
-        // just for debug, doing reticulation opt, full global brlen opt and model opt:
-        //ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
-        //optimize_reticulations(ann_network, 100);
-        //optimize_branches(ann_network, max_iters, radius);
+        if (!brlenopt_inside) {
+            // Do brlen optimization locally around the move
+            std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, bestMove);
+            assert(!brlen_opt_candidates.empty());
+            add_neighbors_in_radius(ann_network, brlen_opt_candidates, 1);
+            optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
+            optimizeReticulationProbs(ann_network);
+        }
 
         best_score = bic(ann_network, ann_network.raxml_treeinfo->loglh(true));
         ann_network.stats.moves_taken[candidates[best_idx].moveType]++;
