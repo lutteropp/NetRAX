@@ -167,13 +167,15 @@ std::vector<DisplayedTreeData> process_partition_new(AnnotatedNetwork &ann_netwo
     Network &network = ann_network.network;
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
 
-    // just for debug: invalidate all pmatrix and clv indices
-    /*for (size_t i = 0; i < ann_network.network.nodes.size(); ++i) {
-        ann_network.fake_treeinfo->clv_valid[partition_idx][i] = 0;
+    // invalidate all pmatrix and clv indices if not at first partition (TODO: Why is this needed?)
+    if (partition_idx != 0) {
+        for (size_t i = 0; i < ann_network.network.nodes.size(); ++i) {
+            ann_network.fake_treeinfo->clv_valid[partition_idx][i] = 0;
+        }
+        for (size_t i = 0; i < ann_network.network.edges.size(); ++i) {
+            ann_network.fake_treeinfo->pmatrix_valid[partition_idx][i] = 0;
+        }
     }
-    for (size_t i = 0; i < ann_network.network.edges.size(); ++i) {
-        ann_network.fake_treeinfo->pmatrix_valid[partition_idx][i] = 0;
-    }*/
 
     fake_treeinfo.active_partition = partition_idx;
     setup_pmatrices(ann_network, incremental, true);

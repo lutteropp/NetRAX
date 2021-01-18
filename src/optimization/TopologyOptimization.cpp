@@ -126,8 +126,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
             undoMove(ann_network, move);
         }
         apply_network_state(ann_network, start_state, complexityChanging);
-        NetworkState act_state = extract_network_state(ann_network, complexityChanging);
-        assert(network_states_equal(start_state, act_state));
+        assert(network_states_equal(start_state, extract_network_state(ann_network, complexityChanging)));
 
         if (fabs(ann_network.raxml_treeinfo->loglh(true) - start_logl) >= ann_network.options.lh_epsilon) {
             std::cout << "new value: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
