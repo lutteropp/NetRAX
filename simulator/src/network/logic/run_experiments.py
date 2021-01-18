@@ -79,8 +79,8 @@ def run_experiments_small_network():
     max_reticulations = 2
     prefix = 'small_network'
     sampling_types = [SamplingType.PERFECT_SAMPLING]
-    start_types = [StartType.FROM_RAXML, StartType.RANDOM]
-    brlen_linkage_types = [BrlenLinkageType.SCALED]
+    start_types = [StartType.FROM_RAXML]
+    brlen_linkage_types = [BrlenLinkageType.LINKED, BrlenLinkageType.SCALED, BrlenLinkageType.UNLINKED]
     likelihood_types = [LikelihoodType.BEST, LikelihoodType.AVERAGE]
     partition_sizes = [500, 1000]
     run_experiments(prefix, iterations, min_taxa, max_taxa, min_reticulations, max_reticulations, sampling_types, likelihood_types, brlen_linkage_types, start_types, partition_sizes)
@@ -118,6 +118,6 @@ def run_experiments_larger_network():
     
 if __name__ == "__main__":
     #run_experiments_small_tree()
-    #run_experiments_small_network()
+    run_experiments_small_network()
     #run_experiments_larger_network()
-    run_experiments_small_network_single_debug()
+    #run_experiments_small_network_single_debug()
