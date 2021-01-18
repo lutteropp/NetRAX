@@ -57,7 +57,7 @@ def run_experiments(prefix, iterations, min_taxa, max_taxa, min_reticulations, m
 
 
 def run_experiments_small_tree():
-    iterations = 100
+    iterations = 1
     min_taxa = 4
     max_taxa = 10
     min_reticulations = 0
@@ -72,7 +72,7 @@ def run_experiments_small_tree():
     
 
 def run_experiments_small_network():
-    iterations = 10
+    iterations = 1
     min_taxa = 4
     max_taxa = 10
     min_reticulations = 1
