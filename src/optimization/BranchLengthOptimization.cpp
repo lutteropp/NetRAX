@@ -44,23 +44,11 @@ static double brent_target_networks(void *p, double x) {
         checkLoglBeforeAfter(*ann_network);
     } else {
         ann_network->fake_treeinfo->branch_lengths[partition_index][pmatrix_index] = x;
-        ann_network->fake_treeinfo->pmatrix_valid[partition_index][pmatrix_index] = 0;
-        setup_pmatrices(*ann_network, false, true);
-        invalidateHigherCLVs(*ann_network,
-                getTarget(ann_network->network, ann_network->network.edges_by_index[pmatrix_index]),
-                true);
-
-        bool all_clvs_valid = true;
-        for (size_t i = 0; i < ann_network->fake_treeinfo->partition_count; ++i) {
-            all_clvs_valid &= ann_network->fake_treeinfo->clv_valid[i][ann_network->network.root->clv_index];
-        }
-        assert(!all_clvs_valid);
-
-        score = -1 * computeLoglikelihood(*ann_network, 1, 1);
+        invalidatePmatrixIndex(*ann_network, pmatrix_index);
+        setup_pmatrices(*ann_network, true, true);
         assert(ann_network->fake_treeinfo->pmatrix_valid[partition_index][pmatrix_index]);
+        score = -1 * computeLoglikelihood(*ann_network, 1, 0);
         checkLoglBeforeAfter(*ann_network);
-        //std::cout << "    score: " << score << ", x: " << x << ", old_x: " << old_x << ", pmatrix index:"
-        //        << pmatrix_index << "\n";
     }
     return score;
 }
@@ -146,6 +134,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index) {
         n_partitions = ann_network.fake_treeinfo->partition_count;
     }
     double logl = 0;
+    ann_network.fake_treeinfo->active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
     for (size_t p = 0; p < n_partitions; ++p) {
         // TODO: Set the active partitions in the fake_treeinfo
         logl = optimize_branch(ann_network, pmatrix_index, p);

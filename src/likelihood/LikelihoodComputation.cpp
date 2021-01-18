@@ -167,18 +167,11 @@ std::vector<DisplayedTreeData> process_partition_new(AnnotatedNetwork &ann_netwo
     Network &network = ann_network.network;
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
 
-    // invalidate all pmatrix and clv indices if not at first partition (TODO: Why is this needed?)
-    if (partition_idx != 0) {
-        for (size_t i = 0; i < ann_network.network.nodes.size(); ++i) {
-            ann_network.fake_treeinfo->clv_valid[partition_idx][i] = 0;
-        }
-        for (size_t i = 0; i < ann_network.network.edges.size(); ++i) {
-            ann_network.fake_treeinfo->pmatrix_valid[partition_idx][i] = 0;
-        }
-    }
-
+    // invalidate all clv indices (TODO: Why is this needed?)
+    /*for (size_t i = 0; i < ann_network.network.nodes.size(); ++i) {
+        ann_network.fake_treeinfo->clv_valid[partition_idx][i] = 0;
+    }*/
     fake_treeinfo.active_partition = partition_idx;
-    setup_pmatrices(ann_network, incremental, true);
 
     std::vector<bool> clv_touched = init_clv_touched(ann_network, incremental, partition_idx);
     size_t n_trees = 1 << network.num_reticulations();
@@ -202,7 +195,8 @@ std::vector<DisplayedTreeData> process_partition_new(AnnotatedNetwork &ann_netwo
             start_node = network.reticulation_nodes[changed_bit_pos];
             start_node->getReticulationData()->setActiveParentToggle(changed_bit_is_set);
         }
-        // TODO: Don't we need to invalidate the higher clvs here?
+        // TODO: Why don't we need to invalidate the higher clvs here?
+        //invalidateHigherCLVs(ann_network, start_node, partition_idx, false);
 
         Node *displayed_tree_root = nullptr;
         std::vector<bool> dead_nodes = collect_dead_nodes(network, network.root->clv_index, &displayed_tree_root);
@@ -230,9 +224,6 @@ std::vector<DisplayedTreeData> process_partition_new(AnnotatedNetwork &ann_netwo
 }
 
 double computeLoglikelihood_new(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices) {
-    //incremental = 0;
-    //update_pmatrices = 1;
-
     Network &network = ann_network.network;
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
     bool reuse_old_displayed_trees = false;
@@ -302,6 +293,8 @@ double computeLoglikelihood_new(AnnotatedNetwork &ann_network, int incremental, 
         fake_treeinfo.clv_valid[i][network.root->clv_index] = 1;
     }
     //std::cout << "network logl: " << ann_network.old_logl << "\n";
+
+    fake_treeinfo.active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
     return network_logl.toDouble();
 }
 
