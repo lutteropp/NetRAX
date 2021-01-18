@@ -29,9 +29,7 @@ struct BrentBrlenParams {
 };
 
 void checkLoglBeforeAfter(AnnotatedNetwork& ann_network) {
-    //double start_logl = computeLoglikelihood(ann_network, 1, 1);
-    //double recomputed_logl = computeLoglikelihood(ann_network, 0, 1);
-    //assert(start_logl == recomputed_logl);
+    assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
 }
 
 static double brent_target_networks(void *p, double x) {
@@ -40,6 +38,7 @@ static double brent_target_networks(void *p, double x) {
     size_t partition_index = ((BrentBrlenParams*) p)->partition_index;
     double old_x = ann_network->fake_treeinfo->branch_lengths[partition_index][pmatrix_index];
     double score;
+    checkLoglBeforeAfter(*ann_network);
     if (old_x == x) {
         score = -1 * computeLoglikelihood(*ann_network, 1, 1);
         checkLoglBeforeAfter(*ann_network);
@@ -59,6 +58,7 @@ static double brent_target_networks(void *p, double x) {
 
         score = -1 * computeLoglikelihood(*ann_network, 1, 1);
         assert(ann_network->fake_treeinfo->pmatrix_valid[partition_index][pmatrix_index]);
+        checkLoglBeforeAfter(*ann_network);
         //std::cout << "    score: " << score << ", x: " << x << ", old_x: " << old_x << ", pmatrix index:"
         //        << pmatrix_index << "\n";
     }
