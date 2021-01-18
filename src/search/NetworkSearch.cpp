@@ -248,7 +248,7 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
 
             optimizeEverythingRun(ann_network, typesBySpeed, start_time, true);
             score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
-            if (score_improvement.global_improved) {
+            if (score_improvement.local_improved) {
                 keepSearching = true;
                 continue;
             }
