@@ -132,6 +132,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         if (fabs(ann_network.raxml_treeinfo->loglh(true) - start_logl) >= ann_network.options.lh_epsilon) {
             std::cout << "new value: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
             std::cout << "old value: " << start_logl << "\n";
+            throw std::runtime_error("Rolling back did not work correctly");
         }
         assert(fabs(ann_network.raxml_treeinfo->loglh(true) - start_logl) < ann_network.options.lh_epsilon);
         if (greedy && foundBetterScore) {
