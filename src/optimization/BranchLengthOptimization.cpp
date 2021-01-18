@@ -208,7 +208,7 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
 void optimizeBranches(AnnotatedNetwork &ann_network) {
     assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
     double old_score = scoreNetwork(ann_network);
-    ann_network.raxml_treeinfo->optimize_branches(ann_network.options.lh_epsilon, 1);
+    ann_network.raxml_treeinfo->optimize_branches(ann_network.options.lh_epsilon, 10);
     assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
     double new_score = scoreNetwork(ann_network);
     std::cout << "BIC score after branch length optimization: " << new_score << "\n";

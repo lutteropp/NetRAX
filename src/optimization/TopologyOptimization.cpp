@@ -83,7 +83,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     if (randomizeCandidates) {
         std::random_shuffle(candidates.begin(), candidates.end());
     }
-    double brlen_smooth_factor = 0.1;
+    double brlen_smooth_factor = 0.25;
     int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
     int radius = 1;
     double start_logl = ann_network.raxml_treeinfo->loglh(true);
@@ -111,7 +111,6 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
             ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
             //optimize_branches(ann_network, max_iters, radius);
         }
-
 
         double new_logl = ann_network.raxml_treeinfo->loglh(true);
         double new_score = bic(ann_network, new_logl);

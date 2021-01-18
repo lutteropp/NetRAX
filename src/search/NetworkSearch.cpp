@@ -234,7 +234,7 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
             // old and deprecated: randomly add new reticulation
             //add_extra_reticulations(ann_network, ann_network.network.num_reticulations() + 1);
 
-            // new version: search for best place to add the new reticulation
+            // new version: search for good place to add the new reticulation
             MoveType insertionType = MoveType::ArcInsertionMove;
             greedyHillClimbingTopology(ann_network, insertionType, false, true, 1);
             optimizeAllNonTopology(ann_network);
@@ -248,7 +248,7 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
 
             optimizeEverythingRun(ann_network, typesBySpeed, start_time, true);
             score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
-            if (score_improvement.local_improved) {
+            if (score_improvement.global_improved) {
                 keepSearching = true;
                 continue;
             }
