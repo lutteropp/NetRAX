@@ -31,10 +31,9 @@ def build_dataset(prefix, n_taxa, n_reticulations, msa_size, simulator_type, sam
     return create_dataset_container(n_taxa, n_reticulations, msa_size, sampling_type, simulator_type, likelihood_types, brlen_linkage_types, start_types, my_id, name)
     
 
-def run_experiments(prefix, settings):
+def simulate_datasets(prefix, settings):
     if not os.path.exists('datasets_' + prefix):
         os.makedirs('datasets_' + prefix)
-    datasets = []
 
     if SimulatorType.SARAH in settings.simulator_types:
         raise Exception("Only SimulatorType.CELINE please")
@@ -43,6 +42,7 @@ def run_experiments(prefix, settings):
     for taxa in range(settings.max_taxa+1):
         counter[taxa] = defaultdict(int)
         
+    datasets = []
     for my_id in range(settings.iterations):
         n_taxa, n_reticulations, newick, param_info = simulate_network_celine_minmax(settings.min_taxa, settings.max_taxa, settings.min_reticulations, settings.max_reticulations)
         counter[n_taxa][n_reticulations] += 1
@@ -63,11 +63,17 @@ def run_experiments(prefix, settings):
                 simulate_msa(ds)
                 datasets.append(ds)
     
+    print("Statistics on simulated datasets (n_taxa, n_reticulations, count):")
     for i in range(settings.max_taxa+1):
         for j in range(settings.max_reticulations+1):
             if counter[i][j] != 0:
                 print(str(i) + ", " + str(j) + ": " + str(counter[i][j]))
-    
+
+    return datasets
+
+
+def run_experiments(prefix, settings):
+    datasets = simulate_datasets(prefix, settings)
     run_inference_and_evaluate(datasets)
     write_results_to_csv(datasets, prefix + "_results.csv")
     create_plots(prefix)
