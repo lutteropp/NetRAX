@@ -7,7 +7,7 @@ from celine_simulator import CelineParams, simulate_network_celine
 import math
 import random
 
-def create_dataset_container(n_taxa, n_reticulations, approx_msa_size, sampling_type, simulation_type, likelihood_types, brlen_linkage_types, start_types, my_id, name, timeout=0, m=1, num_start_networks=10):
+def create_dataset_container(n_taxa, n_reticulations, approx_msa_size, sampling_type, simulation_type, likelihood_types, brlen_linkage_types, start_types, my_id, name, timeout=0, m=1, num_start_networks=5):
     ds = Dataset()
     ds.my_id = my_id
     ds.n_taxa = n_taxa
