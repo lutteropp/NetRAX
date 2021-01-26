@@ -330,6 +330,25 @@ void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {
             break;
         }
     }
+
+    std::cout << "Best inferred network has " << bestNetworkData.best_n_reticulations << " reticulations, logl = " << bestNetworkData.logl[bestNetworkData.best_n_reticulations] << ", bic = " << bestNetworkData.bic[bestNetworkData.best_n_reticulations] << "\n";
+    std::cout << "Best inferred network is: \n";
+    std::cout << bestNetworkData.newick[bestNetworkData.best_n_reticulations] << "\n";
+
+    std::cout << "n_reticulations, logl, bic, newick\n";
+    for (size_t i = 0; i < bestNetworkData.bic.size(); ++i) {
+        if (bestNetworkData.bic[i] == std::numeric_limits<double>::infinity()) {
+            continue;
+        }
+        std::cout << i << ", " << bestNetworkData.logl[i] << ", " << bestNetworkData.bic[i] << ", " << bestNetworkData.newick[i] << "\n";
+        
+        std::ofstream outfile(netraxOptions.output_file + "_" + std::to_string(i) + "_reticulations.nw");
+        outfile << bestNetworkData.newick[i] << "\n";
+        outfile.close();
+    }
+    std::ofstream outfile(netraxOptions.output_file);
+    outfile << bestNetworkData.newick[bestNetworkData.best_n_reticulations] << "\n";
+    outfile.close();
 }
 
 }
