@@ -87,7 +87,7 @@ def build_trees_file(ds, trees_newick, sampled_trees_contrib):
     
 def build_dataset(n_taxa, n_reticulations, approx_msa_size, sampling_type, simulation_type, likelihood_types, brlen_linkage_types, start_types, name, timeout=0, m=1, num_start_networks=5):
     ds = create_dataset_container(n_taxa, n_reticulations, approx_msa_size, sampling_type, simulation_type, likelihood_types, brlen_linkage_types, start_types, name, timeout, m, num_start_networks)
-    if simulation_type == SimulationType.SARAH:
+    if simulation_type == SimulatorType.SARAH:
         generate_random_network(ds.n_taxa, ds.n_reticulations, ds.true_network_path)
     else:
         celine_params = CelineParams()
