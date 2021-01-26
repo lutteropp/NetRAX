@@ -8,6 +8,7 @@ from seqgen_wrapper import simulate_msa
 from celine_simulator import CelineParams, simulate_network_celine_minmax
 
 from create_plots import create_plots
+import pandas as pd
 
 class ExperimentSettings:
     def __init__(self):
@@ -70,6 +71,11 @@ def simulate_datasets(prefix, settings):
                 print(str(i) + ", " + str(j) + ": " + str(counter[i][j]))
 
     return datasets
+
+
+def merge_csvs(inpaths, outpath):
+   combined_csv = pd.concat([pd.read_csv(f) for f in inpaths ])
+   combined_csv.to_csv(outpath, index=False, encoding='utf-8-sig')
 
 
 def run_experiments(prefix, settings):
