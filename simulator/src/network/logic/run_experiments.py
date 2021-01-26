@@ -85,12 +85,9 @@ def run_multi(prefix, settings, iterations):
   
     
 def parse_command_line_arguments_experiment():
-    prefix, settings = small_network()
-    iterations = 2
-    
     CLI = argparse.ArgumentParser()
     CLI.add_argument("--prefix",nargs=1, type=str, default="small_network")
-    CLI.add_argument("--iterations", nargs=1, type=int, default=2)
+    CLI.add_argument("--iterations", nargs=1, type=int, default=1)
     CLI.add_argument("--sampling_types", nargs="*", type=SamplingType, default=[SamplingType.PERFECT_SAMPLING])
     CLI.add_argument("--start_types",nargs="*",type=StartType, default=[StartType.FROM_RAXML, StartType.RANDOM])
     CLI.add_argument("--brlen_linkage_types",nargs="*",type=BrlenLinkageType, default=[BrlenLinkageType.LINKED])
@@ -104,12 +101,14 @@ def parse_command_line_arguments_experiment():
     args = CLI.parse_args()
 
     prefix = args.prefix
-    settings.iterations = 1
-    settings.likelihood_types = args.likelihood_types
-    settings.brlen_linkage_types = args.brlen_linkage_types
-    settings.partition_sizes = args.partition_sizes
+    iterations = args.iterations
     settings.sampling_types = args.sampling_types
     settings.start_types = args.start_types
+    settings.brlen_linkage_types = args.brlen_linkage_types
+    settings.likelihood_types = args.likelihood_types
+    settings.partition_sizes = args.partition_sizes
+    settings.min_taxa = args.min_taxa
+    settings.max_taxa = args.max_taxa
     settings.min_reticulations = args.min_reticulations
     settings.max_reticulations = args.max_reticulations
 
