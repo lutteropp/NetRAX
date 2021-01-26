@@ -1,4 +1,5 @@
 import os
+import sys
 from dataset_builder import create_dataset_container, sample_trees, build_trees_file
 from netrax_wrapper import extract_displayed_trees
 from collections import defaultdict
@@ -9,6 +10,7 @@ from celine_simulator import CelineParams, simulate_network_celine_minmax
 
 from create_plots import create_plots
 import pandas as pd
+import argparse
 
 from experiment_settings import ExperimentSettings, small_tree, larger_network, small_network, small_network_single_debug
 
@@ -82,8 +84,38 @@ def run_multi(prefix, settings, iterations):
     create_plots(prefix)
   
     
+def parse_command_line_arguments_experiment():
+    prefix, settings = small_network()
+    iterations = 2
+    
+    CLI = argparse.ArgumentParser()
+    CLI.add_argument("--prefix",nargs=1, type=str, default="small_network")
+    CLI.add_argument("--iterations", nargs=1, type=int, default=2)
+    CLI.add_argument("--sampling_types", nargs="*", type=SamplingType, default=[SamplingType.PERFECT_SAMPLING])
+    CLI.add_argument("--start_types",nargs="*",type=StartType, default=[StartType.FROM_RAXML, StartType.RANDOM])
+    CLI.add_argument("--brlen_linkage_types",nargs="*",type=BrlenLinkageType, default=[BrlenLinkageType.LINKED])
+    CLI.add_argument("--likelihood_types",nargs="*",type=LikelihoodType, default=[LikelihoodType.BEST, LikelihoodType.AVERAGE])
+    CLI.add_argument("--partition_sizes",nargs="*",type=int, default=[500, 1000])
+    CLI.add_argument("--min_taxa",nargs=1,type=int, default=4)
+    CLI.add_argument("--max_taxa",nargs=1,type=int, default=10)
+    CLI.add_argument("--min_reticulations",nargs=1,type=int, default=1)
+    CLI.add_argument("--max_reticulations",nargs=1,type=int, default=2)
+
+    args = CLI.parse_args()
+
+    prefix = args.prefix
+    settings.iterations = 1
+    settings.likelihood_types = args.likelihood_types
+    settings.brlen_linkage_types = args.brlen_linkage_types
+    settings.partition_sizes = args.partition_sizes
+    settings.sampling_types = args.sampling_types
+    settings.start_types = args.start_types
+    settings.min_reticulations = args.min_reticulations
+    settings.max_reticulations = args.max_reticulations
+
+    return prefix, settings, iterations
+
+
 if __name__ == "__main__":
-    #run_multi(*small_tree(), 2)
-    #run_multi(*small_network(), 2)
-    #run_multi(*larger_network(), 2)
-    run_multi(*small_network_single_debug(), 2)
+    prefix, settings, iterations = parse_command_line_arguments_experiment()
+    run_multi(prefix, settings, iterations)
