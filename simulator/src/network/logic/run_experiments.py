@@ -82,8 +82,17 @@ def run_experiments(prefix, settings):
     datasets = simulate_datasets(prefix, settings)
     run_inference_and_evaluate(datasets)
     write_results_to_csv(datasets, prefix + "_results.csv")
-    create_plots(prefix)
+    #create_plots(prefix)
 
+
+def run_experiments_multi(prefix, settings, iterations):
+    local_csv_paths = []
+    for it in range(len(iterations)):
+        local_prefix = prefix + "_" + str(it)
+        run_experiments(local_prefix, settings)
+        local_csv_paths.append(local_prefix + "_results.csv")
+    merge_csvs(local_csv_paths, prefix + "_results.csv")
+    
 
 def run_experiments_small_tree():
     settings = ExperimentSettings()
