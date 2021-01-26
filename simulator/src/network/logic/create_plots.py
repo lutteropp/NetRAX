@@ -16,10 +16,10 @@ def create_bic_plot(prefix, name_prefix, filtered_data):
     plot_filepath = 'plots_' + prefix + '/' + name_prefix + '_bic_plot.png'
     stats_filepath = 'plots_' + prefix + '/' + name_prefix + '_bic_stats.png'
 
-    true_simulated_network_bics = filtered_data.loc[filtered_data['start_from_raxml'] == False][['name', 'bic_true']]
-    inferred_network_bics = filtered_data.loc[filtered_data['start_from_raxml'] == False][['name', 'bic_inferred']]
-    inferred_network_with_raxml_bics = filtered_data.loc[filtered_data['start_from_raxml'] == True][['name', 'bic_inferred']].rename(columns={'bic_inferred': 'bic_inferred_with_raxml'})
-    raxml_bics = filtered_data.loc[filtered_data['start_from_raxml'] == False][['name', 'bic_raxml']]
+    true_simulated_network_bics = filtered_data.loc[filtered_data['start_type'] == 'StartType.FROM_RAXML'][['name', 'bic_true']]
+    inferred_network_bics = filtered_data.loc[filtered_data['start_type'] != 'StartType.FROM_RAXML'][['name', 'bic_inferred']]
+    inferred_network_with_raxml_bics = filtered_data.loc[filtered_data['start_type'] == 'StartType.FROM_RAXML'][['name', 'bic_inferred']].rename(columns={'bic_inferred': 'bic_inferred_with_raxml'})
+    raxml_bics = filtered_data.loc[filtered_data['start_type'] == 'StartType.FROM_RAXML'][['name', 'bic_raxml']]
     merged_df = merge_multi([true_simulated_network_bics, inferred_network_bics, inferred_network_with_raxml_bics, raxml_bics], 'name')
     
     counts = collections.defaultdict(int)
@@ -69,10 +69,10 @@ def create_logl_plot(prefix, name_prefix, filtered_data):
     plot_filepath = 'plots_' + prefix + '/' + name_prefix + '_logl_plot.png'
     stats_filepath = 'plots_' + prefix + '/' + name_prefix + '_logl_stats.png'
 
-    true_simulated_network_logls = filtered_data.loc[filtered_data['start_from_raxml'] == False][['name', 'logl_true']]
-    inferred_network_logls = filtered_data.loc[filtered_data['start_from_raxml'] == False][['name', 'logl_inferred']]
-    inferred_network_with_raxml_logls = filtered_data.loc[filtered_data['start_from_raxml'] == True][['name', 'logl_inferred']].rename(columns={'logl_inferred': 'logl_inferred_with_raxml'})
-    raxml_logls = filtered_data.loc[filtered_data['start_from_raxml'] == False][['name', 'logl_raxml']]
+    true_simulated_network_logls      = filtered_data.loc[filtered_data['start_type'] == 'StartType.FROM_RAXML'][['name', 'logl_true']]
+    inferred_network_logls            = filtered_data.loc[filtered_data['start_type'] != 'StartType.FROM_RAXML'][['name', 'logl_inferred']]
+    inferred_network_with_raxml_logls = filtered_data.loc[filtered_data['start_type'] == 'StartType.FROM_RAXML'][['name', 'logl_inferred']].rename(columns={'logl_inferred': 'logl_inferred_with_raxml'})
+    raxml_logls                       = filtered_data.loc[filtered_data['start_type'] == 'StartType.FROM_RAXML'][['name', 'logl_raxml']]
     merged_df = merge_multi([true_simulated_network_logls, inferred_network_logls, inferred_network_with_raxml_logls, raxml_logls], 'name')
     
     counts = collections.defaultdict(int)
@@ -122,9 +122,9 @@ def create_relative_rf_dist_plot(prefix, name_prefix, filtered_data):
     plot_filepath = 'plots_' + prefix + '/' + name_prefix + '_rfdist_plot.png'
     stats_filepath = 'plots_' + prefix + '/' + name_prefix + '_rfdist_stats.png'
 
-    inferred_network_rfdist = filtered_data.loc[filtered_data['start_from_raxml'] == False][['name', 'rf_relative_inferred']]
-    inferred_network_with_raxml_rfdist = filtered_data.loc[filtered_data['start_from_raxml'] == True][['name', 'rf_relative_inferred']].rename(columns={'rf_relative_inferred': 'rf_relative_inferred_with_raxml'})
-    raxml_rfdist = filtered_data.loc[filtered_data['start_from_raxml'] == False][['name', 'rf_relative_raxml']]
+    inferred_network_rfdist = filtered_data.loc[filtered_data['start_type'] != 'StartType.FROM_RAXML'][['name', 'rf_relative_inferred']]
+    inferred_network_with_raxml_rfdist = filtered_data.loc[filtered_data['start_type'] == 'StartType.FROM_RAXML'][['name', 'rf_relative_inferred']].rename(columns={'rf_relative_inferred': 'rf_relative_inferred_with_raxml'})
+    raxml_rfdist = filtered_data.loc[filtered_data['start_type'] != 'StartType.FROM_RAXML'][['name', 'rf_relative_raxml']]
     merged_df = merge_multi([inferred_network_rfdist, inferred_network_with_raxml_rfdist, raxml_rfdist], 'name')
     
     counts = collections.defaultdict(int)
@@ -172,7 +172,7 @@ def create_relative_rf_dist_plot(prefix, name_prefix, filtered_data):
     
 def create_num_nearzero_raxml_branches_plot(prefix, name_prefix, filtered_data):
     hist_filepath = 'plots_' + prefix + '/' + name_prefix + '_raxml_nonzero_branches_histogram.png'
-    raxml_nonzero_branches = filtered_data.loc[filtered_data['start_from_raxml'] == False][['name', 'near_zero_branches_raxml']]
+    raxml_nonzero_branches = filtered_data.loc[filtered_data['start_type'] == 'StartType.FROM_RAXML'][['name', 'near_zero_branches_raxml']]
     
     counts = collections.defaultdict(int)
     for _, row in raxml_nonzero_branches.iterrows():
