@@ -74,7 +74,7 @@ def run_experiments(prefix, settings):
 
 def run_multi(prefix, settings, iterations):
     local_csv_paths = []
-    for it in range(len(iterations)):
+    for it in range(iterations):
         local_prefix = prefix + "_" + str(it)
         run_experiments(local_prefix, settings)
         local_csv_paths.append(local_prefix + "_results.csv")
