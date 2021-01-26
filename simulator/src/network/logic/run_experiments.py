@@ -84,6 +84,6 @@ def run_multi(prefix, settings, iterations):
     
 if __name__ == "__main__":
     #run_multi(*small_tree(), 2)
-    run_multi(*small_network(), 2)
+    #run_multi(*small_network(), 2)
     #run_multi(*larger_network(), 2)
-    #run_multi(*small_network_single_debug(), 1)
+    run_multi(*small_network_single_debug(), 2)

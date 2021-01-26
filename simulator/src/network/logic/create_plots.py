@@ -12,6 +12,15 @@ def merge_multi(dataframes, column_name):
     return merged
 
 
+def extract_id_from_name(name):
+    splitted = name.split('/')
+    first_part = splitted[len(splitted)-2]
+    second_part = splitted[len(splitted)-1]
+    first_id_str = first_part.split('_')[-1]
+    second_id_str = second_part.split('_')[-1]
+    return float(first_id_str + '.' + second_id_str)
+
+
 def create_bic_plot(prefix, name_prefix, filtered_data):
     plot_filepath = 'plots_' + prefix + '/' + name_prefix + '_bic_plot.png'
     stats_filepath = 'plots_' + prefix + '/' + name_prefix + '_bic_stats.png'
@@ -26,7 +35,7 @@ def create_bic_plot(prefix, name_prefix, filtered_data):
     bic_dict_list = []
     for _, row in merged_df.iterrows():
         act_entry = {}
-        act_entry['id'] = int(row['name'].split('/')[1].split('_')[0])
+        act_entry['id'] = extract_id_from_name(row['name'])
         act_entry['rel_diff_bic_inferred'] = float(row['bic_inferred'] - row['bic_true']) / row['bic_true']
         act_entry['rel_diff_bic_inferred_with_raxml'] = float(row['bic_inferred_with_raxml'] - row['bic_true']) / row['bic_true']
         act_entry['rel_diff_bic_raxml'] = float(row['bic_raxml'] - row['bic_true']) / row['bic_true']
@@ -79,7 +88,7 @@ def create_logl_plot(prefix, name_prefix, filtered_data):
     logl_dict_list = []
     for _, row in merged_df.iterrows():
         act_entry = {}
-        act_entry['id'] = int(row['name'].split('/')[1].split('_')[0])
+        act_entry['id'] = extract_id_from_name(row['name'])
         act_entry['rel_diff_logl_inferred'] = float(row['logl_inferred'] - row['logl_true']) / row['logl_true']
         act_entry['rel_diff_logl_inferred_with_raxml'] = float(row['logl_inferred_with_raxml'] - row['logl_true']) / row['logl_true']
         act_entry['rel_diff_logl_raxml'] = float(row['logl_raxml'] - row['logl_true']) / row['logl_true']
@@ -131,7 +140,7 @@ def create_relative_rf_dist_plot(prefix, name_prefix, filtered_data):
     logl_dict_list = []
     for _, row in merged_df.iterrows():
         act_entry = {}
-        act_entry['id'] = int(row['name'].split('/')[1].split('_')[0])
+        act_entry['id'] = extract_id_from_name(row['name'])
         act_entry['rf_relative_inferred'] = row['rf_relative_inferred']
         act_entry['rf_relative_inferred_with_raxml'] = row['rf_relative_inferred_with_raxml']
         act_entry['rf_relative_raxml'] = row['rf_relative_raxml']
