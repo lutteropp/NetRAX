@@ -22,7 +22,7 @@ def build_dataset(prefix, n_taxa, n_reticulations, msa_size, simulator_type, sam
     return create_dataset_container(n_taxa, n_reticulations, msa_size, sampling_type, simulator_type, likelihood_types, brlen_linkage_types, start_types, my_id, name)
     
 
-def simulate_datasets(prefix, settings):
+def simulate_datasets(prefix, settings, iterations):
     if not os.path.exists('datasets_' + prefix):
         os.makedirs('datasets_' + prefix)
 
@@ -34,7 +34,7 @@ def simulate_datasets(prefix, settings):
         counter[taxa] = defaultdict(int)
         
     datasets = []
-    for my_id in range(settings.iterations):
+    for my_id in range(iterations):
         n_taxa, n_reticulations, newick, param_info = simulate_network_celine_minmax(settings.min_taxa, settings.max_taxa, settings.min_reticulations, settings.max_reticulations)
         counter[n_taxa][n_reticulations] += 1
         n_trees = 2 ** param_info["no_of_hybrids"]
@@ -68,8 +68,8 @@ def merge_csvs(inpaths, outpath):
    combined_csv.to_csv(outpath, index=False, encoding='utf-8-sig')
 
 
-def run_experiments(prefix, settings):
-    datasets = simulate_datasets(prefix, settings)
+def run_experiments(prefix, settings, iterations):
+    datasets = simulate_datasets(prefix, settings, iterations)
     run_inference_and_evaluate(datasets)
     write_results_to_csv(datasets, prefix + "_results.csv")
 
@@ -78,7 +78,7 @@ def run_multi(prefix, settings, iterations):
     local_csv_paths = []
     for it in range(iterations):
         local_prefix = prefix + "_" + str(it)
-        run_experiments(local_prefix, settings)
+        run_experiments(local_prefix, settings, 1)
         local_csv_paths.append(local_prefix + "_results.csv")
     merge_csvs(local_csv_paths, prefix + "_results.csv")
     create_plots(prefix)
@@ -100,6 +100,7 @@ def parse_command_line_arguments_experiment():
 
     args = CLI.parse_args()
 
+    settings = ExperimentSettings()
     prefix = args.prefix
     iterations = args.iterations
     settings.sampling_types = args.sampling_types
