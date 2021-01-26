@@ -3,7 +3,6 @@ from experiment_model import SamplingType, SimulatorType, LikelihoodType, BrlenL
 
 class ExperimentSettings:
     def __init__(self):
-        self.iterations = 1
         self.min_taxa = 4
         self.max_taxa = 10
         self.min_reticulations = 1
@@ -19,7 +18,6 @@ class ExperimentSettings:
 def small_tree():
     settings = ExperimentSettings()
     prefix = 'small_tree'
-    settings.iterations = 1
     settings.min_taxa = 4
     settings.max_taxa = 10
     settings.min_reticulations = 0
@@ -35,7 +33,6 @@ def small_tree():
 def small_network():
     settings = ExperimentSettings()
     prefix = 'small_network'
-    settings.iterations = 1
     settings.min_taxa = 4
     settings.max_taxa = 10
     settings.min_reticulations = 1
@@ -51,7 +48,6 @@ def small_network():
 def small_network_single_debug(): 
     settings = ExperimentSettings()
     prefix = 'small_network_single_debug'
-    settings.iterations = 1
     settings.min_taxa = 4
     settings.max_taxa = 4
     settings.min_reticulations = 1
@@ -67,7 +63,6 @@ def small_network_single_debug():
 def larger_network():
     settings = ExperimentSettings()
     prefix = 'larger_network'
-    settings.iterations = 1
     settings.min_taxa = 20
     settings.max_taxa = 50
     settings.min_reticulations = 2
