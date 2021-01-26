@@ -202,7 +202,8 @@ def create_plots(prefix):
     pd.set_option('display.max_columns', None)
     if not os.path.exists('plots_' + prefix):
         os.makedirs('plots_' + prefix)
-    data = pd.read_csv(prefix + "_results.csv", sep=',|;', index_col=False, engine='python')
+    data = pd.read_csv(prefix + "_results.csv")
+    print(data.columns.values)
     msa_sizes = data.msa_size.unique()
     simulator_types = data.simulation_type.unique()
     sampling_types = data.sampling_type.unique()
@@ -215,5 +216,5 @@ def create_plots(prefix):
 
 
 if __name__ == "__main__":
-    create_plots("small_tree")
+    create_plots("small_network_single_debug")
     #create_plots("small_network")
