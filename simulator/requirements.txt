@@ -4,3 +4,4 @@ numpy
 networkx
 matplotlib
 pygraphviz
+pandas
