@@ -2,33 +2,43 @@ from enum import Enum
     
     
 class SamplingType(Enum):
-    STANDARD = 1 # randomly choose which tree to sample, then sample equal number of sites for each sampled tree - this is the only mode that uses the n_trees or m parameter for sampling
-    PERFECT_SAMPLING = 2 # sample each displayed tree, and as many site as expected by the tree probability
-    PERFECT_UNIFORM_SAMPLING = 3 # sample each displayed tree, with the same number of sites per tree (ignoring reticulation probabilities)
-    SINGLE_SITE_SAMPLING = 4 # sample each site individually, with the reticulation probabilities in mind
+    STANDARD = 'STANDARD' # randomly choose which tree to sample, then sample equal number of sites for each sampled tree - this is the only mode that uses the n_trees or m parameter for sampling
+    PERFECT_SAMPLING = 'PERFECT_SAMPLING' # sample each displayed tree, and as many site as expected by the tree probability
+    PERFECT_UNIFORM_SAMPLING = 'PERFECT_UNIFORM_SAMPLING' # sample each displayed tree, with the same number of sites per tree (ignoring reticulation probabilities)
+    SINGLE_SITE_SAMPLING = 'SINGLE_SITE_SAMPLING' # sample each site individually, with the reticulation probabilities in mind
     
+    def __str__(self):
+        return self.value
     
 class SimulatorType(Enum):
-    CELINE = 1 # use Celine's network topology simulator
-    SARAH = 2 # use Sarah's ad-hoc network topology generator
+    CELINE = 'CELINE' # use Celine's network topology simulator
+    SARAH = 'SARAH' # use Sarah's ad-hoc network topology generator
     
+    def __str__(self):
+        return self.value
     
 class LikelihoodType(Enum):
-    AVERAGE = 1 # use weighted average of displayed trees
-    BEST = 2 # use best displayed tree
+    AVERAGE = 'AVERAGE' # use weighted average of displayed trees
+    BEST = 'BEST' # use best displayed tree
 
+    def __str__(self):
+        return self.value
 
 class BrlenLinkageType(Enum):
-    SCALED = 1 # all partitions share the same brlens, each partition has its own scaling factor
-    LINKED = 2 # all partitions share the same brlens. No sclaing factors.
-    UNLINKED = 3 # each partitions has its own brlens
+    SCALED = 'SCALED' # all partitions share the same brlens, each partition has its own scaling factor
+    LINKED = 'LINKED' # all partitions share the same brlens. No sclaing factors.
+    UNLINKED = 'UNLINKED' # each partitions has its own brlens
 
+    def __str__(self):
+        return self.value
 
 class StartType(Enum):
-    RANDOM = 1 # start with random start trees and parsimony trees
-    FROM_RAXML = 2 # start from the raxml-ng best tree
-    ENDLESS = 3 # keep retrying with new random starting tree until timeout seconds have passed
+    RANDOM = 'RANDOM' # start with random start trees and parsimony trees
+    FROM_RAXML = 'FROM_RAXML' # start from the raxml-ng best tree
+    ENDLESS = 'ENDLESS' # keep retrying with new random starting tree until timeout seconds have passed
     
+    def __str__(self):
+        return self.value
     
 class InferenceVariant:
     def __init__(self, likelihood_type, brlen_linkage_type, start_type, inferred_network_prefix):
