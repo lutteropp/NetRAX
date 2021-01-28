@@ -20,15 +20,18 @@ class SimulationParameters:
         self.ILS = False  # non_ILS simulations for now
         self.output = "test"  # basename for the output files
 
-        self.benchmark_mode = False # Benchmark dataset creation mode: Create multiple MSA datasets of different size and with different number of trees
+        # Benchmark dataset creation mode: Create multiple MSA datasets of different size and with different number of trees
+        self.benchmark_mode = False
 
         # These values will only be used if benchmark mode is disabled
         self.number_trees = 1  # number of different trees to generate
         self.number_sites = 1  # number of sites per tree
 
         # These values will only be used if benchmark mode is enabled
-        self.wanted_msa_sizes = [1000,5000,10000] # wanted number of sites in the total msa
-        self.wanted_m_values = [1, 5, 10, 20, 30] # wanted values for m. Used to generate m*2^k trees with k being the number of reticulations in the network.
+        # wanted number of sites in the total msa
+        self.wanted_msa_sizes = [1000, 5000, 10000]
+        # wanted values for m. Used to generate m*2^k trees with k being the number of reticulations in the network.
+        self.wanted_m_values = [1, 5, 10, 20, 30]
 
 
 ############### CONVERT TO NEWICK ##############
@@ -172,10 +175,11 @@ def extract_random_tree(nw, hybrid_nodes, leaves):
 
 def generate_trees_on_network(ILS, inheritance, pop_size, filename, number_trees, number_sites_per_tree, leaves, nw, hybrid_nodes):
     output_files = []
-    if (len(number_sites_per_tree) > 1): # this means we are in benchmark dataset creation mode, see params.benchmark_mode
+    # this means we are in benchmark dataset creation mode, see params.benchmark_mode
+    if (len(number_sites_per_tree) > 1):
         for sites in number_sites_per_tree:
             output_files.append(open(filename+"_spt_"+str(sites), "w"))
-    else: # for backwards compatibility
+    else:  # for backwards compatibility
         output_files.append(open(filename, "w"))
 
     file = open(filename, "w")
@@ -185,9 +189,11 @@ def generate_trees_on_network(ILS, inheritance, pop_size, filename, number_trees
     if not(ILS):
         for _ in range(0, number_trees):
             tree = extract_random_tree(nw, hybrid_nodes, leaves)
-            tree_newick = Newick_From_MULTree(ILS, inheritance, pop_size, tree, 0, hybrid_nodes_fake)
+            tree_newick = Newick_From_MULTree(
+                ILS, inheritance, pop_size, tree, 0, hybrid_nodes_fake)
             for i in range(len(number_sites_per_tree)):
-                output_files[i].write("["+str(number_sites_per_tree[i])+"]"+tree_newick+";\n")
+                output_files[i].write(
+                    "["+str(number_sites_per_tree[i])+"]"+tree_newick+";\n")
     else:
         print("Extracting trees with ILS is not supported yet.")
 
@@ -234,11 +240,11 @@ def simulate_network_topology(params):
             pl1 = -1
             for p in nw.predecessors(l1):
                 pl1 = p
-            hybridisation=0
-           
-            if hybridisation :
+            hybridisation = 0
+
+            if hybridisation:
                 nw.add_weighted_edges_from(
-                [(l0, current_node, 0)], weight='length')
+                    [(l0, current_node, 0)], weight='length')
                 leaves.remove(l0)
                 leaves.remove(l1)
                 leaves.add(current_node)
@@ -248,7 +254,7 @@ def simulate_network_topology(params):
                 hybrid_nodes[l0] = no_of_hybrids
                 hybrid_nodes[l1] = no_of_hybrids
                 current_node += 1
-            else:   
+            else:
                 nw.add_weighted_edges_from(
                     [(l0, current_node, 0), (l0, current_node+1, 0), (l1, current_node+2, 0)], weight='length')
                 leaves.remove(l0)
@@ -304,12 +310,14 @@ def simulate_network(params):
             else:
                 for m in params.wanted_m_values:
                     wanted_tree_count = m*(2**no_of_hybrids)
-                    wanted_sites_per_tree = [math.ceil(float(x)/wanted_tree_count) for x in params.wanted_msa_sizes]
+                    wanted_sites_per_tree = [
+                        math.ceil(float(x)/wanted_tree_count) for x in params.wanted_msa_sizes]
                     output_prefix = params.output+"_trees_m_"+str(m)
                     generate_trees_on_network(
                         params.ILS, params.inheritance, params.pop_size, output_prefix, wanted_tree_count, wanted_sites_per_tree, leaves, nw, hybrid_nodes)
-                        
-            fileNetwork.write(Newick_From_MULTree(params.ILS, params.inheritance, params.pop_size, nw, 0, hybrid_nodes)+";\n")
+
+            fileNetwork.write(Newick_From_MULTree(
+                params.ILS, params.inheritance, params.pop_size, nw, 0, hybrid_nodes)+";\n")
             params.inheritance = False
             fileNetworkDendroscope.write(
                 Newick_From_MULTree(params.ILS, params.inheritance, params.pop_size, nw, 0, hybrid_nodes)+";\n")
@@ -324,15 +332,16 @@ def simulate_network(params):
 
 def simulate_network_and_sequences(params):
     n_taxa, n_reticulations = simulate_network(params)
-    if not params.benchmark_mode: # backwards compatibility mode
+    if not params.benchmark_mode:  # backwards compatibility mode
         total_length = params.number_trees * params.number_sites
         cmd = 'seq-gen -mHKY -t3.0 -f0.3,0.2,0.2,0.3 -l'+str(total_length)+'-p'+str(
             params.number_trees)+' < '+params.output+'_trees > '+params.output+'.dat'
         subprocess.getoutput(cmd)
-    else: # we need to create multiple MSAs
+    else:  # we need to create multiple MSAs
         for m in params.wanted_m_values:
             wanted_tree_count = m*(2**n_reticulations)
-            wanted_sites_per_tree = [math.ceil(x/wanted_tree_count) for x in params.wanted_msa_sizes]
+            wanted_sites_per_tree = [
+                math.ceil(x/wanted_tree_count) for x in params.wanted_msa_sizes]
             output_prefix = params.output+"_trees_m_"+str(m)
             for sites in wanted_sites_per_tree:
                 output = output_prefix + "_spt_"+str(sites)

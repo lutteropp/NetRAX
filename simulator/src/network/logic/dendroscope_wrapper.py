@@ -29,7 +29,8 @@ def convert_newick_to_dendroscope(newick):
 
 # Takes two networks in Extended NEWICK format and uses Dendroscope to compute various topological distances.
 def get_dendro_scores(network_1, network_2):
-    cmd = "add tree=\'" + convert_newick_to_dendroscope(network_1) + convert_newick_to_dendroscope(network_2) + "\';"
+    cmd = "add tree=\'" + convert_newick_to_dendroscope(
+        network_1) + convert_newick_to_dendroscope(network_2) + "\';"
     cmd += "\ncompute distance method=hardwired;"
     cmd += "\ncompute distance method=softwired;"
     cmd += "\ncompute distance method=displayedTrees;"
@@ -42,11 +43,12 @@ def get_dendro_scores(network_1, network_2):
     temp_command_file.write(cmd)
     temp_command_file.close()
 
-    dendro_cmd = XSERVER_MAGIC + " " + DENDROSCOPE_PATH + " -g -c dendroscope_commands.txt"
+    dendro_cmd = XSERVER_MAGIC + " " + DENDROSCOPE_PATH + \
+        " -g -c dendroscope_commands.txt"
     print(dendro_cmd)
     dendroscope_output = subprocess.getoutput(dendro_cmd).splitlines()
     print(dendroscope_output)
-    
+
     scores = {}
     for line in dendroscope_output:
         if line.startswith("Hardwired cluster distance:"):
@@ -64,14 +66,14 @@ def get_dendro_scores(network_1, network_2):
     print(scores)
     os.remove("dendroscope_commands.txt")
     return scores
-    
-    
+
+
 def evaluate(simulated_network_path, inferred_network_path):
     net1 = open(simulated_network_path).read()
     net2 = open(inferred_network_path).read()
     scores = get_dendro_scores(net1, net2)
 
 
-if __name__== "__main__":
+if __name__ == "__main__":
     scores = get_dendro_scores(NETWORK_1, NETWORK_2)
     print(scores)

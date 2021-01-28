@@ -3,8 +3,8 @@ import argparse
 
 
 def merge_csvs(inpaths, outpath):
-   combined_csv = pd.concat([pd.read_csv(f) for f in inpaths ])
-   combined_csv.to_csv(outpath, index=False, encoding='utf-8-sig')
+    combined_csv = pd.concat([pd.read_csv(f) for f in inpaths])
+    combined_csv.to_csv(outpath, index=False, encoding='utf-8-sig')
 
 
 def postprocess_merge(iterations, prefix):

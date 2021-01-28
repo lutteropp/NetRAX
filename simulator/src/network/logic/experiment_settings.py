@@ -45,7 +45,7 @@ def small_network():
     return (prefix, settings)
 
 
-def small_network_single_debug(): 
+def small_network_single_debug():
     settings = ExperimentSettings()
     prefix = 'small_network_single_debug'
     settings.min_taxa = 4

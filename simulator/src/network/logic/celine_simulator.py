@@ -67,7 +67,7 @@ def Newick_From_MULTree(tree, root, hybrid_nodes, params):
     Newick = ""
     for v in tree.successors(root):
         Newick += Newick_From_MULTree(tree, v, hybrid_nodes, params) + \
-                                      ":"+str(tree[root][v]['length'])
+            ":"+str(tree[root][v]['length'])
         if params.inheritance:
             if v in hybrid_nodes:
                 Newick += "::"+str(tree[root][v]['prob'])
@@ -103,12 +103,14 @@ def check_counts(n_taxa, n_reticulations, params):
     if params.wanted_reticulations != -1:
         reticulations_ok = (n_reticulations == params.wanted_reticulations)
     elif params.min_reticulations != -1 and params.max_reticulations != -1:
-        reticulations_ok = (n_reticulations >= params.min_reticulations and n_reticulations <= params.max_reticulations)
+        reticulations_ok = (
+            n_reticulations >= params.min_reticulations and n_reticulations <= params.max_reticulations)
     elif params.min_reticulations != -1:
-        reticulations_ok = (n_reticulations >= params.min_reticulations and (float(n_reticulations)/n_taxa <= 0.1))
+        reticulations_ok = (n_reticulations >= params.min_reticulations and (
+            float(n_reticulations)/n_taxa <= 0.1))
     else:
         reticulations_ok = (float(n_reticulations)/n_taxa <= 0.1)
-    
+
     return (taxa_ok and reticulations_ok)
 
 
@@ -143,7 +145,7 @@ def simulate_network_step(params):
             no_of_hybrids += 1
             l0 = l1 = None
             pl0 = pl1 = None
-            while pl0 == pl1: # avoid self-loops by avoiding that l0 and l1 are siblings
+            while pl0 == pl1:  # avoid self-loops by avoiding that l0 and l1 are siblings
                 merging = random.sample(leaves, 2)
                 l0 = merging[0]
                 l1 = merging[1]
@@ -153,7 +155,8 @@ def simulate_network_step(params):
                 pl1 = None
                 for p in nw.predecessors(l1):
                     pl1 = p
-            nw.add_weighted_edges_from([(l0, current_node, 0)], weight='length')
+            nw.add_weighted_edges_from(
+                [(l0, current_node, 0)], weight='length')
             leaves.remove(l0)
             leaves.remove(l1)
             leaves.add(current_node)
@@ -176,8 +179,8 @@ def simulate_network_step(params):
         rate = current_speciation_rate + current_hybridization_rate
         extra_time = np.random.exponential(1/rate)
         current_time += extra_time
-        
-        #early stop if we already have a network larger than we wanted
+
+        # early stop if we already have a network larger than we wanted
         if params.max_taxa != -1 and no_of_leaves > params.max_taxa:
             break
         if params.max_reticulations != -1 and no_of_hybrids > params.max_reticulations:
@@ -190,16 +193,16 @@ def simulate_network_step(params):
             for p in nw.predecessors(l):
                 pl = p
             nw[pl][l]['length'] += extra_time
-        
+
     print("to="+str(params.time_limit)+",lambda="+str(params.speciation_rate)+",nu="+str(params.hybridization_rate) +
           ",no_of_leaves="+str(len(leaves))+",no_of_hybrids="+str(no_of_hybrids) + ",ratio=" + str(float(no_of_hybrids/len(leaves))))
-       
+
     # if ( len(leaves) < 100 and no_of_hybrids < float(len(leaves)/3)):  ## add this check to avoid the simulator to complain
 
     if check_counts(len(leaves), no_of_hybrids, params):
         n_taxa = len(leaves)
         n_reticulations = no_of_hybrids
-        newick = Newick_From_MULTree(nw,0,hybrid_nodes,params)+";"
+        newick = Newick_From_MULTree(nw, 0, hybrid_nodes, params)+";"
         param_info = {}
         param_info["to"] = params.time_limit
         param_info["lambda"] = params.speciation_rate
@@ -208,9 +211,8 @@ def simulate_network_step(params):
         param_info["no_of_hybrids"] = no_of_hybrids
         param_info["ratio"] = float(no_of_hybrids/len(leaves))
         return (n_taxa, n_reticulations, newick, param_info)
-    else: 
+    else:
         return None
-
 
 
 def simulate_network(params):
@@ -220,9 +222,9 @@ def simulate_network(params):
         params = reshuffle_params(params)
         res = simulate_network_step(params)
     print("OK")
-    return res    
-    
-        
+    return res
+
+
 def simulate_network_celine(wanted_taxa, wanted_reticulations, network_path):
     params = CelineParams()
     params.wanted_taxa = wanted_taxa
@@ -232,7 +234,7 @@ def simulate_network_celine(wanted_taxa, wanted_reticulations, network_path):
     network_file.write(newick)
     network_file.close()
     return param_info
-    
+
 
 def simulate_network_celine_minmax(min_taxa, max_taxa, min_reticulations, max_reticulations):
     params = CelineParams()
@@ -241,8 +243,8 @@ def simulate_network_celine_minmax(min_taxa, max_taxa, min_reticulations, max_re
     params.min_reticulations = min_reticulations
     params.max_reticulations = max_reticulations
     return simulate_network(params)
-        
-        
+
+
 if __name__ == "__main__":
     params = parse_user_input()
     n_taxa, n_reticulations, newick, param_info = simulate_network(params)
