@@ -1,4 +1,3 @@
-from create_plots import create_plots
 import pandas as pd
 import argparse
 
@@ -8,13 +7,12 @@ def merge_csvs(inpaths, outpath):
    combined_csv.to_csv(outpath, index=False, encoding='utf-8-sig')
 
 
-def postprocess(iterations, prefix):
+def postprocess_merge(iterations, prefix):
     local_csv_paths = []
     for it in range(iterations):
         local_prefix = prefix + "_" + str(it)
         local_csv_paths.append(local_prefix + "_results.csv")
     merge_csvs(local_csv_paths, prefix + "_results.csv")
-    create_plots(prefix)
 
 
 def parse_command_line_arguments_postprocess():
@@ -27,4 +25,4 @@ def parse_command_line_arguments_postprocess():
 
 if __name__ == 'main':
     iterations, prefix = parse_command_line_arguments_postprocess()
-    postprocess(iterations, prefix)
+    postprocess_merge(iterations, prefix)
