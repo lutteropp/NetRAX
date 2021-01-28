@@ -1,6 +1,16 @@
-#!/bin/sh
+#!/bin/bash
 
-USAGE="Usage: sh run_experiments_larger_bunch.sh PREFIX BUNCHES ITERATIONS_PER_BUNCH MIN_TAXA MAX_TAXA MIN_RETICULATIONS MAX_RETICULATIONS [no_random]"
+#SBATCH -o experiments_%j.out
+#SBATCH -N 1
+#SBATCH -n 1 
+#SBATCH -B 2:8:1
+#SBATCH --threads-per-core=1
+#SBATCH --cpus-per-task=16
+#SBATCH -t 08:00:00
+ 
+source /etc/profile.d/modules.sh
+
+USAGE="Usage: sh submit_experiments_larger_bunch_haswell.sh PREFIX BUNCHES ITERATIONS_PER_BUNCH MIN_TAXA MAX_TAXA MIN_RETICULATIONS MAX_RETICULATIONS [no_random]"
 
 if [ $# -lt 7 ]; then
     echo "Illegal number of parameters. Usage: ${USAGE}"
@@ -25,13 +35,13 @@ i=0
 while [ $i -lt ${BUNCHES} ]; do
     if [ $# -eq 8 ]; then
         if [ $8=="no_random" ]; then
-            sh run_experiments_bunch.sh ${PREFIX}_${i} ${ITERATIONS_PER_BUNCH} ${MIN_TAXA} ${MAX_TAXA} ${MIN_RETICULATIONS} ${MAX_RETICULATIONS} no_random &
+            srun -N 1 -n 1 run_experiments_bunch.sh ${PREFIX}_${i} ${ITERATIONS_PER_BUNCH} ${MIN_TAXA} ${MAX_TAXA} ${MIN_RETICULATIONS} ${MAX_RETICULATIONS} no_random &
         else
             echo "Unknown argument: ${8}"
             exit 2
         fi
     else
-        sh run_experiments_bunch.sh ${PREFIX}_${i} ${ITERATIONS_PER_BUNCH} ${MIN_TAXA} ${MAX_TAXA} ${MIN_RETICULATIONS} ${MAX_RETICULATIONS} &
+        srun -N 1 -n 1 run_experiments_bunch.sh ${PREFIX}_${i} ${ITERATIONS_PER_BUNCH} ${MIN_TAXA} ${MAX_TAXA} ${MIN_RETICULATIONS} ${MAX_RETICULATIONS} &
     fi
     i=$((i + 1))
 done
