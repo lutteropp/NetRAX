@@ -11,7 +11,7 @@ def merge_csvs(inpaths, outpath):
     combined_csv.to_csv(outpath, index=False, encoding='utf-8-sig')
 
 
-def postprocess_merge(iterations, prefix):
+def postprocess_merge(prefix, iterations):
     local_csv_paths = []
     for it in range(iterations):
         local_prefix = prefix + "_" + str(it)
@@ -29,5 +29,5 @@ def parse_command_line_arguments_postprocess():
 
 
 if __name__ == '__main__':
-    iterations, prefix = parse_command_line_arguments_postprocess()
-    postprocess_merge(iterations, prefix)
+    prefix, iterations = parse_command_line_arguments_postprocess()
+    postprocess_merge(prefix, iterations)
