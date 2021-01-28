@@ -73,7 +73,7 @@ class InferenceVariant:
 TOPOLOGICAL_DISTANCE_NAMES = ['hardwired_cluster_distance', 'softwired_cluster_distance',
                               'displayed_trees_distance', 'tripartition_distance', 'nested_labels_distance', 'path_multiplicity_distance']
 
-DATASET_CSV_HEADER = "name,n_taxa,n_trees,n_reticulations,msa_size,sampling_type,simulation_type,celine_params,near_zero_branches_raxml"
+DATASET_CSV_HEADER = "name,n_taxa,n_trees,n_reticulations,msa_size,sampling_type,simulation_type,celine_params,seqgen_params,near_zero_branches_raxml"
 
 INFERENCE_VARIANT_CSV_HEADER = "likelihood_type,brlen_linkage_type,start_type,timeout,n_random_start_networks,n_parsimony_start_networks,runtime_inference"
 
@@ -98,6 +98,7 @@ class Dataset:
         self.sampling_type = SamplingType.PERFECT_SAMPLING
         self.simulator_type = SimulatorType.CELINE
         self.celine_params = {}
+        self.seqgen_params = "-mHKY -t3.0 -f0.3,0.2,0.2,0.3"
 
         self.inference_variants = []
         self.near_zero_branches_raxml = -1
@@ -106,7 +107,7 @@ class Dataset:
         return self.n_trees * self.sites_per_tree
 
     def get_csv_line(self):
-        return str(self.name) + "," + str(self.n_taxa) + "," + str(self.n_trees) + "," + str(self.n_reticulations) + "," + str(self.msa_size) + "," + str(self.sampling_type) + "," + str(self.simulator_type) + "," + str(self.celine_params).replace(",", "|") + "," + str(self.near_zero_branches_raxml)
+        return str(self.name) + "," + str(self.n_taxa) + "," + str(self.n_trees) + "," + str(self.n_reticulations) + "," + str(self.msa_size) + "," + str(self.sampling_type) + "," + str(self.simulator_type) + "," + str(self.celine_params).replace(",", "|") + "," + str(self.seqgen_params).replace(",", "|") + "," + str(self.near_zero_branches_raxml)
 
 
 class Result:
