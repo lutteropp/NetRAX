@@ -2,7 +2,7 @@
 
 ITERATIONS_PER_BUNCH=2
 
-USAGE="Usage: sh run_experiment_bunch.sh PREFIX BUNCHES MIN_TAXA MAX_TAXA MIN_RETICULATIONS MAX_RETICULATIONS [no_random]"
+USAGE="Usage: sh run_experiments_larger_bunch.sh PREFIX BUNCHES MIN_TAXA MAX_TAXA MIN_RETICULATIONS MAX_RETICULATIONS [no_random]"
 
 if [ $# -lt 6 ]; then
     echo "Illegal number of parameters. Usage: ${USAGE}"

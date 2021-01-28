@@ -1,6 +1,6 @@
 #!/bin/sh
 
-USAGE="Usage: sh run_experiment_bunch.sh PREFIX ITERATIONS MIN_TAXA MAX_TAXA MIN_RETICULATIONS MAX_RETICULATIONS [no_random]"
+USAGE="Usage: sh run_experiments_bunch.sh PREFIX ITERATIONS MIN_TAXA MAX_TAXA MIN_RETICULATIONS MAX_RETICULATIONS [no_random]"
 
 if [ $# -lt 6 ]; then
     echo "Illegal number of parameters. ${USAGE}"
