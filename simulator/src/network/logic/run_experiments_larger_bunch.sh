@@ -33,7 +33,7 @@ fi
 
 i=0
 while [ $i -lt ${BUNCHES} ]; do
-    if [ $# -eq 7 && $3=="no_random" ]; then
+    if [ $# -eq 7 -a $3=="no_random" ]; then
         sh run_experiments_bunch.sh ${PREFIX}_${i} ${ITERATIONS_PER_BUNCH} ${MIN_TAXA} ${MAX_TAXA} ${MIN_RETICULATIONS} ${MAX_RETICULATIONS} no_random
     else
         sh run_experiments_bunch.sh ${PREFIX}_${i} ${ITERATIONS_PER_BUNCH} ${MIN_TAXA} ${MAX_TAXA} ${MIN_RETICULATIONS} ${MAX_RETICULATIONS}
