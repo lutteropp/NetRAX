@@ -22,19 +22,15 @@ BRLEN_LINKAGE_TYPES="LINKED"
 LIKELIHOOD_TYPES="AVERAGE BEST"
 PARTITION_SIZES="50 100"
 
-if [ $# -eq 7 ]; then
-    if [ $3=="no_random" ]; then
-        START_TYPES="FROM_RAXML"
-    else
-        echo "Illegal third argument. Usage: ${USAGE}"
-        exit 2
-    fi
-fi
-
 i=0
 while [ $i -lt ${BUNCHES} ]; do
-    if [ $# -eq 7 -a $3=="no_random" ]; then
-        sh run_experiments_bunch.sh ${PREFIX}_${i} ${ITERATIONS_PER_BUNCH} ${MIN_TAXA} ${MAX_TAXA} ${MIN_RETICULATIONS} ${MAX_RETICULATIONS} no_random
+    if [ $# -eq 7 ]; then
+        if [ $7=="no_random" ]; then
+            sh run_experiments_bunch.sh ${PREFIX}_${i} ${ITERATIONS_PER_BUNCH} ${MIN_TAXA} ${MAX_TAXA} ${MIN_RETICULATIONS} ${MAX_RETICULATIONS} no_random
+        else
+            echo "Unknown argument: ${7}"
+            exit 2
+        fi
     else
         sh run_experiments_bunch.sh ${PREFIX}_${i} ${ITERATIONS_PER_BUNCH} ${MIN_TAXA} ${MAX_TAXA} ${MIN_RETICULATIONS} ${MAX_RETICULATIONS}
     fi
