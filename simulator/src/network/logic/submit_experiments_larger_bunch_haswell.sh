@@ -1,12 +1,4 @@
 #!/bin/bash
-
-#SBATCH -o experiments_%j.out
-#SBATCH -N 1
-#SBATCH -n 1 
-#SBATCH -B 2:8:1
-#SBATCH --threads-per-core=1
-#SBATCH --cpus-per-task=16
-#SBATCH -t 08:00:00
  
 source /etc/profile.d/modules.sh
 
@@ -30,6 +22,14 @@ START_TYPES="FROM_RAXML RANDOM"
 BRLEN_LINKAGE_TYPES="LINKED"
 LIKELIHOOD_TYPES="AVERAGE BEST"
 PARTITION_SIZES="50 100"
+
+#SBATCH -o ${PREFIX}_%j.out
+#SBATCH -N 1
+#SBATCH -n 1
+#SBATCH -B 2:8:1
+#SBATCH --threads-per-core=1
+#SBATCH --cpus-per-task=16
+#SBATCH -t 08:00:00
 
 i=0
 while [ $i -lt ${BUNCHES} ]; do
