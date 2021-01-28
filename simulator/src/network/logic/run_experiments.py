@@ -8,8 +8,6 @@ from seqgen_wrapper import simulate_msa
 
 from celine_simulator import CelineParams, simulate_network_celine_minmax
 
-from create_plots import create_plots
-import pandas as pd
 import argparse
 
 from experiment_settings import ExperimentSettings, small_tree, larger_network, small_network, small_network_single_debug
@@ -63,11 +61,6 @@ def simulate_datasets(prefix, settings, iterations):
     return datasets
 
 
-def merge_csvs(inpaths, outpath):
-   combined_csv = pd.concat([pd.read_csv(f) for f in inpaths ])
-   combined_csv.to_csv(outpath, index=False, encoding='utf-8-sig')
-
-
 def run_experiments(prefix, settings, iterations):
     datasets = simulate_datasets(prefix, settings, iterations)
     run_inference_and_evaluate(datasets)
@@ -80,8 +73,6 @@ def run_multi(prefix, settings, iterations):
         local_prefix = prefix + "_" + str(it)
         run_experiments(local_prefix, settings, 1)
         local_csv_paths.append(local_prefix + "_results.csv")
-    merge_csvs(local_csv_paths, prefix + "_results.csv")
-    create_plots(prefix)
   
     
 def parse_command_line_arguments_experiment():
