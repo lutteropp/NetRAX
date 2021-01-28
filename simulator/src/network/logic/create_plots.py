@@ -4,6 +4,8 @@ import os
 import collections
 #import seaborn as sns
 #import numpy as np
+import argparse
+
 
 def merge_multi(dataframes, column_name):
     merged = dataframes[0]
@@ -224,6 +226,13 @@ def create_plots(prefix):
                     create_plots_internal(prefix, data, simulator_type, sampling_type, msa_size, likelihood_type)
 
 
+def parse_command_line_arguments_plots():
+    CLI = argparse.ArgumentParser()
+    CLI.add_argument("--prefix",nargs=1, type=str, default="small_network")
+    args = CLI.parse_args()
+    return args.prefix
+
+
 if __name__ == "__main__":
-    create_plots("small_network_single_debug")
-    #create_plots("small_network")
+    prefix = parse_command_line_arguments_plots()
+    create_plots(prefix)
