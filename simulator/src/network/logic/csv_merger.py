@@ -17,8 +17,8 @@ def postprocess_merge(iterations, prefix):
 
 def parse_command_line_arguments_postprocess():
     CLI = argparse.ArgumentParser()
-    CLI.add_argument("--prefix",nargs=1, type=str, default="small_network")
-    CLI.add_argument("--iterations", nargs=1, type=int, default=1)
+    CLI.add_argument("--prefix", type=str, default="small_network")
+    CLI.add_argument("--iterations", type=int, default=1)
     args = CLI.parse_args()
     return args.prefix, args.iterations
 

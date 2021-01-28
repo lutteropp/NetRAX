@@ -69,16 +69,16 @@ def run_experiments(prefix, settings, iterations):
     
 def parse_command_line_arguments_experiment():
     CLI = argparse.ArgumentParser()
-    CLI.add_argument("--prefix",nargs=1, type=str, default="small_network")
+    CLI.add_argument("--prefix", type=str, default="small_network")
     CLI.add_argument("--sampling_types", nargs="*", type=SamplingType, default=[SamplingType.PERFECT_SAMPLING])
     CLI.add_argument("--start_types",nargs="*",type=StartType, default=[StartType.FROM_RAXML, StartType.RANDOM])
     CLI.add_argument("--brlen_linkage_types",nargs="*",type=BrlenLinkageType, default=[BrlenLinkageType.LINKED])
     CLI.add_argument("--likelihood_types",nargs="*",type=LikelihoodType, default=[LikelihoodType.BEST, LikelihoodType.AVERAGE])
     CLI.add_argument("--partition_sizes",nargs="*",type=int, default=[500, 1000])
-    CLI.add_argument("--min_taxa",nargs=1,type=int, default=4)
-    CLI.add_argument("--max_taxa",nargs=1,type=int, default=10)
-    CLI.add_argument("--min_reticulations",nargs=1,type=int, default=1)
-    CLI.add_argument("--max_reticulations",nargs=1,type=int, default=2)
+    CLI.add_argument("--min_taxa",type=int, default=4)
+    CLI.add_argument("--max_taxa",type=int, default=10)
+    CLI.add_argument("--min_reticulations",type=int, default=1)
+    CLI.add_argument("--max_reticulations",type=int, default=2)
 
     args = CLI.parse_args()
 
