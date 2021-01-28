@@ -124,7 +124,6 @@ class Result:
         self.rf_relative_raxml = -1
         self.rf_absolute_inferred = -1
         self.rf_relative_inferred = -1
-        self.near_zero_branches_raxml = 0
 
     def get_csv_line(self):
         topo_scores_strings_ordered = [
