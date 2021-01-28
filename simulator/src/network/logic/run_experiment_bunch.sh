@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-if [[ $# -ne 2 ]]; then
-    echo "Illegal number of parameters. Usage: run_experiment_bunch.sh PREFIX ITERATIONS"
+if [[ $# < 2 ]]; then
+    echo "Illegal number of parameters. Usage: run_experiment_bunch.sh PREFIX ITERATIONS [--no_random]"
     exit 2
 fi
 
@@ -12,6 +12,15 @@ START_TYPES = "StartType.FROM_RAXML StartType.RANDOM"
 BRLEN_LINKAGE_TYPES = "BrlenLinkageType.LINKED"
 LIKELIHOOD_TYPES = "LikelihoodType.AVERAGE LikelihoodType.BEST"
 PARTITION_SIZES = "50 100"
+
+if [[ $# == 3]]; then
+    if [[ $3 == "--no_random" ]]; then
+        START_TYPES = "StartType.FROM_RAXML"
+    else
+        echo "Illegal third argument. Usage: run_experiment_bunch.sh PREFIX ITERATIONS [--no_random]"
+        exit 2
+    fi
+fi
 
 case ${PREFIX} in
 "small_network") MIN_TAXA = 4; MAX_TAXA = 10; MIN_RETICULATIONS = 1; MAX_RETICULATIONS = 2;;
