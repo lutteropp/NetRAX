@@ -7,15 +7,15 @@ fi
 
 PREFIX=$1
 ITERATIONS=$2
-SAMPLING_TYPES="SamplingType.PERFECT_SAMPLING"
-START_TYPES="StartType.FROM_RAXML StartType.RANDOM"
-BRLEN_LINKAGE_TYPES="BrlenLinkageType.LINKED"
-LIKELIHOOD_TYPES="LikelihoodType.AVERAGE LikelihoodType.BEST"
+SAMPLING_TYPES="PERFECT_SAMPLING"
+START_TYPES="FROM_RAXML RANDOM"
+BRLEN_LINKAGE_TYPES="LINKED"
+LIKELIHOOD_TYPES="AVERAGE BEST"
 PARTITION_SIZES="50 100"
 
 if [ $# -eq 3 ]; then
     if [ $3=="no_random" ]; then
-        START_TYPES="StartType.FROM_RAXML"
+        START_TYPES="FROM_RAXML"
     else
         echo "Illegal third argument. Usage: sh run_experiment_bunch.sh PREFIX ITERATIONS [no_random]"
         exit 2
@@ -32,7 +32,7 @@ esac
 
 i=0
 while [ $i -lt ${ITERATIONS} ]; do
-    python3 run_experiments.py --prefix ${PREFIX}_${i} --iterations 1 --sampling_types ${SAMPLING_TYPES} --start_types ${START_TYPES} --brlen_linkage_types ${BRLEN_LINKAGE_TYPES} --likelihood_types ${LIKELIHOOD_TYPES} --partition_sizes ${PARTITION_SIZES} --min_taxa ${MIN_TAXA} --max_taxa ${MAX_TAXA} --min_reticulations ${MIN_RETICULATIONS} --max_reticulations ${MAX_RETICULATIONS} &
+    python3 run_experiments.py --prefix ${PREFIX}_${i} --sampling_types ${SAMPLING_TYPES} --start_types ${START_TYPES} --brlen_linkage_types ${BRLEN_LINKAGE_TYPES} --likelihood_types ${LIKELIHOOD_TYPES} --partition_sizes ${PARTITION_SIZES} --min_taxa ${MIN_TAXA} --max_taxa ${MAX_TAXA} --min_reticulations ${MIN_RETICULATIONS} --max_reticulations ${MAX_RETICULATIONS} &
     i=$(( i + 1 ))
 done
 
