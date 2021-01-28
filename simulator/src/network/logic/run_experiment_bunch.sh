@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-if [[ $# < 2 ]]; then
+if [ $# -lt 2 ]; then
     echo "Illegal number of parameters. Usage: run_experiment_bunch.sh PREFIX ITERATIONS [--no_random]"
     exit 2
 fi
@@ -13,7 +13,7 @@ BRLEN_LINKAGE_TYPES = "BrlenLinkageType.LINKED"
 LIKELIHOOD_TYPES = "LikelihoodType.AVERAGE LikelihoodType.BEST"
 PARTITION_SIZES = "50 100"
 
-if [[ $# == 3]]; then
+if [ $# == 3]; then
     if [[ $3 == "--no_random" ]]; then
         START_TYPES = "StartType.FROM_RAXML"
     else
