@@ -39,15 +39,20 @@ def get_dendro_scores(network_1, network_2):
     cmd += "\ncompute distance method=pathMultiplicity;"
     cmd += "\nquit"
 
-    temp_command_file = open("dendroscope_commands.txt", "w")
+    dendro_filename = "dendroscope_commands_" + str(os.getpid()) + ".txt"
+
+    temp_command_file = open(dendro_filename, "w")
     temp_command_file.write(cmd)
     temp_command_file.close()
 
     dendro_cmd = XSERVER_MAGIC + " " + DENDROSCOPE_PATH + \
-        " -g -c dendroscope_commands.txt"
+        " -g -c " + dendro_filename
     print(dendro_cmd)
-    dendroscope_output = subprocess.getoutput(dendro_cmd).splitlines()
-    print(dendroscope_output)
+    cmd_status, cmd_output = subprocess.getstatusoutput(dendro_cmd)
+    print(cmd_output)
+    if cmd_status != 0:
+        raise Exception("Get Dendro Scores failed")
+    dendroscope_output = cmd_output.splitlines()
 
     scores = {}
     for line in dendroscope_output:
@@ -64,7 +69,7 @@ def get_dendro_scores(network_1, network_2):
         elif line.startswith("Path multiplicity distance:"):
             scores["path_multiplicity_distance"] = float(line.split(": ")[1])
     print(scores)
-    os.remove("dendroscope_commands.txt")
+    os.remove(dendro_filename)
     return scores
 
 
@@ -72,6 +77,7 @@ def evaluate(simulated_network_path, inferred_network_path):
     net1 = open(simulated_network_path).read()
     net2 = open(inferred_network_path).read()
     scores = get_dendro_scores(net1, net2)
+    return scores
 
 
 if __name__ == "__main__":
