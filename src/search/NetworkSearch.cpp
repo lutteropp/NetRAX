@@ -4,7 +4,7 @@
 #include <vector>
 #include <fstream>
 
-#include <mpreal.h>
+#include "../likelihood/mpreal.h"
 #include "../graph/AnnotatedNetwork.hpp"
 #include "../io/NetworkIO.hpp"
 #include "../DebugPrintFunctions.hpp"
