@@ -28,6 +28,6 @@ def parse_command_line_arguments_postprocess():
     return args.prefix, args.iterations
 
 
-if __name__ == 'main':
+if __name__ == '__main__':
     iterations, prefix = parse_command_line_arguments_postprocess()
     postprocess_merge(iterations, prefix)
