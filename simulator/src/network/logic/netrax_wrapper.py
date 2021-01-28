@@ -24,7 +24,7 @@ def score_network(network_path, msa_path, partitions_path, likelihood_type, brle
     print(netrax_cmd)
     cmd_status, cmd_output = subprocess.getstatusoutput(netrax_cmd)
     if cmd_status != 0:
-        raise "Scoring network failed"
+        raise Exception("Scoring network failed")
     netrax_output = cmd_output.splitlines()
     print(netrax_output)
     n_reticulations, bic, logl = 0,0,0
@@ -65,7 +65,7 @@ def infer_networks(ds):
         cmd_status, cmd_output = subprocess.getstatusoutput(netrax_cmd)
         print(cmd_output)
         if cmd_status != 0:
-            raise "Inferring network failed"
+            raise Exception("Inferring network failed")
 
         var.runtime_inference = round(time.time() - start_time, 3)
     
@@ -82,7 +82,7 @@ def extract_displayed_trees(network_path, n_taxa):
     cmd_status, cmd_output = subprocess.getstatusoutput(netrax_cmd)
     print(cmd_output)
     if cmd_status != 0:
-        raise "Extract displayed trees failed"
+        raise Exception("Extract displayed trees failed")
     lines = cmd_output.splitlines()
     start_idx = 0
     n_trees = 0
@@ -124,7 +124,7 @@ def build_fake_msa(n_taxa, network_path=""):
         cmd_status, cmd_output = subprocess.getstatusoutput(netrax_cmd)
         print(cmd_output)
         if cmd_status != 0:
-            raise "Extract taxon names failed"
+            raise Exception("Extract taxon names failed")
         lines = cmd_output.splitlines()
         for line in lines[1:]:
             taxon_names.append(line)
@@ -149,5 +149,5 @@ def generate_random_network(n_taxa, n_reticulations, output_path):
     cmd_status, cmd_output = subprocess.getstatusoutput(netrax_cmd)
     print(cmd_output)
     if cmd_status != 0:
-        raise "Generate random network failed"
+        raise Exception("Generate random network failed")
     os.remove(msa_path)

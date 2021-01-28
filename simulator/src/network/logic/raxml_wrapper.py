@@ -10,7 +10,7 @@ def infer_raxml_tree(dataset):
     cmd_status, cmd_output = subprocess.getstatusoutput(cmd)
     print(cmd_output)
     if cmd_status != 0:
-        raise "Inferring raxml tree failed"
+        raise Exception("Inferring raxml tree failed")
     lines = cmd_output.splitlines()
     near_zero_branches = 0
     for line in lines:
@@ -25,7 +25,7 @@ def compute_rf_dist(tree_1_path, tree_2_path):
     cmd_status, cmd_output = subprocess.getstatusoutput(cmd)
     print(cmd_output)
     if cmd_status != 0:
-        raise "Compute RF dist failed"
+        raise Exception("Compute RF dist failed")
     lines = cmd_output.splitlines()
     rf_abs = -1
     rf_rel = -1

@@ -12,4 +12,4 @@ def simulate_msa(dataset):
     cmd_status, cmd_output = subprocess.getstatusoutput(cmd)
     print(cmd_output)
     if cmd_status != 0:
-        raise "Simulate MSA failed"
+        raise Exception("Simulate MSA failed")
