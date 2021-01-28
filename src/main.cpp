@@ -2,7 +2,7 @@
 #include <string>
 
 #include <CLI11.hpp>
-#include <mpreal.h>
+#include "likelihood/mpreal.h"
 #include "graph/AnnotatedNetwork.hpp"
 #include "NetraxOptions.hpp"
 #include "io/NetworkIO.hpp"
