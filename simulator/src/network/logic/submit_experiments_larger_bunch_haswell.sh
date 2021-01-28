@@ -23,7 +23,7 @@ BRLEN_LINKAGE_TYPES="LINKED"
 LIKELIHOOD_TYPES="AVERAGE BEST"
 PARTITION_SIZES="50 100"
 
-#SBATCH -o ${PREFIX}_%j.out
+#SBATCH -o something%j.log
 #SBATCH -N 1
 #SBATCH -n 1
 #SBATCH -B 2:8:1
@@ -47,6 +47,9 @@ while [ $i -lt ${BUNCHES} ]; do
 done
 
 wait
+
+ln -f something${SLURM_JOB_ID}.log ${PREFIX}.log
+rm something${SLURM_JOB_ID}.log
 
 python3 csv_merger.py --prefix ${PREFIX} --iterations ${BUNCHES}
 python3 create_plots.py --prefix ${PREFIX}
