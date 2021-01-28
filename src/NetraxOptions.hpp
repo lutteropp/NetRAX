@@ -35,6 +35,7 @@ public:
     bool score_only = false;
     bool extract_taxon_names = false;
     bool extract_displayed_trees = false;
+    bool check_weird_network = false;
     bool generate_random_network_only = false;
     bool pretty_print_only = false;
 

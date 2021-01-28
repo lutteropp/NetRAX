@@ -31,6 +31,7 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
     app.add_option("--seed", options->seed, "Seed for random number generation.");
     app.add_flag("--score_only", options->score_only, "Only read a network and MSA from file and compute its score.");
     app.add_flag("--extract_displayed_trees", options->extract_displayed_trees, "Only extract all displayed trees with their probabilities from a network.");
+    app.add_flag("--check_weird_network", options->check_weird_network, "Only check if the network has displayed trees with equal bipartitions");
     app.add_flag("--extract_taxon_names", options->extract_taxon_names, "Only extract all taxon names from a network.");
     app.add_flag("--generate_random_network_only", options->generate_random_network_only, "Only generate a random network, with as many reticulations as specified in the -r parameter");
     app.add_flag("--pretty_print_only", options->pretty_print_only, "Only pretty-print a given input network.");
@@ -144,6 +145,40 @@ void extract_displayed_trees(NetraxOptions& netraxOptions, std::mt19937& rng) {
     }
 }
 
+void check_weird_network(NetraxOptions& netraxOptions, std::mt19937& rng) {
+    if (netraxOptions.start_network_file.empty()) {
+        throw std::runtime_error("Need network to extract displayed trees");
+    }
+    std::vector<pll_utree_t*> displayed_trees;
+    netrax::AnnotatedNetwork ann_network = build_annotated_network(netraxOptions);
+    init_annotated_network(ann_network, rng);
+
+    for (int tree_index = 0; tree_index < 1 << ann_network.network.num_reticulations(); ++tree_index) {
+        pll_utree_t* utree = netrax::displayed_tree_to_utree(ann_network.network, tree_index);
+        displayed_trees.emplace_back(utree);
+    }
+
+    unsigned int n_tips = ann_network.network.num_tips();
+    unsigned int n_pairs = 0;
+    unsigned int n_equal = 0;
+    for (size_t i = 0; i < displayed_trees.size(); ++i) {
+        for (size_t j = i+1; j < displayed_trees.size(); ++j) {
+            n_pairs++;
+
+            unsigned int rf_dist = pllmod_utree_rf_distance(displayed_trees[i]->vroot, displayed_trees[j]->vroot, n_tips);
+            if (rf_dist == 0) {
+                n_equal++;
+            }
+        }
+    }
+    for (size_t i = 0; i < displayed_trees.size(); ++i) {
+        pll_utree_destroy(displayed_trees[i], nullptr);
+    }
+
+    std::cout << "Number of pairs: " << n_pairs << "\n";
+    std::cout << "Number of equal pairs: " << n_equal << "\n";
+}
+
 void generate_random_network_only(NetraxOptions& netraxOptions, std::mt19937& rng) {
     if (netraxOptions.msa_file.empty()) {
         throw std::runtime_error("Need MSA to decide on the number of taxa");
@@ -192,6 +227,11 @@ int main(int argc, char **argv) {
 
     if (netraxOptions.extract_displayed_trees) {
         extract_displayed_trees(netraxOptions, rng);
+        return 0;
+    }
+
+    if (netraxOptions.check_weird_network) {
+        check_weird_network(netraxOptions, rng);
         return 0;
     }
 
