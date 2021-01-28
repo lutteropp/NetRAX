@@ -4,7 +4,7 @@ import os
 # this needs sudo apt install xvfb to run
 XSERVER_MAGIC = "xvfb-run --auto-servernum --server-num=1"
 
-DENDROSCOPE_PATH = "dendroscope/Dendroscope"
+DENDROSCOPE_PATH = "../../../../libs/dendroscope/Dendroscope"
 
 NETWORK_1 = "((protopterus:0.0,(Xenopus:0.0,(((((Monodelphis:0.0,(python:0.0)#H1:0.0):0.0,(Caretta:0.0)#H2:0.0):0.0,(Homo:0.0)#H3:0.0):0.0,(Ornithorhynchus:0.0)#H4:0.0):0.0,(((#H1:0.0,((#H3:0.0,Anolis:0.0):0.0,(Gallus:0.0)#H5:0.0):0.0):0.0,(Podarcis:0.0)#H6:0.0):0.0,(((#H5:0.0,(#H6:0.0,Taeniopygia:0.0):0.0):0.0,(alligator:0.0,Caiman:0.0):0.0):0.0,(phrynops:0.0,(Emys:0.0,((Chelonoidi:0.0,#H4:0.0):0.0,#H2:0.0):0.0):0.0):0.0):0.0):0.0):0.0):0.0):0.0);"
 NETWORK_2 = NETWORK_1

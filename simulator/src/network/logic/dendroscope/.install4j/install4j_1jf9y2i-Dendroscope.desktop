@@ -1,8 +1,0 @@
-#!/usr/bin/env xdg-open
-[Desktop Entry]
-Type=Application
-Name=Dendroscope
-Exec="/home/sarah/dendroscope/Dendroscope" %U
-Icon=/home/sarah/dendroscope/.install4j/Dendroscope.png
-Categories=Application;
-StartupWMClass=install4j-dendroscope-main-Dendroscope
