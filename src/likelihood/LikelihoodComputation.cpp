@@ -16,7 +16,7 @@
 
 #include <cassert>
 #include <cmath>
-#include "mpreal.h"
+#include <mpreal.h>
 
 namespace netrax {
 
