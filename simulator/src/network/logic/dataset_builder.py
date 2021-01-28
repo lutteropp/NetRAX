@@ -107,6 +107,8 @@ def build_dataset(n_taxa, n_reticulations, approx_msa_size, sampling_type, simul
         ds.true_network_path, ds.n_taxa)
     ds, sampled_trees_contrib = sample_trees(ds, trees_prob)
     build_trees_file(ds, trees_newick, sampled_trees_contrib)
-    _, ds.n_equal_tree_pairs = check_weird_network(ds.true_network_path, ds.n_taxa)
+    n_pairs, ds.n_equal_tree_pairs = check_weird_network(ds.true_network_path, ds.n_taxa)
+    if n_pairs > 0:
+        ds.true_network_weirdness = float(ds.n_equal_tree_pairs) / n_pairs
     simulate_msa(ds)
     return ds
