@@ -65,20 +65,11 @@ def run_experiments(prefix, settings, iterations):
     datasets = simulate_datasets(prefix, settings, iterations)
     run_inference_and_evaluate(datasets)
     write_results_to_csv(datasets, prefix + "_results.csv")
-
-
-def run_multi(prefix, settings, iterations):
-    local_csv_paths = []
-    for it in range(iterations):
-        local_prefix = prefix + "_" + str(it)
-        run_experiments(local_prefix, settings, 1)
-        local_csv_paths.append(local_prefix + "_results.csv")
   
     
 def parse_command_line_arguments_experiment():
     CLI = argparse.ArgumentParser()
     CLI.add_argument("--prefix",nargs=1, type=str, default="small_network")
-    CLI.add_argument("--iterations", nargs=1, type=int, default=1)
     CLI.add_argument("--sampling_types", nargs="*", type=SamplingType, default=[SamplingType.PERFECT_SAMPLING])
     CLI.add_argument("--start_types",nargs="*",type=StartType, default=[StartType.FROM_RAXML, StartType.RANDOM])
     CLI.add_argument("--brlen_linkage_types",nargs="*",type=BrlenLinkageType, default=[BrlenLinkageType.LINKED])
@@ -93,7 +84,6 @@ def parse_command_line_arguments_experiment():
 
     settings = ExperimentSettings()
     prefix = args.prefix
-    iterations = args.iterations
     settings.sampling_types = args.sampling_types
     settings.start_types = args.start_types
     settings.brlen_linkage_types = args.brlen_linkage_types
@@ -104,9 +94,10 @@ def parse_command_line_arguments_experiment():
     settings.min_reticulations = args.min_reticulations
     settings.max_reticulations = args.max_reticulations
 
-    return prefix, settings, iterations
+    return prefix, settings
 
 
 if __name__ == "__main__":
-    prefix, settings, iterations = parse_command_line_arguments_experiment()
-    run_multi(prefix, settings, iterations)
+    prefix, settings = parse_command_line_arguments_experiment()
+    run_experiments(prefix, settings, 1)
+    
