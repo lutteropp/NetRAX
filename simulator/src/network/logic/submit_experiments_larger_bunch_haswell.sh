@@ -52,4 +52,4 @@ ln -f something${SLURM_JOB_ID}.log ${PREFIX}.log
 rm something${SLURM_JOB_ID}.log
 
 python3 csv_merger.py --prefix ${PREFIX} --iterations ${BUNCHES}
-python3 create_plots.py --prefix ${PREFIX}
+python3 postprocess_results.py --prefix ${PREFIX}
