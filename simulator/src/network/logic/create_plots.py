@@ -264,7 +264,7 @@ def create_plots(prefix):
 
 def parse_command_line_arguments_plots():
     CLI = argparse.ArgumentParser()
-    CLI.add_argument("--prefix", nargs=1, type=str, default="small_network")
+    CLI.add_argument("--prefix", type=str, default="small_network")
     args = CLI.parse_args()
     return args.prefix
 
