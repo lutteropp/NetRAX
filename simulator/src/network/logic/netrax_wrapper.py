@@ -107,6 +107,34 @@ def extract_displayed_trees(network_path, n_taxa):
     return trees_newick, trees_prob
 
 
+def check_weird_network(network_path, n_taxa):
+    msa_path = "temp_fake_msa_" + str(os.getpid()) + ".txt"
+    msa_file = open(msa_path, "w")
+    msa_file.write(build_fake_msa(n_taxa, network_path))
+    msa_file.close()
+
+    netrax_cmd = NETRAX_PATH + " --check_weird_network " + \
+        " --start_network " + network_path + " --msa " + msa_path + " --model DNA"
+    print(netrax_cmd)
+    cmd_status, cmd_output = subprocess.getstatusoutput(netrax_cmd)
+    print(cmd_output)
+    if cmd_status != 0:
+        raise Exception("Check weird network failed")
+    lines = cmd_output.splitlines()
+
+    n_pairs = 0
+    n_equal = 0
+
+    for i in range(len(lines)):
+        if lines[i].startswith("Number of pairs:"):
+            n_pairs = int(lines[i].split(": ")[1])
+        elif lines[i].startswith("Number of equal pairs:"):
+            n_equal = int(lines[i].split(": ")[1])
+
+    os.remove(msa_path)
+    return n_pairs, n_equal
+
+
 def build_fake_msa(n_taxa, network_path=""):
     fake_msa = ""
 
