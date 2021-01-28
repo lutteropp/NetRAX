@@ -24,10 +24,10 @@ def score_network(network_path, msa_path, partitions_path, likelihood_type, brle
 
     print(netrax_cmd)
     cmd_status, cmd_output = subprocess.getstatusoutput(netrax_cmd)
+    print(cmd_output)
     if cmd_status != 0:
         raise Exception("Scoring network failed")
     netrax_output = cmd_output.splitlines()
-    print(netrax_output)
     n_reticulations, bic, logl = 0, 0, 0
     for line in netrax_output:
         if line.startswith("Number of reticulations:"):
