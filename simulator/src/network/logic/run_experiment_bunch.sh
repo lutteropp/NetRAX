@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+if [[ $# -ne 2 ]]; then
+    echo "Illegal number of parameters. Usage: run_experiment_bunch.sh PREFIX ITERATIONS"
+    exit 2
+fi
+
 PREFIX = $1
 ITERATIONS = $2
 SAMPLING_TYPES = "SamplingType.PERFECT_SAMPLING"
@@ -11,6 +16,7 @@ PARTITION_SIZES = "50 100"
 case ${PREFIX} in
 "small_network") MIN_TAXA = 4; MAX_TAXA = 10; MIN_RETICULATIONS = 1; MAX_RETICULATIONS = 2;;
 "small_tree") MIN_TAXA = 4; MAX_TAXA = 10; MIN_RETICULATIONS = 0; MAX_RETICULATIONS = 0;;
+*) echo "Unknown prefix"; exit 2;;
 esac
 
 for ((i = 0; i < ${ITERATIONS}; i++)); do
