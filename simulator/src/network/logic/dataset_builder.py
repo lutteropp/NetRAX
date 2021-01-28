@@ -1,6 +1,6 @@
 
 from experiment_model import Dataset, SamplingType, SimulatorType, LikelihoodType, BrlenLinkageType, StartType, InferenceVariant
-from netrax_wrapper import generate_random_network, extract_displayed_trees
+from netrax_wrapper import generate_random_network, extract_displayed_trees, check_weird_network
 from seqgen_wrapper import simulate_msa
 from celine_simulator import CelineParams, simulate_network_celine
 
@@ -107,5 +107,6 @@ def build_dataset(n_taxa, n_reticulations, approx_msa_size, sampling_type, simul
         ds.true_network_path, ds.n_taxa)
     ds, sampled_trees_contrib = sample_trees(ds, trees_prob)
     build_trees_file(ds, trees_newick, sampled_trees_contrib)
+    _, ds.n_equal_tree_pairs = check_weird_network(ds.true_network_path, ds.n_taxa)
     simulate_msa(ds)
     return ds
