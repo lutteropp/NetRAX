@@ -22,7 +22,10 @@ def score_network(network_path, msa_path, partitions_path, likelihood_type, brle
         netrax_cmd += " --brlen scaled"
         
     print(netrax_cmd)
-    netrax_output = subprocess.getoutput(netrax_cmd).splitlines()
+    cmd_status, cmd_output = subprocess.getstatusoutput(netrax_cmd)
+    if cmd_status != 0:
+        raise "Scoring network failed"
+    netrax_output = cmd_output.splitlines()
     print(netrax_output)
     n_reticulations, bic, logl = 0,0,0
     for line in netrax_output:
@@ -36,7 +39,6 @@ def score_network(network_path, msa_path, partitions_path, likelihood_type, brle
     
     
 def infer_networks(ds):
-    runtime = 0
     netrax_cmd_start = NETRAX_PATH + " --msa " + ds.msa_path + " --model " + ds.partitions_path
     for var in ds.inference_variants:
         netrax_cmd = netrax_cmd_start + " --output " + var.inferred_network_path
@@ -59,7 +61,12 @@ def infer_networks(ds):
             
         print(netrax_cmd)
         start_time = time.time()
-        print(subprocess.getoutput(netrax_cmd))
+
+        cmd_status, cmd_output = subprocess.getstatusoutput(netrax_cmd)
+        print(cmd_output)
+        if cmd_status != 0:
+            raise "Inferring network failed"
+
         var.runtime_inference = round(time.time() - start_time, 3)
     
     
@@ -72,8 +79,11 @@ def extract_displayed_trees(network_path, n_taxa):
 
     netrax_cmd = NETRAX_PATH + " --extract_displayed_trees " + " --start_network " + network_path + " --msa " + msa_path + " --model DNA"
     print(netrax_cmd)
-    lines = subprocess.getoutput(netrax_cmd).splitlines()
-    print(lines)
+    cmd_status, cmd_output = subprocess.getstatusoutput(netrax_cmd)
+    print(cmd_output)
+    if cmd_status != 0:
+        raise "Extract displayed trees failed"
+    lines = cmd_output.splitlines()
     start_idx = 0
     n_trees = 0
     for i in range(len(lines)):
@@ -111,7 +121,11 @@ def build_fake_msa(n_taxa, network_path=""):
     if network_path != "":
         netrax_cmd = NETRAX_PATH + " --extract_taxon_names " + " --start_network " + network_path  + " --model DNA"
         print(netrax_cmd)
-        lines = subprocess.getoutput(netrax_cmd).splitlines()
+        cmd_status, cmd_output = subprocess.getstatusoutput(netrax_cmd)
+        print(cmd_output)
+        if cmd_status != 0:
+            raise "Extract taxon names failed"
+        lines = cmd_output.splitlines()
         for line in lines[1:]:
             taxon_names.append(line)
             
@@ -132,5 +146,8 @@ def generate_random_network(n_taxa, n_reticulations, output_path):
     msa_file.close()
     netrax_cmd = NETRAX_PATH + " --generate_random_network_only " + " --max_reticulations " + str(n_reticulations) + " --msa " + msa_path + " --model DNA " + " --output " + output_path
     print(netrax_cmd)
-    print(subprocess.getoutput(netrax_cmd))
+    cmd_status, cmd_output = subprocess.getstatusoutput(netrax_cmd)
+    print(cmd_output)
+    if cmd_status != 0:
+        raise "Generate random network failed"
     os.remove(msa_path)

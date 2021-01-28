@@ -7,8 +7,11 @@ RAXML_PATH = 'raxml-ng'
 def infer_raxml_tree(dataset):
     cmd = RAXML_PATH + ' --msa ' + str(dataset.msa_path) + ' --model ' + str(dataset.partitions_path) + ' --prefix ' + str(dataset.name) + ' --seed 42'
     print(cmd)
-    lines = subprocess.getoutput(cmd).splitlines()
-    print(lines)
+    cmd_status, cmd_output = subprocess.getstatusoutput(cmd)
+    print(cmd_output)
+    if cmd_status != 0:
+        raise "Inferring raxml tree failed"
+    lines = cmd_output.splitlines()
     near_zero_branches = 0
     for line in lines:
         if "near-zero branches" in line and "WARNING: Best ML tree contains" in line:
@@ -19,8 +22,11 @@ def infer_raxml_tree(dataset):
 def compute_rf_dist(tree_1_path, tree_2_path):
     cmd = RAXML_PATH + " --rf " + tree_1_path + "," + tree_2_path
     print(cmd)
-    lines = subprocess.getoutput(cmd).splitlines()
-    print(lines)
+    cmd_status, cmd_output = subprocess.getstatusoutput(cmd)
+    print(cmd_output)
+    if cmd_status != 0:
+        raise "Compute RF dist failed"
+    lines = cmd_output.splitlines()
     rf_abs = -1
     rf_rel = -1
     for line in lines:
