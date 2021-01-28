@@ -24,6 +24,8 @@ fi
 
 case ${PREFIX} in
 "small_network") MIN_TAXA = 4; MAX_TAXA = 10; MIN_RETICULATIONS = 1; MAX_RETICULATIONS = 2;;
+"small_network_debug") MIN_TAXA = 4; MAX_TAXA = 4; MIN_RETICULATIONS = 1; MAX_RETICULATIONS = 2;;
+"larger_network") MIN_TAXA = 20; MAX_TAXA = 50; MIN_RETICULATIONS = 2; MAX_RETICULATIONS = -1;;
 "small_tree") MIN_TAXA = 4; MAX_TAXA = 10; MIN_RETICULATIONS = 0; MAX_RETICULATIONS = 0;;
 *) echo "Unknown prefix"; exit 2;;
 esac
