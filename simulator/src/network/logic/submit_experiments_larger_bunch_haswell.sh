@@ -1,6 +1,12 @@
 #!/bin/bash
  
-source /etc/profile.d/modules.sh
+#source /etc/profile.d/modules.sh
+
+module purge
+module load CMake
+module load Python
+module load OpenMPI
+module load slurm
 
 USAGE="Usage: sh submit_experiments_larger_bunch_haswell.sh PREFIX BUNCHES ITERATIONS_PER_BUNCH MIN_TAXA MAX_TAXA MIN_RETICULATIONS MAX_RETICULATIONS [no_random]"
 
