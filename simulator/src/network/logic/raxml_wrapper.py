@@ -1,7 +1,7 @@
 import subprocess
 from experiment_model import Dataset
 
-RAXML_PATH = 'raxml-ng'
+RAXML_PATH = './raxml-ng'
 
 
 def infer_raxml_tree(dataset):
