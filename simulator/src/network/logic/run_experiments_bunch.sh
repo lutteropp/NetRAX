@@ -31,11 +31,16 @@ fi
 
 i=0
 while [ $i -lt ${ITERATIONS} ]; do
-    python3 run_experiments.py --prefix ${PREFIX}_${i} --sampling_types ${SAMPLING_TYPES} --start_types ${START_TYPES} --brlen_linkage_types ${BRLEN_LINKAGE_TYPES} --likelihood_types ${LIKELIHOOD_TYPES} --partition_sizes ${PARTITION_SIZES} --min_taxa ${MIN_TAXA} --max_taxa ${MAX_TAXA} --min_reticulations ${MIN_RETICULATIONS} --max_reticulations ${MAX_RETICULATIONS} &
+    python3 run_experiments.py --prefix ${PREFIX}_${i} --sampling_types ${SAMPLING_TYPES} --start_types ${START_TYPES} --brlen_linkage_types ${BRLEN_LINKAGE_TYPES} --likelihood_types ${LIKELIHOOD_TYPES} --partition_sizes ${PARTITION_SIZES} --min_taxa ${MIN_TAXA} --max_taxa ${MAX_TAXA} --min_reticulations ${MIN_RETICULATIONS} --max_reticulations ${MAX_RETICULATIONS} > ${PREFIX}_${i}.log &
     i=$((i + 1))
 done
 
 wait
+
+i=0
+while [ $i -lt ${ITERATIONS} ]; do
+	cat ${PREFIX}_${i}.log
+done
 
 python3 csv_merger.py --prefix ${PREFIX} --iterations ${ITERATIONS}
 #python3 postprocess_results.py --prefix ${PREFIX}

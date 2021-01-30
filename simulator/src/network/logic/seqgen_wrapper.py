@@ -3,7 +3,7 @@ import collections
 
 from experiment_model import Dataset
 
-SEQGEN_PATH = 'seq-gen'
+SEQGEN_PATH = './seq-gen'
 
 
 def simulate_msa(dataset):
