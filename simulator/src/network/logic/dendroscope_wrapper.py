@@ -1,5 +1,6 @@
 import subprocess
 import os
+import random
 
 # this needs sudo apt install xvfb to run
 XSERVER_MAGIC = "xvfb-run --auto-servernum --server-num=1"
@@ -39,7 +40,7 @@ def get_dendro_scores(network_1, network_2):
     cmd += "\ncompute distance method=pathMultiplicity;"
     cmd += "\nquit"
 
-    dendro_filename = "dendroscope_commands_" + str(os.getpid()) + ".txt"
+    dendro_filename = "dendroscope_commands_" + str(os.getpid()) + "_" + str(random.getrandbits(64)) + ".txt"
 
     temp_command_file = open(dendro_filename, "w")
     temp_command_file.write(cmd)

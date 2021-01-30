@@ -1,6 +1,7 @@
 import subprocess
 import os
 import time
+import random
 
 from experiment_model import LikelihoodType, BrlenLinkageType, StartType
 
@@ -76,7 +77,7 @@ def infer_networks(ds):
 
 # Extracts all displayed trees of a given network, returning two lists: one containing the NEWICK strings, and one containing the tree probabilities
 def extract_displayed_trees(network_path, n_taxa):
-    msa_path = "temp_fake_msa_" + str(os.getpid()) + ".txt"
+    msa_path = "temp_fake_msa_" + str(os.getpid()) + "_" + str(random.getrandbits(64)) + ".txt"
     msa_file = open(msa_path, "w")
     msa_file.write(build_fake_msa(n_taxa, network_path))
     msa_file.close()
@@ -108,7 +109,7 @@ def extract_displayed_trees(network_path, n_taxa):
 
 
 def check_weird_network(network_path, n_taxa):
-    msa_path = "temp_fake_msa_" + str(os.getpid()) + ".txt"
+    msa_path = "temp_fake_msa_" + str(os.getpid()) + "_" + str(random.getrandbits(64)) + ".txt"
     msa_file = open(msa_path, "w")
     msa_file.write(build_fake_msa(n_taxa, network_path))
     msa_file.close()
@@ -174,7 +175,7 @@ def build_fake_msa(n_taxa, network_path=""):
 
 # Generates a random network with the wanted number of taxa and reticulations. Writes it in Extended NEWICK format to the provided output path.
 def generate_random_network(n_taxa, n_reticulations, output_path):
-    msa_path = "temp_fake_msa_" + str(os.getpid()) + ".txt"
+    msa_path = "temp_fake_msa_" + str(os.getpid()) + "_" + str(random.getrandbits(64)) + ".txt"
     msa_file = open(msa_path, "w")
     msa_file.write(build_fake_msa(n_taxa))
     msa_file.close()
