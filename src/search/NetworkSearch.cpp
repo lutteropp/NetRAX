@@ -223,13 +223,11 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
             }
         }
 
-        /*
         // ensure that we don't have a reticulation with prob near 0.0 or 1.0 now. If we have one, stop the search.
         if (hasBadReticulation(ann_network)) {
             std::cout << "BAD RETICULATION FOUND\n";
             continue;
         }
-        */
 
         // then try adding a reticulation
         if (ann_network.network.num_reticulations() < ann_network.options.max_reticulations) {
@@ -241,13 +239,11 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
             greedyHillClimbingTopology(ann_network, insertionType, false, true, 1);
             optimizeAllNonTopology(ann_network);
 
-            /*
             // ensure that we don't have a reticulation with prob near 0.0 or 1.0 now. If we have one, stop the search.
             if (hasBadReticulation(ann_network)) {
                 std::cout << "BAD RETICULATION FOUND\n";
                 continue;
             }
-            */
             score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
 
             optimizeEverythingRun(ann_network, typesBySpeed, start_time, true);
