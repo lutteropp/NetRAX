@@ -2,6 +2,12 @@
  
 #source /etc/profile.d/modules.sh
 
+module purge
+module load CMake
+module load Python
+module load OpenMPI
+module load slurm
+
 USAGE="Usage: sh submit_experiments_larger_bunch_haswell.sh PREFIX BUNCHES ITERATIONS_PER_BUNCH MIN_TAXA MAX_TAXA MIN_RETICULATIONS MAX_RETICULATIONS [no_random]"
 
 if [ $# -lt 7 ]; then
@@ -23,17 +29,23 @@ BRLEN_LINKAGE_TYPES="LINKED"
 LIKELIHOOD_TYPES="AVERAGE BEST"
 PARTITION_SIZES="50 100"
 
+#SBATCH -o something%j.log
+#SBATCH -B 2:8:1
+#SBATCH --threads-per-core=1
+#SBATCH --cpus-per-task=16
+#SBATCH -t 08:00:00
+
 i=0
 while [ $i -lt ${BUNCHES} ]; do
     if [ $# -eq 8 ]; then
         if [ $8=="no_random" ]; then
-            sbatch run_experiments_bunch.sh ${PREFIX}_${i} ${ITERATIONS_PER_BUNCH} ${MIN_TAXA} ${MAX_TAXA} ${MIN_RETICULATIONS} ${MAX_RETICULATIONS} no_random &
+            srun -N 1 -n 1 run_experiments_bunch.sh ${PREFIX}_${i} ${ITERATIONS_PER_BUNCH} ${MIN_TAXA} ${MAX_TAXA} ${MIN_RETICULATIONS} ${MAX_RETICULATIONS} no_random &
         else
             echo "Unknown argument: ${8}"
             exit 2
         fi
     else
-        sbatch run_experiments_bunch.sh ${PREFIX}_${i} ${ITERATIONS_PER_BUNCH} ${MIN_TAXA} ${MAX_TAXA} ${MIN_RETICULATIONS} ${MAX_RETICULATIONS} &
+        srun -N 1 -n 1 run_experiments_bunch.sh ${PREFIX}_${i} ${ITERATIONS_PER_BUNCH} ${MIN_TAXA} ${MAX_TAXA} ${MIN_RETICULATIONS} ${MAX_RETICULATIONS} &
     fi
     i=$((i + 1))
 done
