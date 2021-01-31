@@ -22,6 +22,7 @@ def score_network(network_path, msa_path, partitions_path, likelihood_type, brle
         netrax_cmd += " --brlen linked"
     else:
         netrax_cmd += " --brlen scaled"
+    netrax_cmd += " --seed 42"
 
     print(netrax_cmd)
     cmd_status, cmd_output = subprocess.getstatusoutput(netrax_cmd)
@@ -63,6 +64,7 @@ def infer_networks(ds):
             netrax_cmd += " --brlen linked"
         else:
             netrax_cmd += " --brlen scaled"
+        netrax_cmd += " --seed 42"
 
         print(netrax_cmd)
         start_time = time.time()
