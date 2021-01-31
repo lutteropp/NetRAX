@@ -29,7 +29,6 @@ BRLEN_LINKAGE_TYPES="LINKED"
 LIKELIHOOD_TYPES="AVERAGE BEST"
 PARTITION_SIZES="50 100"
 
-#SBATCH -o something%j.log
 #SBATCH -B 2:8:1
 #SBATCH --threads-per-core=1
 #SBATCH --cpus-per-task=16
@@ -52,8 +51,8 @@ done
 
 wait
 
-ln -f something${SLURM_JOB_ID}.log ${PREFIX}.log
-rm something${SLURM_JOB_ID}.log
+#ln -f slurm-${SLURM_JOB_ID}.out ${PREFIX}.log
+#rm slurm-${SLURM_JOB_ID}.out
 
 python3 csv_merger.py --prefix ${PREFIX} --iterations ${BUNCHES}
 python3 postprocess_results.py --prefix ${PREFIX}
