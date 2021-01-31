@@ -1,5 +1,19 @@
 #!/bin/sh
 
+module purge
+module load CMake
+module load Python
+module load OpenMPI
+module load slurm
+
+#SBATCH -o something%j.log
+#SBATCH -N 1
+#SBATCH -n 1
+#SBATCH -B 2:8:1
+#SBATCH --threads-per-core=1
+#SBATCH --cpus-per-task=16
+#SBATCH -t 08:00:00
+
 USAGE="Usage: sh run_experiments_bunch.sh PREFIX ITERATIONS MIN_TAXA MAX_TAXA MIN_RETICULATIONS MAX_RETICULATIONS [no_random]"
 
 if [ $# -lt 6 ]; then
