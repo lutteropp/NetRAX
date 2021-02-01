@@ -54,7 +54,8 @@ wait
 
 i=0
 while [ $i -lt ${ITERATIONS} ]; do
-	cat ${PREFIX}_${i}.log
+	cat ${PREFIX}_logs/${PREFIX}_${i}.log
+	i=$((i + 1))
 done
 
 python3 csv_merger.py --prefix ${PREFIX} --iterations ${ITERATIONS}
