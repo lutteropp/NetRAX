@@ -70,15 +70,14 @@ class InferenceVariant:
         return str(self.likelihood_type) + "," + str(self.brlen_linkage_type) + "," + str(self.start_type) + "," + str(self.timeout) + "," + str(self.n_random_start_networks) + "," + str(self.n_parsimony_start_networks) + "," + str(self.runtime_inference)
 
 
-TOPOLOGICAL_DISTANCE_NAMES = ['hardwired_cluster_distance', 'softwired_cluster_distance',
-                              'displayed_trees_distance', 'tripartition_distance', 'nested_labels_distance', 'path_multiplicity_distance']
+#TOPOLOGICAL_DISTANCE_NAMES = ['hardwired_cluster_distance', 'softwired_cluster_distance', 'displayed_trees_distance', 'tripartition_distance', 'nested_labels_distance', 'path_multiplicity_distance']
 
 DATASET_CSV_HEADER = "name,n_taxa,n_trees,n_reticulations,msa_size,sampling_type,simulation_type,celine_params,seqgen_params,near_zero_branches_raxml,n_equal_tree_pairs,true_network_weirdness"
 
 INFERENCE_VARIANT_CSV_HEADER = "likelihood_type,brlen_linkage_type,start_type,timeout,n_random_start_networks,n_parsimony_start_networks,runtime_inference"
 
-RESULT_CSV_HEADER = "n_reticulations_inferred,bic_true,logl_true,bic_inferred,logl_inferred,bic_raxml,logl_raxml,rf_absolute_raxml,rf_relative_raxml,rf_absolute_inferred,rf_relative_inferred" + \
-    "," + ",".join(TOPOLOGICAL_DISTANCE_NAMES)
+RESULT_CSV_HEADER = "n_reticulations_inferred,bic_true,logl_true,bic_inferred,logl_inferred,bic_raxml,logl_raxml,rf_absolute_raxml,rf_relative_raxml,rf_absolute_inferred,rf_relative_inferred" 
+#+ "," + ",".join(TOPOLOGICAL_DISTANCE_NAMES)
 
 
 class Dataset:
@@ -121,13 +120,12 @@ class Result:
         self.bic_raxml = 0
         self.logl_raxml = 0
         self.n_reticulations_inferred = 0
-        self.topological_distances = {}
+        #self.topological_distances = {}
         self.rf_absolute_raxml = -1
         self.rf_relative_raxml = -1
         self.rf_absolute_inferred = -1
         self.rf_relative_inferred = -1
 
     def get_csv_line(self):
-        topo_scores_strings_ordered = [
-            str(self.topological_distances[x]) for x in TOPOLOGICAL_DISTANCE_NAMES]
-        return str(self.n_reticulations_inferred) + "," + str(self.bic_true) + "," + str(self.logl_true) + "," + str(self.bic_inferred) + "," + str(self.logl_inferred) + "," + str(self.bic_raxml) + "," + str(self.logl_raxml) + "," + str(self.rf_absolute_raxml) + "," + str(self.rf_relative_raxml) + "," + str(self.rf_absolute_inferred) + "," + str(self.rf_relative_inferred) + "," + ",".join(topo_scores_strings_ordered)
+        #topo_scores_strings_ordered = [str(self.topological_distances[x]) for x in TOPOLOGICAL_DISTANCE_NAMES]
+        return str(self.n_reticulations_inferred) + "," + str(self.bic_true) + "," + str(self.logl_true) + "," + str(self.bic_inferred) + "," + str(self.logl_inferred) + "," + str(self.bic_raxml) + "," + str(self.logl_raxml) + "," + str(self.rf_absolute_raxml) + "," + str(self.rf_relative_raxml) + "," + str(self.rf_absolute_inferred) + "," + str(self.rf_relative_inferred)# + "," + ",".join(topo_scores_strings_ordered)

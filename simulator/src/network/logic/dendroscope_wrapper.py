@@ -29,7 +29,7 @@ def convert_newick_to_dendroscope(newick):
 
 
 # Takes two networks in Extended NEWICK format and uses Dendroscope to compute various topological distances.
-def get_dendro_scores(network_1, network_2):
+def retrieve_topological_distances(network_1, network_2):
     cmd = "add tree=\'" + convert_newick_to_dendroscope(
         network_1) + convert_newick_to_dendroscope(network_2) + "\';"
     cmd += "\ncompute distance method=hardwired;"
@@ -77,10 +77,10 @@ def get_dendro_scores(network_1, network_2):
 def evaluate(simulated_network_path, inferred_network_path):
     net1 = open(simulated_network_path).read()
     net2 = open(inferred_network_path).read()
-    scores = get_dendro_scores(net1, net2)
+    scores = retrieve_topological_distances(net1, net2)
     return scores
 
 
 if __name__ == "__main__":
-    scores = get_dendro_scores(NETWORK_1, NETWORK_2)
+    scores = retrieve_topological_distances(NETWORK_1, NETWORK_2)
     print(scores)

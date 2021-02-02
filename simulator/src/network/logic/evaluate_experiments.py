@@ -5,12 +5,6 @@ from raxml_wrapper import infer_raxml_tree, compute_rf_dist
 from experiment_model import *
 
 
-def retrieve_topological_distances(network_1_path, network_2_path):
-    network_1 = open(network_1_path).read()
-    network_2 = open(network_2_path).read()
-    return get_dendro_scores(network_1, network_2)
-
-
 def evaluate_dataset(ds):
     rf_absolute_raxml = -1
     rf_relative_raxml = -1
@@ -26,8 +20,7 @@ def evaluate_dataset(ds):
             ds.raxml_tree_path, ds.msa_path, ds.partitions_path, var.likelihood_type, var.brlen_linkage_type)
         res.n_reticulations_inferred, res.bic_inferred, res.logl_inferred = score_network(
             var.inferred_network_path, ds.msa_path, ds.partitions_path, var.likelihood_type, var.brlen_linkage_type)
-        res.topological_distances = retrieve_topological_distances(
-            ds.true_network_path, var.inferred_network_path)
+        #res.topological_distances = retrieve_topological_distances(ds.true_network_path, var.inferred_network_path)
 
         if ds.n_reticulations == 0:
             res.rf_absolute_raxml = rf_absolute_raxml
