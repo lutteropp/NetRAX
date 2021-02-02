@@ -67,14 +67,14 @@ class InferenceVariant:
         self.result = None
 
     def get_csv_line(self):
-        return str(self.likelihood_type) + "," + str(self.brlen_linkage_type) + "," + str(self.start_type) + "," + str(self.timeout) + "," + str(self.n_random_start_networks) + "," + str(self.n_parsimony_start_networks) + "," + str(self.runtime_inference)
+        return str(self.inferred_network_path) + "," + str(self.likelihood_type) + "," + str(self.brlen_linkage_type) + "," + str(self.start_type) + "," + str(self.timeout) + "," + str(self.n_random_start_networks) + "," + str(self.n_parsimony_start_networks) + "," + str(self.runtime_inference)
 
 
 #TOPOLOGICAL_DISTANCE_NAMES = ['hardwired_cluster_distance', 'softwired_cluster_distance', 'displayed_trees_distance', 'tripartition_distance', 'nested_labels_distance', 'path_multiplicity_distance']
 
-DATASET_CSV_HEADER = "name,n_taxa,n_trees,n_reticulations,msa_size,sampling_type,simulation_type,celine_params,seqgen_params,near_zero_branches_raxml,n_equal_tree_pairs,true_network_weirdness"
+DATASET_CSV_HEADER = "name,n_taxa,n_trees,n_reticulations,msa_size,sampling_type,simulation_type,celine_params,seqgen_params,near_zero_branches_raxml,n_equal_tree_pairs,true_network_weirdness,true_network_path"
 
-INFERENCE_VARIANT_CSV_HEADER = "likelihood_type,brlen_linkage_type,start_type,timeout,n_random_start_networks,n_parsimony_start_networks,runtime_inference"
+INFERENCE_VARIANT_CSV_HEADER = "inferred_network_path,likelihood_type,brlen_linkage_type,start_type,timeout,n_random_start_networks,n_parsimony_start_networks,runtime_inference"
 
 RESULT_CSV_HEADER = "n_reticulations_inferred,bic_true,logl_true,bic_inferred,logl_inferred,bic_raxml,logl_raxml,rf_absolute_raxml,rf_relative_raxml,rf_absolute_inferred,rf_relative_inferred" 
 #+ "," + ",".join(TOPOLOGICAL_DISTANCE_NAMES)
@@ -108,7 +108,7 @@ class Dataset:
         return self.n_trees * self.sites_per_tree
 
     def get_csv_line(self):
-        return str(self.name) + "," + str(self.n_taxa) + "," + str(self.n_trees) + "," + str(self.n_reticulations) + "," + str(self.msa_size) + "," + str(self.sampling_type) + "," + str(self.simulator_type) + "," + str(self.celine_params).replace(",", "|") + "," + str(self.seqgen_params).replace(",", "|") + "," + str(self.near_zero_branches_raxml) + "," + str(self.n_equal_tree_pairs) + "," + str(self.true_network_weirdness)
+        return str(self.name) + "," + str(self.n_taxa) + "," + str(self.n_trees) + "," + str(self.n_reticulations) + "," + str(self.msa_size) + "," + str(self.sampling_type) + "," + str(self.simulator_type) + "," + str(self.celine_params).replace(",", "|") + "," + str(self.seqgen_params).replace(",", "|") + "," + str(self.near_zero_branches_raxml) + "," + str(self.n_equal_tree_pairs) + "," + str(self.true_network_weirdness) + "," + str(self.true_network_path)
 
 
 class Result:
