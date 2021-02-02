@@ -4,11 +4,12 @@ import os.path
 
 
 def merge_csvs(inpaths, outpath):
+    real_inpaths = [p for p in inpaths if os.path.isfile(p)]
     for p in inpaths:
         if not os.path.isfile(p):
-            print(p)
-            raise Exception("Not a file")
-    combined_csv = pd.concat([pd.read_csv(f) for f in inpaths])
+            print("Not a file: " + p)
+            #raise Exception("Not a file")
+    combined_csv = pd.concat([pd.read_csv(f) for f in real_inpaths])
     combined_csv.to_csv(outpath, index=False, encoding='utf-8-sig')
 
 
