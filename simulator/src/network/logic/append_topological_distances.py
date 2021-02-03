@@ -11,8 +11,8 @@ def append_distances(input_csv_path, output_csv_path):
     for name in TOPOLOGICAL_DISTANCE_NAMES:
         df[name] = ""
     for _, row in df.iterrows():
-        true_network_path = df["true_network_path"]
-        inferred_network_path = df["inferred_network_path"]
+        true_network_path = row["true_network_path"]
+        inferred_network_path = row["inferred_network_path"]
         topological_distances = evaluate(
             true_network_path, inferred_network_path)
         for name in TOPOLOGICAL_DISTANCE_NAMES:
