@@ -1,70 +1,65 @@
-[INFO] logger started at Tue Sep 29 13:53:00 CEST 2020
-[INFO] executable name: /home/sarah/code-workspace/NetRAX/experiments/Dendroscope_unix_3_7_2.sh
+[INFO] logger started at Wed Feb 03 02:16:11 CET 2021
+[INFO] executable name: /home/sarah/Downloads/Dendroscope_unix_3_7_4.sh
 [INFO] install4j version: 8.0.4 (build 8111)
 [INFO] Properties: 
 -- listing properties --
-sun.desktop=gnome
-awt.toolkit=sun.awt.X11.XToolkit
-java.specification.version=11
-install4j.launcherId=1691243675
-sun.cpu.isalist=
+java.specification.version=14
+install4j.launcherId=1691243087
 sun.jnu.encoding=UTF-8
 java.class.path=i4jruntime.jar:launcher0.jar
 sun.awt.enableExtraMouseButtons=true
-java.vm.vendor=Debian
+java.vm.vendor=AdoptOpenJDK
 sun.arch.data.model=64
-install4j.exeDir=/home/sarah/code-workspace/NetRAX/exp...
+install4j.exeDir=/home/sarah/Downloads/
 sun.font.fontmanager=sun.awt.X11FontManager
-java.vendor.url=https://tracker.debian.org/openjdk-11
+java.vendor.url=https://adoptopenjdk.net/
 user.timezone=Europe/Berlin
+java.vm.specification.version=14
 os.name=Linux
-java.vm.specification.version=11
 sun.java.launcher=SUN_STANDARD
 user.country=US
-sun.boot.library.path=/usr/lib/jvm/java-11-openjdk-amd64/lib
+sun.boot.library.path=/home/sarah/Downloads/Dendroscope_uni...
 sun.java.command=install4j.Installer1175798920
 jdk.debug=release
 sun.cpu.endian=little
 user.home=/home/sarah
 user.language=en
 java.specification.vendor=Oracle Corporation
-java.version.date=2020-07-14
-java.home=/usr/lib/jvm/java-11-openjdk-amd64
+java.version.date=2020-04-14
+java.home=/home/sarah/Downloads/Dendroscope_uni...
 file.separator=/
 java.vm.compressedOopsMode=Zero based
 line.separator=
 
-java.specification.name=Java Platform API Specification
 java.vm.specification.vendor=Oracle Corporation
-java.awt.graphicsenv=sun.awt.X11GraphicsEnvironment
-exe4j.moduleName=/home/sarah/code-workspace/NetRAX/exp...
+java.specification.name=Java Platform API Specification
+exe4j.moduleName=/home/sarah/Downloads/Dendroscope_uni...
 sun.management.compiler=HotSpot 64-Bit Tiered Compilers
-java.runtime.version=11.0.8+10-post-Debian-1deb10u1
+java.runtime.version=14.0.1+7
 user.name=sarah
 path.separator=:
-os.version=4.19.0-10-amd64
+os.version=4.19.0-13-amd64
 java.runtime.name=OpenJDK Runtime Environment
 sun.java2d.noddraw=true
 file.encoding=UTF-8
 java.vm.name=OpenJDK 64-Bit Server VM
-install4j.jvmDir=/usr/lib/jvm/java-11-openjdk-amd64
-install4j.cwd=/home/sarah/code-workspace/NetRAX/exp...
-install4j.appDir=/home/sarah/code-workspace/NetRAX/exp...
-java.vendor.url.bug=https://bugs.debian.org/openjdk-11
+java.vendor.version=AdoptOpenJDK
+install4j.jvmDir=/home/sarah/Downloads/Dendroscope_uni...
+install4j.cwd=/home/sarah/Downloads
+install4j.appDir=/home/sarah/Downloads/
+java.vendor.url.bug=https://github.com/AdoptOpenJDK/openj...
 java.io.tmpdir=/tmp
-java.version=11.0.8
-user.dir=/home/sarah/code-workspace/NetRAX/exp...
+java.version=14.0.1
+user.dir=/home/sarah/Downloads/Dendroscope_uni...
 os.arch=amd64
 java.vm.specification.name=Java Virtual Machine Specification
-exe4j.totalDataLength=53201294
-java.awt.printerjob=sun.print.PSPrinterJob
-sun.os.patch.level=unknown
-java.library.path=/home/sarah/code-workspace/NetRAX/exp...
-java.vm.info=mixed mode, sharing
-java.vendor=Debian
-java.vm.version=11.0.8+10-post-Debian-1deb10u1
+exe4j.totalDataLength=78033236
+java.library.path=/home/sarah/Downloads/Dendroscope_uni...
+java.vm.info=mixed mode
+java.vendor=AdoptOpenJDK
+java.vm.version=14.0.1+7
 sun.io.unicode.encoding=UnicodeLittle
-java.class.version=55.0
+java.class.version=58.0
 install4j.swt=false
 [INFO] Variable changed: sys.resolveUserSpecificInstallationDir=false[class java.lang.String]
 [INFO] com.install4j.runtime.beans.actions.misc.RequestPrivilegesAction [ID 1691242262]: Execute action
@@ -79,7 +74,7 @@ install4j.swt=false
        Property rollbackSupported: false
        Property updateInstallationDirectory: true
        Variable changed: sys.resolveUserSpecificInstallationDir=true[class java.lang.Boolean]
-       Execute action successful after 2 ms
+       Execute action successful after 3 ms
 [INFO] com.install4j.runtime.beans.screens.StartupScreen [ID 15]: command: move 1 screens, executing actions, checking condition
 [INFO] com.install4j.runtime.beans.screens.WelcomeScreen [ID 1691242162]: Show screen
 [INFO] checking writable with maximum
@@ -121,7 +116,7 @@ install4j.swt=false
        see uninstallPrevious.log for the log file of the uninstaller
        Variable changed: sys.undeletedUninstallFiles=null
        finished
-       Execute action successful after 4414 ms
+       Execute action successful after 4412 ms
 [INFO] com.install4j.runtime.beans.actions.InstallFilesAction [ID 1691242169]: Execute action
        Property directoryResolverScript: null
        Property fileFilterScript: null
@@ -139,17 +134,140 @@ install4j.swt=false
        Component Dendroscope Program[1691242261]; Selected: true
        Component Manual[1691242184]; Selected: true
        Component Examples[1691242183]; Selected: true
+       Install file: /home/sarah/dendroscope/jre/bin/java; size: 13112 bytes; exists: false
+       File options set to: [fileTime: Fri Nov 27 07:37:35 CET 2020, mode: 755, overwriteMode: Always ask except for update, shared: false, uninstallMode: If created, but not for update, delayIfNecessary: false]
+       Install file: /home/sarah/dendroscope/jre/bin/jrunscript; size: 13176 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/bin/keytool; size: 13128 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/conf/net.properties; size: 6171 bytes; exists: false
+       File options set to: [fileTime: Fri Nov 27 07:37:35 CET 2020, mode: 644, overwriteMode: Always ask except for update, shared: false, uninstallMode: If created, but not for update, delayIfNecessary: false]
+       Install file: /home/sarah/dendroscope/jre/conf/sdp/sdp.conf.template; size: 1455 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/conf/security/java.policy; size: 2180 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/conf/security/java.security; size: 53602 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/conf/security/policy/README.txt; size: 2390 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/conf/security/policy/limited/default_US_export.policy; size: 146 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/conf/security/policy/limited/default_local.policy; size: 647 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/conf/security/policy/limited/exempt_local.policy; size: 566 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/conf/security/policy/unlimited/default_US_export.policy; size: 146 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/conf/security/policy/unlimited/default_local.policy; size: 193 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/conf/sound.properties; size: 1210 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/include/classfile_constants.h; size: 22155 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/include/jawt.h; size: 12458 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/include/jni.h; size: 75678 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/include/jvmti.h; size: 81791 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/include/jvmticmlr.h; size: 4771 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/include/linux/jawt_md.h; size: 1965 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/include/linux/jni_md.h; size: 2002 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/legal/java.base/ADDITIONAL_LICENSE_INFO; size: 2114 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/legal/java.base/ASSEMBLY_EXCEPTION; size: 1522 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/legal/java.base/LICENSE; size: 19274 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/legal/java.base/aes.md; size: 1444 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/legal/java.base/asm.md; size: 1582 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/legal/java.base/c-libutl.md; size: 1556 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/legal/java.base/cldr.md; size: 2352 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/legal/java.base/icu.md; size: 19528 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/legal/java.base/public_suffix.md; size: 17785 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/legal/java.base/unicode.md; size: 2384 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/legal/java.desktop/colorimaging.md; size: 167 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/legal/java.desktop/freetype.md; size: 28780 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/legal/java.desktop/giflib.md; size: 1288 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/legal/java.desktop/harfbuzz.md; size: 2753 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/legal/java.desktop/jpeg.md; size: 3475 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/legal/java.desktop/lcms.md; size: 1177 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/legal/java.desktop/libpng.md; size: 5398 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/legal/java.desktop/mesa3d.md; size: 5732 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/legal/java.desktop/xwd.md; size: 1348 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/legal/java.xml/bcel.md; size: 11503 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/legal/java.xml/dom.md; size: 3028 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/legal/java.xml/jcup.md; size: 1158 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/legal/java.xml/xalan.md; size: 13494 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/legal/java.xml/xerces.md; size: 11850 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/legal/javafx.graphics/jpeg_fx.md; size: 2158 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/legal/javafx.media/applecoreaudio.md; size: 2575 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/legal/javafx.media/glib.md; size: 27519 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/legal/javafx.media/gstreamer.md; size: 27553 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/legal/javafx.media/libffi.md; size: 1179 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/legal/javafx.web/icu_web.md; size: 21086 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/legal/javafx.web/libxml2.md; size: 1345 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/legal/javafx.web/libxslt.md; size: 3031 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/legal/javafx.web/webkit.md; size: 27482 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/classlist; size: 40118 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/javafx-swt.jar; size: 37088 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/javafx.properties; size: 69 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/jexec; size: 13368 bytes; exists: false
+       File options set to: [fileTime: Fri Nov 27 07:37:35 CET 2020, mode: 755, overwriteMode: Always ask except for update, shared: false, uninstallMode: If created, but not for update, delayIfNecessary: false]
+       Install file: /home/sarah/dendroscope/jre/lib/jrt-fs.jar; size: 107494 bytes; exists: false
+       File options set to: [fileTime: Fri Nov 27 07:37:35 CET 2020, mode: 644, overwriteMode: Always ask except for update, shared: false, uninstallMode: If created, but not for update, delayIfNecessary: false]
+       Install file: /home/sarah/dendroscope/jre/lib/jspawnhelper; size: 18832 bytes; exists: false
+       File options set to: [fileTime: Fri Nov 27 07:37:35 CET 2020, mode: 755, overwriteMode: Always ask except for update, shared: false, uninstallMode: If created, but not for update, delayIfNecessary: false]
+       Install file: /home/sarah/dendroscope/jre/lib/jvm.cfg; size: 29 bytes; exists: false
+       File options set to: [fileTime: Fri Nov 27 07:37:35 CET 2020, mode: 644, overwriteMode: Always ask except for update, shared: false, uninstallMode: If created, but not for update, delayIfNecessary: false]
+       Install file: /home/sarah/dendroscope/jre/lib/libavplugin-54.so; size: 51568 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/libavplugin-56.so; size: 51584 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/libavplugin-57.so; size: 51584 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/libavplugin-ffmpeg-56.so; size: 51712 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/libavplugin-ffmpeg-57.so; size: 51584 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/libavplugin-ffmpeg-58.so; size: 51584 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/libawt.so; size: 753984 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/libawt_headless.so; size: 45112 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/libawt_xawt.so; size: 473400 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/libdecora_sse.so; size: 74720 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/libfontmanager.so; size: 1923584 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/libfreetype.so; size: 791992 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/libfxplugins.so; size: 51016 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/libglass.so; size: 12928 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/libglassgtk2.so; size: 354528 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/libglassgtk3.so; size: 354768 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/libgstreamer-lite.so; size: 2245120 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/libjava.so; size: 192568 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/libjavafx_font.so; size: 16928 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/libjavafx_font_freetype.so; size: 27368 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/libjavafx_font_pango.so; size: 25368 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/libjavafx_iio.so; size: 256208 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/libjavajpeg.so; size: 263072 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/libjawt.so; size: 8104 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/libjfxmedia.so; size: 512528 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/libjfxwebkit.so; size: 89884912 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/libjimage.so; size: 592704 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/libjli.so; size: 79304 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/libjsig.so; size: 13568 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/libjsound.so; size: 84208 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/liblcms.so; size: 572816 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/libmlib_image.so; size: 585352 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/libnet.so; size: 107592 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/libnio.so; size: 94504 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/libprefs.so; size: 8504 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/libprism_common.so; size: 59080 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/libprism_es2.so; size: 63784 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/libprism_sw.so; size: 71432 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/libsplashscreen.so; size: 374848 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/libverify.so; size: 81672 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/libzip.so; size: 38184 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/modules; size: 78790854 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/psfont.properties.ja; size: 3793 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/psfontj2d.properties; size: 11390 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/security/blacklisted.certs; size: 1253 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/security/cacerts; size: 103147 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/security/default.policy; size: 9427 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/security/public_suffix_list.dat; size: 233897 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/server/libjsig.so; size: 13568 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/server/libjvm.so; size: 24500488 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/lib/tzdb.dat; size: 107567 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/man/man1/java.1; size: 195888 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/man/man1/jfr.1; size: 9037 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/man/man1/jrunscript.1; size: 5280 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/man/man1/keytool.1; size: 106917 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jre/release; size: 280 bytes; exists: false
        Install file: /home/sarah/dendroscope/.install4j/Dendroscope.png; size: 3211 bytes; exists: false
-       File options set to: [fileTime: Mon Feb 17 07:34:22 CET 2020, mode: 644, overwriteMode: Always, shared: false, uninstallMode: Always, delayIfNecessary: false]
+       File options set to: [fileTime: Thu Jan 28 15:33:18 CET 2021, mode: 644, overwriteMode: Always, shared: false, uninstallMode: Always, delayIfNecessary: false]
        Install file: /home/sarah/dendroscope/.install4j/automaticUpdater; size: 13508 bytes; exists: false
-       File options set to: [fileTime: Mon Feb 17 07:34:22 CET 2020, mode: 755, overwriteMode: If newer otherwise ask, shared: false, uninstallMode: If created, delayIfNecessary: false]
+       File options set to: [fileTime: Thu Jan 28 15:33:18 CET 2021, mode: 755, overwriteMode: If newer otherwise ask, shared: false, uninstallMode: If created, delayIfNecessary: false]
        Install file: /home/sarah/dendroscope/.install4j/automaticUpdater.png; size: 1884 bytes; exists: false
-       File options set to: [fileTime: Mon Feb 17 07:34:22 CET 2020, mode: 644, overwriteMode: Always, shared: false, uninstallMode: Always, delayIfNecessary: false]
+       File options set to: [fileTime: Thu Jan 28 15:33:18 CET 2021, mode: 644, overwriteMode: Always, shared: false, uninstallMode: Always, delayIfNecessary: false]
        Install file: /home/sarah/dendroscope/.install4j/uninstall.png; size: 6648 bytes; exists: false
        Install file: /home/sarah/dendroscope/uninstall; size: 13675 bytes; exists: false
-       File options set to: [fileTime: Mon Feb 17 07:34:22 CET 2020, mode: 700, overwriteMode: If newer otherwise ask, shared: false, uninstallMode: If created, delayIfNecessary: false]
-       Install file: /home/sarah/dendroscope/manual.pdf; size: 1264575 bytes; exists: false
-       File options set to: [fileTime: Mon Feb 17 07:34:22 CET 2020, mode: 644, overwriteMode: Always ask except for update, shared: false, uninstallMode: If created, delayIfNecessary: false]
+       File options set to: [fileTime: Thu Jan 28 15:33:18 CET 2021, mode: 700, overwriteMode: If newer otherwise ask, shared: false, uninstallMode: If created, delayIfNecessary: false]
+       Install file: /home/sarah/dendroscope/manual.pdf; size: 1264439 bytes; exists: false
+       File options set to: [fileTime: Thu Jan 28 15:33:18 CET 2021, mode: 644, overwriteMode: Always ask except for update, shared: false, uninstallMode: If created, delayIfNecessary: false]
        Install file: /home/sarah/dendroscope/Examples/fishes/both; size: 32666 bytes; exists: false
        Install file: /home/sarah/dendroscope/Examples/fishes/both-hybrid.nexml; size: 145814 bytes; exists: false
        Install file: /home/sarah/dendroscope/Examples/fishes/both.dendro; size: 6264 bytes; exists: false
@@ -164,90 +282,32 @@ install4j.swt=false
        Install file: /home/sarah/dendroscope/Examples/nymphoides/its.nexml; size: 33998 bytes; exists: false
        Install file: /home/sarah/dendroscope/Examples/nymphoides/matK_trnK.nexml; size: 28761 bytes; exists: false
        Install file: /home/sarah/dendroscope/Dendroscope; size: 13649 bytes; exists: false
-       File options set to: [fileTime: Mon Feb 17 07:34:22 CET 2020, mode: 755, overwriteMode: If newer otherwise ask, shared: false, uninstallMode: If created, delayIfNecessary: false]
+       File options set to: [fileTime: Thu Jan 28 15:33:18 CET 2021, mode: 755, overwriteMode: If newer otherwise ask, shared: false, uninstallMode: If created, delayIfNecessary: false]
        Install file: /home/sarah/dendroscope/Dendroscope.vmoptions; size: 243 bytes; exists: true
-       File options set to: [fileTime: Mon Feb 17 07:34:22 CET 2020, mode: 644, overwriteMode: Never, shared: false, uninstallMode: If created, but not for update, delayIfNecessary: false]
+       File options set to: [fileTime: Thu Jan 28 15:33:18 CET 2021, mode: 644, overwriteMode: Never, shared: false, uninstallMode: If created, but not for update, delayIfNecessary: false]
        Don't overwrite because file exists (ron: false)
        Did not replace /home/sarah/dendroscope/Dendroscope.vmoptions
        Install file: /home/sarah/dendroscope/License.txt; size: 968 bytes; exists: false
-       File options set to: [fileTime: Mon Feb 17 07:34:22 CET 2020, mode: 644, overwriteMode: Always ask except for update, shared: false, uninstallMode: If created, delayIfNecessary: false]
+       File options set to: [fileTime: Thu Jan 28 15:33:18 CET 2021, mode: 644, overwriteMode: Always ask except for update, shared: false, uninstallMode: If created, delayIfNecessary: false]
        Install file: /home/sarah/dendroscope/jars/LICENSE-commons-collections-3.2.1.txt; size: 11560 bytes; exists: false
        Install file: /home/sarah/dendroscope/jars/VectorGraphics2D-0.13.jar; size: 94027 bytes; exists: false
        Install file: /home/sarah/dendroscope/jars/VectorGraphics2D-License.txt; size: 7446 bytes; exists: false
        Install file: /home/sarah/dendroscope/jars/commons-collections-3.2.1.jar; size: 575389 bytes; exists: false
-       Install file: /home/sarah/dendroscope/jars/dendroscope3.jar; size: 1863103 bytes; exists: false
-       Install file: /home/sarah/dendroscope/jars/jloda.jar; size: 1356209 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jars/dendroscope3.jar; size: 1863516 bytes; exists: false
+       Install file: /home/sarah/dendroscope/jars/jloda.jar; size: 1486698 bytes; exists: false
        Install file: /home/sarah/dendroscope/jars/nexml.jar; size: 85932 bytes; exists: false
        Install file: /home/sarah/dendroscope/jars/xml-apis-ext-1.3.04.jar; size: 85686 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/legal/javafx.base/ADDITIONAL_LICENSE_INFO; size: 2114 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/legal/javafx.base/ASSEMBLY_EXCEPTION; size: 1522 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/legal/javafx.base/LICENSE; size: 19274 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/legal/javafx.controls/ADDITIONAL_LICENSE_INFO; size: 2114 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/legal/javafx.controls/ASSEMBLY_EXCEPTION; size: 1522 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/legal/javafx.controls/LICENSE; size: 19274 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/legal/javafx.fxml/ADDITIONAL_LICENSE_INFO; size: 2114 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/legal/javafx.fxml/ASSEMBLY_EXCEPTION; size: 1522 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/legal/javafx.fxml/LICENSE; size: 19274 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/legal/javafx.graphics/ADDITIONAL_LICENSE_INFO; size: 2114 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/legal/javafx.graphics/ASSEMBLY_EXCEPTION; size: 1522 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/legal/javafx.graphics/LICENSE; size: 19274 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/legal/javafx.graphics/jpeg_fx.md; size: 2161 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/legal/javafx.media/ADDITIONAL_LICENSE_INFO; size: 2114 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/legal/javafx.media/ASSEMBLY_EXCEPTION; size: 1522 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/legal/javafx.media/LICENSE; size: 19274 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/legal/javafx.media/applecoreaudio.md; size: 2580 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/legal/javafx.media/glib.md; size: 27550 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/legal/javafx.media/gstreamer.md; size: 27584 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/legal/javafx.media/libffi.md; size: 1185 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/legal/javafx.swing/ADDITIONAL_LICENSE_INFO; size: 2114 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/legal/javafx.swing/ASSEMBLY_EXCEPTION; size: 1522 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/legal/javafx.swing/LICENSE; size: 19274 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/legal/javafx.web/ADDITIONAL_LICENSE_INFO; size: 2114 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/legal/javafx.web/ASSEMBLY_EXCEPTION; size: 1522 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/legal/javafx.web/LICENSE; size: 19274 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/legal/javafx.web/icu_web.md; size: 21088 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/legal/javafx.web/libxml2.md; size: 1089 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/legal/javafx.web/libxslt.md; size: 1126 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/legal/javafx.web/webkit.md; size: 27513 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/lib/javafx-swt.jar; size: 36682 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/lib/javafx.base.jar; size: 744471 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/lib/javafx.controls.jar; size: 2508235 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/lib/javafx.fxml.jar; size: 125617 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/lib/javafx.graphics.jar; size: 4349318 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/lib/javafx.media.jar; size: 263871 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/lib/javafx.properties; size: 77 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/lib/javafx.swing.jar; size: 87713 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/lib/javafx.web.jar; size: 702070 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/lib/libavplugin-54.so; size: 51512 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/lib/libavplugin-56.so; size: 51530 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/lib/libavplugin-57.so; size: 51530 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/lib/libavplugin-ffmpeg-56.so; size: 51663 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/lib/libavplugin-ffmpeg-57.so; size: 51530 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/lib/libdecora_sse.so; size: 74618 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/lib/libfxplugins.so; size: 51215 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/lib/libglass.so; size: 12810 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/lib/libglassgtk2.so; size: 359330 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/lib/libglassgtk3.so; size: 359645 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/lib/libgstreamer-lite.so; size: 2205991 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/lib/libjavafx_font.so; size: 16825 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/lib/libjavafx_font_freetype.so; size: 27263 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/lib/libjavafx_font_pango.so; size: 25274 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/lib/libjavafx_iio.so; size: 256191 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/lib/libjfxmedia.so; size: 434596 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/lib/libjfxwebkit.so; size: 88610824 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/lib/libprism_common.so; size: 59144 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/lib/libprism_es2.so; size: 63740 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/lib/libprism_sw.so; size: 71335 bytes; exists: false
-       Install file: /home/sarah/dendroscope/openjfx/unix/lib/src.zip; size: 6646232 bytes; exists: false
-       Install file: /home/sarah/dendroscope/.install4j/inst_jre.cfg; size: 35 bytes; exists: false
-       File options set to: [fileTime: Tue Sep 29 13:53:15 CEST 2020, mode: 644, overwriteMode: Always, shared: false, uninstallMode: If created, delayIfNecessary: false]
+       Install file: /home/sarah/dendroscope/.install4j/inst_jre.cfg; size: 61 bytes; exists: false
+       File options set to: [fileTime: Wed Feb 03 02:16:25 CET 2021, mode: 644, overwriteMode: Always, shared: false, uninstallMode: If created, delayIfNecessary: false]
+       Install file: /home/sarah/dendroscope/.install4j/pref_jre.cfg; size: 28 bytes; exists: false
+       File options set to: [fileTime: Wed Feb 03 02:16:25 CET 2021, mode: 644, overwriteMode: Always, shared: false, uninstallMode: If created, delayIfNecessary: false]
        Install file: /home/sarah/dendroscope/.install4j/i4jruntime.jar; size: 2051573 bytes; exists: false
-       File options set to: [fileTime: Tue Sep 29 13:53:15 CEST 2020, mode: 644, overwriteMode: Always, shared: false, uninstallMode: Always, delayIfNecessary: false]
+       File options set to: [fileTime: Wed Feb 03 02:16:25 CET 2021, mode: 644, overwriteMode: Always, shared: false, uninstallMode: Always, delayIfNecessary: false]
        Install file: /home/sarah/dendroscope/.install4j/MessagesDefault; size: 34270 bytes; exists: false
-       Install file: /home/sarah/dendroscope/.install4j/i4jparams.conf; size: 114069 bytes; exists: false
-       Install file: /home/sarah/dendroscope/.install4j/stats.properties; size: 1158 bytes; exists: false
+       Install file: /home/sarah/dendroscope/.install4j/i4jparams.conf; size: 106215 bytes; exists: false
+       Install file: /home/sarah/dendroscope/.install4j/stats.properties; size: 776 bytes; exists: false
        Install file: /home/sarah/dendroscope/.install4j/i4jempty.ttf; size: 1004 bytes; exists: false
-       Install file: /home/sarah/dendroscope/.install4j/uninstallPrevious.log; size: 4298 bytes; exists: false
+       Install file: /home/sarah/dendroscope/.install4j/uninstallPrevious.log; size: 4301 bytes; exists: false
        Install file: /home/sarah/dendroscope/.install4j/launchers.xml; size: 275 bytes; exists: false
        Install file: /home/sarah/dendroscope/.install4j/user.jar; size: 26569 bytes; exists: false
        Install file: /home/sarah/dendroscope/.install4j/launcherc67b37b5.jar; size: 793 bytes; exists: false
@@ -264,7 +324,7 @@ install4j.swt=false
        Install file: /home/sarah/dendroscope/.install4j/i4j_extf_5_jg1g94_18gg8kx.png; size: 9202 bytes; exists: false
        Install file: /home/sarah/dendroscope/.install4j/i4j_extf_0_jg1g94.utf8; size: 34270 bytes; exists: false
        Backing up /home/sarah/dendroscope/.install4j/response.varfile
-       Execute action successful after 830 ms
+       Execute action successful after 501 ms
 [INFO] com.install4j.runtime.beans.actions.desktop.CreateProgramGroupAction [ID 1691242170]: Execute action
        Property categories: Application
        Property linkDirectory: /usr/local/bin
@@ -280,16 +340,16 @@ install4j.swt=false
        Property unixSymlinks: true
        Variable changed: sys.programGroupName=Dendroscope[class java.lang.String]
        Install file: /home/sarah/dendroscope/.install4j/install4j_1jf9y2i-Dendroscope.desktop; size: 254 bytes; exists: false
-       File options set to: [fileTime: Tue Sep 29 13:53:15 CEST 2020, mode: 755, overwriteMode: Always, shared: false, uninstallMode: Always, delayIfNecessary: false]
+       File options set to: [fileTime: Wed Feb 03 02:16:25 CET 2021, mode: 755, overwriteMode: Always, shared: false, uninstallMode: Always, delayIfNecessary: false]
 [ERROR] com.install4j.runtime.beans.actions.desktop.CreateProgramGroupAction [ID 1691242170]: /usr/local/bin/Dendroscope
-[INFO] com.install4j.runtime.beans.actions.desktop.CreateProgramGroupAction [ID 1691242170]: Execute action successful after 514 ms
+[INFO] com.install4j.runtime.beans.actions.desktop.CreateProgramGroupAction [ID 1691242170]: Execute action successful after 510 ms
 [INFO] com.install4j.runtime.beans.actions.desktop.RegisterAddRemoveAction [ID 1691242171]: Execute action
        Property icon: null
        Property iconSource: Installer icon
-       Property itemName: Dendroscope 3.7.2
+       Property itemName: Dendroscope 3.7.4
        Property persistentProperties: {}
        Property rollbackSupported: true
-       Execute action successful after 1 ms
+       Execute action successful after 0 ms
 [INFO] com.install4j.runtime.beans.screens.InstallationScreen [ID 1691242168]: Rollback barrier reached
        command: move 1 screens, executing actions, checking condition
 [INFO] com.install4j.runtime.beans.screens.FormScreen [ID 1691242348]: Show screen
@@ -302,7 +362,7 @@ install4j.swt=false
        Property vmOptions: [-Xmx600M]
        Property rollbackSupported: true
        Backing up /home/sarah/dendroscope/Dendroscope.vmoptions
-       Execute action successful after 10 ms
+       Execute action successful after 2 ms
 [INFO] com.install4j.runtime.beans.screens.FormScreen [ID 1691242423]: command: move 1 screens, executing actions, checking condition
 [INFO] com.install4j.runtime.beans.screens.FinishedScreen [ID 1691242172]: Show screen
 [INFO] com.install4j.runtime.beans.screens.FinishedScreen [ID 1691242172]: command: finish

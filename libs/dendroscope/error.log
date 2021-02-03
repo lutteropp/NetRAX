@@ -1,4 +1,5 @@
-Version   Dendroscope (version 3.7.2, built 17 Feb 2020)
+Version   Dendroscope (version 3.7.4, built 28 Jan 2021)
+Author(s) Daniel H. Huson, with some contributions from other authors
 Copyright (C) 2020 Daniel H. Huson. This program comes with ABSOLUTELY NO WARRANTY.
 This is free software, licensed under the terms of the GNU General Public License, Version 3.
-Java version: 11.0.9
+Java version: 14.0.1

@@ -1,4 +1,4 @@
-[INFO] logger started at Tue Sep 29 13:53:10 CEST 2020
+[INFO] logger started at Wed Feb 03 02:16:21 CET 2021
 [INFO] executable name: /home/sarah/dendroscope/uninstall
 [INFO] install4j version: 8.0.4 (build 8111)
 [INFO] Properties: 
@@ -20,14 +20,14 @@ java.vm.specification.version=11
 sun.java.launcher=SUN_STANDARD
 user.country=US
 sun.boot.library.path=/usr/lib/jvm/java-11-openjdk-amd64/lib
-install4j.alternativeLogfile=/tmp/i4j_log_uninstaller9604230007146...
+install4j.alternativeLogfile=/tmp/i4j_log_uninstaller4560939968388...
 sun.java.command=install4j.Uninstaller1175798920 -q -D...
 jdk.debug=release
 sun.cpu.endian=little
 user.home=/home/sarah
 user.language=en
 java.specification.vendor=Oracle Corporation
-java.version.date=2020-07-14
+java.version.date=2020-11-04
 java.home=/usr/lib/jvm/java-11-openjdk-amd64
 file.separator=/
 java.vm.compressedOopsMode=Zero based
@@ -39,10 +39,10 @@ java.awt.graphicsenv=sun.awt.X11GraphicsEnvironment
 exe4j.moduleName=/home/sarah/dendroscope/uninstall
 sun.management.compiler=HotSpot 64-Bit Tiered Compilers
 install4j.dontUninstallServices=false
-java.runtime.version=11.0.8+10-post-Debian-1deb10u1
+java.runtime.version=11.0.9.1+1-post-Debian-1deb10u2
 user.name=sarah
 path.separator=:
-os.version=4.19.0-10-amd64
+os.version=4.19.0-13-amd64
 java.runtime.name=OpenJDK Runtime Environment
 file.encoding=UTF-8
 java.vm.name=OpenJDK 64-Bit Server VM
@@ -50,7 +50,7 @@ install4j.jvmDir=/usr/lib/jvm/java-11-openjdk-amd64
 install4j.appDir=/home/sarah/dendroscope/
 java.vendor.url.bug=https://bugs.debian.org/openjdk-11
 java.io.tmpdir=/tmp
-java.version=11.0.8
+java.version=11.0.9.1
 user.dir=/home/sarah
 os.arch=amd64
 java.vm.specification.name=Java Virtual Machine Specification
@@ -59,7 +59,7 @@ sun.os.patch.level=unknown
 java.library.path=/home/sarah/dendroscope/.install4j:/h...
 java.vm.info=mixed mode, sharing
 java.vendor=Debian
-java.vm.version=11.0.8+10-post-Debian-1deb10u1
+java.vm.version=11.0.9.1+1-post-Debian-1deb10u2
 sun.io.unicode.encoding=UnicodeLittle
 install4j.upgradeUninstall=true
 java.class.version=55.0
@@ -85,7 +85,7 @@ install4j.swt=false
 [INFO] com.install4j.runtime.installer.helper.fileinst.FileRemover: postponing deletion of /home/sarah/dendroscope/.install4j/i4jruntime.jar
        postponing deletion of /home/sarah/dendroscope/.install4j/launcher2bfa42ba.jar
        postponing deletion of /home/sarah/dendroscope/.install4j/user.jar
-[INFO] com.install4j.runtime.beans.actions.UninstallFilesAction [ID 1691242175]: Execute action successful after 596 ms
+[INFO] com.install4j.runtime.beans.actions.UninstallFilesAction [ID 1691242175]: Execute action successful after 571 ms
 [INFO] com.install4j.runtime.beans.screens.UninstallationScreen [ID 1691242174]: command: move 1 screens, executing actions, checking condition
 [INFO] com.install4j.runtime.beans.screens.UninstallFailureScreen [ID 1691242176]: Show screen
 [INFO] com.install4j.runtime.beans.screens.UninstallFailureScreen [ID 1691242176]: command: finish
