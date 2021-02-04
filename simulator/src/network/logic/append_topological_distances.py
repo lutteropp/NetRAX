@@ -8,15 +8,20 @@ TOPOLOGICAL_DISTANCE_NAMES = ['hardwired_cluster_distance', 'softwired_cluster_d
 
 def append_distances(input_csv_path, output_csv_path):
     df = pd.read_csv(input_csv_path)
+    extra_cols = {}
     for name in TOPOLOGICAL_DISTANCE_NAMES:
-        df[name] = ""
+        extra_cols[name] = []
+        
     for _, row in df.iterrows():
         true_network_path = row["true_network_path"]
         inferred_network_path = row["inferred_network_path"]
         topological_distances = evaluate(
             true_network_path, inferred_network_path)
         for name in TOPOLOGICAL_DISTANCE_NAMES:
-            row[name] = topological_distances[name]
+            extra_cols[name].append(topological_distances[name])
+        print(row["name"])
+    for name in TOPOLOGICAL_DISTANCE_NAMES:
+        df[name] = extra_cols[name]
 
     df.to_csv(output_csv_path, index=False)
 
