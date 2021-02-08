@@ -26,7 +26,7 @@ def simulate_datasets(prefix, settings, iterations):
         os.makedirs('datasets_' + prefix)
 
     if SimulatorType.SARAH in settings.simulator_types:
-        raise Exception("Only SimulatorType.CELINE please")
+        raise Exception("Only SimulatorType.CELINE or SimulatorType.CELINE_EQUAL please")
 
     counter = dict()
     for taxa in range(settings.max_taxa+1):
@@ -34,27 +34,29 @@ def simulate_datasets(prefix, settings, iterations):
 
     datasets = []
     for my_id in range(iterations):
-        n_taxa, n_reticulations, newick, param_info = simulate_network_celine_minmax(
-            settings.min_taxa, settings.max_taxa, settings.min_reticulations, settings.max_reticulations)
-        counter[n_taxa][n_reticulations] += 1
-        n_trees = 2 ** param_info["no_of_hybrids"]
-        for partition_size in settings.partition_sizes:
-            for sampling_type in settings.sampling_types:
-                ds = build_dataset(prefix, n_taxa, n_reticulations, n_trees * partition_size, SimulatorType.CELINE,
-                                   sampling_type, settings.likelihood_types, settings.brlen_linkage_types, settings.start_types, my_id)
-                ds.sites_per_tree = partition_size
-                ds.celine_params = param_info
-                ds.n_trees = 2 ** ds.celine_params["no_of_hybrids"]
-                network_file = open(ds.true_network_path, "w")
-                network_file.write(newick + '\n')
-                network_file.close()
-                # network topology has been simulated now.
-                trees_newick, trees_prob = extract_displayed_trees(
-                    ds.true_network_path, ds.n_taxa)
-                ds, sampled_trees_contrib = sample_trees(ds, trees_prob)
-                build_trees_file(ds, trees_newick, sampled_trees_contrib)
-                simulate_msa(ds)
-                datasets.append(ds)
+        for simulator_type in settings.simulator_types:
+            enforce_equal_probs = (simulator_type == SimulatorType.CELINE_EQUAL)
+            n_taxa, n_reticulations, newick, param_info = simulate_network_celine_minmax(
+                settings.min_taxa, settings.max_taxa, settings.min_reticulations, settings.max_reticulations, enforce_equal_probs)
+            counter[n_taxa][n_reticulations] += 1
+            n_trees = 2 ** param_info["no_of_hybrids"]
+            for partition_size in settings.partition_sizes:
+                for sampling_type in settings.sampling_types:
+                    ds = build_dataset(prefix, n_taxa, n_reticulations, n_trees * partition_size, simulator_type,
+                                    sampling_type, settings.likelihood_types, settings.brlen_linkage_types, settings.start_types, my_id)
+                    ds.sites_per_tree = partition_size
+                    ds.celine_params = param_info
+                    ds.n_trees = 2 ** ds.celine_params["no_of_hybrids"]
+                    network_file = open(ds.true_network_path, "w")
+                    network_file.write(newick + '\n')
+                    network_file.close()
+                    # network topology has been simulated now.
+                    trees_newick, trees_prob = extract_displayed_trees(
+                        ds.true_network_path, ds.n_taxa)
+                    ds, sampled_trees_contrib = sample_trees(ds, trees_prob)
+                    build_trees_file(ds, trees_newick, sampled_trees_contrib)
+                    simulate_msa(ds)
+                    datasets.append(ds)
 
     print("Statistics on simulated datasets (n_taxa, n_reticulations, count):")
     for i in range(settings.max_taxa+1):
@@ -78,6 +80,7 @@ def parse_command_line_arguments_experiment():
                      type=SamplingType, default=[SamplingType.PERFECT_SAMPLING])
     CLI.add_argument("--start_types", nargs="*", type=StartType,
                      default=[StartType.FROM_RAXML, StartType.RANDOM])
+    CLI.add_argument("--simulator_types", nargs="*", type=SimulatorType, default=[SimulatorType.CELINE])
     CLI.add_argument("--brlen_linkage_types", nargs="*",
                      type=BrlenLinkageType, default=[BrlenLinkageType.LINKED])
     CLI.add_argument("--likelihood_types", nargs="*", type=LikelihoodType,
@@ -95,6 +98,7 @@ def parse_command_line_arguments_experiment():
     prefix = args.prefix
     settings.sampling_types = args.sampling_types
     settings.start_types = args.start_types
+    settings.simulator_types = args.simulator_types
     settings.brlen_linkage_types = args.brlen_linkage_types
     settings.likelihood_types = args.likelihood_types
     settings.partition_sizes = args.partition_sizes

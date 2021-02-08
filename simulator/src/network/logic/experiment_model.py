@@ -16,6 +16,7 @@ class SamplingType(Enum):
 
 class SimulatorType(Enum):
     CELINE = 'CELINE'  # use Celine's network topology simulator
+    CELINE_EQUAL = 'CELINE_EQUAL' # use Celine's network topology simulator, with all retculation probs being 0.5
     SARAH = 'SARAH'  # use Sarah's ad-hoc network topology generator
 
     def __str__(self):
