@@ -30,6 +30,7 @@ MAX_RETICULATIONS=$6
 
 SAMPLING_TYPES="PERFECT_SAMPLING"
 START_TYPES="FROM_RAXML RANDOM"
+SIMULATOR_TYPES="CELINE"
 BRLEN_LINKAGE_TYPES="LINKED"
 LIKELIHOOD_TYPES="AVERAGE BEST"
 PARTITION_SIZES="50 100"
@@ -46,7 +47,7 @@ fi
 mkdir ${PREFIX}_logs
 i=0
 while [ $i -lt ${ITERATIONS} ]; do
-    python3 run_experiments.py --prefix ${PREFIX}_${i} --sampling_types ${SAMPLING_TYPES} --start_types ${START_TYPES} --brlen_linkage_types ${BRLEN_LINKAGE_TYPES} --likelihood_types ${LIKELIHOOD_TYPES} --partition_sizes ${PARTITION_SIZES} --min_taxa ${MIN_TAXA} --max_taxa ${MAX_TAXA} --min_reticulations ${MIN_RETICULATIONS} --max_reticulations ${MAX_RETICULATIONS} | tee ${PREFIX}_logs/${PREFIX}_${i}.log &
+    python3 run_experiments.py --prefix ${PREFIX}_${i} --sampling_types ${SAMPLING_TYPES} --start_types ${START_TYPES} --simulator_types {$SIMULATOR_TYPES} --brlen_linkage_types ${BRLEN_LINKAGE_TYPES} --likelihood_types ${LIKELIHOOD_TYPES} --partition_sizes ${PARTITION_SIZES} --min_taxa ${MIN_TAXA} --max_taxa ${MAX_TAXA} --min_reticulations ${MIN_RETICULATIONS} --max_reticulations ${MAX_RETICULATIONS} | tee ${PREFIX}_logs/${PREFIX}_${i}.log &
     i=$((i + 1))
 done
 
