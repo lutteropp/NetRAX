@@ -36,7 +36,7 @@ def simulate_datasets(prefix, settings, iterations):
     for my_id in range(iterations):
         for simulator_type in settings.simulator_types:
             n_taxa, n_reticulations, newick, param_info = simulate_network_celine_minmax(
-                settings.min_taxa, settings.max_taxa, settings.min_reticulations, settings.max_reticulations, settings.min_reticultion_prob, settings.max_reticulation_prob)
+                settings.min_taxa, settings.max_taxa, settings.min_reticulations, settings.max_reticulations, settings.min_reticulation_prob, settings.max_reticulation_prob)
             counter[n_taxa][n_reticulations] += 1
             n_trees = 2 ** param_info["no_of_hybrids"]
             for partition_size in settings.partition_sizes:
