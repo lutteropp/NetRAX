@@ -18,6 +18,7 @@ class CelineParams:
         self.max_taxa = -1
         self.min_reticulations = -1
         self.max_reticulations = -1
+        self.enforce_equal_prob = False
 
 
 def parse_user_input():
@@ -54,6 +55,9 @@ def parse_user_input():
         if arg == "-max_reticulations":
             i += 1
             params.max_reticulations = int(sys.argv[1])
+        if arg == "-enforce_equal_prob":
+            params.enforce_equal_prob = True
+            i += 1
         i += 1
     return params
 
@@ -160,7 +164,10 @@ def simulate_network_step(params):
             leaves.remove(l0)
             leaves.remove(l1)
             leaves.add(current_node)
-            prob = random.random()
+            if params.enforce_equal_prob:
+                prob = 0.5
+            else:
+                prob = random.random()
             nw[pl0][l0]['prob'] = prob
             nw[pl1][l1]['prob'] = 1-prob
             hybrid_nodes[l0] = no_of_hybrids
@@ -225,8 +232,9 @@ def simulate_network(params):
     return res
 
 
-def simulate_network_celine(wanted_taxa, wanted_reticulations, network_path):
+def simulate_network_celine(wanted_taxa, wanted_reticulations, network_path, enforce_equal_prob=False):
     params = CelineParams()
+    params.enforce_equal_prob = enforce_equal_prob
     params.wanted_taxa = wanted_taxa
     params.wanted_reticulations = wanted_reticulations
     n_taxa, n_reticulations, newick, param_info = simulate_network(params)
@@ -236,8 +244,9 @@ def simulate_network_celine(wanted_taxa, wanted_reticulations, network_path):
     return param_info
 
 
-def simulate_network_celine_minmax(min_taxa, max_taxa, min_reticulations, max_reticulations):
+def simulate_network_celine_minmax(min_taxa, max_taxa, min_reticulations, max_reticulations, enforce_equal_prob=False):
     params = CelineParams()
+    params.enforce_equal_prob = enforce_equal_prob
     params.min_taxa = min_taxa
     params.max_taxa = max_taxa
     params.min_reticulations = min_reticulations
