@@ -1,8 +1,8 @@
 #!/bin/sh
 
-USAGE="Usage: sh run_experiments_larger_bunch.sh PREFIX BUNCHES ITERATIONS_PER_BUNCH MIN_TAXA MAX_TAXA MIN_RETICULATIONS MAX_RETICULATIONS [no_random]"
+USAGE="Usage: sh run_experiments_larger_bunch.sh PREFIX BUNCHES ITERATIONS_PER_BUNCH MIN_TAXA MAX_TAXA MIN_RETICULATIONS MAX_RETICULATIONS MIN_RETICULATION_PROB MAX_RETICULATION_PROB [no_random]"
 
-if [ $# -lt 7 ]; then
+if [ $# -lt 9 ]; then
     echo "Illegal number of parameters. Usage: ${USAGE}"
     exit 2
 fi
@@ -14,6 +14,8 @@ MIN_TAXA=$4
 MAX_TAXA=$5
 MIN_RETICULATIONS=$6
 MAX_RETICULATIONS=$7
+MIN_RETICULATION_PROB=$8
+MAX_RETICULATION_PROB=$9
 
 SAMPLING_TYPES="PERFECT_SAMPLING"
 START_TYPES="FROM_RAXML RANDOM"
@@ -24,15 +26,15 @@ PARTITION_SIZES="50 100"
 
 i=0
 while [ $i -lt ${BUNCHES} ]; do
-    if [ $# -eq 8 ]; then
-        if [ $8=="no_random" ]; then
-            sh run_experiments_bunch.sh ${PREFIX}_${i} ${ITERATIONS_PER_BUNCH} ${MIN_TAXA} ${MAX_TAXA} ${MIN_RETICULATIONS} ${MAX_RETICULATIONS} no_random &
+    if [ $# -eq 10 ]; then
+        if [ $10=="no_random" ]; then
+            sh run_experiments_bunch.sh ${PREFIX}_${i} ${ITERATIONS_PER_BUNCH} ${MIN_TAXA} ${MAX_TAXA} ${MIN_RETICULATIONS} ${MAX_RETICULATIONS} ${MIN_RETICULATION_PROB} ${MAX_RETICULATION_PROB} no_random &
         else
-            echo "Unknown argument: ${8}"
+            echo "Unknown argument: ${10}"
             exit 2
         fi
     else
-        sh run_experiments_bunch.sh ${PREFIX}_${i} ${ITERATIONS_PER_BUNCH} ${MIN_TAXA} ${MAX_TAXA} ${MIN_RETICULATIONS} ${MAX_RETICULATIONS} &
+        sh run_experiments_bunch.sh ${PREFIX}_${i} ${ITERATIONS_PER_BUNCH} ${MIN_TAXA} ${MAX_TAXA} ${MIN_RETICULATIONS} ${MAX_RETICULATIONS} ${MIN_RETICULATION_PROB} ${MAX_RETICULATION_PROB} &
     fi
     i=$((i + 1))
 done

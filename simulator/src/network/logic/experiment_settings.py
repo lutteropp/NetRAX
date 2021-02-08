@@ -13,6 +13,8 @@ class ExperimentSettings:
         self.brlen_linkage_types = [BrlenLinkageType.LINKED]
         self.start_types = [StartType.FROM_RAXML, StartType.RANDOM]
         self.partition_sizes = [1000]
+        self.min_reticulation_prob = 0.1
+        self.max_reticulation_prob = 0.9
 
 
 def small_tree():
