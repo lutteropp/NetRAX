@@ -1,7 +1,7 @@
 import os
 import sys
 from dataset_builder import create_dataset_container, sample_trees, build_trees_file
-from netrax_wrapper import extract_displayed_trees
+from netrax_wrapper import extract_displayed_trees, check_weird_network
 from collections import defaultdict
 from evaluate_experiments import SamplingType, SimulatorType, LikelihoodType, BrlenLinkageType, StartType, run_inference_and_evaluate, write_results_to_csv
 from seqgen_wrapper import simulate_msa
@@ -50,6 +50,9 @@ def simulate_datasets(prefix, settings, iterations):
                     network_file.write(newick + '\n')
                     network_file.close()
                     # network topology has been simulated now.
+                    n_pairs, ds.n_equal_tree_pairs = check_weird_network(ds.true_network_path, ds.n_taxa)
+                    if n_pairs > 0:
+                        ds.true_network_weirdness = float(ds.n_equal_tree_pairs) / n_pairs
                     trees_newick, trees_prob = extract_displayed_trees(
                         ds.true_network_path, ds.n_taxa)
                     ds, sampled_trees_contrib = sample_trees(ds, trees_prob)
