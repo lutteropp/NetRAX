@@ -1,4 +1,5 @@
 import os
+import random
 import sys
 from dataset_builder import create_dataset_container, sample_trees, build_trees_file
 from netrax_wrapper import extract_displayed_trees, check_weird_network
@@ -21,6 +22,23 @@ def build_dataset(prefix, n_taxa, n_reticulations, msa_size, simulator_type, sam
     return create_dataset_container(n_taxa, n_reticulations, msa_size, sampling_type, simulator_type, likelihood_types, brlen_linkage_types, start_types, my_id, name)
 
 
+def simulate_network_celine_minmax_nonweird(settings):
+    temp_path = "temp_network_" + str(os.getpid()) + "_" + str(random.getrandbits(64)) + ".txt"
+    n_taxa, n_reticulations, newick, param_info = simulate_network_celine_minmax(
+                settings.min_taxa, settings.max_taxa, settings.min_reticulations, settings.max_reticulations, settings.min_reticulation_prob, settings.max_reticulation_prob)
+   
+    network_file = open(temp_path, "w")
+    network_file.write(newick + '\n')
+    network_file.close()
+
+    _, n_equal = check_weird_network(temp_path, n_taxa)
+    os.remove(temp_path)
+    if n_equal == 0:
+        return n_taxa, n_reticulations, newick, param_info
+    else:
+        return simulate_network_celine_minmax_nonweird(settings)
+
+
 def simulate_datasets(prefix, settings, iterations):
     if not os.path.exists('datasets_' + prefix):
         os.makedirs('datasets_' + prefix)
@@ -35,8 +53,7 @@ def simulate_datasets(prefix, settings, iterations):
     datasets = []
     for my_id in range(iterations):
         for simulator_type in settings.simulator_types:
-            n_taxa, n_reticulations, newick, param_info = simulate_network_celine_minmax(
-                settings.min_taxa, settings.max_taxa, settings.min_reticulations, settings.max_reticulations, settings.min_reticulation_prob, settings.max_reticulation_prob)
+            n_taxa, n_reticulations, newick, param_info = simulate_network_celine_minmax_nonweird(settings)
             counter[n_taxa][n_reticulations] += 1
             n_trees = 2 ** param_info["no_of_hybrids"]
             for partition_size in settings.partition_sizes:
