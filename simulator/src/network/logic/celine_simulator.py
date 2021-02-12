@@ -256,7 +256,7 @@ def simulate_network_celine(wanted_taxa, wanted_reticulations, network_path, min
     return param_info
 
 
-def simulate_network_celine_minmax(min_taxa, max_taxa, min_reticulations, max_reticulations, min_reticulation_prob, max_reticulation_prob):
+def simulate_network_celine_minmax(min_taxa, max_taxa, min_reticulations, max_reticulations, min_reticulation_prob, max_reticulation_prob, brlen_scaler=1.0):
     params = CelineParams()
     params.min_reticulation_prob = min_reticulation_prob
     params.max_reticulation_prob = max_reticulation_prob
@@ -264,6 +264,7 @@ def simulate_network_celine_minmax(min_taxa, max_taxa, min_reticulations, max_re
     params.max_taxa = max_taxa
     params.min_reticulations = min_reticulations
     params.max_reticulations = max_reticulations
+    params.brlen_scaler = brlen_scaler
     return simulate_network(params)
 
 
