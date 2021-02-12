@@ -1,4 +1,5 @@
 import argparse
+from prettytable import PrettyTable
 
 #%matplotlib inline
 import pandas as pd
@@ -14,42 +15,63 @@ def import_dataframe(prefix):
     return df
 
 
-def cm_to_inch(value):
-    return value/2.54
+def generate_ascii_table(df):
+    x = PrettyTable()
+    x.field_names = df.columns.tolist()
+    for row in df.values:
+        x.add_row(row)
+    print(x)
+    return x
 
 
-def bic_logl_stats(df):
-    bic_better_or_equal_abs = len(df[df['bic_inferred'] <= df['bic_true']])
-    bic_better_or_equal_perc = float(bic_better_or_equal_abs * 100) / len(df)
-    bic_worse_abs = len(df[df['bic_inferred'] > df['bic_true']])
-    bic_worse_perc = float(bic_worse_abs * 100) / len(df)
+def report_bic_better_or_equal(df):
+    cnt = len(df[df['bic_inferred'] <= df['bic_true']])
+    return str(cnt) + " (" + "%.2f" % (float(cnt*100)/len(df)) + " %)"
 
-    logl_better_or_equal_abs = len(df[df['logl_inferred'] >= df['logl_true']])
-    logl_better_or_equal_perc = float(logl_better_or_equal_abs * 100) / len(df)
-    logl_worse_abs = len(df[df['logl_inferred'] < df['logl_true']])
-    logl_worse_perc = float(logl_worse_abs * 100) / len(df)
 
-    print("Inferred BIC better or equal: " + str(bic_better_or_equal_abs) + ", which is " + "%.2f" % bic_better_or_equal_perc + " %")
-    print("Inferred BIC worse: " + str(bic_worse_abs) + ", which is " + "%.2f" % bic_worse_perc + " %")
-    print("Inferred logl better or equal: " + str(logl_better_or_equal_abs) + ", which is " + "%.2f" % logl_better_or_equal_perc + " %")
-    print("Inferred logl worse: " + str(logl_worse_abs) + ", which is " + "%.2f" % logl_worse_perc + " %")
-    fig, axes = plt.subplots(1, 2, constrained_layout=True)
-    fig.suptitle("BIC and Loglikelihood Statistics")
-    df['bic_diff'].plot.hist(bins=100, alpha=0.5, title='(bic_true - bic_inferred) / bic_true\n value >0 means inferred BIC was better', ax=axes[0])
-    df['logl_diff'].plot.hist(bins=100, alpha=0.5, title='(logl_true - logl_inferred) / logl_true\n value <0 means inferred logl was better', ax=axes[1])
+def report_bic_worse(df):
+    cnt = len(df[df['bic_inferred'] > df['bic_true']])
+    return str(cnt) + " (" + "%.2f" % (float(cnt*100)/len(df)) + " %)"
+
+
+def report_logl_better_or_equal(df):
+    cnt = len(df[df['logl_inferred'] >= df['logl_true']])
+    return str(cnt) + " (" + "%.2f" % (float(cnt*100)/len(df)) + " %)"
+
+
+def report_logl_worse(df):
+    cnt = len(df[df['logl_inferred'] < df['logl_true']])
+    return str(cnt) + " (" + "%.2f" % (float(cnt*100)/len(df)) + " %)"
+
+
+def report_reticulations_less(df):
+    cnt = len(df[df['n_reticulations_inferred'] < df['n_reticulations']])
+    return str(cnt) + " (" + "%.2f" % (float(cnt*100)/len(df)) + " %)"
+
+
+def report_reticulations_equal(df):
+    cnt = len(df[df['n_reticulations_inferred'] == df['n_reticulations']])
+    return str(cnt) + " (" + "%.2f" % (float(cnt*100)/len(df)) + " %)"
+
+
+def report_reticulations_more(df):
+    cnt = len(df[df['n_reticulations_inferred'] > df['n_reticulations']])
+    return str(cnt) + " (" + "%.2f" % (float(cnt*100)/len(df)) + " %)"
+
+
+def quality_stats(df):
+    df_likelihood_average = df.query('likelihood_type == "AVERAGE"')
+    df_likelihood_best = df.query('likelihood_type == "BEST"')
+    data = [['Inferred BIC better or equal',report_bic_better_or_equal(df_likelihood_average),report_bic_better_or_equal(df_likelihood_best),report_bic_better_or_equal(df)],
+            ['Inferred BIC worse',report_bic_worse(df_likelihood_average),report_bic_worse(df_likelihood_best),report_bic_worse(df)],
+            ['Inferred logl better or equal',report_logl_better_or_equal(df_likelihood_average),report_logl_better_or_equal(df_likelihood_best),report_logl_better_or_equal(df)],
+            ['Inferred logl worse', report_logl_worse(df_likelihood_average), report_logl_worse(df_likelihood_best),report_logl_worse(df)],
+            ['Inferred n_reticulations less', report_reticulations_less(df_likelihood_average),report_reticulations_less(df_likelihood_best),report_reticulations_less(df)],
+            ['Inferred n_reticulations equal', report_reticulations_equal(df_likelihood_average),report_reticulations_equal(df_likelihood_best),report_reticulations_equal(df)],
+            ['Inferred n_reticulations more', report_reticulations_more(df_likelihood_average),report_reticulations_more(df_likelihood_best),report_reticulations_more(df)]]
+    data_df = pd.DataFrame(data, columns=['', 'LikelihoodType.AVERAGE', 'LikelihoodType.BEST', 'Overall'])
+    generate_ascii_table(data_df)
     
-    
-def reticulation_stats(df):
-    reticulations_less_abs = len(df[df['n_reticulations_inferred'] < df['n_reticulations']])
-    reticulations_less_perc = float(reticulations_less_abs * 100) / len(df)
-    reticulations_equal_abs = len(df[df['n_reticulations_inferred'] == df['n_reticulations']])
-    reticulations_equal_perc = float(reticulations_equal_abs * 100) / len(df)
-    reticulations_more_abs = len(df[df['n_reticulations_inferred'] > df['n_reticulations']])
-    reticulations_more_perc = float(reticulations_more_abs * 100) / len(df)
-    print("Inferred n_reticulations less: " + str(reticulations_less_abs) + ", which is " + "%.2f" % reticulations_less_perc + " %")
-    print("Inferred n_reticulations equal: " + str(reticulations_equal_abs) + ", which is " + "%.2f" % reticulations_equal_perc + " %")
-    print("Inferred n_reticulations more: " + str(reticulations_more_abs) + ", which is " + "%.2f" % reticulations_more_perc + " %")
-
     
 def plot_weirdness_stats(df):
     plt.figure()
@@ -94,11 +116,7 @@ def show_stats(df):
 
 
 def show_plots(df):
-    bic_logl_stats(df)
-    print("")
-    reticulation_stats(df)
-    print("")
-    
+    quality_stats(df)
     print("")
     distances(df)
 
