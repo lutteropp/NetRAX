@@ -24,7 +24,6 @@ def bic_logl_stats(df):
     print("Inferred loglh better or equal: " + str(len(df[df['logl_inferred'] >= df['logl_true']])))
     print("Inferred loglh worse: " + str(len(df[df['logl_inferred'] < df['logl_true']])))
     fig, axes = plt.subplots(1, 2, constrained_layout=True)
-    #fig.set_size_inches(cm_to_inch(80),cm_to_inch(30))
     df['bic_diff'].plot.hist(bins=100, alpha=0.5, title='(bic_true - bic_inferred) / bic_true\n value >0 means inferred BIC was better', ax=axes[0])
     df['logl_diff'].plot.hist(bins=100, alpha=0.5, title='(logl_true - logl_inferred) / logl_true\n value <0 means inferred logl was better', ax=axes[1])
     
@@ -61,6 +60,11 @@ def plots_setup():
 
 
 def show_stats(df):
+    pd.set_option('display.max_columns', None)
+    df.head()
+
+
+def show_plots(df):
     plots_setup()
     bic_logl_stats(df)
     print("")
@@ -80,4 +84,6 @@ def parse_command_line_arguments_plots():
 
 if __name__ == "__main__":
     prefix = parse_command_line_arguments_plots()
-    show_stats(import_dataframe(prefix))
+    df = import_dataframe(prefix)
+    show_stats(df)
+    show_plots(df)
