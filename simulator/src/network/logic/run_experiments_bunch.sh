@@ -37,6 +37,7 @@ BRLEN_LINKAGE_TYPES="LINKED"
 LIKELIHOOD_TYPES="AVERAGE BEST"
 PARTITION_SIZES="1000"
 BRLEN_SCALERS="1.0 2.0"
+FOLDER_PATH="data/"
 
 if [ $# -eq 9 ]; then
     if [ $9=="no_random" ]; then
@@ -50,7 +51,7 @@ fi
 mkdir ${PREFIX}_logs
 i=0
 while [ $i -lt ${ITERATIONS} ]; do
-    python3 run_experiments.py --prefix ${PREFIX}_${i} --sampling_types ${SAMPLING_TYPES} --start_types ${START_TYPES} --simulator_types ${SIMULATOR_TYPES} --brlen_scalers ${BRLEN_SCALERS} --brlen_linkage_types ${BRLEN_LINKAGE_TYPES} --likelihood_types ${LIKELIHOOD_TYPES} --partition_sizes ${PARTITION_SIZES} --min_taxa ${MIN_TAXA} --max_taxa ${MAX_TAXA} --min_reticulations ${MIN_RETICULATIONS} --max_reticulations ${MAX_RETICULATIONS} --min_reticulation_prob ${MIN_RETICULATION_PROB} --max_reticulation_prob ${MAX_RETICULATION_PROB} | tee ${PREFIX}_logs/${PREFIX}_${i}.log &
+    python3 run_experiments.py --folder_path ${FOLDER_PATH} --prefix ${PREFIX}_${i} --sampling_types ${SAMPLING_TYPES} --start_types ${START_TYPES} --simulator_types ${SIMULATOR_TYPES} --brlen_scalers ${BRLEN_SCALERS} --brlen_linkage_types ${BRLEN_LINKAGE_TYPES} --likelihood_types ${LIKELIHOOD_TYPES} --partition_sizes ${PARTITION_SIZES} --min_taxa ${MIN_TAXA} --max_taxa ${MAX_TAXA} --min_reticulations ${MIN_RETICULATIONS} --max_reticulations ${MAX_RETICULATIONS} --min_reticulation_prob ${MIN_RETICULATION_PROB} --max_reticulation_prob ${MAX_RETICULATION_PROB} | tee ${PREFIX}_logs/${PREFIX}_${i}.log &
     i=$((i + 1))
 done
 

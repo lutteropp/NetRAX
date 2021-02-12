@@ -14,10 +14,10 @@ import argparse
 from experiment_settings import ExperimentSettings, small_tree, larger_network, small_network, small_network_single_debug
 
 
-def build_dataset(prefix, n_taxa, n_reticulations, msa_size, simulator_type, brlen_scaler, sampling_type, likelihood_types, brlen_linkage_types, start_types, my_id):
-    if not os.path.exists('datasets_' + prefix):
-        os.makedirs('datasets_' + prefix)
-    name = "datasets_" + prefix + "/" + str(my_id) + '_' + str(n_taxa) + '_taxa_' + str(
+def build_dataset(prefix, n_taxa, n_reticulations, msa_size, simulator_type, brlen_scaler, sampling_type, likelihood_types, brlen_linkage_types, start_types, folder_path, my_id):
+    if not os.path.exists(folder_path + 'datasets_' + prefix):
+        os.makedirs(folder_path + 'datasets_' + prefix)
+    name = folder_path + "datasets_" + prefix + "/" + str(my_id) + '_' + str(n_taxa) + '_taxa_' + str(
         n_reticulations) + '_reticulations_' + str(simulator_type) + "_" + str(sampling_type) + "_" + str(msa_size) + "_msasize" + "_" + str(brlen_scaler).replace(".","_") + "_brlenScaler"
     return create_dataset_container(n_taxa, n_reticulations, msa_size, sampling_type, simulator_type, brlen_scaler, likelihood_types, brlen_linkage_types, start_types, my_id, name)
 
@@ -40,8 +40,8 @@ def simulate_network_celine_minmax_nonweird(settings):
 
 
 def simulate_datasets(prefix, settings, iterations):
-    if not os.path.exists('datasets_' + prefix):
-        os.makedirs('datasets_' + prefix)
+    if not os.path.exists(settings.folder_path + 'datasets_' + prefix):
+        os.makedirs(settings.folder_path + 'datasets_' + prefix)
 
     if SimulatorType.SARAH in settings.simulator_types:
         raise Exception("Only SimulatorType.CELINE please")
@@ -60,7 +60,7 @@ def simulate_datasets(prefix, settings, iterations):
                 for partition_size in settings.partition_sizes:
                     for sampling_type in settings.sampling_types:
                         ds = build_dataset(prefix, n_taxa, n_reticulations, n_trees * partition_size, simulator_type, brlen_scaler,
-                                        sampling_type, settings.likelihood_types, settings.brlen_linkage_types, settings.start_types, my_id)
+                                        sampling_type, settings.likelihood_types, settings.brlen_linkage_types, settings.start_types, settings.folder_path, my_id)
                         ds.sites_per_tree = partition_size
                         ds.celine_params = param_info
                         ds.n_trees = 2 ** ds.celine_params["no_of_hybrids"]
@@ -71,7 +71,7 @@ def simulate_datasets(prefix, settings, iterations):
                             network_file = open(ds.true_network_path, "w")
                             network_file.write(newick + '\n')
                             network_file.close()
-                            
+
                         # network topology has been simulated now.
                         n_pairs, ds.n_equal_tree_pairs = check_weird_network(ds.true_network_path, ds.n_taxa)
                         if n_pairs > 0:
@@ -93,9 +93,11 @@ def simulate_datasets(prefix, settings, iterations):
 
 
 def run_experiments(prefix, settings, iterations):
+    if settings.folder_path != "" and not os.path.isdir(settings.folder_path):
+        os.makedirs(settings.folder_path)
     datasets = simulate_datasets(prefix, settings, iterations)
     run_inference_and_evaluate(datasets)
-    write_results_to_csv(datasets, prefix + "_results.csv")
+    write_results_to_csv(datasets, settings.folder_path + prefix + "_results.csv")
 
 
 def parse_command_line_arguments_experiment():
@@ -119,6 +121,7 @@ def parse_command_line_arguments_experiment():
     CLI.add_argument("--max_reticulations", type=int, default=2)
     CLI.add_argument("--min_reticulation_prob", type=float, default=0.1)
     CLI.add_argument("--max_reticulation_prob", type=float, default=0.9)
+    CLI.add_argument("--folder_path", type=str, default="data/")
 
     args = CLI.parse_args()
 
@@ -137,6 +140,7 @@ def parse_command_line_arguments_experiment():
     settings.max_reticulations = args.max_reticulations
     settings.min_reticulation_prob = args.min_reticulation_prob
     settings.max_reticulation_prob = args.max_reticulation_prob
+    settings.folder_path = args.folder_path
 
     return prefix, settings
 
