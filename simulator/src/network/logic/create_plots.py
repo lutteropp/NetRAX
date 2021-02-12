@@ -14,18 +14,19 @@ def import_dataframe(prefix):
     return df
 
 
-def bic_stats(df):
+def cm_to_inch(value):
+    return value/2.54
+
+
+def bic_logl_stats(df):
     print("Inferred BIC better or equal: " + str(len(df[df['bic_inferred'] <= df['bic_true']])))
     print("Inferred BIC worse: " + str(len(df[df['bic_inferred'] > df['bic_true']])))
-    plt.figure()
-    df['bic_diff'].plot.hist(bins=100, alpha=0.5, title='(bic_true - bic_inferred) / bic_true\n value >0 means inferred BIC was better')
-    
-    
-def logl_stats(df):
     print("Inferred loglh better or equal: " + str(len(df[df['logl_inferred'] >= df['logl_true']])))
     print("Inferred loglh worse: " + str(len(df[df['logl_inferred'] < df['logl_true']])))
-    plt.figure()
-    df['logl_diff'].plot.hist(bins=100, alpha=0.5, title='(logl_true - logl_inferred) / logl_true\n value <0 means inferred logl was better')
+    fig, axes = plt.subplots(1, 2, constrained_layout=True)
+    #fig.set_size_inches(cm_to_inch(80),cm_to_inch(30))
+    df['bic_diff'].plot.hist(bins=100, alpha=0.5, title='(bic_true - bic_inferred) / bic_true\n value >0 means inferred BIC was better', ax=axes[0])
+    df['logl_diff'].plot.hist(bins=100, alpha=0.5, title='(logl_true - logl_inferred) / logl_true\n value <0 means inferred logl was better', ax=axes[1])
     
     
 def reticulation_stats(df):
@@ -36,14 +37,12 @@ def reticulation_stats(df):
     
 def weirdness_stats(df):
     plt.figure()
-    df['true_network_weirdness'].plot.hist(bins=10, alpha=0.5, range=(0,1), title='True network weirdness')
+    fig, axes = plt.subplots(1, 2)
+    df['true_network_weirdness'].plot.hist(bins=10, alpha=0.5, range=(0,1), title='True network weirdness', ax=axes[0])
+    df['near_zero_branches_raxml'].plot.hist(bins=10, alpha=0.5, title='Near-zero branches raxml', ax=axes[1])
+    plt.tight_layout()
     
-    
-def zero_branches_stats(df):
-    plt.figure()
-    df['near_zero_branches_raxml'].plot.hist(bins=10, alpha=0.5, title='Near-zero branches raxml')
-    
-    
+
 def distances(df):
     plt.figure()
     fig, axes = plt.subplots(3, 2, constrained_layout=True)
@@ -55,16 +54,19 @@ def distances(df):
     df['path_multiplicity_distance'].plot.hist(bins=10, alpha=0.5, title='Path multiplicity distance', ax=axes[2,1])
 
     
+def plots_setup():
+    plt.rc('font', family='serif')
+    plt.rc('xtick', labelsize='x-small')
+    plt.rc('ytick', labelsize='x-small')
+
+
 def show_stats(df):
-    bic_stats(df)
-    print("")
-    logl_stats(df)
+    plots_setup()
+    bic_logl_stats(df)
     print("")
     reticulation_stats(df)
     print("")
     weirdness_stats(df)
-    print("")
-    zero_branches_stats(df)
     print("")
     distances(df)
 
