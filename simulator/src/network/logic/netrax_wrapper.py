@@ -155,6 +155,15 @@ def scale_branches_only(network_path, output_path, scaling_factor, n_taxa):
     os.remove(msa_path)
 
 
+def scale_branches_only_newick(newick, output_path, scaling_factor, n_taxa):
+    temp_network_input = "temp_network_input" + str(os.getpid()) + "_" + str(random.getrandbits(64)) + ".nw"
+    temp_network_input_file = open(temp_network_input, "w")
+    temp_network_input_file.write(newick + "\n")
+    temp_network_input_file.close()
+    scale_branches_only(temp_network_input, output_path, scaling_factor, n_taxa)
+    os.remove(temp_network_input)
+
+
 def build_fake_msa(n_taxa, network_path=""):
     fake_msa = ""
 

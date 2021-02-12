@@ -15,6 +15,7 @@ class ExperimentSettings:
         self.partition_sizes = [1000]
         self.min_reticulation_prob = 0.1
         self.max_reticulation_prob = 0.9
+        self.brlen_scalers = [1.0]
 
 
 def small_tree():

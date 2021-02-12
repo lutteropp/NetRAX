@@ -8,7 +8,7 @@ import math
 import random
 
 
-def create_dataset_container(n_taxa, n_reticulations, approx_msa_size, sampling_type, simulation_type, likelihood_types, brlen_linkage_types, start_types, my_id, name, timeout=0, m=1, num_start_networks=5):
+def create_dataset_container(n_taxa, n_reticulations, approx_msa_size, sampling_type, simulation_type, brlen_scaler, likelihood_types, brlen_linkage_types, start_types, my_id, name, timeout=0, m=1, num_start_networks=5):
     ds = Dataset()
     ds.my_id = my_id
     ds.n_taxa = n_taxa
@@ -21,6 +21,7 @@ def create_dataset_container(n_taxa, n_reticulations, approx_msa_size, sampling_
     ds.name = name
     ds.sampling_type = sampling_type
     ds.simulation_type = simulation_type
+    ds.brlen_scaler = brlen_scaler
     ds.timeout = timeout
     ds.num_start_networks = num_start_networks
 
@@ -91,24 +92,24 @@ def build_trees_file(ds, trees_newick, sampled_trees_contrib):
     partitions_file.close()
 
 
-def build_dataset(n_taxa, n_reticulations, approx_msa_size, sampling_type, simulation_type, likelihood_types, brlen_linkage_types, start_types, name, timeout=0, m=1, num_start_networks=5):
-    ds = create_dataset_container(n_taxa, n_reticulations, approx_msa_size, sampling_type, simulation_type,
-                                  likelihood_types, brlen_linkage_types, start_types, name, timeout, m, num_start_networks)
-    if simulation_type == SimulatorType.SARAH:
-        generate_random_network(
-            ds.n_taxa, ds.n_reticulations, ds.true_network_path)
-    else:
-        celine_params = CelineParams()
-        celine_params.wanted_taxa = n_taxa
-        celine_params.wanted_reticulations = n_reticulations
-        ds.celine_params = simulate_network_celine(
-            ds.n_taxa, ds.n_reticulations, ds.true_network_path)
-    trees_newick, trees_prob = extract_displayed_trees(
-        ds.true_network_path, ds.n_taxa)
-    ds, sampled_trees_contrib = sample_trees(ds, trees_prob)
-    build_trees_file(ds, trees_newick, sampled_trees_contrib)
-    n_pairs, ds.n_equal_tree_pairs = check_weird_network(ds.true_network_path, ds.n_taxa)
-    if n_pairs > 0:
-        ds.true_network_weirdness = float(ds.n_equal_tree_pairs) / n_pairs
-    simulate_msa(ds)
-    return ds
+#def build_dataset(n_taxa, n_reticulations, approx_msa_size, sampling_type, simulation_type, brlen_scaler, likelihood_types, brlen_linkage_types, start_types, name, timeout=0, m=1, num_start_networks=5):
+#    ds = create_dataset_container(n_taxa, n_reticulations, approx_msa_size, sampling_type, simulation_type, brlen_scaler,
+#                                  likelihood_types, brlen_linkage_types, start_types, name, timeout, m, num_start_networks)
+#    if simulation_type == SimulatorType.SARAH:
+#        generate_random_network(
+#           ds.n_taxa, ds.n_reticulations, ds.true_network_path)
+#    else:
+#        celine_params = CelineParams()
+#        celine_params.wanted_taxa = n_taxa
+#        celine_params.wanted_reticulations = n_reticulations
+#        ds.celine_params = simulate_network_celine(
+#            ds.n_taxa, ds.n_reticulations, ds.true_network_path)
+#    trees_newick, trees_prob = extract_displayed_trees(
+#        ds.true_network_path, ds.n_taxa)
+#    ds, sampled_trees_contrib = sample_trees(ds, trees_prob)
+#    build_trees_file(ds, trees_newick, sampled_trees_contrib)
+#    n_pairs, ds.n_equal_tree_pairs = check_weird_network(ds.true_network_path, ds.n_taxa)
+#    if n_pairs > 0:
+#        ds.true_network_weirdness = float(ds.n_equal_tree_pairs) / n_pairs
+#    simulate_msa(ds)
+#    return ds
