@@ -20,6 +20,7 @@ class CelineParams:
         self.max_reticulations = -1
         self.min_reticulation_prob = 0.0
         self.max_reticulation_prob = 1.0
+        self.brlen_scaler = 1.0
 
 
 def parse_user_input():
@@ -66,6 +67,9 @@ def parse_user_input():
         if arg == "-max_reticulation_prob":
             i += 1
             params.max_reticulation_prob = float(sys.argv[i])
+        if arg == "-brlen_scaler":
+            i += 1
+            params.brlen_scaler = float(sys.argv[i])
         i += 1
     return params
 
@@ -79,7 +83,7 @@ def Newick_From_MULTree(tree, root, hybrid_nodes, params):
     Newick = ""
     for v in tree.successors(root):
         Newick += Newick_From_MULTree(tree, v, hybrid_nodes, params) + \
-            ":"+str(tree[root][v]['length'])
+            ":"+str(tree[root][v]['length'] * params.brlen_scaler)
         if params.inheritance:
             if v in hybrid_nodes:
                 Newick += "::"+str(tree[root][v]['prob'])
