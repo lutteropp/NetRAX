@@ -2,3 +2,6 @@
 	path = libs/raxml-ng
 	url = https://github.com/lutteropp/raxml-ng.git
 	branch = netrax
+[submodule "simulator/src/network/logic/subnotebook"]
+	path = simulator/src/network/logic/subnotebook
+	url = https://github.com/lutteropp/subnotebook.git
