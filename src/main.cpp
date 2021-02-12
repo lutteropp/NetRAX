@@ -35,6 +35,7 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
     app.add_flag("--extract_taxon_names", options->extract_taxon_names, "Only extract all taxon names from a network.");
     app.add_flag("--generate_random_network_only", options->generate_random_network_only, "Only generate a random network, with as many reticulations as specified in the -r parameter");
     app.add_flag("--pretty_print_only", options->pretty_print_only, "Only pretty-print a given input network.");
+    app.add_option("--scale_branches_only", options->scale_branches_only, "Only scale branches of a given network by a given factor.");
 
     std::string brlen_linkage = "scaled";
     app.add_option("--brlen", brlen_linkage, "branch length linkage between partitions (linked, scaled, or unlinked) (default: scaled)");
@@ -145,6 +146,23 @@ void extract_displayed_trees(NetraxOptions& netraxOptions, std::mt19937& rng) {
     }
 }
 
+void scale_branches_only(NetraxOptions& netraxOptions, std::mt19937& rng) {
+    if (netraxOptions.start_network_file.empty()) {
+        throw std::runtime_error("Need network to scale branches");
+    }
+    if (netraxOptions.output_file.empty()) {
+        throw std::runtime_error("Need output file to write the scaled network");
+    }
+    netrax::AnnotatedNetwork ann_network = build_annotated_network(netraxOptions);
+    init_annotated_network(ann_network, rng);
+    for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
+        ann_network.network.edges_by_index[i]->length *= netraxOptions.scale_branches_only;
+        ann_network.fake_treeinfo->branch_lengths[0][i] *= netraxOptions.scale_branches_only;
+    }
+    writeNetwork(ann_network, netraxOptions.output_file);
+    std::cout << "Network with scaled branch lengths written to " << netraxOptions.output_file << "\n";
+}
+
 void check_weird_network(NetraxOptions& netraxOptions, std::mt19937& rng) {
     if (netraxOptions.start_network_file.empty()) {
         throw std::runtime_error("Need network to extract displayed trees");
@@ -237,6 +255,11 @@ int main(int argc, char **argv) {
 
     if (netraxOptions.generate_random_network_only) {
         generate_random_network_only(netraxOptions, rng);
+        return 0;
+    }
+
+    if (netraxOptions.scale_branches_only != 0.0) {
+        scale_branches_only(netraxOptions, rng);
         return 0;
     }
 
