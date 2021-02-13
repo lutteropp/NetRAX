@@ -105,7 +105,7 @@ def plot_dataset_size(df):
     fig, axes = plt.subplots(1, 3)
     fig.suptitle("Simulated Dataset Stats")
     df['n_taxa'].plot.hist(bins=10, alpha=0.5, title='Number of taxa', ax=axes[0])
-    df['near_zero_branches_raxml'].plot.hist(bins=10, alpha=0.5, title='Number of reticulations', ax=axes[1])
+    df['n_reticulations'].plot.hist(bins=10, alpha=0.5, title='Number of reticulations', ax=axes[1])
     df['msa_size'].plot.hist(bins=10, alpha=0.5, title='MSA size', ax=axes[2])
     plt.tight_layout()
 
