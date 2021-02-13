@@ -4,6 +4,14 @@ import networkx as nx
 import sys
 
 
+#Time is measured by expected substitutions per site throughout the network simulations
+#so that \theta=  N \mu is used for all population sizes and \tau_i=t_i \mu til for the
+#time of node i.
+#The substitution rate \mu is fixed to 1.0 across all
+#gene lineages (strict molecular clock) and all loci (no rate variation).
+#We could use partitions with different rates in seqgen to have rate variation.
+#Do we want to loose the strict molecular clock thing?
+
 ############################### I/O############################
 
 class CelineParams:
