@@ -214,7 +214,7 @@ std::unordered_set<std::vector<bool> > extract_network_splits(AnnotatedNetwork& 
 unsigned int count_not_in_other(const std::unordered_set<std::vector<bool> >& splits_hash, const std::unordered_set<std::vector<bool> >& other_splits_hash) {
     unsigned int cnt = 0;
     for (const std::vector<bool>& split : splits_hash) {
-        if (other_splits_hash.count(split) > 0)
+        if (other_splits_hash.count(split) == 0)
         {
             cnt++;
         }
