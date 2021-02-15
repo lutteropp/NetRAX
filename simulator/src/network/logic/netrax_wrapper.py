@@ -125,7 +125,7 @@ def network_distance_only(network_1_path, network_2_path, n_taxa):
     dist = -1
     for line in lines:
         if line.startswith("Unrooted softwired network distance: "):
-            dist = float(line.split[": "][1])
+            dist = float(line.split(": ")[1])
             break
     os.remove(msa_path)
     return dist
