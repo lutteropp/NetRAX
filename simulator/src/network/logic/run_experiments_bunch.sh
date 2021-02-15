@@ -64,4 +64,3 @@ while [ $i -lt ${ITERATIONS} ]; do
 done
 
 python3 csv_merger.py --prefix ${PREFIX} --iterations ${ITERATIONS}
-#python3 postprocess_results.py --prefix ${PREFIX}

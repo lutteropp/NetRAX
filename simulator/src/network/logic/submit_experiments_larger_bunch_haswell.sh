@@ -61,4 +61,4 @@ wait
 #rm slurm-${SLURM_JOB_ID}.out
 
 python3 csv_merger.py --prefix ${PREFIX} --iterations ${BUNCHES}
-python3 postprocess_results.py --prefix ${PREFIX}
+#python3 postprocess_results.py --prefix ${PREFIX} --iterations_global ${BUNCHES} --iterations_local ${ITERATIONS_PER_BUNCH}
