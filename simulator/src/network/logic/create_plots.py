@@ -12,6 +12,7 @@ def import_dataframe(prefix):
     df = pd.read_csv(prefix + "_results.csv")
     df['bic_diff'] = (df['bic_true'] - df['bic_inferred']) / df['bic_true']
     df['logl_diff'] = (df['logl_true'] - df['logl_inferred']) / df['logl_true']
+    df['msa_patterns_relative'] = df['msa_patterns'] / df['msa_size']
     return df
 
 
@@ -80,6 +81,7 @@ def plot_weirdness_stats(df):
     df['true_network_weirdness'].plot.hist(bins=10, alpha=0.5, range=(0,1), title='True network weirdness', ax=axes[0])
     df['near_zero_branches_raxml'].plot.hist(bins=10, alpha=0.5, title='Near-zero branches raxml', ax=axes[1])
     plt.tight_layout()
+    plt.show()
     
 
 def distances(df):
@@ -92,6 +94,7 @@ def distances(df):
     df['tripartition_distance'].plot.hist(bins=10, alpha=0.5, title='Tripartition distance', ax=axes[1,1])
     df['nested_labels_distance'].plot.hist(bins=10, alpha=0.5, title='Nested labels distance', ax=axes[2,0])
     df['path_multiplicity_distance'].plot.hist(bins=10, alpha=0.5, title='Path multiplicity distance', ax=axes[2,1])
+    plt.show()
 
     
 def plots_setup():
@@ -101,25 +104,48 @@ def plots_setup():
 
 
 def plot_dataset_size(df):
+    print("Total number of datasets: " + str(len(df)))
     plt.figure()
-    fig, axes = plt.subplots(1, 3)
+    fig, axes = plt.subplots(2, 3)
     fig.suptitle("Simulated Dataset Stats")
-    df['n_taxa'].plot.hist(bins=10, alpha=0.5, title='Number of taxa', ax=axes[0])
-    df['n_reticulations'].plot.hist(bins=10, alpha=0.5, title='Number of reticulations', ax=axes[1])
-    df['msa_size'].plot.hist(bins=10, alpha=0.5, title='MSA size', ax=axes[2])
+    df['n_taxa'].plot.hist(bins=10, alpha=0.5, title='Number of taxa', ax=axes[0][0])
+    df['n_reticulations'].plot.hist(bins=10, alpha=0.5, title='Number of reticulations', ax=axes[0][1])
+    df['msa_size'].plot.hist(bins=10, alpha=0.5, title='MSA size', ax=axes[0][2])
+    df['msa_patterns'].plot.hist(bins=10, alpha=0.5, title='MSA patterns (absolute count)', ax=axes[1][0])
+    df['msa_patterns_relative'].plot.hist(bins=10, alpha=0.5, range=(0,1), title='MSA patterns (fraction)', ax=axes[1][1])
     plt.tight_layout()
+    plt.show()
 
 
 def show_stats(df):
     plot_dataset_size(df)
     plot_weirdness_stats(df)
+    if 'brlen_scaler' in df:
+        show_brlen_scaler_effects(df)
+
+
+def show_pattern_quality_effects(df):
+    print("TODO: git")
+
+
+def show_brlen_scaler_effects(df):
+    scalers = df.brlen_scaler.unique()
+    plt.figure()
+    fig, axes = plt.subplots(2, len(scalers))
+    fig.suptitle("Effects of brlen_scaler choice on number of MSA patterns")
+    for i in range(len(scalers)):
+        scaler = scalers[i]
+        df_scaled = df.query('brlen_scaler == ' + str(scaler))
+        df_scaled['msa_patterns_relative'].plot.hist(bins=10, alpha=0.5, range=(0,1), title='MSA patterns (fraction) for brlen_scaler ' + str(scaler), ax=axes[0][i])
+        df_scaled['msa_patterns'].plot.hist(bins=10, alpha=0.5, title='MSA patterns (absolute count) for brlen_scaler ' + str(scaler), ax=axes[1][i])
+    plt.show()
 
 
 def show_plots(df):
     quality_stats(df)
     print("")
     distances(df)
-    plt.show()
+    show_pattern_quality_effects(df)
 
 
 def parse_command_line_arguments_plots():
