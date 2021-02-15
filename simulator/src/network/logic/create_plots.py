@@ -111,6 +111,11 @@ def distances(df):
     df['path_multiplicity_distance'].plot.hist(bins=10, alpha=0.5, title='Path multiplicity distance', ax=axes[2,1])
     plt.show()
 
+    if 'unrooted_softwired_distance' in df:
+        plt.figure()
+        df['unrooted_softwired_distance'].plot.hist(bins=100, alpha=0.5, range=(0,1), title='Unrooted softwired distance')
+        plt.show()
+
     
 def plots_setup():
     plt.rc('font', family='serif')
