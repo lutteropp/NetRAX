@@ -1,4 +1,5 @@
 from append_topologial_distances import append_distances
+from append_unrooted_distance import append_unrooted_distance
 from append_msa_patterns import append_patterns
 from csv_merger import postprocess_merge
 
@@ -21,3 +22,4 @@ if __name__ == "__main__":
     postprocess_merge(prefix, iterations_global)
     append_patterns(prefix)
     append_distances(prefix)
+    append_unrooted_distance(prefix)
