@@ -167,40 +167,54 @@ void scale_branches_only(NetraxOptions& netraxOptions, std::mt19937& rng) {
     std::cout << "Network with scaled branch lengths written to " << netraxOptions.output_file << "\n";
 }
 
-std::pair<std::vector<pll_split_t>, bitv_hashtable_t*> extract_network_splits(AnnotatedNetwork& ann_network) {
-    std::vector<pll_split_t> splits;
-    pll_utree_t* utree_1 = netrax::displayed_tree_to_utree(ann_network.network, 0);
-    pll_split_t * splits_1 = pllmod_utree_split_create(utree_1->vroot, utree_1->tip_count, NULL);
-    for (size_t i = 0; i < utree_1->tip_count - 3; ++i) {
-        splits.emplace_back(splits_1[i]);
-    }
-    bitv_hashtable_t * splits_hash = pllmod_utree_split_hashtable_insert(NULL, splits_1,
-                                                                          utree_1->tip_count, utree_1->tip_count - 3,
-                                                                          NULL, 0);
-    //pllmod_utree_split_destroy(splits_1);
-    pll_utree_destroy(utree_1, nullptr);
-
-    for (int tree_index = 1; tree_index < 1 << ann_network.network.num_reticulations(); ++tree_index) {
-        pll_utree_t* utree = netrax::displayed_tree_to_utree(ann_network.network, tree_index);
-        pll_split_t * splits_tree = pllmod_utree_split_create(utree->vroot, utree->tip_count, NULL);
-        for (size_t i = 0; i < utree_1->tip_count - 3; ++i) {
-            if (!pllmod_utree_split_hashtable_lookup(splits_hash, splits_tree[i], utree->tip_count)) {
-                splits.emplace_back(splits_tree[i]);
-                pllmod_utree_split_hashtable_insert_single(splits_hash, splits_tree[i], 0);
+std::vector<bool> edge_split(AnnotatedNetwork& ann_network, Edge* edge, std::unordered_map<std::string, unsigned int>& label_to_int) {
+    Network& network = ann_network.network;
+    std::vector<bool> split(network.num_tips(), false);
+    // activate everything below the edge
+    std::queue<Node*> q;
+    q.emplace(getTarget(network, edge));
+    while (!q.empty()) {
+        Node* act_node = q.front();
+        q.pop();
+        if (act_node->isTip()) {
+            if (label_to_int.find(act_node->label) == label_to_int.end()) {
+                throw std::runtime_error("Unknown taxon name: " + act_node->label);
+            }
+            split[label_to_int[act_node->label]] = true;
+        } else {
+            auto children = getActiveChildren(network, act_node);
+            for (Node* child : children) {
+                q.emplace(child);
             }
         }
-        //pllmod_utree_split_destroy(splits_tree);
-        pll_utree_destroy(utree, nullptr);
+    }
+    
+    // normalization: ensure that we have zero at the first position
+    if (split[0] == true) {
+        for (size_t i = 0; i < split.size(); ++i) {
+            split[i] = !split[i];
+        }
     }
 
-    return std::make_pair(splits, splits_hash);
+    return split;
 }
 
-unsigned int count_not_in_other(const std::vector<pll_split_t>& splits, bitv_hashtable_t* other_splits_hash, unsigned int tip_count) {
+std::unordered_set<std::vector<bool> > extract_network_splits(AnnotatedNetwork& ann_network, std::unordered_map<std::string, unsigned int>& label_to_int) {
+    std::unordered_set<std::vector<bool> > splits_hash;
+    for (int tree_index = 0; tree_index < 1 << ann_network.network.num_reticulations(); ++tree_index) {
+        netrax::setReticulationParents(ann_network.network, tree_index);
+        for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
+            std::vector<bool> act_split = edge_split(ann_network, ann_network.network.edges_by_index[i], label_to_int);
+            splits_hash.emplace(act_split);
+        }
+    }
+    return splits_hash;
+}
+
+unsigned int count_not_in_other(const std::unordered_set<std::vector<bool> >& splits_hash, const std::unordered_set<std::vector<bool> >& other_splits_hash) {
     unsigned int cnt = 0;
-    for (unsigned int i = 0; i < splits.size(); ++i) {
-        pll_split_t query_split = splits[i];
-        if (!pllmod_utree_split_hashtable_lookup(other_splits_hash, query_split, tip_count))
+    for (const std::vector<bool>& split : splits_hash) {
+        if (other_splits_hash.count(split) > 0)
         {
             cnt++;
         }
@@ -215,24 +229,28 @@ void network_distance_only(NetraxOptions &netraxOptions, std::mt19937& rng) {
     netrax::AnnotatedNetwork ann_network_1 = build_annotated_network_from_file(netraxOptions, netraxOptions.first_network_path);
     init_annotated_network(ann_network_1, rng);
 
-    std::pair<std::vector<pll_split_t>, bitv_hashtable_t*> p1 = extract_network_splits(ann_network_1);
-    std::vector<pll_split_t> splits_1 = p1.first;
-    bitv_hashtable_t * splits_hash_1 = p1.second;
+    std::unordered_map<std::string, unsigned int> label_to_int;
+    for (size_t i = 0; i < ann_network_1.network.num_tips(); ++i) {
+        label_to_int[ann_network_1.network.nodes_by_index[i]->label] = i;
+    }
+
+    std::unordered_set<std::vector<bool> > splits_hash_1 = extract_network_splits(ann_network_1, label_to_int);
 
     netrax::AnnotatedNetwork ann_network_2 = build_annotated_network_from_file(netraxOptions, netraxOptions.second_network_path);
     init_annotated_network(ann_network_2, rng);
-    std::pair<std::vector<pll_split_t>, bitv_hashtable_t*> p2 = extract_network_splits(ann_network_2);
-    std::vector<pll_split_t> splits_2 = p2.first;
-    bitv_hashtable_t * splits_hash_2 = p2.second;
 
-    unsigned int one_but_not_two = count_not_in_other(splits_1, splits_hash_2, ann_network_1.network.num_tips());
-    unsigned int two_but_not_one = count_not_in_other(splits_2, splits_hash_1, ann_network_1.network.num_tips());
+    if (ann_network_1.network.num_tips() != ann_network_2.network.num_tips()) {
+        throw std::runtime_error("Unequal number of taxa");
+    }
 
-    double dist = (double) (one_but_not_two + two_but_not_one) / (splits_1.size() + splits_2.size());
+    std::unordered_set<std::vector<bool> > splits_hash_2 = extract_network_splits(ann_network_2, label_to_int);
+
+    unsigned int one_but_not_two = count_not_in_other(splits_hash_1, splits_hash_2);
+    unsigned int two_but_not_one = count_not_in_other(splits_hash_2, splits_hash_1);
+
+    double dist = (double) (one_but_not_two + two_but_not_one) / (splits_hash_1.size() + splits_hash_2.size());
 
     std::cout << "Unrooted softwired network distance: " << dist << "\n";
-    pllmod_utree_split_hashtable_destroy(splits_hash_1);
-    pllmod_utree_split_hashtable_destroy(splits_hash_2);
 }
 
 void check_weird_network(NetraxOptions& netraxOptions, std::mt19937& rng) {
