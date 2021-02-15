@@ -172,7 +172,7 @@ def show_plots(df):
     quality_stats(df)
     print("")
     distances(df)
-    show_pattern_quality_effects(df)
+    #show_pattern_quality_effects(df)
 
 
 def parse_command_line_arguments_plots():
