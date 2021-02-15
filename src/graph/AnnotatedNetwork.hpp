@@ -51,6 +51,8 @@ struct AnnotatedNetwork {
 AnnotatedNetwork build_annotated_network(NetraxOptions &options);
 AnnotatedNetwork build_annotated_network_from_string(NetraxOptions &options,
         const std::string &newickString);
+AnnotatedNetwork build_annotated_network_from_file(NetraxOptions &options,
+        const std::string &networkPath);
 AnnotatedNetwork build_annotated_network_from_utree(NetraxOptions &options,
         const pll_utree_t &utree);
 AnnotatedNetwork build_random_annotated_network(NetraxOptions &options);

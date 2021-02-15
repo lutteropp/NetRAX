@@ -39,6 +39,10 @@ public:
     bool generate_random_network_only = false;
     bool pretty_print_only = false;
 
+    bool network_distance_only = false;
+    std::string first_network_path = "";
+    std::string second_network_path = "";
+
     double scale_branches_only = 0.0;
 
     bool endless = false;

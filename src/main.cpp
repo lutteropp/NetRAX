@@ -37,6 +37,10 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
     app.add_flag("--pretty_print_only", options->pretty_print_only, "Only pretty-print a given input network.");
     app.add_option("--scale_branches_only", options->scale_branches_only, "Only scale branches of a given network by a given factor.");
 
+    app.add_flag("--network_distance_only", options->network_distance_only, "Only compute unrooted softwired network distance.");
+    app.add_option("--first_network", options->first_network_path, "Path to first network file for distance computation.");
+    app.add_option("--second_network", options->second_network_path, "Path to second network file for distance computation.");
+
     std::string brlen_linkage = "scaled";
     app.add_option("--brlen", brlen_linkage, "branch length linkage between partitions (linked, scaled, or unlinked) (default: scaled)");
 
@@ -163,6 +167,74 @@ void scale_branches_only(NetraxOptions& netraxOptions, std::mt19937& rng) {
     std::cout << "Network with scaled branch lengths written to " << netraxOptions.output_file << "\n";
 }
 
+std::pair<std::vector<pll_split_t>, bitv_hashtable_t*> extract_network_splits(AnnotatedNetwork& ann_network) {
+    std::vector<pll_split_t> splits;
+    pll_utree_t* utree_1 = netrax::displayed_tree_to_utree(ann_network.network, 0);
+    pll_split_t * splits_1 = pllmod_utree_split_create(utree_1->vroot, utree_1->tip_count, NULL);
+    for (size_t i = 0; i < utree_1->tip_count - 3; ++i) {
+        splits.emplace_back(splits_1[i]);
+    }
+    bitv_hashtable_t * splits_hash = pllmod_utree_split_hashtable_insert(NULL, splits_1,
+                                                                          utree_1->tip_count, utree_1->tip_count - 3,
+                                                                          NULL, 0);
+    //pllmod_utree_split_destroy(splits_1);
+    pll_utree_destroy(utree_1, nullptr);
+
+    for (int tree_index = 1; tree_index < 1 << ann_network.network.num_reticulations(); ++tree_index) {
+        pll_utree_t* utree = netrax::displayed_tree_to_utree(ann_network.network, tree_index);
+        pll_split_t * splits_tree = pllmod_utree_split_create(utree->vroot, utree->tip_count, NULL);
+        for (size_t i = 0; i < utree_1->tip_count - 3; ++i) {
+            if (!pllmod_utree_split_hashtable_lookup(splits_hash, splits_tree[i], utree->tip_count)) {
+                splits.emplace_back(splits_tree[i]);
+                pllmod_utree_split_hashtable_insert_single(splits_hash, splits_tree[i], 0);
+            }
+        }
+        //pllmod_utree_split_destroy(splits_tree);
+        pll_utree_destroy(utree, nullptr);
+    }
+
+    return std::make_pair(splits, splits_hash);
+}
+
+unsigned int count_not_in_other(const std::vector<pll_split_t>& splits, bitv_hashtable_t* other_splits_hash, unsigned int tip_count) {
+    unsigned int cnt = 0;
+    for (unsigned int i = 0; i < splits.size(); ++i) {
+        pll_split_t query_split = splits[i];
+        if (!pllmod_utree_split_hashtable_lookup(other_splits_hash, query_split, tip_count))
+        {
+            cnt++;
+        }
+    }
+    return cnt;
+}
+
+void network_distance_only(NetraxOptions &netraxOptions, std::mt19937& rng) {
+    if (netraxOptions.first_network_path.empty() || netraxOptions.second_network_path.empty()) {
+        throw std::runtime_error("Need networks to compute distance");
+    }
+    netrax::AnnotatedNetwork ann_network_1 = build_annotated_network_from_file(netraxOptions, netraxOptions.first_network_path);
+    init_annotated_network(ann_network_1, rng);
+
+    std::pair<std::vector<pll_split_t>, bitv_hashtable_t*> p1 = extract_network_splits(ann_network_1);
+    std::vector<pll_split_t> splits_1 = p1.first;
+    bitv_hashtable_t * splits_hash_1 = p1.second;
+
+    netrax::AnnotatedNetwork ann_network_2 = build_annotated_network_from_file(netraxOptions, netraxOptions.second_network_path);
+    init_annotated_network(ann_network_2, rng);
+    std::pair<std::vector<pll_split_t>, bitv_hashtable_t*> p2 = extract_network_splits(ann_network_2);
+    std::vector<pll_split_t> splits_2 = p2.first;
+    bitv_hashtable_t * splits_hash_2 = p2.second;
+
+    unsigned int one_but_not_two = count_not_in_other(splits_1, splits_hash_2, ann_network_1.network.num_tips());
+    unsigned int two_but_not_one = count_not_in_other(splits_2, splits_hash_1, ann_network_1.network.num_tips());
+
+    double dist = (double) (one_but_not_two + two_but_not_one) / (splits_1.size() + splits_2.size());
+
+    std::cout << "Unrooted softwired network distance: " << dist << "\n";
+    pllmod_utree_split_hashtable_destroy(splits_hash_1);
+    pllmod_utree_split_hashtable_destroy(splits_hash_2);
+}
+
 void check_weird_network(NetraxOptions& netraxOptions, std::mt19937& rng) {
     if (netraxOptions.start_network_file.empty()) {
         throw std::runtime_error("Need network to extract displayed trees");
@@ -260,6 +332,11 @@ int main(int argc, char **argv) {
 
     if (netraxOptions.scale_branches_only != 0.0) {
         scale_branches_only(netraxOptions, rng);
+        return 0;
+    }
+
+    if (netraxOptions.network_distance_only) {
+        network_distance_only(netraxOptions, rng);
         return 0;
     }
 

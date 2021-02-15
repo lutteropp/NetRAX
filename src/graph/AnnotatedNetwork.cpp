@@ -97,6 +97,21 @@ AnnotatedNetwork build_annotated_network_from_string(NetraxOptions &options,
 }
 
 /**
+ * Creates the inital annotated network data structure to work on, reading the network from a given file.
+ * 
+ * @param options The information specified by the user.
+ * @param newickPath The path to the network in Extended Newick format.
+ */
+AnnotatedNetwork build_annotated_network_from_file(NetraxOptions &options,
+        const std::string &networkPath) {
+    AnnotatedNetwork ann_network;
+    ann_network.options = options;
+    ann_network.network = std::move(netrax::readNetworkFromFile(networkPath,
+            options.max_reticulations));
+    return ann_network;
+}
+
+/**
  * Converts a pll_utree_t into an annotated network.
  * 
  * @param options The options specified by the user.
