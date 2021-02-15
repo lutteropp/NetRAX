@@ -10,8 +10,10 @@ sns.set(style="darkgrid")
 
 def import_dataframe(prefix):
     df = pd.read_csv(prefix + "_results.csv")
-    df['bic_diff'] = (df['bic_true'] - df['bic_inferred']) / df['bic_true']
-    df['logl_diff'] = (df['logl_true'] - df['logl_inferred']) / df['logl_true']
+    df['bic_diff'] = (df['bic_true'] - df['bic_inferred'])
+    df['logl_diff'] = (df['logl_true'] - df['logl_inferred'])
+    df['bic_diff_relative'] = (df['bic_true'] - df['bic_inferred']) / df['bic_true']
+    df['logl_diff_relative'] = (df['logl_true'] - df['logl_inferred']) / df['logl_true']
     df['msa_patterns_relative'] = df['msa_patterns'] / df['msa_size']
     return df
 
@@ -60,6 +62,18 @@ def report_reticulations_more(df):
     return str(cnt) + " (" + "%.2f" % (float(cnt*100)/len(df)) + " %)"
 
 
+def plot_relative_quality_stats(df):
+    plt.figure()
+    fig, axes = plt.subplots(2, 2)
+    fig.suptitle("Relative Quality Statistics")
+    df['bic_diff_relative'].plot.hist(bins=100, alpha=0.5, title='Relative BIC difference (>0 means better)\n (bic_true - bic_inferred) / bic_true', ax=axes[0][0])
+    df['logl_diff_relative'].plot.hist(bins=100, alpha=0.5, title='Relative loglh difference (<0 means better)\n (logl_true - logl_inferred) / logl_true', ax=axes[0][1])
+    df['bic_diff'].plot.hist(bins=100, alpha=0.5, title='Absolute BIC difference (>0 means better)\n (bic_true - bic_inferred)', ax=axes[1][0])
+    df['logl_diff'].plot.hist(bins=100, alpha=0.5, title='Absolute loglh difference (<0 means better)\n (logl_true - logl_inferred)', ax=axes[1][1])
+    plt.tight_layout()
+    plt.show()
+
+
 def quality_stats(df):
     df_likelihood_average = df.query('likelihood_type == "AVERAGE"')
     df_likelihood_best = df.query('likelihood_type == "BEST"')
@@ -72,6 +86,7 @@ def quality_stats(df):
             ['Inferred n_reticulations more', report_reticulations_more(df_likelihood_average),report_reticulations_more(df_likelihood_best),report_reticulations_more(df)]]
     data_df = pd.DataFrame(data, columns=['', 'LikelihoodType.AVERAGE', 'LikelihoodType.BEST', 'Overall'])
     generate_ascii_table(data_df)
+    plot_relative_quality_stats(df)
     
     
 def plot_weirdness_stats(df):
@@ -125,7 +140,19 @@ def show_stats(df):
 
 
 def show_pattern_quality_effects(df):
-    print("TODO: git")
+    print('correlation between number of MSA patterns and better-or-equal inferred BIC')
+
+    pattern_sizes = sorted(list(df['msa_patterns'].unique()))
+    pattern_sizes_yvals = []
+
+    for psize in pattern_sizes:
+        df_patterns = df.query('msa_patterns == ' + str(psize))
+        percentage_good = float(len(df_patterns[df_patterns['bic_inferred'] <= df_patterns['bic_true']])) / len(df_patterns)
+        pattern_sizes_yvals.append(percentage_good)
+    plt.scatter(pattern_sizes, pattern_sizes_yvals)
+    plt.show()
+
+    print(df['msa_patterns'].corr(df['bic_diff']))
 
 
 def show_brlen_scaler_effects(df):
