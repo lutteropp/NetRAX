@@ -110,6 +110,24 @@ def extract_displayed_trees(network_path, n_taxa):
     return trees_newick, trees_prob
 
 
+def network_distance_only(network_1_path, network_2_path, n_taxa):
+    msa_path = "temp_fake_msa_" + str(os.getpid()) + "_" + str(random.getrandbits(64)) + ".txt"
+    msa_file = open(msa_path, "w")
+    msa_file.write(build_fake_msa(n_taxa, network_1_path))
+    msa_file.close()
+
+    netrax_cmd = NETRAX_PATH + " --network_distance_only " + \
+        " --first_network " + network_1_path + " --second_network " + network_2_path + " --msa " + msa_path + " --model DNA"
+    print(netrax_cmd)
+    cmd_status, cmd_output = subprocess.getstatusoutput(netrax_cmd)
+    print(cmd_output)
+    lines = cmd_output.splitlines()
+    for line in lines:
+        if line.startswith("Unrooted softwired network distance: "):
+            return float(line.split[": "][1])
+    return -1
+
+
 def check_weird_network(network_path, n_taxa):
     msa_path = "temp_fake_msa_" + str(os.getpid()) + "_" + str(random.getrandbits(64)) + ".txt"
     msa_file = open(msa_path, "w")
