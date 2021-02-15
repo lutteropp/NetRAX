@@ -122,10 +122,13 @@ def network_distance_only(network_1_path, network_2_path, n_taxa):
     cmd_status, cmd_output = subprocess.getstatusoutput(netrax_cmd)
     print(cmd_output)
     lines = cmd_output.splitlines()
+    dist = -1
     for line in lines:
         if line.startswith("Unrooted softwired network distance: "):
-            return float(line.split[": "][1])
-    return -1
+            dist = float(line.split[": "][1])
+            break
+    os.remove(msa_path)
+    return dist
 
 
 def check_weird_network(network_path, n_taxa):
