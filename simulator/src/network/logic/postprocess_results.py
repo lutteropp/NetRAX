@@ -1,4 +1,5 @@
 from append_topologial_distances import append_distances
+from append_msa_patterns import append_patterns
 from csv_merger import postprocess_merge
 
 import argparse
@@ -18,4 +19,5 @@ if __name__ == "__main__":
     for g_it in range(iterations_global):
         postprocess_merge(prefix + "_" + str(g_it), iterations_local)
     postprocess_merge(prefix, iterations_global)
+    append_patterns(prefix)
     append_distances(prefix)
