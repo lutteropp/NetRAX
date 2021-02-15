@@ -119,6 +119,7 @@ def show_plots(df):
     quality_stats(df)
     print("")
     distances(df)
+    plt.show()
 
 
 def parse_command_line_arguments_plots():
