@@ -1,4 +1,4 @@
-from append_topologial_distances import append_distances_netrax
+from append_topological_distances import append_distances_netrax
 from append_msa_patterns import append_patterns
 from csv_merger import postprocess_merge
 
