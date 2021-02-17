@@ -7,6 +7,7 @@ from experiment_model import LikelihoodType, BrlenLinkageType, StartType
 
 NETRAX_PATH = "../../../../bin/netrax"
 
+NETWORK_DISTANCE_NAMES = ['unrooted_softwired_network_distance', 'unrooted_hardwired_network_distance', 'unrooted_displayed_trees_distance', 'rooted_softwired_network_distance', 'rooted_hardwired_network_distance', 'rooted_displayed_trees_distance', 'rooted_tripartition_distance', 'rooted_path_multiplicity_distance', 'rooted_nested_labels_distance']
 
 # Uses NetRAX to compute the number of reticulations, BIC score, and loglikelihood of a network for a given MSA
 def score_network(network_path, msa_path, partitions_path, likelihood_type, brlen_linkage_type):
@@ -108,13 +109,17 @@ def extract_displayed_trees(network_path, n_taxa):
         trees_prob.append(float(lines[start_idx + i]))
     os.remove(msa_path)
     return trees_newick, trees_prob
-
+    
 
 def network_distance_only(network_1_path, network_2_path, n_taxa):
     msa_path = "temp_fake_msa_" + str(os.getpid()) + "_" + str(random.getrandbits(64)) + ".txt"
     msa_file = open(msa_path, "w")
     msa_file.write(build_fake_msa(n_taxa, network_1_path))
     msa_file.close()
+
+    distances = {}
+    for name in NETWORK_DISTANCE_NAMES:
+        distances[name] = -1
 
     netrax_cmd = NETRAX_PATH + " --network_distance_only " + \
         " --first_network " + network_1_path + " --second_network " + network_2_path + " --msa " + msa_path + " --model DNA"
@@ -125,10 +130,26 @@ def network_distance_only(network_1_path, network_2_path, n_taxa):
     dist = -1
     for line in lines:
         if line.startswith("Unrooted softwired network distance: "):
-            dist = float(line.split(": ")[1])
-            break
+            distances['unrooted_softwired_network_distance'] = float(line.split(": ")[1])
+        elif line.startswith("Unrooted hardwired network distance: "):
+            distances['unrooted_hardwired_network_distance'] = float(line.split(": ")[1])
+        elif line.startswith("Unrooted displayed trees distance: "):
+            distances['unrooted_displayed_trees_distance'] = float(line.split(": ")[1])
+
+        elif line.startswith("Rooted softwired network distance: "):
+            distances['rooted_softwired_network_distance'] = float(line.split(": ")[1])
+        elif line.startswith("Rooted hardwired network distance: "):
+            distances['rooted_hardwired_network_distance'] = float(line.split(": ")[1])
+        elif line.startswith("Rooted displayed trees distance: "):
+            distances['rooted_displayed_trees_distance'] = float(line.split(": ")[1])
+        elif line.startswith("Rooted tripartition distance: "):
+            distances['rooted_tripartition_distance'] = float(line.split(": ")[1])
+        elif line.startswith("Rooted path multiplicity distance: "):
+            distances['rooted_path_multiplicity_distance'] = float(line.split(": ")[1])
+        elif line.startswith("Rooted nested labels distance: "):
+            distances['rooted_nested_labels_distance'] = float(line.split(": ")[1])
     os.remove(msa_path)
-    return dist
+    return distances
 
 
 def check_weird_network(network_path, n_taxa):
