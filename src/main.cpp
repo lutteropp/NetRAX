@@ -199,13 +199,25 @@ std::vector<bool> edge_split(AnnotatedNetwork& ann_network, Edge* edge, std::uno
     return split;
 }
 
+bool is_trivial_split(const std::vector<bool>& split) {
+    unsigned int cnt_ones = 0;
+    for (size_t i = 0; i < split.size(); ++i) {
+        if (split[i]) {
+            cnt_ones++;
+        }
+    }
+    return ((cnt_ones == 1) || (cnt_ones == split.size() - 1));
+}
+
 std::unordered_set<std::vector<bool> > extract_network_splits(AnnotatedNetwork& ann_network, std::unordered_map<std::string, unsigned int>& label_to_int) {
     std::unordered_set<std::vector<bool> > splits_hash;
     for (int tree_index = 0; tree_index < 1 << ann_network.network.num_reticulations(); ++tree_index) {
         netrax::setReticulationParents(ann_network.network, tree_index);
         for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
             std::vector<bool> act_split = edge_split(ann_network, ann_network.network.edges_by_index[i], label_to_int);
-            splits_hash.emplace(act_split);
+            if (!is_trivial_split(act_split)) {
+                splits_hash.emplace(act_split);
+            }
         }
     }
     return splits_hash;
