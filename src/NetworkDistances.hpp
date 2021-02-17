@@ -21,7 +21,9 @@ namespace netrax
 
         ROOTED_TRIPARTITION_DISTANCE = 6,
 
-        ROOTED_PATH_MULTIPLICITY_DISTANCE = 7
+        ROOTED_PATH_MULTIPLICITY_DISTANCE = 7,
+
+        ROOTED_NESTED_LABELS_DISTANCE = 8
     };
 
     double get_network_distance(AnnotatedNetwork &ann_network_1, AnnotatedNetwork &ann_network_2, std::unordered_map<std::string, unsigned int> &label_to_int, NetworkDistanceType type);

@@ -8,6 +8,10 @@
 #include <vector>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
+#include <set>
+#include <algorithm>
+#include <functional>
 
 namespace netrax
 {
@@ -207,6 +211,49 @@ namespace netrax
         }
     };
 
+    struct NestedLabel {
+        std::string newick;
+
+        NestedLabel() {
+            newick = "";
+        }
+
+        NestedLabel(std::vector<NestedLabel>& childrenLabels) {
+            newick = "(";
+            std::vector<std::string> childrenStrings;
+            for (size_t i = 0; i < childrenLabels.size(); ++i) {
+                childrenStrings.emplace_back(childrenLabels[i].newick);
+            }
+            std::sort(childrenStrings.begin(), childrenStrings.end());
+
+            for (size_t i = 0; i < childrenStrings.size(); ++i) {
+                newick += childrenStrings[i];
+                if (i + 1 < childrenStrings.size()) {
+                    newick += ",";
+                }
+            }
+            newick += ")";
+        }
+
+        NestedLabel(int tip_id) {
+            newick = std::to_string(tip_id);
+        }
+
+        bool empty() const {
+            return newick.empty();
+        }
+
+        bool operator==(const NestedLabel& other) const {
+            return newick == other.newick;
+        }
+    };
+
+    struct NestedLabelHash {
+        size_t operator()(const NestedLabel& v) const {
+            return std::hash<std::string>{}(v.newick);
+        }
+    };
+
     std::unordered_set<std::vector<int>, VectorHash> extract_network_trips(AnnotatedNetwork &ann_network, std::unordered_map<std::string, unsigned int> &label_to_int)
     {
         std::unordered_set<std::vector<int>, VectorHash> trips_hash;
@@ -229,6 +276,41 @@ namespace netrax
             path_vector_hash.emplace(act_path_vector);
         }
         return path_vector_hash;
+    }
+
+    void update_node_nested_labels(AnnotatedNetwork& ann_network, unsigned int node_idx, std::vector<NestedLabel>& nested_labels_by_node, std::unordered_map<std::string, unsigned int> &label_to_int) {
+        if (!nested_labels_by_node[node_idx].empty()) {
+            return;
+        }
+        Node* node = ann_network.network.nodes_by_index[node_idx];
+        if (node->isTip()) {
+            nested_labels_by_node[node_idx] = NestedLabel(label_to_int[node->label]);
+            return;
+        } else {
+            auto children = getChildren(ann_network.network, node);
+            std::vector<NestedLabel> childrenLabels;
+            for (auto& child : children) {
+                if (nested_labels_by_node[child->clv_index].empty()) {
+                    update_node_nested_labels(ann_network, child->clv_index, nested_labels_by_node, label_to_int);
+                }
+                childrenLabels.emplace_back(nested_labels_by_node[child->clv_index]);
+            }
+            nested_labels_by_node[node_idx] = NestedLabel(childrenLabels);
+        }
+    }
+
+    std::unordered_set<NestedLabel, NestedLabelHash> extract_network_nested_labels(AnnotatedNetwork& ann_network, std::unordered_map<std::string, unsigned int> &label_to_int) {
+        std::unordered_set<NestedLabel, NestedLabelHash> nested_labels_set;
+        std::vector<NestedLabel> nested_labels_by_node(ann_network.network.num_nodes());
+        
+        for (size_t i = 0; i < ann_network.network.num_nodes(); ++i) {
+            update_node_nested_labels(ann_network, i, nested_labels_by_node, label_to_int);
+            if (i > ann_network.network.num_tips()) { // exclude the trivial tip labels
+                nested_labels_set.emplace(nested_labels_by_node[i]);
+            }
+        }
+
+        return nested_labels_set;
     }
 
     template <typename T>
@@ -317,6 +399,12 @@ namespace netrax
         return relative_distance_score(paths_hash_1, paths_hash_2);
     }
 
+    double rooted_nested_labels_distance(AnnotatedNetwork &ann_network_1, AnnotatedNetwork& ann_network_2, std::unordered_map<std::string, unsigned int> &label_to_int) {
+        auto labels_hash_1 = extract_network_nested_labels(ann_network_1, label_to_int);
+        auto labels_hash_2 = extract_network_nested_labels(ann_network_2, label_to_int);
+        return relative_distance_score(labels_hash_1, labels_hash_2);
+    }
+
     double get_network_distance(AnnotatedNetwork &ann_network_1, AnnotatedNetwork &ann_network_2, std::unordered_map<std::string, unsigned int> &label_to_int, NetworkDistanceType type)
     {
         switch (type)
@@ -337,6 +425,8 @@ namespace netrax
             return rooted_tripartition_distance(ann_network_1, ann_network_2, label_to_int);
         case NetworkDistanceType::ROOTED_PATH_MULTIPLICITY_DISTANCE:
             return rooted_path_multiplicity_distance(ann_network_1, ann_network_2, label_to_int);
+        case NetworkDistanceType::ROOTED_NESTED_LABELS_DISTANCE:
+            return rooted_nested_labels_distance(ann_network_1, ann_network_2, label_to_int);
         default:
             throw std::runtime_error("Required network distance type not implemented yet!");
         }
