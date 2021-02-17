@@ -99,7 +99,7 @@ def plot_weirdness_stats(df):
     plt.show()
     
 
-def distances(df):
+def distances_dendroscope(df):
     plt.figure()
     fig, axes = plt.subplots(3, 2, constrained_layout=True)
     fig.suptitle("Topological Network Distances")
@@ -115,6 +115,28 @@ def distances(df):
         plt.figure()
         df['unrooted_softwired_distance'].plot.hist(bins=100, alpha=0.5, range=(0,1), title='Unrooted softwired distance')
         plt.show()
+
+
+def distances_netrax(df):
+    plt.figure()
+    fig, axes = plt.subplots(1, 3, constrained_layout=True)
+    fig.suptitle("Unrooted Topological Network Distances")
+    df['unrooted_softwired_network_distance'].plot.hist(bins=10, alpha=0.5, title='Unrooted softwired cluster distance', ax=axes[0])
+    df['unrooted_hardwired_network_distance'].plot.hist(bins=10, alpha=0.5, title='Unrooted hardwired cluster distance', ax=axes[1])
+    df['unrooted_displayed_trees_distance'].plot.hist(bins=10, alpha=0.5, title='Unrooted displayed trees distance', ax=axes[2])
+    plt.show()
+
+    plt.figure()
+    fig, axes = plt.subplots(2, 3, constrained_layout=True)
+    fig.suptitle("Rooted Topological Network Distances")
+    df['rooted_softwired_network_distance'].plot.hist(bins=10, alpha=0.5, title='Rooted softwired cluster distance', ax=axes[0,0])
+    df['rooted_hardwired_network_distance'].plot.hist(bins=10, alpha=0.5, title='Rooted hardwired cluster distance', ax=axes[0,1])
+    df['rooted_displayed_trees_distance'].plot.hist(bins=10, alpha=0.5, title='Rooted displayed trees distance', ax=axes[0,2])
+
+    df['rooted_tripartition_distance'].plot.hist(bins=10, alpha=0.5, title='Rooted tripartition distance', ax=axes[1,0])
+    df['rooted_path_multiplicity_distance'].plot.hist(bins=10, alpha=0.5, title='Rooted path multiplicity distance', ax=axes[1,1])
+    df['rooted_nested_labels_distance'].plot.hist(bins=10, alpha=0.5, title='Rooted nested labels distance', ax=axes[1,2])
+    plt.show()
 
     
 def plots_setup():
@@ -176,7 +198,8 @@ def show_brlen_scaler_effects(df):
 def show_plots(df):
     quality_stats(df)
     print("")
-    distances(df)
+    #distances_dendroscope(df)
+    distances_netrax(df)
     #show_pattern_quality_effects(df)
 
 
