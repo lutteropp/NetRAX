@@ -65,7 +65,7 @@ namespace netrax
         return split;
     }
 
-    std::vector<short> edge_trip(AnnotatedNetwork &ann_network, Edge *edge, std::unordered_map<std::string, unsigned int> &label_to_int)
+    std::vector<int> edge_trip(AnnotatedNetwork &ann_network, Edge *edge, std::unordered_map<std::string, unsigned int> &label_to_int)
     {
         Network &network = ann_network.network;
         std::vector<unsigned int> descendant_in_trees_count(network.num_tips(), 0); // first, we count in how many displayed trees a taxon is a descendant
@@ -100,7 +100,7 @@ namespace netrax
             }
         }
 
-        std::vector<short> trip(network.num_tips(), 0);
+        std::vector<int> trip(network.num_tips(), 0);
         for (size_t i = 0; i < trip.size(); ++i) {
             if (descendant_in_trees_count[i] > 0) {
                 if (descendant_in_trees_count[i] == n_trees) {
@@ -112,6 +112,32 @@ namespace netrax
         }
 
         return trip;
+    }
+
+
+    int count_paths(AnnotatedNetwork &ann_network, Node* source, Node* target) {
+        if (source == target) {
+            return 1;
+        }
+        if (source->isTip()) {
+            return 0;
+        }
+        int n_paths = 0;
+        auto children = getChildren(ann_network.network, source);
+        for (auto& child : children) {
+            n_paths += count_paths(ann_network, child, target);
+        }
+        return n_paths;
+    }
+
+
+    std::vector<int> node_path_vector(AnnotatedNetwork &ann_network, Node *node, std::unordered_map<std::string, unsigned int> &label_to_int) {
+        std::vector<int> path_vector(ann_network.network.num_tips(), 0);
+        for (size_t i = 0; i < ann_network.network.num_tips(); ++i) {
+            unsigned int tip_id = label_to_int[ann_network.network.nodes_by_index[i]->label];
+            path_vector[tip_id] = count_paths(ann_network, node, ann_network.network.nodes_by_index[i]);
+        }
+        return path_vector;
     }
 
     bool is_trivial_split(const std::vector<bool> &split)
@@ -127,7 +153,7 @@ namespace netrax
         return ((cnt_ones == 1) || (cnt_ones == split.size() - 1));
     }
 
-    bool is_trivial_trip(const std::vector<short> &trip)
+    bool is_trivial_trip(const std::vector<int> &trip)
     {
         unsigned int cnt_zeros = 0; // these are the non-decendants of the edge associated with the given tripartition
         for (size_t i = 0; i < trip.size(); ++i)
@@ -171,8 +197,8 @@ namespace netrax
     }
 
     struct VectorHash {
-        size_t operator()(const std::vector<short>& v) const {
-            std::hash<short> hasher;
+        size_t operator()(const std::vector<int>& v) const {
+            std::hash<int> hasher;
             size_t seed = 0;
             for (int i : v) {
                 seed ^= hasher(i) + 0x9e3779b9 + (seed<<6) + (seed>>2);
@@ -181,18 +207,28 @@ namespace netrax
         }
     };
 
-    std::unordered_set<std::vector<short>, VectorHash> extract_network_trips(AnnotatedNetwork &ann_network, std::unordered_map<std::string, unsigned int> &label_to_int)
+    std::unordered_set<std::vector<int>, VectorHash> extract_network_trips(AnnotatedNetwork &ann_network, std::unordered_map<std::string, unsigned int> &label_to_int)
     {
-        std::unordered_set<std::vector<short>, VectorHash> trips_hash;
+        std::unordered_set<std::vector<int>, VectorHash> trips_hash;
         for (size_t i = 0; i < ann_network.network.num_branches(); ++i)
         {
-            std::vector<short> act_trip = edge_trip(ann_network, ann_network.network.edges_by_index[i], label_to_int);
+            std::vector<int> act_trip = edge_trip(ann_network, ann_network.network.edges_by_index[i], label_to_int);
             if (!is_trivial_trip(act_trip))
             {
                 trips_hash.emplace(act_trip);
             }
         }
         return trips_hash;
+    }
+
+    std::unordered_set<std::vector<int>, VectorHash> extract_network_path_vectors(AnnotatedNetwork& ann_network, std::unordered_map<std::string, unsigned int> &label_to_int) {
+        std::unordered_set<std::vector<int>, VectorHash> path_vector_hash;
+        for (size_t i = 0; i < ann_network.network.num_nodes(); ++i)
+        {
+            std::vector<int> act_path_vector = node_path_vector(ann_network, ann_network.network.nodes_by_index[i], label_to_int);
+            path_vector_hash.emplace(act_path_vector);
+        }
+        return path_vector_hash;
     }
 
     template <typename T>
@@ -275,6 +311,12 @@ namespace netrax
         return dist;
     }
 
+    double rooted_path_multiplicity_distance(AnnotatedNetwork &ann_network_1, AnnotatedNetwork& ann_network_2, std::unordered_map<std::string, unsigned int> &label_to_int) {
+        auto paths_hash_1 = extract_network_path_vectors(ann_network_1, label_to_int);
+        auto paths_hash_2 = extract_network_path_vectors(ann_network_2, label_to_int);
+        return relative_distance_score(paths_hash_1, paths_hash_2);
+    }
+
     double get_network_distance(AnnotatedNetwork &ann_network_1, AnnotatedNetwork &ann_network_2, std::unordered_map<std::string, unsigned int> &label_to_int, NetworkDistanceType type)
     {
         switch (type)
@@ -293,6 +335,8 @@ namespace netrax
             return displayed_trees_distance(ann_network_1, ann_network_2, label_to_int, false);
         case NetworkDistanceType::ROOTED_TRIPARTITION_DISTANCE:
             return rooted_tripartition_distance(ann_network_1, ann_network_2, label_to_int);
+        case NetworkDistanceType::ROOTED_PATH_MULTIPLICITY_DISTANCE:
+            return rooted_path_multiplicity_distance(ann_network_1, ann_network_2, label_to_int);
         default:
             throw std::runtime_error("Required network distance type not implemented yet!");
         }
