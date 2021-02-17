@@ -1,4 +1,4 @@
-from simulator.src.network.logic.netrax_wrapper import network_distance_only
+from netrax_wrapper import network_distance_only
 from dendroscope_wrapper import evaluate
 from netrax_wrapper import network_distance_only
 import pandas as pd
