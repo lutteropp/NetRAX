@@ -8,7 +8,8 @@ def merge_csvs(inpaths, outpath):
     for p in inpaths:
         if not os.path.isfile(p):
             print("Not a file: " + p)
-            #raise Exception("Not a file")
+    if len(real_inpaths) == 0:
+        return
     combined_csv = pd.concat([pd.read_csv(f) for f in real_inpaths])
     combined_csv.to_csv(outpath, index=False, encoding='utf-8-sig')
 
