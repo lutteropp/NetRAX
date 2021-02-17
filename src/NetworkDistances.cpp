@@ -65,6 +65,55 @@ namespace netrax
         return split;
     }
 
+    std::vector<short> edge_trip(AnnotatedNetwork &ann_network, Edge *edge, std::unordered_map<std::string, unsigned int> &label_to_int)
+    {
+        Network &network = ann_network.network;
+        std::vector<unsigned int> descendant_in_trees_count(network.num_tips(), 0); // first, we count in how many displayed trees a taxon is a descendant
+        unsigned int n_trees = 1 << ann_network.network.num_reticulations();
+
+        for (unsigned int tree_index = 0; tree_index < n_trees; ++tree_index)
+        {
+            netrax::setReticulationParents(ann_network.network, tree_index);
+            // increase everything below the edge
+            std::queue<Node *> q;
+            q.emplace(getTarget(network, edge));
+            while (!q.empty())
+            {
+                Node *act_node = q.front();
+                q.pop();
+                if (act_node->isTip())
+                {
+                    if (label_to_int.find(act_node->label) == label_to_int.end())
+                    {
+                        throw std::runtime_error("Unknown taxon name: " + act_node->label);
+                    }
+                    descendant_in_trees_count[label_to_int[act_node->label]]++;
+                }
+                else
+                {
+                    std::vector<netrax::Node *> children = getActiveChildren(network, act_node);
+                    for (Node *child : children)
+                    {
+                        q.emplace(child);
+                    }
+                }
+            }
+        }
+
+        std::vector<short> trip(network.num_tips(), 0);
+        for (size_t i = 0; i < trip.size(); ++i) {
+            if (descendant_in_trees_count[i] > 0) {
+                if (descendant_in_trees_count[i] == n_trees) {
+                    trip[i] = 1; // stable descendant
+                } else {
+                    trip[i] = 2; // unstable descendant
+                }
+            }
+        }
+
+        return trip;
+    }
+
     bool is_trivial_split(const std::vector<bool> &split)
     {
         unsigned int cnt_ones = 0;
@@ -76,6 +125,19 @@ namespace netrax
             }
         }
         return ((cnt_ones == 1) || (cnt_ones == split.size() - 1));
+    }
+
+    bool is_trivial_trip(const std::vector<short> &trip)
+    {
+        unsigned int cnt_zeros = 0; // these are the non-decendants of the edge associated with the given tripartition
+        for (size_t i = 0; i < trip.size(); ++i)
+        {
+            if (trip[i] == 0)
+            {
+                cnt_zeros++;
+            }
+        }
+        return ((cnt_zeros == 1) || (cnt_zeros == trip.size() - 1));
     }
 
     void add_splits(std::unordered_set<std::vector<bool>> &splits_hash, AnnotatedNetwork &ann_network, std::unordered_map<std::string, unsigned int> &label_to_int, bool unrooted, bool softwired)
@@ -108,12 +170,38 @@ namespace netrax
         return splits_hash;
     }
 
-    unsigned int count_not_in_other(const std::unordered_set<std::vector<bool>> &splits_hash, const std::unordered_set<std::vector<bool>> &other_splits_hash)
+    struct VectorHash {
+        size_t operator()(const std::vector<short>& v) const {
+            std::hash<short> hasher;
+            size_t seed = 0;
+            for (int i : v) {
+                seed ^= hasher(i) + 0x9e3779b9 + (seed<<6) + (seed>>2);
+            }
+            return seed;
+        }
+    };
+
+    std::unordered_set<std::vector<short>, VectorHash> extract_network_trips(AnnotatedNetwork &ann_network, std::unordered_map<std::string, unsigned int> &label_to_int)
+    {
+        std::unordered_set<std::vector<short>, VectorHash> trips_hash;
+        for (size_t i = 0; i < ann_network.network.num_branches(); ++i)
+        {
+            std::vector<short> act_trip = edge_trip(ann_network, ann_network.network.edges_by_index[i], label_to_int);
+            if (!is_trivial_trip(act_trip))
+            {
+                trips_hash.emplace(act_trip);
+            }
+        }
+        return trips_hash;
+    }
+
+    template <typename T>
+    unsigned int count_in_both(T &set_1, T &set_2)
     {
         unsigned int cnt = 0;
-        for (const std::vector<bool> &split : splits_hash)
+        for (const auto &split : set_1)
         {
-            if (other_splits_hash.count(split) == 0)
+            if (set_2.count(split) > 0)
             {
                 cnt++;
             }
@@ -121,29 +209,27 @@ namespace netrax
         return cnt;
     }
 
-    unsigned int count_in_both(const std::unordered_set<std::vector<bool>> &splits_hash, const std::unordered_set<std::vector<bool>> &other_splits_hash)
-    {
-        unsigned int cnt = 0;
-        for (const std::vector<bool> &split : splits_hash)
-        {
-            if (other_splits_hash.count(split) > 0)
-            {
-                cnt++;
-            }
-        }
-        return cnt;
+    template <typename T>
+    double relative_distance_score(T& set_1, T& set_2) {
+        unsigned int n_1 = set_1.size();
+        unsigned int n_2 = set_2.size();
+        unsigned int n_both = count_in_both(set_1, set_2);
+
+        double dist = (double)(n_1 + n_2 - 2 * n_both) / (n_1 + n_2 - n_both);
+        return dist;
+    }
+
+    double rooted_tripartition_distance(AnnotatedNetwork& ann_network_1, AnnotatedNetwork& ann_network_2, std::unordered_map<std::string, unsigned int> &label_to_int) {
+        auto trips_hash_1 = extract_network_trips(ann_network_1, label_to_int);
+        auto trips_hash_2 = extract_network_trips(ann_network_2, label_to_int);
+        return relative_distance_score(trips_hash_1, trips_hash_2);
     }
 
     double cluster_distance(AnnotatedNetwork &ann_network_1, AnnotatedNetwork &ann_network_2, std::unordered_map<std::string, unsigned int> &label_to_int, bool unrooted, bool softwired)
     {
-        std::unordered_set<std::vector<bool>> splits_hash_1 = extract_network_splits(ann_network_1, label_to_int, unrooted, softwired);
-        std::unordered_set<std::vector<bool>> splits_hash_2 = extract_network_splits(ann_network_2, label_to_int, unrooted, softwired);
-        unsigned int n_1 = splits_hash_1.size();
-        unsigned int n_2 = splits_hash_2.size();
-        unsigned int n_both = count_in_both(splits_hash_1, splits_hash_2);
-
-        double dist = (double)(n_1 + n_2 - 2 * n_both) / (n_1 + n_2 - n_both);
-        return dist;
+        auto splits_hash_1 = extract_network_splits(ann_network_1, label_to_int, unrooted, softwired);
+        auto splits_hash_2 = extract_network_splits(ann_network_2, label_to_int, unrooted, softwired);
+        return relative_distance_score(splits_hash_1, splits_hash_2);
     }
 
     double displayed_trees_distance(AnnotatedNetwork &ann_network_1, AnnotatedNetwork &ann_network_2, std::unordered_map<std::string, unsigned int> &label_to_int, bool unrooted)
@@ -205,6 +291,8 @@ namespace netrax
             return displayed_trees_distance(ann_network_1, ann_network_2, label_to_int, true);
         case NetworkDistanceType::ROOTED_DISPLAYED_TREES_DISTANCE:
             return displayed_trees_distance(ann_network_1, ann_network_2, label_to_int, false);
+        case NetworkDistanceType::ROOTED_TRIPARTITION_DISTANCE:
+            return rooted_tripartition_distance(ann_network_1, ann_network_2, label_to_int);
         default:
             throw std::runtime_error("Required network distance type not implemented yet!");
         }

@@ -224,6 +224,7 @@ void network_distance_only(NetraxOptions &netraxOptions, std::mt19937 &rng)
     std::cout << "Rooted softwired network distance: " << get_network_distance(ann_network_1, ann_network_2, label_to_int, NetworkDistanceType::ROOTED_SOFTWIRED_DISTANCE) << "\n";
     std::cout << "Rooted hardwired network distance: " << get_network_distance(ann_network_1, ann_network_2, label_to_int, NetworkDistanceType::ROOTED_HARDWIRED_DISTANCE) << "\n";
     std::cout << "Rooted displayed trees distance: " << get_network_distance(ann_network_1, ann_network_2, label_to_int, NetworkDistanceType::ROOTED_DISPLAYED_TREES_DISTANCE) << "\n";
+    std::cout << "Rooted tripartition distance: " << get_network_distance(ann_network_1, ann_network_2, label_to_int, NetworkDistanceType::ROOTED_TRIPARTITION_DISTANCE) << "\n";
 }
 
 void check_weird_network(NetraxOptions &netraxOptions, std::mt19937 &rng)
