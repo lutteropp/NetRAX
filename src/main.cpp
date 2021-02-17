@@ -222,6 +222,17 @@ unsigned int count_not_in_other(const std::unordered_set<std::vector<bool> >& sp
     return cnt;
 }
 
+unsigned int count_in_both(const std::unordered_set<std::vector<bool> >& splits_hash, const std::unordered_set<std::vector<bool> >& other_splits_hash) {
+    unsigned int cnt = 0;
+    for (const std::vector<bool>& split : splits_hash) {
+        if (other_splits_hash.count(split) > 0)
+        {
+            cnt++;
+        }
+    }
+    return cnt;
+}
+
 void network_distance_only(NetraxOptions &netraxOptions, std::mt19937& rng) {
     if (netraxOptions.first_network_path.empty() || netraxOptions.second_network_path.empty()) {
         throw std::runtime_error("Need networks to compute distance");
@@ -248,7 +259,7 @@ void network_distance_only(NetraxOptions &netraxOptions, std::mt19937& rng) {
     unsigned int one_but_not_two = count_not_in_other(splits_hash_1, splits_hash_2);
     unsigned int two_but_not_one = count_not_in_other(splits_hash_2, splits_hash_1);
 
-    double dist = (double) (one_but_not_two + two_but_not_one) / (splits_hash_1.size() + splits_hash_2.size());
+    double dist = (double) (one_but_not_two + two_but_not_one) / (splits_hash_1.size() + splits_hash_2.size() - count_in_both(splits_hash_1, splits_hash_2));
 
     std::cout << "Unrooted softwired network distance: " << dist << "\n";
 }
