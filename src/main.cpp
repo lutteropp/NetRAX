@@ -15,18 +15,19 @@
 
 using namespace netrax;
 
-int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
-    CLI::App app { "NetRAX: Phylogenetic Network Inference without Incomplete Lineage Sorting" };
+int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
+{
+    CLI::App app{"NetRAX: Phylogenetic Network Inference without Incomplete Lineage Sorting"};
     app.add_option("--msa", options->msa_file, "The Multiple Sequence Alignment File");
     app.add_option("--model", options->model_file, "The partitions assignment in case of a partitioned MSA.");
     app.add_option("-o,--output", options->output_file, "File where to write the final network to");
     app.add_option("--start_network", options->start_network_file, "A network file (in Extended Newick format) to start the search on");
     app.add_option("-r,--max_reticulations", options->max_reticulations,
-            "Maximum number of reticulations to consider (default: 32)");
+                   "Maximum number of reticulations to consider (default: 32)");
     app.add_option("-n,--num_random_start_networks", options->num_random_start_networks,
-            "Number of random start networks (default: 10)");
+                   "Number of random start networks (default: 10)");
     app.add_option("-p,--num_parsimony_start_networks", options->num_parsimony_start_networks,
-            "Number of parsimony start networks (default: 10)");
+                   "Number of parsimony start networks (default: 10)");
     app.add_option("-t,--timeout", options->timeout, "Maximum number of seconds to run network search.");
     app.add_flag("-e,--endless", options->endless, "Endless search mode - keep trying with more random start networks.");
     app.add_option("--seed", options->seed, "Seed for random number generation.");
@@ -51,31 +52,43 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
     CLI11_PARSE(app, argc, argv);
     options->likelihood_variant = (best_displayed_tree_variant) ? LikelihoodVariant::BEST_DISPLAYED_TREE : LikelihoodVariant::AVERAGE_DISPLAYED_TREES;
 
-    if (brlen_linkage == "scaled") {
+    if (brlen_linkage == "scaled")
+    {
         options->brlen_linkage = PLLMOD_COMMON_BRLEN_SCALED;
-    } else if (brlen_linkage == "linked") {
+    }
+    else if (brlen_linkage == "linked")
+    {
         options->brlen_linkage = PLLMOD_COMMON_BRLEN_LINKED;
-    } else if (brlen_linkage == "unlinked") {
+    }
+    else if (brlen_linkage == "unlinked")
+    {
         options->brlen_linkage = PLLMOD_COMMON_BRLEN_UNLINKED;
-    } else {
+    }
+    else
+    {
         throw std::runtime_error("brlen_linkage needs to be one of {linked, scaled, unlinked}");
     }
     return 0;
 }
 
-void pretty_print(NetraxOptions& netraxOptions) {
-    if (netraxOptions.start_network_file.empty()) {
+void pretty_print(NetraxOptions &netraxOptions)
+{
+    if (netraxOptions.start_network_file.empty())
+    {
         throw std::runtime_error("No input network specified to be pretty-printed");
     }
     Network network = netrax::readNetworkFromFile(netraxOptions.start_network_file);
     std::cout << exportDebugInfoNetwork(network) << "\n";
 }
 
-void score_only(NetraxOptions& netraxOptions, std::mt19937& rng) {
-    if (netraxOptions.msa_file.empty()) {
+void score_only(NetraxOptions &netraxOptions, std::mt19937 &rng)
+{
+    if (netraxOptions.msa_file.empty())
+    {
         throw std::runtime_error("Need MSA to score a network");
     }
-    if (netraxOptions.start_network_file.empty()) {
+    if (netraxOptions.start_network_file.empty())
+    {
         throw std::runtime_error("Need network file to be scored");
     }
     netrax::AnnotatedNetwork ann_network = build_annotated_network(netraxOptions);
@@ -102,36 +115,46 @@ void score_only(NetraxOptions& netraxOptions, std::mt19937& rng) {
     std::cout << "Loglikelihood: " << final_logl << "\n";
 }
 
-void extract_taxon_names(const NetraxOptions& netraxOptions) {
-    if (netraxOptions.start_network_file.empty()) {
+void extract_taxon_names(const NetraxOptions &netraxOptions)
+{
+    if (netraxOptions.start_network_file.empty())
+    {
         throw std::runtime_error("Need network to extract taxon names");
     }
     netrax::Network network = netrax::readNetworkFromFile(netraxOptions.start_network_file,
-            netraxOptions.max_reticulations);
+                                                          netraxOptions.max_reticulations);
     std::vector<std::string> tip_labels;
-    for (size_t i = 0; i < network.num_tips(); ++i) {
+    for (size_t i = 0; i < network.num_tips(); ++i)
+    {
         tip_labels.emplace_back(network.nodes_by_index[i]->getLabel());
     }
     std::cout << "Found " << tip_labels.size() << " taxa:\n";
-    for (size_t i = 0; i < tip_labels.size(); ++i) {
+    for (size_t i = 0; i < tip_labels.size(); ++i)
+    {
         std::cout << tip_labels[i] << "\n";
     }
 }
 
-void extract_displayed_trees(NetraxOptions& netraxOptions, std::mt19937& rng) {
-    if (netraxOptions.start_network_file.empty()) {
+void extract_displayed_trees(NetraxOptions &netraxOptions, std::mt19937 &rng)
+{
+    if (netraxOptions.start_network_file.empty())
+    {
         throw std::runtime_error("Need network to extract displayed trees");
     }
-    std::vector<std::pair<std::string, double> > displayed_trees;
+    std::vector<std::pair<std::string, double>> displayed_trees;
     netrax::AnnotatedNetwork ann_network = build_annotated_network(netraxOptions);
     init_annotated_network(ann_network, rng);
 
-    if (ann_network.network.num_reticulations() == 0) {
+    if (ann_network.network.num_reticulations() == 0)
+    {
         std::string newick = netrax::toExtendedNewick(ann_network);
         displayed_trees.emplace_back(std::make_pair(newick, 1.0));
-    } else {
-        for (int tree_index = 0; tree_index < 1 << ann_network.network.num_reticulations(); ++tree_index) {
-            pll_utree_t* utree = netrax::displayed_tree_to_utree(ann_network.network, tree_index);
+    }
+    else
+    {
+        for (int tree_index = 0; tree_index < 1 << ann_network.network.num_reticulations(); ++tree_index)
+        {
+            pll_utree_t *utree = netrax::displayed_tree_to_utree(ann_network.network, tree_index);
             double prob = netrax::displayed_tree_prob(ann_network, tree_index);
             Network displayedNetwork = netrax::convertUtreeToNetwork(*utree, 0);
             std::string newick = netrax::toExtendedNewick(displayedNetwork);
@@ -142,25 +165,31 @@ void extract_displayed_trees(NetraxOptions& netraxOptions, std::mt19937& rng) {
 
     std::cout << "Number of displayed trees: " << displayed_trees.size() << "\n";
     std::cout << "Displayed trees Newick strings:\n";
-    for (const auto& entry : displayed_trees) {
+    for (const auto &entry : displayed_trees)
+    {
         std::cout << entry.first << "\n";
     }
     std::cout << "Displayed trees probabilities:\n";
-    for (const auto& entry : displayed_trees) {
+    for (const auto &entry : displayed_trees)
+    {
         std::cout << entry.second << "\n";
     }
 }
 
-void scale_branches_only(NetraxOptions& netraxOptions, std::mt19937& rng) {
-    if (netraxOptions.start_network_file.empty()) {
+void scale_branches_only(NetraxOptions &netraxOptions, std::mt19937 &rng)
+{
+    if (netraxOptions.start_network_file.empty())
+    {
         throw std::runtime_error("Need network to scale branches");
     }
-    if (netraxOptions.output_file.empty()) {
+    if (netraxOptions.output_file.empty())
+    {
         throw std::runtime_error("Need output file to write the scaled network");
     }
     netrax::AnnotatedNetwork ann_network = build_annotated_network(netraxOptions);
     init_annotated_network(ann_network, rng);
-    for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
+    for (size_t i = 0; i < ann_network.network.num_branches(); ++i)
+    {
         ann_network.network.edges_by_index[i]->length *= netraxOptions.scale_branches_only;
         ann_network.fake_treeinfo->branch_lengths[0][i] *= netraxOptions.scale_branches_only;
     }
@@ -168,9 +197,10 @@ void scale_branches_only(NetraxOptions& netraxOptions, std::mt19937& rng) {
     std::cout << "Network with scaled branch lengths written to " << netraxOptions.output_file << "\n";
 }
 
-
-void network_distance_only(NetraxOptions &netraxOptions, std::mt19937& rng) {
-    if (netraxOptions.first_network_path.empty() || netraxOptions.second_network_path.empty()) {
+void network_distance_only(NetraxOptions &netraxOptions, std::mt19937 &rng)
+{
+    if (netraxOptions.first_network_path.empty() || netraxOptions.second_network_path.empty())
+    {
         throw std::runtime_error("Need networks to compute distance");
     }
     netrax::AnnotatedNetwork ann_network_1 = build_annotated_network_from_file(netraxOptions, netraxOptions.first_network_path);
@@ -180,37 +210,47 @@ void network_distance_only(NetraxOptions &netraxOptions, std::mt19937& rng) {
 
     std::cout << "Unrooted softwired network distance: " << get_network_distance(ann_network_1, ann_network_2, NetworkDistanceType::UNROOTED_SOFTWIRED_DISTANCE) << "\n";
     std::cout << "Unrooted hardwired network distance: " << get_network_distance(ann_network_1, ann_network_2, NetworkDistanceType::UNROOTED_HARDWIRED_DISTANCE) << "\n";
+    std::cout << "Unrooted displayed trees distance: " << get_network_distance(ann_network_1, ann_network_2, NetworkDistanceType::UNROOTED_DISPLAYED_TREES_DISTANCE) << "\n";
+
     std::cout << "Rooted softwired network distance: " << get_network_distance(ann_network_1, ann_network_2, NetworkDistanceType::ROOTED_SOFTWIRED_DISTANCE) << "\n";
-    std::cout << "Unrooted hardwired network distance: " << get_network_distance(ann_network_1, ann_network_2, NetworkDistanceType::UNROOTED_HARDWIRED_DISTANCE) << "\n";
+    std::cout << "Rooted hardwired network distance: " << get_network_distance(ann_network_1, ann_network_2, NetworkDistanceType::ROOTED_HARDWIRED_DISTANCE) << "\n";
+    std::cout << "Rooted displayed trees distance: " << get_network_distance(ann_network_1, ann_network_2, NetworkDistanceType::ROOTED_DISPLAYED_TREES_DISTANCE) << "\n";
 }
 
-void check_weird_network(NetraxOptions& netraxOptions, std::mt19937& rng) {
-    if (netraxOptions.start_network_file.empty()) {
+void check_weird_network(NetraxOptions &netraxOptions, std::mt19937 &rng)
+{
+    if (netraxOptions.start_network_file.empty())
+    {
         throw std::runtime_error("Need network to extract displayed trees");
     }
-    std::vector<pll_utree_t*> displayed_trees;
+    std::vector<pll_utree_t *> displayed_trees;
     netrax::AnnotatedNetwork ann_network = build_annotated_network(netraxOptions);
     init_annotated_network(ann_network, rng);
 
-    for (int tree_index = 0; tree_index < 1 << ann_network.network.num_reticulations(); ++tree_index) {
-        pll_utree_t* utree = netrax::displayed_tree_to_utree(ann_network.network, tree_index);
+    for (int tree_index = 0; tree_index < 1 << ann_network.network.num_reticulations(); ++tree_index)
+    {
+        pll_utree_t *utree = netrax::displayed_tree_to_utree(ann_network.network, tree_index);
         displayed_trees.emplace_back(utree);
     }
 
     unsigned int n_tips = ann_network.network.num_tips();
     unsigned int n_pairs = 0;
     unsigned int n_equal = 0;
-    for (size_t i = 0; i < displayed_trees.size(); ++i) {
-        for (size_t j = i+1; j < displayed_trees.size(); ++j) {
+    for (size_t i = 0; i < displayed_trees.size(); ++i)
+    {
+        for (size_t j = i + 1; j < displayed_trees.size(); ++j)
+        {
             n_pairs++;
 
             unsigned int rf_dist = pllmod_utree_rf_distance(displayed_trees[i]->vroot, displayed_trees[j]->vroot, n_tips);
-            if (rf_dist == 0) {
+            if (rf_dist == 0)
+            {
                 n_equal++;
             }
         }
     }
-    for (size_t i = 0; i < displayed_trees.size(); ++i) {
+    for (size_t i = 0; i < displayed_trees.size(); ++i)
+    {
         pll_utree_destroy(displayed_trees[i], nullptr);
     }
 
@@ -218,11 +258,14 @@ void check_weird_network(NetraxOptions& netraxOptions, std::mt19937& rng) {
     std::cout << "Number of equal pairs: " << n_equal << "\n";
 }
 
-void generate_random_network_only(NetraxOptions& netraxOptions, std::mt19937& rng) {
-    if (netraxOptions.msa_file.empty()) {
+void generate_random_network_only(NetraxOptions &netraxOptions, std::mt19937 &rng)
+{
+    if (netraxOptions.msa_file.empty())
+    {
         throw std::runtime_error("Need MSA to decide on the number of taxa");
     }
-    if (netraxOptions.output_file.empty()) {
+    if (netraxOptions.output_file.empty())
+    {
         throw std::runtime_error("Need output file to write the generated network");
     }
     netrax::AnnotatedNetwork ann_network = build_random_annotated_network(netraxOptions);
@@ -232,7 +275,8 @@ void generate_random_network_only(NetraxOptions& netraxOptions, std::mt19937& rn
     std::cout << "Final network written to " << netraxOptions.output_file << "\n";
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     std::cout << std::setprecision(10);
     //mpfr::mpreal::set_default_prec(mpfr::digits2bits(1000));
 
@@ -245,64 +289,81 @@ int main(int argc, char **argv) {
 
     parseOptions(argc, argv, &netraxOptions);
     std::mt19937 rng;
-    if (netraxOptions.seed == 0) {
+    if (netraxOptions.seed == 0)
+    {
         std::random_device dev;
         std::mt19937 rng2(dev());
         rng = rng2;
-    } else {
+    }
+    else
+    {
         std::mt19937 rng2(netraxOptions.seed);
         rng = rng2;
     }
 
-    if (netraxOptions.pretty_print_only) {
+    if (netraxOptions.pretty_print_only)
+    {
         pretty_print(netraxOptions);
         return 0;
     }
 
-    if (netraxOptions.extract_taxon_names) {
+    if (netraxOptions.extract_taxon_names)
+    {
         extract_taxon_names(netraxOptions);
         return 0;
     }
 
-    if (netraxOptions.extract_displayed_trees) {
+    if (netraxOptions.extract_displayed_trees)
+    {
         extract_displayed_trees(netraxOptions, rng);
         return 0;
     }
 
-    if (netraxOptions.check_weird_network) {
+    if (netraxOptions.check_weird_network)
+    {
         check_weird_network(netraxOptions, rng);
         return 0;
     }
 
-    if (netraxOptions.generate_random_network_only) {
+    if (netraxOptions.generate_random_network_only)
+    {
         generate_random_network_only(netraxOptions, rng);
         return 0;
     }
 
-    if (netraxOptions.scale_branches_only != 0.0) {
+    if (netraxOptions.scale_branches_only != 0.0)
+    {
         scale_branches_only(netraxOptions, rng);
         return 0;
     }
 
-    if (netraxOptions.network_distance_only) {
+    if (netraxOptions.network_distance_only)
+    {
         network_distance_only(netraxOptions, rng);
         return 0;
     }
 
-    if (netraxOptions.msa_file.empty()) {
+    if (netraxOptions.msa_file.empty())
+    {
         throw std::runtime_error("Need MSA to score a network");
     }
 
-    if (netraxOptions.score_only) {
+    if (netraxOptions.score_only)
+    {
         score_only(netraxOptions, rng);
         return 0;
-    } else if (netraxOptions.output_file.empty()) {
+    }
+    else if (netraxOptions.output_file.empty())
+    {
         throw std::runtime_error("No output path specified");
     }
 
-    if (!netraxOptions.start_network_file.empty()) {
+    if (!netraxOptions.start_network_file.empty())
+    {
         run_single_start_waves(netraxOptions, rng);
-    } else {
+    }
+    else
+    {
         run_random(netraxOptions, rng);
     }
 
