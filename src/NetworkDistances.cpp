@@ -11,7 +11,7 @@
 
 namespace netrax {
 
-    std::vector<bool> edge_split(AnnotatedNetwork& ann_network, Edge* edge, std::unordered_map<std::string, unsigned int>& label_to_int) {
+    std::vector<bool> edge_split(AnnotatedNetwork& ann_network, Edge* edge, std::unordered_map<std::string, unsigned int>& label_to_int, bool unrooted, bool softwired) {
         Network& network = ann_network.network;
         std::vector<bool> split(network.num_tips(), false);
         // activate everything below the edge
@@ -26,17 +26,25 @@ namespace netrax {
                 }
                 split[label_to_int[act_node->label]] = true;
             } else {
-                auto children = getActiveChildren(network, act_node);
+                std::vector<netrax::Node*> children;
+                if (softwired) {
+                    children = getActiveChildren(network, act_node);
+                } else {
+                    children = getChildren(network, act_node);
+                }
+                
                 for (Node* child : children) {
                     q.emplace(child);
                 }
             }
         }
         
-        // normalization: ensure that we have zero at the first position
-        if (split[0] == true) {
-            for (size_t i = 0; i < split.size(); ++i) {
-                split[i] = !split[i];
+        if (unrooted) {
+            // normalization: ensure that we have zero at the first position
+            if (split[0] == true) {
+                for (size_t i = 0; i < split.size(); ++i) {
+                    split[i] = !split[i];
+                }
             }
         }
 
@@ -53,16 +61,24 @@ namespace netrax {
         return ((cnt_ones == 1) || (cnt_ones == split.size() - 1));
     }
 
-    std::unordered_set<std::vector<bool> > extract_network_splits(AnnotatedNetwork& ann_network, std::unordered_map<std::string, unsigned int>& label_to_int) {
-        std::unordered_set<std::vector<bool> > splits_hash;
-        for (int tree_index = 0; tree_index < 1 << ann_network.network.num_reticulations(); ++tree_index) {
-            netrax::setReticulationParents(ann_network.network, tree_index);
-            for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
-                std::vector<bool> act_split = edge_split(ann_network, ann_network.network.edges_by_index[i], label_to_int);
-                if (!is_trivial_split(act_split)) {
-                    splits_hash.emplace(act_split);
-                }
+    void add_splits(std::unordered_set<std::vector<bool> >& splits_hash, AnnotatedNetwork& ann_network, std::unordered_map<std::string, unsigned int>& label_to_int, bool unrooted, bool softwired) {
+        for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
+            std::vector<bool> act_split = edge_split(ann_network, ann_network.network.edges_by_index[i], label_to_int, unrooted, softwired);
+            if (!is_trivial_split(act_split)) {
+                splits_hash.emplace(act_split);
             }
+        }
+    }
+
+    std::unordered_set<std::vector<bool> > extract_network_splits(AnnotatedNetwork& ann_network, std::unordered_map<std::string, unsigned int>& label_to_int, bool unrooted, bool softwired) {
+        std::unordered_set<std::vector<bool> > splits_hash;
+        if (softwired) {
+            for (int tree_index = 0; tree_index < 1 << ann_network.network.num_reticulations(); ++tree_index) {
+                netrax::setReticulationParents(ann_network.network, tree_index);
+                add_splits(splits_hash, ann_network, label_to_int, unrooted, softwired);
+            }
+        } else {
+            add_splits(splits_hash, ann_network, label_to_int, unrooted, softwired);
         }
         return splits_hash;
     }
@@ -98,8 +114,17 @@ namespace netrax {
             label_to_int[ann_network_1.network.nodes_by_index[i]->label] = i;
         }
 
-        std::unordered_set<std::vector<bool> > splits_hash_1 = extract_network_splits(ann_network_1, label_to_int);
-        std::unordered_set<std::vector<bool> > splits_hash_2 = extract_network_splits(ann_network_2, label_to_int);
+        bool unrooted = true;
+        if ((type == NetworkDistanceType::ROOTED_SOFTWIRED_DISTANCE) || (type == NetworkDistanceType::ROOTED_HARDWIRED_DISTANCE)) {
+            unrooted = false;
+        }
+        bool softwired = true;
+        if ((type == NetworkDistanceType::ROOTED_HARDWIRED_DISTANCE) || (type == NetworkDistanceType::UNROOTED_HARDWIRED_DISTANCE)) {
+            softwired = false;
+        }
+
+        std::unordered_set<std::vector<bool> > splits_hash_1 = extract_network_splits(ann_network_1, label_to_int, unrooted, softwired);
+        std::unordered_set<std::vector<bool> > splits_hash_2 = extract_network_splits(ann_network_2, label_to_int, unrooted, softwired);
 
         unsigned int one_but_not_two = count_not_in_other(splits_hash_1, splits_hash_2);
         unsigned int two_but_not_one = count_not_in_other(splits_hash_2, splits_hash_1);

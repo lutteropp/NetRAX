@@ -178,9 +178,10 @@ void network_distance_only(NetraxOptions &netraxOptions, std::mt19937& rng) {
     netrax::AnnotatedNetwork ann_network_2 = build_annotated_network_from_file(netraxOptions, netraxOptions.second_network_path);
     init_annotated_network(ann_network_2, rng);
 
-    double dist = get_network_distance(ann_network_1, ann_network_2, NetworkDistanceType::UNROOTED_SOFTWIRED_DISTANCE);
-
-    std::cout << "Unrooted softwired network distance: " << dist << "\n";
+    std::cout << "Unrooted softwired network distance: " << get_network_distance(ann_network_1, ann_network_2, NetworkDistanceType::UNROOTED_SOFTWIRED_DISTANCE) << "\n";
+    std::cout << "Unrooted hardwired network distance: " << get_network_distance(ann_network_1, ann_network_2, NetworkDistanceType::UNROOTED_HARDWIRED_DISTANCE) << "\n";
+    std::cout << "Rooted softwired network distance: " << get_network_distance(ann_network_1, ann_network_2, NetworkDistanceType::ROOTED_SOFTWIRED_DISTANCE) << "\n";
+    std::cout << "Unrooted hardwired network distance: " << get_network_distance(ann_network_1, ann_network_2, NetworkDistanceType::UNROOTED_HARDWIRED_DISTANCE) << "\n";
 }
 
 void check_weird_network(NetraxOptions& netraxOptions, std::mt19937& rng) {

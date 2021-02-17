@@ -7,7 +7,7 @@
 namespace netrax {
     enum class NetworkDistanceType {
         UNROOTED_SOFTWIRED_DISTANCE = 0,
-        ROOTED_SOFTWORED_DISTANCE = 1,
+        ROOTED_SOFTWIRED_DISTANCE = 1,
         UNROOTED_HARDWIRED_DISTANCE = 2,
         ROOTED_HARDWIRED_DISTANCE = 3
     };
