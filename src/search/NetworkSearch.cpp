@@ -77,9 +77,19 @@ struct BestNetworkData {
     }
 };
 
+bool hasBadReticulation(AnnotatedNetwork& ann_network) {
+    for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
+        if ((1.0 - ann_network.reticulation_probs[i] < 0.001) || (ann_network.reticulation_probs[i] < 0.001)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 ScoreImprovementResult check_score_improvement(AnnotatedNetwork& ann_network, double* local_best, BestNetworkData* bestNetworkData) {
     bool local_improved = false;
     bool global_improved = false;
+    
     double new_score = scoreNetwork(ann_network);
     double score_diff = bestNetworkData->bic[ann_network.network.num_reticulations()] - new_score;
     if (score_diff > 0.0001) {
@@ -97,16 +107,20 @@ ScoreImprovementResult check_score_improvement(AnnotatedNetwork& ann_network, do
             double old_global_best = bestNetworkData->bic[bestNetworkData->best_n_reticulations];
 
             if (new_score < old_global_best) {
-                if (new_score < old_global_best) {
-                    bestNetworkData->best_n_reticulations = ann_network.network.num_reticulations();
+                if (hasBadReticulation(ann_network)) {
+                    std::cout << "Network contains BAD RETICULATIONS. Not updating the global best found network and score.\n";
+                } else {
+                    if (new_score < old_global_best) {
+                        bestNetworkData->best_n_reticulations = ann_network.network.num_reticulations();
+                    }
+                    global_improved = true;
+                    std::cout << "OLD GLOBAL BEST SCORE WAS: " << old_global_best << "\n";
+                    std::cout << "IMPROVED GLOBAL BEST SCORE FOUND SO FAR: " << new_score << "\n\n";
+                    writeNetwork(ann_network, ann_network.options.output_file);
+                    std::cout << toExtendedNewick(ann_network) << "\n";
+                    std::cout << "Better network written to " << ann_network.options.output_file << "\n";
+                    printDisplayedTrees(ann_network);
                 }
-                global_improved = true;
-                std::cout << "OLD GLOBAL BEST SCORE WAS: " << old_global_best << "\n";
-                std::cout << "IMPROVED GLOBAL BEST SCORE FOUND SO FAR: " << new_score << "\n\n";
-                writeNetwork(ann_network, ann_network.options.output_file);
-                std::cout << toExtendedNewick(ann_network) << "\n";
-                std::cout << "Better network written to " << ann_network.options.output_file << "\n";
-                printDisplayedTrees(ann_network);
             } else {
                 std::cout << "REMAINED GLOBAL BEST SCORE FOUND SO FAR: " << old_global_best << "\n\n";
             }
@@ -115,15 +129,6 @@ ScoreImprovementResult check_score_improvement(AnnotatedNetwork& ann_network, do
         }
     }
     return ScoreImprovementResult{local_improved, global_improved};
-}
-
-bool hasBadReticulation(AnnotatedNetwork& ann_network) {
-    for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
-        if ((1.0 - ann_network.reticulation_probs[i] < 0.001) || (ann_network.reticulation_probs[i] < 0.001)) {
-            return true;
-        }
-    }
-    return false;
 }
 
 double optimizeEverythingRun(AnnotatedNetwork & ann_network, std::vector<MoveType>& typesBySpeed, const std::chrono::high_resolution_clock::time_point& start_time, bool greedy = true) {
