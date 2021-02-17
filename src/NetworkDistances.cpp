@@ -142,58 +142,55 @@ namespace netrax
         unsigned int n_2 = splits_hash_2.size();
         unsigned int n_both = count_in_both(splits_hash_1, splits_hash_2);
 
-        double dist = (double) (n_1 + n_2 - 2 * n_both) / (n_1 + n_2 - n_both);
+        double dist = (double)(n_1 + n_2 - 2 * n_both) / (n_1 + n_2 - n_both);
         return dist;
     }
 
-    double displayed_trees_distance(AnnotatedNetwork& ann_network_1, AnnotatedNetwork& ann_network_2, std::unordered_map<std::string, unsigned int> &label_to_int, bool unrooted) {
+    double displayed_trees_distance(AnnotatedNetwork &ann_network_1, AnnotatedNetwork &ann_network_2, std::unordered_map<std::string, unsigned int> &label_to_int, bool unrooted)
+    {
         unsigned int n_trees_1 = 1 << ann_network_1.network.num_reticulations();
         unsigned int n_trees_2 = 1 << ann_network_2.network.num_reticulations();
 
-        std::vector<std::unordered_set<std::vector<bool>> > tree_splits_1(n_trees_1);
-        std::vector<std::unordered_set<std::vector<bool>> > tree_splits_2(n_trees_2);
-        
-        for (int tree_index_1 = 0; tree_index_1 < 1 << ann_network_1.network.num_reticulations(); ++tree_index_1) {
+        std::vector<std::unordered_set<std::vector<bool>>> tree_splits_1(n_trees_1);
+        std::vector<std::unordered_set<std::vector<bool>>> tree_splits_2(n_trees_2);
+
+        for (int tree_index_1 = 0; tree_index_1 < 1 << ann_network_1.network.num_reticulations(); ++tree_index_1)
+        {
             netrax::setReticulationParents(ann_network_1.network, tree_index_1);
             add_splits(tree_splits_1[tree_index_1], ann_network_1, label_to_int, unrooted, true);
         }
 
-        for (int tree_index_2 = 0; tree_index_2 < 1 << ann_network_2.network.num_reticulations(); ++tree_index_2) {
+        for (int tree_index_2 = 0; tree_index_2 < 1 << ann_network_2.network.num_reticulations(); ++tree_index_2)
+        {
             netrax::setReticulationParents(ann_network_2.network, tree_index_2);
             add_splits(tree_splits_2[tree_index_2], ann_network_2, label_to_int, unrooted, true);
         }
 
         unsigned int n_trees_both = 0;
-        for (unsigned int tree_index_1 = 0; tree_index_1 < n_trees_1; ++tree_index_1) {
+        for (unsigned int tree_index_1 = 0; tree_index_1 < n_trees_1; ++tree_index_1)
+        {
             bool found_equal_tree = false;
-            for (unsigned int tree_index_2 = 0; tree_index_2 < n_trees_2; ++tree_index_2) {
+            for (unsigned int tree_index_2 = 0; tree_index_2 < n_trees_2; ++tree_index_2)
+            {
                 bool trees_equal = (count_in_both(tree_splits_1[tree_index_1], tree_splits_2[tree_index_2]) == tree_splits_1.size());
-                if (trees_equal) {
+                if (trees_equal)
+                {
                     found_equal_tree = true;
                     break;
                 }
             }
-            if (found_equal_tree) {
+            if (found_equal_tree)
+            {
                 n_trees_both++;
             }
         }
 
-        double dist = (double) (n_trees_1 + n_trees_2 - 2 * n_trees_both) / (n_trees_1 + n_trees_2 - n_trees_both);
+        double dist = (double)(n_trees_1 + n_trees_2 - 2 * n_trees_both) / (n_trees_1 + n_trees_2 - n_trees_both);
         return dist;
     }
 
-    double get_network_distance(AnnotatedNetwork &ann_network_1, AnnotatedNetwork &ann_network_2, NetworkDistanceType type)
+    double get_network_distance(AnnotatedNetwork &ann_network_1, AnnotatedNetwork &ann_network_2, std::unordered_map<std::string, unsigned int> &label_to_int, NetworkDistanceType type)
     {
-        if (ann_network_1.network.num_tips() != ann_network_2.network.num_tips())
-        {
-            throw std::runtime_error("Unequal number of taxa");
-        }
-        std::unordered_map<std::string, unsigned int> label_to_int;
-        for (size_t i = 0; i < ann_network_1.network.num_tips(); ++i)
-        {
-            label_to_int[ann_network_1.network.nodes_by_index[i]->label] = i;
-        }
-
         switch (type)
         {
         case NetworkDistanceType::UNROOTED_SOFTWIRED_DISTANCE:

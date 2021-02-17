@@ -207,14 +207,23 @@ void network_distance_only(NetraxOptions &netraxOptions, std::mt19937 &rng)
     init_annotated_network(ann_network_1, rng);
     netrax::AnnotatedNetwork ann_network_2 = build_annotated_network_from_file(netraxOptions, netraxOptions.second_network_path);
     init_annotated_network(ann_network_2, rng);
+    if (ann_network_1.network.num_tips() != ann_network_2.network.num_tips())
+    {
+        throw std::runtime_error("Unequal number of taxa");
+    }
+    std::unordered_map<std::string, unsigned int> label_to_int;
+    for (size_t i = 0; i < ann_network_1.network.num_tips(); ++i)
+    {
+        label_to_int[ann_network_1.network.nodes_by_index[i]->label] = i;
+    }
 
-    std::cout << "Unrooted softwired network distance: " << get_network_distance(ann_network_1, ann_network_2, NetworkDistanceType::UNROOTED_SOFTWIRED_DISTANCE) << "\n";
-    std::cout << "Unrooted hardwired network distance: " << get_network_distance(ann_network_1, ann_network_2, NetworkDistanceType::UNROOTED_HARDWIRED_DISTANCE) << "\n";
-    std::cout << "Unrooted displayed trees distance: " << get_network_distance(ann_network_1, ann_network_2, NetworkDistanceType::UNROOTED_DISPLAYED_TREES_DISTANCE) << "\n";
+    std::cout << "Unrooted softwired network distance: " << get_network_distance(ann_network_1, ann_network_2, label_to_int, NetworkDistanceType::UNROOTED_SOFTWIRED_DISTANCE) << "\n";
+    std::cout << "Unrooted hardwired network distance: " << get_network_distance(ann_network_1, ann_network_2, label_to_int, NetworkDistanceType::UNROOTED_HARDWIRED_DISTANCE) << "\n";
+    std::cout << "Unrooted displayed trees distance: " << get_network_distance(ann_network_1, ann_network_2, label_to_int, NetworkDistanceType::UNROOTED_DISPLAYED_TREES_DISTANCE) << "\n";
 
-    std::cout << "Rooted softwired network distance: " << get_network_distance(ann_network_1, ann_network_2, NetworkDistanceType::ROOTED_SOFTWIRED_DISTANCE) << "\n";
-    std::cout << "Rooted hardwired network distance: " << get_network_distance(ann_network_1, ann_network_2, NetworkDistanceType::ROOTED_HARDWIRED_DISTANCE) << "\n";
-    std::cout << "Rooted displayed trees distance: " << get_network_distance(ann_network_1, ann_network_2, NetworkDistanceType::ROOTED_DISPLAYED_TREES_DISTANCE) << "\n";
+    std::cout << "Rooted softwired network distance: " << get_network_distance(ann_network_1, ann_network_2, label_to_int, NetworkDistanceType::ROOTED_SOFTWIRED_DISTANCE) << "\n";
+    std::cout << "Rooted hardwired network distance: " << get_network_distance(ann_network_1, ann_network_2, label_to_int, NetworkDistanceType::ROOTED_HARDWIRED_DISTANCE) << "\n";
+    std::cout << "Rooted displayed trees distance: " << get_network_distance(ann_network_1, ann_network_2, label_to_int, NetworkDistanceType::ROOTED_DISPLAYED_TREES_DISTANCE) << "\n";
 }
 
 void check_weird_network(NetraxOptions &netraxOptions, std::mt19937 &rng)
