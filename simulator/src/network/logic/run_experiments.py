@@ -2,12 +2,14 @@ import os
 import random
 import sys
 from dataset_builder import create_dataset_container, sample_trees, build_trees_file
-from netrax_wrapper import extract_displayed_trees, check_weird_network, scale_branches_only_newick
+from netrax_wrapper import extract_displayed_trees, check_weird_network, scale_branches_only_newick, change_reticulation_prob_only
 from collections import defaultdict
 from evaluate_experiments import SamplingType, SimulatorType, LikelihoodType, BrlenLinkageType, StartType, run_inference_and_evaluate, write_results_to_csv
 from seqgen_wrapper import simulate_msa
 
 from celine_simulator import CelineParams, simulate_network_celine_minmax
+
+from experiment_settings import gather_labeled_settings
 
 import argparse
 
@@ -123,26 +125,33 @@ def parse_command_line_arguments_experiment():
     CLI.add_argument("--max_reticulation_prob", type=float, default=0.9)
     CLI.add_argument("--folder_path", type=str, default="data/")
 
+    CLI.add_argument("--labeled_prefix", type=str, default="")
+
     args = CLI.parse_args()
 
-    settings = ExperimentSettings()
-    prefix = args.prefix
-    settings.sampling_types = args.sampling_types
-    settings.start_types = args.start_types
-    settings.simulator_types = args.simulator_types
-    settings.brlen_linkage_types = args.brlen_linkage_types
-    settings.likelihood_types = args.likelihood_types
-    settings.partition_sizes = args.partition_sizes
-    settings.brlen_scalers = args.brlen_scalers
-    settings.min_taxa = args.min_taxa
-    settings.max_taxa = args.max_taxa
-    settings.min_reticulations = args.min_reticulations
-    settings.max_reticulations = args.max_reticulations
-    settings.min_reticulation_prob = args.min_reticulation_prob
-    settings.max_reticulation_prob = args.max_reticulation_prob
-    settings.folder_path = args.folder_path
-
-    return prefix, settings
+    known_setups = gather_labeled_settings()
+    if args.labeled_prefix in known_setups:
+        settings, prefix = known_setups[args.labeled_prefix]
+        settings.folder_path = args.folder_path
+        return prefix, settings
+    else:
+        settings = ExperimentSettings()
+        prefix = args.prefix
+        settings.sampling_types = args.sampling_types
+        settings.start_types = args.start_types
+        settings.simulator_types = args.simulator_types
+        settings.brlen_linkage_types = args.brlen_linkage_types
+        settings.likelihood_types = args.likelihood_types
+        settings.partition_sizes = args.partition_sizes
+        settings.brlen_scalers = args.brlen_scalers
+        settings.min_taxa = args.min_taxa
+        settings.max_taxa = args.max_taxa
+        settings.min_reticulations = args.min_reticulations
+        settings.max_reticulations = args.max_reticulations
+        settings.min_reticulation_prob = args.min_reticulation_prob
+        settings.max_reticulation_prob = args.max_reticulation_prob
+        settings.folder_path = args.folder_path
+        return prefix, settings
 
 
 if __name__ == "__main__":
