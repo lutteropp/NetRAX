@@ -24,6 +24,7 @@ fi
 PREFIX=$1
 BUNCHES=$2
 ITERATIONS_PER_BUNCH=$3
+FOLDER_PATH="data/"
 
 i=0
 while [ $i -lt ${BUNCHES} ]; do
@@ -36,4 +37,4 @@ wait
 #ln -f slurm-${SLURM_JOB_ID}.out ${PREFIX}.log
 #rm slurm-${SLURM_JOB_ID}.out
 
-python3 postprocess_results.py --prefix ${PREFIX} --iterations_global ${BUNCHES} --iterations_local ${ITERATIONS_PER_BUNCH}
+python3 postprocess_results.py --prefix ${FOLDER_PATH}${PREFIX} --iterations_global ${BUNCHES} --iterations_local ${ITERATIONS_PER_BUNCH}

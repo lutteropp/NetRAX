@@ -27,10 +27,11 @@ ITERATIONS=$3
 
 FOLDER_PATH="data/"
 
-mkdir ${PREFIX}_logs
+mkdir ${FOLDER_PATH}
+mkdir ${FOLDER_PATH}logs_${PREFIX}
 i=0
 while [ $i -lt ${ITERATIONS} ]; do
-    python3 run_experiments.py --folder_path ${FOLDER_PATH} --labeled_settings ${SETTINGS} --prefix ${PREFIX}_${i} | tee ${PREFIX}_logs/${PREFIX}_${i}.log &
+    python3 run_experiments.py --folder_path ${FOLDER_PATH} --labeled_settings ${SETTINGS} --prefix ${PREFIX}_${i} | tee ${FOLDER_PATH}logs_${PREFIX}/${PREFIX}_${i}.log &
     i=$((i + 1))
 done
 
@@ -38,8 +39,8 @@ wait
 
 i=0
 while [ $i -lt ${ITERATIONS} ]; do
-	cat ${PREFIX}_logs/${PREFIX}_${i}.log
+	cat ${FOLDER_PATH}logs_${PREFIX}/${PREFIX}_${i}.log
 	i=$((i + 1))
 done
 
-python3 csv_merger.py --prefix ${PREFIX} --iterations ${ITERATIONS}
+python3 csv_merger.py --prefix ${FOLDER_PATH}${PREFIX} --iterations ${ITERATIONS}

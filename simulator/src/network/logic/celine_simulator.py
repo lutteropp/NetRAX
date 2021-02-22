@@ -214,8 +214,8 @@ def simulate_network_step(params):
                 pl = p
             nw[pl][l]['length'] += extra_time
 
-    #print("to="+str(params.time_limit)+",lambda="+str(params.speciation_rate)+",nu="+str(params.hybridization_rate) +
-    #      ",no_of_leaves="+str(len(leaves))+",no_of_hybrids="+str(no_of_hybrids) + ",ratio=" + str(float(no_of_hybrids/len(leaves))))
+    print("to="+str(params.time_limit)+",lambda="+str(params.speciation_rate)+",nu="+str(params.hybridization_rate) +
+          ",no_of_leaves="+str(len(leaves))+",no_of_hybrids="+str(no_of_hybrids) + ",ratio=" + str(float(no_of_hybrids/len(leaves))))
 
     # if ( len(leaves) < 100 and no_of_hybrids < float(len(leaves)/3)):  ## add this check to avoid the simulator to complain
 
@@ -240,10 +240,10 @@ def simulate_network_step(params):
 def simulate_network(params):
     res = simulate_network_step(params)
     while res == None:
-        #print("trying again")
+        print("trying again")
         params = reshuffle_params(params)
         res = simulate_network_step(params)
-    #print("OK")
+    print("OK")
     return res
 
 
