@@ -121,7 +121,18 @@ def change_reticulation_prob_only(network_input_path, network_output_path, new_r
     print(netrax_cmd)
     cmd_status, cmd_output = subprocess.getstatusoutput(netrax_cmd)
     print(cmd_output)
+    if cmd_status != 0:
+        raise Exception("Change reticulation prob failed")
     os.remove(msa_path)
+
+
+def change_reticulation_prob_only_newick(newick, network_output_path, new_ret_prob, n_taxa):
+    temp_network_input = "temp_network_input" + str(os.getpid()) + "_" + str(random.getrandbits(64)) + ".nw"
+    temp_network_input_file = open(temp_network_input, "w")
+    temp_network_input_file.write(newick + "\n")
+    temp_network_input_file.close()
+    change_reticulation_prob_only(temp_network_input, network_output_path, new_ret_prob, n_taxa)
+    os.remove(temp_network_input)
 
 
 def network_distance_only(network_1_path, network_2_path, n_taxa):
