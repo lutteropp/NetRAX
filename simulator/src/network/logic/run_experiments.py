@@ -105,7 +105,7 @@ def simulate_datasets_fixed(prefix, settings, iterations):
                                     ds.n_trees = 2 ** ds.celine_params["no_of_hybrids"]
 
                                     if brlen_scaler != 1.0:
-                                        newick = scale_branches_only_newick(newick, ds.true_network_path, brlen_scaler, n_taxa)
+                                        scale_branches_only_newick(newick, ds.true_network_path, brlen_scaler, n_taxa)
                                     else:
                                         network_file = open(ds.true_network_path, "w")
                                         network_file.write(newick + '\n')

@@ -43,8 +43,6 @@ def score_network(network_path, msa_path, partitions_path, likelihood_type, brle
 
 
 def infer_networks(ds):
-
-
     netrax_cmd_start = NETRAX_PATH + " --msa " + ds.msa_path
     for var in ds.inference_variants:
         netrax_cmd = netrax_cmd_start + " --output " + var.inferred_network_path
