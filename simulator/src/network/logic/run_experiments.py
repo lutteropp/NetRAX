@@ -175,10 +175,13 @@ def parse_command_line_arguments_experiment():
     args = CLI.parse_args()
 
     known_setups = gather_labeled_settings()
-    if args.labeled_settings in known_setups:
-        _, settings = known_setups[args.labeled_prefix]
-        settings.folder_path = args.folder_path
-        return args.prefix, settings
+    if len(args.labeled_settings) > 0:
+        if args.labeled_settings in known_setups:
+            _, settings = known_setups[args.labeled_prefix]
+            settings.folder_path = args.folder_path
+            return args.prefix, settings
+        else:
+            raise Exception("Unknown experiment name: " + args.labeled_settings)
     else:
         settings = ExperimentSettings()
         settings.sampling_types = args.sampling_types
