@@ -43,10 +43,17 @@ def score_network(network_path, msa_path, partitions_path, likelihood_type, brle
 
 
 def infer_networks(ds):
-    netrax_cmd_start = NETRAX_PATH + " --msa " + \
-        ds.msa_path + " --model " + ds.partitions_path
+
+
+    netrax_cmd_start = NETRAX_PATH + " --msa " + ds.msa_path
     for var in ds.inference_variants:
         netrax_cmd = netrax_cmd_start + " --output " + var.inferred_network_path
+
+        if var.use_partitioned_msa:
+            netrax_cmd += " --model " + ds.partitions_path
+        else:
+            netrax_cmd += " --model DNA"
+
         if var.likelihood_type == LikelihoodType.BEST:
             netrax_cmd += " --best_displayed_tree_variant"
 

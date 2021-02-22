@@ -22,7 +22,7 @@ class ExperimentSettings:
         self.brlen_linkage_types = [BrlenLinkageType.LINKED]
         self.start_types = [StartType.FROM_RAXML, StartType.RANDOM]
         self.partition_sizes = [1000]
-        self.use_partitioned_msa = True
+        self.use_partitioned_msa_types = [True]
 
 
 def ten_taxa_change_reticulation_prob():
@@ -83,7 +83,7 @@ def ten_taxa_unpartitioned():
     settings.fixed_n_reticulations = [1]
     settings.fixed_reticulation_prob = [0.5]
     settings.use_fixed_simulation = True
-    settings.use_partitioned_msa = False
+    settings.use_partitioned_msa_types = [True, False]
     return (prefix, settings)
 
 

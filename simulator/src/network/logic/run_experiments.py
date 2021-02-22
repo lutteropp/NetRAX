@@ -1,27 +1,24 @@
 import os
 import random
-import sys
+
 from dataset_builder import create_dataset_container, sample_trees, build_trees_file
 from netrax_wrapper import extract_displayed_trees, check_weird_network, scale_branches_only_newick, change_reticulation_prob_only
-from collections import defaultdict
 from evaluate_experiments import SamplingType, SimulatorType, LikelihoodType, BrlenLinkageType, StartType, run_inference_and_evaluate, write_results_to_csv
 from seqgen_wrapper import simulate_msa
 
-from celine_simulator import CelineParams, simulate_network_celine_minmax, simulate_network_celine
-
-from experiment_settings import gather_labeled_settings
+from celine_simulator import simulate_network_celine_minmax, simulate_network_celine
 
 import argparse
 
-from experiment_settings import ExperimentSettings, small_tree, larger_network, small_network, small_network_single_debug
+from experiment_settings import ExperimentSettings, gather_labeled_settings
 
 
-def build_dataset(prefix, n_taxa, n_reticulations, msa_size, simulator_type, brlen_scaler, sampling_type, likelihood_types, brlen_linkage_types, start_types, folder_path, my_id):
+def build_dataset(prefix, n_taxa, n_reticulations, msa_size, simulator_type, brlen_scaler, sampling_type, likelihood_types, brlen_linkage_types, start_types, part_msa_types, folder_path, my_id):
     if not os.path.exists(folder_path + 'datasets_' + prefix):
         os.makedirs(folder_path + 'datasets_' + prefix)
     name = folder_path + "datasets_" + prefix + "/" + str(my_id) + '_' + str(n_taxa) + '_taxa_' + str(
         n_reticulations) + '_reticulations_' + str(simulator_type) + "_" + str(sampling_type) + "_" + str(msa_size) + "_msasize" + "_" + str(brlen_scaler).replace(".","_") + "_brlenScaler"
-    return create_dataset_container(n_taxa, n_reticulations, msa_size, sampling_type, simulator_type, brlen_scaler, likelihood_types, brlen_linkage_types, start_types, my_id, name)
+    return create_dataset_container(n_taxa, n_reticulations, msa_size, sampling_type, simulator_type, brlen_scaler, likelihood_types, brlen_linkage_types, start_types, part_msa_types, my_id, name)
 
 
 def simulate_network_celine_minmax_nonweird(settings):
@@ -67,7 +64,7 @@ def simulate_datasets_range(prefix, settings, iterations):
         for partition_size in settings.partition_sizes:
             for sampling_type in settings.sampling_types:
                 ds = build_dataset(prefix, n_taxa, n_reticulations, n_trees * partition_size, SimulatorType.CELINE, 1,
-                                sampling_type, settings.likelihood_types, settings.brlen_linkage_types, settings.start_types, settings.folder_path, my_id)
+                                sampling_type, settings.likelihood_types, settings.brlen_linkage_types, settings.start_types, settings.use_partitioned_msa_types, settings.folder_path, my_id)
                 ds.sites_per_tree = partition_size
                 ds.celine_params = param_info
                 ds.n_trees = 2 ** ds.celine_params["no_of_hybrids"]

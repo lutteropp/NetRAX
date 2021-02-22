@@ -52,7 +52,7 @@ class StartType(Enum):
 
 
 class InferenceVariant:
-    def __init__(self, likelihood_type, brlen_linkage_type, start_type, inferred_network_prefix):
+    def __init__(self, likelihood_type, brlen_linkage_type, start_type, inferred_network_prefix, use_partitioned_msa):
         self.likelihood_type = likelihood_type
         self.brlen_linkage_type = brlen_linkage_type
         self.start_type = start_type
@@ -63,18 +63,19 @@ class InferenceVariant:
         self.n_random_start_networks = 0
         self.n_parsimony_start_networks = 0
         self.runtime_inference = 0
+        self.use_partitioned_msa = use_partitioned_msa
 
         self.result = None
 
     def get_csv_line(self):
-        return str(self.inferred_network_path) + "," + str(self.likelihood_type) + "," + str(self.brlen_linkage_type) + "," + str(self.start_type) + "," + str(self.timeout) + "," + str(self.n_random_start_networks) + "," + str(self.n_parsimony_start_networks) + "," + str(self.runtime_inference)
+        return str(self.inferred_network_path) + "," + str(self.likelihood_type) + "," + str(self.brlen_linkage_type) + "," + str(self.start_type) + "," + str(self.timeout) + "," + str(self.n_random_start_networks) + "," + str(self.n_parsimony_start_networks) + "," + str(self.runtime_inference) + "," + str(self.use_partitioned_msa)
 
 
 #TOPOLOGICAL_DISTANCE_NAMES = ['hardwired_cluster_distance', 'softwired_cluster_distance', 'displayed_trees_distance', 'tripartition_distance', 'nested_labels_distance', 'path_multiplicity_distance']
 
 DATASET_CSV_HEADER = "name,n_taxa,n_trees,n_reticulations,msa_size,sites_per_tree,sampling_type,simulation_type,celine_params,brlen_scaler,seqgen_params,near_zero_branches_raxml,n_equal_tree_pairs,true_network_weirdness,true_network_path"
 
-INFERENCE_VARIANT_CSV_HEADER = "inferred_network_path,likelihood_type,brlen_linkage_type,start_type,timeout,n_random_start_networks,n_parsimony_start_networks,runtime_inference"
+INFERENCE_VARIANT_CSV_HEADER = "inferred_network_path,likelihood_type,brlen_linkage_type,start_type,timeout,n_random_start_networks,n_parsimony_start_networks,runtime_inference,use_partitioned_msa"
 
 RESULT_CSV_HEADER = "n_reticulations_inferred,bic_true,logl_true,bic_inferred,logl_inferred,bic_raxml,logl_raxml,rf_absolute_raxml,rf_relative_raxml,rf_absolute_inferred,rf_relative_inferred" 
 #+ "," + ",".join(TOPOLOGICAL_DISTANCE_NAMES)

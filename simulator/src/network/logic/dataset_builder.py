@@ -8,7 +8,7 @@ import math
 import random
 
 
-def create_dataset_container(n_taxa, n_reticulations, approx_msa_size, sampling_type, simulation_type, brlen_scaler, likelihood_types, brlen_linkage_types, start_types, my_id, name, timeout=0, m=1, num_start_networks=5):
+def create_dataset_container(n_taxa, n_reticulations, approx_msa_size, sampling_type, simulation_type, brlen_scaler, likelihood_types, brlen_linkage_types, start_types, part_msa_types, my_id, name, timeout=0, m=1, num_start_networks=5):
     ds = Dataset()
     ds.my_id = my_id
     ds.n_taxa = n_taxa
@@ -40,14 +40,15 @@ def create_dataset_container(n_taxa, n_reticulations, approx_msa_size, sampling_
     for likelihood_type in likelihood_types:
         for brlen_linkage_type in brlen_linkage_types:
             for start_type in start_types:
-                var = InferenceVariant(
-                    likelihood_type, brlen_linkage_type, start_type, name)
-                if start_type == StartType.RANDOM:
-                    var.n_random_start_networks = num_start_networks
-                    var.n_parsimony_start_networks = num_start_networks
-                elif start_type == StartType.ENDLESS:
-                    var.timeout = timeout
-                ds.inference_variants.append(var)
+                for use_part_msa in part_msa_types:
+                    var = InferenceVariant(
+                        likelihood_type, brlen_linkage_type, start_type, name, use_part_msa)
+                    if start_type == StartType.RANDOM:
+                        var.n_random_start_networks = num_start_networks
+                        var.n_parsimony_start_networks = num_start_networks
+                    elif start_type == StartType.ENDLESS:
+                        var.timeout = timeout
+                    ds.inference_variants.append(var)
 
     return ds
 
