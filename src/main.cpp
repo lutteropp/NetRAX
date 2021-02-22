@@ -43,6 +43,9 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     app.add_option("--first_network", options->first_network_path, "Path to first network file for distance computation.");
     app.add_option("--second_network", options->second_network_path, "Path to second network file for distance computation.");
 
+    app.add_flag("--change_reticulation_prob_only", options->change_reticulation_probs_only, "Only change the reticulation prob of the 1-reticulation input network.");
+    app.add_option("--overwritten_reticulation_prob", options->overwritten_reticulation_prob, "New probability to use for the single reticulation in overwrite-only mode.");
+
     std::string brlen_linkage = "scaled";
     app.add_option("--brlen", brlen_linkage, "branch length linkage between partitions (linked, scaled, or unlinked) (default: scaled)");
 
@@ -287,6 +290,32 @@ void generate_random_network_only(NetraxOptions &netraxOptions, std::mt19937 &rn
     std::cout << "Final network written to " << netraxOptions.output_file << "\n";
 }
 
+void scale_reticulation_probs_only(NetraxOptions &netraxOptions, std::mt19937 &rng)
+{
+    if (netraxOptions.msa_file.empty())
+    {
+        throw std::runtime_error("Need MSA to decide on the number of taxa");
+    }
+    if (netraxOptions.output_file.empty())
+    {
+        throw std::runtime_error("Need output file to write the generated network");
+    }
+    if (netraxOptions.start_network_file.empty()) {
+        throw std::runtime_error("Need start network file");
+    }
+    if (netraxOptions.overwritten_reticulation_prob < 0.0 || netraxOptions.overwritten_reticulation_prob > 1.0) {
+        throw std::runtime_error("new prob has to be in [0,1]");
+    }
+    netrax::AnnotatedNetwork ann_network = build_random_annotated_network(netraxOptions);
+    init_annotated_network(ann_network, rng);
+    for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
+        ann_network.reticulation_probs[i] = netraxOptions.overwritten_reticulation_prob;
+    }
+    writeNetwork(ann_network, netraxOptions.output_file);
+    std::cout << "Final network written to " << netraxOptions.output_file << "\n";
+}
+
+
 int main(int argc, char **argv)
 {
     std::cout << std::setprecision(10);
@@ -346,6 +375,11 @@ int main(int argc, char **argv)
     if (netraxOptions.scale_branches_only != 0.0)
     {
         scale_branches_only(netraxOptions, rng);
+        return 0;
+    }
+
+    if (netraxOptions.change_reticulation_probs_only) {
+        scale_reticulation_probs_only(netraxOptions, rng);
         return 0;
     }
 

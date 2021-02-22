@@ -39,6 +39,9 @@ public:
     bool generate_random_network_only = false;
     bool pretty_print_only = false;
 
+    bool change_reticulation_probs_only = false;
+    double overwritten_reticulation_prob = -1;
+
     bool network_distance_only = false;
     std::string first_network_path = "";
     std::string second_network_path = "";
