@@ -119,6 +119,21 @@ def four_taxa_change_brlen_scaler_test():
     return (prefix, settings)
 
 
+def four_taxa_change_reticulation_prob_test():
+    settings = ExperimentSettings()
+    prefix = 'four_taxa_change_reticulation_prob_test'
+    settings.sampling_types = [SamplingType.PERFECT_SAMPLING]
+    settings.start_types = [StartType.FROM_RAXML, StartType.RANDOM]
+    settings.brlen_linkage_types = [BrlenLinkageType.LINKED]
+    settings.likelihood_types = [LikelihoodType.BEST, LikelihoodType.AVERAGE]
+    settings.partition_sizes = [50]
+    settings.fixed_n_taxa = [4]
+    settings.fixed_n_reticulations = [1]
+    settings.fixed_reticulation_probs = [0.1, 0.2, 0.3, 0.4, 0.5]
+    settings.use_fixed_simulation = True
+    return (prefix, settings)
+
+
 def gather_labeled_settings():
     setups = {}
     setups['ten_taxa_change_reticulation_prob'] = ten_taxa_change_reticulation_prob()
@@ -127,4 +142,5 @@ def gather_labeled_settings():
     setups['ten_taxa_unpartitioned'] = ten_taxa_unpartitioned()
     setups['smoke_test_fixed'] = smoke_test_fixed()
     setups['four_taxa_change_brlen_scaler_test'] = four_taxa_change_brlen_scaler_test()
+    setups['four_taxa_change_reticulation_prob_test'] = four_taxa_change_reticulation_prob_test()
     return setups

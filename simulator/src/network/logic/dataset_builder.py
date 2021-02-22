@@ -8,7 +8,7 @@ import math
 import random
 
 
-def create_dataset_container(n_taxa, n_reticulations, approx_msa_size, sampling_type, simulation_type, brlen_scaler, likelihood_types, brlen_linkage_types, start_types, part_msa_types, my_id, name, timeout=0, m=1, num_start_networks=5):
+def create_dataset_container(n_taxa, n_reticulations, approx_msa_size, sampling_type, simulation_type, brlen_scaler, likelihood_types, brlen_linkage_types, start_types, part_msa_types, my_id, name, fixed_reticulation_prob=None, timeout=0, m=1, num_start_networks=5):
     ds = Dataset()
     ds.my_id = my_id
     ds.n_taxa = n_taxa
@@ -24,6 +24,7 @@ def create_dataset_container(n_taxa, n_reticulations, approx_msa_size, sampling_
     ds.brlen_scaler = brlen_scaler
     ds.timeout = timeout
     ds.num_start_networks = num_start_networks
+    ds.fixed_reticulation_prob = fixed_reticulation_prob
 
     ds.n_trees = 2 ** n_reticulations
     if sampling_type == SamplingType.STANDARD:
