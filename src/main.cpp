@@ -43,8 +43,8 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     app.add_option("--first_network", options->first_network_path, "Path to first network file for distance computation.");
     app.add_option("--second_network", options->second_network_path, "Path to second network file for distance computation.");
 
-    app.add_flag("--change_reticulation_prob_only", options->change_reticulation_probs_only, "Only change the reticulation prob of the 1-reticulation input network.");
-    app.add_option("--overwritten_reticulation_prob", options->overwritten_reticulation_prob, "New probability to use for the single reticulation in overwrite-only mode.");
+    app.add_flag("--change_reticulation_prob_only", options->change_reticulation_probs_only, "Only change the reticulation probs of the input network.");
+    app.add_option("--overwritten_reticulation_prob", options->overwritten_reticulation_prob, "New probability to use for the reticulations in overwrite-only mode.");
 
     std::string brlen_linkage = "scaled";
     app.add_option("--brlen", brlen_linkage, "branch length linkage between partitions (linked, scaled, or unlinked) (default: scaled)");
