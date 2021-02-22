@@ -6,7 +6,7 @@ from netrax_wrapper import extract_displayed_trees, check_weird_network, scale_b
 from evaluate_experiments import SamplingType, SimulatorType, LikelihoodType, BrlenLinkageType, StartType, run_inference_and_evaluate, write_results_to_csv
 from seqgen_wrapper import simulate_msa
 
-from celine_simulator import simulate_network_celine_minmax, simulate_network_celine
+from celine_simulator import simulate_network_celine_minmax, simulate_network_celine_fixed
 
 import argparse
 
@@ -40,7 +40,7 @@ def simulate_network_celine_minmax_nonweird(settings):
 
 def simulate_network_celine_fixed_nonweird(settings, n_taxa, n_reticulations):
     temp_path = "temp_network_" + str(os.getpid()) + "_" + str(random.getrandbits(64)) + ".txt"
-    n_taxa, n_reticulations, newick, param_info = simulate_network_celine(
+    n_taxa, n_reticulations, newick, param_info = simulate_network_celine_fixed(
                 n_taxa, n_reticulations, settings.min_reticulation_prob, settings.max_reticulation_prob)
    
     network_file = open(temp_path, "w")
@@ -52,7 +52,7 @@ def simulate_network_celine_fixed_nonweird(settings, n_taxa, n_reticulations):
     if n_equal == 0:
         return n_taxa, n_reticulations, newick, param_info
     else:
-        return simulate_network_celine(
+        return simulate_network_celine_fixed(
                 n_taxa, n_reticulations, settings.min_reticulation_prob, settings.max_reticulation_prob)
 
 
@@ -99,7 +99,7 @@ def simulate_datasets_fixed(prefix, settings, iterations):
                             for partition_size in settings.partition_sizes:
                                 for sampling_type in settings.sampling_types:
                                     ds = build_dataset(prefix, n_taxa, n_reticulations, n_trees * partition_size, simulator_type, brlen_scaler,
-                                                    sampling_type, settings.likelihood_types, settings.brlen_linkage_types, settings.start_types, settings.folder_path, my_id)
+                                                    sampling_type, settings.likelihood_types, settings.brlen_linkage_types, settings.start_types, settings.use_partitioned_msa_types, settings.folder_path, my_id)
                                     ds.sites_per_tree = partition_size
                                     ds.celine_params = param_info
                                     ds.n_trees = 2 ** ds.celine_params["no_of_hybrids"]
@@ -134,8 +134,10 @@ def simulate_datasets(prefix, settings, iterations):
         raise Exception("Only SimulatorType.CELINE please")
 
     if settings.use_fixed_simulation:
+        print("Using fixed simulation")
         return simulate_datasets_fixed(prefix, settings, iterations)
     else:
+        print("Using range simulation")
         return simulate_datasets_range(prefix, settings, iterations)
 
 
@@ -143,6 +145,7 @@ def run_experiments(prefix, settings, iterations):
     if settings.folder_path != "" and not os.path.isdir(settings.folder_path):
         os.makedirs(settings.folder_path)
     datasets = simulate_datasets(prefix, settings, iterations)
+    print("Simulated " + str(len(datasets)) + " datasets.")
     run_inference_and_evaluate(datasets)
     write_results_to_csv(datasets, settings.folder_path + prefix + "_results.csv")
 
@@ -177,7 +180,7 @@ def parse_command_line_arguments_experiment():
     known_setups = gather_labeled_settings()
     if len(args.labeled_settings) > 0:
         if args.labeled_settings in known_setups:
-            _, settings = known_setups[args.labeled_prefix]
+            _, settings = known_setups[args.labeled_settings]
             settings.folder_path = args.folder_path
             return args.prefix, settings
         else:

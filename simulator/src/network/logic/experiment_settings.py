@@ -13,7 +13,7 @@ class ExperimentSettings:
         self.use_fixed_simulation = False
         self.fixed_n_taxa = []
         self.fixed_n_reticulations = []
-        self.fixed_reticulation_prob = [0.5]
+        self.fixed_reticulation_probs = [0.5]
         self.fixed_brlen_scalers = [1.0]
 
         self.sampling_types = [SamplingType.PERFECT_SAMPLING]
@@ -35,7 +35,7 @@ def ten_taxa_change_reticulation_prob():
     settings.partition_sizes = [1000]
     settings.fixed_n_taxa = [10]
     settings.fixed_n_reticulations = [1]
-    settings.fixed_reticulation_prob = [0.1, 0.2, 0.3, 0.4, 0.5]
+    settings.fixed_reticulation_probs = [0.1, 0.2, 0.3, 0.4, 0.5]
     settings.use_fixed_simulation = True
     return (prefix, settings)
 
@@ -50,7 +50,7 @@ def ten_taxa_change_brlen_scaler():
     settings.partition_sizes = [1000]
     settings.fixed_n_taxa = [10]
     settings.fixed_n_reticulations = [1]
-    settings.fixed_reticulation_prob = [0.5]
+    settings.fixed_reticulation_probs = [0.5]
     settings.fixed_brlen_scalers = [1, 2, 4, 8]
     settings.use_fixed_simulation = True
     return (prefix, settings)
@@ -66,7 +66,7 @@ def ten_taxa_change_reticulation_count():
     settings.partition_sizes = [1000]
     settings.fixed_n_taxa = [10]
     settings.fixed_n_reticulations = [1, 2, 3]
-    settings.fixed_reticulation_prob = [0.5]
+    settings.fixed_reticulation_probs = [0.5]
     settings.use_fixed_simulation = True
     return (prefix, settings)
 
@@ -81,7 +81,7 @@ def ten_taxa_unpartitioned():
     settings.partition_sizes = [1000]
     settings.fixed_n_taxa = [10]
     settings.fixed_n_reticulations = [1]
-    settings.fixed_reticulation_prob = [0.5]
+    settings.fixed_reticulation_probs = [0.5]
     settings.use_fixed_simulation = True
     settings.use_partitioned_msa_types = [True, False]
     return (prefix, settings)

@@ -214,8 +214,8 @@ def simulate_network_step(params):
                 pl = p
             nw[pl][l]['length'] += extra_time
 
-    print("to="+str(params.time_limit)+",lambda="+str(params.speciation_rate)+",nu="+str(params.hybridization_rate) +
-          ",no_of_leaves="+str(len(leaves))+",no_of_hybrids="+str(no_of_hybrids) + ",ratio=" + str(float(no_of_hybrids/len(leaves))))
+    #print("to="+str(params.time_limit)+",lambda="+str(params.speciation_rate)+",nu="+str(params.hybridization_rate) +
+    #      ",no_of_leaves="+str(len(leaves))+",no_of_hybrids="+str(no_of_hybrids) + ",ratio=" + str(float(no_of_hybrids/len(leaves))))
 
     # if ( len(leaves) < 100 and no_of_hybrids < float(len(leaves)/3)):  ## add this check to avoid the simulator to complain
 
@@ -240,10 +240,10 @@ def simulate_network_step(params):
 def simulate_network(params):
     res = simulate_network_step(params)
     while res == None:
-        print("trying again")
+        #print("trying again")
         params = reshuffle_params(params)
         res = simulate_network_step(params)
-    print("OK")
+    #print("OK")
     return res
 
 
@@ -268,6 +268,17 @@ def simulate_network_celine_minmax(min_taxa, max_taxa, min_reticulations, max_re
     params.max_taxa = max_taxa
     params.min_reticulations = min_reticulations
     params.max_reticulations = max_reticulations
+    return simulate_network(params)
+
+
+def simulate_network_celine_fixed(n_taxa, n_reticulations, min_reticulation_prob, max_reticulation_prob):
+    params = CelineParams()
+    params.min_reticulation_prob = min_reticulation_prob
+    params.max_reticulation_prob = max_reticulation_prob
+    params.min_taxa = n_taxa
+    params.max_taxa = n_taxa
+    params.min_reticulations = n_reticulations
+    params.max_reticulations = n_reticulations
     return simulate_network(params)
 
 
