@@ -20,8 +20,8 @@ def append_distances_dendroscope(prefix):
         extra_cols[name] = []
 
     for _, row in df.iterrows():
-        true_network_path = prefix + "/" + row["true_network_path"]
-        inferred_network_path = prefix + "/" + row["inferred_network_path"]
+        true_network_path = row["true_network_path"]
+        inferred_network_path = row["inferred_network_path"]
         topological_distances = evaluate(
             true_network_path, inferred_network_path)
         for name in TOPOLOGICAL_DISTANCE_NAMES:
@@ -42,8 +42,8 @@ def append_distances_netrax(prefix):
         extra_cols[name] = []
 
     for _, row in df.iterrows():
-        true_network_path = prefix + "/" + row["true_network_path"]
-        inferred_network_path = prefix + "/" + row["inferred_network_path"]
+        true_network_path = row["true_network_path"]
+        inferred_network_path = row["inferred_network_path"]
         n_taxa = int(row["n_taxa"])
         topological_distances = network_distance_only(
             true_network_path, inferred_network_path, n_taxa)

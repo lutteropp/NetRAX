@@ -10,7 +10,7 @@ def append_patterns(prefix):
     patterns = []
         
     for _, row in df.iterrows():
-        raxml_log_path = prefix + "/" + row["name"] + ".raxml.log"
+        raxml_log_path = row["name"] + ".raxml.log"
         num_patterns = -1
         for line in open(raxml_log_path).readlines():
             if line.startswith("Alignment comprises"):
