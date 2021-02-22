@@ -19,7 +19,7 @@ def build_dataset(prefix, n_taxa, n_reticulations, msa_size, simulator_type, brl
     name = folder_path + "datasets_" + prefix + "/" + str(my_id) + '_' + str(n_taxa) + '_taxa_' + str(
         n_reticulations) + '_reticulations_' + str(simulator_type) + "_" + str(sampling_type) + "_" + str(msa_size) + "_msasize" + "_" + str(brlen_scaler).replace(".","_") + "_brlenScaler"
     if reticulation_prob:
-        name += str(reticulation_prob).replace('.','_') + "_reticulation_prob"
+        name += '_' + str(reticulation_prob).replace('.','_') + "_reticulation_prob"
     return create_dataset_container(n_taxa, n_reticulations, msa_size, sampling_type, simulator_type, brlen_scaler, likelihood_types, brlen_linkage_types, start_types, part_msa_types, my_id, name, reticulation_prob)
 
 
