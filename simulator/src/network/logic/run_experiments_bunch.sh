@@ -35,8 +35,6 @@ while [ $i -lt ${ITERATIONS} ]; do
     i=$((i + 1))
 done
 
-wait
-
 i=0
 while [ $i -lt ${ITERATIONS} ]; do
 	cat ${FOLDER_PATH}logs_${PREFIX}/${PREFIX}_${i}.log
