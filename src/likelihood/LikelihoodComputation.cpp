@@ -195,7 +195,7 @@ std::vector<DisplayedTreeData> process_partition_new(AnnotatedNetwork &ann_netwo
             start_node = network.reticulation_nodes[changed_bit_pos];
             start_node->getReticulationData()->setActiveParentToggle(changed_bit_is_set);
         }
-        // TODO: Why don't we need to invalidate the higher clvs here?
+        // TODO: Why don't we need to invalidate the higher clvs here? ---> because clv_valid is currently ignored when we have reticulations present
         //invalidateHigherCLVs(ann_network, start_node, partition_idx, false);
 
         Node *displayed_tree_root = nullptr;
