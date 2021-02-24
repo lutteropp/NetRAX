@@ -7,7 +7,7 @@
 #SBATCH --cpus-per-task=16
 #SBATCH -t 24:00:00
 #SBATCH -N 10
-#SBATCH -n 1
+#SBATCH -n 10
 
 module purge
 module load CMake
