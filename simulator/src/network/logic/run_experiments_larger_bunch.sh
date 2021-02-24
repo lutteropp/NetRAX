@@ -15,7 +15,7 @@ FOLDER_PATH="data/"
 
 i=0
 while [ $i -lt ${BUNCHES} ]; do
-    sh run_experiments_bunch.sh ${PREFIX} ${PREFIX}_${i} ${ITERATIONS_PER_BUNCH} &
+    sh run_experiments_bunch.sh ${PREFIX} ${PREFIX}_${i} ${ITERATIONS_PER_BUNCH}
     i=$((i + 1))
 done
 

@@ -12,7 +12,7 @@ module load slurm
 #SBATCH -B 2:8:1
 #SBATCH --threads-per-core=1
 #SBATCH --cpus-per-task=16
-#SBATCH -t 08:00:00
+#SBATCH -t 24:00:00
 
 USAGE="Usage: sh run_experiments_bunch.sh SETTINGS PREFIX ITERATIONS"
 
@@ -31,7 +31,7 @@ mkdir ${FOLDER_PATH}
 mkdir ${FOLDER_PATH}logs_${PREFIX}
 i=0
 while [ $i -lt ${ITERATIONS} ]; do
-    python3 run_experiments.py --folder_path ${FOLDER_PATH} --labeled_settings ${SETTINGS} --prefix ${PREFIX}_${i} | tee ${FOLDER_PATH}logs_${PREFIX}/${PREFIX}_${i}.log &
+    python3 run_experiments.py --folder_path ${FOLDER_PATH} --labeled_settings ${SETTINGS} --prefix ${PREFIX}_${i} | tee ${FOLDER_PATH}logs_${PREFIX}/${PREFIX}_${i}.log
     i=$((i + 1))
 done
 
