@@ -25,30 +25,30 @@ class ExperimentSettings:
         self.use_partitioned_msa_types = [True]
 
 
-def ten_taxa_change_reticulation_prob():
+def exp_change_reticulation_prob(n_taxa):
     settings = ExperimentSettings()
-    prefix = 'ten_taxa_change_reticulation_prob'
+    prefix = 't_' + str(n_taxa) + '_change_reticulation_prob'
     settings.sampling_types = [SamplingType.PERFECT_SAMPLING]
     settings.start_types = [StartType.FROM_RAXML, StartType.RANDOM]
     settings.brlen_linkage_types = [BrlenLinkageType.LINKED]
     settings.likelihood_types = [LikelihoodType.BEST, LikelihoodType.AVERAGE]
     settings.partition_sizes = [1000]
-    settings.fixed_n_taxa = [10]
+    settings.fixed_n_taxa = [n_taxa]
     settings.fixed_n_reticulations = [1]
     settings.fixed_reticulation_probs = [0.1, 0.2, 0.3, 0.4, 0.5]
     settings.use_fixed_simulation = True
     return (prefix, settings)
 
 
-def ten_taxa_change_brlen_scaler():
+def exp_change_brlen_scaler(n_taxa):
     settings = ExperimentSettings()
-    prefix = 'ten_taxa_change_brlen_scaler'
+    prefix = 't_' + str(n_taxa) + '_change_brlen_scaler'
     settings.sampling_types = [SamplingType.PERFECT_SAMPLING]
     settings.start_types = [StartType.FROM_RAXML, StartType.RANDOM]
     settings.brlen_linkage_types = [BrlenLinkageType.LINKED]
     settings.likelihood_types = [LikelihoodType.BEST, LikelihoodType.AVERAGE]
     settings.partition_sizes = [1000]
-    settings.fixed_n_taxa = [10]
+    settings.fixed_n_taxa = [n_taxa]
     settings.fixed_n_reticulations = [1]
     settings.fixed_reticulation_probs = [0.5]
     settings.fixed_brlen_scalers = [1, 2, 4, 8]
@@ -56,30 +56,30 @@ def ten_taxa_change_brlen_scaler():
     return (prefix, settings)
 
 
-def ten_taxa_change_reticulation_count():
+def exp_change_reticulation_count(n_taxa):
     settings = ExperimentSettings()
-    prefix = 'ten_taxa_change_reticulation_count'
+    prefix = 't_' + str(n_taxa) + '_change_reticulation_count'
     settings.sampling_types = [SamplingType.PERFECT_SAMPLING]
     settings.start_types = [StartType.FROM_RAXML, StartType.RANDOM]
     settings.brlen_linkage_types = [BrlenLinkageType.LINKED]
     settings.likelihood_types = [LikelihoodType.BEST, LikelihoodType.AVERAGE]
     settings.partition_sizes = [1000]
-    settings.fixed_n_taxa = [10]
+    settings.fixed_n_taxa = [n_taxa]
     settings.fixed_n_reticulations = [1, 2, 3]
     settings.fixed_reticulation_probs = [0.5]
     settings.use_fixed_simulation = True
     return (prefix, settings)
 
 
-def ten_taxa_unpartitioned():
+def exp_unpartitioned(n_taxa):
     settings = ExperimentSettings()
-    prefix = 'ten_taxa_unpartitioned'
+    prefix = 't_' + str(n_taxa) + '_unpartitioned'
     settings.sampling_types = [SamplingType.PERFECT_SAMPLING]
     settings.start_types = [StartType.FROM_RAXML, StartType.RANDOM]
     settings.brlen_linkage_types = [BrlenLinkageType.LINKED]
     settings.likelihood_types = [LikelihoodType.AVERAGE]
     settings.partition_sizes = [1000]
-    settings.fixed_n_taxa = [10]
+    settings.fixed_n_taxa = [n_taxa]
     settings.fixed_n_reticulations = [1]
     settings.fixed_reticulation_probs = [0.5]
     settings.use_fixed_simulation = True
@@ -103,44 +103,11 @@ def smoke_test_fixed():
     return (prefix, settings)
 
 
-def four_taxa_change_brlen_scaler_test():
-    settings = ExperimentSettings()
-    prefix = 'four_taxa_change_brlen_scaler_test'
-    settings.sampling_types = [SamplingType.PERFECT_SAMPLING]
-    settings.start_types = [StartType.FROM_RAXML, StartType.RANDOM]
-    settings.brlen_linkage_types = [BrlenLinkageType.LINKED]
-    settings.likelihood_types = [LikelihoodType.BEST, LikelihoodType.AVERAGE]
-    settings.partition_sizes = [50]
-    settings.fixed_n_taxa = [4]
-    settings.fixed_n_reticulations = [1]
-    settings.fixed_reticulation_probs = [0.5]
-    settings.fixed_brlen_scalers = [1, 2, 4, 8]
-    settings.use_fixed_simulation = True
-    return (prefix, settings)
-
-
-def four_taxa_change_reticulation_prob_test():
-    settings = ExperimentSettings()
-    prefix = 'four_taxa_change_reticulation_prob_test'
-    settings.sampling_types = [SamplingType.PERFECT_SAMPLING]
-    settings.start_types = [StartType.FROM_RAXML, StartType.RANDOM]
-    settings.brlen_linkage_types = [BrlenLinkageType.LINKED]
-    settings.likelihood_types = [LikelihoodType.BEST, LikelihoodType.AVERAGE]
-    settings.partition_sizes = [50]
-    settings.fixed_n_taxa = [4]
-    settings.fixed_n_reticulations = [1]
-    settings.fixed_reticulation_probs = [0.1, 0.2, 0.3, 0.4, 0.5]
-    settings.use_fixed_simulation = True
-    return (prefix, settings)
-
-
 def gather_labeled_settings():
     setups = {}
-    setups['ten_taxa_change_reticulation_prob'] = ten_taxa_change_reticulation_prob()
-    setups['ten_taxa_change_brlen_scaler'] = ten_taxa_change_brlen_scaler()
-    setups['ten_taxa_change_reticulation_count'] = ten_taxa_change_reticulation_count()
-    setups['ten_taxa_unpartitioned'] = ten_taxa_unpartitioned()
+    setups['t_15_change_reticulation_prob'] = exp_change_reticulation_prob(15)
+    setups['t_15_change_brlen_scaler'] = exp_change_brlen_scaler(15)
+    setups['t_15_change_reticulation_count'] = exp_change_reticulation_count(15)
+    setups['t_15_unpartitioned'] = exp_unpartitioned(15)
     setups['smoke_test_fixed'] = smoke_test_fixed()
-    setups['four_taxa_change_brlen_scaler_test'] = four_taxa_change_brlen_scaler_test()
-    setups['four_taxa_change_reticulation_prob_test'] = four_taxa_change_reticulation_prob_test()
     return setups
