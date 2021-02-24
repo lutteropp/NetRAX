@@ -6,6 +6,8 @@
 #SBATCH --threads-per-core=1
 #SBATCH --cpus-per-task=16
 #SBATCH -t 24:00:00
+#SBATCH -N 10
+#SBATCH -n 1
 
 module purge
 module load CMake
@@ -22,7 +24,7 @@ if [ $# -lt 3 ]; then
 fi
 
 PREFIX=$1
-BUNCHES=$2
+BUNCHES=10
 ITERATIONS_PER_BUNCH=$3
 FOLDER_PATH="data/"
 
