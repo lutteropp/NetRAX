@@ -76,8 +76,4 @@ private:
     NetraxOptions netraxOptions;
 };
 
-
-double** clone_clv_vector(pll_partition_t* partition);
-void delete_cloned_clv_vector(pll_partition_t* partition, double** clv);
-
 }
