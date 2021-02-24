@@ -16,16 +16,16 @@ module load OpenMPI
 module load slurm
 module load Java
 
-USAGE="Usage: sh submit_experiments_larger_bunch_haswell.sh PREFIX BUNCHES ITERATIONS_PER_BUNCH"
+USAGE="Usage: sh submit_experiments_larger_bunch_haswell.sh PREFIX ITERATIONS_PER_BUNCH"
 
-if [ $# -lt 3 ]; then
+if [ $# -lt 2 ]; then
     echo "Illegal number of parameters. Usage: ${USAGE}"
     exit 2
 fi
 
 PREFIX=$1
 BUNCHES=10
-ITERATIONS_PER_BUNCH=$3
+ITERATIONS_PER_BUNCH=$2
 FOLDER_PATH="data/"
 
 i=0
