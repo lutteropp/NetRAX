@@ -728,9 +728,16 @@ RSPRMove buildRSPRMove(size_t x_prime_clv_index, size_t y_prime_clv_index, size_
     return move;
 }
 
+bool isRSPR1Move(RSPRMove& move) {
+    return ((move.y_prime_clv_index == move.x_clv_index) 
+        || (move.x_prime_clv_index == move.x_clv_index) 
+        || (move.x_prime_clv_index == move.y_clv_index) 
+        || (move.y_prime_clv_index == move.y_clv_index));
+}
+
 void possibleRSPRMovesInternal(std::vector<RSPRMove> &res, AnnotatedNetwork &ann_network, Node *x_prime,
         Node *y_prime, Node *x, Node *fixed_y, bool returnHead, bool returnTail,
-        MoveType moveType) {
+        MoveType moveType, bool noRSPR1Moves) {
     Network &network = ann_network.network;
     auto zy = getZYChoices(network, x_prime, y_prime, x, fixed_y, returnHead, returnTail);
     for (const auto &entry : zy) {
@@ -755,7 +762,9 @@ void possibleRSPRMovesInternal(std::vector<RSPRMove> &res, AnnotatedNetwork &ann
                 move.x_z_len = get_edge_lengths(ann_network, getEdgeTo(network, x, z)->pmatrix_index);
                 move.z_y_len = get_edge_lengths(ann_network, getEdgeTo(network, z, y)->pmatrix_index);
                 move.x_prime_y_prime_len = get_edge_lengths(ann_network, getEdgeTo(network, x_prime, y_prime)->pmatrix_index);
-                res.emplace_back(move);
+                if (!noRSPR1Moves || !isRSPR1Move(move)) {
+                    res.emplace_back(move);
+                }
             }
         } else { // tail-moving rSPR move
             if (!hasPath(network, w, x_prime)) {
@@ -764,14 +773,16 @@ void possibleRSPRMovesInternal(std::vector<RSPRMove> &res, AnnotatedNetwork &ann
                 move.x_z_len = get_edge_lengths(ann_network, getEdgeTo(network, x, z)->pmatrix_index);
                 move.z_y_len = get_edge_lengths(ann_network, getEdgeTo(network, z, y)->pmatrix_index);
                 move.x_prime_y_prime_len = get_edge_lengths(ann_network, getEdgeTo(network, x_prime, y_prime)->pmatrix_index);
-                res.emplace_back(move);
+                if (!noRSPR1Moves || !isRSPR1Move(move)) {
+                    res.emplace_back(move);
+                }
             }
         }
     }
 }
 
 std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, const Edge *edge,
-        Node *fixed_x, Node *fixed_y, MoveType moveType, bool returnHead = true, bool returnTail =
+        Node *fixed_x, Node *fixed_y, MoveType moveType, bool noRSPR1Moves, bool returnHead = true, bool returnTail =
                 true) {
     Network &network = ann_network.network;
     std::vector<RSPRMove> res;
@@ -780,44 +791,44 @@ std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, const Edg
 
     if (fixed_x) {
         possibleRSPRMovesInternal(res, ann_network, x_prime, y_prime, fixed_x, fixed_y, returnHead,
-                returnTail, moveType);
+                returnTail, moveType, noRSPR1Moves);
     } else {
         for (size_t i = 0; i < network.num_nodes(); ++i) {
             Node *x = &network.nodes[i];
             possibleRSPRMovesInternal(res, ann_network, x_prime, y_prime, x, fixed_y, returnHead,
-                    returnTail, moveType);
+                    returnTail, moveType, noRSPR1Moves);
         }
     }
     return res;
 }
 
-std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, const Edge *edge) {
-    return possibleRSPRMoves(ann_network, edge, nullptr, nullptr, MoveType::RSPRMove, true, true);
+std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, const Edge *edge, bool noRSPR1Moves) {
+    return possibleRSPRMoves(ann_network, edge, nullptr, nullptr, MoveType::RSPRMove, noRSPR1Moves, true, true);
 }
 
-std::vector<RSPRMove> possibleTailMoves(AnnotatedNetwork &ann_network, const Edge *edge) {
-    return possibleRSPRMoves(ann_network, edge, nullptr, nullptr, MoveType::TailMove, false, true);
+std::vector<RSPRMove> possibleTailMoves(AnnotatedNetwork &ann_network, const Edge *edge, bool noRSPR1Moves) {
+    return possibleRSPRMoves(ann_network, edge, nullptr, nullptr, MoveType::TailMove, noRSPR1Moves, false, true);
 }
 
-std::vector<RSPRMove> possibleHeadMoves(AnnotatedNetwork &ann_network, const Edge *edge) {
-    return possibleRSPRMoves(ann_network, edge, nullptr, nullptr, MoveType::HeadMove, true, false);
+std::vector<RSPRMove> possibleHeadMoves(AnnotatedNetwork &ann_network, const Edge *edge, bool noRSPR1Moves) {
+    return possibleRSPRMoves(ann_network, edge, nullptr, nullptr, MoveType::HeadMove, noRSPR1Moves, true, false);
 }
 
-std::vector<RSPRMove> possibleTailMoves(AnnotatedNetwork &ann_network) {
+std::vector<RSPRMove> possibleTailMoves(AnnotatedNetwork &ann_network, bool noRSPR1Moves) {
     std::vector<RSPRMove> res;
     Network &network = ann_network.network;
     for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::vector<RSPRMove> branch_moves = possibleTailMoves(ann_network, &network.edges[i]);
+        std::vector<RSPRMove> branch_moves = possibleTailMoves(ann_network, &network.edges[i], noRSPR1Moves);
         res.insert(std::end(res), std::begin(branch_moves), std::end(branch_moves));
     }
     return res;
 }
 
-std::vector<RSPRMove> possibleHeadMoves(AnnotatedNetwork &ann_network) {
+std::vector<RSPRMove> possibleHeadMoves(AnnotatedNetwork &ann_network, bool noRSPR1Moves) {
     std::vector<RSPRMove> res;
     Network &network = ann_network.network;
     for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::vector<RSPRMove> branch_moves = possibleHeadMoves(ann_network, &network.edges[i]);
+        std::vector<RSPRMove> branch_moves = possibleHeadMoves(ann_network, &network.edges[i], noRSPR1Moves);
         res.insert(std::end(res), std::begin(branch_moves), std::end(branch_moves));
     }
     return res;
@@ -832,22 +843,22 @@ std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network, const Ed
 
 // Case 1: y_prime == x
     std::vector<RSPRMove> case1 = possibleRSPRMoves(ann_network, edge, y_prime, nullptr,
-            MoveType::RSPR1Move);
+            MoveType::RSPR1Move, false);
     res.insert(std::end(res), std::begin(case1), std::end(case1));
 
 // Case 2: x_prime == x
     std::vector<RSPRMove> case2 = possibleRSPRMoves(ann_network, edge, x_prime, nullptr,
-            MoveType::RSPR1Move);
+            MoveType::RSPR1Move, false);
     res.insert(std::end(res), std::begin(case2), std::end(case2));
 
 // Case 3: x_prime == y
     std::vector<RSPRMove> case3 = possibleRSPRMoves(ann_network, edge, nullptr, x_prime,
-            MoveType::RSPR1Move);
+            MoveType::RSPR1Move, false);
     res.insert(std::end(res), std::begin(case3), std::end(case3));
 
 // Case 4: y_prime == y
     std::vector<RSPRMove> case4 = possibleRSPRMoves(ann_network, edge, nullptr, y_prime,
-            MoveType::RSPR1Move);
+            MoveType::RSPR1Move, false);
     res.insert(std::end(res), std::begin(case4), std::end(case4));
 
     return res;
@@ -863,11 +874,11 @@ std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network) {
     return res;
 }
 
-std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network) {
+std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, bool noRSPR1Moves = true) {
     std::vector<RSPRMove> res;
     Network &network = ann_network.network;
     for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::vector<RSPRMove> branch_moves = possibleRSPRMoves(ann_network, &network.edges[i]);
+        std::vector<RSPRMove> branch_moves = possibleRSPRMoves(ann_network, &network.edges[i], noRSPR1Moves);
         res.insert(std::end(res), std::begin(branch_moves), std::end(branch_moves));
     }
     return res;

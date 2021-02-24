@@ -41,16 +41,16 @@ if (NOT CMAKE_BUILD_TYPE)
 endif()
 
 set (CMAKE_CXX_FLAGS_DEBUG    "-O0 -g" CACHE INTERNAL "")
-set (CMAKE_CXX_FLAGS_RELEASE  "-O3 -DNDEBUG"    CACHE INTERNAL "")
+set (CMAKE_CXX_FLAGS_RELEASE  "-O3 -DNDEBUG -fopenmp"    CACHE INTERNAL "")
 set (CMAKE_C_FLAGS_DEBUG    "-O0 -g" CACHE INTERNAL "")
-set (CMAKE_C_FLAGS_RELEASE  "-O3 -DNDEBUG"    CACHE INTERNAL "")
+set (CMAKE_C_FLAGS_RELEASE  "-O3 -DNDEBUG -fopenmp"    CACHE INTERNAL "")
 
 set(CMAKE_CXX_STANDARD 17)
 
 message (STATUS "Building ${CMAKE_BUILD_TYPE}")
 
 set (WARN_FLAGS               "-Wall -Wextra")
-set (CMAKE_CXX_FLAGS          "-std=c++17 ${WARN_FLAGS}")
+set (CMAKE_CXX_FLAGS          "-std=c++17 -fopenmp -march=native ${WARN_FLAGS}")
 
 message(STATUS "Using flags: ${CMAKE_CXX_FLAGS}")
 
