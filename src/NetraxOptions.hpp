@@ -20,7 +20,7 @@ public:
     }
 
     NetraxOptions(const std::string &start_network_file, const std::string &msa_file, bool use_repeats =
-            true) {
+            false) {
         this->start_network_file = start_network_file;
         this->msa_file = msa_file;
         this->use_repeats = use_repeats;

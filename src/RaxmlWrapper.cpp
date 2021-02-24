@@ -117,7 +117,7 @@ Options createDefaultOptions() {
     /* do not use tip-inner case optimization by default */
     opts.use_tip_inner = false;
     /* use site repeats */
-    opts.use_repeats = false;
+    opts.use_repeats = true;
     /* do not use per-rate-category CLV scalers */
     opts.use_rate_scalers = false;
     /* use probabilistic MSA _if available_ (e.g. CATG file was provided) */
