@@ -31,10 +31,11 @@ static double brent_target_networks_prob(void *p, double x) {
     } else {
         ann_network->reticulation_probs[reticulation_index] = x;
 
-        if (!ann_network->old_displayed_trees.empty()) {
+        size_t n_trees = (1 << ann_network->network.num_reticulations());
+        if (!ann_network->displayed_trees.empty()) {
             for (size_t p = 0; p < ann_network->fake_treeinfo->partition_count; ++p) {
-                for (size_t i = 0; i < ann_network->old_displayed_trees[p].size(); ++i) {
-                    ann_network->old_displayed_trees[p][i].tree_logprob = displayed_tree_logprob(*ann_network, ann_network->old_displayed_trees[p][i].tree_idx);
+                for (size_t i = 0; i < n_trees; ++i) {
+                    ann_network->displayed_trees[p][i].tree_logprob = displayed_tree_logprob(*ann_network, ann_network->displayed_trees[p][i].tree_idx);
                 }
             }
         }

@@ -58,8 +58,22 @@ void init_annotated_network(AnnotatedNetwork &ann_network, std::mt19937& rng) {
     ann_network.fake_treeinfo->active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
     netrax::setup_pmatrices(ann_network, false, true);
     for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
-        ann_network.fake_treeinfo->clv_valid[i][network.root->clv_index] = 0;
+        for (size_t j = 0; j < ann_network.network.nodes.size(); ++j) { // nodes.size here, to also take care of currently unused nodes
+            ann_network.fake_treeinfo->clv_valid[i][j] = 0;
+        }
     }
+
+    ann_network.displayed_trees.resize(ann_network.fake_treeinfo->partition_count);
+    size_t n_trees = (1 << ann_network.network.num_reticulations());
+    for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
+        assert(!pll_repeats_enabled(ann_network.fake_treeinfo->partitions[i]));
+        ann_network.displayed_trees[i].resize(n_trees);
+        for (size_t j = 0; j < n_trees; ++j) {
+            ann_network.displayed_trees[i][j].tree_clv_vectors = clone_clv_vector(ann_network.fake_treeinfo->partitions[i], ann_network.fake_treeinfo->partitions[i]->clv);
+            ann_network.displayed_trees[i][j].tree_scale_buffers = clone_scale_buffer(ann_network.fake_treeinfo->partitions[i], ann_network.fake_treeinfo->partitions[i]->scale_buffer);
+        }
+    }
+
     netrax::computeLoglikelihood(ann_network, false, true);
 }
 

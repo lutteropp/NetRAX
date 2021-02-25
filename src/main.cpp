@@ -71,6 +71,7 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     {
         throw std::runtime_error("brlen_linkage needs to be one of {linked, scaled, unlinked}");
     }
+    assert(!options->use_repeats);
     return 0;
 }
 

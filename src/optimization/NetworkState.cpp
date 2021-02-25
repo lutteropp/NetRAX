@@ -45,6 +45,56 @@ bool assert_branch_lengths(AnnotatedNetwork& ann_network) {
     return true;
 }
 
+void apply_clv_data(const NetworkState& state, AnnotatedNetwork& ann_network) {
+    size_t n_trees = (1 << ann_network.network.num_reticulations());
+    for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
+        assert(ann_network.displayed_trees[i].size() >= n_trees);
+        for (size_t j = 0; j < n_trees; ++j) {
+            assign_clv_entries(ann_network.fake_treeinfo->partitions[i], state.displayed_tree_clv_data[i][j], ann_network.displayed_trees[i][j].tree_clv_vectors);
+        }
+    }
+}
+
+void apply_scale_buffer_data(const NetworkState& state, AnnotatedNetwork& ann_network) {
+    size_t n_trees = (1 << ann_network.network.num_reticulations());
+    for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
+        assert(ann_network.displayed_trees[i].size() >= n_trees);
+        for (size_t j = 0; j < n_trees; ++j) {
+            assign_scale_buffer_entries(ann_network.fake_treeinfo->partitions[i], state.displayed_tree_scale_buffer_data[i][j], ann_network.displayed_trees[i][j].tree_scale_buffers);
+        }
+    }
+}
+
+void extract_clv_data(AnnotatedNetwork& ann_network, NetworkState& state) {
+    state.displayed_tree_clv_data.resize(ann_network.fake_treeinfo->partition_count);
+    state.displayed_tree_clv_ranges.resize(ann_network.fake_treeinfo->partition_count);
+    size_t n_trees = (1 << ann_network.network.num_reticulations());
+    for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
+        assert(!pll_repeats_enabled(ann_network.fake_treeinfo->partitions[i]));
+        state.displayed_tree_clv_data[i].resize(n_trees);
+        state.displayed_tree_clv_ranges[i].resize(n_trees);
+        for (size_t j = 0; j < n_trees; ++j) {
+            state.displayed_tree_clv_data[i][j] = clone_clv_vector(ann_network.fake_treeinfo->partitions[i], ann_network.displayed_trees[i][j].tree_clv_vectors);
+            state.displayed_tree_clv_ranges[i][j] = get_clv_range(ann_network.fake_treeinfo->partitions[i]);
+        }
+    }
+}
+
+void extract_scale_buffer_data(AnnotatedNetwork& ann_network, NetworkState& state) {
+    state.displayed_tree_scale_buffer_data.resize(ann_network.fake_treeinfo->partition_count);
+    state.displayed_tree_scale_buffer_ranges.resize(ann_network.fake_treeinfo->partition_count);
+    size_t n_trees = (1 << ann_network.network.num_reticulations());
+    for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
+        assert(!pll_repeats_enabled(ann_network.fake_treeinfo->partitions[i]));
+        state.displayed_tree_scale_buffer_data[i].resize(n_trees);
+        state.displayed_tree_scale_buffer_ranges[i].resize(n_trees);
+        for (size_t j = 0; j < n_trees; ++j) {
+            state.displayed_tree_scale_buffer_data[i][j] = clone_scale_buffer(ann_network.fake_treeinfo->partitions[i], ann_network.displayed_trees[i][j].tree_scale_buffers);
+            state.displayed_tree_scale_buffer_ranges[i][j] = get_scale_buffer_range(ann_network.fake_treeinfo->partitions[i]);
+        }
+    }
+}
+
 NetworkState extract_network_state(AnnotatedNetwork &ann_network, bool extract_network) {
     assert(assert_tip_links(ann_network.network));
     assert(assert_links_in_range(ann_network.network));
@@ -53,7 +103,9 @@ NetworkState extract_network_state(AnnotatedNetwork &ann_network, bool extract_n
     state.brlen_linkage = ann_network.options.brlen_linkage;
     
     if (extract_network) {
+        assert(ann_network.network.root);
         state.network = ann_network.network;
+        assert(state.network.root);
         state.network_valid = true;
     }
     assert(assert_tip_links(state.network));
@@ -89,6 +141,8 @@ NetworkState extract_network_state(AnnotatedNetwork &ann_network, bool extract_n
         assert(consecutive_indices(state.network));
         assert(assert_tip_links(state.network));
     }
+    extract_clv_data(ann_network, state);
+    extract_scale_buffer_data(ann_network, state);
     return state;
 }
 
@@ -111,6 +165,7 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
     assert(assert_links_in_range(state.network));
     if (copy_network) {
         assert(state.network_valid);
+        assert(state.network.root);
         ann_network.network = state.network;
     }
     for (size_t p = 0; p < state.partition_brlens.size(); ++p) {
@@ -159,6 +214,9 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
             }
         }
     }
+    apply_clv_data(state, ann_network);
+    apply_scale_buffer_data(state, ann_network);
+
     //assert_branch_lengths(ann_network);
     //assert_rates(ann_network);
 }
@@ -254,13 +312,43 @@ bool alphas_equal(const NetworkState& old_state, const NetworkState& act_state) 
     return true;
 }
 
+bool clvs_equal(const NetworkState& old_state, const NetworkState& act_state) {
+    assert(old_state.displayed_tree_clv_data.size() == act_state.displayed_tree_clv_data.size());
+    for (size_t i = 0; i < old_state.displayed_tree_clv_data.size(); ++i) {
+        assert(old_state.displayed_tree_clv_data[i].size() == act_state.displayed_tree_clv_data[i].size());
+        for (size_t j = 0; j < old_state.displayed_tree_clv_data[i].size(); ++j) {
+            assert(old_state.displayed_tree_clv_ranges[i][j] == act_state.displayed_tree_clv_ranges[i][j]);
+            if (!clv_entries_equal(old_state.displayed_tree_clv_ranges[i][j], old_state.displayed_tree_clv_data[i][j], act_state.displayed_tree_clv_data[i][j])) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+bool scale_buffers_equal(const NetworkState& old_state, const NetworkState& act_state) {
+    assert(old_state.displayed_tree_scale_buffer_data.size() == act_state.displayed_tree_scale_buffer_data.size());
+    for (size_t i = 0; i < old_state.displayed_tree_scale_buffer_data.size(); ++i) {
+        assert(old_state.displayed_tree_scale_buffer_data[i].size() == act_state.displayed_tree_scale_buffer_data[i].size());
+        for (size_t j = 0; j < old_state.displayed_tree_scale_buffer_data[i].size(); ++j) {
+            assert(old_state.displayed_tree_scale_buffer_ranges[i][j] == act_state.displayed_tree_scale_buffer_ranges[i][j]);
+            if (!scale_buffer_entries_equal(old_state.displayed_tree_scale_buffer_ranges[i][j], old_state.displayed_tree_scale_buffer_data[i][j], act_state.displayed_tree_scale_buffer_data[i][j])) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 bool network_states_equal(const NetworkState& old_state, const NetworkState& act_state) {
     return model_equal(old_state, act_state) && 
            ((!old_state.network_valid && !act_state.network_valid) || topology_equal(old_state.network, act_state.network)) && 
            reticulation_probs_equal(old_state, act_state) && 
            partition_brlens_equal(old_state, act_state) && 
            alphas_equal(old_state, act_state) &&
-           brlen_scalers_equal(old_state, act_state);
+           brlen_scalers_equal(old_state, act_state) &&
+           clvs_equal(old_state, act_state) &&
+           scale_buffers_equal(old_state, act_state);
 }
 
 AnnotatedNetwork build_annotated_network_from_state(NetworkState& state, const NetraxOptions& options) {

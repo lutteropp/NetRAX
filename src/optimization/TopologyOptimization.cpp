@@ -61,11 +61,12 @@ bool assertBranchesWithinBounds(const AnnotatedNetwork& ann_network) {
 
 void printOldDisplayedTrees(AnnotatedNetwork &ann_network) {
     std::cout << "Displayed trees info:\n";
+    size_t n_trees = (1 << ann_network.network.num_reticulations());
     for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-        for (size_t i = 0; i < ann_network.old_displayed_trees[p].size(); ++i) {
-            std::cout << " partition " << p << ", displayed tree " << ann_network.old_displayed_trees[p][i].tree_idx << ":\n";
-            std::cout << "   tree_logprob: " << ann_network.old_displayed_trees[p][i].tree_logprob << "\n";
-            std::cout << "   tree_logl: " << ann_network.old_displayed_trees[p][i].tree_logl << "\n";
+        for (size_t i = 0; i < n_trees; ++i) {
+            std::cout << " partition " << p << ", displayed tree " << ann_network.displayed_trees[p][i].tree_idx << ":\n";
+            std::cout << "   tree_logprob: " << ann_network.displayed_trees[p][i].tree_logprob << "\n";
+            std::cout << "   tree_logl: " << ann_network.displayed_trees[p][i].tree_logl << "\n";
         }
     }
 }
@@ -97,6 +98,13 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     int max_iters = 1; //brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
     int radius = 1;
     double start_logl = ann_network.raxml_treeinfo->loglh(true);
+
+    std::cout << "displayed tree logls at start:\n";
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        for (size_t i = 0; i < (1 << ann_network.network.num_reticulations()); ++i) {
+            std::cout << "logl=" << ann_network.displayed_trees[p][i].tree_logl << ", logprob=" << ann_network.displayed_trees[p][i].tree_logprob << "\n";
+        }
+    }
 
     bool complexityChanging = isComplexityChanging(candidates[0].moveType);
 
@@ -136,6 +144,12 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         }
         if (!isComplexityChanging(move.moveType)) {
             undoMove(ann_network, move);
+            // just for debug: invalidate all clvs
+            for (size_t partition_idx = 0; partition_idx < ann_network.fake_treeinfo->partition_count; ++partition_idx) {
+                for (size_t node_idx = 0; node_idx < ann_network.network.num_nodes(); ++node_idx) {
+                    ann_network.fake_treeinfo->clv_valid[partition_idx][node_idx] = 0;
+                }
+            }
         }
         if (isComplexityChanging(move.moveType) || brlenopt_inside) {
             apply_network_state(ann_network, start_state, complexityChanging);
@@ -145,6 +159,16 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         if (fabs(ann_network.raxml_treeinfo->loglh(true) - start_logl) >= ann_network.options.lh_epsilon) {
             std::cout << "new value: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
             std::cout << "old value: " << start_logl << "\n";
+            if (complexityChanging) {
+                std::cout << "we are complexity changing\n";
+            }
+            std::cout << "displayed tree logls now:\n";
+            for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+                for (size_t i = 0; i < (1 << ann_network.network.num_reticulations()); ++i) {
+                    std::cout << "logl=" << ann_network.displayed_trees[p][i].tree_logl << ", logprob=" << ann_network.displayed_trees[p][i].tree_logprob << "\n";
+                }
+            }
+            assert(network_states_equal(start_state, extract_network_state(ann_network, complexityChanging)));
             throw std::runtime_error("Rolling back did not work correctly");
         }
         assert(fabs(ann_network.raxml_treeinfo->loglh(true) - start_logl) < ann_network.options.lh_epsilon);

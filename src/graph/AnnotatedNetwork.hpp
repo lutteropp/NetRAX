@@ -41,11 +41,22 @@ struct AnnotatedNetwork {
     BlobInformation blobInfo; // mapping of edges to blobs, megablob roots, mapping of megablob roots to set of reticulation nodes within the megablob
     std::vector<double> reticulation_probs; // the first-parent reticulation probs
 
-    std::vector<std::vector<DisplayedTreeData> > old_displayed_trees;
+    std::vector<std::vector<DisplayedTreeData> > displayed_trees;
     std::vector<Node*> travbuffer;
     std::mt19937 rng;
 
     Statistics stats;
+
+    AnnotatedNetwork(AnnotatedNetwork&&) = default;
+    AnnotatedNetwork() = default;
+    ~AnnotatedNetwork() {
+        for (size_t i = 0; i < displayed_trees.size(); ++i) {
+                for (size_t j = 0; j < displayed_trees[i].size(); ++j) {
+                        delete_cloned_clv_vector(fake_treeinfo->partitions[i], displayed_trees[i][j].tree_clv_vectors);
+                        delete_cloned_scale_buffer(fake_treeinfo->partitions[i], displayed_trees[i][j].tree_scale_buffers);
+                }
+        }
+    }
 };
 
 AnnotatedNetwork build_annotated_network(NetraxOptions &options);
