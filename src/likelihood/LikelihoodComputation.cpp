@@ -102,13 +102,16 @@ void compute_displayed_tree(AnnotatedNetwork &ann_network, std::vector<bool> &cl
     std::vector<double> tree_persite_logl(fake_treeinfo.partitions[partition_idx]->sites, 0.0);
 
     std::vector<pll_operation_t> ops;
-    if (startNode) {
+    ops = createOperations(ann_network, partition_idx, parent, ann_network.blobInfo, 0,
+                dead_nodes, incremental, displayed_tree_root);
+
+    /*if (startNode) {
         ops = createOperationsUpdatedReticulation(ann_network, partition_idx, parent, startNode,
                 dead_nodes, incremental, displayed_tree_root);
     } else {
         ops = createOperations(ann_network, partition_idx, parent, ann_network.blobInfo, 0,
                 dead_nodes, incremental, displayed_tree_root);
-    }
+    }*/
     unsigned int ops_count = ops.size();
     if (ops_count == 0) {
         std::cout << "No operations found\n";
@@ -166,9 +169,7 @@ void compute_displayed_tree(AnnotatedNetwork &ann_network, std::vector<bool> &cl
     if (tree_logl == -std::numeric_limits<double>::infinity()) {
         print_clv(get_clv_range(ann_network.fake_treeinfo->partitions[partition_idx]), ann_network.fake_treeinfo->partitions[partition_idx]->clv);
 
-
-        std::cout << "operations:\n";
-        
+        std::cout << "operations:\n";        
         for (size_t i = 0; i < ops.size(); ++i) {
             std::cout << ops[i].parent_clv_index << "<-" << ops[i].child1_clv_index << ", " << ops[i].child2_clv_index << "\n";
         }

@@ -78,6 +78,7 @@ bool isComplexityChanging(MoveType& moveType) {
 template<typename T>
 double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates, double old_score, bool greedy=true, bool randomizeCandidates=false, bool brlenopt_inside = true) {
     if (candidates.empty()) {
+        std::cout << "empty list of candidates\n";
         return bic(ann_network, ann_network.raxml_treeinfo->loglh(true));
     }
     
@@ -86,7 +87,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     }
 
     if (brlenopt_inside) { // first try without local brlen opt
-        double bic_before_0 = scoreNetwork(ann_network);
+        double bic_before_0 = old_score;
         hillClimbingStep(ann_network, candidates, bic_before_0, greedy, false, false);
         double bic_after_0 = scoreNetwork(ann_network);
         if (bic_after_0 < bic_before_0) {
@@ -99,6 +100,8 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     int radius = 1;
     double start_logl = ann_network.raxml_treeinfo->loglh(true);
 
+    std::cout << "Number of candidates: " << candidates.size() << "\n";
+    std::cout << "old_score: " << old_score << "\n";
     std::cout << "displayed tree logls at start:\n";
     for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
         for (size_t i = 0; i < (1 << ann_network.network.num_reticulations()); ++i) {
@@ -219,6 +222,7 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, MoveType type, 
     size_t act_iterations = 0;
 
     if (enforce_apply_move) {
+        std::cout << "enforce apply move is active\n";
         old_bic = std::numeric_limits<double>::max();
     }
 
