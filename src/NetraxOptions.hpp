@@ -30,7 +30,7 @@ public:
 
     bool optimize_brlen = true;
     bool optimize_model = true;
-    bool use_repeats = true;
+    bool use_repeats = false;
 
     bool score_only = false;
     bool extract_taxon_names = false;

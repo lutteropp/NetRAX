@@ -60,7 +60,7 @@ Options createDefaultOptions() {
     /* do not use tip-inner case optimization by default */
     opts.use_tip_inner = false;
     /* use site repeats */
-    opts.use_repeats = true;
+    opts.use_repeats = false;
     /* do not use per-rate-category CLV scalers */
     opts.use_rate_scalers = false;
     /* use probabilistic MSA _if available_ (e.g. CATG file was provided) */
@@ -114,6 +114,7 @@ Options createDefaultOptions() {
 }
 
 RaxmlInstance createRaxmlInstance(NetraxOptions &options) {
+    assert(!options.use_repeats);
     RaxmlInstance instance;
     instance.opts = createDefaultOptions();
     instance.opts.tree_file = options.start_network_file;
@@ -341,6 +342,8 @@ void RaxmlWrapper::network_create_init_partition_wrapper(size_t p, int params_to
     }
     set_partition_fake_clv_entry(partition,
             pll_treeinfo->tree->tip_count + pll_treeinfo->tree->inner_count - 1);
+    assert(!opts.use_repeats);
+    assert(!pll_repeats_enabled(partition));
 }
 
 void RaxmlWrapper::network_init_treeinfo_wrapper(const Options &opts,
