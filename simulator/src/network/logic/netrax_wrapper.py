@@ -72,7 +72,7 @@ def infer_networks(ds):
             netrax_cmd += " --brlen scaled"
         netrax_cmd += " --seed 42"
 
-        print(netrax_cmd)
+        print(netrax_cmd, flush=True)
         start_time = time.time()
 
         cmd_status, cmd_output = subprocess.getstatusoutput(netrax_cmd)
@@ -92,7 +92,7 @@ def extract_displayed_trees(network_path, n_taxa):
 
     netrax_cmd = NETRAX_PATH + " --extract_displayed_trees " + \
         " --start_network " + network_path + " --msa " + msa_path + " --model DNA"
-    print(netrax_cmd)
+    print(netrax_cmd, flush=True)
     cmd_status, cmd_output = subprocess.getstatusoutput(netrax_cmd)
     print(cmd_output)
     if cmd_status != 0:
@@ -123,7 +123,7 @@ def change_reticulation_prob_only(network_input_path, network_output_path, new_r
     msa_file.close()
     netrax_cmd = NETRAX_PATH + " --change_reticulation_prob_only --overwritten_reticulation_prob " + str(new_ret_prob) + \
         " --start_network " + network_input_path + " --output " + network_output_path + " --msa " + msa_path + " --model DNA"
-    print(netrax_cmd)
+    print(netrax_cmd, flush=True)
     cmd_status, cmd_output = subprocess.getstatusoutput(netrax_cmd)
     print(cmd_output)
     if cmd_status != 0:
@@ -152,7 +152,7 @@ def network_distance_only(network_1_path, network_2_path, n_taxa):
 
     netrax_cmd = NETRAX_PATH + " --network_distance_only " + \
         " --first_network " + network_1_path + " --second_network " + network_2_path + " --msa " + msa_path + " --model DNA"
-    print(netrax_cmd)
+    print(netrax_cmd, flush=True)
     cmd_status, cmd_output = subprocess.getstatusoutput(netrax_cmd)
     print(cmd_output)
     lines = cmd_output.splitlines()
@@ -189,7 +189,7 @@ def check_weird_network(network_path, n_taxa):
 
     netrax_cmd = NETRAX_PATH + " --check_weird_network " + \
         " --start_network " + network_path + " --msa " + msa_path + " --model DNA"
-    print(netrax_cmd)
+    print(netrax_cmd, flush=True)
     cmd_status, cmd_output = subprocess.getstatusoutput(netrax_cmd)
     print(cmd_output)
     if cmd_status != 0:
@@ -217,7 +217,7 @@ def scale_branches_only(network_path, output_path, scaling_factor, n_taxa):
 
     netrax_cmd = NETRAX_PATH + " --scale_branches_only " + str(scaling_factor) + \
         " --start_network " + network_path + " --msa " + msa_path + " --model DNA" + " --output " + output_path
-    print(netrax_cmd)
+    print(netrax_cmd, flush=True)
     cmd_status, cmd_output = subprocess.getstatusoutput(netrax_cmd)
     print(cmd_output)
     if cmd_status != 0:
@@ -254,7 +254,7 @@ def build_fake_msa(n_taxa, network_path=""):
     if network_path != "":
         netrax_cmd = NETRAX_PATH + " --extract_taxon_names " + \
             " --start_network " + network_path + " --model DNA"
-        print(netrax_cmd)
+        print(netrax_cmd, flush=True)
         cmd_status, cmd_output = subprocess.getstatusoutput(netrax_cmd)
         print(cmd_output)
         if cmd_status != 0:
@@ -268,7 +268,7 @@ def build_fake_msa(n_taxa, network_path=""):
             fake_msa += ">T" + str(i) + "\n" + msa[i] + "\n"
         else:
             fake_msa += ">" + taxon_names[i] + "\n" + msa[i] + "\n"
-    print(fake_msa)
+    #print(fake_msa)
     return fake_msa
 
 
@@ -281,7 +281,7 @@ def generate_random_network(n_taxa, n_reticulations, output_path):
     netrax_cmd = NETRAX_PATH + " --generate_random_network_only " + " --max_reticulations " + \
         str(n_reticulations) + " --msa " + msa_path + \
         " --model DNA " + " --output " + output_path
-    print(netrax_cmd)
+    print(netrax_cmd, flush=True)
     cmd_status, cmd_output = subprocess.getstatusoutput(netrax_cmd)
     print(cmd_output)
     if cmd_status != 0:

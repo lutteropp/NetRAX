@@ -1,5 +1,5 @@
 from dendroscope_wrapper import *
-from netrax_wrapper import *
+from netrax_wrapper import infer_networks, score_network
 from raxml_wrapper import infer_raxml_tree, compute_rf_dist
 
 from experiment_model import *

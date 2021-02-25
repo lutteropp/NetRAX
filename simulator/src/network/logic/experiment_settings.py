@@ -40,6 +40,21 @@ def exp_change_reticulation_prob(n_taxa):
     return (prefix, settings)
 
 
+def exp_change_reticulation_prob_test(n_taxa):
+    settings = ExperimentSettings()
+    prefix = 't_' + str(n_taxa) + '_change_reticulation_prob_test'
+    settings.sampling_types = [SamplingType.PERFECT_SAMPLING]
+    settings.start_types = [StartType.FROM_RAXML, StartType.RANDOM]
+    settings.brlen_linkage_types = [BrlenLinkageType.LINKED]
+    settings.likelihood_types = [LikelihoodType.BEST, LikelihoodType.AVERAGE]
+    settings.partition_sizes = [100]
+    settings.fixed_n_taxa = [n_taxa]
+    settings.fixed_n_reticulations = [1]
+    settings.fixed_reticulation_probs = [0.1, 0.2, 0.3, 0.4, 0.5]
+    settings.use_fixed_simulation = True
+    return (prefix, settings)
+
+
 def exp_change_brlen_scaler(n_taxa):
     settings = ExperimentSettings()
     prefix = 't_' + str(n_taxa) + '_change_brlen_scaler'
@@ -106,6 +121,7 @@ def smoke_test_fixed():
 def gather_labeled_settings():
     setups = {}
     setups['t_15_change_reticulation_prob'] = exp_change_reticulation_prob(15)
+    setups['t_4_change_reticulation_prob_test'] = exp_change_reticulation_prob_test(4)
     setups['t_15_change_brlen_scaler'] = exp_change_brlen_scaler(15)
     setups['t_15_change_reticulation_count'] = exp_change_reticulation_count(15)
     setups['t_15_unpartitioned'] = exp_unpartitioned(15)

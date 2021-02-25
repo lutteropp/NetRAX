@@ -9,7 +9,7 @@ SEQGEN_PATH = './seq-gen'
 def simulate_msa(dataset):
     cmd = SEQGEN_PATH + ' ' + dataset.seqgen_params + ' -l' + str(dataset.msa_size)+' -p' + str(
         dataset.n_trees)+' < ' + dataset.extracted_trees_path + ' > ' + dataset.msa_path
-    print(cmd)
+    print(cmd, flush=True)
     cmd_status, cmd_output = subprocess.getstatusoutput(cmd)
     print(cmd_output)
     if cmd_status != 0:
