@@ -79,17 +79,23 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     if (candidates.empty()) {
         return bic(ann_network, ann_network.raxml_treeinfo->loglh(true));
     }
+
+    bool complexityChanging = isComplexityChanging(candidates[0].moveType);
     
     if (randomizeCandidates) {
         std::random_shuffle(candidates.begin(), candidates.end());
     }
 
-    if (brlenopt_inside) { // first try without local brlen opt
+    if (brlenopt_inside && (old_score != std::numeric_limits<double>::max())) { // first try without local brlen opt
+        NetworkState state_before = extract_network_state(ann_network, complexityChanging);
+
         double bic_before_0 = old_score;
         hillClimbingStep(ann_network, candidates, bic_before_0, greedy, false, false);
         double bic_after_0 = scoreNetwork(ann_network);
         if (bic_after_0 < bic_before_0) {
             return bic_after_0;
+        } else {
+            apply_network_state(ann_network, state_before, complexityChanging);
         }
     }
 
@@ -97,8 +103,6 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     int max_iters = 1; //brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
     int radius = 1;
     double start_logl = ann_network.raxml_treeinfo->loglh(true);
-
-    bool complexityChanging = isComplexityChanging(candidates[0].moveType);
 
     NetworkState start_state = extract_network_state(ann_network, complexityChanging);
 
