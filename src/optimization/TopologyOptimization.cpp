@@ -85,7 +85,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     }
 
     if (brlenopt_inside) { // first try without local brlen opt
-        double bic_before_0 = scoreNetwork(ann_network);
+        double bic_before_0 = old_score;
         hillClimbingStep(ann_network, candidates, bic_before_0, greedy, false, false);
         double bic_after_0 = scoreNetwork(ann_network);
         if (bic_after_0 < bic_before_0) {
