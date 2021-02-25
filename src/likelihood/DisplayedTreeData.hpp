@@ -35,6 +35,7 @@ struct ScaleBufferRangeInfo {
     }
 };
 
+void print_clv(ClvRangeInfo rangeInfo, double ** clv);
 ClvRangeInfo get_clv_range(pll_partition_t* partition);
 bool clv_entries_equal(ClvRangeInfo rangeInfo, double** clv1, double** clv2);
 double** clone_clv_vector(pll_partition_t* partition, double** clv);

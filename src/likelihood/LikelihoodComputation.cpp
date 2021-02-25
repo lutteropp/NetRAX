@@ -89,6 +89,7 @@ void compute_displayed_tree(AnnotatedNetwork &ann_network, std::vector<bool> &cl
         std::vector<bool> &dead_nodes, Node *displayed_tree_root, bool incremental,
         const std::vector<Node*> &parent, pllmod_treeinfo_t &fake_treeinfo, size_t tree_idx,
         size_t partition_idx, Node *startNode = nullptr) {
+    incremental = false;
 
     double ** old_partition_clv = fake_treeinfo.partitions[partition_idx]->clv;
     unsigned int ** old_partition_scale_buffer = fake_treeinfo.partitions[partition_idx]->scale_buffer;
@@ -163,6 +164,9 @@ void compute_displayed_tree(AnnotatedNetwork &ann_network, std::vector<bool> &cl
 
     assert(tree_logl < 0);
     if (tree_logl == -std::numeric_limits<double>::infinity()) {
+        print_clv(get_clv_range(ann_network.fake_treeinfo->partitions[partition_idx]), ann_network.fake_treeinfo->partitions[partition_idx]->clv);
+
+
         std::cout << "operations:\n";
         
         for (size_t i = 0; i < ops.size(); ++i) {

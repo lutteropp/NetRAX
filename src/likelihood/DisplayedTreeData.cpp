@@ -5,6 +5,16 @@
 
 namespace netrax
 {
+    void print_clv(ClvRangeInfo rangeInfo, double ** clv) {
+        for (size_t i = rangeInfo.start; i < rangeInfo.end; ++i) {
+            std::cout << "clv[" << i << ":\n";
+            for (size_t j = 0; j < rangeInfo.inner_clv_num_entries; ++j) {
+                std::cout << clv[i][j] << ", ";
+            }
+            std::cout << "\n";
+        }
+    }
+
     ClvRangeInfo get_clv_range(pll_partition_t* partition) {
          /* if tip pattern precomputation is enabled, then do not allocate CLV space
     for the tip nodes */
