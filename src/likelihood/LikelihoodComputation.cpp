@@ -159,6 +159,7 @@ DisplayedTreeData compute_displayed_tree(AnnotatedNetwork &ann_network, std::vec
     }
 
     assert(tree_logl < 0);
+    assert(tree_logl != -std::numeric_limits<double>::infinity());
     return DisplayedTreeData{tree_idx, tree_logl, tree_logprob, tree_clv, tree_persite_logl};
 }
 
