@@ -80,6 +80,8 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     if (candidates.empty()) {
         std::cout << "empty list of candidates\n";
         return bic(ann_network, ann_network.raxml_treeinfo->loglh(true));
+    } else {
+        std::cout << candidates.size() << " candidates\n";
     }
 
     bool complexityChanging = isComplexityChanging(candidates[0].moveType);
