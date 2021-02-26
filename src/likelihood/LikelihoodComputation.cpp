@@ -276,6 +276,11 @@ double computeLoglikelihood_new(AnnotatedNetwork &ann_network, int incremental, 
 
     if (reuse_old_displayed_trees) {
         // std::cout << "reuse old displayed trees\n";
+        for (size_t p = 0; p < fake_treeinfo.partition_count; ++p) { // TODO: Why is this needed here?
+            for (size_t t = 0; t < n_trees; ++t) {
+                ann_network.displayed_trees[p][t].tree_logprob = displayed_tree_logprob(ann_network, t);
+            }
+        }
     } else {
         for (size_t partition_idx = 0; partition_idx < fake_treeinfo.partition_count; ++partition_idx) {
             fake_treeinfo.active_partition = partition_idx;

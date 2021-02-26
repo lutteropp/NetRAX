@@ -23,8 +23,33 @@ struct ScoreImprovementResult {
     bool global_improved = false;
 };
 
+bool logl_stays_same(AnnotatedNetwork& ann_network) {
+    size_t n_trees = (1 << ann_network.network.num_reticulations());
+    std::cout << "displayed trees before:\n";
+    for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
+        for (size_t j = 0; j < n_trees; ++j) {
+            std::cout << "logl: " << ann_network.displayed_trees[i][j].tree_logl << ", logprob: " << ann_network.displayed_trees[i][j].tree_logprob << "\n";
+        }
+    }
+    double incremental = netrax::computeLoglikelihood(ann_network, 1, 1);
+    std::cout << "displayed trees in between:\n";
+    for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
+        for (size_t j = 0; j < n_trees; ++j) {
+            std::cout << "logl: " << ann_network.displayed_trees[i][j].tree_logl << ", logprob: " << ann_network.displayed_trees[i][j].tree_logprob << "\n";
+        }
+    }
+    double normal = netrax::computeLoglikelihood(ann_network, 0, 1);
+    std::cout << "displayed trees after:\n";
+    for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
+        for (size_t j = 0; j < n_trees; ++j) {
+            std::cout << "logl: " << ann_network.displayed_trees[i][j].tree_logl << ", logprob: " << ann_network.displayed_trees[i][j].tree_logprob << "\n";
+        }
+    }
+    return (incremental == normal);
+}
+
 void optimizeAllNonTopology(AnnotatedNetwork &ann_network, bool extremeOpt) {
-    assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
+    assert(logl_stays_same(ann_network));
     bool gotBetter = true;
     while (gotBetter) {
         gotBetter = false;
@@ -38,7 +63,8 @@ void optimizeAllNonTopology(AnnotatedNetwork &ann_network, bool extremeOpt) {
             gotBetter = true;
         }
     }
-    assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
+
+    assert(logl_stays_same(ann_network));
 }
 
 void printDisplayedTrees(AnnotatedNetwork& ann_network) {
