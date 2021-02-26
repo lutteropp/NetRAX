@@ -317,13 +317,23 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, const std::vect
     return new_logl;
 }
 
+bool logl_same_after_recompute(AnnotatedNetwork& ann_network) {
+    double incremental = netrax::computeLoglikelihood(ann_network, 1, 1);
+    double normal = netrax::computeLoglikelihood(ann_network, 0, 1);
+    if (incremental != normal) {
+        std::cout << "incremental: " << incremental << "\n";
+        std::cout << "normal: " << normal << "\n";
+    }
+    return (incremental == normal);
+}
+
 /**
  * Re-infers the topology of a given network.
  * 
  * @param ann_network The network.
  */
 void optimizeTopology(AnnotatedNetwork &ann_network, const std::vector<MoveType>& types, bool greedy, size_t max_iterations) {
-    assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
+    assert(logl_same_after_recompute(ann_network));
     double old_score = scoreNetwork(ann_network);
     greedyHillClimbingTopology(ann_network, types, greedy, max_iterations);
     double new_score = scoreNetwork(ann_network);
@@ -337,7 +347,7 @@ void optimizeTopology(AnnotatedNetwork &ann_network, const std::vector<MoveType>
  * @param ann_network The network.
  */
 void optimizeTopology(AnnotatedNetwork &ann_network, MoveType& type, bool greedy, bool enforce_apply_move, size_t max_iterations) {
-    assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
+    assert(logl_same_after_recompute(ann_network));
     double old_score = scoreNetwork(ann_network);
     greedyHillClimbingTopology(ann_network, type, greedy, enforce_apply_move, max_iterations);
     double new_score = scoreNetwork(ann_network);
