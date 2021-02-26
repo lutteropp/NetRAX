@@ -224,7 +224,7 @@ void process_partition_new(AnnotatedNetwork &ann_network, int partition_idx, int
             //std::cout << "The start node is a dead node!!!\n";
 
             ann_network.displayed_trees[partition_idx][tree_idx].tree_logl = last_tree->tree_logl;
-            ann_network.displayed_trees[partition_idx][tree_idx].tree_logprob = last_tree->tree_logprob;
+            ann_network.displayed_trees[partition_idx][tree_idx].tree_logprob = displayed_tree_logprob(ann_network, tree_idx);
             ann_network.displayed_trees[partition_idx][tree_idx].tree_persite_logl = last_tree->tree_persite_logl;
             assign_clv_entries(ann_network.fake_treeinfo->partitions[partition_idx], last_tree->tree_clv_vectors, ann_network.displayed_trees[partition_idx][tree_idx].tree_clv_vectors);
             continue;
