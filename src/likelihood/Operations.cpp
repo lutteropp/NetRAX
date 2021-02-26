@@ -80,8 +80,7 @@ void createOperationsPostorder(AnnotatedNetwork &ann_network, bool incremental,
         return;
     }
     Network &network = ann_network.network;
-    if (incremental && ann_network.network.num_reticulations() == 0
-            && ann_network.fake_treeinfo->clv_valid[partition_idx][actNode->clv_index]) {
+    if (incremental && ann_network.fake_treeinfo->clv_valid[partition_idx][actNode->clv_index]) {
         return;
     }
 

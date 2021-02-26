@@ -106,14 +106,14 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     int radius = 1;
     double start_logl = ann_network.raxml_treeinfo->loglh(true);
 
-    std::cout << "Number of candidates: " << candidates.size() << "\n";
+    /*std::cout << "Number of candidates: " << candidates.size() << "\n";
     std::cout << "old_score: " << old_score << "\n";
     std::cout << "displayed tree logls at start:\n";
     for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
         for (size_t i = 0; i < (1 << ann_network.network.num_reticulations()); ++i) {
             std::cout << "logl=" << ann_network.displayed_trees[p][i].tree_logl << ", logprob=" << ann_network.displayed_trees[p][i].tree_logprob << "\n";
         }
-    }
+    }*/
 
     NetworkState start_state = extract_network_state(ann_network, complexityChanging);
 
