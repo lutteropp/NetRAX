@@ -287,7 +287,9 @@ double computeLoglikelihood_new(AnnotatedNetwork &ann_network, int incremental, 
         fake_treeinfo.active_partition = partition_idx;
         if (ann_network.options.likelihood_variant == LikelihoodVariant::AVERAGE_DISPLAYED_TREES) {
             mpfr::mpreal partition_lh = 0.0;
-            for (const auto& tree : ann_network.displayed_trees[partition_idx]) {
+            double partition_logl;
+            for (size_t tree_idx = 0; tree_idx < n_trees; ++tree_idx) {
+                const auto& tree = ann_network.displayed_trees[partition_idx][tree_idx];
                 assert(tree.tree_logl != 0);
                 assert(tree.tree_logl != -std::numeric_limits<double>::infinity());
                 //std::cout << "tree " << tree.tree_idx << " logl: " << tree.tree_logl << "\n";
@@ -295,11 +297,13 @@ double computeLoglikelihood_new(AnnotatedNetwork &ann_network, int incremental, 
                     partition_lh += mpfr::exp(tree.tree_logprob) * mpfr::exp(tree.tree_logl);
                 }
             }
-            fake_treeinfo.partition_loglh[partition_idx] = mpfr::log(partition_lh).toDouble();
+            partition_logl = mpfr::log(partition_lh).toDouble();
+            fake_treeinfo.partition_loglh[partition_idx] = partition_logl;
             network_logl += mpfr::log(partition_lh);
         } else { // LikelihoodVariant::BEST_DISPLAYED_TREE
             double partition_logl = -std::numeric_limits<double>::infinity();
-            for (const auto& tree : ann_network.displayed_trees[partition_idx]) {
+            for (size_t tree_idx = 0; tree_idx < n_trees; ++tree_idx) {
+                const auto& tree = ann_network.displayed_trees[partition_idx][tree_idx];
                 assert(tree.tree_logl != 0);
                 assert(tree.tree_logl != -std::numeric_limits<double>::infinity());
                 //std::cout << "tree " << tree.tree_idx << " logl: " << tree.tree_logl << "\n";

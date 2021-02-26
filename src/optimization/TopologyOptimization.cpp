@@ -164,16 +164,22 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         }
 
         if (fabs(ann_network.raxml_treeinfo->loglh(true) - start_logl) >= ann_network.options.lh_epsilon) {
-            std::cout << "new value: " << ann_network.raxml_treeinfo->loglh(true) << "\n";
-            std::cout << "old value: " << start_logl << "\n";
-            if (complexityChanging) {
-                std::cout << "we are complexity changing\n";
-            }
+            double new_value = ann_network.raxml_treeinfo->loglh(true);
             std::cout << "displayed tree logls now:\n";
             for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
                 for (size_t i = 0; i < (1 << ann_network.network.num_reticulations()); ++i) {
                     std::cout << "logl=" << ann_network.displayed_trees[p][i].tree_logl << ", logprob=" << ann_network.displayed_trees[p][i].tree_logprob << "\n";
                 }
+            }
+            std::cout << "partition logls now:\n";
+            for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+                std::cout << "partition " << p << " logl: " << ann_network.fake_treeinfo->partition_loglh[p] << "\n";
+            }
+
+            std::cout << "new value: " << new_value << "\n";
+            std::cout << "old value: " << start_logl << "\n";
+            if (complexityChanging) {
+                std::cout << "we are complexity changing\n";
             }
             assert(network_states_equal(start_state, extract_network_state(ann_network, complexityChanging)));
             throw std::runtime_error("Rolling back did not work correctly");
