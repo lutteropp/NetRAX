@@ -307,7 +307,7 @@ void scale_reticulation_probs_only(NetraxOptions &netraxOptions, std::mt19937 &r
     if (netraxOptions.overwritten_reticulation_prob < 0.0 || netraxOptions.overwritten_reticulation_prob > 1.0) {
         throw std::runtime_error("new prob has to be in [0,1]");
     }
-    netrax::AnnotatedNetwork ann_network = build_random_annotated_network(netraxOptions);
+    netrax::AnnotatedNetwork ann_network = build_annotated_network(netraxOptions);
     init_annotated_network(ann_network, rng);
     for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
         ann_network.reticulation_probs[i] = netraxOptions.overwritten_reticulation_prob;
