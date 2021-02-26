@@ -117,6 +117,8 @@ void extract_network_state(AnnotatedNetwork &ann_network, NetworkState& state_to
         state_to_reuse.network = ann_network.network;
         assert(state_to_reuse.network.root);
         state_to_reuse.network_valid = true;
+    } else {
+        state_to_reuse.network_valid = false;
     }
     assert(assert_tip_links(state_to_reuse.network));
     
@@ -279,7 +281,9 @@ bool reticulation_probs_equal(const NetworkState& old_state, const NetworkState&
             std::cout << "idx " << j << ": " << act_state.reticulation_probs[j] << "\n";
             std::cout << "\n";
 
+            std::cout << "reticulation probs not equal\n";
             all_fine = false;
+            break;
         }
     }
     return all_fine;
@@ -289,6 +293,7 @@ bool brlen_scalers_equal(const NetworkState& old_state, const NetworkState& act_
     assert(old_state.partition_brlen_scalers.size() == act_state.partition_brlen_scalers.size());
     for (size_t i = 0; i < act_state.partition_brlen_scalers.size(); ++i) {
         if (fabs(act_state.partition_brlen_scalers[i] - old_state.partition_brlen_scalers[i]) >= 1E-5) {
+            std::cout << "brlen scalers not equal\n";
             return false;
         }
     }
@@ -312,6 +317,7 @@ bool partition_brlens_equal(const NetworkState& old_state, const NetworkState& a
                     std::cout << "idx " << k << ": " << act_state.partition_brlens[i][k] << "\n";
                 }
                 std::cout << "\n";
+                std::cout << "brlens not equal\n";
                 all_fine = false;
             }
         }
@@ -321,13 +327,16 @@ bool partition_brlens_equal(const NetworkState& old_state, const NetworkState& a
 
 bool topology_equal(const Network& n1, const Network& n2) {
     if (n1.num_branches() != n2.num_branches()) {
+        std::cout << "topology not equal: different num branches \n";
         return false;
     }
     for (size_t i = 0; i < n1.num_branches(); ++i) {
         if (n1.edges_by_index[i]->link1->node_clv_index != n2.edges_by_index[i]->link1->node_clv_index) {
+            std::cout << "topology not equal\n";
             return false;
         }
         if (n1.edges_by_index[i]->link2->node_clv_index != n2.edges_by_index[i]->link2->node_clv_index) {
+            std::cout << "topology not equal\n";
             return false;
         }
     }
@@ -340,6 +349,7 @@ bool model_equal(const NetworkState& old_state, const NetworkState& act_state) {
     }
     for (size_t p = 0; p < old_state.partition_models.size(); ++p) {
         if (old_state.partition_models[p].to_string(true) != act_state.partition_models[p].to_string(true)) {
+            std::cout << "model not equal\n";
             return false;
         }
     }
@@ -352,6 +362,7 @@ bool alphas_equal(const NetworkState& old_state, const NetworkState& act_state) 
     }
     for (size_t i = 0; i < old_state.alphas.size(); ++i) {
         if (old_state.alphas[i] != act_state.alphas[i]) {
+            std::cout << "alphas not equal\n";
             return false;
         }
     }
@@ -365,6 +376,7 @@ bool clvs_equal(const NetworkState& old_state, const NetworkState& act_state) {
         for (size_t j = 0; j < old_state.n_trees; ++j) {
             assert(old_state.displayed_tree_clv_ranges[i][j] == act_state.displayed_tree_clv_ranges[i][j]);
             if (!clv_entries_equal(old_state.displayed_tree_clv_ranges[i][j], old_state.displayed_tree_clv_data[i][j], act_state.displayed_tree_clv_data[i][j])) {
+                std::cout << "clvs not equal\n";
                 return false;
             }
         }
@@ -380,6 +392,7 @@ bool scale_buffers_equal(const NetworkState& old_state, const NetworkState& act_
         for (size_t j = 0; j < old_state.n_trees; ++j) {
             assert(old_state.displayed_tree_scale_buffer_ranges[i][j] == act_state.displayed_tree_scale_buffer_ranges[i][j]);
             if (!scale_buffer_entries_equal(old_state.displayed_tree_scale_buffer_ranges[i][j], old_state.displayed_tree_scale_buffer_data[i][j], act_state.displayed_tree_scale_buffer_data[i][j])) {
+                std::cout << "scale buffers not equal\n";
                 return false;
             }
         }
@@ -388,6 +401,14 @@ bool scale_buffers_equal(const NetworkState& old_state, const NetworkState& act_
 }
 
 bool network_states_equal(const NetworkState& old_state, const NetworkState& act_state) {
+    if (old_state.network_valid != act_state.network_valid) {
+        std::cout << "different network valid\n";
+        if (old_state.network_valid) {
+            std::cout << "old state has valid network, act state doesn't\n";
+        } else {
+            std::cout << "act state has valid network, old state doesn't\n";
+        }
+    }
     return model_equal(old_state, act_state) && 
            ((!old_state.network_valid && !act_state.network_valid) || topology_equal(old_state.network, act_state.network)) && 
            reticulation_probs_equal(old_state, act_state) && 
