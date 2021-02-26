@@ -15,6 +15,7 @@
 #include "../optimization/Moves.hpp"
 #include "../optimization/MoveType.hpp"
 #include "../likelihood/LikelihoodComputation.hpp"
+#include "../optimization/NetworkState.hpp"
 
 namespace netrax {
 
@@ -159,7 +160,7 @@ ScoreImprovementResult check_score_improvement(AnnotatedNetwork& ann_network, do
     return ScoreImprovementResult{local_improved, global_improved};
 }
 
-double optimizeEverythingRun(AnnotatedNetwork & ann_network, std::vector<MoveType>& typesBySpeed, const std::chrono::high_resolution_clock::time_point& start_time, bool greedy = true) {
+double optimizeEverythingRun(AnnotatedNetwork & ann_network, std::vector<MoveType>& typesBySpeed, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, const std::chrono::high_resolution_clock::time_point& start_time, bool greedy = true) {
     unsigned int type_idx = 0;
     unsigned int max_seconds = ann_network.options.timeout;
     double best_score = scoreNetwork(ann_network);
@@ -185,7 +186,7 @@ double optimizeEverythingRun(AnnotatedNetwork & ann_network, std::vector<MoveTyp
             break;
         }
         double old_score = scoreNetwork(ann_network);
-        optimizeTopology(ann_network, typesBySpeed[type_idx], greedy, false, 1);
+        optimizeTopology(ann_network, typesBySpeed[type_idx], start_state_to_reuse, best_state_to_reuse, greedy, false, 1);
         double new_score = scoreNetwork(ann_network);
         if (old_score - new_score > ann_network.options.score_epsilon) { // score got better
             new_score = scoreNetwork(ann_network);
@@ -212,6 +213,9 @@ double optimizeEverythingRun(AnnotatedNetwork & ann_network, std::vector<MoveTyp
 }
 
 void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData, std::mt19937& rng) {
+    NetworkState start_state_to_reuse = extract_network_state(ann_network, false);
+    NetworkState best_state_to_reuse = extract_network_state(ann_network, false);
+
     std::vector<MoveType> typesBySpeed = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::HeadMove};
 
     auto start_time = std::chrono::high_resolution_clock::now();
@@ -226,7 +230,7 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
     score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
 
     // try horizontal moves
-    optimizeEverythingRun(ann_network, typesBySpeed, start_time, true);
+    optimizeEverythingRun(ann_network, typesBySpeed, start_state_to_reuse, best_state_to_reuse, start_time, true);
     score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
 
     bool keepSearching = true;
@@ -240,13 +244,13 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
         if (ann_network.network.num_reticulations() > 0) { // try removing arcs
             MoveType removalType = MoveType::ArcRemovalMove;
             size_t old_num_reticulations = ann_network.network.num_reticulations();
-            netrax::greedyHillClimbingTopology(ann_network, removalType, false);
+            netrax::greedyHillClimbingTopology(ann_network, removalType, start_state_to_reuse, best_state_to_reuse, false);
 
             if (ann_network.network.num_reticulations() < old_num_reticulations) {
                 optimizeAllNonTopology(ann_network);
                 score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
                 if (score_improvement.local_improved) { // only redo (n-1) reticulation search if the arc removal led to a better network
-                    optimizeEverythingRun(ann_network, typesBySpeed, start_time, true);
+                    optimizeEverythingRun(ann_network, typesBySpeed, start_state_to_reuse, best_state_to_reuse, start_time, true);
                 }
                 score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
             }
@@ -269,7 +273,7 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
 
             // new version: search for good place to add the new reticulation
             MoveType insertionType = MoveType::ArcInsertionMove;
-            greedyHillClimbingTopology(ann_network, insertionType, false, true, 1);
+            greedyHillClimbingTopology(ann_network, insertionType, start_state_to_reuse, best_state_to_reuse, false, true, 1);
             optimizeAllNonTopology(ann_network);
 
             // ensure that we don't have a reticulation with prob near 0.0 or 1.0 now. If we have one, stop the search.
@@ -279,7 +283,7 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
             }
             score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
 
-            optimizeEverythingRun(ann_network, typesBySpeed, start_time, true);
+            optimizeEverythingRun(ann_network, typesBySpeed, start_state_to_reuse, best_state_to_reuse, start_time, true);
             score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
             if (score_improvement.global_improved) {
                 keepSearching = true;

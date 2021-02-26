@@ -145,6 +145,7 @@ void extract_network_state(AnnotatedNetwork &ann_network, NetworkState& state_to
     extract_clv_data(ann_network, state_to_reuse);
     extract_scale_buffer_data(ann_network, state_to_reuse);
     state_to_reuse.n_trees = (1 << ann_network.network.num_reticulations());
+    state_to_reuse.n_branches = ann_network.network.num_branches();
 }
 
 NetworkState extract_network_state(AnnotatedNetwork &ann_network, bool extract_network) {
@@ -159,7 +160,7 @@ NetworkState extract_network_state(AnnotatedNetwork &ann_network, bool extract_n
     }
     state.alphas.resize(ann_network.fake_treeinfo->partition_count);
     for (size_t p = 0; p < state.partition_brlens.size(); ++p) {
-        state.partition_brlens[p].resize(ann_network.network.num_branches());
+        state.partition_brlens[p].resize(ann_network.network.edges.size());
     }
     state.partition_models.resize(ann_network.fake_treeinfo->partition_count);
 
@@ -296,18 +297,18 @@ bool brlen_scalers_equal(const NetworkState& old_state, const NetworkState& act_
 
 bool partition_brlens_equal(const NetworkState& old_state, const NetworkState& act_state) {
     assert(old_state.partition_brlens.size() == act_state.partition_brlens.size());
+    assert(old_state.n_branches == act_state.n_branches);
     bool all_fine = true;
     for (size_t i = 0; i < old_state.partition_brlens.size(); ++i) {
-        assert(old_state.partition_brlens[i].size() == act_state.partition_brlens[i].size());
-        for (size_t j = 0; j < act_state.partition_brlens[i].size(); ++j) {
+        for (size_t j = 0; j < act_state.n_branches; ++j) {
             if (fabs(act_state.partition_brlens[i][j] - old_state.partition_brlens[i][j]) >= 1E-5) {
                 std::cout << "wanted brlens:\n";
-                for (size_t k = 0; k < old_state.partition_brlens[i].size(); ++k) {
+                for (size_t k = 0; k < old_state.n_branches; ++k) {
                     std::cout << "idx " << k << ": " << old_state.partition_brlens[i][k] << "\n";
                 }
                 std::cout << "\n";
                 std::cout << "observed brlens:\n";
-                for (size_t k = 0; k < act_state.partition_brlens[i].size(); ++k) {
+                for (size_t k = 0; k < act_state.n_branches; ++k) {
                     std::cout << "idx " << k << ": " << act_state.partition_brlens[i][k] << "\n";
                 }
                 std::cout << "\n";

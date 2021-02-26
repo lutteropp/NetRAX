@@ -10,6 +10,8 @@ namespace netrax {
 struct NetworkState {
     int brlen_linkage;
     unsigned int n_trees;
+    unsigned int n_branches;
+
     Network network;
     std::vector<std::vector<double> > partition_brlens;
     std::vector<double> partition_brlen_scalers;

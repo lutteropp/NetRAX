@@ -26,6 +26,8 @@ extern "C" {
 
 namespace netrax {
 
+struct NetworkState;
+
 struct Statistics {
     std::unordered_map<MoveType, size_t> moves_taken;
 };
