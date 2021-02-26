@@ -32,11 +32,9 @@ static double brent_target_networks_prob(void *p, double x) {
         ann_network->reticulation_probs[reticulation_index] = x;
 
         size_t n_trees = (1 << ann_network->network.num_reticulations());
-        if (!ann_network->displayed_trees.empty()) {
-            for (size_t p = 0; p < ann_network->fake_treeinfo->partition_count; ++p) {
-                for (size_t i = 0; i < n_trees; ++i) {
-                    ann_network->displayed_trees[p][i].tree_logprob = displayed_tree_logprob(*ann_network, ann_network->displayed_trees[p][i].tree_idx);
-                }
+        for (size_t p = 0; p < ann_network->fake_treeinfo->partition_count; ++p) {
+            for (size_t i = 0; i < n_trees; ++i) {
+                ann_network->displayed_trees[p][i].tree_logprob = displayed_tree_logprob(*ann_network, ann_network->displayed_trees[p][i].tree_idx);
             }
         }
 

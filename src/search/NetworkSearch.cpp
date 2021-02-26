@@ -24,6 +24,7 @@ struct ScoreImprovementResult {
 };
 
 void optimizeAllNonTopology(AnnotatedNetwork &ann_network, bool extremeOpt) {
+    assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
     bool gotBetter = true;
     while (gotBetter) {
         gotBetter = false;
@@ -37,6 +38,7 @@ void optimizeAllNonTopology(AnnotatedNetwork &ann_network, bool extremeOpt) {
             gotBetter = true;
         }
     }
+    assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
 }
 
 void printDisplayedTrees(AnnotatedNetwork& ann_network) {
@@ -157,6 +159,8 @@ double optimizeEverythingRun(AnnotatedNetwork & ann_network, std::vector<MoveTyp
             break;
         }
         double old_score = scoreNetwork(ann_network);
+        std::cout << "move type is: " << toString(typesBySpeed[type_idx]) << "\n";
+        std::cout << "old_score is: " << old_score << "\n";
         optimizeTopology(ann_network, typesBySpeed[type_idx], greedy, false, 1);
         double new_score = scoreNetwork(ann_network);
         if (old_score - new_score > ann_network.options.score_epsilon) { // score got better
