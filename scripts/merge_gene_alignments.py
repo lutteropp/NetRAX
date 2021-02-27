@@ -53,6 +53,12 @@ start = 1
 
 print(len(paths))
 print(len(taxon_names))
+
+print(taxon_names)
+
+species_names = set([t.split("_")[0] + "_" + t.split("_")[1] for t in taxon_names])
+print(len(species_names))
+print(species_names)
     
 for i in range(len(paths)):
     p = paths[i]
