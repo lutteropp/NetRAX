@@ -233,6 +233,8 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
     optimizeEverythingRun(ann_network, typesBySpeed, start_state_to_reuse, best_state_to_reuse, start_time, true);
     score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
 
+    size_t count_add_reticulation_failed = 0;
+
     bool keepSearching = true;
     while (keepSearching) {
         score_improvement = {false, false};
@@ -269,25 +271,33 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
         // then try adding a reticulation
         if (ann_network.network.num_reticulations() < ann_network.options.max_reticulations) {
             // old and deprecated: randomly add new reticulation
-            //add_extra_reticulations(ann_network, ann_network.network.num_reticulations() + 1);
+            std::cout << "Randomly adding a reticulation\n";
+            add_extra_reticulations(ann_network, ann_network.network.num_reticulations() + 1);
 
             // new version: search for good place to add the new reticulation
-            MoveType insertionType = MoveType::ArcInsertionMove;
-            greedyHillClimbingTopology(ann_network, insertionType, start_state_to_reuse, best_state_to_reuse, false, true, 1);
+            //MoveType insertionType = MoveType::ArcInsertionMove;
+            //greedyHillClimbingTopology(ann_network, insertionType, start_state_to_reuse, best_state_to_reuse, false, true, 1);
             optimizeAllNonTopology(ann_network);
 
             // ensure that we don't have a reticulation with prob near 0.0 or 1.0 now. If we have one, stop the search.
-            if (hasBadReticulation(ann_network)) {
+            /*if (hasBadReticulation(ann_network)) {
                 std::cout << "BAD RETICULATION FOUND\n";
                 continue;
-            }
+            }*/
             score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
 
             optimizeEverythingRun(ann_network, typesBySpeed, start_state_to_reuse, best_state_to_reuse, start_time, true);
             score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
             if (score_improvement.local_improved) {
+                count_add_reticulation_failed = 0;
                 keepSearching = true;
                 continue;
+            } else {
+                count_add_reticulation_failed++;
+                if (count_add_reticulation_failed <= 10) {
+                    keepSearching = true;
+                    continue;
+                }
             }
         }
     }
