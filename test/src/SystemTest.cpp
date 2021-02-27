@@ -158,7 +158,9 @@ void problemTestOptTopology(const std::string &newick, MoveType type) {
     AnnotatedNetwork ann_network = build_annotated_network_from_string(smallOptions, newick);
     init_annotated_network(ann_network);
 
-    greedyHillClimbingTopology(ann_network, type);
+    NetworkState start_state_to_reuse = extract_network_state(ann_network, false);
+    NetworkState best_state_to_reuse = extract_network_state(ann_network, false);
+    greedyHillClimbingTopology(ann_network, type, start_state_to_reuse, best_state_to_reuse);
 }
 
 TEST (SystemTest, problemFillSkippedNodesRecursive) {
