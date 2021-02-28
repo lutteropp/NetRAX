@@ -183,6 +183,29 @@ void compute_displayed_tree(AnnotatedNetwork &ann_network, std::vector<bool> &cl
     ann_network.displayed_trees[partition_idx][tree_idx].tree_persite_logl = tree_persite_logl;
 }
 
+void validate_clvs_below_subroot(AnnotatedNetwork& ann_network, Node* sub_root, size_t partition_idx) {
+    pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
+    std::queue<Node*> q;
+    q.emplace(sub_root);
+    while (!q.empty()) {
+        Node* act_node = q.front();
+        q.pop();
+        bool already_valid = true;
+        if (!fake_treeinfo.clv_valid[partition_idx][act_node->clv_index]) {
+            already_valid = false;
+            break;
+        }
+        if (already_valid) {
+            continue;
+        }
+        fake_treeinfo.clv_valid[partition_idx][act_node->clv_index] = 1;
+        std::vector<Node*> children = getChildren(ann_network.network, act_node);
+        for (Node* child : children) {
+            q.emplace(child);
+        }
+    }
+}
+
 void process_partition_new(AnnotatedNetwork &ann_network, int partition_idx, int incremental, 
         const std::vector<Node*> &parent) {
     Network &network = ann_network.network;
@@ -240,6 +263,7 @@ void process_partition_new(AnnotatedNetwork &ann_network, int partition_idx, int
 
         last_tree = &ann_network.displayed_trees[partition_idx][tree_idx];
     }
+    validate_clvs_below_subroot(ann_network, ann_network.network.root, partition_idx);
 }
 
 double computeLoglikelihood_new(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices) {
@@ -325,13 +349,6 @@ double computeLoglikelihood_new(AnnotatedNetwork &ann_network, int incremental, 
     }
 
     //std::cout << "total_logl: " << network_logl << "\n";
-
-    // now we can validate all CLVs
-    for (size_t i = 0; i < fake_treeinfo.partition_count; ++i) {
-        for (size_t j = 0; j < ann_network.network.num_nodes(); ++j) {
-            fake_treeinfo.clv_valid[i][j] = 1;
-        }
-    }
     //std::cout << "network logl: " << ann_network.old_logl << "\n";
 
     fake_treeinfo.active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
