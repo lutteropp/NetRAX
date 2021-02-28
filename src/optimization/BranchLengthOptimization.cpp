@@ -39,15 +39,18 @@ static double brent_target_networks(void *p, double x) {
     double old_x = ann_network->fake_treeinfo->branch_lengths[partition_index][pmatrix_index];
     double score;
     checkLoglBeforeAfter(*ann_network);
+
+    Node* source = getSource(ann_network->network, ann_network->network.edges_by_index[pmatrix_index]);
+
     if (old_x == x) {
-        score = -1 * computeLoglikelihood(*ann_network, 1, 1);
+        score = -1 * computeLoglikelihoodSubnetwork(*ann_network, source, 1, 1);
         checkLoglBeforeAfter(*ann_network);
     } else {
         ann_network->fake_treeinfo->branch_lengths[partition_index][pmatrix_index] = x;
         invalidatePmatrixIndex(*ann_network, pmatrix_index);
         setup_pmatrices(*ann_network, true, true);
         assert(ann_network->fake_treeinfo->pmatrix_valid[partition_index][pmatrix_index]);
-        score = -1 * computeLoglikelihood(*ann_network, 1, 0);
+        score = -1 * computeLoglikelihoodSubnetwork(*ann_network, source, 1, 0);
         checkLoglBeforeAfter(*ann_network);
     }
     return score;
@@ -139,6 +142,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index) {
         // TODO: Set the active partitions in the fake_treeinfo
         logl = optimize_branch(ann_network, pmatrix_index, p);
     }
+    logl = ann_network.raxml_treeinfo->loglh(true);
     // check whether new_logl >= old_logl
     if (logl < old_logl && fabs(logl - old_logl) >= 1E-3) {
         std::cout << "new_logl: " << logl << "\n";

@@ -205,7 +205,7 @@ pll_unode_t* connect_subtree_recursive(Network &network, Node *networkNode,
     return unode->next;
 }
 
-std::vector<bool> collect_dead_nodes(Network &network, size_t megablobRootClvIndex,
+std::vector<bool> collect_dead_nodes(Network &network, Node* sub_root, size_t megablobRootClvIndex,
         Node **displayed_tree_root) {
     std::vector<bool> dead_nodes(network.num_nodes(), false);
 
@@ -231,7 +231,7 @@ std::vector<bool> collect_dead_nodes(Network &network, size_t megablobRootClvInd
         }
     }
 
-    Node *dtroot = network.root;
+    Node *dtroot = sub_root;
     std::vector<Node*> children = getActiveAliveChildren(network, dead_nodes, dtroot);
     assert(!children.empty());
     bool seenMegablobRoot = false;
@@ -288,7 +288,7 @@ double displayed_tree_prob(AnnotatedNetwork &ann_network, size_t tree_index) {
 pll_utree_t* displayed_tree_to_utree(Network &network, size_t tree_index) {
     setReticulationParents(network, tree_index);
 
-    std::vector<bool> dead_nodes = collect_dead_nodes(network, network.root->clv_index);
+    std::vector<bool> dead_nodes = collect_dead_nodes(network, network.root, network.root->clv_index);
     Node *root = nullptr;
 
     root = getPossibleTreeRootNode(network, dead_nodes);
@@ -501,6 +501,16 @@ std::vector<Node*> grab_current_node_parents(Network &network) {
         }
     }
     return parent;
+}
+
+std::vector<Node*> get_all_node_parents(Network& network, Node* node) {
+    if (node == network.root) {
+        return {};
+    } else if (node->getType() == NodeType::BASIC_NODE) {
+        return {getActiveParent(network, node)};
+    } else { // reticulation node
+        return {getReticulationFirstParent(network, node), getReticulationSecondParent(network, node)};
+    }
 }
 
 std::vector<Node*> reversed_topological_sort(Network &network) {
