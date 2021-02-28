@@ -85,7 +85,7 @@ double displayed_tree_logprob(AnnotatedNetwork &ann_network, size_t tree_index) 
     return logProb.toDouble();
 }
 
-void compute_displayed_tree(AnnotatedNetwork &ann_network, Node* sub_root, std::vector<bool> &clv_touched,
+void compute_displayed_tree(AnnotatedNetwork &ann_network, std::vector<bool> &clv_touched,
         std::vector<bool> &dead_nodes, Node *displayed_tree_root, bool incremental,
         const std::vector<Node*> &parent, pllmod_treeinfo_t &fake_treeinfo, size_t tree_idx,
         size_t partition_idx, Node *startNode = nullptr) {
@@ -142,11 +142,11 @@ void compute_displayed_tree(AnnotatedNetwork &ann_network, Node* sub_root, std::
         clv_touched[ops[i].parent_clv_index] = true;
     }
 
-    bool toplevel_trifurcation = (getChildren(network, sub_root).size() == 3);
+    bool toplevel_trifurcation = (getChildren(network, network.root).size() == 3);
     assert(!toplevel_trifurcation);
     if (toplevel_trifurcation) {
         Node *rootBack = getTargetNode(network, ops_root->getLink());
-        if (ops_root == sub_root && !dead_nodes[rootBack->clv_index]) {
+        if (ops_root == network.root && !dead_nodes[rootBack->clv_index]) {
             tree_logl = pll_compute_edge_loglikelihood(fake_treeinfo.partitions[partition_idx],
                     ops_root->clv_index, ops_root->scaler_index, rootBack->clv_index,
                     rootBack->scaler_index, ops_root->getLink()->edge_pmatrix_index,
@@ -183,7 +183,7 @@ void compute_displayed_tree(AnnotatedNetwork &ann_network, Node* sub_root, std::
     ann_network.displayed_trees[partition_idx][tree_idx].tree_persite_logl = tree_persite_logl;
 }
 
-void process_partition_new(AnnotatedNetwork &ann_network, Node* sub_root, int partition_idx, int incremental, 
+void process_partition_new(AnnotatedNetwork &ann_network, int partition_idx, int incremental, 
         const std::vector<Node*> &parent) {
     Network &network = ann_network.network;
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
@@ -218,7 +218,7 @@ void process_partition_new(AnnotatedNetwork &ann_network, Node* sub_root, int pa
         //invalidateHigherCLVs(ann_network, start_node, partition_idx, false);
 
         Node *displayed_tree_root = nullptr;
-        std::vector<bool> dead_nodes = collect_dead_nodes(network, sub_root, sub_root->clv_index, &displayed_tree_root);
+        std::vector<bool> dead_nodes = collect_dead_nodes(network, network.root->clv_index, &displayed_tree_root);
 
         if (start_node && dead_nodes[start_node->clv_index]) {
             //std::cout << "The start node is a dead node!!!\n";
@@ -236,41 +236,13 @@ void process_partition_new(AnnotatedNetwork &ann_network, Node* sub_root, int pa
                     start_node);
             assert(clv_touched[start_node->clv_index]);
         }
-        compute_displayed_tree(ann_network, sub_root, clv_touched, dead_nodes, displayed_tree_root, incremental, parent, fake_treeinfo, tree_idx, partition_idx, start_node);
+        compute_displayed_tree(ann_network, clv_touched, dead_nodes, displayed_tree_root, incremental, parent, fake_treeinfo, tree_idx, partition_idx, start_node);
 
         last_tree = &ann_network.displayed_trees[partition_idx][tree_idx];
     }
 }
 
-void validate_clvs_below_subroot(AnnotatedNetwork& ann_network, Node* sub_root) {
-    pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
-    std::queue<Node*> q;
-    q.emplace(sub_root);
-    while (!q.empty()) {
-        Node* act_node = q.front();
-        q.pop();
-        bool already_valid = true;
-        for (size_t i = 0; i < fake_treeinfo.partition_count; ++i) {
-            if (!fake_treeinfo.clv_valid[i][act_node->clv_index]) {
-                already_valid = false;
-                break;
-            }
-        }
-        if (already_valid) {
-            continue;
-        }
-
-        for (size_t i = 0; i < fake_treeinfo.partition_count; ++i) {
-            fake_treeinfo.clv_valid[i][act_node->clv_index] = 1;
-        }
-        std::vector<Node*> children = getChildren(ann_network.network, act_node);
-        for (Node* child : children) {
-            q.emplace(child);
-        }
-    }
-}
-
-double computeLoglikelihood_new(AnnotatedNetwork &ann_network, Node* sub_root, int incremental, int update_pmatrices) {
+double computeLoglikelihood_new(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices) {
     // TODO: Check if number of displayed trees is still correct
     size_t n_trees = (1 << ann_network.network.num_reticulations());
     for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
@@ -312,7 +284,7 @@ double computeLoglikelihood_new(AnnotatedNetwork &ann_network, Node* sub_root, i
     } else {
         for (size_t partition_idx = 0; partition_idx < fake_treeinfo.partition_count; ++partition_idx) {
             fake_treeinfo.active_partition = partition_idx;
-            process_partition_new(ann_network, sub_root, partition_idx, incremental, parent);
+            process_partition_new(ann_network, partition_idx, incremental, parent);
         }
     }
 
@@ -354,7 +326,12 @@ double computeLoglikelihood_new(AnnotatedNetwork &ann_network, Node* sub_root, i
 
     //std::cout << "total_logl: " << network_logl << "\n";
 
-    validate_clvs_below_subroot(ann_network, sub_root);
+    // now we can validate all CLVs
+    for (size_t i = 0; i < fake_treeinfo.partition_count; ++i) {
+        for (size_t j = 0; j < ann_network.network.num_nodes(); ++j) {
+            fake_treeinfo.clv_valid[i][j] = 1;
+        }
+    }
     //std::cout << "network logl: " << ann_network.old_logl << "\n";
 
     fake_treeinfo.active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
@@ -453,16 +430,11 @@ double computeLoglikelihoodNaiveUtree(AnnotatedNetwork &ann_network, int increme
 }
 
 
-double computeLoglikelihoodSubnetwork(AnnotatedNetwork &ann_network, Node* sub_root, int incremental, int update_pmatrices) {
-    return computeLoglikelihood_new(ann_network, sub_root, incremental, update_pmatrices);
-}
-
-
 double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices) {
     //just for debug
     //incremental = 0;
     //update_pmatrices = 1;
-    return computeLoglikelihood_new(ann_network, ann_network.network.root, incremental, update_pmatrices);
+    return computeLoglikelihood_new(ann_network, incremental, update_pmatrices);
     //return computeLoglikelihoodNaiveUtree(ann_network, incremental, update_pmatrices);
 }
 

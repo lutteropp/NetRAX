@@ -39,10 +39,9 @@ void setReticulationParents(BlobInformation &blobInfo, unsigned int megablob_idx
 std::vector<Node*> getPossibleRootNodes(Network &network);
 Node* getPossibleTreeRootNode(Network &network, const std::vector<bool> &dead_nodes);
 
-std::vector<bool> collect_dead_nodes(Network &network, Node* sub_root, size_t megablobRootClvIndex,
+std::vector<bool> collect_dead_nodes(Network &network, size_t megablobRootClvIndex,
         Node **displayed_tree_root = nullptr);
 std::vector<Node*> grab_current_node_parents(Network &network);
-std::vector<Node*> get_all_node_parents(Network& network, Node* node);
 std::vector<Node*> reversed_topological_sort(Network &network);
 
 bool networkIsConnected(Network &network);
