@@ -92,7 +92,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
 
     extract_network_state(ann_network, start_state_to_reuse, complexityChanging);
 
-    if (brlenopt_inside && (old_score != std::numeric_limits<double>::max())) { // first try without local brlen opt
+    /*if (brlenopt_inside && (old_score != std::numeric_limits<double>::max())) { // first try without local brlen opt
         double bic_before_0 = old_score;
         hillClimbingStep(ann_network, candidates, start_state_to_reuse, best_state_to_reuse, bic_before_0, greedy, false, false);
         double bic_after_0 = scoreNetwork(ann_network);
@@ -101,7 +101,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         } else {
             apply_network_state(ann_network, start_state_to_reuse, complexityChanging);
         }
-    }
+    }*/
 
     double brlen_smooth_factor = 0.25;
     int max_iters = 1; //brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
