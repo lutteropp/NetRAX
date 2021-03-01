@@ -63,19 +63,30 @@ enum class ReticulationState {
 };
 
 struct DisplayedTreeClvData {
+    bool is_tip = false;
     double* clv_vector = nullptr;
     unsigned int* scale_buffer = nullptr;
     std::vector<ReticulationState> reticulationChoices;
 
-    DisplayedTreeClvData(ClvRangeInfo clvRangeInfo, ScaleBufferRangeInfo scaleBufferRangeInfo, size_t max_reticulations) {
+    DisplayedTreeClvData(ClvRangeInfo clvRangeInfo, ScaleBufferRangeInfo scaleBufferRangeInfo, size_t max_reticulations) { // inner node
+        is_tip = false;
         reticulationChoices.resize(max_reticulations);
         clv_vector = create_single_empty_clv(clvRangeInfo);
         scale_buffer = create_single_empty_scale_buffer(scaleBufferRangeInfo);
     }
 
+    DisplayedTreeClvData(double* tip_clv_vector, size_t max_reticulations) { // tip node
+        is_tip = true;
+        reticulationChoices.resize(max_reticulations);
+        clv_vector = tip_clv_vector;
+        scale_buffer = nullptr;
+    }
+
     ~DisplayedTreeClvData() {
-        pll_aligned_free(clv_vector);
-        free(scale_buffer);
+        if (!is_tip) {
+            pll_aligned_free(clv_vector);
+            free(scale_buffer);
+        }
     }
 };
 

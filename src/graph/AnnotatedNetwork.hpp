@@ -44,6 +44,9 @@ struct AnnotatedNetwork {
     std::vector<double> reticulation_probs; // the first-parent reticulation probs
 
     std::vector<std::vector<DisplayedTreeData> > displayed_trees;
+
+    std::vector<std::vector<DisplayedTreeClvData> > pernode_displayed_tree_data;
+
     std::vector<Node*> travbuffer;
     std::mt19937 rng;
 
