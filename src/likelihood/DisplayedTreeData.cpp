@@ -32,6 +32,20 @@ namespace netrax
         return ClvRangeInfo{alignment, total_num_clvs, start, end, inner_clv_num_entries};
     }
 
+    double* create_single_empty_clv(ClvRangeInfo rangeInfo) {
+        double* single_clv = (double *)pll_aligned_alloc(rangeInfo.inner_clv_num_entries * sizeof(double), rangeInfo.alignment);
+        if (!single_clv)
+        {
+            throw std::runtime_error("Unable to allocate enough memory for CLVs.");
+        }
+        /* zero-out CLV vectors to avoid valgrind warnings when using odd number of
+        states with vectorized code */
+        memset(single_clv,
+                0,
+                rangeInfo.inner_clv_num_entries * sizeof(double));
+        return single_clv;
+    }
+
     double** create_empty_clv_vector(ClvRangeInfo rangeInfo) {
         double **clv = (double **)calloc(rangeInfo.total_num_clvs, sizeof(double *));
         if (!clv)
@@ -41,17 +55,7 @@ namespace netrax
 
         for (unsigned int i = rangeInfo.start; i < rangeInfo.end; ++i)
         {
-            clv[i] = (double *)pll_aligned_alloc(rangeInfo.inner_clv_num_entries * sizeof(double),
-                                                 rangeInfo.alignment);
-            if (!clv[i])
-            {
-                throw std::runtime_error("Unable to allocate enough memory for CLVs.");
-            }
-            /* zero-out CLV vectors to avoid valgrind warnings when using odd number of
-        states with vectorized code */
-            memset(clv[i],
-                   0,
-                   rangeInfo.inner_clv_num_entries * sizeof(double));
+            clv[i] = create_single_empty_clv(rangeInfo);
         }
         return clv;
     }
@@ -110,6 +114,14 @@ namespace netrax
         return ScaleBufferRangeInfo{scaler_size, num_scale_buffers};
     }
 
+    unsigned int* create_single_empty_scale_buffer(ScaleBufferRangeInfo rangeInfo) {
+        unsigned int* single_scale_buffer = (unsigned int *) calloc(rangeInfo.scaler_size, sizeof(unsigned int));
+        if (!single_scale_buffer) {
+            throw std::runtime_error("Unable to allocate enough memory for scale buffer.");
+        }
+        return single_scale_buffer;
+    }
+
     unsigned int** create_empty_scale_buffer(ScaleBufferRangeInfo rangeInfo) {
         unsigned int ** scale_buffer = (unsigned int **) calloc(rangeInfo.num_scale_buffers, sizeof(unsigned int *));
 
@@ -118,10 +130,7 @@ namespace netrax
         }
 
         for (unsigned int i = 0; i < rangeInfo.num_scale_buffers; ++i) {
-            scale_buffer[i] = (unsigned int *) calloc(rangeInfo.scaler_size, sizeof(unsigned int));
-            if (!scale_buffer[i]) {
-                throw std::runtime_error("Unable to allocate enough memory for scale buffer.");
-            }
+            scale_buffer[i] = create_single_empty_scale_buffer(rangeInfo);
         }
         return scale_buffer;
     }
@@ -166,5 +175,29 @@ namespace netrax
                    to_scale_buffer[i],
                    rangeInfo.scaler_size * sizeof(unsigned int));
         }
+    }
+
+    bool reticulationChoicesCompatible(std::vector<ReticulationState>& left, const std::vector<ReticulationState>& right) {
+        assert(left.size() == right.size());
+        for (size_t i = 0; i < left.size(); ++i) {
+            if (left[i] != ReticulationState::DONT_CARE) {
+                if ((right[i] != ReticulationState::DONT_CARE) && (right[i] != left[i])) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    std::vector<ReticulationState> combineReticulationChoices(std::vector<ReticulationState>& left, const std::vector<ReticulationState>& right) {
+        assert(reticulationChoicesCompatible(left, right));
+        assert(left.size() == right.size());
+        std::vector<ReticulationState> res = left;
+        for (size_t i = 0; i < res.size(); ++i) {
+            if (left[i] == ReticulationState::DONT_CARE) {
+                res[i] = right[i];
+            }
+        }
+        return res;
     }
 }

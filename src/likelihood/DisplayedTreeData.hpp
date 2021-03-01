@@ -40,6 +40,7 @@ struct ScaleBufferRangeInfo {
 void print_clv(ClvRangeInfo rangeInfo, double ** clv);
 ClvRangeInfo get_clv_range(pll_partition_t* partition);
 bool clv_entries_equal(ClvRangeInfo rangeInfo, double** clv1, double** clv2);
+double* create_single_empty_clv(ClvRangeInfo rangeInfo);
 double** create_empty_clv_vector(ClvRangeInfo rangeInfo);
 double** clone_clv_vector(pll_partition_t* partition, double** clv);
 void delete_cloned_clv_vector(ClvRangeInfo rangeInfo, double** clv);
@@ -48,9 +49,38 @@ void assign_clv_entries(pll_partition_t* partition, double** from_clv, double** 
 
 ScaleBufferRangeInfo get_scale_buffer_range(pll_partition_t* partition);
 bool scale_buffer_entries_equal(ScaleBufferRangeInfo rangeInfo, unsigned int** scale_buffer_1, unsigned int** scale_buffer_2);
+unsigned int * create_single_empty_scale_buffer(ScaleBufferRangeInfo rangeInfo);
 unsigned int ** create_empty_scale_buffer(ScaleBufferRangeInfo rangeInfo);
 unsigned int** clone_scale_buffer(pll_partition_t* partition, unsigned int** scale_buffer);
 void delete_cloned_scale_buffer(ScaleBufferRangeInfo rangeInfo, unsigned int** scale_buffer);
 void delete_cloned_scale_buffer(pll_partition_t* partition, unsigned int** scale_buffer);
 void assign_scale_buffer_entries(pll_partition_t* partition, unsigned int** from_scale_buffer, unsigned int** to_scale_buffer);
+
+enum class ReticulationState {
+    DONT_CARE = 0,
+    TAKE_FIRST_PARENT = 1,
+    TAKE_SECOND_PARENT = 2
+};
+
+struct DisplayedTreeClvData {
+    double* clv_vector = nullptr;
+    unsigned int* scale_buffer = nullptr;
+    std::vector<ReticulationState> reticulationChoices;
+
+    DisplayedTreeClvData(ClvRangeInfo clvRangeInfo, ScaleBufferRangeInfo scaleBufferRangeInfo, size_t max_reticulations) {
+        reticulationChoices.resize(max_reticulations);
+        clv_vector = create_single_empty_clv(clvRangeInfo);
+        scale_buffer = create_single_empty_scale_buffer(scaleBufferRangeInfo);
+    }
+
+    ~DisplayedTreeClvData() {
+        pll_aligned_free(clv_vector);
+        free(scale_buffer);
+    }
+};
+
+bool reticulationChoicesCompatible(std::vector<ReticulationState>& left, const std::vector<ReticulationState>& right);
+std::vector<ReticulationState> combineReticulationChoices(std::vector<ReticulationState>& left, const std::vector<ReticulationState>& right);
+
+
 }
