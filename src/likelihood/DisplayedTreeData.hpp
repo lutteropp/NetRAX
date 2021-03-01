@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <limits>
 
 extern "C" {
 #include <libpll/pll.h>
@@ -64,8 +65,12 @@ enum class ReticulationState {
 
 struct DisplayedTreeClvData {
     bool is_tip = false;
+    bool tree_logl_valid = false;
+    bool tree_logprob_valid = false;
     double* clv_vector = nullptr;
     unsigned int* scale_buffer = nullptr;
+    double tree_logl = -std::numeric_limits<double>::infinity();
+    double tree_logprob = 0;
     std::vector<ReticulationState> reticulationChoices;
 
     DisplayedTreeClvData(ClvRangeInfo clvRangeInfo, ScaleBufferRangeInfo scaleBufferRangeInfo, size_t max_reticulations) { // inner node
