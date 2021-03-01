@@ -32,6 +32,19 @@ struct Statistics {
     std::unordered_map<MoveType, size_t> moves_taken;
 };
 
+struct NodeDisplayedTreeData {
+    std::vector<DisplayedTreeClvData> displayed_trees;
+    size_t num_active_displayed_trees = 0;
+
+    void add_displayed_tree(ClvRangeInfo clvInfo, ScaleBufferRangeInfo scaleBufferInfo, size_t maxReticulations) {
+        if (num_active_displayed_trees < displayed_trees.size()) {
+            assert(num_active_displayed_trees == displayed_trees.size() - 1);
+            displayed_trees.emplace_back(DisplayedTreeClvData(clvInfo, scaleBufferInfo, maxReticulations));
+        }
+        num_active_displayed_trees++;
+    }
+};
+
 struct AnnotatedNetwork {
     NetraxOptions options;
     Network network; // The network topology itself
@@ -45,7 +58,7 @@ struct AnnotatedNetwork {
 
     std::vector<std::vector<DisplayedTreeData> > displayed_trees;
 
-    std::vector<std::vector<std::vector<DisplayedTreeClvData> > > pernode_displayed_tree_data;
+    std::vector<std::vector<NodeDisplayedTreeData> > pernode_displayed_tree_data;
 
     std::vector<Node*> travbuffer;
     std::mt19937 rng;
