@@ -2,6 +2,7 @@
 
 #include <stdexcept>
 #include <iostream>
+#include "mpreal.h"
 
 namespace netrax
 {
@@ -177,7 +178,23 @@ namespace netrax
         }
     }
 
-    bool reticulationChoicesCompatible(std::vector<ReticulationState>& left, const std::vector<ReticulationState>& right) {
+    double computeReticulationChoicesLogProb(const std::vector<ReticulationState>& choices, const std::vector<double>& reticulationProbs) {
+        mpfr::mpreal logProb = 0;
+        for (size_t i = 0; i < reticulationProbs.size(); ++i) {
+            if (choices[i] != ReticulationState::DONT_CARE) {
+                mpfr::mpreal prob;
+                if (choices[i] == ReticulationState::TAKE_FIRST_PARENT) {
+                    prob = reticulationProbs[i];
+                } else {
+                    prob = 1.0 - reticulationProbs[i];
+                }
+                logProb += mpfr::log(prob);
+            }
+        }
+        return logProb.toDouble();
+    }
+
+    bool reticulationChoicesCompatible(const std::vector<ReticulationState>& left, const std::vector<ReticulationState>& right) {
         assert(left.size() == right.size());
         for (size_t i = 0; i < left.size(); ++i) {
             if (left[i] != ReticulationState::DONT_CARE) {
