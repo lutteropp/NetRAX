@@ -321,6 +321,10 @@ void processNodeImproved(AnnotatedNetwork& ann_network, unsigned int partition_i
         throw std::runtime_error("Not implemented yet");
     }
 
+    if (node == ann_network.network.root) { // if we are at the root node, we also need to compute loglikelihood
+        throw std::runtime_error("Not implemented yet");
+    }
+
     ann_network.fake_treeinfo->clv_valid[partition_idx][node->clv_index] = 1;
 }
 
