@@ -278,6 +278,7 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
             // new version: search for good place to add the new reticulation
             //MoveType insertionType = MoveType::ArcInsertionMove;
             //greedyHillClimbingTopology(ann_network, insertionType, start_state_to_reuse, best_state_to_reuse, false, true, 1);
+
             optimizeAllNonTopology(ann_network);
 
             // ensure that we don't have a reticulation with prob near 0.0 or 1.0 now. If we have one, stop the search.

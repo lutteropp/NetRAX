@@ -69,9 +69,9 @@ void apply_scale_buffer_data(const NetworkState& state, AnnotatedNetwork& ann_ne
 void add_missing_clv_vectors(AnnotatedNetwork& ann_network, NetworkState& state) {
     size_t n_trees = (1 << ann_network.network.num_reticulations());
     for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
+        state.displayed_tree_clv_ranges.emplace_back(get_clv_range(ann_network.fake_treeinfo->partitions[i]));
         for (size_t j = state.displayed_tree_clv_data[i].size(); j < n_trees; ++j) {
-            state.displayed_tree_clv_ranges[i].emplace_back(get_clv_range(ann_network.fake_treeinfo->partitions[i]));
-            state.displayed_tree_clv_data[i].emplace_back(create_empty_clv_vector(state.displayed_tree_clv_ranges[i][j]));
+            state.displayed_tree_clv_data[i].emplace_back(create_empty_clv_vector(state.displayed_tree_clv_ranges[i]));
         }
     }
 }
@@ -79,9 +79,9 @@ void add_missing_clv_vectors(AnnotatedNetwork& ann_network, NetworkState& state)
 void add_missing_scale_buffers(AnnotatedNetwork& ann_network, NetworkState& state) {
     size_t n_trees = (1 << ann_network.network.num_reticulations());
     for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
+        state.displayed_tree_scale_buffer_ranges.emplace_back(get_scale_buffer_range(ann_network.fake_treeinfo->partitions[i]));
         for (size_t j = state.displayed_tree_scale_buffer_data[i].size(); j < n_trees; ++j) {
-            state.displayed_tree_scale_buffer_ranges[i].emplace_back(get_scale_buffer_range(ann_network.fake_treeinfo->partitions[i]));
-            state.displayed_tree_scale_buffer_data[i].emplace_back(create_empty_scale_buffer(state.displayed_tree_scale_buffer_ranges[i][j]));
+            state.displayed_tree_scale_buffer_data[i].emplace_back(create_empty_scale_buffer(state.displayed_tree_scale_buffer_ranges[i]));
         }
     }
 }
@@ -172,10 +172,9 @@ NetworkState extract_network_state(AnnotatedNetwork &ann_network, bool extract_n
     for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
         assert(!pll_repeats_enabled(ann_network.fake_treeinfo->partitions[i]));
         state.displayed_tree_clv_data[i].resize(n_trees);
-        state.displayed_tree_clv_ranges[i].resize(n_trees);
+        state.displayed_tree_clv_ranges[i] = get_clv_range(ann_network.fake_treeinfo->partitions[i]);
         for (size_t j = 0; j < n_trees; ++j) {
-            state.displayed_tree_clv_ranges[i][j] = get_clv_range(ann_network.fake_treeinfo->partitions[i]);
-            state.displayed_tree_clv_data[i][j] = create_empty_clv_vector(state.displayed_tree_clv_ranges[i][j]);
+            state.displayed_tree_clv_data[i][j] = create_empty_clv_vector(state.displayed_tree_clv_ranges[i]);
         }
     }
     state.displayed_tree_scale_buffer_data.resize(ann_network.fake_treeinfo->partition_count);
@@ -183,10 +182,9 @@ NetworkState extract_network_state(AnnotatedNetwork &ann_network, bool extract_n
     for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
         assert(!pll_repeats_enabled(ann_network.fake_treeinfo->partitions[i]));
         state.displayed_tree_scale_buffer_data[i].resize(n_trees);
-        state.displayed_tree_scale_buffer_ranges[i].resize(n_trees);
+        state.displayed_tree_scale_buffer_ranges[i] = get_scale_buffer_range(ann_network.fake_treeinfo->partitions[i]);
         for (size_t j = 0; j < n_trees; ++j) {
-            state.displayed_tree_scale_buffer_ranges[i][j] = get_scale_buffer_range(ann_network.fake_treeinfo->partitions[i]);
-            state.displayed_tree_scale_buffer_data[i][j] = create_empty_scale_buffer(state.displayed_tree_scale_buffer_ranges[i][j]);
+            state.displayed_tree_scale_buffer_data[i][j] = create_empty_scale_buffer(state.displayed_tree_scale_buffer_ranges[i]);
         }
     }
 
@@ -373,9 +371,9 @@ bool clvs_equal(const NetworkState& old_state, const NetworkState& act_state) {
     assert(old_state.n_trees == act_state.n_trees);
     for (size_t i = 0; i < old_state.displayed_tree_clv_data.size(); ++i) {
         assert(old_state.displayed_tree_clv_data[i].size() == act_state.displayed_tree_clv_data[i].size());
+        assert(old_state.displayed_tree_clv_ranges[i] == act_state.displayed_tree_clv_ranges[i]);
         for (size_t j = 0; j < old_state.n_trees; ++j) {
-            assert(old_state.displayed_tree_clv_ranges[i][j] == act_state.displayed_tree_clv_ranges[i][j]);
-            if (!clv_entries_equal(old_state.displayed_tree_clv_ranges[i][j], old_state.displayed_tree_clv_data[i][j], act_state.displayed_tree_clv_data[i][j])) {
+            if (!clv_entries_equal(old_state.displayed_tree_clv_ranges[i], old_state.displayed_tree_clv_data[i][j], act_state.displayed_tree_clv_data[i][j])) {
                 std::cout << "clvs not equal\n";
                 return false;
             }
@@ -389,9 +387,9 @@ bool scale_buffers_equal(const NetworkState& old_state, const NetworkState& act_
     assert(old_state.displayed_tree_scale_buffer_data.size() == act_state.displayed_tree_scale_buffer_data.size());
     for (size_t i = 0; i < old_state.displayed_tree_scale_buffer_data.size(); ++i) {
         assert(old_state.displayed_tree_scale_buffer_data[i].size() == act_state.displayed_tree_scale_buffer_data[i].size());
+        assert(old_state.displayed_tree_scale_buffer_ranges[i] == act_state.displayed_tree_scale_buffer_ranges[i]);
         for (size_t j = 0; j < old_state.n_trees; ++j) {
-            assert(old_state.displayed_tree_scale_buffer_ranges[i][j] == act_state.displayed_tree_scale_buffer_ranges[i][j]);
-            if (!scale_buffer_entries_equal(old_state.displayed_tree_scale_buffer_ranges[i][j], old_state.displayed_tree_scale_buffer_data[i][j], act_state.displayed_tree_scale_buffer_data[i][j])) {
+            if (!scale_buffer_entries_equal(old_state.displayed_tree_scale_buffer_ranges[i], old_state.displayed_tree_scale_buffer_data[i][j], act_state.displayed_tree_scale_buffer_data[i][j])) {
                 std::cout << "scale buffers not equal\n";
                 return false;
             }

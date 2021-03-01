@@ -20,9 +20,9 @@ struct NetworkState {
     std::vector<double> reticulation_probs; // the first-parent reticulation probs
 
     std::vector<std::vector<double**> > displayed_tree_clv_data;
-    std::vector<std::vector<ClvRangeInfo> > displayed_tree_clv_ranges;
+    std::vector<ClvRangeInfo> displayed_tree_clv_ranges;
     std::vector<std::vector<unsigned int**> > displayed_tree_scale_buffer_data;
-    std::vector<std::vector<ScaleBufferRangeInfo> > displayed_tree_scale_buffer_ranges;
+    std::vector<ScaleBufferRangeInfo> displayed_tree_scale_buffer_ranges;
 
     bool network_valid = false;
 
@@ -32,8 +32,8 @@ struct NetworkState {
     ~NetworkState() {
         for (size_t i = 0; i < displayed_tree_clv_data.size(); ++i) {
             for (size_t j = 0; j < displayed_tree_clv_data[i].size(); ++j) {
-                delete_cloned_clv_vector(displayed_tree_clv_ranges[i][j], displayed_tree_clv_data[i][j]);
-                delete_cloned_scale_buffer(displayed_tree_scale_buffer_ranges[i][j], displayed_tree_scale_buffer_data[i][j]);
+                delete_cloned_clv_vector(displayed_tree_clv_ranges[i], displayed_tree_clv_data[i][j]);
+                delete_cloned_scale_buffer(displayed_tree_scale_buffer_ranges[i], displayed_tree_scale_buffer_data[i][j]);
             }
         }
     }
