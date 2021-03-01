@@ -424,9 +424,14 @@ double compute_tree_logl(AnnotatedNetwork &ann_network, std::vector<bool> &clv_t
                 ops_root->getLink()->edge_pmatrix_index, fake_treeinfo.param_indices[partition_idx],
                 persite_logl->empty() ? nullptr : persite_logl->data());
     } else {
+        unsigned int* scale_buffer = nullptr;
+        if (ops_root->scaler_index != PLL_SCALE_BUFFER_NONE) {
+            scale_buffer = fake_treeinfo.partitions[partition_idx]->scale_buffer[ops_root->scaler_index];
+        }
         tree_partition_logl = pll_compute_root_loglikelihood(
                 fake_treeinfo.partitions[partition_idx], ops_root->clv_index,
-                ops_root->scaler_index, fake_treeinfo.param_indices[partition_idx],
+                fake_treeinfo.partitions[partition_idx]->clv[ops_root->clv_index],
+                scale_buffer, fake_treeinfo.param_indices[partition_idx],
                 persite_logl->empty() ? nullptr : persite_logl->data());
     }
     return tree_partition_logl;
@@ -484,8 +489,14 @@ void compute_tree_logl_blobs(AnnotatedNetwork &ann_network, std::vector<bool> &c
                     fake_treeinfo.param_indices[partition_idx],
                     persite_logl->empty() ? nullptr : persite_logl->data());
         } else {
+            unsigned int* scale_buffer = nullptr;
+            if (ops_root->scaler_index != PLL_SCALE_BUFFER_NONE) {
+                scale_buffer = fake_treeinfo.partitions[partition_idx]->scale_buffer[ops_root->scaler_index];
+            }
             pll_compute_root_loglikelihood(fake_treeinfo.partitions[partition_idx],
-                    ops_root->clv_index, ops_root->scaler_index,
+                    ops_root->clv_index,
+                    fake_treeinfo.partitions[partition_idx]->clv[ops_root->clv_index],
+                    scale_buffer,
                     fake_treeinfo.param_indices[partition_idx],
                     persite_logl->empty() ? nullptr : persite_logl->data());
         }

@@ -153,14 +153,26 @@ void compute_displayed_tree(AnnotatedNetwork &ann_network, std::vector<bool> &cl
                     fake_treeinfo.param_indices[partition_idx],
                     tree_persite_logl.empty() ? nullptr : tree_persite_logl.data());
         } else {
+            unsigned int* scale_buffer = nullptr;
+            if (ops_root->scaler_index != PLL_SCALE_BUFFER_NONE) {
+                scale_buffer = fake_treeinfo.partitions[partition_idx]->scale_buffer[ops_root->scaler_index];
+            }
             tree_logl = pll_compute_root_loglikelihood(fake_treeinfo.partitions[partition_idx],
-                    ops_root->clv_index, ops_root->scaler_index,
+                    ops_root->clv_index,
+                    fake_treeinfo.partitions[partition_idx]->clv[ops_root->clv_index],
+                    scale_buffer,
                     fake_treeinfo.param_indices[partition_idx],
                     tree_persite_logl.empty() ? nullptr : tree_persite_logl.data());
         }
     } else {
+        unsigned int* scale_buffer = nullptr;
+        if (ops_root->scaler_index != PLL_SCALE_BUFFER_NONE) {
+            scale_buffer = fake_treeinfo.partitions[partition_idx]->scale_buffer[ops_root->scaler_index];
+        }
         tree_logl = pll_compute_root_loglikelihood(fake_treeinfo.partitions[partition_idx],
-                ops_root->clv_index, ops_root->scaler_index,
+                ops_root->clv_index, 
+                fake_treeinfo.partitions[partition_idx]->clv[ops_root->clv_index],
+                scale_buffer,
                 fake_treeinfo.param_indices[partition_idx],
                 tree_persite_logl.empty() ? nullptr : tree_persite_logl.data());
     }
@@ -315,13 +327,14 @@ void processNodeImproved(AnnotatedNetwork& ann_network, unsigned int partition_i
                 unsigned int* right_scaler = nullptr;
                 pll_update_partials_single(partition, &op, 1, parent_clv, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
                 displayed_trees.displayed_trees[i].reticulationChoices = displayed_trees_left.displayed_trees[i].reticulationChoices;
+                if (node == ann_network.network.root) { // if we are at the root node, we also need to compute loglikelihood
+                    double tree_logl = pll_compute_root_loglikelihood(partition, node->clv_index, parent_clv, parent_scaler, ann_network.fake_treeinfo->param_indices[partition_idx], nullptr);
+                    displayed_trees.displayed_trees[i].tree_logl = tree_logl;
+                    displayed_trees.displayed_trees[i].tree_logl_valid = true;
+                }
             }
         }
     } else {
-        throw std::runtime_error("Not implemented yet");
-    }
-
-    if (node == ann_network.network.root) { // if we are at the root node, we also need to compute loglikelihood
         throw std::runtime_error("Not implemented yet");
     }
 
