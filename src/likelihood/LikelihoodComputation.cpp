@@ -266,8 +266,38 @@ void process_partition_new(AnnotatedNetwork &ann_network, int partition_idx, int
     validate_clvs_below_subroot(ann_network, ann_network.network.root, partition_idx);
 }
 
-double processPartitionImproved(AnnotatedNetwork& ann_network, int incremental, int update_pmatrices) {
+void processNodeImproved(AnnotatedNetwork& ann_network, unsigned int partition_idx, int incremental, unsigned int node_idx) {
+    if (node_idx < ann_network.network.num_tips()) {
+        assert(ann_network.fake_treeinfo->clv_valid[partition_idx][node_idx]);
+        return;
+    }
+    if (incremental && ann_network.fake_treeinfo->clv_valid[partition_idx][node_idx]) {
+        return;
+    }
     throw std::runtime_error("Not implemented yet");
+
+
+    ann_network.fake_treeinfo->clv_valid[partition_idx][node_idx] = 1;
+}
+
+void processPartitionImproved(AnnotatedNetwork& ann_network, unsigned int partition_idx, int incremental) {
+    std::vector<bool> seen(ann_network.network.num_nodes(), false);
+    std::queue<unsigned int> q;
+    for (size_t i = 0; i < ann_network.network.num_tips(); ++i) {
+        q.emplace(i);
+    }
+    while (!q.empty()) {
+        unsigned int act_node_idx = q.front();
+        q.pop();
+        processNodeImproved(ann_network, partition_idx, incremental, act_node_idx);
+        std::vector<Node*> parents = getAllParents(ann_network.network, ann_network.network.nodes_by_index[act_node_idx]);
+        for (const Node* parent : parents) {
+            if (!seen[parent->clv_index]) {
+                q.emplace(parent->clv_index);
+            }
+        }
+        seen[act_node_idx] = true;
+    }
 }
 
 bool reuseOldDisplayedTreesCheck(AnnotatedNetwork& ann_network, int incremental) {
