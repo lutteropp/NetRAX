@@ -340,7 +340,15 @@ void processNodeImproved(AnnotatedNetwork& ann_network, unsigned int partition_i
             }
         }
     } else {
-        throw std::runtime_error("Not implemented yet");
+        for (bool ignore_left_child = 0; ignore_left_child <= left_child_reticulation; ++ignore_left_child) {
+            for (bool ignore_right_child = 0; ignore_right_child <= right_child_reticulation; ++ignore_right_child) {
+                if (ignore_left_child && ignore_right_child) {
+                    continue;
+                }
+                throw std::runtime_error("Not implemented yet");
+                // TODO: How do we handle dead nodes?
+            }
+        }
     }
 
     ann_network.fake_treeinfo->clv_valid[partition_idx][node->clv_index] = 1;
