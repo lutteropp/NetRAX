@@ -340,9 +340,9 @@ void processNodeImproved(AnnotatedNetwork& ann_network, unsigned int partition_i
             }
         }
     } else {
-        for (bool ignore_left_child = 0; ignore_left_child <= left_child_reticulation; ++ignore_left_child) {
-            for (bool ignore_right_child = 0; ignore_right_child <= right_child_reticulation; ++ignore_right_child) {
-                if (ignore_left_child && ignore_right_child) {
+        for (int ignore_left_child = 0; ignore_left_child <= left_child_reticulation; ++ignore_left_child) {
+            for (int ignore_right_child = 0; ignore_right_child <= right_child_reticulation; ++ignore_right_child) {
+                if ((ignore_left_child == 1) && (ignore_right_child == 1)) {
                     continue;
                 }
                 throw std::runtime_error("Not implemented yet");
