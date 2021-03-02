@@ -312,26 +312,31 @@ void processNodeImproved(AnnotatedNetwork& ann_network, unsigned int partition_i
 
     size_t fake_clv_index = ann_network.network.nodes.size();
 
-    if (!left_child_reticulation && !right_child_reticulation) { // easy case
+    if (children.size() == 1) { // we are at a reticulation node
         assert(node->type == NodeType::BASIC_NODE);
         pll_operation_t op = buildOperationInternal(ann_network.network, node, left_child, right_child, ann_network.network.nodes.size(), ann_network.network.edges.size());
-        if (children.size() == 1) {
-            NodeDisplayedTreeData& displayed_trees_left = ann_network.pernode_displayed_tree_data[partition_idx][left_child->clv_index];
-            for (size_t i = 0; i < displayed_trees_left.num_active_displayed_trees; ++i) {
-                displayed_trees.add_displayed_tree(clvInfo, scaleBufferInfo, ann_network.options.max_reticulations);
-                double* parent_clv = displayed_trees.displayed_trees[displayed_trees.num_active_displayed_trees-1].clv_vector;
-                unsigned int* parent_scaler = displayed_trees.displayed_trees[displayed_trees.num_active_displayed_trees-1].scale_buffer;
-                double* left_clv = displayed_trees_left.displayed_trees[displayed_trees.num_active_displayed_trees-1].clv_vector;
-                unsigned int* left_scaler = displayed_trees_left.displayed_trees[displayed_trees.num_active_displayed_trees-1].scale_buffer;
-                double* right_clv = partition->clv[fake_clv_index];
-                unsigned int* right_scaler = nullptr;
-                pll_update_partials_single(partition, &op, 1, parent_clv, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
-                displayed_trees.displayed_trees[i].reticulationChoices = displayed_trees_left.displayed_trees[i].reticulationChoices;
-                if (node == ann_network.network.root) { // if we are at the root node, we also need to compute loglikelihood
-                    double tree_logl = pll_compute_root_loglikelihood(partition, node->clv_index, parent_clv, parent_scaler, ann_network.fake_treeinfo->param_indices[partition_idx], nullptr);
-                    displayed_trees.displayed_trees[i].tree_logl = tree_logl;
-                    displayed_trees.displayed_trees[i].tree_logl_valid = true;
+        NodeDisplayedTreeData& displayed_trees_left = ann_network.pernode_displayed_tree_data[partition_idx][left_child->clv_index];
+        for (size_t i = 0; i < displayed_trees_left.num_active_displayed_trees; ++i) {
+            displayed_trees.add_displayed_tree(clvInfo, scaleBufferInfo, ann_network.options.max_reticulations);
+            double* parent_clv = displayed_trees.displayed_trees[displayed_trees.num_active_displayed_trees-1].clv_vector;
+            unsigned int* parent_scaler = displayed_trees.displayed_trees[displayed_trees.num_active_displayed_trees-1].scale_buffer;
+            double* left_clv = displayed_trees_left.displayed_trees[displayed_trees.num_active_displayed_trees-1].clv_vector;
+            unsigned int* left_scaler = displayed_trees_left.displayed_trees[displayed_trees.num_active_displayed_trees-1].scale_buffer;
+            double* right_clv = partition->clv[fake_clv_index];
+            unsigned int* right_scaler = nullptr;
+            pll_update_partials_single(partition, &op, 1, parent_clv, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
+            displayed_trees.displayed_trees[i].reticulationChoices = displayed_trees_left.displayed_trees[i].reticulationChoices;
+            if (left_child->getType() == NodeType::RETICULATION_NODE) {
+                if (node == getReticulationFirstParent(ann_network.network, left_child)) {
+                    displayed_trees.displayed_trees[i].reticulationChoices[left_child->getReticulationData()->reticulation_index] = ReticulationState::TAKE_FIRST_PARENT;
+                } else {
+                    displayed_trees.displayed_trees[i].reticulationChoices[left_child->getReticulationData()->reticulation_index] = ReticulationState::TAKE_SECOND_PARENT;
                 }
+            }
+            if (node == ann_network.network.root) { // if we are at the root node, we also need to compute loglikelihood
+                double tree_logl = pll_compute_root_loglikelihood(partition, node->clv_index, parent_clv, parent_scaler, ann_network.fake_treeinfo->param_indices[partition_idx], nullptr);
+                displayed_trees.displayed_trees[i].tree_logl = tree_logl;
+                displayed_trees.displayed_trees[i].tree_logl_valid = true;
             }
         }
     } else {
