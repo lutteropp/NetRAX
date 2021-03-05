@@ -550,27 +550,18 @@ void processNodeImproved(AnnotatedNetwork& ann_network, unsigned int partition_i
     }
 
     ann_network.fake_treeinfo->clv_valid[partition_idx][node->clv_index] = 1;
+    //std::cout << "Added " << displayed_trees.num_active_displayed_trees << " displayed trees to node " << node->clv_index << "\n";
 }
 
 void processPartitionImproved(AnnotatedNetwork& ann_network, unsigned int partition_idx, int incremental) {
+    //std::cout << "\nNEW PROCESS PARTITION_IMPROVED!!!\n";
     std::vector<bool> seen(ann_network.network.num_nodes(), false);
-    std::queue<Node*> q;
     ClvRangeInfo clvInfo = get_clv_range(ann_network.fake_treeinfo->partitions[partition_idx]);
     ScaleBufferRangeInfo scaleBufferInfo = get_scale_buffer_range(ann_network.fake_treeinfo->partitions[partition_idx]);
-    for (size_t i = 0; i < ann_network.network.num_tips(); ++i) {
-        q.emplace(ann_network.network.nodes_by_index[i]);
-    }
-    while (!q.empty()) {
-        Node* act_node = q.front();
-        q.pop();
-        processNodeImproved(ann_network, partition_idx, incremental, clvInfo, scaleBufferInfo, act_node);
-        std::vector<Node*> parents = getAllParents(ann_network.network, act_node);
-        for (Node* parent : parents) {
-            if (!seen[parent->clv_index]) {
-                q.emplace(parent);
-            }
-        }
-        seen[act_node->clv_index] = true;
+    
+    for (size_t i = 0; i < ann_network.travbuffer.size(); ++i) {
+        Node* actNode = ann_network.travbuffer[i];
+        processNodeImproved(ann_network, partition_idx, incremental, clvInfo, scaleBufferInfo, actNode);
     }
 }
 
