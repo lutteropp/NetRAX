@@ -532,4 +532,14 @@ std::unordered_set<size_t> getNeighborPmatrixIndices(Network &network, Edge *edg
     return res;
 }
 
+void setReticulationState(AnnotatedNetwork &ann_network, size_t reticulation_idx, ReticulationState state) {
+    if (state == ReticulationState::DONT_CARE) {
+        return;
+    } else if (state == ReticulationState::TAKE_FIRST_PARENT) {
+        ann_network.network.reticulation_nodes[reticulation_idx]->getReticulationData()->setActiveParentToggle(0);
+    } else { // TAKE_SECOND_PARENT
+        ann_network.network.reticulation_nodes[reticulation_idx]->getReticulationData()->setActiveParentToggle(1);
+    }
+}
+
 }

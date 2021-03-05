@@ -278,8 +278,59 @@ void process_partition_new(AnnotatedNetwork &ann_network, int partition_idx, int
     validate_clvs_below_subroot(ann_network, ann_network.network.root, partition_idx);
 }
 
+void computeDisplayedTreeLoglikelihood(AnnotatedNetwork& ann_network, unsigned int partition_idx, DisplayedTreeClvData& treeAtRoot) {
+    Node* displayed_tree_root = findFirstNodeWithTwoActiveChildren(ann_network, treeAtRoot.reticulationChoices);
+    DisplayedTreeClvData& treeWithoutDeadPath = findMatchingDisplayedTree(treeAtRoot.reticulationChoices, ann_network.pernode_displayed_tree_data[partition_idx][displayed_tree_root->clv_index]);
+
+    double* parent_clv = treeWithoutDeadPath.clv_vector;
+    unsigned int* parent_scaler = treeWithoutDeadPath.scale_buffer;
+
+    pll_partition_t* partition = ann_network.fake_treeinfo->partitions[partition_idx];
+    double tree_logl = pll_compute_root_loglikelihood(partition, displayed_tree_root->clv_index, parent_clv, parent_scaler, ann_network.fake_treeinfo->param_indices[partition_idx], nullptr);
+    treeAtRoot.tree_logl = tree_logl;
+    treeAtRoot.tree_logl_valid = true;
+    treeAtRoot.tree_logprob = computeReticulationChoicesLogProb(treeAtRoot.reticulationChoices, ann_network.reticulation_probs);
+    treeAtRoot.tree_logprob_valid = true;
+}
+
 unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsigned int partition_idx, ClvRangeInfo &clvInfo, ScaleBufferRangeInfo &scaleBufferInfo, Node* node, Node* left_child, Node* right_child) {
     throw std::runtime_error("Not implemented yet");
+    unsigned int num_trees_added = 0;
+    pll_operation_t op = buildOperationInternal(ann_network.network, node, left_child, right_child, ann_network.network.nodes.size(), ann_network.network.edges.size());
+    NodeDisplayedTreeData& displayed_trees = ann_network.pernode_displayed_tree_data[partition_idx][node->clv_index];
+    NodeDisplayedTreeData& displayed_trees_left_child = ann_network.pernode_displayed_tree_data[partition_idx][left_child->clv_index];
+    NodeDisplayedTreeData& displayed_trees_right_child = ann_network.pernode_displayed_tree_data[partition_idx][right_child->clv_index];
+    // ...
+    // TODO: How to deal with dead nodes?
+    return num_trees_added;
+}
+
+DisplayedTreeClvData& findMatchingDisplayedTree(const std::vector<ReticulationState>& reticulationChoices, NodeDisplayedTreeData& data) {
+    DisplayedTreeClvData& tree = data.displayed_trees[0];
+    size_t n_good = 0;
+    for (size_t i = 0; i < data.displayed_trees.size(); ++i) {
+        if (reticulationChoicesCompatible(reticulationChoices, data.displayed_trees[i].reticulationChoices)) {
+            n_good++;
+            tree = data.displayed_trees[i];
+        }
+    }
+    if (n_good == 1) {
+        return tree;
+    } else if (n_good > 1) {
+        throw std::runtime_error("Found multiple suitable trees");
+    } else { // n_good == 0
+        throw std::runtime_error("Found no suitable displayed tree");
+    }
+}
+
+Node* findFirstNodeWithTwoActiveChildren(AnnotatedNetwork& ann_network, const std::vector<ReticulationState>& reticulationChoices) {
+    for (size_t i = 0; i < reticulationChoices.size(); ++i) { // apply the reticulation choices
+        setReticulationState(ann_network, i, reticulationChoices[i]);
+    }
+
+    Node* displayed_tree_root = nullptr;
+    collect_dead_nodes(ann_network.network, ann_network.network.root->clv_index, &displayed_tree_root);
+    return displayed_tree_root;
 }
 
 unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, unsigned int partition_idx, ClvRangeInfo &clvInfo, ScaleBufferRangeInfo &scaleBufferInfo, Node* node, Node* child) {
@@ -308,9 +359,7 @@ unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, unsig
             }
         }
         if (node == ann_network.network.root) { // if we are at the root node, we also need to compute loglikelihood
-            double tree_logl = pll_compute_root_loglikelihood(partition, node->clv_index, parent_clv, parent_scaler, ann_network.fake_treeinfo->param_indices[partition_idx], nullptr);
-            displayed_trees.displayed_trees[i].tree_logl = tree_logl;
-            displayed_trees.displayed_trees[i].tree_logl_valid = true;
+            computeDisplayedTreeLoglikelihood(ann_network, partition_idx, displayed_trees.displayed_trees[i]);
         }
     }
     num_trees_added = displayed_trees_child.num_active_displayed_trees;
@@ -387,7 +436,7 @@ void processNodeImproved(AnnotatedNetwork& ann_network, unsigned int partition_i
         for (int ignore_left_child = 0; ignore_left_child <= left_child_reticulation; ++ignore_left_child) {
             for (int ignore_right_child = 0; ignore_right_child <= right_child_reticulation; ++ignore_right_child) {
                 if ((ignore_left_child == 1) && (ignore_right_child == 1)) { // no child
-                    continue;
+                    continue;  // TODO: How do we handle dead nodes?
                 }
                 
                 if (ignore_left_child) {
@@ -417,7 +466,6 @@ void processNodeImproved(AnnotatedNetwork& ann_network, unsigned int partition_i
                         }
                     }
                 }
-                // TODO: How do we handle dead nodes?
             }
         }
     }
