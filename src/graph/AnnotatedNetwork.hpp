@@ -35,8 +35,12 @@ struct Statistics {
 struct NodeDisplayedTreeData {
     std::vector<DisplayedTreeData> displayed_trees;
     size_t num_active_displayed_trees = 0;
+    ClvRangeInfo clvInfo;
+    ScaleBufferRangeInfo scaleBufferInfo;
 
     void add_displayed_tree(ClvRangeInfo clvInfo, ScaleBufferRangeInfo scaleBufferInfo, size_t maxReticulations) {
+        this->clvInfo = clvInfo;
+        this->scaleBufferInfo = scaleBufferInfo;
         num_active_displayed_trees++;
         if (num_active_displayed_trees > displayed_trees.size()) {
             assert(num_active_displayed_trees == displayed_trees.size() + 1);
@@ -48,6 +52,27 @@ struct NodeDisplayedTreeData {
                 memset(displayed_trees[num_active_displayed_trees-1].scale_buffer, 0, scaleBufferInfo.scaler_size * sizeof(unsigned int));
             }
         }
+    }
+
+    bool operator==(const NodeDisplayedTreeData& rhs) const
+    {
+        if (num_active_displayed_trees != rhs.num_active_displayed_trees) {
+            return false;
+        }
+        for (size_t i = 0; i < num_active_displayed_trees; ++i) {
+            if (!clv_single_entries_equal(clvInfo, displayed_trees[i].clv_vector, rhs.displayed_trees[i].clv_vector)) {
+                return false;
+            }
+            if (!scale_buffer_single_entries_equal(scaleBufferInfo, displayed_trees[i].scale_buffer, rhs.displayed_trees[i].scale_buffer)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    bool operator!=(const NodeDisplayedTreeData& rhs) const
+    {
+        return !operator==(rhs);
     }
 };
 

@@ -62,6 +62,18 @@ namespace netrax
         return clv;
     }
 
+    bool clv_single_entries_equal(ClvRangeInfo rangeInfo, double* clv1, double* clv2) {
+        if (clv1 == clv2) {
+            return true;
+        }
+        for (size_t j = 0; j < rangeInfo.inner_clv_num_entries; ++j) {
+            if (clv1[j] != clv2[j]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     bool clv_entries_equal(ClvRangeInfo rangeInfo, double** clv1, double** clv2) {
         for (unsigned int i = rangeInfo.start; i < rangeInfo.end; ++i)
         {
@@ -86,6 +98,15 @@ namespace netrax
                    from_clv[i],
                    rangeInfo.inner_clv_num_entries * sizeof(double));
         }
+    }
+
+    double* clone_single_clv_vector(ClvRangeInfo clvInfo, double* clv) {
+        if (!clv) {
+            return nullptr;
+        }
+        double *cloned_clv = create_single_empty_clv(clvInfo);
+        memcpy(cloned_clv, clv, clvInfo.inner_clv_num_entries * sizeof(double));
+        return cloned_clv;
     }
 
     double** clone_clv_vector(pll_partition_t *partition, double** clv) {
@@ -138,6 +159,18 @@ namespace netrax
         return scale_buffer;
     }
 
+    bool scale_buffer_single_entries_equal(ScaleBufferRangeInfo rangeInfo, unsigned int* scale_buffer_1, unsigned int* scale_buffer_2) {
+        if (scale_buffer_1 == scale_buffer_2) {
+            return true;
+        }
+        for (size_t j = 0; j < rangeInfo.scaler_size; ++j) {
+            if (scale_buffer_1[j] != scale_buffer_2[j]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     bool scale_buffer_entries_equal(ScaleBufferRangeInfo rangeInfo, unsigned int** scale_buffer_1, unsigned int** scale_buffer_2) {
         for (unsigned int i = 0; i < rangeInfo.num_scale_buffers; ++i)
         {
@@ -148,6 +181,15 @@ namespace netrax
             }
         }
         return true;
+    }
+
+    unsigned int* clone_single_scale_buffer(ScaleBufferRangeInfo scaleBufferInfo, unsigned int* scale_buffer) {
+        if (!scale_buffer) {
+            return nullptr;
+        }
+        unsigned int *cloned_scale_buffer = create_single_empty_scale_buffer(scaleBufferInfo);
+        memcpy(cloned_scale_buffer, scale_buffer, scaleBufferInfo.scaler_size * sizeof(unsigned int));
+        return cloned_scale_buffer;
     }
 
     unsigned int** clone_scale_buffer(pll_partition_t* partition, unsigned int** scale_buffer) {
@@ -174,8 +216,8 @@ namespace netrax
         ScaleBufferRangeInfo rangeInfo = get_scale_buffer_range(partition);
         for (unsigned int i = 0; i < rangeInfo.num_scale_buffers; ++i)
         {
-            memcpy(from_scale_buffer[i],
-                   to_scale_buffer[i],
+            memcpy(to_scale_buffer[i],
+                   from_scale_buffer[i],
                    rangeInfo.scaler_size * sizeof(unsigned int));
         }
     }

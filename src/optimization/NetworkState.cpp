@@ -47,17 +47,35 @@ bool assert_branch_lengths(AnnotatedNetwork& ann_network) {
 }
 
 void apply_displayed_trees_data(const NetworkState& state, AnnotatedNetwork& ann_network) {
-    throw std::runtime_error("Not implemented yet");
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        for (size_t i = 0; i < ann_network.network.nodes.size(); ++i) {
+            ann_network.pernode_displayed_tree_data[p][i] = state.pernode_displayed_tree_data[p][i];
+        }
+    }
 }
 
 
 void add_missing_displayed_trees_data(AnnotatedNetwork& ann_network, NetworkState& state) {
-     throw std::runtime_error("Not implemented yet");
+    size_t maxReticulations = ann_network.options.max_reticulations;
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        ClvRangeInfo clvInfo = state.displayed_tree_clv_ranges[p];
+        ScaleBufferRangeInfo scaleBufferInfo = state.displayed_tree_scale_buffer_ranges[p];
+        for (size_t i = 0; i < ann_network.network.nodes.size(); ++i) {
+            while (state.pernode_displayed_tree_data[p][i].displayed_trees.size() < ann_network.pernode_displayed_tree_data[p][i].num_active_displayed_trees) {
+                // add another displayed tree
+                state.pernode_displayed_tree_data[p][i].displayed_trees.emplace_back(DisplayedTreeData(clvInfo, scaleBufferInfo, maxReticulations));
+            }
+        }
+    }
 }
 
 void extract_displayed_trees_data(AnnotatedNetwork& ann_network, NetworkState& state) {
     add_missing_displayed_trees_data(ann_network, state);
-    throw std::runtime_error("Not implemented yet");
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        for (size_t i = 0; i < ann_network.network.nodes.size(); ++i) {
+            state.pernode_displayed_tree_data[p][i] = ann_network.pernode_displayed_tree_data[p][i];
+        }
+    }
 }
 
 void extract_network_state(AnnotatedNetwork &ann_network, NetworkState& state_to_reuse, bool extract_network) {
@@ -118,6 +136,21 @@ NetworkState extract_network_state(AnnotatedNetwork &ann_network, bool extract_n
         state.partition_brlens[p].resize(ann_network.network.edges.size());
     }
     state.partition_models.resize(ann_network.fake_treeinfo->partition_count);
+    
+    state.displayed_tree_clv_ranges.resize(ann_network.fake_treeinfo->partition_count);
+    state.displayed_tree_scale_buffer_ranges.resize(ann_network.fake_treeinfo->partition_count);
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        state.displayed_tree_clv_ranges[p] = get_clv_range(ann_network.fake_treeinfo->partitions[p]);
+        state.displayed_tree_scale_buffer_ranges[p] = get_scale_buffer_range(ann_network.fake_treeinfo->partitions[p]);
+    }
+    state.pernode_displayed_tree_data.resize(ann_network.fake_treeinfo->partition_count);
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        state.pernode_displayed_tree_data[p].resize(ann_network.network.nodes.size());
+         for (size_t i = 0; i < ann_network.network.num_tips(); ++i) {
+            state.pernode_displayed_tree_data[p][i].displayed_trees.emplace_back(DisplayedTreeData(ann_network.fake_treeinfo->partitions[p]->clv[i], ann_network.options.max_reticulations));
+            state.pernode_displayed_tree_data[p][i].num_active_displayed_trees++;
+        }
+    }
 
     extract_network_state(ann_network, state, extract_network);
     return state;
@@ -298,8 +331,15 @@ bool alphas_equal(const NetworkState& old_state, const NetworkState& act_state) 
 }
 
 bool displayed_trees_equal(const NetworkState& old_state, const NetworkState& act_state) {
-    assert(old_state.n_trees == act_state.n_trees);
-    throw std::runtime_error("Not implemented yet");
+    assert(old_state.pernode_displayed_tree_data.size() == act_state.pernode_displayed_tree_data.size());
+    for (size_t p = 0; p < old_state.pernode_displayed_tree_data.size(); ++p) {
+        assert(old_state.pernode_displayed_tree_data[p].size() == act_state.pernode_displayed_tree_data[p].size());
+        for (size_t i = 0; i < old_state.pernode_displayed_tree_data[p].size(); ++i) {
+            if (old_state.pernode_displayed_tree_data[p][i] != act_state.pernode_displayed_tree_data[p][i]) {
+                return false;
+            }
+        }
+    }
     return true;
 }
 
