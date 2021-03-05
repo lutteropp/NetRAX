@@ -85,13 +85,39 @@ double displayed_tree_logprob(AnnotatedNetwork &ann_network, size_t tree_index) 
     return logProb.toDouble();
 }
 
-DisplayedTreeData& findMatchingDisplayedTree(const std::vector<ReticulationState>& reticulationChoices, NodeDisplayedTreeData& data) {
+void printReticulationChoices(const std::vector<ReticulationState>& reticulationChoices) {
+    for (size_t i = 0; i < reticulationChoices.size(); ++i) {
+        char c;
+        if (reticulationChoices[i] == ReticulationState::TAKE_FIRST_PARENT) {
+            c = '0';
+        } else if (reticulationChoices[i] == ReticulationState::TAKE_SECOND_PARENT) {
+            c = '1';
+        } else {
+            c = '-';
+        }
+        std::cout << c;
+    }
+    std::cout << "\n";
+}
+
+DisplayedTreeData& findMatchingDisplayedTree(AnnotatedNetwork& ann_network, const std::vector<ReticulationState>& reticulationChoices, NodeDisplayedTreeData& data) {
     DisplayedTreeData* tree = nullptr;
+    assert(reticulationChoices.size() == ann_network.options.max_reticulations);
+    if (ann_network.network.num_reticulations() > 0) {
+        std::cout << "Query: ";
+        printReticulationChoices(reticulationChoices);
+    }
+    
     size_t n_good = 0;
     for (size_t i = 0; i < data.displayed_trees.size(); ++i) {
+        assert(data.displayed_trees[i].reticulationChoices.size() == ann_network.options.max_reticulations);
         if (reticulationChoicesCompatible(reticulationChoices, data.displayed_trees[i].reticulationChoices)) {
             n_good++;
             tree = &data.displayed_trees[i];
+            if (ann_network.network.num_reticulations() > 0) {
+                std::cout << "Match: ";
+                printReticulationChoices(data.displayed_trees[i].reticulationChoices);
+            }
         }
     }
     if (n_good == 1) {
@@ -115,7 +141,7 @@ Node* findFirstNodeWithTwoActiveChildren(AnnotatedNetwork& ann_network, const st
 
 void computeDisplayedTreeLoglikelihood(AnnotatedNetwork& ann_network, unsigned int partition_idx, DisplayedTreeData& treeAtRoot) {
     Node* displayed_tree_root = findFirstNodeWithTwoActiveChildren(ann_network, treeAtRoot.reticulationChoices);
-    DisplayedTreeData& treeWithoutDeadPath = findMatchingDisplayedTree(treeAtRoot.reticulationChoices, ann_network.pernode_displayed_tree_data[partition_idx][displayed_tree_root->clv_index]);
+    DisplayedTreeData& treeWithoutDeadPath = findMatchingDisplayedTree(ann_network, treeAtRoot.reticulationChoices, ann_network.pernode_displayed_tree_data[partition_idx][displayed_tree_root->clv_index]);
 
     double* parent_clv = treeWithoutDeadPath.clv_vector;
     unsigned int* parent_scaler = treeWithoutDeadPath.scale_buffer;
@@ -256,7 +282,7 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
 
 void processNodeImproved(AnnotatedNetwork& ann_network, unsigned int partition_idx, int incremental, ClvRangeInfo &clvInfo, ScaleBufferRangeInfo &scaleBufferInfo, Node* node) {
     if (node->clv_index < ann_network.network.num_tips()) {
-        assert(ann_network.fake_treeinfo->clv_valid[partition_idx][node->clv_index]);
+        //assert(ann_network.fake_treeinfo->clv_valid[partition_idx][node->clv_index]);
         return;
     }
     if (incremental && ann_network.fake_treeinfo->clv_valid[partition_idx][node->clv_index]) {
@@ -392,7 +418,6 @@ double computeLoglikelihoodImproved(AnnotatedNetwork &ann_network, int increment
     bool reuse_old_displayed_trees = reuseOldDisplayedTreesCheck(ann_network, incremental);
     mpfr::mpreal network_logl = 0.0;
     if (reuse_old_displayed_trees) {
-        size_t n_trees = (1 << ann_network.network.num_reticulations());
         for (size_t p = 0; p < fake_treeinfo.partition_count; ++p) { // TODO: Why is this needed here?
             std::vector<DisplayedTreeData>& displayed_root_trees = ann_network.pernode_displayed_tree_data[p][network.root->clv_index].displayed_trees;
             size_t n_trees = ann_network.pernode_displayed_tree_data[p][network.root->clv_index].num_active_displayed_trees;
