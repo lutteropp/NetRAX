@@ -37,11 +37,11 @@ struct NodeDisplayedTreeData {
     size_t num_active_displayed_trees = 0;
 
     void add_displayed_tree(ClvRangeInfo clvInfo, ScaleBufferRangeInfo scaleBufferInfo, size_t maxReticulations) {
+        num_active_displayed_trees++;
         if (num_active_displayed_trees < displayed_trees.size()) {
             assert(num_active_displayed_trees == displayed_trees.size() - 1);
             displayed_trees.emplace_back(DisplayedTreeClvData(clvInfo, scaleBufferInfo, maxReticulations));
         }
-        num_active_displayed_trees++;
     }
 };
 
