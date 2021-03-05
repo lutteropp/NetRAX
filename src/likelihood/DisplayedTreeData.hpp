@@ -68,6 +68,7 @@ struct DisplayedTreeClvData {
     bool tree_logprob_valid = false;
     double* clv_vector = nullptr;
     unsigned int* scale_buffer = nullptr;
+
     double tree_logl = -std::numeric_limits<double>::infinity();
     double tree_logprob = 0;
     std::vector<ReticulationState> reticulationChoices;
@@ -82,6 +83,33 @@ struct DisplayedTreeClvData {
         reticulationChoices.resize(max_reticulations);
         clv_vector = tip_clv_vector;
         scale_buffer = nullptr;
+    }
+
+    DisplayedTreeClvData(DisplayedTreeClvData&& rhs)
+      : tree_logl_valid{rhs.tree_logl_valid}, tree_logprob_valid{rhs.tree_logprob_valid}, clv_vector{rhs.clv_vector}, scale_buffer{rhs.scale_buffer}, tree_logl{rhs.tree_logl}, tree_logprob{rhs.tree_logprob}, reticulationChoices{rhs.reticulationChoices}
+    {
+        rhs.clv_vector = nullptr;
+        rhs.scale_buffer = nullptr;
+    }
+
+    DisplayedTreeClvData& operator =(DisplayedTreeClvData&& rhs)
+    {
+        if (this != &rhs)
+        {
+            pll_aligned_free(clv_vector);
+            free(scale_buffer);
+            tree_logl_valid = rhs.tree_logl_valid;
+            tree_logprob_valid = rhs.tree_logprob_valid;
+            clv_vector = rhs.clv_vector;
+            scale_buffer = rhs.scale_buffer;
+            tree_logl = rhs.tree_logl;
+            tree_logprob = rhs.tree_logprob;
+            reticulationChoices = std::move(rhs.reticulationChoices);
+
+            rhs.clv_vector = nullptr;
+            rhs.scale_buffer = nullptr;
+        }
+        return *this;
     }
 
     ~DisplayedTreeClvData() {

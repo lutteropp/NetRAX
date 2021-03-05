@@ -279,16 +279,16 @@ void process_partition_new(AnnotatedNetwork &ann_network, int partition_idx, int
 }
 
 DisplayedTreeClvData& findMatchingDisplayedTree(const std::vector<ReticulationState>& reticulationChoices, NodeDisplayedTreeData& data) {
-    DisplayedTreeClvData& tree = data.displayed_trees[0];
+    DisplayedTreeClvData* tree = nullptr;
     size_t n_good = 0;
     for (size_t i = 0; i < data.displayed_trees.size(); ++i) {
         if (reticulationChoicesCompatible(reticulationChoices, data.displayed_trees[i].reticulationChoices)) {
             n_good++;
-            tree = data.displayed_trees[i];
+            tree = &data.displayed_trees[i];
         }
     }
     if (n_good == 1) {
-        return tree;
+        return *tree;
     } else if (n_good > 1) {
         throw std::runtime_error("Found multiple suitable trees");
     } else { // n_good == 0
@@ -315,14 +315,32 @@ void computeDisplayedTreeLoglikelihood(AnnotatedNetwork& ann_network, unsigned i
 
     pll_partition_t* partition = ann_network.fake_treeinfo->partitions[partition_idx];
     double tree_logl = pll_compute_root_loglikelihood(partition, displayed_tree_root->clv_index, parent_clv, parent_scaler, ann_network.fake_treeinfo->param_indices[partition_idx], nullptr);
+
     treeAtRoot.tree_logl = tree_logl;
     treeAtRoot.tree_logl_valid = true;
     treeAtRoot.tree_logprob = computeReticulationChoicesLogProb(treeAtRoot.reticulationChoices, ann_network.reticulation_probs);
     treeAtRoot.tree_logprob_valid = true;
 }
 
+void iterateOverClv(double* clv, ClvRangeInfo& clvInfo) {
+    if (!clv) return;
+    std::cout << "Iterating over " << clvInfo.inner_clv_num_entries << " clv entries.\n";
+    for (size_t i = 0; i < clvInfo.inner_clv_num_entries; ++i) {
+        std::cout << clv[i] << " ";
+    }
+    std::cout << "\n";
+}
+
+void iterateOverScaler(unsigned int* scaler, ScaleBufferRangeInfo& scalerInfo) {
+    if (!scaler) return;
+    std::cout << "Iterating over " << scalerInfo.scaler_size << " scaler entries.\n";
+    for (size_t i = 0; i < scalerInfo.scaler_size; ++i) {
+        std::cout << scaler[i] << " ";
+    }
+    std::cout << "\n";
+}
+
 unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, unsigned int partition_idx, ClvRangeInfo &clvInfo, ScaleBufferRangeInfo &scaleBufferInfo, Node* node, Node* child) {
-    std::cout << "single child case at " << node->clv_index << "\n";
     unsigned int num_trees_added = 0;
     pll_operation_t op = buildOperationInternal(ann_network.network, node, child, nullptr, ann_network.network.nodes.size(), ann_network.network.edges.size());
     NodeDisplayedTreeData& displayed_trees = ann_network.pernode_displayed_tree_data[partition_idx][node->clv_index];
@@ -338,6 +356,7 @@ unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, unsig
         unsigned int* left_scaler = displayed_trees_child.displayed_trees[displayed_trees.num_active_displayed_trees-1].scale_buffer;
         double* right_clv = partition->clv[fake_clv_index];
         unsigned int* right_scaler = nullptr;
+
         pll_update_partials_single(partition, &op, 1, parent_clv, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
         displayed_trees.displayed_trees[i].reticulationChoices = displayed_trees_child.displayed_trees[i].reticulationChoices;
         if (child->getType() == NodeType::RETICULATION_NODE) {
@@ -356,7 +375,6 @@ unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, unsig
 }
 
 unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsigned int partition_idx, ClvRangeInfo &clvInfo, ScaleBufferRangeInfo &scaleBufferInfo, Node* node, Node* left_child, Node* right_child) {
-    std::cout << "two children case at " << node->clv_index << "\n";
     unsigned int num_trees_added = 0;
     pll_operation_t op = buildOperationInternal(ann_network.network, node, left_child, right_child, ann_network.network.nodes.size(), ann_network.network.edges.size());
     NodeDisplayedTreeData& displayed_trees = ann_network.pernode_displayed_tree_data[partition_idx][node->clv_index];
@@ -377,7 +395,6 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
                 n_compatible++;
 
                 displayed_trees.add_displayed_tree(clvInfo, scaleBufferInfo, ann_network.options.max_reticulations);
-                std::cout << "added displayed tree" << "\n";
                 DisplayedTreeClvData& newDisplayedTree = displayed_trees.displayed_trees[displayed_trees.num_active_displayed_trees-1];
                 double* parent_clv = newDisplayedTree.clv_vector;
                 unsigned int* parent_scaler = newDisplayedTree.scale_buffer;
@@ -385,9 +402,7 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
                 unsigned int* left_scaler = displayed_trees_left_child.displayed_trees[i].scale_buffer;
                 double* right_clv = displayed_trees_right_child.displayed_trees[j].clv_vector;
                 unsigned int* right_scaler = displayed_trees_right_child.displayed_trees[j].scale_buffer;
-                std::cout << "starting update partials single" << "\n";
                 pll_update_partials_single(partition, &op, 1, parent_clv, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
-                std::cout << "finished update partials single" << "\n";
                 std::vector<ReticulationState> newReticulationChoices = combineReticulationChoices(displayed_trees_left_child.displayed_trees[i].reticulationChoices, displayed_trees_right_child.displayed_trees[j].reticulationChoices);
                 displayed_trees.displayed_trees[displayed_trees.num_active_displayed_trees-1].reticulationChoices = newReticulationChoices;
                 if (left_child->getType() == NodeType::RETICULATION_NODE) {
@@ -461,8 +476,6 @@ void processNodeImproved(AnnotatedNetwork& ann_network, unsigned int partition_i
     unsigned int right_reticulation_id = ann_network.options.max_reticulations;
 
     size_t fake_clv_index = ann_network.network.nodes.size();
-
-    std::cout << "I am here at inner node " << node->clv_index << "\n";
 
     if (children.size() == 1) { // we are at a reticulation node
         assert(node->getType() == NodeType::RETICULATION_NODE);
