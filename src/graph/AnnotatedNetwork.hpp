@@ -41,6 +41,12 @@ struct NodeDisplayedTreeData {
         if (num_active_displayed_trees > displayed_trees.size()) {
             assert(num_active_displayed_trees == displayed_trees.size() + 1);
             displayed_trees.emplace_back(DisplayedTreeClvData(clvInfo, scaleBufferInfo, maxReticulations));
+        } else { // zero out the clv vector and scale buffer
+            assert(displayed_trees[num_active_displayed_trees-1].clv_vector);
+            memset(displayed_trees[num_active_displayed_trees-1].clv_vector, 0, clvInfo.inner_clv_num_entries * sizeof(double));
+            if (displayed_trees[num_active_displayed_trees-1].scale_buffer) {
+                memset(displayed_trees[num_active_displayed_trees-1].scale_buffer, 0, scaleBufferInfo.scaler_size * sizeof(unsigned int));
+            }
         }
     }
 };
@@ -56,8 +62,6 @@ struct AnnotatedNetwork {
     BlobInformation blobInfo; // mapping of edges to blobs, megablob roots, mapping of megablob roots to set of reticulation nodes within the megablob
     std::vector<double> reticulation_probs; // the first-parent reticulation probs
 
-    std::vector<std::vector<DisplayedTreeData> > displayed_trees;
-
     std::vector<std::vector<NodeDisplayedTreeData> > pernode_displayed_tree_data;
 
     std::vector<Node*> travbuffer;
@@ -67,14 +71,6 @@ struct AnnotatedNetwork {
 
     AnnotatedNetwork(AnnotatedNetwork&&) = default;
     AnnotatedNetwork() = default;
-    ~AnnotatedNetwork() {
-        for (size_t i = 0; i < displayed_trees.size(); ++i) {
-                for (size_t j = 0; j < displayed_trees[i].size(); ++j) {
-                        delete_cloned_clv_vector(fake_treeinfo->partitions[i], displayed_trees[i][j].tree_clv_vectors);
-                        delete_cloned_scale_buffer(fake_treeinfo->partitions[i], displayed_trees[i][j].tree_scale_buffers);
-                }
-        }
-    }
 };
 
 AnnotatedNetwork build_annotated_network(NetraxOptions &options);

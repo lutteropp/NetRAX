@@ -17,6 +17,7 @@ namespace netrax
     }
 
     ClvRangeInfo get_clv_range(pll_partition_t* partition) {
+        assert(partition);
         assert(!pll_repeats_enabled(partition));
 
         unsigned int alignment = partition->alignment;
@@ -107,6 +108,7 @@ namespace netrax
     }
 
     ScaleBufferRangeInfo get_scale_buffer_range(pll_partition_t* partition) {
+        assert(partition);
         assert(!pll_repeats_enabled(partition));
 
         unsigned int sites_alloc = (unsigned int) partition->asc_additional_sites + partition->sites;

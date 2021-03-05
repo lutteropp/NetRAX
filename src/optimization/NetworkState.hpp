@@ -19,24 +19,11 @@ struct NetworkState {
     std::vector<Model> partition_models;
     std::vector<double> reticulation_probs; // the first-parent reticulation probs
 
-    std::vector<std::vector<double**> > displayed_tree_clv_data;
+    std::vector<std::vector<NodeDisplayedTreeData> > pernode_displayed_tree_data;
     std::vector<ClvRangeInfo> displayed_tree_clv_ranges;
-    std::vector<std::vector<unsigned int**> > displayed_tree_scale_buffer_data;
     std::vector<ScaleBufferRangeInfo> displayed_tree_scale_buffer_ranges;
 
     bool network_valid = false;
-
-    NetworkState& operator=(NetworkState&& other) = default;
-    NetworkState(NetworkState&& other) = default;
-    NetworkState() = default;
-    ~NetworkState() {
-        for (size_t i = 0; i < displayed_tree_clv_data.size(); ++i) {
-            for (size_t j = 0; j < displayed_tree_clv_data[i].size(); ++j) {
-                delete_cloned_clv_vector(displayed_tree_clv_ranges[i], displayed_tree_clv_data[i][j]);
-                delete_cloned_scale_buffer(displayed_tree_scale_buffer_ranges[i], displayed_tree_scale_buffer_data[i][j]);
-            }
-        }
-    }
 };
 
 NetworkState extract_network_state(AnnotatedNetwork &ann_network, bool extract_network = true);

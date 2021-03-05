@@ -66,17 +66,6 @@ void init_annotated_network(AnnotatedNetwork &ann_network, std::mt19937& rng) {
         }
     }
 
-    ann_network.displayed_trees.resize(ann_network.fake_treeinfo->partition_count);
-    size_t n_trees = (1 << ann_network.network.num_reticulations());
-    for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
-        assert(!pll_repeats_enabled(ann_network.fake_treeinfo->partitions[i]));
-        ann_network.displayed_trees[i].resize(n_trees);
-        for (size_t j = 0; j < n_trees; ++j) {
-            ann_network.displayed_trees[i][j].tree_clv_vectors = clone_clv_vector(ann_network.fake_treeinfo->partitions[i], ann_network.fake_treeinfo->partitions[i]->clv);
-            ann_network.displayed_trees[i][j].tree_scale_buffers = clone_scale_buffer(ann_network.fake_treeinfo->partitions[i], ann_network.fake_treeinfo->partitions[i]->scale_buffer);
-        }
-    }
-
     ann_network.pernode_displayed_tree_data.resize(ann_network.fake_treeinfo->partition_count);
     for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
         ann_network.pernode_displayed_tree_data[p].resize(ann_network.network.nodes.size()); // including all nodes that will ever be there
