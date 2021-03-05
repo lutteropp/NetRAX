@@ -109,7 +109,7 @@ DisplayedTreeData& findMatchingDisplayedTree(AnnotatedNetwork& ann_network, cons
     }
     
     size_t n_good = 0;
-    for (size_t i = 0; i < data.displayed_trees.size(); ++i) {
+    for (size_t i = 0; i < data.num_active_displayed_trees; ++i) {
         assert(data.displayed_trees[i].reticulationChoices.size() == ann_network.options.max_reticulations);
         if (reticulationChoicesCompatible(reticulationChoices, data.displayed_trees[i].reticulationChoices)) {
             n_good++;
