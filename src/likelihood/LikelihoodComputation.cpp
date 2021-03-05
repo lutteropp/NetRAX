@@ -157,15 +157,10 @@ void compute_displayed_tree(AnnotatedNetwork &ann_network, std::vector<bool> &cl
             if (ops_root->scaler_index != PLL_SCALE_BUFFER_NONE) {
                 scale_buffer = fake_treeinfo.partitions[partition_idx]->scale_buffer[ops_root->scaler_index];
             }
-            /*tree_logl = pll_compute_root_loglikelihood_new(fake_treeinfo.partitions[partition_idx],
+            tree_logl = pll_compute_root_loglikelihood(fake_treeinfo.partitions[partition_idx],
                     ops_root->clv_index,
                     fake_treeinfo.partitions[partition_idx]->clv[ops_root->clv_index],
                     scale_buffer,
-                    fake_treeinfo.param_indices[partition_idx],
-                    tree_persite_logl.empty() ? nullptr : tree_persite_logl.data());*/
-            tree_logl = pll_compute_root_loglikelihood_old(fake_treeinfo.partitions[partition_idx],
-                    ops_root->clv_index,
-                    ops_root->scaler_index,
                     fake_treeinfo.param_indices[partition_idx],
                     tree_persite_logl.empty() ? nullptr : tree_persite_logl.data());
         }
@@ -174,17 +169,12 @@ void compute_displayed_tree(AnnotatedNetwork &ann_network, std::vector<bool> &cl
         if (ops_root->scaler_index != PLL_SCALE_BUFFER_NONE) {
             scale_buffer = fake_treeinfo.partitions[partition_idx]->scale_buffer[ops_root->scaler_index];
         }
-        /*tree_logl = pll_compute_root_loglikelihood_new(fake_treeinfo.partitions[partition_idx],
+        tree_logl = pll_compute_root_loglikelihood(fake_treeinfo.partitions[partition_idx],
                     ops_root->clv_index,
                     fake_treeinfo.partitions[partition_idx]->clv[ops_root->clv_index],
                     scale_buffer,
                     fake_treeinfo.param_indices[partition_idx],
-                    tree_persite_logl.empty() ? nullptr : tree_persite_logl.data());*/
-        tree_logl = pll_compute_root_loglikelihood_old(fake_treeinfo.partitions[partition_idx],
-                ops_root->clv_index,
-                ops_root->scaler_index,
-                fake_treeinfo.param_indices[partition_idx],
-                tree_persite_logl.empty() ? nullptr : tree_persite_logl.data());
+                    tree_persite_logl.empty() ? nullptr : tree_persite_logl.data());
     }
 
     assert(tree_logl < 0);
@@ -324,7 +314,7 @@ void computeDisplayedTreeLoglikelihood(AnnotatedNetwork& ann_network, unsigned i
     unsigned int* parent_scaler = treeWithoutDeadPath.scale_buffer;
 
     pll_partition_t* partition = ann_network.fake_treeinfo->partitions[partition_idx];
-    double tree_logl = pll_compute_root_loglikelihood_new(partition, displayed_tree_root->clv_index, parent_clv, parent_scaler, ann_network.fake_treeinfo->param_indices[partition_idx], nullptr);
+    double tree_logl = pll_compute_root_loglikelihood(partition, displayed_tree_root->clv_index, parent_clv, parent_scaler, ann_network.fake_treeinfo->param_indices[partition_idx], nullptr);
     treeAtRoot.tree_logl = tree_logl;
     treeAtRoot.tree_logl_valid = true;
     treeAtRoot.tree_logprob = computeReticulationChoicesLogProb(treeAtRoot.reticulationChoices, ann_network.reticulation_probs);
