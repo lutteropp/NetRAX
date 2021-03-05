@@ -350,10 +350,12 @@ unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, unsig
 
     for (size_t i = 0; i < displayed_trees_child.num_active_displayed_trees; ++i) {
         displayed_trees.add_displayed_tree(clvInfo, scaleBufferInfo, ann_network.options.max_reticulations);
-        double* parent_clv = displayed_trees.displayed_trees[displayed_trees.num_active_displayed_trees-1].clv_vector;
-        unsigned int* parent_scaler = displayed_trees.displayed_trees[displayed_trees.num_active_displayed_trees-1].scale_buffer;
-        double* left_clv = displayed_trees_child.displayed_trees[displayed_trees.num_active_displayed_trees-1].clv_vector;
-        unsigned int* left_scaler = displayed_trees_child.displayed_trees[displayed_trees.num_active_displayed_trees-1].scale_buffer;
+        DisplayedTreeClvData& tree = displayed_trees.displayed_trees[displayed_trees.num_active_displayed_trees-1];
+        DisplayedTreeClvData& childTree = displayed_trees_child.displayed_trees[i];
+        double* parent_clv = tree.clv_vector;
+        unsigned int* parent_scaler = tree.scale_buffer;
+        double* left_clv = childTree.clv_vector;
+        unsigned int* left_scaler = childTree.scale_buffer;
         double* right_clv = partition->clv[fake_clv_index];
         unsigned int* right_scaler = nullptr;
 
@@ -388,23 +390,25 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
     // It can even happen that there is a displayed tree for one child, that has no matching displaying tree on the other side (in terms of chosen reticulations). In this case, we have a dead node situation...
     std::vector<bool> rightTreeUsed(displayed_trees_right_child.num_active_displayed_trees, false);
     for (size_t i = 0; i < displayed_trees_left_child.num_active_displayed_trees; ++i) {
+        DisplayedTreeClvData& leftTree = displayed_trees_left_child.displayed_trees[i];
         size_t n_compatible = 0;
         for (size_t j = 0; j < displayed_trees_right_child.num_active_displayed_trees; ++j) {
-            if (reticulationChoicesCompatible(displayed_trees_left_child.displayed_trees[i].reticulationChoices, displayed_trees_right_child.displayed_trees[j].reticulationChoices)) {
+            DisplayedTreeClvData& rightTree = displayed_trees_right_child.displayed_trees[j];
+            if (reticulationChoicesCompatible(leftTree.reticulationChoices, rightTree.reticulationChoices)) {
                 rightTreeUsed[j] = true;
                 n_compatible++;
 
                 displayed_trees.add_displayed_tree(clvInfo, scaleBufferInfo, ann_network.options.max_reticulations);
                 DisplayedTreeClvData& newDisplayedTree = displayed_trees.displayed_trees[displayed_trees.num_active_displayed_trees-1];
+
                 double* parent_clv = newDisplayedTree.clv_vector;
                 unsigned int* parent_scaler = newDisplayedTree.scale_buffer;
-                double* left_clv = displayed_trees_left_child.displayed_trees[i].clv_vector;
-                unsigned int* left_scaler = displayed_trees_left_child.displayed_trees[i].scale_buffer;
-                double* right_clv = displayed_trees_right_child.displayed_trees[j].clv_vector;
-                unsigned int* right_scaler = displayed_trees_right_child.displayed_trees[j].scale_buffer;
+                double* left_clv = leftTree.clv_vector;
+                unsigned int* left_scaler = leftTree.scale_buffer;
+                double* right_clv = rightTree.clv_vector;
+                unsigned int* right_scaler = rightTree.scale_buffer;
                 pll_update_partials_single(partition, &op, 1, parent_clv, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
-                std::vector<ReticulationState> newReticulationChoices = combineReticulationChoices(displayed_trees_left_child.displayed_trees[i].reticulationChoices, displayed_trees_right_child.displayed_trees[j].reticulationChoices);
-                displayed_trees.displayed_trees[displayed_trees.num_active_displayed_trees-1].reticulationChoices = newReticulationChoices;
+                newDisplayedTree.reticulationChoices = combineReticulationChoices(leftTree.reticulationChoices, rightTree.reticulationChoices);
                 if (left_child->getType() == NodeType::RETICULATION_NODE) {
                     if (node == getReticulationFirstParent(ann_network.network, left_child)) {
                         newDisplayedTree.reticulationChoices[left_child->getReticulationData()->reticulation_index] = ReticulationState::TAKE_FIRST_PARENT;
