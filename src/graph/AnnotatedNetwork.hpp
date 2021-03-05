@@ -33,14 +33,14 @@ struct Statistics {
 };
 
 struct NodeDisplayedTreeData {
-    std::vector<DisplayedTreeClvData> displayed_trees;
+    std::vector<DisplayedTreeData> displayed_trees;
     size_t num_active_displayed_trees = 0;
 
     void add_displayed_tree(ClvRangeInfo clvInfo, ScaleBufferRangeInfo scaleBufferInfo, size_t maxReticulations) {
         num_active_displayed_trees++;
         if (num_active_displayed_trees > displayed_trees.size()) {
             assert(num_active_displayed_trees == displayed_trees.size() + 1);
-            displayed_trees.emplace_back(DisplayedTreeClvData(clvInfo, scaleBufferInfo, maxReticulations));
+            displayed_trees.emplace_back(DisplayedTreeData(clvInfo, scaleBufferInfo, maxReticulations));
         } else { // zero out the clv vector and scale buffer
             assert(displayed_trees[num_active_displayed_trees-1].clv_vector);
             memset(displayed_trees[num_active_displayed_trees-1].clv_vector, 0, clvInfo.inner_clv_num_entries * sizeof(double));

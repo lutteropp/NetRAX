@@ -29,7 +29,7 @@ bool logl_stays_same(AnnotatedNetwork& ann_network) {
     for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
         size_t n_trees = ann_network.pernode_displayed_tree_data[i][ann_network.network.root->clv_index].num_active_displayed_trees;
         for (size_t j = 0; j < n_trees; ++j) {
-            DisplayedTreeClvData& tree = ann_network.pernode_displayed_tree_data[i][ann_network.network.root->clv_index].displayed_trees[j];
+            DisplayedTreeData& tree = ann_network.pernode_displayed_tree_data[i][ann_network.network.root->clv_index].displayed_trees[j];
             std::cout << "logl: " << tree.tree_logl << ", logprob: " << tree.tree_logprob << "\n";
         }
     }
@@ -38,7 +38,7 @@ bool logl_stays_same(AnnotatedNetwork& ann_network) {
     for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
         size_t n_trees = ann_network.pernode_displayed_tree_data[i][ann_network.network.root->clv_index].num_active_displayed_trees;
         for (size_t j = 0; j < n_trees; ++j) {
-            DisplayedTreeClvData& tree = ann_network.pernode_displayed_tree_data[i][ann_network.network.root->clv_index].displayed_trees[j];
+            DisplayedTreeData& tree = ann_network.pernode_displayed_tree_data[i][ann_network.network.root->clv_index].displayed_trees[j];
             std::cout << "logl: " << tree.tree_logl << ", logprob: " << tree.tree_logprob << "\n";
         }
     }
@@ -47,7 +47,7 @@ bool logl_stays_same(AnnotatedNetwork& ann_network) {
     for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
         size_t n_trees = ann_network.pernode_displayed_tree_data[i][ann_network.network.root->clv_index].num_active_displayed_trees;
         for (size_t j = 0; j < n_trees; ++j) {
-            DisplayedTreeClvData& tree = ann_network.pernode_displayed_tree_data[i][ann_network.network.root->clv_index].displayed_trees[j];
+            DisplayedTreeData& tree = ann_network.pernode_displayed_tree_data[i][ann_network.network.root->clv_index].displayed_trees[j];
             std::cout << "logl: " << tree.tree_logl << ", logprob: " << tree.tree_logprob << "\n";
         }
     }

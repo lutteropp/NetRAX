@@ -10,15 +10,6 @@ extern "C" {
 
 namespace netrax {
 
-struct DisplayedTreeData {
-    size_t tree_idx = 0;
-    double tree_logl = 0.0;
-    double tree_logprob = 0.0;
-    double** tree_clv_vectors = nullptr;
-    unsigned int** tree_scale_buffers = nullptr;
-    std::vector<double> tree_persite_logl;
-};
-
 struct ClvRangeInfo {
     unsigned int alignment = 0;
     unsigned int total_num_clvs = 0;
@@ -63,7 +54,7 @@ enum class ReticulationState {
     TAKE_SECOND_PARENT = 2
 };
 
-struct DisplayedTreeClvData {
+struct DisplayedTreeData {
     bool tree_logl_valid = false;
     bool tree_logprob_valid = false;
     double* clv_vector = nullptr;
@@ -73,26 +64,26 @@ struct DisplayedTreeClvData {
     double tree_logprob = 0;
     std::vector<ReticulationState> reticulationChoices;
 
-    DisplayedTreeClvData(ClvRangeInfo clvRangeInfo, ScaleBufferRangeInfo scaleBufferRangeInfo, size_t max_reticulations) { // inner node
+    DisplayedTreeData(ClvRangeInfo clvRangeInfo, ScaleBufferRangeInfo scaleBufferRangeInfo, size_t max_reticulations) { // inner node
         reticulationChoices.resize(max_reticulations);
         clv_vector = create_single_empty_clv(clvRangeInfo);
         scale_buffer = create_single_empty_scale_buffer(scaleBufferRangeInfo);
     }
 
-    DisplayedTreeClvData(double* tip_clv_vector, size_t max_reticulations) { // tip node
+    DisplayedTreeData(double* tip_clv_vector, size_t max_reticulations) { // tip node
         reticulationChoices.resize(max_reticulations);
         clv_vector = tip_clv_vector;
         scale_buffer = nullptr;
     }
 
-    DisplayedTreeClvData(DisplayedTreeClvData&& rhs)
+    DisplayedTreeData(DisplayedTreeData&& rhs)
       : tree_logl_valid{rhs.tree_logl_valid}, tree_logprob_valid{rhs.tree_logprob_valid}, clv_vector{rhs.clv_vector}, scale_buffer{rhs.scale_buffer}, tree_logl{rhs.tree_logl}, tree_logprob{rhs.tree_logprob}, reticulationChoices{rhs.reticulationChoices}
     {
         rhs.clv_vector = nullptr;
         rhs.scale_buffer = nullptr;
     }
 
-    DisplayedTreeClvData& operator =(DisplayedTreeClvData&& rhs)
+    DisplayedTreeData& operator =(DisplayedTreeData&& rhs)
     {
         if (this != &rhs)
         {
@@ -112,7 +103,7 @@ struct DisplayedTreeClvData {
         return *this;
     }
 
-    ~DisplayedTreeClvData() {
+    ~DisplayedTreeData() {
         pll_aligned_free(clv_vector);
         free(scale_buffer);
     }
