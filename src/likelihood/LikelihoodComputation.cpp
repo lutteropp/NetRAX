@@ -406,7 +406,7 @@ double computeLoglikelihoodImproved(AnnotatedNetwork &ann_network, int increment
         fake_treeinfo.active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
         setup_pmatrices(ann_network, incremental, update_pmatrices);
         for (size_t p = 0; p < fake_treeinfo.partition_count; ++p) {
-            processPartitionImproved(ann_network, incremental, p);
+            processPartitionImproved(ann_network, p, incremental);
         }
     }
 
@@ -452,7 +452,7 @@ double computeLoglikelihoodImproved(AnnotatedNetwork &ann_network, int increment
         }
     }
     fake_treeinfo.active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
-    std::cout << "network logl: " << network_logl.toDouble() << "\n";
+    //std::cout << "network logl: " << network_logl.toDouble() << "\n";
     return network_logl.toDouble();
 }
 
