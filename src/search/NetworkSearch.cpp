@@ -25,25 +25,30 @@ struct ScoreImprovementResult {
 };
 
 bool logl_stays_same(AnnotatedNetwork& ann_network) {
-    size_t n_trees = (1 << ann_network.network.num_reticulations());
     std::cout << "displayed trees before:\n";
     for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
+        size_t n_trees = ann_network.pernode_displayed_tree_data[i][ann_network.network.root->clv_index].num_active_displayed_trees;
         for (size_t j = 0; j < n_trees; ++j) {
-            std::cout << "logl: " << ann_network.displayed_trees[i][j].tree_logl << ", logprob: " << ann_network.displayed_trees[i][j].tree_logprob << "\n";
+            DisplayedTreeClvData& tree = ann_network.pernode_displayed_tree_data[i][ann_network.network.root->clv_index].displayed_trees[j];
+            std::cout << "logl: " << tree.tree_logl << ", logprob: " << tree.tree_logprob << "\n";
         }
     }
     double incremental = netrax::computeLoglikelihood(ann_network, 1, 1);
     std::cout << "displayed trees in between:\n";
     for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
+        size_t n_trees = ann_network.pernode_displayed_tree_data[i][ann_network.network.root->clv_index].num_active_displayed_trees;
         for (size_t j = 0; j < n_trees; ++j) {
-            std::cout << "logl: " << ann_network.displayed_trees[i][j].tree_logl << ", logprob: " << ann_network.displayed_trees[i][j].tree_logprob << "\n";
+            DisplayedTreeClvData& tree = ann_network.pernode_displayed_tree_data[i][ann_network.network.root->clv_index].displayed_trees[j];
+            std::cout << "logl: " << tree.tree_logl << ", logprob: " << tree.tree_logprob << "\n";
         }
     }
     double normal = netrax::computeLoglikelihood(ann_network, 0, 1);
     std::cout << "displayed trees after:\n";
     for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
+        size_t n_trees = ann_network.pernode_displayed_tree_data[i][ann_network.network.root->clv_index].num_active_displayed_trees;
         for (size_t j = 0; j < n_trees; ++j) {
-            std::cout << "logl: " << ann_network.displayed_trees[i][j].tree_logl << ", logprob: " << ann_network.displayed_trees[i][j].tree_logprob << "\n";
+            DisplayedTreeClvData& tree = ann_network.pernode_displayed_tree_data[i][ann_network.network.root->clv_index].displayed_trees[j];
+            std::cout << "logl: " << tree.tree_logl << ", logprob: " << tree.tree_logprob << "\n";
         }
     }
     return (incremental == normal);
@@ -222,6 +227,12 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
     double best_score = std::numeric_limits<double>::infinity();
 
     std::cout << "Initial network is:\n" << toExtendedNewick(ann_network) << "\n\n";
+
+    double l1 = netrax::computeLoglikelihood(ann_network, 0, 1);
+    double l2 = netrax::computeLoglikelihood(ann_network, 0, 1);
+    std::cout << "l1: " << l1 << ", l2: " << l2 << "\n";
+    assert(l1 == l2);
+
     optimizeAllNonTopology(ann_network, true);
     std::cout << "Initial network after modelopt+brlenopt+reticulation opt is:\n" << toExtendedNewick(ann_network) << "\n\n";
     std::string best_network = toExtendedNewick(ann_network);

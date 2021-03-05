@@ -316,6 +316,8 @@ void computeDisplayedTreeLoglikelihood(AnnotatedNetwork& ann_network, unsigned i
     pll_partition_t* partition = ann_network.fake_treeinfo->partitions[partition_idx];
     double tree_logl = pll_compute_root_loglikelihood(partition, displayed_tree_root->clv_index, parent_clv, parent_scaler, ann_network.fake_treeinfo->param_indices[partition_idx], nullptr);
 
+    //std::cout << "computed tree logl at node " << displayed_tree_root->clv_index << ": " << tree_logl << "\n";
+
     treeAtRoot.tree_logl = tree_logl;
     treeAtRoot.tree_logl_valid = true;
     treeAtRoot.tree_logprob = computeReticulationChoicesLogProb(treeAtRoot.reticulationChoices, ann_network.reticulation_probs);
@@ -710,8 +712,8 @@ double computeLoglikelihoodImproved(AnnotatedNetwork &ann_network, int increment
                 assert(tree.tree_logprob_valid);
                 assert(tree.tree_logl != 0);
                 assert(tree.tree_logl != -std::numeric_limits<double>::infinity());
-                //std::cout << "tree " << tree.tree_idx << " logl: " << tree.tree_logl << "\n";
-                //std::cout << "tree " << tree.tree_idx << " logprob: " << tree.tree_logprob << "\n";
+                //std::cout << "tree " << tree_idx << " logl: " << tree.tree_logl << "\n";
+                //std::cout << "tree " << tree_idx << " logprob: " << tree.tree_logprob << "\n";
                 if (tree.tree_logprob != std::numeric_limits<double>::infinity()) {
                     //std::cout << "tree " << tree.tree_idx << " prob: " << mpfr::exp(tree.tree_logprob) << "\n";
                     partition_logl = std::max(partition_logl, tree.tree_logprob + tree.tree_logl);
@@ -723,6 +725,7 @@ double computeLoglikelihoodImproved(AnnotatedNetwork &ann_network, int increment
         }
     }
     fake_treeinfo.active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
+    std::cout << "network logl: " << network_logl.toDouble() << "\n";
     return network_logl.toDouble();
 }
 
