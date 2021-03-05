@@ -278,33 +278,6 @@ void process_partition_new(AnnotatedNetwork &ann_network, int partition_idx, int
     validate_clvs_below_subroot(ann_network, ann_network.network.root, partition_idx);
 }
 
-void computeDisplayedTreeLoglikelihood(AnnotatedNetwork& ann_network, unsigned int partition_idx, DisplayedTreeClvData& treeAtRoot) {
-    Node* displayed_tree_root = findFirstNodeWithTwoActiveChildren(ann_network, treeAtRoot.reticulationChoices);
-    DisplayedTreeClvData& treeWithoutDeadPath = findMatchingDisplayedTree(treeAtRoot.reticulationChoices, ann_network.pernode_displayed_tree_data[partition_idx][displayed_tree_root->clv_index]);
-
-    double* parent_clv = treeWithoutDeadPath.clv_vector;
-    unsigned int* parent_scaler = treeWithoutDeadPath.scale_buffer;
-
-    pll_partition_t* partition = ann_network.fake_treeinfo->partitions[partition_idx];
-    double tree_logl = pll_compute_root_loglikelihood(partition, displayed_tree_root->clv_index, parent_clv, parent_scaler, ann_network.fake_treeinfo->param_indices[partition_idx], nullptr);
-    treeAtRoot.tree_logl = tree_logl;
-    treeAtRoot.tree_logl_valid = true;
-    treeAtRoot.tree_logprob = computeReticulationChoicesLogProb(treeAtRoot.reticulationChoices, ann_network.reticulation_probs);
-    treeAtRoot.tree_logprob_valid = true;
-}
-
-unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsigned int partition_idx, ClvRangeInfo &clvInfo, ScaleBufferRangeInfo &scaleBufferInfo, Node* node, Node* left_child, Node* right_child) {
-    throw std::runtime_error("Not implemented yet");
-    unsigned int num_trees_added = 0;
-    pll_operation_t op = buildOperationInternal(ann_network.network, node, left_child, right_child, ann_network.network.nodes.size(), ann_network.network.edges.size());
-    NodeDisplayedTreeData& displayed_trees = ann_network.pernode_displayed_tree_data[partition_idx][node->clv_index];
-    NodeDisplayedTreeData& displayed_trees_left_child = ann_network.pernode_displayed_tree_data[partition_idx][left_child->clv_index];
-    NodeDisplayedTreeData& displayed_trees_right_child = ann_network.pernode_displayed_tree_data[partition_idx][right_child->clv_index];
-    // ...
-    // TODO: How to deal with dead nodes?
-    return num_trees_added;
-}
-
 DisplayedTreeClvData& findMatchingDisplayedTree(const std::vector<ReticulationState>& reticulationChoices, NodeDisplayedTreeData& data) {
     DisplayedTreeClvData& tree = data.displayed_trees[0];
     size_t n_good = 0;
@@ -331,6 +304,33 @@ Node* findFirstNodeWithTwoActiveChildren(AnnotatedNetwork& ann_network, const st
     Node* displayed_tree_root = nullptr;
     collect_dead_nodes(ann_network.network, ann_network.network.root->clv_index, &displayed_tree_root);
     return displayed_tree_root;
+}
+
+void computeDisplayedTreeLoglikelihood(AnnotatedNetwork& ann_network, unsigned int partition_idx, DisplayedTreeClvData& treeAtRoot) {
+    Node* displayed_tree_root = findFirstNodeWithTwoActiveChildren(ann_network, treeAtRoot.reticulationChoices);
+    DisplayedTreeClvData& treeWithoutDeadPath = findMatchingDisplayedTree(treeAtRoot.reticulationChoices, ann_network.pernode_displayed_tree_data[partition_idx][displayed_tree_root->clv_index]);
+
+    double* parent_clv = treeWithoutDeadPath.clv_vector;
+    unsigned int* parent_scaler = treeWithoutDeadPath.scale_buffer;
+
+    pll_partition_t* partition = ann_network.fake_treeinfo->partitions[partition_idx];
+    double tree_logl = pll_compute_root_loglikelihood(partition, displayed_tree_root->clv_index, parent_clv, parent_scaler, ann_network.fake_treeinfo->param_indices[partition_idx], nullptr);
+    treeAtRoot.tree_logl = tree_logl;
+    treeAtRoot.tree_logl_valid = true;
+    treeAtRoot.tree_logprob = computeReticulationChoicesLogProb(treeAtRoot.reticulationChoices, ann_network.reticulation_probs);
+    treeAtRoot.tree_logprob_valid = true;
+}
+
+unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsigned int partition_idx, ClvRangeInfo &clvInfo, ScaleBufferRangeInfo &scaleBufferInfo, Node* node, Node* left_child, Node* right_child) {
+    throw std::runtime_error("Not implemented yet");
+    unsigned int num_trees_added = 0;
+    pll_operation_t op = buildOperationInternal(ann_network.network, node, left_child, right_child, ann_network.network.nodes.size(), ann_network.network.edges.size());
+    NodeDisplayedTreeData& displayed_trees = ann_network.pernode_displayed_tree_data[partition_idx][node->clv_index];
+    NodeDisplayedTreeData& displayed_trees_left_child = ann_network.pernode_displayed_tree_data[partition_idx][left_child->clv_index];
+    NodeDisplayedTreeData& displayed_trees_right_child = ann_network.pernode_displayed_tree_data[partition_idx][right_child->clv_index];
+    // ...
+    // TODO: How to deal with dead nodes?
+    return num_trees_added;
 }
 
 unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, unsigned int partition_idx, ClvRangeInfo &clvInfo, ScaleBufferRangeInfo &scaleBufferInfo, Node* node, Node* child) {
