@@ -275,8 +275,21 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
 
         // ensure that we don't have a reticulation with prob near 0.0 or 1.0 now. If we have one, stop the search.
         if (hasBadReticulation(ann_network)) {
-            std::cout << "BAD RETICULATION FOUND\n";
-            continue;
+            // this can happen for example if we use LikelihoodModel.BEST for network loglikelihood, as this doesn't penalize bad reticulations.
+            // (in combination with numerical issues)
+            // TODO: What to do in this case? Maybe enforce removing the reticulation?
+            unsigned int n_reticulations_before = ann_network.network.num_reticulations();
+            std::cout << "BAD RETICULATION FOUND - removing it by force\n";
+            MoveType removalType = MoveType::ArcRemovalMove;
+            netrax::greedyHillClimbingTopology(ann_network, removalType, start_state_to_reuse, best_state_to_reuse, true);
+            unsigned int n_reticulations_after = ann_network.network.num_reticulations();
+            if (n_reticulations_after >= n_reticulations_before) {
+                throw std::runtime_error("enforced move did not work");
+            }
+            optimizeAllNonTopology(ann_network);
+            score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
+
+            //continue;
         }
 
         // then try adding a reticulation

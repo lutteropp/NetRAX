@@ -205,9 +205,9 @@ unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, unsig
 
         if (node == ann_network.network.root) { // if we are at the root node, we also need to compute loglikelihood
             computeDisplayedTreeLoglikelihood(ann_network, partition_idx, displayed_trees.displayed_trees[i], node);
-        } else { // this is just for debug
+        } /*else { // this is just for debug
             computeDisplayedTreeLoglikelihood(ann_network, partition_idx, displayed_trees.displayed_trees[i], node);
-        }
+        }*/
     }
     num_trees_added = displayed_trees_child.num_active_displayed_trees;
     return num_trees_added;
@@ -276,9 +276,9 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
 
                 if (node == ann_network.network.root) { // if we are at the root node, we also need to compute loglikelihood
                     computeDisplayedTreeLoglikelihood(ann_network, partition_idx, newDisplayedTree, node);
-                } else { // this is just for debug
+                }/* else { // this is just for debug
                     computeDisplayedTreeLoglikelihood(ann_network, partition_idx, newDisplayedTree, node);
-                }
+                }*/
                 
             }
         }
