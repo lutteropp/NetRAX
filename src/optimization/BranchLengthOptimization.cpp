@@ -143,6 +143,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index) {
     if (logl < old_logl && fabs(logl - old_logl) >= 1E-3) {
         std::cout << "new_logl: " << logl << "\n";
         std::cout << "old_logl: " << old_logl << "\n";
+        throw std::runtime_error("problem in brlen optimization");
     }
     assert((logl >= old_logl) || (fabs(logl - old_logl) < 1E-3));
     return logl;

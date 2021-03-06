@@ -177,11 +177,14 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
         assert(state.network_valid);
         assert(state.network.root);
         ann_network.network = state.network;
+        ann_network.travbuffer = reversed_topological_sort(ann_network.network);
     }
     for (size_t p = 0; p < state.partition_brlens.size(); ++p) {
         for (size_t pmatrix_index = 0; pmatrix_index < ann_network.network.num_branches(); ++pmatrix_index) {
-            ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] = state.partition_brlens[p][pmatrix_index];
-            ann_network.fake_treeinfo->pmatrix_valid[p][pmatrix_index] = 0;
+            if (ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] != state.partition_brlens[p][pmatrix_index]) {
+                ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] = state.partition_brlens[p][pmatrix_index];
+                ann_network.fake_treeinfo->pmatrix_valid[p][pmatrix_index] = 0;
+            }
         }
     }
     for (size_t p = 0; p < state.partition_brlen_scalers.size(); ++p) {
@@ -190,41 +193,26 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
     for (size_t p = 0; p < state.alphas.size(); ++p) {
         ann_network.fake_treeinfo->alphas[p] = state.alphas[p];
     }
-    pllmod_treeinfo_update_prob_matrices(ann_network.fake_treeinfo, 1);
-
-    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-        for (size_t clv_index = 0; clv_index < ann_network.network.nodes.size(); ++clv_index) {
-            ann_network.fake_treeinfo->clv_valid[p][clv_index] = 0;
-        }
-    }
-
     for (size_t i = 0; i < state.partition_models.size(); ++i) {
         assign(ann_network.fake_treeinfo->partitions[i], state.partition_models[i]);
     }
-
     ann_network.reticulation_probs = state.reticulation_probs;
+    pllmod_treeinfo_update_prob_matrices(ann_network.fake_treeinfo, 1);
 
     if (copy_network) {
-        ann_network.travbuffer = reversed_topological_sort(ann_network.network);
-        ann_network.blobInfo = partitionNetworkIntoBlobs(ann_network.network, ann_network.travbuffer);
+        //ann_network.blobInfo = partitionNetworkIntoBlobs(ann_network.network, ann_network.travbuffer);
         assert(consecutive_indices(state.network));
         assert(consecutive_indices(ann_network.network));
         assert(assert_tip_links(ann_network.network));
         assert(assert_links_in_range(ann_network.network));
     }
-
-    if (copy_network || ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED) {
-        // invalidate all clv and pmatrix entries... TODO: can be optimized, only needs to be done if model or brlens changed
-        for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-            for (size_t i = 0; i < ann_network.network.nodes.size(); ++i) {
-                ann_network.fake_treeinfo->clv_valid[p][i] = 0;
-            }
-            for (size_t i = 0; i < ann_network.network.edges.size(); ++i) {
-                ann_network.fake_treeinfo->pmatrix_valid[p][i] = 0;
-            }
+    apply_displayed_trees_data(state, ann_network);
+    // set all clvs to valid
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        for (size_t clv_index = 0; clv_index < ann_network.network.nodes.size(); ++clv_index) {
+            ann_network.fake_treeinfo->clv_valid[p][clv_index] = 1;
         }
     }
-    apply_displayed_trees_data(state, ann_network);
 
     //assert_branch_lengths(ann_network);
     //assert_rates(ann_network);
