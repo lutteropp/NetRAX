@@ -188,7 +188,7 @@ unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, unsig
         tree.reticulationChoices = combineReticulationChoices(childTree.reticulationChoices, restrictions);
 
         if (node == ann_network.network.root) { // if we are at the root node, we also need to compute loglikelihood
-            computeDisplayedTreeLoglikelihood(ann_network, partition_idx, displayed_trees.displayed_trees[i], node);
+            computeDisplayedTreeLoglikelihood(ann_network, partition_idx, tree, node);
         } /*else { // this is just for debug
             computeDisplayedTreeLoglikelihood(ann_network, partition_idx, displayed_trees.displayed_trees[i], node);
         }*/
@@ -398,6 +398,12 @@ double computeLoglikelihoodImproved(AnnotatedNetwork &ann_network, int increment
             for (size_t tree_idx = 0; tree_idx < n_trees; ++tree_idx) {
                 DisplayedTreeData& tree = displayed_root_trees[tree_idx];
                 if (!tree.tree_logl_valid) {
+                    std::cout << "tree_idx: " << tree_idx << "\n";
+                    std::cout << "n_trees: " << n_trees << "\n";
+                    std::cout << "displayed trees stored at node " << ann_network.network.root->clv_index << ":\n";
+                    for (size_t j = 0; j < ann_network.pernode_displayed_tree_data[0][ann_network.network.root->clv_index].num_active_displayed_trees; ++j) {
+                        printReticulationChoices(ann_network.pernode_displayed_tree_data[0][ann_network.network.root->clv_index].displayed_trees[j].reticulationChoices);
+                    }
                     throw std::runtime_error("invalid tree logl");
                 }
                 assert(tree.tree_logl_valid);
