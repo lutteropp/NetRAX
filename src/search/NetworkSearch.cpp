@@ -144,9 +144,7 @@ ScoreImprovementResult check_score_improvement(AnnotatedNetwork& ann_network, do
                 if (hasBadReticulation(ann_network)) {
                     std::cout << "Network contains BAD RETICULATIONS. Not updating the global best found network and score.\n";
                 } else {
-                    if (new_score < old_global_best) {
-                        bestNetworkData->best_n_reticulations = ann_network.network.num_reticulations();
-                    }
+                    bestNetworkData->best_n_reticulations = ann_network.network.num_reticulations();
                     global_improved = true;
                     std::cout << "OLD GLOBAL BEST SCORE WAS: " << old_global_best << "\n";
                     std::cout << "IMPROVED GLOBAL BEST SCORE FOUND SO FAR: " << new_score << "\n\n";

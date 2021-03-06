@@ -197,10 +197,9 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
         assign(ann_network.fake_treeinfo->partitions[i], state.partition_models[i]);
     }
     ann_network.reticulation_probs = state.reticulation_probs;
-    pllmod_treeinfo_update_prob_matrices(ann_network.fake_treeinfo, 1);
+    pllmod_treeinfo_update_prob_matrices(ann_network.fake_treeinfo, 1); // this (full pmatrix recomputation) is needed if the model parameters changed
 
     if (copy_network) {
-        //ann_network.blobInfo = partitionNetworkIntoBlobs(ann_network.network, ann_network.travbuffer);
         assert(consecutive_indices(state.network));
         assert(consecutive_indices(ann_network.network));
         assert(assert_tip_links(ann_network.network));

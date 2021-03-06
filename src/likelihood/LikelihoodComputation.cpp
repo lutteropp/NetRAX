@@ -190,7 +190,7 @@ unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, unsig
         if (node == ann_network.network.root) { // if we are at the root node, we also need to compute loglikelihood
             computeDisplayedTreeLoglikelihood(ann_network, partition_idx, tree, node);
         } /*else { // this is just for debug
-            computeDisplayedTreeLoglikelihood(ann_network, partition_idx, displayed_trees.displayed_trees[i], node);
+            computeDisplayedTreeLoglikelihood(ann_network, partition_idx, tree, node);
         }*/
     }
     num_trees_added = displayed_trees_child.num_active_displayed_trees;
@@ -480,7 +480,6 @@ double computeLoglikelihoodNaiveUtree(AnnotatedNetwork &ann_network, int increme
         }
 
         double tree_logl = displayedTreeinfo->loglh(0);
-        std::vector<double> partition_tree_logl(num_partitions);
         for (size_t p = 0; p < num_partitions; ++p) {
             tree_logl_per_partition[p][i] = displayedTreeinfo->pll_treeinfo().partition_loglh[p];
         }
