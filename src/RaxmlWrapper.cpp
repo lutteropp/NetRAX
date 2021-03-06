@@ -9,7 +9,6 @@
 
 #include "likelihood/LikelihoodComputation.hpp"
 #include "optimization/BranchLengthOptimization.hpp"
-#include "graph/Common.hpp"
 #include "utils.hpp"
 #include "graph/Network.hpp"
 #include "graph/NetworkFunctions.hpp"

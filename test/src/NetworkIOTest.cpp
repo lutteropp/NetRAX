@@ -11,7 +11,6 @@
 #include <string>
 #include <iostream>
 #include <algorithm>
-#include "src/graph/Common.hpp"
 #include "src/graph/Network.hpp"
 #include "src/graph/NetworkTopology.hpp"
 

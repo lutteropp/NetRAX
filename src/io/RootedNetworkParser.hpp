@@ -15,8 +15,6 @@
 #include <algorithm>
 #include <memory>
 
-#include "../graph/Common.hpp"
-
 namespace netrax {
 
 struct RootedNetworkNode {
