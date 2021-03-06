@@ -269,23 +269,10 @@ namespace netrax
         assert(reticulationChoicesCompatible(left, right));
         assert(left.size() == right.size());
         std::vector<ReticulationState> res = left;
-        bool seenReticulation = false;
         for (size_t i = 0; i < res.size(); ++i) {
             if (left[i] == ReticulationState::DONT_CARE) {
                 res[i] = right[i];
             }
-
-            if ((left[i] != ReticulationState::DONT_CARE) || (right[i] != ReticulationState::DONT_CARE)) {
-                seenReticulation = true;
-            }
-        }
-        if (seenReticulation) {
-            std::cout << "left for combine:\n";
-            printReticulationChoices(left);
-            std::cout << "right for combine:\n";
-            printReticulationChoices(right);
-            std::cout << "res for combine:\n";
-            printReticulationChoices(res);
         }
         return res;
     }

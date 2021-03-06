@@ -169,9 +169,6 @@ void iterateOverScaler(unsigned int* scaler, ScaleBufferRangeInfo& scalerInfo) {
 
 unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, unsigned int partition_idx, ClvRangeInfo &clvInfo, ScaleBufferRangeInfo &scaleBufferInfo, Node* node, Node* child) {
     unsigned int num_trees_added = 0;
-    if (ann_network.network.num_reticulations() > 0 && node == ann_network.network.root) {
-        std::cout << "single child of root node: " << child->clv_index << "\n";
-    }
     pll_operation_t op = buildOperationInternal(ann_network.network, node, child, nullptr, ann_network.network.nodes.size(), ann_network.network.edges.size());
     NodeDisplayedTreeData& displayed_trees = ann_network.pernode_displayed_tree_data[partition_idx][node->clv_index];
     NodeDisplayedTreeData& displayed_trees_child = ann_network.pernode_displayed_tree_data[partition_idx][child->clv_index];
