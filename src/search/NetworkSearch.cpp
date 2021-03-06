@@ -281,11 +281,9 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
             unsigned int n_reticulations_before = ann_network.network.num_reticulations();
             std::cout << "BAD RETICULATION FOUND - removing it by force\n";
             MoveType removalType = MoveType::ArcRemovalMove;
-            netrax::greedyHillClimbingTopology(ann_network, removalType, start_state_to_reuse, best_state_to_reuse, true);
+            netrax::greedyHillClimbingTopology(ann_network, removalType, start_state_to_reuse, best_state_to_reuse, false, true);
             unsigned int n_reticulations_after = ann_network.network.num_reticulations();
-            if (n_reticulations_after >= n_reticulations_before) {
-                throw std::runtime_error("enforced move did not work");
-            }
+            assert(n_reticulations_after >= n_reticulations_before);
             optimizeAllNonTopology(ann_network);
             score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
 
