@@ -18,7 +18,6 @@
 #include <stack>
 #include <stdexcept>
 
-#include "BiconnectedComponents.hpp"
 #include "Edge.hpp"
 #include "Network.hpp"
 #include "NetworkTopology.hpp"
@@ -332,15 +331,6 @@ void setReticulationParents(Network &network, size_t treeIdx) {
         // check if i-th bit is set in treeIdx
         bool activeParentIdx = treeIdx & (1 << i);
         network.reticulation_nodes[i]->getReticulationData()->setActiveParentToggle(
-                activeParentIdx);
-    }
-}
-
-void setReticulationParents(BlobInformation &blobInfo, unsigned int megablob_idx, size_t treeIdx) {
-    for (size_t i = 0; i < blobInfo.reticulation_nodes_per_megablob[megablob_idx].size(); ++i) {
-        // check if i-th bit is set in treeIdx
-        bool activeParentIdx = treeIdx & (1 << i);
-        blobInfo.reticulation_nodes_per_megablob[megablob_idx][i]->getReticulationData()->setActiveParentToggle(
                 activeParentIdx);
     }
 }

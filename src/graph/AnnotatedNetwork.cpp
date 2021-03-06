@@ -9,7 +9,6 @@
 
 #include <raxml-ng/TreeInfo.hpp>
 #include <raxml-ng/main.hpp>
-#include "BiconnectedComponents.hpp"
 #include "Network.hpp"
 #include "NetworkFunctions.hpp"
 #include "NetworkTopology.hpp"
@@ -38,11 +37,9 @@ void allocateBranchProbsArray(AnnotatedNetwork& ann_network) {
  * @param ann_network The still uninitialized annotated network.
  */
 void init_annotated_network(AnnotatedNetwork &ann_network, std::mt19937& rng) {
-    Network &network = ann_network.network;
     ann_network.rng = rng;
 
     ann_network.travbuffer = netrax::reversed_topological_sort(ann_network.network);
-    ann_network.blobInfo = netrax::partitionNetworkIntoBlobs(network, ann_network.travbuffer);
 
     allocateBranchProbsArray(ann_network);
     for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {

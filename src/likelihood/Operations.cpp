@@ -19,7 +19,6 @@ extern "C" {
 #include <libpll/pll_tree.h>
 }
 #include "../graph/AnnotatedNetwork.hpp"
-#include "../graph/BiconnectedComponents.hpp"
 #include "../graph/Edge.hpp"
 #include "../graph/Network.hpp"
 #include "../graph/NetworkTopology.hpp"
@@ -261,65 +260,6 @@ std::vector<pll_operation_t> createOperationsUpdatedReticulation(AnnotatedNetwor
     }
 
     assert(ops.empty() || ops[ops.size() - 1].parent_clv_index == displayed_tree_root->clv_index);
-    return ops;
-}
-
-std::vector<pll_operation_t> createOperations(AnnotatedNetwork &ann_network, size_t partition_idx,
-        const std::vector<Node*> &parent, BlobInformation &blobInfo, unsigned int megablobIdx,
-        const std::vector<bool> &dead_nodes, bool incremental, Node *displayed_tree_root) {
-    Network &network = ann_network.network;
-    std::vector<pll_operation_t> ops;
-    size_t fake_clv_index = network.nodes.size();
-    size_t fake_pmatrix_index = network.edges.size();
-
-    std::vector<unsigned int> stopIndices;
-    for (size_t i = 0; i < blobInfo.megablob_roots.size(); ++i) {
-        if (i != megablobIdx) {
-            stopIndices.emplace_back(blobInfo.megablob_roots[i]->clv_index);
-        }
-    }
-    if (displayed_tree_root != network.root) {
-        stopIndices.emplace_back(getActiveParent(network, displayed_tree_root)->clv_index);
-    }
-
-    if (blobInfo.megablob_roots[megablobIdx] == network.root) {
-        bool toplevel_trifurcation = (getChildren(network, network.root).size() == 3);
-        assert(!toplevel_trifurcation);
-
-        if (displayed_tree_root == network.root && toplevel_trifurcation) {
-            // How to do the operations at the top-level root trifurcation?
-            // First with root->back, then with root...
-            Node *rootBack = getTargetNode(network, network.root->getLink());
-            createOperationsPostorder(ann_network, incremental, partition_idx, rootBack,
-                    network.root, ops, fake_clv_index, fake_pmatrix_index, dead_nodes,
-                    &stopIndices);
-
-            if (!getActiveChildrenUndirected(network, network.root, rootBack).empty()) {
-                createOperationsPostorder(ann_network, incremental, partition_idx, network.root,
-                        rootBack, ops, fake_clv_index, fake_pmatrix_index, dead_nodes,
-                        &stopIndices);
-            } else {
-                // special case: the root has a single child.
-                ops.push_back(
-                        buildOperationInternal(network, network.root, rootBack, nullptr,
-                                fake_clv_index, fake_pmatrix_index));
-                // ignore the branch length from the root to its single active child,
-                // treat it as if it had zero branch length
-                ops[ops.size() - 1].child1_matrix_index = fake_pmatrix_index;
-            }
-        } else {
-            createOperationsPostorder(ann_network, incremental, partition_idx, displayed_tree_root,
-                    parent[displayed_tree_root->clv_index], ops, fake_clv_index, fake_pmatrix_index,
-                    dead_nodes, &stopIndices);
-        }
-        if (ops.size() > 0) {
-            assert(ops[ops.size() - 1].parent_clv_index == displayed_tree_root->clv_index);
-        }
-    } else {
-        createOperationsPostorder(ann_network, incremental, partition_idx, displayed_tree_root,
-                parent[displayed_tree_root->clv_index], ops, fake_clv_index, fake_pmatrix_index,
-                dead_nodes, &stopIndices);
-    }
     return ops;
 }
 

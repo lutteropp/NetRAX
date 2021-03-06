@@ -8,7 +8,6 @@
 #include "LikelihoodComputation.hpp"
 #include "../graph/NetworkFunctions.hpp"
 #include "../graph/NetworkTopology.hpp"
-#include "../graph/BiconnectedComponents.hpp"
 #include "../graph/Node.hpp"
 #include "../DebugPrintFunctions.hpp"
 #include "Operations.hpp"
@@ -31,16 +30,6 @@ size_t findReticulationIndexInNetwork(Network &network, Node *retNode) {
     throw std::runtime_error("Reticulation not found in network");
 }
 
-mpfr::mpreal displayed_tree_prob_blobs(AnnotatedNetwork &ann_network, size_t megablob_idx) {
-    BlobInformation &blobInfo = ann_network.blobInfo;
-    mpfr::mpreal logProb = 0;
-    for (size_t i = 0; i < blobInfo.reticulation_nodes_per_megablob[megablob_idx].size(); ++i) {
-        mpfr::mpreal prob = getReticulationActiveProb(ann_network, blobInfo.reticulation_nodes_per_megablob[megablob_idx][i]);
-        logProb += mpfr::log(prob);
-    }
-    return mpfr::exp(logProb);
-}
-
 std::vector<bool> init_clv_touched(AnnotatedNetwork& ann_network, bool incremental, int partition_idx) {
     std::vector<bool> clv_touched(ann_network.network.nodes.size() + 1, false);
     for (size_t i = 0; i < ann_network.network.num_tips(); ++i) {
@@ -51,11 +40,6 @@ std::vector<bool> init_clv_touched(AnnotatedNetwork& ann_network, bool increment
             if (ann_network.fake_treeinfo->clv_valid[partition_idx][i]) {
                 clv_touched[i] = true;
             }
-        }
-    }
-    for (size_t i = 0; i < ann_network.blobInfo.megablob_roots.size(); ++i) {
-        if (ann_network.fake_treeinfo->clv_valid[partition_idx][ann_network.blobInfo.megablob_roots[i]->clv_index]) {
-            clv_touched[ann_network.blobInfo.megablob_roots[i]->clv_index] = true;
         }
     }
     clv_touched[ann_network.network.nodes.size()] = true; // fake clv index

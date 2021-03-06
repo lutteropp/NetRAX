@@ -19,7 +19,6 @@ extern "C" {
 #include <raxml-ng/TreeInfo.hpp>
 #include "Network.hpp"
 #include "NetworkFunctions.hpp"
-#include "BiconnectedComponents.hpp"
 #include "../NetraxOptions.hpp"
 #include "../optimization/MoveType.hpp"
 #include "../likelihood/DisplayedTreeData.hpp"
@@ -84,7 +83,6 @@ struct AnnotatedNetwork {
     size_t total_num_sites = 0;
     std::unique_ptr<TreeInfo> raxml_treeinfo = nullptr;
     pllmod_treeinfo_t *fake_treeinfo = nullptr;
-    BlobInformation blobInfo; // mapping of edges to blobs, megablob roots, mapping of megablob roots to set of reticulation nodes within the megablob
     std::vector<double> reticulation_probs; // the first-parent reticulation probs
 
     std::vector<std::vector<NodeDisplayedTreeData> > pernode_displayed_tree_data;
