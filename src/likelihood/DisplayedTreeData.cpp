@@ -250,14 +250,42 @@ namespace netrax
         return true;
     }
 
-    std::vector<ReticulationState> combineReticulationChoices(std::vector<ReticulationState>& left, const std::vector<ReticulationState>& right) {
+    void printReticulationChoices(const std::vector<ReticulationState>& reticulationChoices) {
+        for (size_t i = 0; i < reticulationChoices.size(); ++i) {
+            char c;
+            if (reticulationChoices[i] == ReticulationState::TAKE_FIRST_PARENT) {
+                c = '0';
+            } else if (reticulationChoices[i] == ReticulationState::TAKE_SECOND_PARENT) {
+                c = '1';
+            } else {
+                c = '-';
+            }
+            std::cout << c;
+        }
+        std::cout << "\n";
+    }
+
+    std::vector<ReticulationState> combineReticulationChoices(const std::vector<ReticulationState>& left, const std::vector<ReticulationState>& right) {
         assert(reticulationChoicesCompatible(left, right));
         assert(left.size() == right.size());
         std::vector<ReticulationState> res = left;
+        bool seenReticulation = false;
         for (size_t i = 0; i < res.size(); ++i) {
             if (left[i] == ReticulationState::DONT_CARE) {
                 res[i] = right[i];
             }
+
+            if ((left[i] != ReticulationState::DONT_CARE) || (right[i] != ReticulationState::DONT_CARE)) {
+                seenReticulation = true;
+            }
+        }
+        if (seenReticulation) {
+            std::cout << "left for combine:\n";
+            printReticulationChoices(left);
+            std::cout << "right for combine:\n";
+            printReticulationChoices(right);
+            std::cout << "res for combine:\n";
+            printReticulationChoices(res);
         }
         return res;
     }

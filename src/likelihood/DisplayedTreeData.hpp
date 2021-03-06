@@ -155,7 +155,8 @@ struct DisplayedTreeData {
 
 double computeReticulationChoicesLogProb(const std::vector<ReticulationState>& choices, const std::vector<double>& reticulationProbs);
 bool reticulationChoicesCompatible(const std::vector<ReticulationState>& left, const std::vector<ReticulationState>& right);
-std::vector<ReticulationState> combineReticulationChoices(std::vector<ReticulationState>& left, const std::vector<ReticulationState>& right);
+void printReticulationChoices(const std::vector<ReticulationState>& reticulationChoices);
+std::vector<ReticulationState> combineReticulationChoices(const std::vector<ReticulationState>& left, const std::vector<ReticulationState>& right);
 
 
 }
