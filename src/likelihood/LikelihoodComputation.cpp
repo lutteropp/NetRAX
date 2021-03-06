@@ -108,24 +108,31 @@ DisplayedTreeData& findMatchingDisplayedTree(AnnotatedNetwork& ann_network, cons
     if (n_good == 1) {
         return *tree;
     } else if (n_good > 1) {
+        std::cout << exportDebugInfo(ann_network) << "\n";
+        for (size_t i = 0; i < ann_network.network.num_nodes(); ++i) {
+            std::cout << "displayed trees stored at node " << i << ":\n";
+            for (size_t j = 0; j < ann_network.pernode_displayed_tree_data[0][i].num_active_displayed_trees; ++j) {
+                printReticulationChoices(ann_network.pernode_displayed_tree_data[0][i].displayed_trees[j].reticulationChoices);
+            }
+        }
         throw std::runtime_error("Found multiple suitable trees");
     } else { // n_good == 0
         throw std::runtime_error("Found no suitable displayed tree");
     }
 }
 
-Node* findFirstNodeWithTwoActiveChildren(AnnotatedNetwork& ann_network, const std::vector<ReticulationState>& reticulationChoices) {
+Node* findFirstNodeWithTwoActiveChildren(AnnotatedNetwork& ann_network, const std::vector<ReticulationState>& reticulationChoices, Node* oldRoot) {
     for (size_t i = 0; i < reticulationChoices.size(); ++i) { // apply the reticulation choices
         setReticulationState(ann_network, i, reticulationChoices[i]);
     }
 
     Node* displayed_tree_root = nullptr;
-    collect_dead_nodes(ann_network.network, ann_network.network.root->clv_index, &displayed_tree_root);
+    collect_dead_nodes(ann_network.network, oldRoot->clv_index, &displayed_tree_root);
     return displayed_tree_root;
 }
 
-void computeDisplayedTreeLoglikelihood(AnnotatedNetwork& ann_network, unsigned int partition_idx, DisplayedTreeData& treeAtRoot) {
-    Node* displayed_tree_root = findFirstNodeWithTwoActiveChildren(ann_network, treeAtRoot.reticulationChoices);
+void computeDisplayedTreeLoglikelihood(AnnotatedNetwork& ann_network, unsigned int partition_idx, DisplayedTreeData& treeAtRoot, Node* actRoot) {
+    Node* displayed_tree_root = findFirstNodeWithTwoActiveChildren(ann_network, treeAtRoot.reticulationChoices, actRoot);
     if (ann_network.network.num_reticulations() > 0) {
         std::cout << "Searching for matching displayed tree at: " << displayed_tree_root->clv_index << "\n";
         std::cout << "The current displayed trees have the following reticulation choices:\n";
@@ -207,7 +214,9 @@ unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, unsig
         }
 
         if (node == ann_network.network.root) { // if we are at the root node, we also need to compute loglikelihood
-            computeDisplayedTreeLoglikelihood(ann_network, partition_idx, displayed_trees.displayed_trees[i]);
+            computeDisplayedTreeLoglikelihood(ann_network, partition_idx, displayed_trees.displayed_trees[i], node);
+        } else { // this is just for debug
+            computeDisplayedTreeLoglikelihood(ann_network, partition_idx, displayed_trees.displayed_trees[i], node);
         }
     }
     num_trees_added = displayed_trees_child.num_active_displayed_trees;
@@ -276,7 +285,9 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
                 newDisplayedTree.reticulationChoices = combineReticulationChoices(newDisplayedTree.reticulationChoices, restrictions);
 
                 if (node == ann_network.network.root) { // if we are at the root node, we also need to compute loglikelihood
-                    computeDisplayedTreeLoglikelihood(ann_network, partition_idx, newDisplayedTree);
+                    computeDisplayedTreeLoglikelihood(ann_network, partition_idx, newDisplayedTree, node);
+                } else { // this is just for debug
+                    computeDisplayedTreeLoglikelihood(ann_network, partition_idx, newDisplayedTree, node);
                 }
                 
             }
