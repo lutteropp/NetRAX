@@ -221,8 +221,6 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
     NodeDisplayedTreeData& displayed_trees_left_child = ann_network.pernode_displayed_tree_data[partition_idx][left_child->clv_index];
     NodeDisplayedTreeData& displayed_trees_right_child = ann_network.pernode_displayed_tree_data[partition_idx][right_child->clv_index];
     pll_partition_t* partition = ann_network.fake_treeinfo->partitions[partition_idx];
-    // ...
-    // TODO: How to deal with dead nodes?
 
     std::vector<ReticulationState> restrictions(ann_network.options.max_reticulations);
     if (left_child->getType() == NodeType::RETICULATION_NODE) {
@@ -311,44 +309,24 @@ void processNodeImproved(AnnotatedNetwork& ann_network, unsigned int partition_i
     if (incremental && ann_network.fake_treeinfo->clv_valid[partition_idx][node->clv_index]) {
         return;
     }
-    pll_partition_t* partition = ann_network.fake_treeinfo->partitions[partition_idx];
 
     displayed_trees.num_active_displayed_trees = 0;
 
     std::vector<Node*> children = getChildren(ann_network.network, node);
-    Node* left_child = nullptr;
-    Node* right_child = nullptr;
-    if (children.size() == 1) { // we are a reticulation
-        left_child = children[0];
-    } else {
-        assert(children.size() == 2);
-        left_child = children[0];
-        right_child = children[1];
-    }
-    bool left_child_reticulation = false;
-    bool right_child_reticulation = false;
-    if (left_child) {
-        left_child_reticulation = (left_child->getType() == NodeType::RETICULATION_NODE);
-    }
-    if (right_child) {
-        right_child_reticulation = (right_child->getType() == NodeType::RETICULATION_NODE);
-    }
-
-    size_t fake_clv_index = ann_network.network.nodes.size();
-
     if (children.size() == 1) { // we are at a reticulation node
         assert(node->getType() == NodeType::RETICULATION_NODE);
-        processNodeImprovedSingleChild(ann_network, partition_idx, clvInfo, scaleBufferInfo, node, left_child);
-    } else {
-        NodeDisplayedTreeData& displayed_trees_left = ann_network.pernode_displayed_tree_data[partition_idx][left_child->clv_index];
-        
-        NodeDisplayedTreeData& displayed_trees_right = ann_network.pernode_displayed_tree_data[partition_idx][right_child->clv_index];
+        processNodeImprovedSingleChild(ann_network, partition_idx, clvInfo, scaleBufferInfo, node, children[0]);
+    } else {   
+        Node* left_child = children[0];
+        Node* right_child = children[1];
+        bool left_child_reticulation = (left_child->getType() == NodeType::RETICULATION_NODE);
+        bool right_child_reticulation = (right_child->getType() == NodeType::RETICULATION_NODE);
+
         for (int ignore_left_child = 0; ignore_left_child <= left_child_reticulation; ++ignore_left_child) {
             for (int ignore_right_child = 0; ignore_right_child <= right_child_reticulation; ++ignore_right_child) {
                 if ((ignore_left_child == 1) && (ignore_right_child == 1)) { // no child
-                    continue;  // TODO: How do we handle dead nodes? -> We handle dead nodes by not storing any trees in them.
+                    continue;  // We handle dead nodes by not storing any trees in them.
                 }
-                
                 if (ignore_left_child) {
                     processNodeImprovedSingleChild(ann_network, partition_idx, clvInfo, scaleBufferInfo, node, right_child);
                 } else if (ignore_right_child) {
@@ -435,6 +413,9 @@ double computeLoglikelihoodImproved(AnnotatedNetwork &ann_network, int increment
             double partition_logl = -std::numeric_limits<double>::infinity();
             for (size_t tree_idx = 0; tree_idx < n_trees; ++tree_idx) {
                 DisplayedTreeData& tree = displayed_root_trees[tree_idx];
+                if (!tree.tree_logl_valid) {
+                    throw std::runtime_error("invalid tree logl");
+                }
                 assert(tree.tree_logl_valid);
                 assert(tree.tree_logprob_valid);
                 assert(tree.tree_logl != 0);
