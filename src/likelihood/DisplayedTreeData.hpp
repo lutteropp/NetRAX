@@ -72,6 +72,7 @@ struct ReticulationConfigSet {
     ReticulationConfigSet(const ReticulationConfigSet& rhs)
       : max_reticulations{rhs.max_reticulations}
     {
+        configs.clear();
         for (size_t i = 0; i < rhs.configs.size(); ++i) {
             configs.emplace_back(rhs.configs[i]);
         }
@@ -92,6 +93,7 @@ struct ReticulationConfigSet {
         if (this != &rhs)
         {
             max_reticulations = rhs.max_reticulations;
+            configs.clear();
             for (size_t i = 0; i < rhs.configs.size(); ++i) {
                 configs.emplace_back(rhs.configs[i]);
             }
