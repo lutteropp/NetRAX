@@ -540,9 +540,8 @@ double computeLoglikelihoodImproved(AnnotatedNetwork &ann_network, int increment
     }
     fake_treeinfo.active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
     //std::cout << "network logl: " << network_logl.toDouble() << "\n";
-    double network_lh = mpfr::exp(network_logl).toDouble();
-    if ((network_lh < 0.0) || (network_lh > 1.0)) {
-        throw std::runtime_error("Invalid network likelihood: " + std::to_string(network_lh));
+    if (network_logl.toDouble() == -std::numeric_limits<double>::infinity()) {
+        throw std::runtime_error("Invalid network likelihood: negative infinity \n");
     }
     return network_logl.toDouble();
 }
