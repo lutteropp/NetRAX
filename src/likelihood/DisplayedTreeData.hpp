@@ -171,4 +171,6 @@ void printReticulationChoices(const ReticulationConfigSet& reticulationChoices);
 //std::vector<ReticulationState> combineReticulationChoices(const std::vector<ReticulationState>& left, const std::vector<ReticulationState>& right);
 ReticulationConfigSet combineReticulationChoices(const ReticulationConfigSet& left, const ReticulationConfigSet& right);
 
+void simplifyReticulationChoices(ReticulationConfigSet& res);
+
 }
