@@ -385,12 +385,17 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
     pll_operation_t op_left_only = buildOperationInternal(ann_network.network, node, left_child, nullptr, ann_network.network.nodes.size(), ann_network.network.edges.size());
     ReticulationConfigSet right_child_dead_settings = deadNodeSettings(ann_network, displayed_trees_right_child, node, right_child);
     if (right_child->getType() == NodeType::RETICULATION_NODE) {
-        std::cout << "right child dead settings:\n";
+        std::cout << "right child dead settings for node " << node->clv_index << ":\n";
         printReticulationChoices(right_child_dead_settings);
     }
     for (size_t i = 0; i < displayed_trees_left_child.num_active_displayed_trees; ++i) {
         DisplayedTreeData& leftTree = displayed_trees_left_child.displayed_trees[i];
         ReticulationConfigSet leftOnlyConfigs = getReticulationChoicesThisOnly(ann_network, leftTree.reticulationChoices, right_child_dead_settings, node, left_child, right_child);
+         if (right_child->getType() == NodeType::RETICULATION_NODE) {
+            std::cout << "leftOnlyConfigs for node " << node->clv_index << ":\n";
+            printReticulationChoices(leftOnlyConfigs);
+        }
+        
         if (!leftOnlyConfigs.configs.empty()) {
            displayed_trees.add_displayed_tree(clvInfo, scaleBufferInfo, ann_network.options.max_reticulations);
             DisplayedTreeData& tree = displayed_trees.displayed_trees[displayed_trees.num_active_displayed_trees-1];
@@ -413,7 +418,7 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
     pll_operation_t op_right_only = buildOperationInternal(ann_network.network, node, right_child, nullptr, ann_network.network.nodes.size(), ann_network.network.edges.size());
     ReticulationConfigSet left_child_dead_settings = deadNodeSettings(ann_network, displayed_trees_left_child, node, left_child);
     if (left_child->getType() == NodeType::RETICULATION_NODE) {
-        std::cout << "left child dead settings:\n";
+        std::cout << "left child dead settings for node " << node->clv_index << ":\n";
         printReticulationChoices(left_child_dead_settings);
     }
     for (size_t i = 0; i < displayed_trees_right_child.num_active_displayed_trees; ++i) {
