@@ -205,12 +205,28 @@ unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, unsig
     return num_trees_added;
 }
 
-ReticulationConfigSet deadNodeSettings(AnnotatedNetwork& ann_network, const NodeDisplayedTreeData& displayed_trees) {
+ReticulationConfigSet deadNodeSettings(AnnotatedNetwork& ann_network, const NodeDisplayedTreeData& displayed_trees, Node* parent, Node* child) {
     // Return all configurations in which the node which the displayed trees belong to would have no displayed tree, and thus be a dead node
     ReticulationConfigSet res(ann_network.options.max_reticulations);
     std::vector<ReticulationState> reticulationChoicesVector(ann_network.options.max_reticulations);
     ReticulationConfigSet reticulationChoices(ann_network.options.max_reticulations);
     reticulationChoices.configs.emplace_back(reticulationChoicesVector);
+
+    ReticulationConfigSet childTakenRestriction(ann_network.options.max_reticulations);
+    std::vector<ReticulationState> dont_care_vec(ann_network.options.max_reticulations);
+    childTakenRestriction.configs.emplace_back(dont_care_vec);
+
+    if (child->getType() == NodeType::RETICULATION_NODE) {
+        std::vector<ReticulationState> childNotTaken(ann_network.options.max_reticulations);
+        if (parent == getReticulationFirstParent(ann_network.network, child)) {
+            childNotTaken[child->getReticulationData()->reticulation_index] = ReticulationState::TAKE_SECOND_PARENT;
+            childTakenRestriction.configs[0][child->getReticulationData()->reticulation_index] = ReticulationState::TAKE_FIRST_PARENT;
+        } else {
+            childNotTaken[child->getReticulationData()->reticulation_index] = ReticulationState::TAKE_FIRST_PARENT;
+            childTakenRestriction.configs[0][child->getReticulationData()->reticulation_index] = ReticulationState::TAKE_SECOND_PARENT;
+        }
+        res.configs.emplace_back(childNotTaken);
+    }
 
     if (ann_network.network.num_reticulations() > sizeof(size_t) * 8) {
         throw std::runtime_error("This implementation only works for <= sizeof(size_t)*8 reticulations");
@@ -225,7 +241,12 @@ ReticulationConfigSet deadNodeSettings(AnnotatedNetwork& ann_network, const Node
             }
         }
 
+        if (!reticulationConfigsCompatible(reticulationChoices, childTakenRestriction)) {
+            continue;
+        }
+
         bool foundTree = false;
+
         for (size_t i = 0; i < displayed_trees.num_active_displayed_trees; ++i) {
             if (reticulationConfigsCompatible(reticulationChoices, displayed_trees.displayed_trees[i].reticulationChoices)) {
                 foundTree = true;
@@ -362,7 +383,11 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
 
     // only left child, not right child
     pll_operation_t op_left_only = buildOperationInternal(ann_network.network, node, left_child, nullptr, ann_network.network.nodes.size(), ann_network.network.edges.size());
-    ReticulationConfigSet right_child_dead_settings = deadNodeSettings(ann_network, displayed_trees_right_child);
+    ReticulationConfigSet right_child_dead_settings = deadNodeSettings(ann_network, displayed_trees_right_child, node, right_child);
+    if (right_child->getType() == NodeType::RETICULATION_NODE) {
+        std::cout << "right child dead settings:\n";
+        printReticulationChoices(right_child_dead_settings);
+    }
     for (size_t i = 0; i < displayed_trees_left_child.num_active_displayed_trees; ++i) {
         DisplayedTreeData& leftTree = displayed_trees_left_child.displayed_trees[i];
         ReticulationConfigSet leftOnlyConfigs = getReticulationChoicesThisOnly(ann_network, leftTree.reticulationChoices, right_child_dead_settings, node, left_child, right_child);
@@ -386,7 +411,11 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
 
     // only right child, not left child
     pll_operation_t op_right_only = buildOperationInternal(ann_network.network, node, right_child, nullptr, ann_network.network.nodes.size(), ann_network.network.edges.size());
-    ReticulationConfigSet left_child_dead_settings = deadNodeSettings(ann_network, displayed_trees_left_child);
+    ReticulationConfigSet left_child_dead_settings = deadNodeSettings(ann_network, displayed_trees_left_child, node, left_child);
+    if (left_child->getType() == NodeType::RETICULATION_NODE) {
+        std::cout << "left child dead settings:\n";
+        printReticulationChoices(left_child_dead_settings);
+    }
     for (size_t i = 0; i < displayed_trees_right_child.num_active_displayed_trees; ++i) {
         DisplayedTreeData& rightTree = displayed_trees_right_child.displayed_trees[i];
         ReticulationConfigSet rightOnlyConfigs = getReticulationChoicesThisOnly(ann_network, rightTree.reticulationChoices, left_child_dead_settings, node, right_child, left_child);
