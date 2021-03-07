@@ -314,6 +314,26 @@ namespace netrax
         while (shrinked) {
             shrinked = false;
 
+            // fist: search for duplicates
+            for (size_t i = 0; i < res.configs.size(); ++i) {
+                for (size_t j = i+1; j < res.configs.size(); ++j) {
+                    if (res.configs[i] == res.configs[j]) {
+                        // remove res.configs[j]
+                        std::swap(res.configs[j], res.configs[res.configs.size() - 1]);
+                        res.configs.pop_back();
+                        shrinked = true;
+                        break;
+                    }
+                }
+                if (shrinked) {
+                    break;
+                }
+            }
+
+            if (shrinked) {
+                continue;
+            }
+
             for (size_t i = 0; i < res.configs.size(); ++i) {
                 for (size_t j = 0; j < res.max_reticulations; ++j) {
                     if (res.configs[i][j] != ReticulationState::DONT_CARE) {
