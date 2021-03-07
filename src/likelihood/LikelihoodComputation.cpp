@@ -206,14 +206,18 @@ unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, unsig
 }
 
 ReticulationConfigSet getReticulationChoicesThisOnly(AnnotatedNetwork& ann_network, const ReticulationConfigSet& this_tree_config, NodeDisplayedTreeData& displayed_trees_other, Node* parent, Node* this_child, Node* other_child) {
+    ReticulationConfigSet res(ann_network.options.max_reticulations);
+    //...
     throw std::runtime_error("getReticulationChoicesThisOnly - Not implemented yet");
+
+    return res;
 }
 
 unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsigned int partition_idx, ClvRangeInfo &clvInfo, ScaleBufferRangeInfo &scaleBufferInfo, Node* node, Node* left_child, Node* right_child) {
     unsigned int num_trees_added = 0;
     size_t fake_clv_index = ann_network.network.nodes.size();
     
-    pll_operation_t op = buildOperationInternal(ann_network.network, node, left_child, right_child, ann_network.network.nodes.size(), ann_network.network.edges.size());
+    pll_operation_t op_both = buildOperationInternal(ann_network.network, node, left_child, right_child, ann_network.network.nodes.size(), ann_network.network.edges.size());
     NodeDisplayedTreeData& displayed_trees = ann_network.pernode_displayed_tree_data[partition_idx][node->clv_index];
     NodeDisplayedTreeData& displayed_trees_left_child = ann_network.pernode_displayed_tree_data[partition_idx][left_child->clv_index];
     NodeDisplayedTreeData& displayed_trees_right_child = ann_network.pernode_displayed_tree_data[partition_idx][right_child->clv_index];
@@ -262,7 +266,7 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
                 unsigned int* left_scaler = leftTree.scale_buffer;
                 double* right_clv = rightTree.clv_vector;
                 unsigned int* right_scaler = rightTree.scale_buffer;
-                pll_update_partials_single(partition, &op, 1, parent_clv, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
+                pll_update_partials_single(partition, &op_both, 1, parent_clv, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
                 newDisplayedTree.reticulationChoices = combineReticulationChoices(leftTree.reticulationChoices, rightTree.reticulationChoices);
                 newDisplayedTree.reticulationChoices = combineReticulationChoices(newDisplayedTree.reticulationChoices, restrictionsSet);
 
