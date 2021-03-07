@@ -223,23 +223,23 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
     NodeDisplayedTreeData& displayed_trees_right_child = ann_network.pernode_displayed_tree_data[partition_idx][right_child->clv_index];
     pll_partition_t* partition = ann_network.fake_treeinfo->partitions[partition_idx];
 
-    std::vector<ReticulationState> restrictions(ann_network.options.max_reticulations);
+    std::vector<ReticulationState> restrictions_both(ann_network.options.max_reticulations);
     if (left_child->getType() == NodeType::RETICULATION_NODE) {
         if (node == getReticulationFirstParent(ann_network.network, left_child)) {
-            restrictions[left_child->getReticulationData()->reticulation_index] = ReticulationState::TAKE_FIRST_PARENT;
+            restrictions_both[left_child->getReticulationData()->reticulation_index] = ReticulationState::TAKE_FIRST_PARENT;
         } else {
-            restrictions[left_child->getReticulationData()->reticulation_index] = ReticulationState::TAKE_SECOND_PARENT;
+            restrictions_both[left_child->getReticulationData()->reticulation_index] = ReticulationState::TAKE_SECOND_PARENT;
         }
     }
     if (right_child->getType() == NodeType::RETICULATION_NODE) {
         if (node == getReticulationFirstParent(ann_network.network, right_child)) {
-            restrictions[right_child->getReticulationData()->reticulation_index] = ReticulationState::TAKE_FIRST_PARENT;
+            restrictions_both[right_child->getReticulationData()->reticulation_index] = ReticulationState::TAKE_FIRST_PARENT;
         } else {
-            restrictions[right_child->getReticulationData()->reticulation_index] = ReticulationState::TAKE_SECOND_PARENT;
+            restrictions_both[right_child->getReticulationData()->reticulation_index] = ReticulationState::TAKE_SECOND_PARENT;
         }
     }
-    ReticulationConfigSet restrictionsSet(ann_network.options.max_reticulations);
-    restrictionsSet.configs.emplace_back(restrictions);
+    ReticulationConfigSet restrictionsBothSet(ann_network.options.max_reticulations);
+    restrictionsBothSet.configs.emplace_back(restrictions_both);
 
     // left child and right child are not always about different reticulations... It can be that one reticulation affects both children.
     // It can even happen that there is a displayed tree for one child, that has no matching displaying tree on the other side (in terms of chosen reticulations). In this case, we have a dead node situation...
@@ -247,12 +247,12 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
     // combine both children - here, both children are active
     for (size_t i = 0; i < displayed_trees_left_child.num_active_displayed_trees; ++i) {
         DisplayedTreeData& leftTree = displayed_trees_left_child.displayed_trees[i];
-        if (!reticulationConfigsCompatible(leftTree.reticulationChoices, restrictionsSet)) {
+        if (!reticulationConfigsCompatible(leftTree.reticulationChoices, restrictionsBothSet)) {
             continue;
         }
         for (size_t j = 0; j < displayed_trees_right_child.num_active_displayed_trees; ++j) {
             DisplayedTreeData& rightTree = displayed_trees_right_child.displayed_trees[j];
-            if (!reticulationConfigsCompatible(rightTree.reticulationChoices, restrictionsSet)) {
+            if (!reticulationConfigsCompatible(rightTree.reticulationChoices, restrictionsBothSet)) {
                 continue;
             }
             if (reticulationConfigsCompatible(leftTree.reticulationChoices, rightTree.reticulationChoices)) {
@@ -268,7 +268,7 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
                 unsigned int* right_scaler = rightTree.scale_buffer;
                 pll_update_partials_single(partition, &op_both, 1, parent_clv, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
                 newDisplayedTree.reticulationChoices = combineReticulationChoices(leftTree.reticulationChoices, rightTree.reticulationChoices);
-                newDisplayedTree.reticulationChoices = combineReticulationChoices(newDisplayedTree.reticulationChoices, restrictionsSet);
+                newDisplayedTree.reticulationChoices = combineReticulationChoices(newDisplayedTree.reticulationChoices, restrictionsBothSet);
 
                 if (node == ann_network.network.root) { // if we are at the root node, we also need to compute loglikelihood
                     computeDisplayedTreeLoglikelihood(ann_network, partition_idx, newDisplayedTree, node);
