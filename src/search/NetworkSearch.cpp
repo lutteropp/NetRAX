@@ -228,11 +228,6 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
 
     std::cout << "Initial network is:\n" << toExtendedNewick(ann_network) << "\n\n";
 
-    double l1 = netrax::computeLoglikelihood(ann_network, 0, 1);
-    double l2 = netrax::computeLoglikelihood(ann_network, 0, 1);
-    std::cout << "l1: " << l1 << ", l2: " << l2 << "\n";
-    assert(l1 == l2);
-
     optimizeAllNonTopology(ann_network, true);
     std::cout << "Initial network after modelopt+brlenopt+reticulation opt is:\n" << toExtendedNewick(ann_network) << "\n\n";
     std::string best_network = toExtendedNewick(ann_network);

@@ -91,6 +91,10 @@ DisplayedTreeData& findMatchingDisplayedTree(AnnotatedNetwork& ann_network, cons
                 printReticulationChoices(ann_network.pernode_displayed_tree_data[0][i].displayed_trees[j].reticulationChoices);
             }
         }
+        std::cout << "Reticulation first parents:\n";
+        for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
+            std::cout << "reticulation node " << ann_network.network.reticulation_nodes[i]->clv_index << " has first parent " << getReticulationFirstParent(ann_network.network, ann_network.network.reticulation_nodes[i])->clv_index << "\n";
+        }
         throw std::runtime_error("Found multiple suitable trees");
     } else { // n_good == 0
         throw std::runtime_error("Found no suitable displayed tree");
