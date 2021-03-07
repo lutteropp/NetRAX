@@ -62,7 +62,41 @@ struct ReticulationConfigSet {
     std::vector<std::vector<ReticulationState> > configs;
     size_t max_reticulations = 0;
 
-    ReticulationConfigSet(size_t max_reticulations) : max_reticulations(max_reticulations) {
+    ReticulationConfigSet(size_t max_reticulations) : max_reticulations(max_reticulations) {}
+
+    ReticulationConfigSet(ReticulationConfigSet&& rhs) : max_reticulations{rhs.max_reticulations}
+    {
+        configs = std::move(rhs.configs);
+    }
+
+    ReticulationConfigSet(const ReticulationConfigSet& rhs)
+      : max_reticulations{rhs.max_reticulations}
+    {
+        for (size_t i = 0; i < rhs.configs.size(); ++i) {
+            configs.emplace_back(rhs.configs[i]);
+        }
+    }
+
+    ReticulationConfigSet& operator =(ReticulationConfigSet&& rhs)
+    {
+        if (this != &rhs)
+        {
+            max_reticulations = rhs.max_reticulations;
+            configs = std::move(rhs.configs);
+        }
+        return *this;
+    }
+
+    ReticulationConfigSet& operator =(const ReticulationConfigSet& rhs)
+    {
+        if (this != &rhs)
+        {
+            max_reticulations = rhs.max_reticulations;
+            for (size_t i = 0; i < rhs.configs.size(); ++i) {
+                configs.emplace_back(rhs.configs[i]);
+            }
+        }
+        return *this;
     }
 };
 
@@ -83,11 +117,15 @@ struct DisplayedTreeData {
         scale_buffer = create_single_empty_scale_buffer(scaleBufferRangeInfo);
         this->clvInfo = clvRangeInfo;
         this->scaleBufferInfo = scaleBufferRangeInfo;
+        std::vector<ReticulationState> allChoices(max_reticulations, ReticulationState::DONT_CARE);
+        reticulationChoices.configs.emplace_back(allChoices);
     }
 
     DisplayedTreeData(double* tip_clv_vector, size_t max_reticulations) : reticulationChoices(max_reticulations) { // tip node
         clv_vector = tip_clv_vector;
         scale_buffer = nullptr;
+        std::vector<ReticulationState> tipChoices(max_reticulations, ReticulationState::DONT_CARE);
+        reticulationChoices.configs.emplace_back(tipChoices);
     }
 
     DisplayedTreeData(DisplayedTreeData&& rhs)
