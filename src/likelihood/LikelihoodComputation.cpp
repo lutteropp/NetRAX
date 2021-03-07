@@ -206,7 +206,20 @@ unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, unsig
 }
 
 ReticulationConfigSet getReticulationChoicesThisOnly(AnnotatedNetwork& ann_network, const ReticulationConfigSet& this_tree_config, NodeDisplayedTreeData& displayed_trees_other, Node* parent, Node* this_child, Node* other_child) {
+    // covers both dead children and reticulation children
     ReticulationConfigSet res(ann_network.options.max_reticulations);
+
+
+    std::vector<ReticulationState> this_reachable_from_parent_restriction(ann_network.options.max_reticulations);
+    if (this_child->getType() == NodeType::RETICULATION_NODE) {
+        if (parent == getReticulationFirstParent(ann_network.network, this_child)) {
+            this_reachable_from_parent_restriction[this_child->getReticulationData()->reticulation_index] = ReticulationState::TAKE_FIRST_PARENT;
+        } else {
+            this_reachable_from_parent_restriction[this_child->getReticulationData()->reticulation_index] = ReticulationState::TAKE_SECOND_PARENT;
+        }
+    }
+    ReticulationConfigSet this_reachable_from_parent_restrictionSet(ann_network.options.max_reticulations);
+    this_reachable_from_parent_restrictionSet.configs.emplace_back(this_reachable_from_parent_restriction);
     //...
     throw std::runtime_error("getReticulationChoicesThisOnly - Not implemented yet");
 

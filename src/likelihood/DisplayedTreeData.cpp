@@ -325,8 +325,18 @@ namespace netrax
                         }
                         // search if the query is present in res
                         for (size_t k = 0; k < res.configs.size(); ++k) {
+                            if (k == i) {
+                                continue;
+                            }
                             if (res.configs[k] == query) {
                                 res.configs[i][j] = ReticulationState::DONT_CARE;
+                                // remove res.configs[k]
+                                std::swap(res.configs[k], res.configs[res.configs.size() - 1]);
+                                res.configs.pop_back();
+                                shrinked = true;
+                                break;
+                            }
+                            if (res.configs[k] == res.configs[i]) {
                                 // remove res.configs[k]
                                 std::swap(res.configs[k], res.configs[res.configs.size() - 1]);
                                 res.configs.pop_back();
