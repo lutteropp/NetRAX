@@ -543,7 +543,7 @@ double computeLoglikelihoodImproved(AnnotatedNetwork &ann_network, int increment
     if (network_logl.toDouble() == -std::numeric_limits<double>::infinity()) {
         std::cout << exportDebugInfo(ann_network) << "\n";
         for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
-            std::cout << "reticulation node " << ann_network.network.nodes_by_index[ann_network.network.reticulation_nodes[i]->clv_index] << " has first parent " << getReticulationFirstParent(ann_network.network, ann_network.network.reticulation_nodes[i])->clv_index << "\n";
+            std::cout << "reticulation node " << ann_network.network.reticulation_nodes[i]->clv_index << " has first parent " << getReticulationFirstParent(ann_network.network, ann_network.network.reticulation_nodes[i])->clv_index << "\n";
         }
         for (size_t i = 0; i < ann_network.network.num_nodes(); ++i) {
             std::cout << "displayed trees stored at node " << i << ":\n";
