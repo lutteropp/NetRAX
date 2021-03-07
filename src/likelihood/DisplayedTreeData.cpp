@@ -360,7 +360,7 @@ namespace netrax
     ReticulationConfigSet combineReticulationChoices(const ReticulationConfigSet& left, const ReticulationConfigSet& right) {
         ReticulationConfigSet res(left.max_reticulations);
         for (size_t i = 0; i < left.configs.size(); ++i) {
-            for (size_t j = 0; j < right.configs.size(); ++i) {
+            for (size_t j = 0; j < right.configs.size(); ++j) {
                 if (reticulationChoicesCompatible(left.configs[i], right.configs[j])) {
                     res.configs.emplace_back(combineReticulationChoices(left.configs[i], right.configs[j]));
                 }
