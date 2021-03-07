@@ -206,11 +206,36 @@ unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, unsig
 }
 
 ReticulationConfigSet deadNodeSettings(AnnotatedNetwork& ann_network, const NodeDisplayedTreeData& displayed_trees) {
-    // TODO: Return all configurations in which the node which the displayed trees belong to would have no displayed tree, and thus be a dead node
+    // Return all configurations in which the node which the displayed trees belong to would have no displayed tree, and thus be a dead node
     ReticulationConfigSet res(ann_network.options.max_reticulations);
+    std::vector<ReticulationState> reticulationChoicesVector(ann_network.options.max_reticulations);
+    ReticulationConfigSet reticulationChoices(ann_network.options.max_reticulations);
+    reticulationChoices.configs.emplace_back(reticulationChoicesVector);
 
-    //...
-    throw std::runtime_error("deadNodeSettings - Not implemented yet");
+    if (ann_network.network.num_reticulations() > sizeof(size_t) * 8) {
+        throw std::runtime_error("This implementation only works for <= sizeof(size_t)*8 reticulations");
+    }
+    size_t max_n_trees = (1 << ann_network.network.num_reticulations());
+    for (size_t tree_idx = 0; tree_idx < max_n_trees; ++tree_idx) {
+        for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
+            if (tree_idx & (1 << i)) {
+                reticulationChoices.configs[0][i] = ReticulationState::TAKE_SECOND_PARENT;
+            } else {
+                reticulationChoices.configs[0][i] = ReticulationState::TAKE_FIRST_PARENT;
+            }
+        }
+
+        bool foundTree = false;
+        for (size_t i = 0; i < displayed_trees.num_active_displayed_trees; ++i) {
+            if (reticulationConfigsCompatible(reticulationChoices, displayed_trees.displayed_trees[i].reticulationChoices)) {
+                foundTree = true;
+                break;
+            }
+        }
+        if (!foundTree) {
+            res.configs.emplace_back(reticulationChoices.configs[0]);
+        }   
+    }
 
     simplifyReticulationChoices(res);
     return res;
