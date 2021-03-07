@@ -58,6 +58,14 @@ enum class ReticulationState {
     TAKE_SECOND_PARENT = 2
 };
 
+struct ReticulationConfigSet {
+    std::vector<std::vector<ReticulationState> > configs;
+    size_t max_reticulations = 0;
+
+    ReticulationConfigSet(size_t max_reticulations) : max_reticulations(max_reticulations) {
+    }
+};
+
 struct DisplayedTreeData {
     bool tree_logl_valid = false;
     bool tree_logprob_valid = false;
@@ -68,18 +76,16 @@ struct DisplayedTreeData {
 
     double tree_logl = -std::numeric_limits<double>::infinity();
     double tree_logprob = 0;
-    std::vector<ReticulationState> reticulationChoices;
+    ReticulationConfigSet reticulationChoices;
 
-    DisplayedTreeData(ClvRangeInfo clvRangeInfo, ScaleBufferRangeInfo scaleBufferRangeInfo, size_t max_reticulations) { // inner node
-        reticulationChoices.resize(max_reticulations);
+    DisplayedTreeData(ClvRangeInfo clvRangeInfo, ScaleBufferRangeInfo scaleBufferRangeInfo, size_t max_reticulations) : reticulationChoices(max_reticulations) { // inner node
         clv_vector = create_single_empty_clv(clvRangeInfo);
         scale_buffer = create_single_empty_scale_buffer(scaleBufferRangeInfo);
         this->clvInfo = clvRangeInfo;
         this->scaleBufferInfo = scaleBufferRangeInfo;
     }
 
-    DisplayedTreeData(double* tip_clv_vector, size_t max_reticulations) { // tip node
-        reticulationChoices.resize(max_reticulations);
+    DisplayedTreeData(double* tip_clv_vector, size_t max_reticulations) : reticulationChoices(max_reticulations) { // tip node
         clv_vector = tip_clv_vector;
         scale_buffer = nullptr;
     }
@@ -153,10 +159,16 @@ struct DisplayedTreeData {
     }
 };
 
-double computeReticulationChoicesLogProb(const std::vector<ReticulationState>& choices, const std::vector<double>& reticulationProbs);
-bool reticulationChoicesCompatible(const std::vector<ReticulationState>& left, const std::vector<ReticulationState>& right);
-void printReticulationChoices(const std::vector<ReticulationState>& reticulationChoices);
-std::vector<ReticulationState> combineReticulationChoices(const std::vector<ReticulationState>& left, const std::vector<ReticulationState>& right);
+//double computeReticulationChoicesLogProb(const std::vector<ReticulationState>& choices, const std::vector<double>& reticulationProbs);
+double computeReticulationConfigLogProb(const ReticulationConfigSet& choices, const std::vector<double>& reticulationProbs);
 
+//bool reticulationChoicesCompatible(const std::vector<ReticulationState>& left, const std::vector<ReticulationState>& right);
+bool reticulationConfigsCompatible(const ReticulationConfigSet& left, const ReticulationConfigSet& right);
+
+//void printReticulationChoices(const std::vector<ReticulationState>& reticulationChoices);
+void printReticulationChoices(const ReticulationConfigSet& reticulationChoices);
+
+//std::vector<ReticulationState> combineReticulationChoices(const std::vector<ReticulationState>& left, const std::vector<ReticulationState>& right);
+ReticulationConfigSet combineReticulationChoices(const ReticulationConfigSet& left, const ReticulationConfigSet& right);
 
 }

@@ -222,22 +222,6 @@ namespace netrax
         }
     }
 
-    double computeReticulationChoicesLogProb(const std::vector<ReticulationState>& choices, const std::vector<double>& reticulationProbs) {
-        mpfr::mpreal logProb = 0;
-        for (size_t i = 0; i < reticulationProbs.size(); ++i) {
-            if (choices[i] != ReticulationState::DONT_CARE) {
-                mpfr::mpreal prob;
-                if (choices[i] == ReticulationState::TAKE_FIRST_PARENT) {
-                    prob = reticulationProbs[i];
-                } else {
-                    prob = 1.0 - reticulationProbs[i];
-                }
-                logProb += mpfr::log(prob);
-            }
-        }
-        return logProb.toDouble();
-    }
-
     bool reticulationChoicesCompatible(const std::vector<ReticulationState>& left, const std::vector<ReticulationState>& right) {
         assert(left.size() == right.size());
         for (size_t i = 0; i < left.size(); ++i) {
@@ -274,6 +258,105 @@ namespace netrax
                 res[i] = right[i];
             }
         }
+        return res;
+    }
+
+    mpfr::mpreal computeReticulationChoicesLogProb_internal(const std::vector<ReticulationState>& choices, const std::vector<double>& reticulationProbs) {
+        mpfr::mpreal logProb = 0;
+        for (size_t i = 0; i < reticulationProbs.size(); ++i) {
+            if (choices[i] != ReticulationState::DONT_CARE) {
+                mpfr::mpreal prob;
+                if (choices[i] == ReticulationState::TAKE_FIRST_PARENT) {
+                    prob = reticulationProbs[i];
+                } else {
+                    prob = 1.0 - reticulationProbs[i];
+                }
+                logProb += mpfr::log(prob);
+            }
+        }
+        return logProb;
+    }
+
+    double computeReticulationChoicesLogProb(const std::vector<ReticulationState>& choices, const std::vector<double>& reticulationProbs) {
+        return computeReticulationChoicesLogProb_internal(choices, reticulationProbs).toDouble();
+    }
+
+    double computeReticulationConfigLogProb(const ReticulationConfigSet& choices, const std::vector<double>& reticulationProbs) {
+        // TODO: Due to numerical issues when having low reticulation probs, avoid calling this function
+        mpfr::mpreal prob = 0.0;
+        for (size_t i = 0; i < choices.configs.size(); ++i) {
+            prob += mpfr::exp(computeReticulationChoicesLogProb_internal(choices.configs[i], reticulationProbs));
+        }
+        return mpfr::log(prob).toDouble();
+    }
+
+    //bool reticulationChoicesCompatible(const std::vector<ReticulationState>& left, const std::vector<ReticulationState>& right);
+    bool reticulationConfigsCompatible(const ReticulationConfigSet& left, const ReticulationConfigSet& right) {
+        for (size_t i = 0; i < left.configs.size(); ++i) {
+            for (size_t j = 0; j < right.configs.size(); ++i) {
+                if (reticulationChoicesCompatible(left.configs[i], right.configs[j])) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    void printReticulationChoices(const ReticulationConfigSet& reticulationChoices) {
+        for (size_t i = 0; i < reticulationChoices.configs.size(); ++i) {
+            printReticulationChoices(reticulationChoices.configs[i]);
+        }
+    }
+
+    void simplifyReticulationChoices(ReticulationConfigSet& res) {
+        // simplify the reticulation choices. E.g., if we have both 00 and 01, summarize them to 0-
+        bool shrinked = true;
+        while (shrinked) {
+            shrinked = false;
+
+            for (size_t i = 0; i < res.configs.size(); ++i) {
+                for (size_t j = 0; j < res.max_reticulations; ++j) {
+                    if (res.configs[i][j] != ReticulationState::DONT_CARE) {
+                        std::vector<ReticulationState> query = res.configs[i];
+                        if (res.configs[i][j] == ReticulationState::TAKE_FIRST_PARENT) {
+                            query[j] = ReticulationState::TAKE_SECOND_PARENT;
+                        } else {
+                            query[j] = ReticulationState::TAKE_FIRST_PARENT;
+                        }
+                        // search if the query is present in res
+                        for (size_t k = 0; k < res.configs.size(); ++k) {
+                            if (res.configs[k] == query) {
+                                res.configs[i][j] = ReticulationState::DONT_CARE;
+                                // remove res.configs[k]
+                                std::swap(res.configs[k], res.configs[res.configs.size() - 1]);
+                                res.configs.pop_back();
+                                shrinked = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (shrinked) {
+                        break;
+                    }
+                }
+                if (shrinked) {
+                    break;
+                }
+            }
+        }
+    }
+
+    //std::vector<ReticulationState> combineReticulationChoices(const std::vector<ReticulationState>& left, const std::vector<ReticulationState>& right);
+    ReticulationConfigSet combineReticulationChoices(const ReticulationConfigSet& left, const ReticulationConfigSet& right) {
+        ReticulationConfigSet res(left.max_reticulations);
+        for (size_t i = 0; i < left.configs.size(); ++i) {
+            for (size_t j = 0; j < right.configs.size(); ++i) {
+                if (reticulationChoicesCompatible(left.configs[i], right.configs[j])) {
+                    res.configs.emplace_back(combineReticulationChoices(left.configs[i], right.configs[j]));
+                }
+            }
+        }
+        simplifyReticulationChoices(res);
         return res;
     }
 }
