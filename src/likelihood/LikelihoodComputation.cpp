@@ -435,10 +435,10 @@ void processNodeImproved(AnnotatedNetwork& ann_network, unsigned int partition_i
     }
 
     ann_network.fake_treeinfo->clv_valid[partition_idx][node->clv_index] = 1;
-    std::cout << "Node " << node->clv_index << " has been processed, displayed trees at the node are:\n";
+    /*std::cout << "Node " << node->clv_index << " has been processed, displayed trees at the node are:\n";
     for (size_t i = 0; i < displayed_trees.num_active_displayed_trees; ++i) {
         printReticulationChoices(displayed_trees.displayed_trees[i].reticulationChoices);
-    }
+    }*/
 }
 
 void processPartitionImproved(AnnotatedNetwork& ann_network, unsigned int partition_idx, int incremental) {
