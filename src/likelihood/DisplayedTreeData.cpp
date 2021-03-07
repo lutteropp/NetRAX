@@ -293,7 +293,7 @@ namespace netrax
     //bool reticulationChoicesCompatible(const std::vector<ReticulationState>& left, const std::vector<ReticulationState>& right);
     bool reticulationConfigsCompatible(const ReticulationConfigSet& left, const ReticulationConfigSet& right) {
         for (size_t i = 0; i < left.configs.size(); ++i) {
-            for (size_t j = 0; j < right.configs.size(); ++i) {
+            for (size_t j = 0; j < right.configs.size(); ++j) {
                 if (reticulationChoicesCompatible(left.configs[i], right.configs[j])) {
                     return true;
                 }
