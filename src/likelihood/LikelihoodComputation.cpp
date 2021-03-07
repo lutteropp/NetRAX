@@ -541,6 +541,7 @@ double computeLoglikelihoodImproved(AnnotatedNetwork &ann_network, int increment
     fake_treeinfo.active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
     //std::cout << "network logl: " << network_logl.toDouble() << "\n";
     if (network_logl.toDouble() == -std::numeric_limits<double>::infinity()) {
+        std::cout << exportDebugInfo(ann_network) << "\n";
         for (size_t i = 0; i < ann_network.network.num_nodes(); ++i) {
             std::cout << "displayed trees stored at node " << i << ":\n";
             for (size_t j = 0; j < ann_network.pernode_displayed_tree_data[0][i].num_active_displayed_trees; ++j) {
