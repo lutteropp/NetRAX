@@ -156,7 +156,9 @@ namespace netrax
         for (size_t i = 0; i < other.reticulation_nodes.size(); ++i)
         {
             ReticulationData *other_ret_data = other.reticulation_nodes[i]->getReticulationData().get();
+            assert(other_ret_data);
             ReticulationData *my_ret_data = network.reticulation_nodes[i]->getReticulationData().get();
+            assert(my_ret_data);
 
             size_t first_parent_edge_index = other_ret_data->link_to_first_parent->edge_pmatrix_index;
             size_t second_parent_edge_index = other_ret_data->link_to_second_parent->edge_pmatrix_index;

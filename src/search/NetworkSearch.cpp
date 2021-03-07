@@ -79,9 +79,11 @@ void printDisplayedTrees(AnnotatedNetwork& ann_network) {
         std::string newick = netrax::toExtendedNewick(ann_network);
         displayed_trees.emplace_back(std::make_pair(newick, 1.0));
     } else {
-        for (int tree_index = 0; tree_index < 1 << ann_network.network.num_reticulations(); ++tree_index) {
-            pll_utree_t* utree = netrax::displayed_tree_to_utree(ann_network.network, tree_index);
-            double prob = netrax::displayed_tree_prob(ann_network, tree_index);
+        size_t n_trees = ann_network.pernode_displayed_tree_data[0][ann_network.network.root->clv_index].num_active_displayed_trees;
+        for (int j = 0; j < n_trees; ++j) {
+            DisplayedTreeData& tree = ann_network.pernode_displayed_tree_data[0][ann_network.network.root->clv_index].displayed_trees[j];
+            pll_utree_t* utree = netrax::displayed_tree_to_utree(ann_network.network, tree.reticulationChoices);
+            double prob = std::exp(tree.tree_logprob);
             Network displayedNetwork = netrax::convertUtreeToNetwork(*utree, 0);
             std::string newick = netrax::toExtendedNewick(displayedNetwork);
             pll_utree_destroy(utree, nullptr);

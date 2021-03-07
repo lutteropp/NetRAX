@@ -313,6 +313,37 @@ pll_utree_t* displayed_tree_to_utree(Network &network, size_t tree_index) {
     return utree;
 }
 
+pll_utree_t* displayed_tree_to_utree(Network &network, const std::vector<ReticulationState>& reticulationChoices) {
+    for (size_t i = 0; i < reticulationChoices.size(); ++i) { // apply the reticulation choices
+        setReticulationState(network, i, reticulationChoices[i]);
+    }
+
+    std::vector<bool> dead_nodes = collect_dead_nodes(network, network.root->clv_index);
+    Node *root = nullptr;
+
+    root = getPossibleTreeRootNode(network, dead_nodes);
+    assert(root);
+
+    std::vector<bool> skipped_nodes = collect_skipped_nodes(network, dead_nodes);
+
+    pll_unode_t *uroot = connect_subtree_recursive(network, root, nullptr, nullptr, dead_nodes,
+            skipped_nodes);
+
+    pll_utree_reset_template_indices(uroot, network.num_tips());
+    pll_utree_t *utree = pll_utree_wraptree(uroot, network.num_tips());
+
+// ensure that the tip clv indices are the same as in the network
+    for (size_t i = 0; i < utree->inner_count + utree->tip_count; ++i) {
+        if (utree->nodes[i]->clv_index < utree->tip_count) {
+            Node *networkNode = network.getNodeByLabel(utree->nodes[i]->label);
+            utree->nodes[i]->clv_index = utree->nodes[i]->node_index = networkNode->clv_index;
+        }
+    }
+
+    assert(utree->tip_count == network.num_tips());
+    return utree;
+}
+
 std::vector<double> collectBranchLengths(const Network &network) {
     std::vector<double> brLengths(network.num_branches());
     for (size_t i = 0; i < network.num_branches(); ++i) {

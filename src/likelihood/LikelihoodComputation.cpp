@@ -99,7 +99,7 @@ DisplayedTreeData& findMatchingDisplayedTree(AnnotatedNetwork& ann_network, cons
 
 Node* findFirstNodeWithTwoActiveChildren(AnnotatedNetwork& ann_network, const std::vector<ReticulationState>& reticulationChoices, Node* oldRoot) {
     for (size_t i = 0; i < reticulationChoices.size(); ++i) { // apply the reticulation choices
-        setReticulationState(ann_network, i, reticulationChoices[i]);
+        setReticulationState(ann_network.network, i, reticulationChoices[i]);
     }
 
     Node* displayed_tree_root = nullptr;
@@ -144,6 +144,8 @@ void iterateOverScaler(unsigned int* scaler, ScaleBufferRangeInfo& scalerInfo) {
 }
 
 unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, unsigned int partition_idx, ClvRangeInfo &clvInfo, ScaleBufferRangeInfo &scaleBufferInfo, Node* node, Node* child) {
+    assert(node);
+    assert(child);
     unsigned int num_trees_added = 0;
     pll_operation_t op = buildOperationInternal(ann_network.network, node, child, nullptr, ann_network.network.nodes.size(), ann_network.network.edges.size());
     NodeDisplayedTreeData& displayed_trees = ann_network.pernode_displayed_tree_data[partition_idx][node->clv_index];
@@ -162,11 +164,12 @@ unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, unsig
     std::vector<Node*> children = getChildren(ann_network.network, node);
     if (children.size() == 2) {
         Node* other_child = getOtherChild(ann_network.network, node, child);
-        assert(other_child->getType() == NodeType::RETICULATION_NODE);
-        if (node == getReticulationFirstParent(ann_network.network, other_child)) {
-            restrictions[other_child->getReticulationData()->reticulation_index] = ReticulationState::TAKE_SECOND_PARENT;
-        } else {
-            restrictions[other_child->getReticulationData()->reticulation_index] = ReticulationState::TAKE_FIRST_PARENT;
+        if (other_child->getType() == NodeType::RETICULATION_NODE) { // we could have also ended up here due to a dead node
+            if (node == getReticulationFirstParent(ann_network.network, other_child)) {
+                restrictions[other_child->getReticulationData()->reticulation_index] = ReticulationState::TAKE_SECOND_PARENT;
+            } else {
+                restrictions[other_child->getReticulationData()->reticulation_index] = ReticulationState::TAKE_FIRST_PARENT;
+            }
         }
     }
 

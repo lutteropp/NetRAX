@@ -16,6 +16,8 @@ extern "C" {
 #include <libpll/pll.h>
 #include <libpll/pll_tree.h>
 }
+#include "../likelihood/DisplayedTreeData.hpp"
+
 namespace netrax {
 
 struct Node;
@@ -28,6 +30,7 @@ std::vector<std::vector<size_t> > getDtBranchToNetworkBranchMapping(const pll_ut
 
 double displayed_tree_prob(AnnotatedNetwork &ann_network, size_t tree_index);
 
+pll_utree_t* displayed_tree_to_utree(Network &network, const std::vector<ReticulationState>& reticulationChoices);
 pll_utree_t* displayed_tree_to_utree(Network &network, size_t tree_index);
 std::vector<double> collectBranchLengths(const Network &network);
 void applyBranchLengths(Network &network, const std::vector<double> &branchLengths);
