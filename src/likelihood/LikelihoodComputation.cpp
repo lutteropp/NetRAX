@@ -699,7 +699,13 @@ double bic(AnnotatedNetwork &ann_network, double logl) {
  */
 double scoreNetwork(AnnotatedNetwork &ann_network) {
     double logl = computeLoglikelihood(ann_network, 1, 1);
-    return bic(ann_network, logl);
+    double bic_score = bic(ann_network, logl);
+    if (bic_score == std::numeric_limits<double>::infinity()) {
+        std::cout << "logl: " << logl << "\n";
+        std::cout << "bic: " << bic_score << "\n";
+        throw std::runtime_error("Invalid BIC score");
+    }
+    return bic_score;
 }
 
 }
