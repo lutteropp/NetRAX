@@ -46,12 +46,10 @@ bool assert_branch_lengths(AnnotatedNetwork& ann_network) {
     return true;
 }
 
-void apply_displayed_trees_data(const NetworkState& state, AnnotatedNetwork& ann_network, bool copy_network) {
+void apply_displayed_trees_data(const NetworkState& state, AnnotatedNetwork& ann_network) {
     for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
         for (size_t i = 0; i < ann_network.network.nodes.size(); ++i) {
-            if ((copy_network) || (!ann_network.fake_treeinfo->clv_valid[p][i])) {
-                ann_network.pernode_displayed_tree_data[p][i] = state.pernode_displayed_tree_data[p][i];
-            }
+            ann_network.pernode_displayed_tree_data[p][i] = state.pernode_displayed_tree_data[p][i];
         }
     }
 }
@@ -207,7 +205,7 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
         assert(assert_tip_links(ann_network.network));
         assert(assert_links_in_range(ann_network.network));
     }
-    apply_displayed_trees_data(state, ann_network, copy_network);
+    apply_displayed_trees_data(state, ann_network);
     // set all clvs to valid
     for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
         for (size_t clv_index = 0; clv_index < ann_network.network.nodes.size(); ++clv_index) {
