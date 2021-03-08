@@ -73,6 +73,46 @@ struct NodeDisplayedTreeData {
     {
         return !operator==(rhs);
     }
+
+    NodeDisplayedTreeData(NodeDisplayedTreeData&& rhs)
+      : displayed_trees{rhs.displayed_trees}, num_active_displayed_trees{rhs.num_active_displayed_trees}, clvInfo{rhs.clvInfo}, scaleBufferInfo{rhs.scaleBufferInfo}
+    {
+        rhs.num_active_displayed_trees = 0;
+        rhs.displayed_trees = std::vector<DisplayedTreeData>();
+    }
+
+    NodeDisplayedTreeData(const NodeDisplayedTreeData& rhs)
+      : num_active_displayed_trees{rhs.num_active_displayed_trees}, clvInfo{rhs.clvInfo}, scaleBufferInfo{rhs.scaleBufferInfo}
+    {
+        displayed_trees = rhs.displayed_trees;
+    }
+
+    NodeDisplayedTreeData() = default;
+
+    NodeDisplayedTreeData& operator =(NodeDisplayedTreeData&& rhs)
+    {
+        if (this != &rhs)
+        {
+            displayed_trees = std::move(rhs.displayed_trees);
+            num_active_displayed_trees = rhs.num_active_displayed_trees;
+            rhs.num_active_displayed_trees = 0;
+            clvInfo = rhs.clvInfo;
+            scaleBufferInfo = rhs.scaleBufferInfo;
+        }
+        return *this;
+    }
+
+    NodeDisplayedTreeData& operator =(const NodeDisplayedTreeData& rhs)
+    {
+        if (this != &rhs)
+        {
+            displayed_trees = rhs.displayed_trees;
+            num_active_displayed_trees = rhs.num_active_displayed_trees;
+            clvInfo = rhs.clvInfo;
+            scaleBufferInfo = rhs.scaleBufferInfo;
+        }
+        return *this;
+    }
 };
 
 struct AnnotatedNetwork {
