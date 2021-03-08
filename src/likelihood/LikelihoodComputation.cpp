@@ -10,7 +10,6 @@
 #include "../graph/NetworkTopology.hpp"
 #include "../graph/Node.hpp"
 #include "../DebugPrintFunctions.hpp"
-#include "Operations.hpp"
 #include "DisplayedTreeData.hpp"
 
 #include <cassert>
@@ -19,34 +18,6 @@
 
 namespace netrax {
 
-size_t findReticulationIndexInNetwork(Network &network, Node *retNode) {
-    assert(retNode);
-    assert(retNode->type == NodeType::RETICULATION_NODE);
-    for (size_t i = 0; i < network.num_reticulations(); ++i) {
-        if (network.reticulation_nodes[i]->clv_index == retNode->clv_index) {
-            return i;
-        }
-    }
-    throw std::runtime_error("Reticulation not found in network");
-}
-
-std::vector<bool> init_clv_touched(AnnotatedNetwork& ann_network, bool incremental, int partition_idx) {
-    std::vector<bool> clv_touched(ann_network.network.nodes.size() + 1, false);
-    for (size_t i = 0; i < ann_network.network.num_tips(); ++i) {
-        clv_touched[i] = true;
-    }
-    if (ann_network.network.num_reticulations() == 0 && incremental) {
-        for (size_t i = 0; i < ann_network.network.nodes.size(); ++i) {
-            if (ann_network.fake_treeinfo->clv_valid[partition_idx][i]) {
-                clv_touched[i] = true;
-            }
-        }
-    }
-    clv_touched[ann_network.network.nodes.size()] = true; // fake clv index
-    return clv_touched;
-}
-
-
 void setup_pmatrices(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices) {
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
     if (update_pmatrices) {
@@ -54,6 +25,32 @@ void setup_pmatrices(AnnotatedNetwork &ann_network, int incremental, int update_
     }
 }
 
+pll_operation_t buildOperation(Network &network, Node *parent, Node *child1, Node *child2,
+        size_t fake_clv_index, size_t fake_pmatrix_index) {
+    pll_operation_t operation;
+    assert(parent);
+    operation.parent_clv_index = parent->clv_index;
+    operation.parent_scaler_index = parent->scaler_index;
+    if (child1) {
+        operation.child1_clv_index = child1->clv_index;
+        operation.child1_scaler_index = child1->scaler_index;
+        operation.child1_matrix_index = getEdgeTo(network, child1, parent)->pmatrix_index;
+    } else {
+        operation.child1_clv_index = fake_clv_index;
+        operation.child1_scaler_index = -1;
+        operation.child1_matrix_index = fake_pmatrix_index;
+    }
+    if (child2) {
+        operation.child2_clv_index = child2->clv_index;
+        operation.child2_scaler_index = child2->scaler_index;
+        operation.child2_matrix_index = getEdgeTo(network, child2, parent)->pmatrix_index;
+    } else {
+        operation.child2_clv_index = fake_clv_index;
+        operation.child2_scaler_index = -1;
+        operation.child2_matrix_index = fake_pmatrix_index;
+    }
+    return operation;
+}
 
 double displayed_tree_logprob(AnnotatedNetwork &ann_network, size_t tree_index) {
     Network &network = ann_network.network;
@@ -150,7 +147,7 @@ unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, unsig
     assert(node);
     assert(child);
     unsigned int num_trees_added = 0;
-    pll_operation_t op = buildOperationInternal(ann_network.network, node, child, nullptr, ann_network.network.nodes.size(), ann_network.network.edges.size());
+    pll_operation_t op = buildOperation(ann_network.network, node, child, nullptr, ann_network.network.nodes.size(), ann_network.network.edges.size());
     NodeDisplayedTreeData& displayed_trees = ann_network.pernode_displayed_tree_data[partition_idx][node->clv_index];
     NodeDisplayedTreeData& displayed_trees_child = ann_network.pernode_displayed_tree_data[partition_idx][child->clv_index];
     size_t fake_clv_index = ann_network.network.nodes.size();
@@ -322,7 +319,7 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
     unsigned int num_trees_added = 0;
     size_t fake_clv_index = ann_network.network.nodes.size();
     
-    pll_operation_t op_both = buildOperationInternal(ann_network.network, node, left_child, right_child, ann_network.network.nodes.size(), ann_network.network.edges.size());
+    pll_operation_t op_both = buildOperation(ann_network.network, node, left_child, right_child, ann_network.network.nodes.size(), ann_network.network.edges.size());
     NodeDisplayedTreeData& displayed_trees = ann_network.pernode_displayed_tree_data[partition_idx][node->clv_index];
     NodeDisplayedTreeData& displayed_trees_left_child = ann_network.pernode_displayed_tree_data[partition_idx][left_child->clv_index];
     NodeDisplayedTreeData& displayed_trees_right_child = ann_network.pernode_displayed_tree_data[partition_idx][right_child->clv_index];
@@ -385,7 +382,7 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
     }
 
     // only left child, not right child
-    pll_operation_t op_left_only = buildOperationInternal(ann_network.network, node, left_child, nullptr, ann_network.network.nodes.size(), ann_network.network.edges.size());
+    pll_operation_t op_left_only = buildOperation(ann_network.network, node, left_child, nullptr, ann_network.network.nodes.size(), ann_network.network.edges.size());
     ReticulationConfigSet right_child_dead_settings = deadNodeSettings(ann_network, displayed_trees_right_child, node, right_child);
     for (size_t i = 0; i < displayed_trees_left_child.num_active_displayed_trees; ++i) {
         DisplayedTreeData& leftTree = displayed_trees_left_child.displayed_trees[i];
@@ -410,7 +407,7 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
     }
 
     // only right child, not left child
-    pll_operation_t op_right_only = buildOperationInternal(ann_network.network, node, right_child, nullptr, ann_network.network.nodes.size(), ann_network.network.edges.size());
+    pll_operation_t op_right_only = buildOperation(ann_network.network, node, right_child, nullptr, ann_network.network.nodes.size(), ann_network.network.edges.size());
     ReticulationConfigSet left_child_dead_settings = deadNodeSettings(ann_network, displayed_trees_left_child, node, left_child);
     for (size_t i = 0; i < displayed_trees_right_child.num_active_displayed_trees; ++i) {
         DisplayedTreeData& rightTree = displayed_trees_right_child.displayed_trees[i];
@@ -596,17 +593,6 @@ double computeLoglikelihoodImproved(AnnotatedNetwork &ann_network, int increment
     return ann_network.cached_logl;
 }
 
-mpfr::mpreal displayed_tree_nonblob_prob(AnnotatedNetwork &ann_network, size_t tree_index) {
-    Network &network = ann_network.network;
-    setReticulationParents(network, tree_index);
-    mpfr::mpreal logProb = 0;
-    for (size_t i = 0; i < network.num_reticulations(); ++i) {
-        mpfr::mpreal prob = getReticulationActiveProb(ann_network, network.reticulation_nodes[i]);
-        logProb += mpfr::log(prob);
-    }
-    return mpfr::exp(logProb);
-}
-
 /**
  * Compute network loglikelihood by converting each displayed tree into a pll_utree_t and calling raxml loglikelihood on it.
  * Then taking the weighted sum of the displayed tree likelihoods (using exp) for the network likelihood, and returning th log of the network likelihood.
@@ -690,7 +676,6 @@ double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int 
     //just for debug
     //incremental = 0;
     //update_pmatrices = 1;
-    //return computeLoglikelihood_new(ann_network, incremental, update_pmatrices);
     return computeLoglikelihoodImproved(ann_network, incremental, update_pmatrices);
     //return computeLoglikelihoodNaiveUtree(ann_network, incremental, update_pmatrices);
 }

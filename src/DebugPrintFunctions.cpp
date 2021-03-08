@@ -79,22 +79,6 @@ void printReticulationParents(Network &network) {
     }
 }
 
-void printClvTouched(Network &network, const std::vector<bool> &clv_touched) {
-    std::cout << "clv touched:\n";
-    for (size_t i = 0; i < network.num_nodes(); ++i) {
-        std::cout << "  clv_touched[" << network.nodes[i].clv_index << "]= "
-                << clv_touched[network.nodes[i].clv_index] << "\n";
-    }
-}
-
-void print_dead_nodes(Network &network, const std::vector<bool> &dead_nodes) {
-    std::cout << "dead nodes:\n";
-    for (size_t i = 0; i < network.num_nodes(); ++i) {
-        std::cout << "  dead_nodes[" << network.nodes[i].clv_index << "]= "
-                << dead_nodes[network.nodes[i].clv_index] << "\n";
-    }
-}
-
 void print_brlens(AnnotatedNetwork &ann_network) {
     std::cout << "brlens:\n";
     size_t n_partitions = 1;
