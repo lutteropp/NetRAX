@@ -108,7 +108,7 @@ void optimizeReticulationProbs(AnnotatedNetwork &ann_network) {
     if (ann_network.network.num_reticulations() == 0) {
         return;
     }
-    assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
+    //assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
     double old_score = scoreNetwork(ann_network);
     netrax::optimize_reticulations(ann_network, 100);
     double new_score = scoreNetwork(ann_network);

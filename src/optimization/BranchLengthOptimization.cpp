@@ -28,7 +28,7 @@ struct BrentBrlenParams {
 };
 
 void checkLoglBeforeAfter(AnnotatedNetwork& ann_network) {
-    assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
+    //assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
 }
 
 static double brent_target_networks(void *p, double x) {
@@ -195,10 +195,10 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
  * @param ann_network The network.
  */
 void optimizeBranches(AnnotatedNetwork &ann_network) {
-    assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
+    checkLoglBeforeAfter(ann_network);
     double old_score = scoreNetwork(ann_network);
     ann_network.raxml_treeinfo->optimize_branches(ann_network.options.lh_epsilon, 10);
-    assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
+    checkLoglBeforeAfter(ann_network);
     double new_score = scoreNetwork(ann_network);
     std::cout << "BIC score after branch length optimization: " << new_score << "\n";
     assert(new_score <= old_score + ann_network.options.score_epsilon);
