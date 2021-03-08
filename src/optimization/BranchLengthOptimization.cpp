@@ -89,8 +89,8 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, size
 
     double start_logl = computeLoglikelihood(ann_network, 1, 1);
     checkLoglBeforeAfter(ann_network);
-    double old_logl = ann_network.raxml_treeinfo->loglh(true);
-    assert(start_logl == old_logl);
+    //double old_logl = ann_network.raxml_treeinfo->loglh(true);
+    //assert(start_logl == old_logl);
 
     double best_logl = start_logl;
     BrentBrlenParams params;
@@ -126,7 +126,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, size
 }
 
 double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index) {
-    double old_logl = ann_network.raxml_treeinfo->loglh(true);
+    double old_logl = computeLoglikelihood(ann_network, 1, 1);
     size_t n_partitions = 1;
     bool unlinkedMode = (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
     if (unlinkedMode) {
@@ -154,7 +154,7 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
         assert(idx < ann_network.network.num_branches());
     }
     double lh_epsilon = ann_network.options.lh_epsilon;
-    double old_logl = ann_network.raxml_treeinfo->loglh(true);
+    double old_logl = computeLoglikelihood(ann_network, 1, 1);
     double start_logl = old_logl;
     std::vector<size_t> act_iters(ann_network.network.num_branches(), 0);
     while (!candidates.empty()) {

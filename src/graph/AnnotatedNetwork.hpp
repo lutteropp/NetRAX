@@ -132,6 +132,9 @@ struct AnnotatedNetwork {
 
     Statistics stats;
 
+    double cached_logl = -std::numeric_limits<int>::infinity();
+    bool cached_logl_valid = false;
+
     AnnotatedNetwork(AnnotatedNetwork&&) = default;
     AnnotatedNetwork() = default;
 };

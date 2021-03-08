@@ -119,6 +119,9 @@ void extract_network_state(AnnotatedNetwork &ann_network, NetworkState& state_to
     extract_displayed_trees_data(ann_network, state_to_reuse);
     state_to_reuse.n_trees = (1 << ann_network.network.num_reticulations());
     state_to_reuse.n_branches = ann_network.network.num_branches();
+
+    state_to_reuse.cached_logl = ann_network.cached_logl;
+    state_to_reuse.cached_logl_valid = ann_network.cached_logl_valid;
 }
 
 NetworkState extract_network_state(AnnotatedNetwork &ann_network, bool extract_network) {
@@ -212,6 +215,8 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
             ann_network.fake_treeinfo->clv_valid[p][clv_index] = 1;
         }
     }
+    ann_network.cached_logl = state.cached_logl;
+    ann_network.cached_logl_valid = state.cached_logl_valid;
 
     //assert_branch_lengths(ann_network);
     //assert_rates(ann_network);

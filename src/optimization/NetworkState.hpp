@@ -24,6 +24,9 @@ struct NetworkState {
     std::vector<ScaleBufferRangeInfo> displayed_tree_scale_buffer_ranges;
 
     bool network_valid = false;
+
+    double cached_logl;
+    bool cached_logl_valid;
 };
 
 NetworkState extract_network_state(AnnotatedNetwork &ann_network, bool extract_network = true);

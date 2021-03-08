@@ -502,8 +502,11 @@ double computeLoglikelihoodImproved(AnnotatedNetwork &ann_network, int increment
     const Network &network = ann_network.network;
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
     bool reuse_old_displayed_trees = reuseOldDisplayedTreesCheck(ann_network, incremental);
-    mpfr::mpreal network_logl = 0.0;
     if (reuse_old_displayed_trees) {
+        if (ann_network.cached_logl_valid) {
+            return ann_network.cached_logl;
+        }
+
         //std::cout << "reuse displayed trees\n";
         for (size_t p = 0; p < fake_treeinfo.partition_count; ++p) { // TODO: Why is this needed here?
             std::vector<DisplayedTreeData>& displayed_root_trees = ann_network.pernode_displayed_tree_data[p][network.root->clv_index].displayed_trees;
@@ -521,6 +524,7 @@ double computeLoglikelihoodImproved(AnnotatedNetwork &ann_network, int increment
             processPartitionImproved(ann_network, p, incremental);
         }
     }
+    mpfr::mpreal network_logl = 0.0;
 
     for (size_t partition_idx = 0; partition_idx < fake_treeinfo.partition_count; ++partition_idx) {
         fake_treeinfo.active_partition = partition_idx;
@@ -587,7 +591,9 @@ double computeLoglikelihoodImproved(AnnotatedNetwork &ann_network, int increment
         }
         throw std::runtime_error("Invalid network likelihood: negative infinity \n");
     }
-    return network_logl.toDouble();
+    ann_network.cached_logl = network_logl.toDouble();
+    ann_network.cached_logl_valid = true;
+    return ann_network.cached_logl;
 }
 
 mpfr::mpreal displayed_tree_nonblob_prob(AnnotatedNetwork &ann_network, size_t tree_index) {

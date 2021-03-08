@@ -29,6 +29,7 @@ static double brent_target_networks_prob(void *p, double x) {
         score = -1 * computeLoglikelihood(*ann_network, 1, 1);
     } else {
         ann_network->reticulation_probs[reticulation_index] = x;
+        ann_network->cached_logl_valid = false;
 
         score = -1 * computeLoglikelihood(*ann_network, 1, 1);
         //std::cout << "    score: " << score << ", x: " << x << ", old_x: " << old_x << ", pmatrix index:"
@@ -43,8 +44,8 @@ double optimize_reticulation(AnnotatedNetwork &ann_network, size_t reticulation_
     double tolerance = ann_network.options.tolerance;
 
     double start_logl = computeLoglikelihood(ann_network, 1, 1);
-    double old_logl = ann_network.raxml_treeinfo->loglh(true);
-    assert(start_logl == old_logl);
+    //double old_logl = ann_network.raxml_treeinfo->loglh(true);
+    //assert(start_logl == old_logl);
 
     double best_logl = start_logl;
     BrentBrprobParams params;
@@ -82,7 +83,7 @@ double optimize_reticulation(AnnotatedNetwork &ann_network, size_t reticulation_
 
 
 double optimize_reticulations(AnnotatedNetwork &ann_network, int max_iters) {
-    double act_logl = ann_network.raxml_treeinfo->loglh(true);
+    double act_logl = computeLoglikelihood(ann_network, 1, 1);
     int act_iters = 0;
     while (act_iters < max_iters) {
         double loop_logl = act_logl;
