@@ -9,7 +9,6 @@
 
 #include "likelihood/LikelihoodComputation.hpp"
 #include "optimization/BranchLengthOptimization.hpp"
-#include "graph/Common.hpp"
 #include "utils.hpp"
 #include "graph/Network.hpp"
 #include "graph/NetworkFunctions.hpp"
@@ -218,13 +217,15 @@ void set_partition_fake_clv_entry(pll_partition_t *partition, size_t fake_clv_in
     unsigned int sites = partition->sites;
     unsigned int rate_cats = partition->rate_cats;
 
+    unsigned int sites_alloc = (unsigned int)partition->asc_additional_sites + partition->sites;
+
     // set clv to all-ones for the fake node
     double *clv = partition->clv[fake_clv_index];
 
     if (clv == NULL) { // this happens when we have site repeats
         // TODO: Does it work? Or do we need to increase the number of tips somehow when creating the partition?
         partition->clv[fake_clv_index] = (double*) pll_aligned_alloc(
-                sites * rate_cats * states_padded * sizeof(double), partition->alignment);
+                sites_alloc * rate_cats * states_padded * sizeof(double), partition->alignment);
         clv = partition->clv[fake_clv_index];
     }
 

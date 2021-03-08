@@ -9,7 +9,6 @@
 
 #include <raxml-ng/TreeInfo.hpp>
 #include <raxml-ng/main.hpp>
-#include "BiconnectedComponents.hpp"
 #include "Network.hpp"
 #include "NetworkFunctions.hpp"
 #include "NetworkTopology.hpp"
@@ -38,11 +37,9 @@ void allocateBranchProbsArray(AnnotatedNetwork& ann_network) {
  * @param ann_network The still uninitialized annotated network.
  */
 void init_annotated_network(AnnotatedNetwork &ann_network, std::mt19937& rng) {
-    Network &network = ann_network.network;
     ann_network.rng = rng;
 
     ann_network.travbuffer = netrax::reversed_topological_sort(ann_network.network);
-    ann_network.blobInfo = netrax::partitionNetworkIntoBlobs(network, ann_network.travbuffer);
 
     allocateBranchProbsArray(ann_network);
     for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
@@ -58,8 +55,23 @@ void init_annotated_network(AnnotatedNetwork &ann_network, std::mt19937& rng) {
     ann_network.fake_treeinfo->active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
     netrax::setup_pmatrices(ann_network, false, true);
     for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
-        ann_network.fake_treeinfo->clv_valid[i][network.root->clv_index] = 0;
+        for (size_t j = 0; j < ann_network.network.num_tips(); ++j) { // tip nodes always have valid clv
+            ann_network.fake_treeinfo->clv_valid[i][j] = 1;
+        }
+        for (size_t j = ann_network.network.num_tips(); j < ann_network.network.nodes.size(); ++j) { // nodes.size here, to also take care of currently unused nodes
+            ann_network.fake_treeinfo->clv_valid[i][j] = 0;
+        }
     }
+
+    ann_network.pernode_displayed_tree_data.resize(ann_network.fake_treeinfo->partition_count);
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        ann_network.pernode_displayed_tree_data[p].resize(ann_network.network.nodes.size()); // including all nodes that will ever be there
+        for (size_t i = 0; i < ann_network.network.num_tips(); ++i) {
+            ann_network.pernode_displayed_tree_data[p][i].displayed_trees.emplace_back(DisplayedTreeData(ann_network.fake_treeinfo->partitions[p]->clv[i], ann_network.options.max_reticulations));
+            ann_network.pernode_displayed_tree_data[p][i].num_active_displayed_trees++;
+        }
+    }
+
     netrax::computeLoglikelihood(ann_network, false, true);
 }
 

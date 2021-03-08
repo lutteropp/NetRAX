@@ -7,7 +7,6 @@
 
 #include "Traversal.hpp"
 
-#include "../graph/Common.hpp"
 #include "../graph/NetworkTopology.hpp"
 #include "../graph/NetworkFunctions.hpp"
 

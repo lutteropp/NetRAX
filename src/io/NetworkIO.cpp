@@ -32,6 +32,8 @@
 #include "../graph/ReticulationData.hpp"
 #include "../DebugPrintFunctions.hpp"
 
+#include "RootedNetworkParser.hpp"
+
 namespace netrax {
 
 std::vector<RootedNetworkNode*> collectNodes(RootedNetwork &rnetwork) {

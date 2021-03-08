@@ -15,6 +15,7 @@
 #include "../optimization/Moves.hpp"
 #include "../optimization/MoveType.hpp"
 #include "../likelihood/LikelihoodComputation.hpp"
+#include "../optimization/NetworkState.hpp"
 
 namespace netrax {
 
@@ -23,7 +24,38 @@ struct ScoreImprovementResult {
     bool global_improved = false;
 };
 
+bool logl_stays_same(AnnotatedNetwork& ann_network) {
+    std::cout << "displayed trees before:\n";
+    for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
+        size_t n_trees = ann_network.pernode_displayed_tree_data[i][ann_network.network.root->clv_index].num_active_displayed_trees;
+        for (size_t j = 0; j < n_trees; ++j) {
+            DisplayedTreeData& tree = ann_network.pernode_displayed_tree_data[i][ann_network.network.root->clv_index].displayed_trees[j];
+            std::cout << "logl: " << tree.tree_logl << ", logprob: " << tree.tree_logprob << "\n";
+        }
+    }
+    double incremental = netrax::computeLoglikelihood(ann_network, 1, 1);
+    std::cout << "displayed trees in between:\n";
+    for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
+        size_t n_trees = ann_network.pernode_displayed_tree_data[i][ann_network.network.root->clv_index].num_active_displayed_trees;
+        for (size_t j = 0; j < n_trees; ++j) {
+            DisplayedTreeData& tree = ann_network.pernode_displayed_tree_data[i][ann_network.network.root->clv_index].displayed_trees[j];
+            std::cout << "logl: " << tree.tree_logl << ", logprob: " << tree.tree_logprob << "\n";
+        }
+    }
+    double normal = netrax::computeLoglikelihood(ann_network, 0, 1);
+    std::cout << "displayed trees after:\n";
+    for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
+        size_t n_trees = ann_network.pernode_displayed_tree_data[i][ann_network.network.root->clv_index].num_active_displayed_trees;
+        for (size_t j = 0; j < n_trees; ++j) {
+            DisplayedTreeData& tree = ann_network.pernode_displayed_tree_data[i][ann_network.network.root->clv_index].displayed_trees[j];
+            std::cout << "logl: " << tree.tree_logl << ", logprob: " << tree.tree_logprob << "\n";
+        }
+    }
+    return (incremental == normal);
+}
+
 void optimizeAllNonTopology(AnnotatedNetwork &ann_network, bool extremeOpt) {
+    assert(logl_stays_same(ann_network));
     bool gotBetter = true;
     while (gotBetter) {
         gotBetter = false;
@@ -37,6 +69,8 @@ void optimizeAllNonTopology(AnnotatedNetwork &ann_network, bool extremeOpt) {
             gotBetter = true;
         }
     }
+
+    assert(logl_stays_same(ann_network));
 }
 
 void printDisplayedTrees(AnnotatedNetwork& ann_network) {
@@ -45,9 +79,11 @@ void printDisplayedTrees(AnnotatedNetwork& ann_network) {
         std::string newick = netrax::toExtendedNewick(ann_network);
         displayed_trees.emplace_back(std::make_pair(newick, 1.0));
     } else {
-        for (int tree_index = 0; tree_index < 1 << ann_network.network.num_reticulations(); ++tree_index) {
-            pll_utree_t* utree = netrax::displayed_tree_to_utree(ann_network.network, tree_index);
-            double prob = netrax::displayed_tree_prob(ann_network, tree_index);
+        size_t n_trees = ann_network.pernode_displayed_tree_data[0][ann_network.network.root->clv_index].num_active_displayed_trees;
+        for (int j = 0; j < n_trees; ++j) {
+            DisplayedTreeData& tree = ann_network.pernode_displayed_tree_data[0][ann_network.network.root->clv_index].displayed_trees[j];
+            pll_utree_t* utree = netrax::displayed_tree_to_utree(ann_network.network, tree.reticulationChoices.configs[0]);
+            double prob = std::exp(tree.tree_logprob);
             Network displayedNetwork = netrax::convertUtreeToNetwork(*utree, 0);
             std::string newick = netrax::toExtendedNewick(displayedNetwork);
             pll_utree_destroy(utree, nullptr);
@@ -110,9 +146,7 @@ ScoreImprovementResult check_score_improvement(AnnotatedNetwork& ann_network, do
                 if (hasBadReticulation(ann_network)) {
                     std::cout << "Network contains BAD RETICULATIONS. Not updating the global best found network and score.\n";
                 } else {
-                    if (new_score < old_global_best) {
-                        bestNetworkData->best_n_reticulations = ann_network.network.num_reticulations();
-                    }
+                    bestNetworkData->best_n_reticulations = ann_network.network.num_reticulations();
                     global_improved = true;
                     std::cout << "OLD GLOBAL BEST SCORE WAS: " << old_global_best << "\n";
                     std::cout << "IMPROVED GLOBAL BEST SCORE FOUND SO FAR: " << new_score << "\n\n";
@@ -131,7 +165,7 @@ ScoreImprovementResult check_score_improvement(AnnotatedNetwork& ann_network, do
     return ScoreImprovementResult{local_improved, global_improved};
 }
 
-double optimizeEverythingRun(AnnotatedNetwork & ann_network, std::vector<MoveType>& typesBySpeed, const std::chrono::high_resolution_clock::time_point& start_time, bool greedy = true) {
+double optimizeEverythingRun(AnnotatedNetwork & ann_network, std::vector<MoveType>& typesBySpeed, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, const std::chrono::high_resolution_clock::time_point& start_time, bool greedy = true) {
     unsigned int type_idx = 0;
     unsigned int max_seconds = ann_network.options.timeout;
     double best_score = scoreNetwork(ann_network);
@@ -157,7 +191,7 @@ double optimizeEverythingRun(AnnotatedNetwork & ann_network, std::vector<MoveTyp
             break;
         }
         double old_score = scoreNetwork(ann_network);
-        optimizeTopology(ann_network, typesBySpeed[type_idx], greedy, false, 1);
+        optimizeTopology(ann_network, typesBySpeed[type_idx], start_state_to_reuse, best_state_to_reuse, greedy, false, 1);
         double new_score = scoreNetwork(ann_network);
         if (old_score - new_score > ann_network.options.score_epsilon) { // score got better
             new_score = scoreNetwork(ann_network);
@@ -184,12 +218,16 @@ double optimizeEverythingRun(AnnotatedNetwork & ann_network, std::vector<MoveTyp
 }
 
 void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData, std::mt19937& rng) {
+    NetworkState start_state_to_reuse = extract_network_state(ann_network, false);
+    NetworkState best_state_to_reuse = extract_network_state(ann_network, false);
+
     std::vector<MoveType> typesBySpeed = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::HeadMove};
 
     auto start_time = std::chrono::high_resolution_clock::now();
     double best_score = std::numeric_limits<double>::infinity();
 
     std::cout << "Initial network is:\n" << toExtendedNewick(ann_network) << "\n\n";
+
     optimizeAllNonTopology(ann_network, true);
     std::cout << "Initial network after modelopt+brlenopt+reticulation opt is:\n" << toExtendedNewick(ann_network) << "\n\n";
     std::string best_network = toExtendedNewick(ann_network);
@@ -198,8 +236,10 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
     score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
 
     // try horizontal moves
-    optimizeEverythingRun(ann_network, typesBySpeed, start_time, true);
+    optimizeEverythingRun(ann_network, typesBySpeed, start_state_to_reuse, best_state_to_reuse, start_time, true);
     score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
+
+    size_t count_add_reticulation_failed = 0;
 
     bool keepSearching = true;
     while (keepSearching) {
@@ -212,13 +252,13 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
         if (ann_network.network.num_reticulations() > 0) { // try removing arcs
             MoveType removalType = MoveType::ArcRemovalMove;
             size_t old_num_reticulations = ann_network.network.num_reticulations();
-            netrax::greedyHillClimbingTopology(ann_network, removalType, false);
+            netrax::greedyHillClimbingTopology(ann_network, removalType, start_state_to_reuse, best_state_to_reuse, false);
 
             if (ann_network.network.num_reticulations() < old_num_reticulations) {
                 optimizeAllNonTopology(ann_network);
                 score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
                 if (score_improvement.local_improved) { // only redo (n-1) reticulation search if the arc removal led to a better network
-                    optimizeEverythingRun(ann_network, typesBySpeed, start_time, true);
+                    optimizeEverythingRun(ann_network, typesBySpeed, start_state_to_reuse, best_state_to_reuse, start_time, true);
                 }
                 score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
             }
@@ -230,32 +270,53 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
 
         // ensure that we don't have a reticulation with prob near 0.0 or 1.0 now. If we have one, stop the search.
         if (hasBadReticulation(ann_network)) {
-            std::cout << "BAD RETICULATION FOUND\n";
-            continue;
+            // this can happen for example if we use LikelihoodModel.BEST for network loglikelihood, as this doesn't penalize bad reticulations.
+            // (in combination with numerical issues)
+            // TODO: What to do in this case? Maybe enforce removing the reticulation?
+            unsigned int n_reticulations_before = ann_network.network.num_reticulations();
+            std::cout << "BAD RETICULATION FOUND - removing it by force\n";
+            MoveType removalType = MoveType::ArcRemovalMove;
+            netrax::greedyHillClimbingTopology(ann_network, removalType, start_state_to_reuse, best_state_to_reuse, false, true);
+            unsigned int n_reticulations_after = ann_network.network.num_reticulations();
+            assert(n_reticulations_after >= n_reticulations_before);
+            optimizeAllNonTopology(ann_network);
+            score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
+
+            //continue;
         }
 
         // then try adding a reticulation
         if (ann_network.network.num_reticulations() < ann_network.options.max_reticulations) {
             // old and deprecated: randomly add new reticulation
-            //add_extra_reticulations(ann_network, ann_network.network.num_reticulations() + 1);
+            std::cout << "Randomly adding a reticulation\n";
+            add_extra_reticulations(ann_network, ann_network.network.num_reticulations() + 1);
+            ann_network.stats.moves_taken[MoveType::ArcInsertionMove]++;
 
             // new version: search for good place to add the new reticulation
-            MoveType insertionType = MoveType::ArcInsertionMove;
-            greedyHillClimbingTopology(ann_network, insertionType, false, true, 1);
+            //MoveType insertionType = MoveType::ArcInsertionMove;
+            //greedyHillClimbingTopology(ann_network, insertionType, start_state_to_reuse, best_state_to_reuse, false, true, 1);
+
             optimizeAllNonTopology(ann_network);
 
             // ensure that we don't have a reticulation with prob near 0.0 or 1.0 now. If we have one, stop the search.
-            if (hasBadReticulation(ann_network)) {
+            /*if (hasBadReticulation(ann_network)) {
                 std::cout << "BAD RETICULATION FOUND\n";
                 continue;
-            }
+            }*/
             score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
 
-            optimizeEverythingRun(ann_network, typesBySpeed, start_time, true);
+            optimizeEverythingRun(ann_network, typesBySpeed, start_state_to_reuse, best_state_to_reuse, start_time, true);
             score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
             if (score_improvement.global_improved) {
+                count_add_reticulation_failed = 0;
                 keepSearching = true;
                 continue;
+            } else {
+                count_add_reticulation_failed++;
+                if (count_add_reticulation_failed <= 10) {
+                    keepSearching = true;
+                    continue;
+                }
             }
         }
     }

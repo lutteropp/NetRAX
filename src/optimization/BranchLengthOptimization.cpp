@@ -12,7 +12,6 @@
 #include <iostream>
 #include <limits>
 
-#include "../graph/Common.hpp"
 #include "../graph/NetworkFunctions.hpp"
 #include "../graph/NetworkTopology.hpp"
 #include "../likelihood/LikelihoodComputation.hpp"
@@ -29,7 +28,7 @@ struct BrentBrlenParams {
 };
 
 void checkLoglBeforeAfter(AnnotatedNetwork& ann_network) {
-    assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
+    //assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
 }
 
 static double brent_target_networks(void *p, double x) {
@@ -90,8 +89,8 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, size
 
     double start_logl = computeLoglikelihood(ann_network, 1, 1);
     checkLoglBeforeAfter(ann_network);
-    double old_logl = ann_network.raxml_treeinfo->loglh(true);
-    assert(start_logl == old_logl);
+    //double old_logl = ann_network.raxml_treeinfo->loglh(true);
+    //assert(start_logl == old_logl);
 
     double best_logl = start_logl;
     BrentBrlenParams params;
@@ -127,7 +126,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, size
 }
 
 double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index) {
-    double old_logl = ann_network.raxml_treeinfo->loglh(true);
+    double old_logl = computeLoglikelihood(ann_network, 1, 1);
     size_t n_partitions = 1;
     bool unlinkedMode = (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
     if (unlinkedMode) {
@@ -143,6 +142,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index) {
     if (logl < old_logl && fabs(logl - old_logl) >= 1E-3) {
         std::cout << "new_logl: " << logl << "\n";
         std::cout << "old_logl: " << old_logl << "\n";
+        throw std::runtime_error("problem in brlen optimization");
     }
     assert((logl >= old_logl) || (fabs(logl - old_logl) < 1E-3));
     return logl;
@@ -154,7 +154,7 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
         assert(idx < ann_network.network.num_branches());
     }
     double lh_epsilon = ann_network.options.lh_epsilon;
-    double old_logl = ann_network.raxml_treeinfo->loglh(true);
+    double old_logl = computeLoglikelihood(ann_network, 1, 1);
     double start_logl = old_logl;
     std::vector<size_t> act_iters(ann_network.network.num_branches(), 0);
     while (!candidates.empty()) {
@@ -195,10 +195,10 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
  * @param ann_network The network.
  */
 void optimizeBranches(AnnotatedNetwork &ann_network) {
-    assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
+    checkLoglBeforeAfter(ann_network);
     double old_score = scoreNetwork(ann_network);
     ann_network.raxml_treeinfo->optimize_branches(ann_network.options.lh_epsilon, 10);
-    assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
+    checkLoglBeforeAfter(ann_network);
     double new_score = scoreNetwork(ann_network);
     std::cout << "BIC score after branch length optimization: " << new_score << "\n";
     assert(new_score <= old_score + ann_network.options.score_epsilon);

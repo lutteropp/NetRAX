@@ -2,7 +2,7 @@ import os
 import random
 
 from dataset_builder import create_dataset_container, sample_trees, build_trees_file
-from netrax_wrapper import extract_displayed_trees, check_weird_network, scale_branches_only_newick, change_reticulation_prob_only
+from netrax_wrapper import extract_displayed_trees, check_weird_network, scale_branches_only, change_reticulation_prob_only
 from evaluate_experiments import SamplingType, SimulatorType, LikelihoodType, BrlenLinkageType, StartType, run_inference_and_evaluate, write_results_to_csv
 from seqgen_wrapper import simulate_msa
 
@@ -40,11 +40,11 @@ def simulate_network_celine_minmax_nonweird(settings):
         return simulate_network_celine_minmax_nonweird(settings)
 
 
-def simulate_network_celine_fixed_nonweird(settings, n_taxa, n_reticulations):
+def simulate_network_celine_fixed_nonweird(settings, wanted_n_taxa, wanted_n_reticulations):
     temp_path = "temp_network_" + str(os.getpid()) + "_" + str(random.getrandbits(64)) + ".txt"
     n_taxa, n_reticulations, newick, param_info = simulate_network_celine_fixed(
-                n_taxa, n_reticulations, settings.min_reticulation_prob, settings.max_reticulation_prob)
-   
+                wanted_n_taxa, wanted_n_reticulations, settings.min_reticulation_prob, settings.max_reticulation_prob)
+
     network_file = open(temp_path, "w")
     network_file.write(newick + '\n')
     network_file.close()
@@ -55,7 +55,7 @@ def simulate_network_celine_fixed_nonweird(settings, n_taxa, n_reticulations):
         return n_taxa, n_reticulations, newick, param_info
     else:
         return simulate_network_celine_fixed(
-                n_taxa, n_reticulations, settings.min_reticulation_prob, settings.max_reticulation_prob)
+                wanted_n_taxa, wanted_n_reticulations, settings.min_reticulation_prob, settings.max_reticulation_prob)
 
 
 def simulate_datasets_range(prefix, settings, iterations):
@@ -106,14 +106,26 @@ def simulate_datasets_fixed(prefix, settings, iterations):
                                     ds.celine_params = param_info
                                     ds.n_trees = 2 ** ds.celine_params["no_of_hybrids"]
 
+                                    network_file = open(ds.true_network_path, "w")
+                                    network_file.write(newick + '\n')
+                                    network_file.close()
+                                    print(ds.true_network_path)
+                                    print(newick)
+                                    print(open(ds.true_network_path).readlines())
                                     if brlen_scaler != 1.0:
-                                        scale_branches_only_newick(newick, ds.true_network_path, brlen_scaler, n_taxa)
-                                    else:
-                                        network_file = open(ds.true_network_path, "w")
-                                        network_file.write(newick + '\n')
-                                        network_file.close()
+                                        scale_branches_only(ds.true_network_path, ds.true_network_path, brlen_scaler, n_taxa)
+
+                                    print("BEFORE CHANGE RETICULATION PROB ONLY:\n")
+                                    print(ds.true_network_path)
+                                    print(newick)
+                                    print(open(ds.true_network_path).readlines())
 
                                     change_reticulation_prob_only(ds.true_network_path, ds.true_network_path, reticulation_prob, n_taxa)
+                                    
+                                    print("AFTER CHANGE RETICULATION PROB ONLY:\n")
+                                    print(ds.true_network_path)
+                                    print(newick)
+                                    print(open(ds.true_network_path).readlines())
 
                                     # network topology has been simulated now.
                                     n_pairs, ds.n_equal_tree_pairs = check_weird_network(ds.true_network_path, ds.n_taxa)
@@ -121,6 +133,10 @@ def simulate_datasets_fixed(prefix, settings, iterations):
                                         ds.true_network_weirdness = float(ds.n_equal_tree_pairs) / n_pairs
                                     trees_newick, trees_prob = extract_displayed_trees(
                                         ds.true_network_path, ds.n_taxa)
+                                    print(str(n_reticulations) + " reticulations", flush=True)
+                                    print(str(len(trees_newick)) + " displayed trees found", flush=True)
+                                    if len(trees_newick) < 2 ** n_reticulations:
+                                        raise Exception("something went wrong when extracting displayed trees")
                                     ds, sampled_trees_contrib = sample_trees(ds, trees_prob)
                                     build_trees_file(ds, trees_newick, sampled_trees_contrib)
                                     simulate_msa(ds)

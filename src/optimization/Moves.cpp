@@ -20,7 +20,6 @@
 #include <utility>
 
 #include "../graph/AnnotatedNetwork.hpp"
-#include "../graph/BiconnectedComponents.hpp"
 #include "../graph/Direction.hpp"
 #include "../graph/Edge.hpp"
 #include "../graph/Link.hpp"
@@ -596,31 +595,10 @@ bool assertAfterMove(Network &network, RNNIMove &move) {
     return true;
 }
 
-void invalidateLostMegablobRoots(AnnotatedNetwork &ann_network,
-        const std::vector<Node*> &previous_megablob_roots) {
-    //std::cout << exportDebugInfoBlobs(ann_network.network, ann_network.blobInfo) << "\n";
-    std::unordered_set<Node*> act_megablob_roots;
-    for (Node *node : ann_network.blobInfo.megablob_roots) {
-        act_megablob_roots.emplace(node);
-    }
-    pllmod_treeinfo_t *treeinfo = ann_network.fake_treeinfo;
-    //std::vector<bool> visited(ann_network.network.nodes.size(), false);
-    for (Node *prevMegablobRoot : previous_megablob_roots) {
-        if (act_megablob_roots.find(prevMegablobRoot) == act_megablob_roots.end()) {
-            // we need to invalidate that clv
-            for (size_t p = 0; p < treeinfo->partition_count; ++p) {
-                treeinfo->clv_valid[p][prevMegablobRoot->clv_index] = 0;
-            }
-            //invalidateHigherCLVs(ann_network, prevMegablobRoot, true, visited);
-        }
-    }
-}
-
 void performMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
     assert(move.moveType == MoveType::RNNIMove);
     assert(assertConsecutiveIndices(ann_network));
     Network &network = ann_network.network;
-    std::vector<Node*> previous_megablob_roots = ann_network.blobInfo.megablob_roots;
     Node *u = network.nodes_by_index[move.u_clv_index];
     Node *v = network.nodes_by_index[move.v_clv_index];
     Node *s = network.nodes_by_index[move.s_clv_index];
@@ -642,9 +620,7 @@ void performMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
     invalidateHigherCLVs(ann_network, t, true, visited);
 
     ann_network.travbuffer = reversed_topological_sort(ann_network.network);
-    ann_network.blobInfo = partitionNetworkIntoBlobs(network, ann_network.travbuffer);
     assert(assertReticulationProbs(ann_network));
-    invalidateLostMegablobRoots(ann_network, previous_megablob_roots);
     assertConsecutiveIndices(ann_network);
 }
 
@@ -652,7 +628,6 @@ void undoMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
     assert(move.moveType == MoveType::RNNIMove);
     assert(assertConsecutiveIndices(ann_network));
     Network &network = ann_network.network;
-    std::vector<Node*> previous_megablob_roots = ann_network.blobInfo.megablob_roots;
     Node *u = network.nodes_by_index[move.u_clv_index];
     Node *v = network.nodes_by_index[move.v_clv_index];
     Node *s = network.nodes_by_index[move.s_clv_index];
@@ -674,9 +649,7 @@ void undoMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
     invalidateHigherCLVs(ann_network, t, true, visited);
 
     ann_network.travbuffer = reversed_topological_sort(ann_network.network);
-    ann_network.blobInfo = partitionNetworkIntoBlobs(network, ann_network.travbuffer);
     assert(assertReticulationProbs(ann_network));
-    invalidateLostMegablobRoots(ann_network, previous_megablob_roots);
     assert(assertConsecutiveIndices(ann_network));
 }
 
@@ -1212,7 +1185,6 @@ void performMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
     assert(move.moveType == MoveType::RSPRMove || move.moveType == MoveType::RSPR1Move || move.moveType == MoveType::HeadMove || move.moveType == MoveType::TailMove);
     assert(assertConsecutiveIndices(ann_network));
     Network &network = ann_network.network;
-    std::vector<Node*> previous_megablob_roots = ann_network.blobInfo.megablob_roots;
     Node *x_prime = network.nodes_by_index[move.x_prime_clv_index];
     Node *y_prime = network.nodes_by_index[move.y_prime_clv_index];
     Node *x = network.nodes_by_index[move.x_clv_index];
@@ -1296,12 +1268,10 @@ void performMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
     invalidatePmatrixIndex(ann_network, z_y_prime_edge->pmatrix_index, visited);
 
     ann_network.travbuffer = reversed_topological_sort(ann_network.network);
-    ann_network.blobInfo = partitionNetworkIntoBlobs(network, ann_network.travbuffer);
 
     //std::cout << exportDebugInfo(ann_network.network) << "\n";
 
     assert(assertReticulationProbs(ann_network));
-    invalidateLostMegablobRoots(ann_network, previous_megablob_roots);
     assert(assertConsecutiveIndices(ann_network));
 }
 
@@ -1309,7 +1279,6 @@ void undoMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
     assert(move.moveType == MoveType::RSPRMove || move.moveType == MoveType::RSPR1Move || move.moveType == MoveType::HeadMove || move.moveType == MoveType::TailMove);
     assert(assertConsecutiveIndices(ann_network));
     Network &network = ann_network.network;
-    std::vector<Node*> previous_megablob_roots = ann_network.blobInfo.megablob_roots;
     Node *x_prime = network.nodes_by_index[move.x_prime_clv_index];
     Node *y_prime = network.nodes_by_index[move.y_prime_clv_index];
     Node *x = network.nodes_by_index[move.x_clv_index];
@@ -1379,9 +1348,7 @@ void undoMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
     invalidatePmatrixIndex(ann_network, z_y_edge->pmatrix_index, visited);
 
     ann_network.travbuffer = reversed_topological_sort(ann_network.network);
-    ann_network.blobInfo = partitionNetworkIntoBlobs(network, ann_network.travbuffer);
     assert(assertReticulationProbs(ann_network));
-    invalidateLostMegablobRoots(ann_network, previous_megablob_roots);
     assert(assertConsecutiveIndices(ann_network));
 }
 
@@ -1579,7 +1546,6 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     assert(assertConsecutiveIndices(ann_network));
     assert(assertBranchLengths(ann_network));
     Network &network = ann_network.network;
-    std::vector<Node*> previous_megablob_roots = ann_network.blobInfo.megablob_roots;
 
     Link *from_a_link = getLinkToNode(network, move.a_clv_index, move.b_clv_index);
     Link *to_b_link = getLinkToNode(network, move.b_clv_index, move.a_clv_index);
@@ -1689,10 +1655,8 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     invalidatePmatrixIndex(ann_network, u_v_edge->pmatrix_index, visited);
 
     ann_network.travbuffer = reversed_topological_sort(ann_network.network);
-    ann_network.blobInfo = partitionNetworkIntoBlobs(network, ann_network.travbuffer);
     checkSanity(network);
     assert(assertReticulationProbs(ann_network));
-    invalidateLostMegablobRoots(ann_network, previous_megablob_roots);
     assert(assertConsecutiveIndices(ann_network));
     assert(assertBranchLengths(ann_network));
 }
@@ -1941,7 +1905,6 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     assert(move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::DeltaMinusMove);
     assert(assertConsecutiveIndices(ann_network));
     Network &network = ann_network.network;
-    std::vector<Node*> previous_megablob_roots = ann_network.blobInfo.megablob_roots;
     Link *from_a_link = getLinkToNode(network, move.a_clv_index, move.u_clv_index);
     Link *to_b_link = getLinkToNode(network, move.b_clv_index, move.u_clv_index);
     Link *from_c_link = getLinkToNode(network, move.c_clv_index, move.v_clv_index);
@@ -2041,10 +2004,8 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     invalidatePmatrixIndex(ann_network, c_d_edge->pmatrix_index, visited);
 
     ann_network.travbuffer = reversed_topological_sort(ann_network.network);
-    ann_network.blobInfo = partitionNetworkIntoBlobs(network, ann_network.travbuffer);
     assert(checkSanity(network));
     assert(assertReticulationProbs(ann_network));
-    invalidateLostMegablobRoots(ann_network, previous_megablob_roots);
     assert(assertConsecutiveIndices(ann_network));
 
     bool all_clvs_valid = true;

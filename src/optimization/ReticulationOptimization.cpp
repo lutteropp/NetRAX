@@ -6,7 +6,6 @@
 #include <iostream>
 #include <limits>
 
-#include "../graph/Common.hpp"
 #include "../graph/NetworkFunctions.hpp"
 #include "../graph/NetworkTopology.hpp"
 #include "../likelihood/LikelihoodComputation.hpp"
@@ -30,14 +29,7 @@ static double brent_target_networks_prob(void *p, double x) {
         score = -1 * computeLoglikelihood(*ann_network, 1, 1);
     } else {
         ann_network->reticulation_probs[reticulation_index] = x;
-
-        if (!ann_network->old_displayed_trees.empty()) {
-            for (size_t p = 0; p < ann_network->fake_treeinfo->partition_count; ++p) {
-                for (size_t i = 0; i < ann_network->old_displayed_trees[p].size(); ++i) {
-                    ann_network->old_displayed_trees[p][i].tree_logprob = displayed_tree_logprob(*ann_network, ann_network->old_displayed_trees[p][i].tree_idx);
-                }
-            }
-        }
+        ann_network->cached_logl_valid = false;
 
         score = -1 * computeLoglikelihood(*ann_network, 1, 1);
         //std::cout << "    score: " << score << ", x: " << x << ", old_x: " << old_x << ", pmatrix index:"
@@ -52,8 +44,8 @@ double optimize_reticulation(AnnotatedNetwork &ann_network, size_t reticulation_
     double tolerance = ann_network.options.tolerance;
 
     double start_logl = computeLoglikelihood(ann_network, 1, 1);
-    double old_logl = ann_network.raxml_treeinfo->loglh(true);
-    assert(start_logl == old_logl);
+    //double old_logl = ann_network.raxml_treeinfo->loglh(true);
+    //assert(start_logl == old_logl);
 
     double best_logl = start_logl;
     BrentBrprobParams params;
@@ -91,7 +83,7 @@ double optimize_reticulation(AnnotatedNetwork &ann_network, size_t reticulation_
 
 
 double optimize_reticulations(AnnotatedNetwork &ann_network, int max_iters) {
-    double act_logl = ann_network.raxml_treeinfo->loglh(true);
+    double act_logl = computeLoglikelihood(ann_network, 1, 1);
     int act_iters = 0;
     while (act_iters < max_iters) {
         double loop_logl = act_logl;
@@ -117,7 +109,7 @@ void optimizeReticulationProbs(AnnotatedNetwork &ann_network) {
     if (ann_network.network.num_reticulations() == 0) {
         return;
     }
-    assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
+    //assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
     double old_score = scoreNetwork(ann_network);
     netrax::optimize_reticulations(ann_network, 100);
     double new_score = scoreNetwork(ann_network);

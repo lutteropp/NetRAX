@@ -71,6 +71,7 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     {
         throw std::runtime_error("brlen_linkage needs to be one of {linked, scaled, unlinked}");
     }
+    assert(!options->use_repeats);
     return 0;
 }
 
@@ -345,47 +346,55 @@ int main(int argc, char **argv)
     if (netraxOptions.pretty_print_only)
     {
         pretty_print(netraxOptions);
+        mpfr_free_cache();
         return 0;
     }
 
     if (netraxOptions.extract_taxon_names)
     {
         extract_taxon_names(netraxOptions);
+        mpfr_free_cache();
         return 0;
     }
 
     if (netraxOptions.extract_displayed_trees)
     {
         extract_displayed_trees(netraxOptions, rng);
+        mpfr_free_cache();
         return 0;
     }
 
     if (netraxOptions.check_weird_network)
     {
         check_weird_network(netraxOptions, rng);
+        mpfr_free_cache();
         return 0;
     }
 
     if (netraxOptions.generate_random_network_only)
     {
         generate_random_network_only(netraxOptions, rng);
+        mpfr_free_cache();
         return 0;
     }
 
     if (netraxOptions.scale_branches_only != 0.0)
     {
         scale_branches_only(netraxOptions, rng);
+        mpfr_free_cache();
         return 0;
     }
 
     if (netraxOptions.change_reticulation_probs_only) {
         scale_reticulation_probs_only(netraxOptions, rng);
+        mpfr_free_cache();
         return 0;
     }
 
     if (netraxOptions.network_distance_only)
     {
         network_distance_only(netraxOptions, rng);
+        mpfr_free_cache();
         return 0;
     }
 
@@ -397,6 +406,7 @@ int main(int argc, char **argv)
     if (netraxOptions.score_only)
     {
         score_only(netraxOptions, rng);
+        mpfr_free_cache();
         return 0;
     }
     else if (netraxOptions.output_file.empty())
@@ -407,10 +417,12 @@ int main(int argc, char **argv)
     if (!netraxOptions.start_network_file.empty())
     {
         run_single_start_waves(netraxOptions, rng);
+        mpfr_free_cache();
     }
     else
     {
         run_random(netraxOptions, rng);
+        mpfr_free_cache();
     }
 
     return 0;

@@ -111,7 +111,7 @@ def smoke_test_fixed():
     settings.likelihood_types = [LikelihoodType.AVERAGE]
     settings.partition_sizes = [100]
     settings.fixed_n_taxa = [4]
-    settings.fixed_n_reticulations = [0]
+    settings.fixed_n_reticulations = [1]
     settings.fixed_reticulation_probs = [0.5]
     settings.use_fixed_simulation = True
     settings.use_partitioned_msa_types = [True]

@@ -77,4 +77,6 @@ bool assertReticulationProbs(AnnotatedNetwork &ann_network);
 
 std::unordered_set<size_t> getNeighborPmatrixIndices(Network &network, Edge *edge);
 
+void setReticulationState(Network &network, size_t reticulation_idx, ReticulationState state);
+
 }
