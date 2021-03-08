@@ -49,9 +49,7 @@ bool assert_branch_lengths(AnnotatedNetwork& ann_network) {
 void apply_displayed_trees_data(const NetworkState& state, AnnotatedNetwork& ann_network, bool copy_network) {
     for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
         for (size_t i = 0; i < ann_network.network.nodes.size(); ++i) {
-            if ((copy_network) || (!ann_network.fake_treeinfo->clv_valid[p][i])) {
-                ann_network.pernode_displayed_tree_data[p][i] = state.pernode_displayed_tree_data[p][i];
-            }
+            ann_network.pernode_displayed_tree_data[p][i] = state.pernode_displayed_tree_data[p][i];
         }
     }
 }
