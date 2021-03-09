@@ -23,6 +23,8 @@ namespace netrax {
 
 double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental = 1, int update_pmatrices = 1);
 
+double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, unsigned int pmatrix_index, int incremental = 1, int update_pmatrices = 1);
+
 double computeLoglikelihoodNaiveUtree(AnnotatedNetwork &ann_network, int incremental,
         int update_pmatrices, std::vector<double> *treewise_logl = nullptr);
 

@@ -579,6 +579,29 @@ double evaluateTrees(AnnotatedNetwork &ann_network) {
     return ann_network.cached_logl;
 }
 
+double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, unsigned int pmatrix_index, int incremental, int update_pmatrices) {
+    const Network &network = ann_network.network;
+    assert(reuseOldDisplayedTreesCheck(ann_network, incremental));
+    setup_pmatrices(ann_network, incremental, update_pmatrices);
+
+    Node* source = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
+    Node* target = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        pll_partition_t* partition = ann_network.fake_treeinfo->partitions[p];
+        size_t n_trees = ann_network.pernode_displayed_tree_data[p][network.root->clv_index].num_active_displayed_trees;
+        for (size_t i = 0; i < n_trees; ++i) {
+            DisplayedTreeData& actTree = ann_network.pernode_displayed_tree_data[p][network.root->clv_index].displayed_trees[i];
+            assert(actTree.tree_logl_valid);
+            DisplayedTreeData& sourceTree = getMatchingDisplayedTreeAtNode(ann_network, p, source->clv_index, actTree.reticulationChoices);
+            DisplayedTreeData& targetTree = getMatchingDisplayedTreeAtNode(ann_network, p, target->clv_index, actTree.reticulationChoices);
+            actTree.tree_logl = pll_compute_edge_loglikelihood(partition, source->clv_index, sourceTree.clv_vector, sourceTree.scale_buffer, 
+                                                                target->clv_index, targetTree.clv_vector, targetTree.scale_buffer, 
+                                                                pmatrix_index, ann_network.fake_treeinfo->param_indices[p], nullptr);
+        }
+    }
+    return evaluateTrees(ann_network);
+}
+
 double computeLoglikelihoodImproved(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices) {
     const Network &network = ann_network.network;
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
