@@ -504,32 +504,9 @@ DisplayedTreeData& getMatchingDisplayedTreeAtNode(AnnotatedNetwork& ann_network,
     throw std::runtime_error("No compatible displayed tree data found");
 }
 
-double computeLoglikelihoodImproved(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices) {
+double evaluateTrees(AnnotatedNetwork &ann_network) {
     const Network &network = ann_network.network;
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
-    bool reuse_old_displayed_trees = reuseOldDisplayedTreesCheck(ann_network, incremental);
-    if (reuse_old_displayed_trees) {
-        if (ann_network.cached_logl_valid) {
-            return ann_network.cached_logl;
-        }
-
-        //std::cout << "reuse displayed trees\n";
-        for (size_t p = 0; p < fake_treeinfo.partition_count; ++p) { // TODO: Why is this needed here?
-            std::vector<DisplayedTreeData>& displayed_root_trees = ann_network.pernode_displayed_tree_data[p][network.root->clv_index].displayed_trees;
-            size_t n_trees = ann_network.pernode_displayed_tree_data[p][network.root->clv_index].num_active_displayed_trees;
-            for (size_t t = 0; t < n_trees; ++t) {
-                assert(displayed_root_trees[t].tree_logl_valid == true);
-                displayed_root_trees[t].tree_logprob = computeReticulationConfigLogProb(displayed_root_trees[t].reticulationChoices, ann_network.reticulation_probs);
-                displayed_root_trees[t].tree_logprob_valid = true;
-            }
-        }
-    } else {
-        fake_treeinfo.active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
-        setup_pmatrices(ann_network, incremental, update_pmatrices);
-        for (size_t p = 0; p < fake_treeinfo.partition_count; ++p) {
-            processPartitionImproved(ann_network, p, incremental);
-        }
-    }
     mpfr::mpreal network_logl = 0.0;
 
     for (size_t partition_idx = 0; partition_idx < fake_treeinfo.partition_count; ++partition_idx) {
@@ -600,6 +577,34 @@ double computeLoglikelihoodImproved(AnnotatedNetwork &ann_network, int increment
     ann_network.cached_logl = network_logl.toDouble();
     ann_network.cached_logl_valid = true;
     return ann_network.cached_logl;
+}
+
+double computeLoglikelihoodImproved(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices) {
+    const Network &network = ann_network.network;
+    pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
+    bool reuse_old_displayed_trees = reuseOldDisplayedTreesCheck(ann_network, incremental);
+    if (reuse_old_displayed_trees) {
+        if (ann_network.cached_logl_valid) {
+            return ann_network.cached_logl;
+        }
+        //std::cout << "reuse displayed trees\n";
+        for (size_t p = 0; p < fake_treeinfo.partition_count; ++p) { // TODO: Why is this needed here?
+            std::vector<DisplayedTreeData>& displayed_root_trees = ann_network.pernode_displayed_tree_data[p][network.root->clv_index].displayed_trees;
+            size_t n_trees = ann_network.pernode_displayed_tree_data[p][network.root->clv_index].num_active_displayed_trees;
+            for (size_t t = 0; t < n_trees; ++t) {
+                assert(displayed_root_trees[t].tree_logl_valid == true);
+                displayed_root_trees[t].tree_logprob = computeReticulationConfigLogProb(displayed_root_trees[t].reticulationChoices, ann_network.reticulation_probs);
+                displayed_root_trees[t].tree_logprob_valid = true;
+            }
+        }
+    } else {
+        fake_treeinfo.active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
+        setup_pmatrices(ann_network, incremental, update_pmatrices);
+        for (size_t p = 0; p < fake_treeinfo.partition_count; ++p) {
+            processPartitionImproved(ann_network, p, incremental);
+        }
+    }
+    return evaluateTrees(ann_network);
 }
 
 /**
