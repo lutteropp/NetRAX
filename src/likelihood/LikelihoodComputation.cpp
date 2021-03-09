@@ -495,6 +495,15 @@ bool reuseOldDisplayedTreesCheck(AnnotatedNetwork& ann_network, int incremental)
     return all_clvs_valid;
 }
 
+DisplayedTreeData& getMatchingDisplayedTreeAtNode(AnnotatedNetwork& ann_network, unsigned int partition_idx, unsigned int node_clv_index, const ReticulationConfigSet& queryChoices) {
+    for (size_t i = 0; i < ann_network.pernode_displayed_tree_data[partition_idx][node_clv_index].num_active_displayed_trees; ++i) {
+        if (reticulationConfigsCompatible(queryChoices, ann_network.pernode_displayed_tree_data[partition_idx][node_clv_index].displayed_trees[i].reticulationChoices)) {
+            return ann_network.pernode_displayed_tree_data[partition_idx][node_clv_index].displayed_trees[i];
+        }
+    }
+    throw std::runtime_error("No compatible displayed tree data found");
+}
+
 double computeLoglikelihoodImproved(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices) {
     const Network &network = ann_network.network;
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
