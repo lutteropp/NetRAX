@@ -28,60 +28,23 @@ struct BrentBrlenParams {
     size_t partition_index;
 };
 
-void checkLoglBeforeAfter(AnnotatedNetwork& ann_network) {
-    //assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
-}
-
 static double brent_target_networks(void *p, double x) {
     AnnotatedNetwork *ann_network = ((BrentBrlenParams*) p)->ann_network;
     size_t pmatrix_index = ((BrentBrlenParams*) p)->pmatrix_index;
     size_t partition_index = ((BrentBrlenParams*) p)->partition_index;
     double old_x = ann_network->fake_treeinfo->branch_lengths[partition_index][pmatrix_index];
     double score;
-    checkLoglBeforeAfter(*ann_network);
     if (old_x == x) {
-        // TODO: Remove this after debugging
-        double computedNewLogl = computeLoglikelihoodBrlenOpt(*ann_network, pmatrix_index, 1, 1);
-        invalidatePmatrixIndex(*ann_network, pmatrix_index);
-        double correctNewLogl = computeLoglikelihood(*ann_network, 0, 1);
-        if (computedNewLogl != correctNewLogl) {
-            std::cout << exportDebugInfo(*ann_network) << "\n";
-            std::cout << "computed new logl: " << computedNewLogl << "\n";
-            std::cout << "correct new logl: " << correctNewLogl << "\n";
-            throw std::runtime_error("First case - Network loglikelihood has not correctly been recomputed");
-        } else {
-            std::cout << "First case - Recompute was correct\n";
-        }
-
         score = -1 * computeLoglikelihoodBrlenOpt(*ann_network, pmatrix_index, 1, 1);
-
-        checkLoglBeforeAfter(*ann_network);
     } else {
         ann_network->fake_treeinfo->branch_lengths[partition_index][pmatrix_index] = x;
         for (size_t partition_idx = 0; partition_idx < ann_network->fake_treeinfo->partition_count; ++partition_idx) {
             ann_network->fake_treeinfo->pmatrix_valid[partition_idx][pmatrix_index] = 0;
         }
-        //invalidatePmatrixIndex(*ann_network, pmatrix_index);
         setup_pmatrices(*ann_network, true, true);
         assert(ann_network->fake_treeinfo->pmatrix_valid[partition_index][pmatrix_index]);
 
-
-        // TODO: Remove this after debugging
-        double computedNewLogl = computeLoglikelihoodBrlenOpt(*ann_network, pmatrix_index, 1, 0);
-        invalidatePmatrixIndex(*ann_network, pmatrix_index);
-        double correctNewLogl = computeLoglikelihood(*ann_network, 0, 1);
-        if (computedNewLogl != correctNewLogl) {
-            std::cout << exportDebugInfo(*ann_network) << "\n";
-            std::cout << "computed new logl: " << computedNewLogl << "\n";
-            std::cout << "correct new logl: " << correctNewLogl << "\n";
-            throw std::runtime_error("Second case - Network loglikelihood has not correctly been recomputed");
-        } else {
-            std::cout << "Second case - Recompute was correct\n";
-        }
-
         score = -1 * computeLoglikelihoodBrlenOpt(*ann_network, pmatrix_index, 1, 0);
-
-        checkLoglBeforeAfter(*ann_network);
     }
     return score;
 }
@@ -123,10 +86,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, size
     double max_brlen = ann_network.options.brlen_max;
     double tolerance = ann_network.options.tolerance;
 
-    double start_logl = computeLoglikelihood(ann_network, 1, 1);
-    checkLoglBeforeAfter(ann_network);
-    //double old_logl = ann_network.raxml_treeinfo->loglh(true);
-    //assert(start_logl == old_logl);
+    double start_logl = computeLoglikelihoodBrlenOpt(ann_network, pmatrix_index, 1, 1);
 
     double best_logl = start_logl;
     BrentBrlenParams params;
@@ -145,15 +105,11 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, size
     double new_brlen = pllmod_opt_minimize_brent(min_brlen, old_brlen, max_brlen, tolerance, &score,
             &f2x, (void*) &params, &brent_target_networks);
 
-    invalidateHigherCLVs(ann_network, getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]), partition_index, true);
-
-    checkLoglBeforeAfter(ann_network);
-
     assert(new_brlen >= min_brlen && new_brlen <= max_brlen);
 
     //std::cout << "  score: " << score << "\n";
     //std::cout << "  old_brlen: " << old_brlen << ", new_brlen: " << new_brlen << "\n";
-    best_logl = computeLoglikelihood(ann_network, 1, 1);
+    best_logl = computeLoglikelihoodBrlenOpt(ann_network, pmatrix_index, 1, 1);
     //std::cout << " start logl for branch " << pmatrix_index << " with length " << old_brlen << ": " << start_logl
      //       << "\n";
     //std::cout << "   end logl for branch " << pmatrix_index << " with length " << new_brlen << ": " << best_logl
@@ -164,7 +120,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, size
 }
 
 double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index) {
-    double old_logl = computeLoglikelihood(ann_network, 1, 1);
+    double old_logl = computeLoglikelihoodBrlenOpt(ann_network, pmatrix_index, 1, 1);
     size_t n_partitions = 1;
     bool unlinkedMode = (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
     if (unlinkedMode) {
@@ -195,27 +151,30 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
     double old_logl = computeLoglikelihood(ann_network, 1, 1);
     double start_logl = old_logl;
     std::vector<size_t> act_iters(ann_network.network.num_branches(), 0);
+
+    Node* old_virtual_root = ann_network.network.root;
     while (!candidates.empty()) {
         size_t pmatrix_index = *candidates.begin();
         candidates.erase(candidates.begin());
         //std::cout << "\noptimizing branch " << pmatrix_index << "\n";
-        checkLoglBeforeAfter(ann_network);
 
         if (act_iters[pmatrix_index] >= max_iters) {
             continue;
         }
         act_iters[pmatrix_index]++;
 
+        Node* new_virtual_root = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
+        updateCLVsVirtualRerootTrees(ann_network, old_virtual_root, new_virtual_root);
         double new_logl = optimize_branch(ann_network, pmatrix_index);
-
-        checkLoglBeforeAfter(ann_network);
 
         if (new_logl - old_logl > lh_epsilon) { // add all neighbors of the branch to the candidates
             add_neighbors_in_radius(ann_network, candidates, pmatrix_index, 1);
         }
         old_logl = new_logl;
+        old_virtual_root = new_virtual_root;
     }
     assert(old_logl >= start_logl);
+    updateCLVsVirtualRerootTrees(ann_network, old_virtual_root, ann_network.network.root);
     return old_logl;
 }
 
@@ -233,10 +192,8 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
  * @param ann_network The network.
  */
 void optimizeBranches(AnnotatedNetwork &ann_network) {
-    checkLoglBeforeAfter(ann_network);
     double old_score = scoreNetwork(ann_network);
-    ann_network.raxml_treeinfo->optimize_branches(ann_network.options.lh_epsilon, 10);
-    checkLoglBeforeAfter(ann_network);
+    ann_network.raxml_treeinfo->optimize_branches(ann_network.options.lh_epsilon, 10); // TODO: Which function gets called here???
     double new_score = scoreNetwork(ann_network);
     std::cout << "BIC score after branch length optimization: " << new_score << "\n";
     assert(new_score <= old_score + ann_network.options.score_epsilon);
