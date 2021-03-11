@@ -18,6 +18,7 @@
 #include "../RaxmlWrapper.hpp"
 #include "../utils.hpp"
 #include "../graph/AnnotatedNetwork.hpp"
+#include "../DebugPrintFunctions.hpp"
 
 namespace netrax {
 
@@ -41,8 +42,10 @@ static double brent_target_networks(void *p, double x) {
     if (old_x == x) {
         // TODO: Remove this after debugging
         double computedNewLogl = computeLoglikelihoodBrlenOpt(*ann_network, pmatrix_index, 1, 1);
+        invalidatePmatrixIndex(*ann_network, pmatrix_index);
         double correctNewLogl = computeLoglikelihood(*ann_network, 0, 1);
         if (computedNewLogl != correctNewLogl) {
+            std::cout << exportDebugInfo(*ann_network) << "\n";
             std::cout << "computed new logl: " << computedNewLogl << "\n";
             std::cout << "correct new logl: " << correctNewLogl << "\n";
             throw std::runtime_error("First case - Network loglikelihood has not correctly been recomputed");
@@ -65,8 +68,10 @@ static double brent_target_networks(void *p, double x) {
 
         // TODO: Remove this after debugging
         double computedNewLogl = computeLoglikelihoodBrlenOpt(*ann_network, pmatrix_index, 1, 0);
+        invalidatePmatrixIndex(*ann_network, pmatrix_index);
         double correctNewLogl = computeLoglikelihood(*ann_network, 0, 1);
         if (computedNewLogl != correctNewLogl) {
+            std::cout << exportDebugInfo(*ann_network) << "\n";
             std::cout << "computed new logl: " << computedNewLogl << "\n";
             std::cout << "correct new logl: " << correctNewLogl << "\n";
             throw std::runtime_error("Second case - Network loglikelihood has not correctly been recomputed");

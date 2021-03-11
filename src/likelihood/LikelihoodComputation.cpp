@@ -579,6 +579,38 @@ double evaluateTrees(AnnotatedNetwork &ann_network) {
     return ann_network.cached_logl;
 }
 
+bool isActiveBranch(AnnotatedNetwork& ann_network, const DisplayedTreeData& displayedTree, unsigned int pmatrix_index) {
+    Node* edge_source = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
+    Node* edge_target = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
+    bool seen_source = false;
+    bool seen_target = false;
+    for (size_t i = 0; i < ann_network.pernode_displayed_tree_data[0][edge_source->clv_index].num_active_displayed_trees; ++i) {
+        DisplayedTreeData& actTree = ann_network.pernode_displayed_tree_data[0][edge_source->clv_index].displayed_trees[i];
+        if (reticulationConfigsCompatible(displayedTree.reticulationChoices, actTree.reticulationChoices)) {
+            seen_source = true;
+            break;
+        }
+    }
+    for (size_t i = 0; i < ann_network.pernode_displayed_tree_data[0][edge_target->clv_index].num_active_displayed_trees; ++i) {
+        DisplayedTreeData& actTree = ann_network.pernode_displayed_tree_data[0][edge_target->clv_index].displayed_trees[i];
+        if (reticulationConfigsCompatible(displayedTree.reticulationChoices, actTree.reticulationChoices)) {
+            seen_target = true;
+            break;
+        }
+    }
+    return (seen_source && seen_target);
+}
+
+std::vector<Node*> getPath(AnnotatedNetwork& ann_network, Node* from, Node* to) {
+    assert(from);
+    assert(to);
+    throw std::runtime_error("Not implemented yet");
+}
+
+void updateCLVsVirtualRerootTrees(AnnotatedNetwork& ann_network, Node* old_virtual_root, Node* new_virtual_root) {
+    throw std::runtime_error("Not implemented yet");
+}
+
 double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, unsigned int pmatrix_index, int incremental, int update_pmatrices) {
     const Network &network = ann_network.network;
     assert(reuseOldDisplayedTreesCheck(ann_network, incremental));
