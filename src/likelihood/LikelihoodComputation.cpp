@@ -607,6 +607,30 @@ std::vector<Node*> getPath(AnnotatedNetwork& ann_network, Node* from, Node* to) 
     throw std::runtime_error("Not implemented yet");
 }
 
+std::vector<Node*> getParentPointers(AnnotatedNetwork& ann_network, const std::vector<ReticulationState>& reticulationChoices, Node* virtual_root) {
+    assert(virtual_root);
+    setReticulationParents(ann_network.network, reticulationChoices);
+    std::vector<Node*> parent(ann_network.network.num_nodes(), nullptr);
+    parent[virtual_root->clv_index] = virtual_root;
+    std::queue<Node*> q;
+    
+    q.emplace(virtual_root);
+    while (!q.empty()) {
+        Node* actNode = q.front();
+        q.pop();
+        std::vector<Node*> neighbors = getActiveNeighbors(ann_network.network, actNode);
+        for (size_t i = 0; i < neighbors.size(); ++i) {
+            Node* neigh = neighbors[i];
+            if (!parent[neigh->clv_index]) { // neigh was not already processed
+                q.emplace(neigh);
+                parent[neigh->clv_index] = actNode;
+            }
+        }
+    }
+    parent[virtual_root->clv_index] = nullptr;
+    return parent;
+}
+
 void updateCLVsVirtualRerootTrees(AnnotatedNetwork& ann_network, Node* old_virtual_root, Node* new_virtual_root) {
     throw std::runtime_error("Not implemented yet");
 }

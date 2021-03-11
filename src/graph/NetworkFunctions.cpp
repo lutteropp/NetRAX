@@ -366,6 +366,16 @@ void setReticulationParents(Network &network, size_t treeIdx) {
     }
 }
 
+void setReticulationParents(Network &network, const std::vector<ReticulationState>& reticulationChoices) {
+    for (size_t i = 0; i < network.num_reticulations(); ++i) {
+        if (reticulationChoices[i] == ReticulationState::TAKE_FIRST_PARENT) {
+            network.reticulation_nodes[i]->getReticulationData()->setActiveParentToggle(0);
+        } else if (reticulationChoices[i] == ReticulationState::TAKE_SECOND_PARENT) {
+            network.reticulation_nodes[i]->getReticulationData()->setActiveParentToggle(1);
+        }
+    }
+}
+
 void forbidSubnetwork(Network &network, Node *node, std::vector<bool> &forbidden) {
     if (forbidden[node->clv_index])
         return;
