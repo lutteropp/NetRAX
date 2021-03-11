@@ -601,10 +601,17 @@ bool isActiveBranch(AnnotatedNetwork& ann_network, const DisplayedTreeData& disp
     return (seen_source && seen_target);
 }
 
-std::vector<Node*> getPath(AnnotatedNetwork& ann_network, Node* from, Node* to) {
+std::vector<Node*> getPathToVirtualRoot(AnnotatedNetwork& ann_network, Node* from, Node* virtual_root, const std::vector<Node*> parent) {
     assert(from);
-    assert(to);
-    throw std::runtime_error("Not implemented yet");
+    assert(virtual_root);
+    std::vector<Node*> res;
+    Node* act_node = from;
+    while (act_node != virtual_root){
+        res.emplace_back(act_node);
+        act_node = parent[act_node->clv_index];
+    }
+    res.emplace_back(virtual_root);
+    return res;
 }
 
 std::vector<Node*> getParentPointers(AnnotatedNetwork& ann_network, const std::vector<ReticulationState>& reticulationChoices, Node* virtual_root) {
