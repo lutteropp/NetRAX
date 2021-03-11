@@ -504,15 +504,15 @@ DisplayedTreeData& getMatchingDisplayedTreeAtNode(AnnotatedNetwork& ann_network,
     throw std::runtime_error("No compatible displayed tree data found");
 }
 
-double evaluateTrees(AnnotatedNetwork &ann_network) {
+double evaluateTrees(AnnotatedNetwork &ann_network, Node* virtual_root) {
     const Network &network = ann_network.network;
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
     mpfr::mpreal network_logl = 0.0;
 
     for (size_t partition_idx = 0; partition_idx < fake_treeinfo.partition_count; ++partition_idx) {
         fake_treeinfo.active_partition = partition_idx;
-        std::vector<DisplayedTreeData>& displayed_root_trees = ann_network.pernode_displayed_tree_data[partition_idx][network.root->clv_index].displayed_trees;
-        size_t n_trees = ann_network.pernode_displayed_tree_data[partition_idx][network.root->clv_index].num_active_displayed_trees;
+        std::vector<DisplayedTreeData>& displayed_root_trees = ann_network.pernode_displayed_tree_data[partition_idx][virtual_root->clv_index].displayed_trees;
+        size_t n_trees = ann_network.pernode_displayed_tree_data[partition_idx][virtual_root->clv_index].num_active_displayed_trees;
 
         if (ann_network.options.likelihood_variant == LikelihoodVariant::AVERAGE_DISPLAYED_TREES) {
             mpfr::mpreal partition_lh = 0.0;
@@ -537,9 +537,9 @@ double evaluateTrees(AnnotatedNetwork &ann_network) {
                 if (!tree.tree_logl_valid) {
                     std::cout << "tree_idx: " << tree_idx << "\n";
                     std::cout << "n_trees: " << n_trees << "\n";
-                    std::cout << "displayed trees stored at node " << ann_network.network.root->clv_index << ":\n";
-                    for (size_t j = 0; j < ann_network.pernode_displayed_tree_data[0][ann_network.network.root->clv_index].num_active_displayed_trees; ++j) {
-                        printReticulationChoices(ann_network.pernode_displayed_tree_data[0][ann_network.network.root->clv_index].displayed_trees[j].reticulationChoices);
+                    std::cout << "displayed trees stored at node " << virtual_root->clv_index << ":\n";
+                    for (size_t j = 0; j < ann_network.pernode_displayed_tree_data[0][virtual_root->clv_index].num_active_displayed_trees; ++j) {
+                        printReticulationChoices(ann_network.pernode_displayed_tree_data[0][virtual_root->clv_index].displayed_trees[j].reticulationChoices);
                     }
                     throw std::runtime_error("invalid tree logl");
                 }
@@ -643,26 +643,26 @@ void updateCLVsVirtualRerootTrees(AnnotatedNetwork& ann_network, Node* old_virtu
 }
 
 double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, unsigned int pmatrix_index, int incremental, int update_pmatrices) {
-    const Network &network = ann_network.network;
-    assert(reuseOldDisplayedTreesCheck(ann_network, incremental));
-    setup_pmatrices(ann_network, incremental, update_pmatrices);
-
     Node* source = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
     Node* target = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
+    assert(reuseOldDisplayedTreesCheck(ann_network, incremental)); // TODO: Doesn't this need the virtual_root pointer, too?
+    setup_pmatrices(ann_network, incremental, update_pmatrices);
     for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
         pll_partition_t* partition = ann_network.fake_treeinfo->partitions[p];
-        size_t n_trees = ann_network.pernode_displayed_tree_data[p][network.root->clv_index].num_active_displayed_trees;
+        size_t n_trees = ann_network.pernode_displayed_tree_data[p][source->clv_index].num_active_displayed_trees;
         for (size_t i = 0; i < n_trees; ++i) {
-            DisplayedTreeData& actTree = ann_network.pernode_displayed_tree_data[p][network.root->clv_index].displayed_trees[i];
-            assert(actTree.tree_logl_valid);
-            DisplayedTreeData& sourceTree = getMatchingDisplayedTreeAtNode(ann_network, p, source->clv_index, actTree.reticulationChoices);
-            DisplayedTreeData& targetTree = getMatchingDisplayedTreeAtNode(ann_network, p, target->clv_index, actTree.reticulationChoices);
-            actTree.tree_logl = pll_compute_edge_loglikelihood(partition, source->clv_index, sourceTree.clv_vector, sourceTree.scale_buffer, 
+            DisplayedTreeData& sourceTree = ann_network.pernode_displayed_tree_data[p][source->clv_index].displayed_trees[i];
+            DisplayedTreeData& targetTree = getMatchingDisplayedTreeAtNode(ann_network, p, target->clv_index, sourceTree.reticulationChoices);
+
+            // TODO: Find the actual virtual root for the displayed tree, we might have a dead node situation
+            // TODO: Also, for inactive branches (in dead area) we don't need to always recompute tree loglh as it stays the same
+            throw std::runtime_error("Not correctly implemented yet");
+            sourceTree.tree_logl = pll_compute_edge_loglikelihood(partition, source->clv_index, sourceTree.clv_vector, sourceTree.scale_buffer, 
                                                                 target->clv_index, targetTree.clv_vector, targetTree.scale_buffer, 
                                                                 pmatrix_index, ann_network.fake_treeinfo->param_indices[p], nullptr);
         }
     }
-    return evaluateTrees(ann_network);
+    return evaluateTrees(ann_network, source);
 }
 
 double computeLoglikelihoodImproved(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices) {
@@ -690,7 +690,7 @@ double computeLoglikelihoodImproved(AnnotatedNetwork &ann_network, int increment
             processPartitionImproved(ann_network, p, incremental);
         }
     }
-    return evaluateTrees(ann_network);
+    return evaluateTrees(ann_network, ann_network.network.root);
 }
 
 /**
