@@ -230,6 +230,9 @@ namespace netrax
                     return false;
                 }
             }
+            if ((left[i] == ReticulationState::INVALID) || (right[i] == ReticulationState::INVALID)) {
+                return false;
+            }
         }
         return true;
     }

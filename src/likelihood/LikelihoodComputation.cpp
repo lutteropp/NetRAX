@@ -143,10 +143,31 @@ void iterateOverScaler(unsigned int* scaler, ScaleBufferRangeInfo& scalerInfo) {
     std::cout << "\n";
 }
 
+ReticulationState getReticulationStateToDismissNeighbor(Network& network, Node* reticulationNode, Node* neighbor) {
+    assert(reticulationNode->getType() == NodeType::RETICULATION_NODE);
+    if (neighbor == getReticulationFirstParent(network, reticulationNode)) {
+        return ReticulationState::TAKE_SECOND_PARENT;
+    } else if (neighbor == getReticulationSecondParent(network, reticulationNode)) {
+        return ReticulationState::TAKE_FIRST_PARENT;
+    } else {
+        return ReticulationState::INVALID;
+    }
+}
+
+ReticulationState getReticulationStateToTakeNeighbor(Network& network, Node* reticulationNode, Node* neighbor) {
+    assert(reticulationNode->getType() == NodeType::RETICULATION_NODE);
+    if (neighbor == getReticulationFirstParent(network, reticulationNode)) {
+        return ReticulationState::TAKE_FIRST_PARENT;
+    } else if (neighbor == getReticulationSecondParent(network, reticulationNode)) {
+        return ReticulationState::TAKE_SECOND_PARENT;
+    } else {
+        return ReticulationState::DONT_CARE;
+    }
+}
+
 unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, unsigned int partition_idx, ClvRangeInfo &clvInfo, ScaleBufferRangeInfo &scaleBufferInfo, Node* node, Node* child, const ReticulationConfigSet& extraRestrictions) {
     assert(node);
     assert(child);
-    throw std::runtime_error("TODO: Make this work with undirected setting");
 
     unsigned int num_trees_added = 0;
     pll_operation_t op = buildOperation(ann_network.network, node, child, nullptr, ann_network.network.nodes.size(), ann_network.network.edges.size());
@@ -157,21 +178,13 @@ unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, unsig
 
     std::vector<ReticulationState> restrictions(ann_network.options.max_reticulations, ReticulationState::DONT_CARE);
     if (child->getType() == NodeType::RETICULATION_NODE) {
-        if (node == getReticulationFirstParent(ann_network.network, child)) {
-            restrictions[child->getReticulationData()->reticulation_index] = ReticulationState::TAKE_FIRST_PARENT;
-        } else {
-            restrictions[child->getReticulationData()->reticulation_index] = ReticulationState::TAKE_SECOND_PARENT;
-        }
+        restrictions[child->getReticulationData()->reticulation_index] = getReticulationStateToTakeNeighbor(ann_network.network, child, node);
     }
     std::vector<Node*> children = getChildren(ann_network.network, node);
     if (children.size() == 2) {
         Node* other_child = getOtherChild(ann_network.network, node, child);
         if (other_child->getType() == NodeType::RETICULATION_NODE) { // we could have also ended up here due to a dead node
-            if (node == getReticulationFirstParent(ann_network.network, other_child)) {
-                restrictions[other_child->getReticulationData()->reticulation_index] = ReticulationState::TAKE_SECOND_PARENT;
-            } else {
-                restrictions[other_child->getReticulationData()->reticulation_index] = ReticulationState::TAKE_FIRST_PARENT;
-            }
+            restrictions[other_child->getReticulationData()->reticulation_index] = getReticulationStateToDismissNeighbor(ann_network.network, other_child, node);
         }
     }
     ReticulationConfigSet restrictionsSet(ann_network.options.max_reticulations);
@@ -209,9 +222,6 @@ unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, unsig
 }
 
 ReticulationConfigSet deadNodeSettings(AnnotatedNetwork& ann_network, const NodeDisplayedTreeData& displayed_trees, Node* parent, Node* child) {
-    throw std::runtime_error("TODO: Make this work with undirected setting");
-
-
     // Return all configurations in which the node which the displayed trees belong to would have no displayed tree, and thus be a dead node
     ReticulationConfigSet res(ann_network.options.max_reticulations);
     std::vector<ReticulationState> reticulationChoicesVector(ann_network.options.max_reticulations);
@@ -224,13 +234,8 @@ ReticulationConfigSet deadNodeSettings(AnnotatedNetwork& ann_network, const Node
 
     if (child->getType() == NodeType::RETICULATION_NODE) {
         std::vector<ReticulationState> childNotTaken(ann_network.options.max_reticulations);
-        if (parent == getReticulationFirstParent(ann_network.network, child)) {
-            childNotTaken[child->getReticulationData()->reticulation_index] = ReticulationState::TAKE_SECOND_PARENT;
-            childTakenRestriction.configs[0][child->getReticulationData()->reticulation_index] = ReticulationState::TAKE_FIRST_PARENT;
-        } else {
-            childNotTaken[child->getReticulationData()->reticulation_index] = ReticulationState::TAKE_FIRST_PARENT;
-            childTakenRestriction.configs[0][child->getReticulationData()->reticulation_index] = ReticulationState::TAKE_SECOND_PARENT;
-        }
+        childNotTaken[child->getReticulationData()->reticulation_index] = getReticulationStateToDismissNeighbor(ann_network.network, child, parent);
+        childTakenRestriction.configs[0][child->getReticulationData()->reticulation_index] = getReticulationStateToTakeNeighbor(ann_network.network, child, parent);
         res.configs.emplace_back(childNotTaken);
     }
 
@@ -269,19 +274,12 @@ ReticulationConfigSet deadNodeSettings(AnnotatedNetwork& ann_network, const Node
 }
 
 ReticulationConfigSet getReticulationChoicesThisOnly(AnnotatedNetwork& ann_network, const ReticulationConfigSet& this_tree_config, const ReticulationConfigSet& other_child_dead_settings, Node* parent, Node* this_child, Node* other_child) {
-    throw std::runtime_error("TODO: Make this work with undirected setting");
-    
-    
     // covers both dead children and reticulation children
     ReticulationConfigSet res(ann_network.options.max_reticulations);
 
     std::vector<ReticulationState> this_reachable_from_parent_restriction(ann_network.options.max_reticulations);
     if (this_child->getType() == NodeType::RETICULATION_NODE) {
-        if (parent == getReticulationFirstParent(ann_network.network, this_child)) {
-            this_reachable_from_parent_restriction[this_child->getReticulationData()->reticulation_index] = ReticulationState::TAKE_FIRST_PARENT;
-        } else {
-            this_reachable_from_parent_restriction[this_child->getReticulationData()->reticulation_index] = ReticulationState::TAKE_SECOND_PARENT;
-        }
+        this_reachable_from_parent_restriction[this_child->getReticulationData()->reticulation_index] = getReticulationStateToTakeNeighbor(ann_network.network, this_child, parent);
     }
     ReticulationConfigSet this_reachable_from_parent_restrictionSet(ann_network.options.max_reticulations);
     this_reachable_from_parent_restrictionSet.configs.emplace_back(this_reachable_from_parent_restriction);
@@ -295,13 +293,8 @@ ReticulationConfigSet getReticulationChoicesThisOnly(AnnotatedNetwork& ann_netwo
     std::vector<ReticulationState> other_reachable_from_parent_restriction(ann_network.options.max_reticulations);
     if (other_child->getType() == NodeType::RETICULATION_NODE) { // easy case: parent not being an active parent of other_child
         std::vector<ReticulationState> other_not_reachable_from_parent_restriction(ann_network.options.max_reticulations);
-        if (parent == getReticulationFirstParent(ann_network.network, other_child)) {
-            other_reachable_from_parent_restriction[other_child->getReticulationData()->reticulation_index] = ReticulationState::TAKE_FIRST_PARENT;
-            other_not_reachable_from_parent_restriction[other_child->getReticulationData()->reticulation_index] = ReticulationState::TAKE_SECOND_PARENT;
-        } else {
-            other_reachable_from_parent_restriction[other_child->getReticulationData()->reticulation_index] = ReticulationState::TAKE_SECOND_PARENT;
-            other_not_reachable_from_parent_restriction[other_child->getReticulationData()->reticulation_index] = ReticulationState::TAKE_FIRST_PARENT;
-        }
+        other_reachable_from_parent_restriction[other_child->getReticulationData()->reticulation_index] = getReticulationStateToTakeNeighbor(ann_network.network, other_child, parent);
+        other_not_reachable_from_parent_restriction[other_child->getReticulationData()->reticulation_index] = getReticulationStateToDismissNeighbor(ann_network.network, other_child, parent);
         ReticulationConfigSet other_not_reachable_from_parent_restrictionSet(ann_network.options.max_reticulations);
         other_not_reachable_from_parent_restrictionSet.configs.emplace_back(other_not_reachable_from_parent_restriction);
 
@@ -339,18 +332,10 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
 
     std::vector<ReticulationState> restrictions_both(ann_network.options.max_reticulations);
     if (left_child->getType() == NodeType::RETICULATION_NODE) {
-        if (node == getReticulationFirstParent(ann_network.network, left_child)) {
-            restrictions_both[left_child->getReticulationData()->reticulation_index] = ReticulationState::TAKE_FIRST_PARENT;
-        } else {
-            restrictions_both[left_child->getReticulationData()->reticulation_index] = ReticulationState::TAKE_SECOND_PARENT;
-        }
+        restrictions_both[left_child->getReticulationData()->reticulation_index] = getReticulationStateToTakeNeighbor(ann_network.network, left_child, node);
     }
     if (right_child->getType() == NodeType::RETICULATION_NODE) {
-        if (node == getReticulationFirstParent(ann_network.network, right_child)) {
-            restrictions_both[right_child->getReticulationData()->reticulation_index] = ReticulationState::TAKE_FIRST_PARENT;
-        } else {
-            restrictions_both[right_child->getReticulationData()->reticulation_index] = ReticulationState::TAKE_SECOND_PARENT;
-        }
+        restrictions_both[left_child->getReticulationData()->reticulation_index] = getReticulationStateToTakeNeighbor(ann_network.network, right_child, node);
     }
     ReticulationConfigSet restrictionsBothSet(ann_network.options.max_reticulations);
     restrictionsBothSet.configs.emplace_back(restrictions_both);

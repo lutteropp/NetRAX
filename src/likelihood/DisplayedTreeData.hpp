@@ -55,7 +55,8 @@ void assign_scale_buffer_entries(pll_partition_t* partition, unsigned int** from
 enum class ReticulationState {
     DONT_CARE = 0,
     TAKE_FIRST_PARENT = 1,
-    TAKE_SECOND_PARENT = 2
+    TAKE_SECOND_PARENT = 2,
+    INVALID = 3
 };
 
 struct ReticulationConfigSet {
