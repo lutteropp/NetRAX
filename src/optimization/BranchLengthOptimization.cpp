@@ -200,6 +200,10 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
         old_logl = new_logl;
         old_virtual_root = new_virtual_root;
     }
+    if (old_logl < start_logl) {
+        std::cout << "old_logl: " << old_logl << "\n";
+        std::cout << "start_logl: " << start_logl << "\n";
+    }
     assert(old_logl >= start_logl);
 
     for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
