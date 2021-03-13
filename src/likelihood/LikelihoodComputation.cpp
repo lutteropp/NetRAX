@@ -728,7 +728,11 @@ std::vector<PathToVirtualRoot> getPathsToVirtualRoot(AnnotatedNetwork& ann_netwo
         ptvr.path = path;
 
         for (size_t j = 0; j < path.size() - 1; ++j) {
-            ptvr.children.emplace_back(getCurrentChildren(ann_network, path[j], parent[path[j]->clv_index], restrictionsSet));
+            if (path[j] == new_virtual_root_back) {
+                ptvr.children.emplace_back(getCurrentChildren(ann_network, path[j], new_virtual_root, restrictionsSet)); // Not sure if this special case is needed
+            } else {
+                ptvr.children.emplace_back(getCurrentChildren(ann_network, path[j], parent[path[j]->clv_index], restrictionsSet));
+            }
         }
         // Special case at new virtual root, there we don't want to include new_virtual_root_back...
         assert(path[path.size() - 1] == new_virtual_root);
