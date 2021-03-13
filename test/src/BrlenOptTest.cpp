@@ -145,9 +145,10 @@ TEST (BrlenOptTest, treeVirtualRoots) {
 
     Node* old_virtual_root = annTreeNetwork.network.root;
     auto oldTrees = extractOldTrees(annTreeNetwork, annTreeNetwork.network.root);
-    std::uniform_int_distribution<std::mt19937::result_type> dist(0, annTreeNetwork.network.num_branches());
+    std::uniform_int_distribution<std::mt19937::result_type> dist(0, annTreeNetwork.network.num_branches() - 1);
     for (size_t i = 0; i < 100; ++i) {
-        Edge* edge = annTreeNetwork.network.edges_by_index[dist(annTreeNetwork.rng)];
+        size_t pmatrix_index = dist(annTreeNetwork.rng);
+        Edge* edge = annTreeNetwork.network.edges_by_index[pmatrix_index];
         Node* new_virtual_root = getSource(annTreeNetwork.network, edge);
         Node* new_virtual_root_back = getTarget(annTreeNetwork.network, edge);
         updateCLVsVirtualRerootTrees(annTreeNetwork, old_virtual_root, new_virtual_root, new_virtual_root_back);
