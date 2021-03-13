@@ -867,7 +867,7 @@ void updateCLVsVirtualRerootTrees(AnnotatedNetwork& ann_network, Node* old_virtu
             // Restore required old NodeInformations for the path
             for (size_t nodeIndexToRestore : nodeSaveInfo.pathNodesToRestore[p]) {
                 std::cout << "restoring node info at " << nodeIndexToRestore << "\n";
-                ann_network.pernode_displayed_tree_data[partition_idx][nodeIndexToRestore] = bufferedNodeInformations[p][nodeIndexToRestore];
+                ann_network.pernode_displayed_tree_data[partition_idx][nodeIndexToRestore] = bufferedNodeInformations[partition_idx][nodeIndexToRestore];
             }
 
             for (size_t i = 0; i < paths[p].path.size(); ++i) {
