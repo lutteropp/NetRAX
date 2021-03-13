@@ -667,6 +667,8 @@ struct PathToVirtualRoot {
 };
 
 void printPathToVirtualRoot(const PathToVirtualRoot& pathToVirtualRoot) {
+    std::cout << "Path has reticulation choices:\n";
+    printReticulationChoices(pathToVirtualRoot.reticulationChoices);
     for (size_t i = 0; i < pathToVirtualRoot.path.size(); ++i) {
         std::cout << "Node " << pathToVirtualRoot.path[i]->clv_index << " has children: ";
         for (size_t j = 0; j < pathToVirtualRoot.children[i].size(); ++j) {
