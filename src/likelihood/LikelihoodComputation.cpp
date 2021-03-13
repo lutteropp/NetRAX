@@ -143,26 +143,57 @@ void iterateOverScaler(unsigned int* scaler, ScaleBufferRangeInfo& scalerInfo) {
     std::cout << "\n";
 }
 
-ReticulationState getReticulationStateToDismissNeighbor(Network& network, Node* reticulationNode, Node* neighbor) {
-    assert(reticulationNode->getType() == NodeType::RETICULATION_NODE);
-    if (neighbor == getReticulationFirstParent(network, reticulationNode)) {
-        return ReticulationState::TAKE_SECOND_PARENT;
-    } else if (neighbor == getReticulationSecondParent(network, reticulationNode)) {
-        return ReticulationState::TAKE_FIRST_PARENT;
-    } else {
-        return ReticulationState::INVALID;
+ReticulationConfigSet getRestrictionsToDismissNeighbor(AnnotatedNetwork& ann_network, Node* node, Node* neighbor) {
+    ReticulationConfigSet res(ann_network.options.max_reticulations);
+    std::vector<ReticulationState> restrictions(ann_network.options.max_reticulations, ReticulationState::DONT_CARE);
+    assert(node);
+    assert(neighbor);
+    bool foundRestriction = false;
+    if (node->getType() == NodeType::RETICULATION_NODE) {
+        if (neighbor == getReticulationFirstParent(ann_network.network, node)) {
+            restrictions[node->getReticulationData()->reticulation_index] = ReticulationState::TAKE_SECOND_PARENT;
+            foundRestriction = true;
+        } else if (neighbor == getReticulationSecondParent(ann_network.network, node)) {
+            restrictions[node->getReticulationData()->reticulation_index] = ReticulationState::TAKE_FIRST_PARENT;
+            foundRestriction = true;
+        }
     }
+    if (neighbor->getType() == NodeType::RETICULATION_NODE) {
+        if (node == getReticulationFirstParent(ann_network.network, neighbor)) {
+            restrictions[neighbor->getReticulationData()->reticulation_index] = ReticulationState::TAKE_SECOND_PARENT;
+            foundRestriction = true;
+        } else if (node == getReticulationSecondParent(ann_network.network, neighbor)) {
+            restrictions[neighbor->getReticulationData()->reticulation_index] = ReticulationState::TAKE_FIRST_PARENT;
+            foundRestriction = true;
+        }
+    }
+    if (foundRestriction) {
+        res.configs.emplace_back(restrictions);
+    }
+    return res;
 }
 
-ReticulationState getReticulationStateToTakeNeighbor(Network& network, Node* reticulationNode, Node* neighbor) {
-    assert(reticulationNode->getType() == NodeType::RETICULATION_NODE);
-    if (neighbor == getReticulationFirstParent(network, reticulationNode)) {
-        return ReticulationState::TAKE_FIRST_PARENT;
-    } else if (neighbor == getReticulationSecondParent(network, reticulationNode)) {
-        return ReticulationState::TAKE_SECOND_PARENT;
-    } else {
-        return ReticulationState::DONT_CARE;
+ReticulationConfigSet getRestrictionsToTakeNeighbor(AnnotatedNetwork& ann_network, Node* node, Node* neighbor) {
+    ReticulationConfigSet res(ann_network.options.max_reticulations);
+    std::vector<ReticulationState> restrictions(ann_network.options.max_reticulations, ReticulationState::DONT_CARE);
+    assert(node);
+    assert(neighbor);
+    if (node->getType() == NodeType::RETICULATION_NODE) {
+        if (neighbor == getReticulationFirstParent(ann_network.network, node)) {
+            restrictions[node->getReticulationData()->reticulation_index] = ReticulationState::TAKE_FIRST_PARENT;
+        } else if (neighbor == getReticulationSecondParent(ann_network.network, node)) {
+            restrictions[node->getReticulationData()->reticulation_index] = ReticulationState::TAKE_SECOND_PARENT;
+        }
     }
+    if (neighbor->getType() == NodeType::RETICULATION_NODE) {
+        if (node == getReticulationFirstParent(ann_network.network, neighbor)) {
+            restrictions[neighbor->getReticulationData()->reticulation_index] = ReticulationState::TAKE_FIRST_PARENT;
+        } else if (node == getReticulationSecondParent(ann_network.network, neighbor)) {
+            restrictions[neighbor->getReticulationData()->reticulation_index] = ReticulationState::TAKE_SECOND_PARENT;
+        }
+    }
+    res.configs.emplace_back(restrictions);
+    return res;
 }
 
 unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, unsigned int partition_idx, ClvRangeInfo &clvInfo, ScaleBufferRangeInfo &scaleBufferInfo, Node* node, Node* child, const ReticulationConfigSet& extraRestrictions) {
@@ -176,19 +207,7 @@ unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, unsig
     size_t fake_clv_index = ann_network.network.nodes.size();
     pll_partition_t* partition = ann_network.fake_treeinfo->partitions[partition_idx];
 
-    std::vector<ReticulationState> restrictions(ann_network.options.max_reticulations, ReticulationState::DONT_CARE);
-    if (child->getType() == NodeType::RETICULATION_NODE) {
-        restrictions[child->getReticulationData()->reticulation_index] = getReticulationStateToTakeNeighbor(ann_network.network, child, node);
-    }
-    std::vector<Node*> children = getChildren(ann_network.network, node);
-    if (children.size() == 2) {
-        Node* other_child = getOtherChild(ann_network.network, node, child);
-        if (other_child->getType() == NodeType::RETICULATION_NODE) { // we could have also ended up here due to a dead node
-            restrictions[other_child->getReticulationData()->reticulation_index] = getReticulationStateToDismissNeighbor(ann_network.network, other_child, node);
-        }
-    }
-    ReticulationConfigSet restrictionsSet(ann_network.options.max_reticulations);
-    restrictionsSet.configs.emplace_back(restrictions);
+    ReticulationConfigSet restrictionsSet = getRestrictionsToTakeNeighbor(ann_network, node, child);
 
     if (!extraRestrictions.configs.empty()) {
         restrictionsSet = combineReticulationChoices(restrictionsSet, extraRestrictions);
@@ -228,16 +247,11 @@ ReticulationConfigSet deadNodeSettings(AnnotatedNetwork& ann_network, const Node
     ReticulationConfigSet reticulationChoices(ann_network.options.max_reticulations);
     reticulationChoices.configs.emplace_back(reticulationChoicesVector);
 
-    ReticulationConfigSet childTakenRestriction(ann_network.options.max_reticulations);
-    std::vector<ReticulationState> dont_care_vec(ann_network.options.max_reticulations);
-    childTakenRestriction.configs.emplace_back(dont_care_vec);
-
-    if (child->getType() == NodeType::RETICULATION_NODE) {
-        std::vector<ReticulationState> childNotTaken(ann_network.options.max_reticulations);
-        childNotTaken[child->getReticulationData()->reticulation_index] = getReticulationStateToDismissNeighbor(ann_network.network, child, parent);
-        childTakenRestriction.configs[0][child->getReticulationData()->reticulation_index] = getReticulationStateToTakeNeighbor(ann_network.network, child, parent);
-        res.configs.emplace_back(childNotTaken);
+    ReticulationConfigSet childNotTakenRestriction = getRestrictionsToDismissNeighbor(ann_network, parent, child);
+    for (size_t i = 0; i < childNotTakenRestriction.configs.size(); ++i) {
+        res.configs.emplace_back(childNotTakenRestriction.configs[i]);
     }
+    ReticulationConfigSet childTakenRestriction = getRestrictionsToTakeNeighbor(ann_network, parent, child);
 
     if (ann_network.network.num_reticulations() > sizeof(size_t) * 8) {
         throw std::runtime_error("This implementation only works for <= sizeof(size_t)*8 reticulations");
@@ -277,43 +291,29 @@ ReticulationConfigSet getReticulationChoicesThisOnly(AnnotatedNetwork& ann_netwo
     // covers both dead children and reticulation children
     ReticulationConfigSet res(ann_network.options.max_reticulations);
 
-    std::vector<ReticulationState> this_reachable_from_parent_restriction(ann_network.options.max_reticulations);
-    if (this_child->getType() == NodeType::RETICULATION_NODE) {
-        this_reachable_from_parent_restriction[this_child->getReticulationData()->reticulation_index] = getReticulationStateToTakeNeighbor(ann_network.network, this_child, parent);
-    }
-    ReticulationConfigSet this_reachable_from_parent_restrictionSet(ann_network.options.max_reticulations);
-    this_reachable_from_parent_restrictionSet.configs.emplace_back(this_reachable_from_parent_restriction);
+    ReticulationConfigSet this_reachable_from_parent_restrictionSet = getRestrictionsToTakeNeighbor(ann_network, parent, this_child);
     ReticulationConfigSet restrictedConfig = combineReticulationChoices(this_tree_config, this_reachable_from_parent_restrictionSet);
+
     if (restrictedConfig.configs.empty()) { // easy case, this_tree isn't reachable anyway
         return res;
     }
 
     // Find all configurations where we can take restricted_config, but we cannot take any of the trees from displayed_trees_other
 
-    std::vector<ReticulationState> other_reachable_from_parent_restriction(ann_network.options.max_reticulations);
-    if (other_child->getType() == NodeType::RETICULATION_NODE) { // easy case: parent not being an active parent of other_child
-        std::vector<ReticulationState> other_not_reachable_from_parent_restriction(ann_network.options.max_reticulations);
-        other_reachable_from_parent_restriction[other_child->getReticulationData()->reticulation_index] = getReticulationStateToTakeNeighbor(ann_network.network, other_child, parent);
-        other_not_reachable_from_parent_restriction[other_child->getReticulationData()->reticulation_index] = getReticulationStateToDismissNeighbor(ann_network.network, other_child, parent);
-        ReticulationConfigSet other_not_reachable_from_parent_restrictionSet(ann_network.options.max_reticulations);
-        other_not_reachable_from_parent_restrictionSet.configs.emplace_back(other_not_reachable_from_parent_restriction);
-
-        ReticulationConfigSet combinedConfig = combineReticulationChoices(restrictedConfig, other_not_reachable_from_parent_restrictionSet);
-
-        for (size_t i = 0; i < combinedConfig.configs.size(); ++i) {
-            res.configs.emplace_back(combinedConfig.configs[i]);
-        }
-    }
-
-    ReticulationConfigSet other_reachable_from_parent_restrictionSet(ann_network.options.max_reticulations);
-    other_reachable_from_parent_restrictionSet.configs.emplace_back(other_reachable_from_parent_restriction);
-    restrictedConfig = combineReticulationChoices(restrictedConfig, other_reachable_from_parent_restrictionSet);
-
-    // now in restrictedConfig, we have the case where parent has two active children, plus we have this_tree on the left. We need to check if there are configurations where other_child is a dead node.
-    ReticulationConfigSet combinedConfig = combineReticulationChoices(restrictedConfig, other_child_dead_settings);
-    
+    // easy case: parent not being an active parent of other_child        
+    ReticulationConfigSet other_not_reachable_from_parent_restrictionSet = getRestrictionsToDismissNeighbor(ann_network, parent, other_child);    
+    ReticulationConfigSet combinedConfig = combineReticulationChoices(restrictedConfig, other_not_reachable_from_parent_restrictionSet);
     for (size_t i = 0; i < combinedConfig.configs.size(); ++i) {
         res.configs.emplace_back(combinedConfig.configs[i]);
+    }
+
+    ReticulationConfigSet other_reachable_from_parent_restrictionSet = getRestrictionsToTakeNeighbor(ann_network, parent, other_child);
+    restrictedConfig = combineReticulationChoices(restrictedConfig, other_reachable_from_parent_restrictionSet);
+    // now in restrictedConfig, we have the case where parent has two active children, plus we have this_tree on the left. We need to check if there are configurations where other_child is a dead node.
+    ReticulationConfigSet combinedConfig2 = combineReticulationChoices(restrictedConfig, other_child_dead_settings);
+    
+    for (size_t i = 0; i < combinedConfig2.configs.size(); ++i) {
+        res.configs.emplace_back(combinedConfig2.configs[i]);
     }
 
     simplifyReticulationChoices(res);    
@@ -330,15 +330,8 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
     NodeDisplayedTreeData& displayed_trees_right_child = ann_network.pernode_displayed_tree_data[partition_idx][right_child->clv_index];
     pll_partition_t* partition = ann_network.fake_treeinfo->partitions[partition_idx];
 
-    std::vector<ReticulationState> restrictions_both(ann_network.options.max_reticulations);
-    if (left_child->getType() == NodeType::RETICULATION_NODE) {
-        restrictions_both[left_child->getReticulationData()->reticulation_index] = getReticulationStateToTakeNeighbor(ann_network.network, left_child, node);
-    }
-    if (right_child->getType() == NodeType::RETICULATION_NODE) {
-        restrictions_both[left_child->getReticulationData()->reticulation_index] = getReticulationStateToTakeNeighbor(ann_network.network, right_child, node);
-    }
-    ReticulationConfigSet restrictionsBothSet(ann_network.options.max_reticulations);
-    restrictionsBothSet.configs.emplace_back(restrictions_both);
+    ReticulationConfigSet restrictionsBothSet = getRestrictionsToTakeNeighbor(ann_network, node, left_child);
+    restrictionsBothSet = combineReticulationChoices(restrictionsBothSet, getRestrictionsToTakeNeighbor(ann_network, node, right_child));
 
     if (!extraRestrictions.configs.empty()) {
         restrictionsBothSet = combineReticulationChoices(restrictionsBothSet, extraRestrictions);
@@ -446,7 +439,7 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
     return num_trees_added;
 }
 
-void processNodeImproved(AnnotatedNetwork& ann_network, unsigned int partition_idx, int incremental, ClvRangeInfo &clvInfo, ScaleBufferRangeInfo &scaleBufferInfo, Node* node, Node* parentOrSingleChild, const ReticulationConfigSet& extraRestrictions, bool append = false) {
+void processNodeImproved(AnnotatedNetwork& ann_network, unsigned int partition_idx, int incremental, ClvRangeInfo &clvInfo, ScaleBufferRangeInfo &scaleBufferInfo, Node* node, std::vector<Node*>& children, const ReticulationConfigSet& extraRestrictions, bool append = false) {
     if (node->clv_index < ann_network.network.num_tips()) {
         //assert(ann_network.fake_treeinfo->clv_valid[partition_idx][node->clv_index]);
         return;
@@ -460,14 +453,7 @@ void processNodeImproved(AnnotatedNetwork& ann_network, unsigned int partition_i
         displayed_trees.num_active_displayed_trees = 0;
     }
 
-    std::vector<Node*> children;
-    if (node->getType() == NodeType::RETICULATION_NODE) {
-        children.emplace_back(parentOrSingleChild);
-    } else {
-        children = getChildrenIgnoreDirections(ann_network.network, node, parentOrSingleChild);
-    }
-    if (children.size() == 1) { // we are at a reticulation node
-        assert(node->getType() == NodeType::RETICULATION_NODE);
+    if (children.size() == 1) {
         processNodeImprovedSingleChild(ann_network, partition_idx, clvInfo, scaleBufferInfo, node, children[0], extraRestrictions);
     } else {
         assert(children.size() == 2);
@@ -491,13 +477,8 @@ void processPartitionImproved(AnnotatedNetwork& ann_network, unsigned int partit
     
     for (size_t i = 0; i < ann_network.travbuffer.size(); ++i) {
         Node* actNode = ann_network.travbuffer[i];
-        Node* parentOrSingleChild;
-        if (actNode->getType() == NodeType::RETICULATION_NODE) {
-            parentOrSingleChild = getReticulationChild(ann_network.network, actNode);
-        } else {
-            parentOrSingleChild = getActiveParent(ann_network.network, actNode);
-        }
-        processNodeImproved(ann_network, partition_idx, incremental, clvInfo, scaleBufferInfo, actNode, parentOrSingleChild, {});
+        std::vector<Node*> children = getChildren(ann_network.network, actNode);
+        processNodeImproved(ann_network, partition_idx, incremental, clvInfo, scaleBufferInfo, actNode, children, {});
     }
 
     /*std::cout << "\nloglikelihood for trees at each node, for partition " << partition_idx << ":\n";
@@ -531,7 +512,6 @@ DisplayedTreeData& getMatchingDisplayedTreeAtNode(AnnotatedNetwork& ann_network,
 }
 
 double evaluateTrees(AnnotatedNetwork &ann_network, Node* virtual_root) {
-    const Network &network = ann_network.network;
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
     mpfr::mpreal network_logl = 0.0;
 
@@ -690,14 +670,48 @@ std::vector<Node*> getParentPointers(AnnotatedNetwork& ann_network, Node* virtua
 struct PathToVirtualRoot {
     ReticulationConfigSet reticulationChoices;
     std::vector<Node*> path;
-    std::vector<Node*> parentOrSingleChild; // for the nodes as they are occurring in path
+    std::vector<std::vector<Node*>> children;
 
     PathToVirtualRoot(size_t max_reticulations) : reticulationChoices(max_reticulations) {};
 };
 
 std::vector<PathToVirtualRoot> getPathsToVirtualRoot(AnnotatedNetwork& ann_network, Node* old_virtual_root, Node* new_virtual_root) {
+    std::vector<PathToVirtualRoot> res;
+    // simplistic version here: Go over all displayed trees, compute pathToVirtualRoot for each of them, and then later on kick out duplicate paths...
+
+    // TODO: for the single active child case...
+    //if (other_child) {
+    //    restrictionsSet = combineReticulationChoices(restrictionsSet, getRestrictionsToDismissNeighbor(ann_network, node, other_child));
+    //}
+
+    NodeDisplayedTreeData& oldDisplayedTrees = ann_network.pernode_displayed_tree_data[0][old_virtual_root->clv_index];
+    for (size_t i = 0; i < oldDisplayedTrees.num_active_displayed_trees; ++i) {
+        PathToVirtualRoot ptvr(ann_network.options.max_reticulations);
+        setReticulationParents(ann_network.network, oldDisplayedTrees.displayed_trees[i].reticulationChoices.configs[0]);
+        std::vector<Node*> parent = getParentPointers(ann_network, new_virtual_root);
+        std::vector<Node*> path = getPathToVirtualRoot(ann_network, old_virtual_root, new_virtual_root, parent);
+        
+        std::vector<ReticulationState> dont_care_vector(ann_network.options.max_reticulations, ReticulationState::DONT_CARE);
+        ReticulationConfigSet restrictionsSet(ann_network.options.max_reticulations);
+        restrictionsSet.configs.emplace_back(dont_care_vector);
+
+        for (size_t j = 0; j < path.size() - 1; ++j) {
+            restrictionsSet = combineReticulationChoices(restrictionsSet, getRestrictionsToTakeNeighbor(ann_network, path[j], path[j+1]));
+        }
+        ptvr.reticulationChoices = restrictionsSet;
+        ptvr.path = path;
+
+        for (size_t j = 0; j < path.size(); ++j) {
+            throw std::runtime_error("Not implemented yet");
+        }
+
+        res.emplace_back(ptvr);
+    }
+
+
     throw std::runtime_error("Not implemented yet");
     // (make sure that instead of using hard-coded reticulation parents here, we check on a branch-basis like how the reticulation state has to be for the branch to be active)
+    return res;
 }
 
 void updateCLVsVirtualRerootTrees(AnnotatedNetwork& ann_network, Node* old_virtual_root, Node* new_virtual_root) {
@@ -717,7 +731,7 @@ void updateCLVsVirtualRerootTrees(AnnotatedNetwork& ann_network, Node* old_virtu
         ScaleBufferRangeInfo scaleBufferInfo = get_scale_buffer_range(ann_network.fake_treeinfo->partitions[partition_idx]);
         for (size_t p = 0; p < paths.size(); ++p) {
             for (size_t i = 0; i < paths[p].path.size(); ++i) {
-                processNodeImproved(ann_network, p, 0, clvInfo, scaleBufferInfo, paths[p].path[i], paths[p].parentOrSingleChild[i], paths[p].reticulationChoices);
+                processNodeImproved(ann_network, p, 0, clvInfo, scaleBufferInfo, paths[p].path[i], paths[p].children[i], paths[p].reticulationChoices);
             }
         }
     }    
