@@ -157,6 +157,9 @@ TEST (BrlenOptTest, treeVirtualRoots) {
         Edge* edge = annTreeNetwork.network.edges_by_index[pmatrix_index];
         Node* new_virtual_root = getSource(annTreeNetwork.network, edge);
         Node* new_virtual_root_back = getTarget(annTreeNetwork.network, edge);
+        std::cout << "old_virtual_root: " << old_virtual_root->clv_index << "\n";
+        std::cout << "new_virtual_root: " << new_virtual_root->clv_index << "\n";
+        std::cout << "new_virtual_root_back: " << new_virtual_root_back->clv_index << "\n";
         updateCLVsVirtualRerootTrees(annTreeNetwork, old_virtual_root, new_virtual_root, new_virtual_root_back);
         double new_logl = computeLoglikelihoodBrlenOpt(annTreeNetwork, oldTrees, edge->pmatrix_index, 1, 1);
 
