@@ -440,7 +440,7 @@ void processNodeImproved(AnnotatedNetwork& ann_network, unsigned int partition_i
         return;
     }
 
-    std::cout << "processNodeImproved called for node " << node->clv_index << "with children: ";
+    std::cout << "processNodeImproved called for node " << node->clv_index << " with children: ";
     for (size_t i = 0; i < children.size(); ++i) {
         std::cout << children[i]->clv_index;
         if (i + 1 < children.size()) {
