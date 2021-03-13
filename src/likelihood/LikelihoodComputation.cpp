@@ -691,6 +691,8 @@ struct PathToVirtualRoot {
     ReticulationConfigSet reticulationChoices;
     std::vector<Node*> path;
     std::vector<Node*> parentOrSingleChild; // for the nodes as they are occurring in path
+
+    PathToVirtualRoot(size_t max_reticulations) : reticulationChoices(max_reticulations) {};
 };
 
 std::vector<PathToVirtualRoot> getPathsToVirtualRoot(AnnotatedNetwork& ann_network, Node* old_virtual_root, Node* new_virtual_root) {
