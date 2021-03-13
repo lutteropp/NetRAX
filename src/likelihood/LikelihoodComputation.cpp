@@ -782,6 +782,64 @@ std::vector<PathToVirtualRoot> getPathsToVirtualRoot(AnnotatedNetwork& ann_netwo
     return res;
 }
 
+struct NodeSaveInformation {
+    std::vector<std::unordered_set<size_t> > pathNodesToRestore;
+    std::unordered_set<size_t> nodesInDanger;
+};
+
+NodeSaveInformation computeNodeSaveInformation(const std::vector<PathToVirtualRoot>& paths) {
+    NodeSaveInformation nodeSaveInfo;
+    std::vector<std::unordered_set<size_t> >& pathNodesToRestore = nodeSaveInfo.pathNodesToRestore;
+    std::unordered_set<size_t>& nodesInDanger = nodeSaveInfo.nodesInDanger;
+    
+    pathNodesToRestore.resize(paths.size());
+    for (size_t p = 1; p < paths.size(); ++p) {
+        std::unordered_set<size_t> nodesInPath;
+        for (size_t i = 0; i < paths[p].path.size(); ++i) {
+            nodesInPath.emplace(paths[p].path[i]->clv_index);
+            for (size_t j = 0; j < paths[p].children[i].size(); ++j) {
+                pathNodesToRestore[p].emplace(paths[p].children[i][j]->clv_index);
+            }
+        }
+        for (size_t nodeInPath : nodesInPath) {
+            pathNodesToRestore[p].erase(nodeInPath);
+        }
+
+        // check if the node occurs at an earlier path. If so, it really needs to be restored, as that earlier path would have overwritten it.
+        std::unordered_set<size_t> deleteAgain;
+
+        for (size_t maybeSaveMe : pathNodesToRestore[p]) {
+            bool saveMe = false;
+            for (size_t q = 0; q < p; ++q) {
+                for (size_t i = 0; i < paths[q].path.size(); ++i) {
+                    if (paths[q].path[i]->clv_index == maybeSaveMe) {
+                        saveMe = true;
+                        break;
+                    }
+                }
+                if (saveMe) {
+                    break;
+                }
+            }
+            if (!saveMe) {
+                deleteAgain.emplace(maybeSaveMe);
+            }
+        }
+
+        for (size_t deleteMeAgain : deleteAgain) {
+            pathNodesToRestore[p].erase(deleteMeAgain);
+        }
+    }
+
+    for (size_t p = 0; p < paths.size(); ++p) {
+        for (size_t nodeToSave : pathNodesToRestore[p]) {
+            nodesInDanger.emplace(nodeToSave);
+        }
+    }
+
+    return nodeSaveInfo;
+}
+
 void updateCLVsVirtualRerootTrees(AnnotatedNetwork& ann_network, Node* old_virtual_root, Node* new_virtual_root, Node* new_virtual_root_back) {
     assert(old_virtual_root);
     assert(new_virtual_root);
@@ -791,13 +849,30 @@ void updateCLVsVirtualRerootTrees(AnnotatedNetwork& ann_network, Node* old_virtu
     //     1.2) update CLVs on that path, using extra restrictions and append mode
     std::vector<PathToVirtualRoot> paths = getPathsToVirtualRoot(ann_network, old_virtual_root, new_virtual_root, new_virtual_root_back);
 
+    // figure out which nodes to save from old CLVs, and which paths need them
+    NodeSaveInformation nodeSaveInfo = computeNodeSaveInformation(paths);
+    std::vector<std::vector<NodeDisplayedTreeData> > bufferedNodeInformations(ann_network.fake_treeinfo->partition_count, std::vector<NodeDisplayedTreeData>(ann_network.network.num_nodes()));
+    for (size_t partition_idx = 0; partition_idx < ann_network.fake_treeinfo->partition_count; ++partition_idx) {
+        for (size_t nodeInDanger : nodeSaveInfo.nodesInDanger) {
+            bufferedNodeInformations[partition_idx][nodeInDanger] = ann_network.pernode_displayed_tree_data[partition_idx][nodeInDanger];
+        }
+    }
+
     for (size_t partition_idx = 0; partition_idx < ann_network.fake_treeinfo->partition_count; ++partition_idx) {
         ClvRangeInfo clvInfo = get_clv_range(ann_network.fake_treeinfo->partitions[partition_idx]);
         ScaleBufferRangeInfo scaleBufferInfo = get_scale_buffer_range(ann_network.fake_treeinfo->partitions[partition_idx]);
         for (size_t p = 0; p < paths.size(); ++p) {
             std::cout << "PROCESSING PATH " << p << " ON PARTITION " << partition_idx << "\n";
+
+            // Restore required old NodeInformations for the path
+            for (size_t nodeIndexToRestore : nodeSaveInfo.pathNodesToRestore[p]) {
+                std::cout << "restoring node info at " << nodeIndexToRestore << "\n";
+                ann_network.pernode_displayed_tree_data[partition_idx][nodeIndexToRestore] = bufferedNodeInformations[p][nodeIndexToRestore];
+            }
+
             for (size_t i = 0; i < paths[p].path.size(); ++i) {
-                bool appendMode = (p > 0);
+                bool appendMode = ((p > 0) && (paths[p].path[i] == new_virtual_root));
+                assert((paths[p].path[i] != new_virtual_root) || ((paths[p].path[i] == new_virtual_root) && (i == paths[p].path.size() - 1)));
                 processNodeImproved(ann_network, partition_idx, 0, clvInfo, scaleBufferInfo, paths[p].path[i], paths[p].children[i], paths[p].reticulationChoices, appendMode);
             }
         }

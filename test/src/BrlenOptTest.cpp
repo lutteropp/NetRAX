@@ -255,13 +255,21 @@ TEST (BrlenOptTest, smallVirtualRoots) {
     init_annotated_network(annTreeNetwork);
     double old_logl = computeLoglikelihood(annTreeNetwork, 1, 1);
 
+    for (size_t p = 0; p < annTreeNetwork.fake_treeinfo->partition_count; ++p) {
+        size_t n_trees = annTreeNetwork.pernode_displayed_tree_data[p][annTreeNetwork.network.root->clv_index].num_active_displayed_trees;
+        for (size_t i = 0; i < n_trees; ++i) {
+                DisplayedTreeData& tree = annTreeNetwork.pernode_displayed_tree_data[p][annTreeNetwork.network.root->clv_index].displayed_trees[i];
+                std::cout << "correct partition " << p << ", tree " << i << " logl: " << tree.tree_logl << ", logprob: " << tree.tree_logprob << "\n";
+        }
+    }
+
     std::cout << exportDebugInfo(annTreeNetwork) << "\n";
 
     Node* old_virtual_root = annTreeNetwork.network.root;
     auto oldTrees = extractOldTrees(annTreeNetwork, annTreeNetwork.network.root);
     std::uniform_int_distribution<std::mt19937::result_type> dist(0, annTreeNetwork.network.num_branches() - 1);
-    for (size_t i = 0; i < 100; ++i) {
-        size_t pmatrix_index = dist(annTreeNetwork.rng);
+    //for (size_t i = 0; i < 100; ++i) {
+        size_t pmatrix_index = 1;// dist(annTreeNetwork.rng);
         std::cout << "Testing with pmatrix index: " << pmatrix_index << "\n";
 
         Edge* edge = annTreeNetwork.network.edges_by_index[pmatrix_index];
@@ -277,7 +285,7 @@ TEST (BrlenOptTest, smallVirtualRoots) {
 
         oldTrees = extractOldTrees(annTreeNetwork, old_virtual_root);
         old_virtual_root = new_virtual_root;
-    }
+    //}
 }
 
 TEST (BrlenOptTest, celineFake) {
