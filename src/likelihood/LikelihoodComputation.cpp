@@ -769,9 +769,6 @@ std::vector<PathToVirtualRoot> getPathsToVirtualRoot(AnnotatedNetwork& ann_netwo
 }
 
 void updateCLVsVirtualRerootTrees(AnnotatedNetwork& ann_network, Node* old_virtual_root, Node* new_virtual_root, Node* new_virtual_root_back) {
-    if (old_virtual_root == new_virtual_root) {
-        return;
-    }
     assert(old_virtual_root);
     assert(new_virtual_root);
 
