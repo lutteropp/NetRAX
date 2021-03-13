@@ -806,12 +806,16 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
         for (size_t i = 0; i < n_trees; ++i) {
             DisplayedTreeData& sourceTree = ann_network.pernode_displayed_tree_data[p][source->clv_index].displayed_trees[i];
             if (isActiveBranch(ann_network, sourceTree, pmatrix_index)) {
+                std::cout << "Branch " << pmatrix_index << " is active in this displayed tree:\n";
+                printReticulationChoices(sourceTree.reticulationChoices);
+
                 DisplayedTreeData& targetTree = getMatchingDisplayedTreeAtNode(ann_network, p, target->clv_index, sourceTree.reticulationChoices);
                 sourceTree.tree_logl = pll_compute_edge_loglikelihood(partition, source->clv_index, sourceTree.clv_vector, sourceTree.scale_buffer, 
                                                                 target->clv_index, targetTree.clv_vector, targetTree.scale_buffer, 
                                                                 pmatrix_index, ann_network.fake_treeinfo->param_indices[p], nullptr);
                 sourceTree.tree_logprob = computeReticulationConfigLogProb(sourceTree.reticulationChoices, ann_network.reticulation_probs);
             } else { // for inactive branches (in dead area), we have a dead node situation. However, we don't need to recompute tree loglh here as it stays the same as it was for the old virtual root
+                std::cout << "USING OLD DISPLAYED TREE\n";
                 const OldTreeLoglData& oldTree = getMatchingOldTree(ann_network, oldTrees[p], sourceTree.reticulationChoices);
                 assert(oldTree.tree_logl_valid);
                 sourceTree.tree_logl = oldTree.tree_logl;
@@ -826,10 +830,10 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
     double network_logl = evaluateTrees(ann_network, source);
 
     // TODO: Remove me again, this is just for debug
-    /*
-    std::cout << "computeLoglikelihoodBrlenOpt has been called\n";
     std::cout << "Displayed trees to evaluate:\n";
     printDisplayedTreesChoices(ann_network, source);
+    /*
+    std::cout << "computeLoglikelihoodBrlenOpt has been called\n";
 
     double new_logl_result = network_logl;
     for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
