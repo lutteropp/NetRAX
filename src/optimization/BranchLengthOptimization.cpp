@@ -89,6 +89,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, std::vector<std::vector<Ol
     double tolerance = ann_network.options.tolerance;
 
     double start_logl = computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index, 1, 1);
+    std::cout << "This call finished\n";
 
     double best_logl = start_logl;
     BrentBrlenParams params;
@@ -149,6 +150,10 @@ std::vector<std::vector<OldTreeLoglData> > extractOldTrees(AnnotatedNetwork& ann
 
 double optimize_branch(AnnotatedNetwork &ann_network, std::vector<std::vector<OldTreeLoglData> >* oldTrees, size_t pmatrix_index) {
     double old_logl = computeLoglikelihoodBrlenOpt(ann_network, *oldTrees, pmatrix_index, 1, 1);
+    std::cout << "first logl computation call finished\n";
+    old_logl = computeLoglikelihoodBrlenOpt(ann_network, *oldTrees, pmatrix_index, 1, 1);
+    std::cout << "repeating logl computation call finished\n";
+
     size_t n_partitions = 1;
     bool unlinkedMode = (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
     if (unlinkedMode) {

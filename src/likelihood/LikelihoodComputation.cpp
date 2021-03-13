@@ -800,16 +800,20 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
     double network_logl = evaluateTrees(ann_network, source);
 
     // TODO: Remove me again, this is just for debug
+    std::cout << "computeLoglikelihoodBrlenOpt has been called\n";
     double new_logl_result = network_logl;
     for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
         invalidateHigherCLVs(ann_network, getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]), p, true);
     }
     double old_logl_result = computeLoglikelihood(ann_network, 0, 1);
-    if (new_logl_result != old_logl_result) {
+    if (new_logl_result != old_logl_result && fabs(new_logl_result - old_logl_result) >= 1E-3) {
         std::cout << "new_logl_result: " << new_logl_result << "\n";
         std::cout << "old_logl_result: " << old_logl_result << "\n";
     }
-    assert(new_logl_result == old_logl_result);
+    assert(fabs(new_logl_result - old_logl_result) < 1E-3);
+    Node* new_virtual_root = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
+    Node* new_virtual_root_back = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
+    updateCLVsVirtualRerootTrees(ann_network, ann_network.network.root, new_virtual_root, new_virtual_root_back);
 
     return network_logl;
 }
