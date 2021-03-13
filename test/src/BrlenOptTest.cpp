@@ -140,7 +140,6 @@ TEST (BrlenOptTest, treeVirtualRoots) {
     treeOptions.msa_file = msaPath;
     treeOptions.use_repeats = false;
     treeOptions.seed = 42;
-    RaxmlWrapper treeWrapper = RaxmlWrapper(treeOptions);
     AnnotatedNetwork annTreeNetwork = build_annotated_network(treeOptions);
     init_annotated_network(annTreeNetwork);
     double old_logl = computeLoglikelihood(annTreeNetwork, 1, 1);
@@ -228,7 +227,6 @@ TEST (BrlenOptTest, small) {
     smallOptions.start_network_file = smallPath;
     smallOptions.msa_file = msaPath;
     smallOptions.use_repeats = true;
-    RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
     //smallWrapper.enableRaxmlDebugOutput();
     AnnotatedNetwork annTreeNetwork = build_annotated_network(smallOptions);
     init_annotated_network(annTreeNetwork);
@@ -242,6 +240,44 @@ TEST (BrlenOptTest, small) {
     double brlenopt_logl_network = computeLoglikelihood(annTreeNetwork, 1, 1);
     std::cout << "NETWORK - Loglikelihood after branch length optimization: "
             << brlenopt_logl_network << "\n";
+}
+
+TEST (BrlenOptTest, smallVirtualRoots) {
+    // initial setup
+    std::string smallPath = DATA_PATH + "small.nw";
+    std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
+    NetraxOptions smallOptions;
+    smallOptions.start_network_file = smallPath;
+    smallOptions.msa_file = msaPath;
+    smallOptions.use_repeats = false;
+    smallOptions.seed = 42;
+    AnnotatedNetwork annTreeNetwork = build_annotated_network(smallOptions);
+    init_annotated_network(annTreeNetwork);
+    double old_logl = computeLoglikelihood(annTreeNetwork, 1, 1);
+
+    std::cout << exportDebugInfo(annTreeNetwork) << "\n";
+
+    Node* old_virtual_root = annTreeNetwork.network.root;
+    auto oldTrees = extractOldTrees(annTreeNetwork, annTreeNetwork.network.root);
+    std::uniform_int_distribution<std::mt19937::result_type> dist(0, annTreeNetwork.network.num_branches() - 1);
+    for (size_t i = 0; i < 100; ++i) {
+        size_t pmatrix_index = dist(annTreeNetwork.rng);
+        std::cout << "Testing with pmatrix index: " << pmatrix_index << "\n";
+
+        Edge* edge = annTreeNetwork.network.edges_by_index[pmatrix_index];
+        Node* new_virtual_root = getSource(annTreeNetwork.network, edge);
+        Node* new_virtual_root_back = getTarget(annTreeNetwork.network, edge);
+        std::cout << "old_virtual_root: " << old_virtual_root->clv_index << "\n";
+        std::cout << "new_virtual_root: " << new_virtual_root->clv_index << "\n";
+        std::cout << "new_virtual_root_back: " << new_virtual_root_back->clv_index << "\n";
+        updateCLVsVirtualRerootTrees(annTreeNetwork, old_virtual_root, new_virtual_root, new_virtual_root_back);
+        double new_logl = computeLoglikelihoodBrlenOpt(annTreeNetwork, oldTrees, edge->pmatrix_index, 1, 1);
+
+        ASSERT_DOUBLE_EQ(old_logl, new_logl);
+
+        oldTrees = extractOldTrees(annTreeNetwork, old_virtual_root);
+        old_virtual_root = new_virtual_root;
+    }
 }
 
 TEST (BrlenOptTest, celineFake) {
