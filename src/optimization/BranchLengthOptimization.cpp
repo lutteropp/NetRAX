@@ -119,6 +119,11 @@ double optimize_branch(AnnotatedNetwork &ann_network, std::vector<std::vector<Ol
     //        << "\n";
     //std::cout << "\n";
 
+    if (best_logl < start_logl) {
+        std::cout << "best_logl: " << best_logl << "\n";
+        std::cout << "start_logl: " << start_logl << "\n";
+    }
+    assert(best_logl >= start_logl);
 
 
     return best_logl;
@@ -192,6 +197,7 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
         Node* new_virtual_root = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
         Node* new_virtual_root_back = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
         updateCLVsVirtualRerootTrees(ann_network, old_virtual_root, new_virtual_root, new_virtual_root_back);
+
         double new_logl = optimize_branch(ann_network, &oldTrees, pmatrix_index);
 
         if (new_logl - old_logl > lh_epsilon) { // add all neighbors of the branch to the candidates

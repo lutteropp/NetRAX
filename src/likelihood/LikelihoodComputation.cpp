@@ -796,7 +796,22 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
             sourceTree.tree_logprob_valid = true;
         }
     }
-    return evaluateTrees(ann_network, source);
+
+    double network_logl = evaluateTrees(ann_network, source);
+
+    // TODO: Remove me again, this is just for debug
+    double new_logl_result = network_logl;
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        invalidateHigherCLVs(ann_network, getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]), p, true);
+    }
+    double old_logl_result = computeLoglikelihood(ann_network, 0, 1);
+    if (new_logl_result != old_logl_result) {
+        std::cout << "new_logl_result: " << new_logl_result << "\n";
+        std::cout << "old_logl_result: " << old_logl_result << "\n";
+    }
+    assert(new_logl_result == old_logl_result);
+
+    return network_logl;
 }
 
 double computeLoglikelihoodImproved(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices) {
