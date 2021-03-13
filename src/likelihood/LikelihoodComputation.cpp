@@ -782,7 +782,7 @@ void updateCLVsVirtualRerootTrees(AnnotatedNetwork& ann_network, Node* old_virtu
         ScaleBufferRangeInfo scaleBufferInfo = get_scale_buffer_range(ann_network.fake_treeinfo->partitions[partition_idx]);
         for (size_t p = 0; p < paths.size(); ++p) {
             for (size_t i = 0; i < paths[p].path.size(); ++i) {
-                processNodeImproved(ann_network, p, 0, clvInfo, scaleBufferInfo, paths[p].path[i], paths[p].children[i], paths[p].reticulationChoices);
+                processNodeImproved(ann_network, partition_idx, 0, clvInfo, scaleBufferInfo, paths[p].path[i], paths[p].children[i], paths[p].reticulationChoices);
             }
         }
     }    
