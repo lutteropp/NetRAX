@@ -715,6 +715,18 @@ std::vector<PathToVirtualRoot> getPathsToVirtualRoot(AnnotatedNetwork& ann_netwo
         ptvr.reticulationChoices = restrictionsSet;
         ptvr.path = path;
 
+        std::cout << "parent pointers for reticulation choices:\n";
+        printReticulationChoices(restrictionsSet);
+        for (size_t j = 0; j < path.size(); ++j) {
+            if (parent[path[j]->clv_index]) {
+                std::cout << path[j]->clv_index << " has parent " << parent[path[j]->clv_index]->clv_index << "\n";
+            } else {
+                std::cout << path[j]->clv_index << " has NO parent\n";
+            }
+        }
+        std::cout << "\n";
+
+        assert(ptvr.path[0] == old_virtual_root);
         for (size_t j = 0; j < path.size() - 1; ++j) {
             if (path[j] == new_virtual_root_back) {
                 ptvr.children.emplace_back(getCurrentChildren(ann_network, path[j], new_virtual_root, restrictionsSet)); // Not sure if this special case is needed
@@ -813,12 +825,15 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
             }
             sourceTree.tree_logl_valid = true;
             sourceTree.tree_logprob_valid = true;
+
+            std::cout << "partition " << p << ", tree " << i << " logl: " << sourceTree.tree_logl << ", logprob: " << sourceTree.tree_logprob << "\n";
         }
     }
 
     double network_logl = evaluateTrees(ann_network, source);
 
     // TODO: Remove me again, this is just for debug
+    std::cout << "n_trees: " << ann_network.pernode_displayed_tree_data[0][source->clv_index].num_active_displayed_trees << "\n";
     std::cout << "Displayed trees to evaluate:\n";
     printDisplayedTreesChoices(ann_network, source);
     /*

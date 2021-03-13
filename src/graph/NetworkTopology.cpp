@@ -163,14 +163,11 @@ std::vector<Node*> getChildren(Network &network, Node *node) {
 std::vector<Node*> getChildrenIgnoreDirections(Network &network, Node *node, const Node *myParent) {
     assert(node);
     std::vector<Node*> children;
-    if (node->type == NodeType::RETICULATION_NODE) {
-        children.push_back(getReticulationChild(network, node));
-    } else { // normal node
-        std::vector<Node*> neighbors = getNeighbors(network, node);
-        for (size_t i = 0; i < neighbors.size(); ++i) {
-            if (neighbors[i] != myParent) {
-                children.push_back(neighbors[i]);
-            }
+    
+    std::vector<Node*> neighbors = getNeighbors(network, node);
+    for (size_t i = 0; i < neighbors.size(); ++i) {
+        if (neighbors[i] != myParent) {
+            children.push_back(neighbors[i]);
         }
     }
     return children;
