@@ -769,6 +769,13 @@ void updateCLVsVirtualRerootTrees(AnnotatedNetwork& ann_network, Node* old_virtu
     }    
 }
 
+void printDisplayedTreesChoices(AnnotatedNetwork& ann_network, Node* virtualRoot) {
+    NodeDisplayedTreeData& nodeData = ann_network.pernode_displayed_tree_data[0][virtualRoot->clv_index];
+    for (size_t i = 0; i < nodeData.num_active_displayed_trees; ++i) {
+        printReticulationChoices(nodeData.displayed_trees[i].reticulationChoices);
+    }
+}
+
 double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::vector<std::vector<OldTreeLoglData> >& oldTrees, unsigned int pmatrix_index, int incremental, int update_pmatrices) {
     Node* source = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
     Node* target = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
@@ -801,6 +808,9 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
 
     // TODO: Remove me again, this is just for debug
     std::cout << "computeLoglikelihoodBrlenOpt has been called\n";
+    std::cout << "Displayed trees to evaluate:\n";
+    printDisplayedTreesChoices(ann_network, source);
+
     double new_logl_result = network_logl;
     for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
         invalidateHigherCLVs(ann_network, getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]), p, true);
