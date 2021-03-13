@@ -458,6 +458,8 @@ void processNodeImproved(AnnotatedNetwork& ann_network, unsigned int partition_i
     for (size_t i = 0; i < displayed_trees.num_active_displayed_trees; ++i) {
         printReticulationChoices(displayed_trees.displayed_trees[i].reticulationChoices);
     }*/
+
+    assert(displayed_trees.num_active_displayed_trees <= (1 << ann_network.network.num_reticulations()));
 }
 
 void processPartitionImproved(AnnotatedNetwork& ann_network, unsigned int partition_idx, int incremental) {
