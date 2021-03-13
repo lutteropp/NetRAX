@@ -8,6 +8,8 @@
 #include "src/likelihood/LikelihoodComputation.hpp"
 #include "src/optimization/BranchLengthOptimization.hpp"
 #include "src/optimization/ModelOptimization.hpp"
+#include "src/graph/NetworkFunctions.hpp"
+#include "src/graph/NetworkTopology.hpp"
 #include "src/io/NetworkIO.hpp"
 #include "src/RaxmlWrapper.hpp"
 
@@ -126,6 +128,35 @@ TEST (BrlenOptTest, DISABLED_tree_exact) {
     ASSERT_FLOAT_EQ(brlenopt_logl_raxml, brlenopt_logl_network);
 
     delete infoRaxml;
+}
+
+TEST (BrlenOptTest, treeVirtualRoots) {
+    // initial setup
+    std::string treePath = DATA_PATH + "tree.nw";
+    std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
+    NetraxOptions treeOptions;
+    treeOptions.start_network_file = treePath;
+    treeOptions.msa_file = msaPath;
+    treeOptions.use_repeats = false;
+    RaxmlWrapper treeWrapper = RaxmlWrapper(treeOptions);
+    AnnotatedNetwork annTreeNetwork = build_annotated_network(treeOptions);
+    init_annotated_network(annTreeNetwork);
+    double old_logl = computeLoglikelihood(annTreeNetwork, 1, 1);
+
+    Node* old_virtual_root = annTreeNetwork.network.root;
+    auto oldTrees = extractOldTrees(annTreeNetwork, annTreeNetwork.network.root);
+    std::uniform_int_distribution<std::mt19937::result_type> dist(0, annTreeNetwork.network.num_branches());
+    for (size_t i = 0; i < 100; ++i) {
+        Edge* edge = annTreeNetwork.network.edges_by_index[dist(annTreeNetwork.rng)];
+        Node* new_virtual_root = getSource(annTreeNetwork.network, edge);
+        Node* new_virtual_root_back = getTarget(annTreeNetwork.network, edge);
+        updateCLVsVirtualRerootTrees(annTreeNetwork, old_virtual_root, new_virtual_root, new_virtual_root_back);
+        double new_logl = computeLoglikelihoodBrlenOpt(annTreeNetwork, oldTrees, edge->pmatrix_index, 1, 1);
+
+        ASSERT_DOUBLE_EQ(old_logl, new_logl);
+
+        oldTrees = extractOldTrees(annTreeNetwork, annTreeNetwork.network.root);
+    }
 }
 
 TEST (BrlenOptTest, tree) {
