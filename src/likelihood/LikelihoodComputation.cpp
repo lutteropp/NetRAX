@@ -760,10 +760,10 @@ std::vector<PathToVirtualRoot> getPathsToVirtualRoot(AnnotatedNetwork& ann_netwo
         }
     }
 
-    std::cout << "paths from old virtual root " << old_virtual_root->clv_index << " to virtual root " << new_virtual_root->clv_index << ":\n";
+    /*std::cout << "paths from old virtual root " << old_virtual_root->clv_index << " to virtual root " << new_virtual_root->clv_index << ":\n";
     for (size_t i = 0; i < res.size(); ++i) {
         printPathToVirtualRoot(res[i]);
-    }
+    }*/
 
     return res;
 }
