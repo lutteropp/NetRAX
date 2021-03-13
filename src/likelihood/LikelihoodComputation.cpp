@@ -507,6 +507,15 @@ DisplayedTreeData& getMatchingDisplayedTreeAtNode(AnnotatedNetwork& ann_network,
     throw std::runtime_error("No compatible displayed tree data found");
 }
 
+const OldTreeLoglData& getMatchingOldTree(AnnotatedNetwork& ann_network, const std::vector<OldTreeLoglData>& oldTrees, const ReticulationConfigSet& queryChoices) {
+    for (size_t i = 0; i < oldTrees.size(); ++i) {
+        if (reticulationConfigsCompatible(queryChoices, oldTrees[i].reticulationChoices)) {
+            return oldTrees[i];
+        }
+    }
+    throw std::runtime_error("No compatible old tree data found");
+}
+
 double evaluateTrees(AnnotatedNetwork &ann_network, Node* virtual_root) {
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
     mpfr::mpreal network_logl = 0.0;
@@ -760,7 +769,7 @@ void updateCLVsVirtualRerootTrees(AnnotatedNetwork& ann_network, Node* old_virtu
     }    
 }
 
-double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, unsigned int pmatrix_index, int incremental, int update_pmatrices) {
+double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::vector<std::vector<OldTreeLoglData> >& oldTrees, unsigned int pmatrix_index, int incremental, int update_pmatrices) {
     Node* source = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
     Node* target = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
     assert(reuseOldDisplayedTreesCheck(ann_network, incremental)); // TODO: Doesn't this need the virtual_root pointer, too?
@@ -770,14 +779,16 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, unsigned int 
         size_t n_trees = ann_network.pernode_displayed_tree_data[p][source->clv_index].num_active_displayed_trees;
         for (size_t i = 0; i < n_trees; ++i) {
             DisplayedTreeData& sourceTree = ann_network.pernode_displayed_tree_data[p][source->clv_index].displayed_trees[i];
-            DisplayedTreeData& targetTree = getMatchingDisplayedTreeAtNode(ann_network, p, target->clv_index, sourceTree.reticulationChoices);
-
-            // TODO: Find the actual virtual root for the displayed tree, we might have a dead node situation
-            // TODO: Also, for inactive branches (in dead area) we don't need to always recompute tree loglh as it stays the same
-            throw std::runtime_error("Not correctly implemented yet");
-            sourceTree.tree_logl = pll_compute_edge_loglikelihood(partition, source->clv_index, sourceTree.clv_vector, sourceTree.scale_buffer, 
+            if (isActiveBranch(ann_network, sourceTree, pmatrix_index)) {
+                DisplayedTreeData& targetTree = getMatchingDisplayedTreeAtNode(ann_network, p, target->clv_index, sourceTree.reticulationChoices);
+                sourceTree.tree_logl = pll_compute_edge_loglikelihood(partition, source->clv_index, sourceTree.clv_vector, sourceTree.scale_buffer, 
                                                                 target->clv_index, targetTree.clv_vector, targetTree.scale_buffer, 
                                                                 pmatrix_index, ann_network.fake_treeinfo->param_indices[p], nullptr);
+            } else { // for inactive branches (in dead area), we have a dead node situation. However, we don't need to recompute tree loglh here as it stays the same as it was for the old virtual root
+                const OldTreeLoglData& oldTree = getMatchingOldTree(ann_network, oldTrees[p], sourceTree.reticulationChoices);
+                assert(oldTree.tree_logl_valid);
+                sourceTree.tree_logl = oldTree.tree_logl;
+            }
             sourceTree.tree_logl_valid = true;
         }
     }

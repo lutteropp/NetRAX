@@ -105,6 +105,12 @@ struct ReticulationConfigSet {
     }
 };
 
+struct OldTreeLoglData {
+    double tree_logl = -std::numeric_limits<double>::infinity();
+    bool tree_logl_valid = false;
+    ReticulationConfigSet reticulationChoices;
+};
+
 struct DisplayedTreeData {
     bool tree_logl_valid = false;
     bool tree_logprob_valid = false;
