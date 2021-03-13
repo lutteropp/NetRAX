@@ -165,7 +165,8 @@ TEST (BrlenOptTest, treeVirtualRoots) {
 
         ASSERT_DOUBLE_EQ(old_logl, new_logl);
 
-        oldTrees = extractOldTrees(annTreeNetwork, annTreeNetwork.network.root);
+        oldTrees = extractOldTrees(annTreeNetwork, old_virtual_root);
+        old_virtual_root = new_virtual_root;
     }
 }
 
