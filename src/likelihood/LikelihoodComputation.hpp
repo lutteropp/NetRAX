@@ -23,7 +23,7 @@ namespace netrax {
 
 double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental = 1, int update_pmatrices = 1);
 
-void updateCLVsVirtualRerootTrees(AnnotatedNetwork& ann_network, Node* old_virtual_root, Node* new_virtual_root);
+void updateCLVsVirtualRerootTrees(AnnotatedNetwork& ann_network, Node* old_virtual_root, Node* new_virtual_root, Node* new_virtual_root_back);
 double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, unsigned int pmatrix_index, int incremental = 1, int update_pmatrices = 1);
 
 double computeLoglikelihoodNaiveUtree(AnnotatedNetwork &ann_network, int incremental,

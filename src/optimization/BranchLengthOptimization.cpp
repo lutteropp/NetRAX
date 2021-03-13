@@ -164,7 +164,8 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
         act_iters[pmatrix_index]++;
 
         Node* new_virtual_root = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
-        updateCLVsVirtualRerootTrees(ann_network, old_virtual_root, new_virtual_root);
+        Node* new_virtual_root_back = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
+        updateCLVsVirtualRerootTrees(ann_network, old_virtual_root, new_virtual_root, new_virtual_root_back);
         double new_logl = optimize_branch(ann_network, pmatrix_index);
 
         if (new_logl - old_logl > lh_epsilon) { // add all neighbors of the branch to the candidates
@@ -174,7 +175,16 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
         old_virtual_root = new_virtual_root;
     }
     assert(old_logl >= start_logl);
-    updateCLVsVirtualRerootTrees(ann_network, old_virtual_root, ann_network.network.root);
+
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        invalidateHigherCLVs(ann_network, old_virtual_root, p, true);
+    }
+    double recomputedLogl = computeLoglikelihood(ann_network, 1, 0);
+    if (recomputedLogl != old_logl) {
+        std::cout << "recomputed logl: " << recomputedLogl << "\n";
+        std::cout << "old_logl: " << old_logl << "\n";
+        throw std::runtime_error("Something went wrong after brlen opt");
+    }
     return old_logl;
 }
 

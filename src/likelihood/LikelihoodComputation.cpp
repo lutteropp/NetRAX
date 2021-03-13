@@ -365,12 +365,6 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
                 pll_update_partials_single(partition, &op_both, 1, parent_clv, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
                 newDisplayedTree.reticulationChoices = combineReticulationChoices(leftTree.reticulationChoices, rightTree.reticulationChoices);
                 newDisplayedTree.reticulationChoices = combineReticulationChoices(newDisplayedTree.reticulationChoices, restrictionsBothSet);
-
-                if (node == ann_network.network.root) { // if we are at the root node, we also need to compute loglikelihood
-                    computeDisplayedTreeLoglikelihood(ann_network, partition_idx, newDisplayedTree, node);
-                } /*else { // this is just for debug
-                    computeDisplayedTreeLoglikelihood(ann_network, partition_idx, newDisplayedTree, node);
-                }*/
             }
         }
     }
@@ -429,9 +423,6 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
             unsigned int* right_scaler = nullptr;
             pll_update_partials_single(partition, &op_right_only, 1, parent_clv, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
             tree.reticulationChoices = rightOnlyConfigs;
-            if (node == ann_network.network.root) { // if we are at the root node, we also need to compute loglikelihood
-                computeDisplayedTreeLoglikelihood(ann_network, partition_idx, tree, node);
-            }
             num_trees_added++;
         }
     }
@@ -479,6 +470,11 @@ void processPartitionImproved(AnnotatedNetwork& ann_network, unsigned int partit
         Node* actNode = ann_network.travbuffer[i];
         std::vector<Node*> children = getChildren(ann_network.network, actNode);
         processNodeImproved(ann_network, partition_idx, incremental, clvInfo, scaleBufferInfo, actNode, children, {});
+    }
+
+    for (size_t i = 0; i < ann_network.pernode_displayed_tree_data[partition_idx][ann_network.network.root->clv_index].num_active_displayed_trees; ++i) {
+        DisplayedTreeData& tree = ann_network.pernode_displayed_tree_data[partition_idx][ann_network.network.root->clv_index].displayed_trees[i];
+        computeDisplayedTreeLoglikelihood(ann_network, partition_idx, tree, ann_network.network.root);
     }
 
     /*std::cout << "\nloglikelihood for trees at each node, for partition " << partition_idx << ":\n";
@@ -675,14 +671,21 @@ struct PathToVirtualRoot {
     PathToVirtualRoot(size_t max_reticulations) : reticulationChoices(max_reticulations) {};
 };
 
-std::vector<PathToVirtualRoot> getPathsToVirtualRoot(AnnotatedNetwork& ann_network, Node* old_virtual_root, Node* new_virtual_root) {
-    std::vector<PathToVirtualRoot> res;
-    // simplistic version here: Go over all displayed trees, compute pathToVirtualRoot for each of them, and then later on kick out duplicate paths...
+std::vector<Node*> getCurrentChildren(AnnotatedNetwork& ann_network, Node* node, Node* parent, const ReticulationConfigSet& restrictions) {
+    assert(restrictions.configs.size() == 1);
+    std::vector<Node*> children = getChildrenIgnoreDirections(ann_network.network, node, parent);
+    std::vector<Node*> res;
+    for (size_t i = 0; i < children.size(); ++i) {
+        if (reticulationConfigsCompatible(restrictions, getRestrictionsToTakeNeighbor(ann_network, node, children[i]))) {
+            res.emplace_back(children[i]);
+        }
+    }
+    return res;
+}
 
-    // TODO: for the single active child case...
-    //if (other_child) {
-    //    restrictionsSet = combineReticulationChoices(restrictionsSet, getRestrictionsToDismissNeighbor(ann_network, node, other_child));
-    //}
+std::vector<PathToVirtualRoot> getPathsToVirtualRoot(AnnotatedNetwork& ann_network, Node* old_virtual_root, Node* new_virtual_root, Node* new_virtual_root_back) {
+    std::vector<PathToVirtualRoot> res;
+    // naive version here: Go over all displayed trees, compute pathToVirtualRoot for each of them, and then later on kick out duplicate paths...
 
     NodeDisplayedTreeData& oldDisplayedTrees = ann_network.pernode_displayed_tree_data[0][old_virtual_root->clv_index];
     for (size_t i = 0; i < oldDisplayedTrees.num_active_displayed_trees; ++i) {
@@ -698,23 +701,43 @@ std::vector<PathToVirtualRoot> getPathsToVirtualRoot(AnnotatedNetwork& ann_netwo
         for (size_t j = 0; j < path.size() - 1; ++j) {
             restrictionsSet = combineReticulationChoices(restrictionsSet, getRestrictionsToTakeNeighbor(ann_network, path[j], path[j+1]));
         }
+        assert(restrictionsSet.configs.size() == 1);
         ptvr.reticulationChoices = restrictionsSet;
         ptvr.path = path;
 
-        for (size_t j = 0; j < path.size(); ++j) {
-            throw std::runtime_error("Not implemented yet");
+        for (size_t j = 0; j < path.size() - 1; ++j) {
+            ptvr.children.emplace_back(getCurrentChildren(ann_network, path[j], parent[path[j]->clv_index], restrictionsSet));
         }
+        // Special case at new virtual root, there we don't want to include new_virtual_root_back...
+        assert(path[path.size() - 1] == new_virtual_root);
+        ptvr.children.emplace_back(getCurrentChildren(ann_network, new_virtual_root, new_virtual_root_back, restrictionsSet));
 
         res.emplace_back(ptvr);
     }
 
+    // Kick out the duplicate paths
+    bool foundDuplicate = true;
+    while (foundDuplicate) {
+        foundDuplicate = false;
+        for (size_t i = 0; i < res.size() - 1; ++i) {
+            for (size_t j = i + 1; j < res.size(); ++j) {
+                if (res[i].path == res[j].path) {
+                    foundDuplicate = true;
+                    std::swap(res[j], res[res.size() - 1]);
+                    res.pop_back();
+                    break;
+                }
+            }
+            if (foundDuplicate) {
+                break;
+            }
+        }
+    }
 
-    throw std::runtime_error("Not implemented yet");
-    // (make sure that instead of using hard-coded reticulation parents here, we check on a branch-basis like how the reticulation state has to be for the branch to be active)
     return res;
 }
 
-void updateCLVsVirtualRerootTrees(AnnotatedNetwork& ann_network, Node* old_virtual_root, Node* new_virtual_root) {
+void updateCLVsVirtualRerootTrees(AnnotatedNetwork& ann_network, Node* old_virtual_root, Node* new_virtual_root, Node* new_virtual_root_back) {
     if (old_virtual_root == new_virtual_root) {
         return;
     }
@@ -724,7 +747,7 @@ void updateCLVsVirtualRerootTrees(AnnotatedNetwork& ann_network, Node* old_virtu
     // 1.) for all paths from retNode to new_virtual_root:
     //     1.1) Collect the reticulation nodes encountered on the path, build exta restrictions storing the reticulation configurations used
     //     1.2) update CLVs on that path, using extra restrictions and append mode
-    std::vector<PathToVirtualRoot> paths = getPathsToVirtualRoot(ann_network, old_virtual_root, new_virtual_root);
+    std::vector<PathToVirtualRoot> paths = getPathsToVirtualRoot(ann_network, old_virtual_root, new_virtual_root, new_virtual_root_back);
 
     for (size_t partition_idx = 0; partition_idx < ann_network.fake_treeinfo->partition_count; ++partition_idx) {
         ClvRangeInfo clvInfo = get_clv_range(ann_network.fake_treeinfo->partitions[partition_idx]);
@@ -755,6 +778,7 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, unsigned int 
             sourceTree.tree_logl = pll_compute_edge_loglikelihood(partition, source->clv_index, sourceTree.clv_vector, sourceTree.scale_buffer, 
                                                                 target->clv_index, targetTree.clv_vector, targetTree.scale_buffer, 
                                                                 pmatrix_index, ann_network.fake_treeinfo->param_indices[p], nullptr);
+            sourceTree.tree_logl_valid = true;
         }
     }
     return evaluateTrees(ann_network, source);
