@@ -12,6 +12,7 @@
 #include "src/graph/NetworkTopology.hpp"
 #include "src/io/NetworkIO.hpp"
 #include "src/RaxmlWrapper.hpp"
+#include "src/DebugPrintFunctions.hpp"
 
 #include <gtest/gtest.h>
 #include <string>
@@ -144,11 +145,15 @@ TEST (BrlenOptTest, treeVirtualRoots) {
     init_annotated_network(annTreeNetwork);
     double old_logl = computeLoglikelihood(annTreeNetwork, 1, 1);
 
+    std::cout << exportDebugInfo(annTreeNetwork) << "\n";
+
     Node* old_virtual_root = annTreeNetwork.network.root;
     auto oldTrees = extractOldTrees(annTreeNetwork, annTreeNetwork.network.root);
     std::uniform_int_distribution<std::mt19937::result_type> dist(0, annTreeNetwork.network.num_branches() - 1);
     for (size_t i = 0; i < 100; ++i) {
         size_t pmatrix_index = dist(annTreeNetwork.rng);
+        std::cout << "Testing with pmatrix index: " << pmatrix_index << "\n";
+
         Edge* edge = annTreeNetwork.network.edges_by_index[pmatrix_index];
         Node* new_virtual_root = getSource(annTreeNetwork.network, edge);
         Node* new_virtual_root_back = getTarget(annTreeNetwork.network, edge);
