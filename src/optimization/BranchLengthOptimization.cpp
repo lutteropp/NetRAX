@@ -199,6 +199,7 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
         }
         act_iters[pmatrix_index]++;
 
+        std::cout << "PREPARING FOR OPTIMIZING BRANCH " << pmatrix_index << "...\n";
         Node* new_virtual_root = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
         Node* new_virtual_root_back = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
         updateCLVsVirtualRerootTrees(ann_network, old_virtual_root, new_virtual_root, new_virtual_root_back);
