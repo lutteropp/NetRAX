@@ -680,6 +680,19 @@ struct PathToVirtualRoot {
     PathToVirtualRoot(size_t max_reticulations) : reticulationChoices(max_reticulations) {};
 };
 
+void printPathToVirtualRoot(const PathToVirtualRoot& pathToVirtualRoot) {
+    for (size_t i = 0; i < pathToVirtualRoot.path.size(); ++i) {
+        std::cout << "Node " << pathToVirtualRoot.path[i]->clv_index << " has children: ";
+        for (size_t j = 0; j < pathToVirtualRoot.children[i].size(); ++j) {
+            std::cout << pathToVirtualRoot.children[i][j]->clv_index;
+            if (j + 1 < pathToVirtualRoot.children[i].size()) {
+                std::cout << ", ";
+            }
+        }
+        std::cout << "\n";
+    }
+}
+
 std::vector<Node*> getCurrentChildren(AnnotatedNetwork& ann_network, Node* node, Node* parent, const ReticulationConfigSet& restrictions) {
     assert(restrictions.configs.size() == 1);
     std::vector<Node*> children = getChildrenIgnoreDirections(ann_network.network, node, parent);
@@ -741,6 +754,11 @@ std::vector<PathToVirtualRoot> getPathsToVirtualRoot(AnnotatedNetwork& ann_netwo
                 break;
             }
         }
+    }
+
+    std::cout << "paths to virtual root:\n";
+    for (size_t i = 0; i < res.size(); ++i) {
+        printPathToVirtualRoot(res[i]);
     }
 
     return res;
@@ -819,6 +837,7 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
     if (new_logl_result != old_logl_result && fabs(new_logl_result - old_logl_result) >= 1E-3) {
         std::cout << "new_logl_result: " << new_logl_result << "\n";
         std::cout << "old_logl_result: " << old_logl_result << "\n";
+        std::cout << exportDebugInfo(ann_network) << "\n";
     }
     assert(fabs(new_logl_result - old_logl_result) < 1E-3);
     Node* new_virtual_root = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
