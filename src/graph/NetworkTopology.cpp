@@ -401,11 +401,17 @@ std::vector<Edge*> getAdjacentEdges(Network &network, const Edge *edge) {
 }
 
 Node* getSource(Network &network, const Edge *edge) {
+    assert(edge);
+    assert(edge->link1);
+    assert(edge->link2);
     assert(edge->link1->direction == Direction::OUTGOING);
     return network.nodes_by_index[edge->link1->node_clv_index];
 }
 
 Node* getTarget(Network &network, const Edge *edge) {
+    assert(edge);
+    assert(edge->link1);
+    assert(edge->link2);
     assert(edge->link2->direction == Direction::INCOMING);
     return network.nodes_by_index[edge->link2->node_clv_index];
 }

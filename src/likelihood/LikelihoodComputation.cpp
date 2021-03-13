@@ -829,6 +829,7 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
     double network_logl = evaluateTrees(ann_network, source);
 
     // TODO: Remove me again, this is just for debug
+    /*
     std::cout << "computeLoglikelihoodBrlenOpt has been called\n";
     std::cout << "Displayed trees to evaluate:\n";
     printDisplayedTreesChoices(ann_network, source);
@@ -847,6 +848,7 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
     Node* new_virtual_root = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
     Node* new_virtual_root_back = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
     updateCLVsVirtualRerootTrees(ann_network, ann_network.network.root, new_virtual_root, new_virtual_root_back);
+    */
 
     return network_logl;
 }
