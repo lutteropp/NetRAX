@@ -129,10 +129,13 @@ std::vector<std::vector<OldTreeLoglData> > extractOldTrees(AnnotatedNetwork& ann
     for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
         NodeDisplayedTreeData& nodeTrees = ann_network.pernode_displayed_tree_data[p][virtual_root->clv_index];
         for (size_t i = 0; i < nodeTrees.num_active_displayed_trees; ++i) {
+            DisplayedTreeData& tree = nodeTrees.displayed_trees[i];
             OldTreeLoglData data;
-            data.reticulationChoices = nodeTrees.displayed_trees[i].reticulationChoices;
-            data.tree_logl = nodeTrees.displayed_trees[i].tree_logl;
-            data.tree_logl_valid = nodeTrees.displayed_trees[i].tree_logl_valid;
+            data.reticulationChoices = tree.reticulationChoices;
+            data.tree_logl = tree.tree_logl;
+            data.tree_logl_valid = tree.tree_logl_valid;
+            data.tree_logprob = tree.tree_logprob;
+            data.tree_logprob_valid = tree.tree_logprob_valid;
             oldTrees[p].emplace_back(data);
         }
     }

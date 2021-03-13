@@ -784,12 +784,16 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
                 sourceTree.tree_logl = pll_compute_edge_loglikelihood(partition, source->clv_index, sourceTree.clv_vector, sourceTree.scale_buffer, 
                                                                 target->clv_index, targetTree.clv_vector, targetTree.scale_buffer, 
                                                                 pmatrix_index, ann_network.fake_treeinfo->param_indices[p], nullptr);
+                sourceTree.tree_logprob = computeReticulationConfigLogProb(sourceTree.reticulationChoices, ann_network.reticulation_probs);
             } else { // for inactive branches (in dead area), we have a dead node situation. However, we don't need to recompute tree loglh here as it stays the same as it was for the old virtual root
                 const OldTreeLoglData& oldTree = getMatchingOldTree(ann_network, oldTrees[p], sourceTree.reticulationChoices);
                 assert(oldTree.tree_logl_valid);
                 sourceTree.tree_logl = oldTree.tree_logl;
+                assert(oldTree.tree_logprob_valid);
+                sourceTree.tree_logprob = oldTree.tree_logprob;
             }
             sourceTree.tree_logl_valid = true;
+            sourceTree.tree_logprob_valid = true;
         }
     }
     return evaluateTrees(ann_network, source);
