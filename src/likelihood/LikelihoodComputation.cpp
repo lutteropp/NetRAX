@@ -593,23 +593,9 @@ double evaluateTrees(AnnotatedNetwork &ann_network, Node* virtual_root) {
 bool isActiveBranch(AnnotatedNetwork& ann_network, const DisplayedTreeData& displayedTree, unsigned int pmatrix_index) {
     Node* edge_source = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
     Node* edge_target = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
-    bool seen_source = false;
-    bool seen_target = false;
-    for (size_t i = 0; i < ann_network.pernode_displayed_tree_data[0][edge_source->clv_index].num_active_displayed_trees; ++i) {
-        DisplayedTreeData& actTree = ann_network.pernode_displayed_tree_data[0][edge_source->clv_index].displayed_trees[i];
-        if (reticulationConfigsCompatible(displayedTree.reticulationChoices, actTree.reticulationChoices)) {
-            seen_source = true;
-            break;
-        }
-    }
-    for (size_t i = 0; i < ann_network.pernode_displayed_tree_data[0][edge_target->clv_index].num_active_displayed_trees; ++i) {
-        DisplayedTreeData& actTree = ann_network.pernode_displayed_tree_data[0][edge_target->clv_index].displayed_trees[i];
-        if (reticulationConfigsCompatible(displayedTree.reticulationChoices, actTree.reticulationChoices)) {
-            seen_target = true;
-            break;
-        }
-    }
-    return (seen_source && seen_target);
+
+    ReticulationConfigSet restrictions = getRestrictionsToTakeNeighbor(ann_network, edge_source, edge_target);
+    return reticulationConfigsCompatible(restrictions, displayedTree.reticulationChoices);
 }
 
 std::vector<Node*> getPathToVirtualRoot(AnnotatedNetwork& ann_network, Node* from, Node* virtual_root, const std::vector<Node*> parent) {
