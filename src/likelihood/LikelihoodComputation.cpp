@@ -143,9 +143,11 @@ void iterateOverScaler(unsigned int* scaler, ScaleBufferRangeInfo& scalerInfo) {
     std::cout << "\n";
 }
 
-unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, unsigned int partition_idx, ClvRangeInfo &clvInfo, ScaleBufferRangeInfo &scaleBufferInfo, Node* node, Node* child) {
+unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, unsigned int partition_idx, ClvRangeInfo &clvInfo, ScaleBufferRangeInfo &scaleBufferInfo, Node* node, Node* child, const ReticulationConfigSet& extraRestrictions) {
     assert(node);
     assert(child);
+    throw std::runtime_error("TODO: Make this work with undirected setting");
+
     unsigned int num_trees_added = 0;
     pll_operation_t op = buildOperation(ann_network.network, node, child, nullptr, ann_network.network.nodes.size(), ann_network.network.edges.size());
     NodeDisplayedTreeData& displayed_trees = ann_network.pernode_displayed_tree_data[partition_idx][node->clv_index];
@@ -175,6 +177,10 @@ unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, unsig
     ReticulationConfigSet restrictionsSet(ann_network.options.max_reticulations);
     restrictionsSet.configs.emplace_back(restrictions);
 
+    if (!extraRestrictions.configs.empty()) {
+        restrictionsSet = combineReticulationChoices(restrictionsSet, extraRestrictions);
+    }
+
     for (size_t i = 0; i < displayed_trees_child.num_active_displayed_trees; ++i) {
         DisplayedTreeData& childTree = displayed_trees_child.displayed_trees[i];
         if (!reticulationConfigsCompatible(childTree.reticulationChoices, restrictionsSet)) {
@@ -203,6 +209,9 @@ unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, unsig
 }
 
 ReticulationConfigSet deadNodeSettings(AnnotatedNetwork& ann_network, const NodeDisplayedTreeData& displayed_trees, Node* parent, Node* child) {
+    throw std::runtime_error("TODO: Make this work with undirected setting");
+
+
     // Return all configurations in which the node which the displayed trees belong to would have no displayed tree, and thus be a dead node
     ReticulationConfigSet res(ann_network.options.max_reticulations);
     std::vector<ReticulationState> reticulationChoicesVector(ann_network.options.max_reticulations);
@@ -260,6 +269,9 @@ ReticulationConfigSet deadNodeSettings(AnnotatedNetwork& ann_network, const Node
 }
 
 ReticulationConfigSet getReticulationChoicesThisOnly(AnnotatedNetwork& ann_network, const ReticulationConfigSet& this_tree_config, const ReticulationConfigSet& other_child_dead_settings, Node* parent, Node* this_child, Node* other_child) {
+    throw std::runtime_error("TODO: Make this work with undirected setting");
+    
+    
     // covers both dead children and reticulation children
     ReticulationConfigSet res(ann_network.options.max_reticulations);
 
@@ -315,7 +327,7 @@ ReticulationConfigSet getReticulationChoicesThisOnly(AnnotatedNetwork& ann_netwo
     return res;
 }
 
-unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsigned int partition_idx, ClvRangeInfo &clvInfo, ScaleBufferRangeInfo &scaleBufferInfo, Node* node, Node* left_child, Node* right_child) {
+unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsigned int partition_idx, ClvRangeInfo &clvInfo, ScaleBufferRangeInfo &scaleBufferInfo, Node* node, Node* left_child, Node* right_child, const ReticulationConfigSet& extraRestrictions) {
     unsigned int num_trees_added = 0;
     size_t fake_clv_index = ann_network.network.nodes.size();
     
@@ -342,6 +354,10 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
     }
     ReticulationConfigSet restrictionsBothSet(ann_network.options.max_reticulations);
     restrictionsBothSet.configs.emplace_back(restrictions_both);
+
+    if (!extraRestrictions.configs.empty()) {
+        restrictionsBothSet = combineReticulationChoices(restrictionsBothSet, extraRestrictions);
+    }
 
     // left child and right child are not always about different reticulations... It can be that one reticulation affects both children.
     // It can even happen that there is a displayed tree for one child, that has no matching displaying tree on the other side (in terms of chosen reticulations). In this case, we have a dead node situation...
@@ -384,12 +400,18 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
     // only left child, not right child
     pll_operation_t op_left_only = buildOperation(ann_network.network, node, left_child, nullptr, ann_network.network.nodes.size(), ann_network.network.edges.size());
     ReticulationConfigSet right_child_dead_settings = deadNodeSettings(ann_network, displayed_trees_right_child, node, right_child);
+    if (!extraRestrictions.configs.empty()) {
+        right_child_dead_settings = combineReticulationChoices(right_child_dead_settings, extraRestrictions);
+    }
     for (size_t i = 0; i < displayed_trees_left_child.num_active_displayed_trees; ++i) {
         DisplayedTreeData& leftTree = displayed_trees_left_child.displayed_trees[i];
         ReticulationConfigSet leftOnlyConfigs = getReticulationChoicesThisOnly(ann_network, leftTree.reticulationChoices, right_child_dead_settings, node, left_child, right_child);
-        
+        if (!extraRestrictions.configs.empty()) {
+            leftOnlyConfigs = combineReticulationChoices(leftOnlyConfigs, extraRestrictions);
+        }
+
         if (!leftOnlyConfigs.configs.empty()) {
-           displayed_trees.add_displayed_tree(clvInfo, scaleBufferInfo, ann_network.options.max_reticulations);
+            displayed_trees.add_displayed_tree(clvInfo, scaleBufferInfo, ann_network.options.max_reticulations);
             DisplayedTreeData& tree = displayed_trees.displayed_trees[displayed_trees.num_active_displayed_trees-1];
             double* parent_clv = tree.clv_vector;
             unsigned int* parent_scaler = tree.scale_buffer;
@@ -409,9 +431,15 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
     // only right child, not left child
     pll_operation_t op_right_only = buildOperation(ann_network.network, node, right_child, nullptr, ann_network.network.nodes.size(), ann_network.network.edges.size());
     ReticulationConfigSet left_child_dead_settings = deadNodeSettings(ann_network, displayed_trees_left_child, node, left_child);
+    if (!extraRestrictions.configs.empty()) {
+        left_child_dead_settings = combineReticulationChoices(left_child_dead_settings, extraRestrictions);
+    }
     for (size_t i = 0; i < displayed_trees_right_child.num_active_displayed_trees; ++i) {
         DisplayedTreeData& rightTree = displayed_trees_right_child.displayed_trees[i];
         ReticulationConfigSet rightOnlyConfigs = getReticulationChoicesThisOnly(ann_network, rightTree.reticulationChoices, left_child_dead_settings, node, right_child, left_child);
+        if (!extraRestrictions.configs.empty()) {
+            rightOnlyConfigs = combineReticulationChoices(rightOnlyConfigs, extraRestrictions);
+        }
         if (!rightOnlyConfigs.configs.empty()) {
             displayed_trees.add_displayed_tree(clvInfo, scaleBufferInfo, ann_network.options.max_reticulations);
             DisplayedTreeData& tree = displayed_trees.displayed_trees[displayed_trees.num_active_displayed_trees-1];
@@ -433,7 +461,7 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
     return num_trees_added;
 }
 
-void processNodeImproved(AnnotatedNetwork& ann_network, unsigned int partition_idx, int incremental, ClvRangeInfo &clvInfo, ScaleBufferRangeInfo &scaleBufferInfo, Node* node, Node* parentOrSingleChild, bool append = false) {
+void processNodeImproved(AnnotatedNetwork& ann_network, unsigned int partition_idx, int incremental, ClvRangeInfo &clvInfo, ScaleBufferRangeInfo &scaleBufferInfo, Node* node, Node* parentOrSingleChild, const ReticulationConfigSet& extraRestrictions, bool append = false) {
     if (node->clv_index < ann_network.network.num_tips()) {
         //assert(ann_network.fake_treeinfo->clv_valid[partition_idx][node->clv_index]);
         return;
@@ -455,12 +483,12 @@ void processNodeImproved(AnnotatedNetwork& ann_network, unsigned int partition_i
     }
     if (children.size() == 1) { // we are at a reticulation node
         assert(node->getType() == NodeType::RETICULATION_NODE);
-        processNodeImprovedSingleChild(ann_network, partition_idx, clvInfo, scaleBufferInfo, node, children[0]);
+        processNodeImprovedSingleChild(ann_network, partition_idx, clvInfo, scaleBufferInfo, node, children[0], extraRestrictions);
     } else {
         assert(children.size() == 2);
         Node* left_child = children[0];
         Node* right_child = children[1];
-        processNodeImprovedTwoChildren(ann_network, partition_idx, clvInfo, scaleBufferInfo, node, left_child, right_child);
+        processNodeImprovedTwoChildren(ann_network, partition_idx, clvInfo, scaleBufferInfo, node, left_child, right_child, extraRestrictions);
     }
 
     ann_network.fake_treeinfo->clv_valid[partition_idx][node->clv_index] = 1;
@@ -484,7 +512,7 @@ void processPartitionImproved(AnnotatedNetwork& ann_network, unsigned int partit
         } else {
             parentOrSingleChild = getActiveParent(ann_network.network, actNode);
         }
-        processNodeImproved(ann_network, partition_idx, incremental, clvInfo, scaleBufferInfo, actNode, parentOrSingleChild);
+        processNodeImproved(ann_network, partition_idx, incremental, clvInfo, scaleBufferInfo, actNode, parentOrSingleChild, {});
     }
 
     /*std::cout << "\nloglikelihood for trees at each node, for partition " << partition_idx << ":\n";
@@ -674,43 +702,38 @@ std::vector<Node*> getParentPointers(AnnotatedNetwork& ann_network, Node* virtua
     return parent;
 }
 
+struct PathToVirtualRoot {
+    ReticulationConfigSet reticulationChoices;
+    std::vector<Node*> path;
+    std::vector<Node*> parentOrSingleChild; // for the nodes as they are occurring in path
+};
+
+std::vector<PathToVirtualRoot> getPathsToVirtualRoot(AnnotatedNetwork& ann_network, Node* old_virtual_root, Node* new_virtual_root) {
+    throw std::runtime_error("Not implemented yet");
+    // (make sure that instead of using hard-coded reticulation parents here, we check on a branch-basis like how the reticulation state has to be for the branch to be active)
+}
+
 void updateCLVsVirtualRerootTrees(AnnotatedNetwork& ann_network, Node* old_virtual_root, Node* new_virtual_root) {
     if (old_virtual_root == new_virtual_root) {
         return;
     }
     assert(old_virtual_root);
     assert(new_virtual_root);
-    
-    // 1.) Find the first reticulation node retNode on any path from old_virtual_root to new_virtual_root
-    setReticulationParents(ann_network.network, 0);
-    std::vector<Node*> parent = getParentPointers(ann_network, new_virtual_root);
-    std::vector<Node*> path = getPathToVirtualRoot(ann_network, old_virtual_root, new_virtual_root, parent);
-    std::vector<Node*> sharedPath;
-    Node* firstReticulationNode = nullptr;
-    for (size_t i = 0; i < path.size(); ++i) {
-        sharedPath.emplace_back(path[i]);
-        if (path[i]->getType() == NodeType::RETICULATION_NODE) {
-            firstReticulationNode = path[i];
-            break;
-        }
-    }
-    // 2.) update CLVs for the nodes on the path from old_virtual_root to retNode. This is the part that is shared among all paths!
-    for (size_t i = 0; i < sharedPath.size(); ++i) {
-        for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-            ClvRangeInfo clvInfo = get_clv_range(ann_network.fake_treeinfo->partitions[p]);
-            ScaleBufferRangeInfo scaleBufferInfo = get_scale_buffer_range(ann_network.fake_treeinfo->partitions[p]);
-            processNodeImproved(ann_network, p, 0, clvInfo, scaleBufferInfo, sharedPath[i], parent[sharedPath[i]->clv_index]);
-        }
-    }
-    
- 
-    // 3.) for all paths from retNode to new_virtual_root:
-    //     3.1) Collect the reticulation nodes encountered on the path
-    //     3.2) update CLVs on that path, 
 
-    // (make sure that instead of using hard-coded reticulation parents here, we check on a branch-basis like how the reticulation state has to be for the branch to be active)
+    // 1.) for all paths from retNode to new_virtual_root:
+    //     1.1) Collect the reticulation nodes encountered on the path, build exta restrictions storing the reticulation configurations used
+    //     1.2) update CLVs on that path, using extra restrictions and append mode
+    std::vector<PathToVirtualRoot> paths = getPathsToVirtualRoot(ann_network, old_virtual_root, new_virtual_root);
 
-    throw std::runtime_error("Not implemented yet");
+    for (size_t partition_idx = 0; partition_idx < ann_network.fake_treeinfo->partition_count; ++partition_idx) {
+        ClvRangeInfo clvInfo = get_clv_range(ann_network.fake_treeinfo->partitions[partition_idx]);
+        ScaleBufferRangeInfo scaleBufferInfo = get_scale_buffer_range(ann_network.fake_treeinfo->partitions[partition_idx]);
+        for (size_t p = 0; p < paths.size(); ++p) {
+            for (size_t i = 0; i < paths[p].path.size(); ++i) {
+                processNodeImproved(ann_network, p, 0, clvInfo, scaleBufferInfo, paths[p].path[i], paths[p].parentOrSingleChild[i], paths[p].reticulationChoices);
+            }
+        }
+    }    
 }
 
 double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, unsigned int pmatrix_index, int incremental, int update_pmatrices) {

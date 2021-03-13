@@ -62,6 +62,8 @@ struct ReticulationConfigSet {
     std::vector<std::vector<ReticulationState> > configs;
     size_t max_reticulations = 0;
 
+    ReticulationConfigSet() = default;
+
     ReticulationConfigSet(size_t max_reticulations) : max_reticulations(max_reticulations) {}
 
     ReticulationConfigSet(ReticulationConfigSet&& rhs) : max_reticulations{rhs.max_reticulations}
