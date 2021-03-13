@@ -440,6 +440,15 @@ void processNodeImproved(AnnotatedNetwork& ann_network, unsigned int partition_i
         return;
     }
 
+    std::cout << "processNodeImproved called for node " << node->clv_index << "with children: ";
+    for (size_t i = 0; i < children.size(); ++i) {
+        std::cout << children[i]->clv_index;
+        if (i + 1 < children.size()) {
+            std::cout << ", ";
+        }
+    }
+    std::cout << "\n";
+
     if (!append) {
         displayed_trees.num_active_displayed_trees = 0;
     }
@@ -459,6 +468,9 @@ void processNodeImproved(AnnotatedNetwork& ann_network, unsigned int partition_i
         printReticulationChoices(displayed_trees.displayed_trees[i].reticulationChoices);
     }*/
 
+    if (displayed_trees.num_active_displayed_trees > (1 << ann_network.network.num_reticulations())) {
+        std::cout << "Too many displayed trees stored at node " << node->clv_index << "\n";
+    }
     assert(displayed_trees.num_active_displayed_trees <= (1 << ann_network.network.num_reticulations()));
 }
 
@@ -783,6 +795,7 @@ void updateCLVsVirtualRerootTrees(AnnotatedNetwork& ann_network, Node* old_virtu
         ClvRangeInfo clvInfo = get_clv_range(ann_network.fake_treeinfo->partitions[partition_idx]);
         ScaleBufferRangeInfo scaleBufferInfo = get_scale_buffer_range(ann_network.fake_treeinfo->partitions[partition_idx]);
         for (size_t p = 0; p < paths.size(); ++p) {
+            std::cout << "PROCESSING PATH " << p << " ON PARTITION " << partition_idx << "\n";
             for (size_t i = 0; i < paths[p].path.size(); ++i) {
                 bool appendMode = (p > 0);
                 processNodeImproved(ann_network, partition_idx, 0, clvInfo, scaleBufferInfo, paths[p].path[i], paths[p].children[i], paths[p].reticulationChoices, appendMode);
