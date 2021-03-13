@@ -138,6 +138,7 @@ TEST (BrlenOptTest, treeVirtualRoots) {
     treeOptions.start_network_file = treePath;
     treeOptions.msa_file = msaPath;
     treeOptions.use_repeats = false;
+    treeOptions.seed = 42;
     RaxmlWrapper treeWrapper = RaxmlWrapper(treeOptions);
     AnnotatedNetwork annTreeNetwork = build_annotated_network(treeOptions);
     init_annotated_network(annTreeNetwork);
