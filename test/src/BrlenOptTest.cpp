@@ -259,7 +259,7 @@ TEST (BrlenOptTest, smallVirtualRoots) {
         size_t n_trees = annTreeNetwork.pernode_displayed_tree_data[p][annTreeNetwork.network.root->clv_index].num_active_displayed_trees;
         for (size_t i = 0; i < n_trees; ++i) {
                 DisplayedTreeData& tree = annTreeNetwork.pernode_displayed_tree_data[p][annTreeNetwork.network.root->clv_index].displayed_trees[i];
-                std::cout << "correct partition " << p << ", tree " << i << " logl: " << tree.tree_logl << ", logprob: " << tree.tree_logprob << "\n";
+                std::cout << "correct partition " << p << ", tree " << i << " logl: " << tree.treeLoglData.tree_logl << ", logprob: " << tree.treeLoglData.tree_logprob << "\n";
         }
     }
 

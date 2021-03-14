@@ -26,7 +26,7 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
 double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radius,
         std::unordered_set<size_t> candidates);
 
-std::vector<std::vector<OldTreeLoglData> > extractOldTrees(AnnotatedNetwork& ann_network, Node* virtual_root);
+std::vector<std::vector<TreeLoglData> > extractOldTrees(AnnotatedNetwork& ann_network, Node* virtual_root);
 
 void optimizeBranches(AnnotatedNetwork &ann_network);
 

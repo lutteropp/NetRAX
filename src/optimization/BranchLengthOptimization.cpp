@@ -26,14 +26,14 @@ struct BrentBrlenParams {
     AnnotatedNetwork *ann_network;
     size_t pmatrix_index;
     size_t partition_index;
-    std::vector<std::vector<OldTreeLoglData> >* oldTrees;
+    std::vector<std::vector<TreeLoglData> >* oldTrees;
 };
 
 static double brent_target_networks(void *p, double x) {
     AnnotatedNetwork *ann_network = ((BrentBrlenParams*) p)->ann_network;
     size_t pmatrix_index = ((BrentBrlenParams*) p)->pmatrix_index;
     size_t partition_index = ((BrentBrlenParams*) p)->partition_index;
-    std::vector<std::vector<OldTreeLoglData>>* oldTrees = ((BrentBrlenParams*) p)->oldTrees;
+    std::vector<std::vector<TreeLoglData>>* oldTrees = ((BrentBrlenParams*) p)->oldTrees;
     double old_x = ann_network->fake_treeinfo->branch_lengths[partition_index][pmatrix_index];
     double score;
     if (old_x == x) {
@@ -81,7 +81,7 @@ void add_neighbors_in_radius(AnnotatedNetwork& ann_network, std::unordered_set<s
     add_neighbors_in_radius(ann_network, candidates, pmatrix_index, radius, seen);
 }
 
-double optimize_branch(AnnotatedNetwork &ann_network, std::vector<std::vector<OldTreeLoglData> >& oldTrees, size_t pmatrix_index, size_t partition_index) {
+double optimize_branch(AnnotatedNetwork &ann_network, std::vector<std::vector<TreeLoglData> >& oldTrees, size_t pmatrix_index, size_t partition_index) {
     if (ann_network.network.num_reticulations() == 1) {
         std::cout << "optimizing branch " << pmatrix_index << " at partition " << partition_index << "...\n";
     }
@@ -132,25 +132,20 @@ double optimize_branch(AnnotatedNetwork &ann_network, std::vector<std::vector<Ol
     return best_logl;
 }
 
-std::vector<std::vector<OldTreeLoglData> > extractOldTrees(AnnotatedNetwork& ann_network, Node* virtual_root) {
-    std::vector<std::vector<OldTreeLoglData> > oldTrees(ann_network.fake_treeinfo->partition_count);
+std::vector<std::vector<TreeLoglData> > extractOldTrees(AnnotatedNetwork& ann_network, Node* virtual_root) {
+    std::vector<std::vector<TreeLoglData> > oldTrees(ann_network.fake_treeinfo->partition_count);
     for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
         NodeDisplayedTreeData& nodeTrees = ann_network.pernode_displayed_tree_data[p][virtual_root->clv_index];
         for (size_t i = 0; i < nodeTrees.num_active_displayed_trees; ++i) {
             DisplayedTreeData& tree = nodeTrees.displayed_trees[i];
-            OldTreeLoglData data;
-            data.reticulationChoices = tree.reticulationChoices;
-            data.tree_logl = tree.tree_logl;
-            data.tree_logl_valid = tree.tree_logl_valid;
-            data.tree_logprob = tree.tree_logprob;
-            data.tree_logprob_valid = tree.tree_logprob_valid;
+            TreeLoglData data = tree.treeLoglData;
             oldTrees[p].emplace_back(data);
         }
     }
     return oldTrees;
 }
 
-double optimize_branch(AnnotatedNetwork &ann_network, std::vector<std::vector<OldTreeLoglData> >* oldTrees, size_t pmatrix_index) {
+double optimize_branch(AnnotatedNetwork &ann_network, std::vector<std::vector<TreeLoglData> >* oldTrees, size_t pmatrix_index) {
     double old_logl = computeLoglikelihoodBrlenOpt(ann_network, *oldTrees, pmatrix_index, 1, 1);
     /*std::cout << "first logl computation call finished\n";
     old_logl = computeLoglikelihoodBrlenOpt(ann_network, *oldTrees, pmatrix_index, 1, 1);
@@ -189,7 +184,7 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
     std::vector<size_t> act_iters(ann_network.network.num_branches(), 0);
 
     Node* old_virtual_root = ann_network.network.root;
-    std::vector<std::vector<OldTreeLoglData> > oldTrees = extractOldTrees(ann_network, ann_network.network.root);
+    std::vector<std::vector<TreeLoglData> > oldTrees = extractOldTrees(ann_network, ann_network.network.root);
 
     while (!candidates.empty()) {
         size_t pmatrix_index = *candidates.begin();

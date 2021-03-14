@@ -105,51 +105,79 @@ struct ReticulationConfigSet {
     }
 };
 
-struct OldTreeLoglData {
-    double tree_logl = -std::numeric_limits<double>::infinity();
+struct TreeLoglData {
     bool tree_logl_valid = false;
-    double tree_logprob = 0;
     bool tree_logprob_valid = false;
+    double tree_logl = -std::numeric_limits<double>::infinity();
+    double tree_logprob = 0;
     ReticulationConfigSet reticulationChoices;
+
+    TreeLoglData() = default;
+
+    TreeLoglData(size_t max_reticulations) : reticulationChoices(max_reticulations) {
+        std::vector<ReticulationState> allChoices(max_reticulations, ReticulationState::DONT_CARE);
+        reticulationChoices.configs.emplace_back(allChoices);
+    }
+
+    TreeLoglData(TreeLoglData&& rhs) : tree_logl_valid{rhs.tree_logl_valid}, tree_logprob_valid{rhs.tree_logprob_valid}, tree_logl{rhs.tree_logl}, tree_logprob{rhs.tree_logprob}, reticulationChoices{rhs.reticulationChoices} {}
+
+    TreeLoglData(const TreeLoglData& rhs) : tree_logl_valid{rhs.tree_logl_valid}, tree_logprob_valid{rhs.tree_logprob_valid}, tree_logl{rhs.tree_logl}, tree_logprob{rhs.tree_logprob}, reticulationChoices{rhs.reticulationChoices} {}
+
+    TreeLoglData& operator =(TreeLoglData&& rhs)
+    {
+        if (this != &rhs)
+        {
+            tree_logl_valid = rhs.tree_logl_valid;
+            tree_logprob_valid = rhs.tree_logprob_valid;
+            tree_logl = rhs.tree_logl;
+            tree_logprob = rhs.tree_logprob;
+            reticulationChoices = std::move(rhs.reticulationChoices);
+        }
+        return *this;
+    }
+
+    TreeLoglData& operator =(const TreeLoglData& rhs)
+    {
+        if (this != &rhs)
+        {
+            tree_logl_valid = rhs.tree_logl_valid;
+            tree_logprob_valid = rhs.tree_logprob_valid;
+            tree_logl = rhs.tree_logl;
+            tree_logprob = rhs.tree_logprob;
+            reticulationChoices = rhs.reticulationChoices;
+        }
+        return *this;
+    }
 };
 
 struct DisplayedTreeData {
-    bool tree_logl_valid = false;
-    bool tree_logprob_valid = false;
+    TreeLoglData treeLoglData;
     double* clv_vector = nullptr;
     unsigned int* scale_buffer = nullptr;
     ClvRangeInfo clvInfo;
     ScaleBufferRangeInfo scaleBufferInfo;
 
-    double tree_logl = -std::numeric_limits<double>::infinity();
-    double tree_logprob = 0;
-    ReticulationConfigSet reticulationChoices;
-
-    DisplayedTreeData(ClvRangeInfo clvRangeInfo, ScaleBufferRangeInfo scaleBufferRangeInfo, size_t max_reticulations) : reticulationChoices(max_reticulations) { // inner node
+    DisplayedTreeData(ClvRangeInfo clvRangeInfo, ScaleBufferRangeInfo scaleBufferRangeInfo, size_t max_reticulations) : treeLoglData(max_reticulations) { // inner node
         clv_vector = create_single_empty_clv(clvRangeInfo);
         scale_buffer = create_single_empty_scale_buffer(scaleBufferRangeInfo);
         this->clvInfo = clvRangeInfo;
         this->scaleBufferInfo = scaleBufferRangeInfo;
-        std::vector<ReticulationState> allChoices(max_reticulations, ReticulationState::DONT_CARE);
-        reticulationChoices.configs.emplace_back(allChoices);
     }
 
-    DisplayedTreeData(double* tip_clv_vector, size_t max_reticulations) : reticulationChoices(max_reticulations) { // tip node
+    DisplayedTreeData(double* tip_clv_vector, size_t max_reticulations) : treeLoglData(max_reticulations) { // tip node
         clv_vector = tip_clv_vector;
         scale_buffer = nullptr;
-        std::vector<ReticulationState> tipChoices(max_reticulations, ReticulationState::DONT_CARE);
-        reticulationChoices.configs.emplace_back(tipChoices);
     }
 
     DisplayedTreeData(DisplayedTreeData&& rhs)
-      : tree_logl_valid{rhs.tree_logl_valid}, tree_logprob_valid{rhs.tree_logprob_valid}, clv_vector{rhs.clv_vector}, scale_buffer{rhs.scale_buffer}, clvInfo{rhs.clvInfo}, scaleBufferInfo{rhs.scaleBufferInfo}, tree_logl{rhs.tree_logl}, tree_logprob{rhs.tree_logprob}, reticulationChoices{rhs.reticulationChoices}
+      : treeLoglData{rhs.treeLoglData}, clv_vector{rhs.clv_vector}, scale_buffer{rhs.scale_buffer}, clvInfo{rhs.clvInfo}, scaleBufferInfo{rhs.scaleBufferInfo}
     {
         rhs.clv_vector = nullptr;
         rhs.scale_buffer = nullptr;
     }
 
     DisplayedTreeData(const DisplayedTreeData& rhs)
-      : tree_logl_valid{rhs.tree_logl_valid}, tree_logprob_valid{rhs.tree_logprob_valid}, clvInfo{rhs.clvInfo}, scaleBufferInfo{rhs.scaleBufferInfo}, tree_logl{rhs.tree_logl}, tree_logprob{rhs.tree_logprob}, reticulationChoices{rhs.reticulationChoices}
+      : treeLoglData{rhs.treeLoglData}, clvInfo{rhs.clvInfo}, scaleBufferInfo{rhs.scaleBufferInfo}
     {
         clv_vector = clone_single_clv_vector(rhs.clvInfo, rhs.clv_vector);
         scale_buffer = clone_single_scale_buffer(rhs.scaleBufferInfo, rhs.scale_buffer);
@@ -161,15 +189,11 @@ struct DisplayedTreeData {
         {
             pll_aligned_free(clv_vector);
             free(scale_buffer);
-            tree_logl_valid = rhs.tree_logl_valid;
-            tree_logprob_valid = rhs.tree_logprob_valid;
+            treeLoglData = rhs.treeLoglData;
             clv_vector = rhs.clv_vector;
             scale_buffer = rhs.scale_buffer;
             clvInfo = rhs.clvInfo;
             scaleBufferInfo = rhs.scaleBufferInfo;
-            tree_logl = rhs.tree_logl;
-            tree_logprob = rhs.tree_logprob;
-            reticulationChoices = std::move(rhs.reticulationChoices);
 
             rhs.clv_vector = nullptr;
             rhs.scale_buffer = nullptr;
@@ -181,11 +205,7 @@ struct DisplayedTreeData {
     {
         if (this != &rhs)
         {
-            tree_logl_valid = rhs.tree_logl_valid;
-            tree_logprob_valid = rhs.tree_logprob_valid;
-            tree_logl = rhs.tree_logl;
-            tree_logprob = rhs.tree_logprob;
-            reticulationChoices = rhs.reticulationChoices;
+            treeLoglData = rhs.treeLoglData;
             if ((clv_vector && rhs.clv_vector) && (clvInfo == rhs.clvInfo)) { // simply overwrite
                 memcpy(clv_vector, rhs.clv_vector, clvInfo.inner_clv_num_entries * sizeof(double));
             } else {
