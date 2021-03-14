@@ -268,8 +268,8 @@ TEST (BrlenOptTest, smallVirtualRoots) {
     Node* old_virtual_root = annTreeNetwork.network.root;
     auto oldTrees = extractOldTrees(annTreeNetwork, annTreeNetwork.network.root);
     std::uniform_int_distribution<std::mt19937::result_type> dist(0, annTreeNetwork.network.num_branches() - 1);
-    //for (size_t i = 0; i < 100; ++i) {
-        size_t pmatrix_index = 1;// dist(annTreeNetwork.rng);
+    for (size_t i = 0; i < annTreeNetwork.network.num_nodes(); ++i) {
+        size_t pmatrix_index = 8;//i;//dist(annTreeNetwork.rng);
         std::cout << "Testing with pmatrix index: " << pmatrix_index << "\n";
 
         Edge* edge = annTreeNetwork.network.edges_by_index[pmatrix_index];
@@ -284,8 +284,15 @@ TEST (BrlenOptTest, smallVirtualRoots) {
         ASSERT_DOUBLE_EQ(old_logl, new_logl);
 
         oldTrees = extractOldTrees(annTreeNetwork, old_virtual_root);
-        old_virtual_root = new_virtual_root;
-    //}
+
+        for (size_t p = 0; p < annTreeNetwork.fake_treeinfo->partition_count; ++p) {
+            invalidateHigherCLVs(annTreeNetwork, new_virtual_root, p, true);
+        }
+        double recomputedLogl = computeLoglikelihood(annTreeNetwork, 1, 0);
+        ASSERT_DOUBLE_EQ(old_logl, recomputedLogl);
+
+        //old_virtual_root = new_virtual_root;
+    }
 }
 
 TEST (BrlenOptTest, celineFake) {

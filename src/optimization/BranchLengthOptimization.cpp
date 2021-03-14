@@ -206,27 +206,29 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
 
         double new_logl = optimize_branch(ann_network, &oldTrees, pmatrix_index);
 
+        for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+            invalidateHigherCLVs(ann_network, new_virtual_root, p, true);
+        }
+        double recomputedLogl = computeLoglikelihood(ann_network, 1, 0);
+        if (recomputedLogl != new_logl) {
+            std::cout << "recomputed logl: " << recomputedLogl << "\n";
+            std::cout << "new_logl: " << new_logl << "\n";
+            throw std::runtime_error("Something went wrong after brlen opt");
+        }
+        assert(recomputedLogl == new_logl);
+
         if (new_logl - old_logl > lh_epsilon) { // add all neighbors of the branch to the candidates
             add_neighbors_in_radius(ann_network, candidates, pmatrix_index, 1);
         }
         old_logl = new_logl;
-        old_virtual_root = new_virtual_root;
+        //old_virtual_root = new_virtual_root;
     }
     if (old_logl < start_logl) {
         std::cout << "old_logl: " << old_logl << "\n";
         std::cout << "start_logl: " << start_logl << "\n";
     }
     assert(old_logl >= start_logl);
-
-    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-        invalidateHigherCLVs(ann_network, old_virtual_root, p, true);
-    }
-    double recomputedLogl = computeLoglikelihood(ann_network, 1, 0);
-    if (recomputedLogl != old_logl) {
-        std::cout << "recomputed logl: " << recomputedLogl << "\n";
-        std::cout << "old_logl: " << old_logl << "\n";
-        throw std::runtime_error("Something went wrong after brlen opt");
-    }
+    
     return old_logl;
 }
 
