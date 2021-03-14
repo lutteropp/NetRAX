@@ -232,6 +232,7 @@ unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, unsig
 
         pll_update_partials_single(partition, &op, 1, parent_clv, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
         tree.treeLoglData.reticulationChoices = combineReticulationChoices(childTree.treeLoglData.reticulationChoices, restrictionsSet);
+        tree.treeLoglData.childrenTaken = {child};
     }
     num_trees_added = displayed_trees_child.num_active_displayed_trees;
     return num_trees_added;
@@ -362,6 +363,7 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
                 pll_update_partials_single(partition, &op_both, 1, parent_clv, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
                 newDisplayedTree.treeLoglData.reticulationChoices = combineReticulationChoices(leftTree.treeLoglData.reticulationChoices, rightTree.treeLoglData.reticulationChoices);
                 newDisplayedTree.treeLoglData.reticulationChoices = combineReticulationChoices(newDisplayedTree.treeLoglData.reticulationChoices, restrictionsBothSet);
+                newDisplayedTree.treeLoglData.childrenTaken = {left_child, right_child};
             }
         }
     }
@@ -390,6 +392,7 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
             unsigned int* right_scaler = nullptr;
             pll_update_partials_single(partition, &op_left_only, 1, parent_clv, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
             tree.treeLoglData.reticulationChoices = leftOnlyConfigs;
+            tree.treeLoglData.childrenTaken = {left_child};
             num_trees_added++;
         }
     }
@@ -417,6 +420,7 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
             unsigned int* right_scaler = nullptr;
             pll_update_partials_single(partition, &op_right_only, 1, parent_clv, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
             tree.treeLoglData.reticulationChoices = rightOnlyConfigs;
+            tree.treeLoglData.childrenTaken = {right_child};
             num_trees_added++;
         }
     }
