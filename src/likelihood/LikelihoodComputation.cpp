@@ -1091,7 +1091,7 @@ double computeLoglikelihoodImproved(AnnotatedNetwork &ann_network, int increment
             std::vector<DisplayedTreeData>& displayed_root_trees = ann_network.pernode_displayed_tree_data[p][network.root->clv_index].displayed_trees;
             size_t n_trees = ann_network.pernode_displayed_tree_data[p][network.root->clv_index].num_active_displayed_trees;
             for (size_t t = 0; t < n_trees; ++t) {
-                assert(displayed_root_trees[t].tree_logl_valid == true);
+                assert(displayed_root_trees[t].treeLoglData.tree_logl_valid == true);
                 displayed_root_trees[t].treeLoglData.tree_logprob = computeReticulationConfigLogProb(displayed_root_trees[t].treeLoglData.reticulationChoices, ann_network.reticulation_probs);
                 displayed_root_trees[t].treeLoglData.tree_logprob_valid = true;
             }
