@@ -546,60 +546,66 @@ const OldTreeLoglData& getMatchingOldTree(AnnotatedNetwork& ann_network, const s
     throw std::runtime_error("No compatible old tree data found");
 }
 
+double evaluateTreesPartition(AnnotatedNetwork& ann_network, size_t partition_idx, NodeDisplayedTreeData& nodeDisplayedTreeData) {
+    ann_network.fake_treeinfo->active_partition = partition_idx;
+    std::vector<DisplayedTreeData>& displayed_root_trees = nodeDisplayedTreeData.displayed_trees;
+    size_t n_trees = nodeDisplayedTreeData.num_active_displayed_trees;
+
+    if (ann_network.options.likelihood_variant == LikelihoodVariant::AVERAGE_DISPLAYED_TREES) {
+        mpfr::mpreal partition_lh = 0.0;
+        for (size_t tree_idx = 0; tree_idx < n_trees; ++tree_idx) {
+            DisplayedTreeData& tree = displayed_root_trees[tree_idx];
+            assert(tree.tree_logl_valid);
+            assert(tree.tree_logprob_valid);
+            assert(tree.tree_logl != 0);
+            assert(tree.tree_logl != -std::numeric_limits<double>::infinity());
+            //std::cout << "tree " << tree.tree_idx << " logl: " << tree.tree_logl << "\n";
+            if (tree.tree_logprob != std::numeric_limits<double>::infinity()) {
+                partition_lh += mpfr::exp(tree.tree_logprob) * mpfr::exp(tree.tree_logl);
+            }
+        }
+        double partition_logl = mpfr::log(partition_lh).toDouble();
+        ann_network.fake_treeinfo->partition_loglh[partition_idx] = partition_logl;
+        return partition_logl;
+    } else { // LikelihoodVariant::BEST_DISPLAYED_TREE
+        double partition_logl = -std::numeric_limits<double>::infinity();
+        for (size_t tree_idx = 0; tree_idx < n_trees; ++tree_idx) {
+            DisplayedTreeData& tree = displayed_root_trees[tree_idx];
+            if (!tree.tree_logl_valid) {
+                std::cout << "tree_idx: " << tree_idx << "\n";
+                std::cout << "n_trees: " << n_trees << "\n";
+                std::cout << "displayed trees:\n";
+                for (size_t j = 0; j < nodeDisplayedTreeData.num_active_displayed_trees; ++j) {
+                    printReticulationChoices(nodeDisplayedTreeData.displayed_trees[j].reticulationChoices);
+                }
+                throw std::runtime_error("invalid tree logl");
+            }
+            assert(tree.tree_logl_valid);
+            assert(tree.tree_logprob_valid);
+            assert(tree.tree_logl != 0);
+            assert(tree.tree_logl != -std::numeric_limits<double>::infinity());
+            //std::cout << "tree " << tree_idx << " logl: " << tree.tree_logl << "\n";
+            //std::cout << "tree " << tree_idx << " logprob: " << tree.tree_logprob << "\n";
+            if (tree.tree_logprob != std::numeric_limits<double>::infinity()) {
+                //std::cout << "tree " << tree.tree_idx << " prob: " << mpfr::exp(tree.tree_logprob) << "\n";
+                partition_logl = std::max(partition_logl, tree.tree_logprob + tree.tree_logl);
+            }
+        }
+        ann_network.fake_treeinfo->partition_loglh[partition_idx] = partition_logl;
+        //std::cout << "partiion " << partition_idx << " logl: " << partition_logl << "\n";
+        return partition_logl;
+    }
+}
+
 double evaluateTrees(AnnotatedNetwork &ann_network, Node* virtual_root) {
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
     mpfr::mpreal network_logl = 0.0;
 
     for (size_t partition_idx = 0; partition_idx < fake_treeinfo.partition_count; ++partition_idx) {
-        fake_treeinfo.active_partition = partition_idx;
-        std::vector<DisplayedTreeData>& displayed_root_trees = ann_network.pernode_displayed_tree_data[partition_idx][virtual_root->clv_index].displayed_trees;
-        size_t n_trees = ann_network.pernode_displayed_tree_data[partition_idx][virtual_root->clv_index].num_active_displayed_trees;
-
-        if (ann_network.options.likelihood_variant == LikelihoodVariant::AVERAGE_DISPLAYED_TREES) {
-            mpfr::mpreal partition_lh = 0.0;
-            for (size_t tree_idx = 0; tree_idx < n_trees; ++tree_idx) {
-                DisplayedTreeData& tree = displayed_root_trees[tree_idx];
-                assert(tree.tree_logl_valid);
-                assert(tree.tree_logprob_valid);
-                assert(tree.tree_logl != 0);
-                assert(tree.tree_logl != -std::numeric_limits<double>::infinity());
-                //std::cout << "tree " << tree.tree_idx << " logl: " << tree.tree_logl << "\n";
-                if (tree.tree_logprob != std::numeric_limits<double>::infinity()) {
-                    partition_lh += mpfr::exp(tree.tree_logprob) * mpfr::exp(tree.tree_logl);
-                }
-            }
-            double partition_logl = mpfr::log(partition_lh).toDouble();
-            fake_treeinfo.partition_loglh[partition_idx] = partition_logl;
-            network_logl += mpfr::log(partition_lh);
-        } else { // LikelihoodVariant::BEST_DISPLAYED_TREE
-            double partition_logl = -std::numeric_limits<double>::infinity();
-            for (size_t tree_idx = 0; tree_idx < n_trees; ++tree_idx) {
-                DisplayedTreeData& tree = displayed_root_trees[tree_idx];
-                if (!tree.tree_logl_valid) {
-                    std::cout << "tree_idx: " << tree_idx << "\n";
-                    std::cout << "n_trees: " << n_trees << "\n";
-                    std::cout << "displayed trees stored at node " << virtual_root->clv_index << ":\n";
-                    for (size_t j = 0; j < ann_network.pernode_displayed_tree_data[0][virtual_root->clv_index].num_active_displayed_trees; ++j) {
-                        printReticulationChoices(ann_network.pernode_displayed_tree_data[0][virtual_root->clv_index].displayed_trees[j].reticulationChoices);
-                    }
-                    throw std::runtime_error("invalid tree logl");
-                }
-                assert(tree.tree_logl_valid);
-                assert(tree.tree_logprob_valid);
-                assert(tree.tree_logl != 0);
-                assert(tree.tree_logl != -std::numeric_limits<double>::infinity());
-                //std::cout << "tree " << tree_idx << " logl: " << tree.tree_logl << "\n";
-                //std::cout << "tree " << tree_idx << " logprob: " << tree.tree_logprob << "\n";
-                if (tree.tree_logprob != std::numeric_limits<double>::infinity()) {
-                    //std::cout << "tree " << tree.tree_idx << " prob: " << mpfr::exp(tree.tree_logprob) << "\n";
-                    partition_logl = std::max(partition_logl, tree.tree_logprob + tree.tree_logl);
-                }
-            }
-            fake_treeinfo.partition_loglh[partition_idx] = partition_logl;
-            //std::cout << "partiion " << partition_idx << " logl: " << partition_logl << "\n";
-            network_logl += partition_logl;
-        }
+        double partition_logl = evaluateTreesPartition(ann_network, partition_idx, ann_network.pernode_displayed_tree_data[partition_idx][virtual_root->clv_index]);
+        network_logl += partition_logl;
     }
+
     fake_treeinfo.active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
     //std::cout << "network logl: " << network_logl.toDouble() << "\n";
     if (network_logl.toDouble() == -std::numeric_limits<double>::infinity()) {
@@ -946,6 +952,8 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
     }*/
 
     throw std::runtime_error("TODO: Instead of going over the-source-trees-only for final loglh evaluation, we need to go over all pairs of trees, one in source node and one in target node.");
+
+    std::vector<NodeDisplayedTreeData> combinedTrees;
 
     for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
         pll_partition_t* partition = ann_network.fake_treeinfo->partitions[p];
