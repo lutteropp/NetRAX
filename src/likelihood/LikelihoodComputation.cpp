@@ -98,7 +98,7 @@ DisplayedTreeData& findMatchingDisplayedTree(AnnotatedNetwork& ann_network, cons
 
 Node* findFirstNodeWithTwoActiveChildren(AnnotatedNetwork& ann_network, const ReticulationConfigSet& reticulationChoices, Node* oldRoot) {
     // TODO: Make this work with direction-agnistic stuff (virtual rerooting)
-    throw std::runtime_error("TODO: Make this work with direction-agnistic stuff (virtual rerooting)");
+    //throw std::runtime_error("TODO: Make this work with direction-agnistic stuff (virtual rerooting)");
 
     // all these reticulation choices led to the same tree, thus it is safe to simply use the first one for detecting which nodes to skip...
     for (size_t i = 0; i < reticulationChoices.configs[0].size(); ++i) { // apply the reticulation choices
@@ -232,7 +232,7 @@ unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, unsig
 
         pll_update_partials_single(partition, &op, 1, parent_clv, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
         tree.treeLoglData.reticulationChoices = combineReticulationChoices(childTree.treeLoglData.reticulationChoices, restrictionsSet);
-        tree.treeLoglData.childrenTaken = {child};
+        //tree.treeLoglData.childrenTaken = {child};
     }
     num_trees_added = displayed_trees_child.num_active_displayed_trees;
     return num_trees_added;
@@ -363,7 +363,7 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
                 pll_update_partials_single(partition, &op_both, 1, parent_clv, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
                 newDisplayedTree.treeLoglData.reticulationChoices = combineReticulationChoices(leftTree.treeLoglData.reticulationChoices, rightTree.treeLoglData.reticulationChoices);
                 newDisplayedTree.treeLoglData.reticulationChoices = combineReticulationChoices(newDisplayedTree.treeLoglData.reticulationChoices, restrictionsBothSet);
-                newDisplayedTree.treeLoglData.childrenTaken = {left_child, right_child};
+                //newDisplayedTree.treeLoglData.childrenTaken = {left_child, right_child};
             }
         }
     }
@@ -392,7 +392,7 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
             unsigned int* right_scaler = nullptr;
             pll_update_partials_single(partition, &op_left_only, 1, parent_clv, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
             tree.treeLoglData.reticulationChoices = leftOnlyConfigs;
-            tree.treeLoglData.childrenTaken = {left_child};
+            //tree.treeLoglData.childrenTaken = {left_child};
             num_trees_added++;
         }
     }
@@ -420,7 +420,7 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
             unsigned int* right_scaler = nullptr;
             pll_update_partials_single(partition, &op_right_only, 1, parent_clv, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
             tree.treeLoglData.reticulationChoices = rightOnlyConfigs;
-            tree.treeLoglData.childrenTaken = {right_child};
+            //tree.treeLoglData.childrenTaken = {right_child};
             num_trees_added++;
         }
     }
@@ -819,12 +819,12 @@ std::vector<PathToVirtualRoot> getPathsToVirtualRoot(AnnotatedNetwork& ann_netwo
         }
     }
 
-    if (ann_network.network.num_reticulations() == 1 && (new_virtual_root_back->clv_index == 15)) {
+    /*if (ann_network.network.num_reticulations() == 1 && (new_virtual_root_back->clv_index == 15)) {
         std::cout << "paths from old virtual root " << old_virtual_root->clv_index << " to virtual root " << new_virtual_root->clv_index << ":\n";
         for (size_t i = 0; i < res.size(); ++i) {
             printPathToVirtualRoot(res[i]);
         }
-    }
+    }*/
 
     return res;
 }
@@ -909,18 +909,18 @@ void updateCLVsVirtualRerootTrees(AnnotatedNetwork& ann_network, Node* old_virtu
         ClvRangeInfo clvInfo = get_clv_range(ann_network.fake_treeinfo->partitions[partition_idx]);
         ScaleBufferRangeInfo scaleBufferInfo = get_scale_buffer_range(ann_network.fake_treeinfo->partitions[partition_idx]);
         for (size_t p = 0; p < paths.size(); ++p) {
-            if (ann_network.network.num_reticulations() == 1) {
+            /*if (ann_network.network.num_reticulations() == 1) {
                 std::cout << "PROCESSING PATH " << p << " ON PARTITION " << partition_idx << "\n";
                 printPathToVirtualRoot(paths[p]);
                 std::cout << "The path has the following restrictions: \n";
                 printReticulationChoices(paths[p].reticulationChoices);
-            }
+            }*/
 
             // Restore required old NodeInformations for the path
             for (size_t nodeIndexToRestore : nodeSaveInfo.pathNodesToRestore[p]) {
-                if (ann_network.network.num_reticulations() == 1) {
+                /*if (ann_network.network.num_reticulations() == 1) {
                     std::cout << "restoring node info at " << nodeIndexToRestore << "\n";
-                }
+                }*/
                 ann_network.pernode_displayed_tree_data[partition_idx][nodeIndexToRestore] = bufferedNodeInformations[partition_idx][nodeIndexToRestore];
             }
 
@@ -1014,16 +1014,11 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
 
         for (size_t i = 0; i < n_trees_source; ++i) {
             if (!source_tree_seen[i]) {
-                if (isActiveBranch(ann_network, sourceTrees[i].treeLoglData.reticulationChoices, pmatrix_index)) {
-                    
-                    throw std::runtime_error("Not implemented yet");
-                } else {
-                    const TreeLoglData& oldTree = getMatchingOldTree(ann_network, oldTrees[p], sourceTrees[i].treeLoglData.reticulationChoices);
-                    assert(oldTree.tree_logl_valid);
-                    sourceTrees[i].treeLoglData.tree_logl = oldTree.tree_logl;
-                    assert(oldTree.tree_logprob_valid);
-                    sourceTrees[i].treeLoglData.tree_logprob = oldTree.tree_logprob;
-                }
+                const TreeLoglData& oldTree = getMatchingOldTree(ann_network, oldTrees[p], sourceTrees[i].treeLoglData.reticulationChoices);
+                assert(oldTree.tree_logl_valid);
+                sourceTrees[i].treeLoglData.tree_logl = oldTree.tree_logl;
+                assert(oldTree.tree_logprob_valid);
+                sourceTrees[i].treeLoglData.tree_logprob = oldTree.tree_logprob;
                 sourceTrees[i].treeLoglData.tree_logl_valid = true;
                 sourceTrees[i].treeLoglData.tree_logprob_valid = true;
                 combinedTrees.emplace_back(sourceTrees[i].treeLoglData);
@@ -1032,15 +1027,11 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
 
         for (size_t j = 0; j < n_trees_target; ++j) {
             if (!target_tree_seen[j]) {
-                if (isActiveBranch(ann_network, targetTrees[j].treeLoglData.reticulationChoices, pmatrix_index)) {
-                    throw std::runtime_error("Not implemented yet");
-                } else {
-                    const TreeLoglData& oldTree = getMatchingOldTree(ann_network, oldTrees[p], targetTrees[j].treeLoglData.reticulationChoices);
-                    assert(oldTree.tree_logl_valid);
-                    targetTrees[j].treeLoglData.tree_logl = oldTree.tree_logl;
-                    assert(oldTree.tree_logprob_valid);
-                    targetTrees[j].treeLoglData.tree_logprob = oldTree.tree_logprob;
-                }
+                const TreeLoglData& oldTree = getMatchingOldTree(ann_network, oldTrees[p], targetTrees[j].treeLoglData.reticulationChoices);
+                assert(oldTree.tree_logl_valid);
+                targetTrees[j].treeLoglData.tree_logl = oldTree.tree_logl;
+                assert(oldTree.tree_logprob_valid);
+                targetTrees[j].treeLoglData.tree_logprob = oldTree.tree_logprob;
                 targetTrees[j].treeLoglData.tree_logl_valid = true;
                 targetTrees[j].treeLoglData.tree_logprob_valid = true;
                 combinedTrees.emplace_back(targetTrees[j].treeLoglData);

@@ -8,8 +8,6 @@ extern "C" {
 #include <libpll/pll_tree.h>
 }
 
-#include "../graph/Node.hpp"
-
 namespace netrax {
 
 struct ClvRangeInfo {
@@ -113,7 +111,6 @@ struct TreeLoglData {
     double tree_logl = -std::numeric_limits<double>::infinity();
     double tree_logprob = 0;
     ReticulationConfigSet reticulationChoices;
-    std::vector<Node*> childrenTaken;
 
     TreeLoglData() = default;
 
@@ -122,9 +119,9 @@ struct TreeLoglData {
         reticulationChoices.configs.emplace_back(allChoices);
     }
 
-    TreeLoglData(TreeLoglData&& rhs) : tree_logl_valid{rhs.tree_logl_valid}, tree_logprob_valid{rhs.tree_logprob_valid}, tree_logl{rhs.tree_logl}, tree_logprob{rhs.tree_logprob}, reticulationChoices{rhs.reticulationChoices}, childrenTaken{rhs.childrenTaken} {}
+    TreeLoglData(TreeLoglData&& rhs) : tree_logl_valid{rhs.tree_logl_valid}, tree_logprob_valid{rhs.tree_logprob_valid}, tree_logl{rhs.tree_logl}, tree_logprob{rhs.tree_logprob}, reticulationChoices{rhs.reticulationChoices} {}
 
-    TreeLoglData(const TreeLoglData& rhs) : tree_logl_valid{rhs.tree_logl_valid}, tree_logprob_valid{rhs.tree_logprob_valid}, tree_logl{rhs.tree_logl}, tree_logprob{rhs.tree_logprob}, reticulationChoices{rhs.reticulationChoices}, childrenTaken{rhs.childrenTaken} {}
+    TreeLoglData(const TreeLoglData& rhs) : tree_logl_valid{rhs.tree_logl_valid}, tree_logprob_valid{rhs.tree_logprob_valid}, tree_logl{rhs.tree_logl}, tree_logprob{rhs.tree_logprob}, reticulationChoices{rhs.reticulationChoices} {}
 
     TreeLoglData& operator =(TreeLoglData&& rhs)
     {
@@ -135,7 +132,6 @@ struct TreeLoglData {
             tree_logl = rhs.tree_logl;
             tree_logprob = rhs.tree_logprob;
             reticulationChoices = std::move(rhs.reticulationChoices);
-            childrenTaken = rhs.childrenTaken;
         }
         return *this;
     }
@@ -149,7 +145,6 @@ struct TreeLoglData {
             tree_logl = rhs.tree_logl;
             tree_logprob = rhs.tree_logprob;
             reticulationChoices = rhs.reticulationChoices;
-            childrenTaken = rhs.childrenTaken;
         }
         return *this;
     }

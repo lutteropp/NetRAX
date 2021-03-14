@@ -82,9 +82,9 @@ void add_neighbors_in_radius(AnnotatedNetwork& ann_network, std::unordered_set<s
 }
 
 double optimize_branch(AnnotatedNetwork &ann_network, std::vector<std::vector<TreeLoglData> >& oldTrees, size_t pmatrix_index, size_t partition_index) {
-    if (ann_network.network.num_reticulations() == 1) {
+    /*if (ann_network.network.num_reticulations() == 1) {
         std::cout << "optimizing branch " << pmatrix_index << " at partition " << partition_index << "...\n";
-    }
+    }*/
 
     double min_brlen = ann_network.options.brlen_min;
     double max_brlen = ann_network.options.brlen_max;
