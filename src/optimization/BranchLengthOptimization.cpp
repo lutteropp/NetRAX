@@ -82,14 +82,16 @@ void add_neighbors_in_radius(AnnotatedNetwork& ann_network, std::unordered_set<s
 }
 
 double optimize_branch(AnnotatedNetwork &ann_network, std::vector<std::vector<OldTreeLoglData> >& oldTrees, size_t pmatrix_index, size_t partition_index) {
-    std::cout << "optimizing branch " << pmatrix_index << " at partition " << partition_index << "...\n";
+    if (ann_network.network.num_reticulations() == 1) {
+        std::cout << "optimizing branch " << pmatrix_index << " at partition " << partition_index << "...\n";
+    }
 
     double min_brlen = ann_network.options.brlen_min;
     double max_brlen = ann_network.options.brlen_max;
     double tolerance = ann_network.options.tolerance;
 
     double start_logl = computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index, 1, 1);
-    std::cout << "This call finished\n";
+    //std::cout << "This call finished\n";
 
     double best_logl = start_logl;
     BrentBrlenParams params;
@@ -150,9 +152,9 @@ std::vector<std::vector<OldTreeLoglData> > extractOldTrees(AnnotatedNetwork& ann
 
 double optimize_branch(AnnotatedNetwork &ann_network, std::vector<std::vector<OldTreeLoglData> >* oldTrees, size_t pmatrix_index) {
     double old_logl = computeLoglikelihoodBrlenOpt(ann_network, *oldTrees, pmatrix_index, 1, 1);
-    std::cout << "first logl computation call finished\n";
+    /*std::cout << "first logl computation call finished\n";
     old_logl = computeLoglikelihoodBrlenOpt(ann_network, *oldTrees, pmatrix_index, 1, 1);
-    std::cout << "repeating logl computation call finished\n";
+    std::cout << "repeating logl computation call finished\n";*/
 
     size_t n_partitions = 1;
     bool unlinkedMode = (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
@@ -199,7 +201,7 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
         }
         act_iters[pmatrix_index]++;
 
-        std::cout << "PREPARING FOR OPTIMIZING BRANCH " << pmatrix_index << "...\n";
+        //std::cout << "PREPARING FOR OPTIMIZING BRANCH " << pmatrix_index << "...\n";
         Node* new_virtual_root = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
         Node* new_virtual_root_back = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
         updateCLVsVirtualRerootTrees(ann_network, old_virtual_root, new_virtual_root, new_virtual_root_back);
@@ -211,13 +213,14 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
         }
         double recomputedLogl = computeLoglikelihood(ann_network, 1, 0);
         oldTrees = extractOldTrees(ann_network, ann_network.network.root);
-        
-        if (recomputedLogl != new_logl) {
+
+        if (fabs(recomputedLogl - new_logl) >= 1E-3) {
             std::cout << "recomputed logl: " << recomputedLogl << "\n";
             std::cout << "new_logl: " << new_logl << "\n";
+            std::cout << exportDebugInfo(ann_network) << "\n";
             throw std::runtime_error("Something went wrong after brlen opt");
         }
-        assert(recomputedLogl == new_logl);
+        assert(fabs(recomputedLogl - new_logl) < 1E-3);
 
         if (new_logl - old_logl > lh_epsilon) { // add all neighbors of the branch to the candidates
             add_neighbors_in_radius(ann_network, candidates, pmatrix_index, 1);

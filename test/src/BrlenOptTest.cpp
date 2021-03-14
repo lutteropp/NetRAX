@@ -289,6 +289,7 @@ TEST (BrlenOptTest, smallVirtualRoots) {
             invalidateHigherCLVs(annTreeNetwork, new_virtual_root, p, true);
         }
         double recomputedLogl = computeLoglikelihood(annTreeNetwork, 1, 0);
+        oldTrees = extractOldTrees(annTreeNetwork, annTreeNetwork.network.root);
         ASSERT_DOUBLE_EQ(old_logl, recomputedLogl);
 
         //old_virtual_root = new_virtual_root;
