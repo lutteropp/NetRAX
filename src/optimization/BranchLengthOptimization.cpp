@@ -210,6 +210,8 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
             invalidateHigherCLVs(ann_network, new_virtual_root, p, true);
         }
         double recomputedLogl = computeLoglikelihood(ann_network, 1, 0);
+        oldTrees = extractOldTrees(ann_network, ann_network.network.root);
+        
         if (recomputedLogl != new_logl) {
             std::cout << "recomputed logl: " << recomputedLogl << "\n";
             std::cout << "new_logl: " << new_logl << "\n";
