@@ -940,6 +940,46 @@ void printDisplayedTreesChoices(AnnotatedNetwork& ann_network, Node* virtualRoot
     }
 }
 
+LoglDerivatives computeLoglikelihoodDerivatives(AnnotatedNetwork& ann_network, const std::vector<std::vector<SumtableInfo> >& sumtables, unsigned int pmatrix_index, bool incremental, bool update_pmatrices) {
+    setup_pmatrices(ann_network, incremental, update_pmatrices);
+    throw std::runtime_error("Not implemented yet");
+}
+
+std::vector<double> computeSumtable(AnnotatedNetwork& ann_network, size_t partition_idx, DisplayedTreeData& left_tree, DisplayedTreeData& right_tree) {
+    throw std::runtime_error("computeSumtable not implemented yet");
+}
+
+std::vector<std::vector<SumtableInfo> > computePartitionSumtables(AnnotatedNetwork& ann_network, unsigned int pmatrix_index) {
+    std::vector<std::vector<SumtableInfo> > res(ann_network.fake_treeinfo->partition_count);
+    Node* source = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
+    Node* target = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
+
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        pll_partition_t* partition = ann_network.fake_treeinfo->partitions[p];
+        
+        size_t n_trees_source = ann_network.pernode_displayed_tree_data[p][source->clv_index].num_active_displayed_trees;
+        size_t n_trees_target = ann_network.pernode_displayed_tree_data[p][target->clv_index].num_active_displayed_trees;
+        std::vector<DisplayedTreeData>& sourceTrees = ann_network.pernode_displayed_tree_data[p][source->clv_index].displayed_trees;
+        std::vector<DisplayedTreeData>& targetTrees = ann_network.pernode_displayed_tree_data[p][target->clv_index].displayed_trees;
+
+        for (size_t i = 0; i < n_trees_source; ++i) {
+            for (size_t j = 0; j < n_trees_target; ++j) {
+                if (!reticulationConfigsCompatible(sourceTrees[i].treeLoglData.reticulationChoices, targetTrees[j].treeLoglData.reticulationChoices)) {
+                    continue;
+                }
+                ReticulationConfigSet restrictions = combineReticulationChoices(sourceTrees[i].treeLoglData.reticulationChoices, targetTrees[j].treeLoglData.reticulationChoices);
+                if (isActiveBranch(ann_network, restrictions, pmatrix_index)) {
+                    SumtableInfo sumtableInfo;
+                    sumtableInfo.tree_prob = exp(computeReticulationConfigLogProb(restrictions, ann_network.reticulation_probs));
+                    sumtableInfo.sumtable = computeSumtable(ann_network, p, sourceTrees[i], targetTrees[j]);
+                    res[p].emplace_back(sumtableInfo);
+                }
+            }
+        }
+    }
+    return res;
+}
+
 double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::vector<std::vector<TreeLoglData> >& oldTrees, unsigned int pmatrix_index, int incremental, int update_pmatrices) {
     Node* source = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
     Node* target = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
