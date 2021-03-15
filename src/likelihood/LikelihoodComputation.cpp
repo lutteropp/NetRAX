@@ -946,7 +946,7 @@ struct PartitionLhData {
     mpfr::mpreal lh_prime_prime = 0.0;
 };
 
-PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, const std::vector<SumtableInfo>& sumtables, unsigned int pmatrix_index) {
+PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned int partition_idx, const std::vector<SumtableInfo>& sumtables, unsigned int pmatrix_index) {
     PartitionLhData res;
     for (size_t i = 0; i < sumtables.size(); ++i) {
         mpfr::mpreal tree_logl;
@@ -974,7 +974,7 @@ LoglDerivatives computeLoglikelihoodDerivatives(AnnotatedNetwork& ann_network, c
     mpfr::mpreal network_logl_prime_prime = 0.0;
     assert(sumtables.size() == ann_network.fake_treeinfo->partition_count);
     for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-        PartitionLhData pdata = computePartitionLhData(ann_network, sumtables[p], pmatrix_index);
+        PartitionLhData pdata = computePartitionLhData(ann_network, p, sumtables[p], pmatrix_index);
         network_logl_prime += (pdata.lh_prime / pdata.lh);
         network_logl_prime_prime += ((pdata.lh_prime_prime * pdata.lh) - (pdata.lh_prime * pdata.lh_prime)) / (pdata.lh_prime * pdata.lh_prime);
     }
