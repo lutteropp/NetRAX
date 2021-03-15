@@ -947,7 +947,25 @@ struct PartitionLhData {
 };
 
 PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, const std::vector<SumtableInfo>& sumtables, unsigned int pmatrix_index) {
-    throw std::runtime_error("Not implemented yet");
+    PartitionLhData res;
+    for (size_t i = 0; i < sumtables.size(); ++i) {
+        mpfr::mpreal tree_logl;
+        mpfr::mpreal tree_logl_prime;
+        mpfr::mpreal tree_logl_prime_prime;
+        // ...
+        throw std::runtime_error("TODO: Compute displayed tree logl plus its derivatives out of the given sumtable");
+
+        if (ann_network.options.likelihood_variant == LikelihoodVariant::AVERAGE_DISPLAYED_TREES) {
+            res.lh += mpfr::exp(tree_logl) * sumtables[i].tree_prob;
+            res.lh_prime += mpfr::exp(tree_logl_prime) * sumtables[i].tree_prob;
+            res.lh_prime_prime += mpfr::exp(tree_logl_prime_prime) * sumtables[i].tree_prob;
+        } else { // LikelihoodVariant::BEST_DISPLAYED_TREE
+            res.lh += std::max(res.lh, mpfr::exp(tree_logl) * sumtables[i].tree_prob);
+            res.lh_prime += std::max(res.lh_prime, mpfr::exp(tree_logl_prime) * sumtables[i].tree_prob);
+            res.lh_prime_prime += std::max(res.lh_prime_prime, mpfr::exp(tree_logl_prime_prime) * sumtables[i].tree_prob);
+        }
+    }
+    return res;
 }
 
 LoglDerivatives computeLoglikelihoodDerivatives(AnnotatedNetwork& ann_network, const std::vector<std::vector<SumtableInfo> >& sumtables, unsigned int pmatrix_index, bool incremental, bool update_pmatrices) {
@@ -963,7 +981,7 @@ LoglDerivatives computeLoglikelihoodDerivatives(AnnotatedNetwork& ann_network, c
     return LoglDerivatives{network_logl_prime.toDouble(), network_logl_prime_prime.toDouble()};
 }
 
-std::vector<double> computeSumtable(AnnotatedNetwork& ann_network, size_t partition_idx, DisplayedTreeData& left_tree, DisplayedTreeData& right_tree) {
+std::vector<double> computeSumtable(AnnotatedNetwork& ann_network, pll_partition_t* partition, DisplayedTreeData& left_tree, DisplayedTreeData& right_tree) {
     throw std::runtime_error("computeSumtable not implemented yet");
 }
 
@@ -989,7 +1007,7 @@ std::vector<std::vector<SumtableInfo> > computePartitionSumtables(AnnotatedNetwo
                 if (isActiveBranch(ann_network, restrictions, pmatrix_index)) {
                     SumtableInfo sumtableInfo;
                     sumtableInfo.tree_prob = computeReticulationConfigProb(restrictions, ann_network.reticulation_probs);
-                    sumtableInfo.sumtable = computeSumtable(ann_network, p, sourceTrees[i], targetTrees[j]);
+                    sumtableInfo.sumtable = computeSumtable(ann_network, partition, sourceTrees[i], targetTrees[j]);
                     res[p].emplace_back(sumtableInfo);
                 }
             }
