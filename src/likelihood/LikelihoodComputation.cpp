@@ -940,9 +940,27 @@ void printDisplayedTreesChoices(AnnotatedNetwork& ann_network, Node* virtualRoot
     }
 }
 
+struct PartitionLhData {
+    mpfr::mpreal lh = 0.0;
+    mpfr::mpreal lh_prime = 0.0;
+    mpfr::mpreal lh_prime_prime = 0.0;
+};
+
+PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, const std::vector<SumtableInfo>& sumtables, unsigned int pmatrix_index) {
+    throw std::runtime_error("Not implemented yet");
+}
+
 LoglDerivatives computeLoglikelihoodDerivatives(AnnotatedNetwork& ann_network, const std::vector<std::vector<SumtableInfo> >& sumtables, unsigned int pmatrix_index, bool incremental, bool update_pmatrices) {
     setup_pmatrices(ann_network, incremental, update_pmatrices);
-    throw std::runtime_error("Not implemented yet");
+    mpfr::mpreal network_logl_prime = 0.0;
+    mpfr::mpreal network_logl_prime_prime = 0.0;
+    assert(sumtables.size() == ann_network.fake_treeinfo->partition_count);
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        PartitionLhData pdata = computePartitionLhData(ann_network, sumtables[p], pmatrix_index);
+        network_logl_prime += (pdata.lh_prime / pdata.lh);
+        network_logl_prime_prime += ((pdata.lh_prime_prime * pdata.lh) - (pdata.lh_prime * pdata.lh_prime)) / (pdata.lh_prime * pdata.lh_prime);
+    }
+    return LoglDerivatives{network_logl_prime.toDouble(), network_logl_prime_prime.toDouble()};
 }
 
 std::vector<double> computeSumtable(AnnotatedNetwork& ann_network, size_t partition_idx, DisplayedTreeData& left_tree, DisplayedTreeData& right_tree) {

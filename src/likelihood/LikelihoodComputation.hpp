@@ -28,8 +28,8 @@ struct SumtableInfo {
 };
 
 struct LoglDerivatives {
-        double first_derivative = std::numeric_limits<double>::infinity();
-        double second_derivative = std::numeric_limits<double>::infinity();
+        double logl_prime = std::numeric_limits<double>::infinity();
+        double logl_prime_prime = std::numeric_limits<double>::infinity();
 };
 
 LoglDerivatives computeLoglikelihoodDerivatives(AnnotatedNetwork& ann_network, const std::vector<std::vector<SumtableInfo> >& sumtables, unsigned int pmatrix_index, bool incremental = true, bool update_pmatrices = true);
