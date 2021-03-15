@@ -947,7 +947,7 @@ struct PartitionLhData {
 };
 
 PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned int partition_idx, const std::vector<SumtableInfo>& sumtables, unsigned int pmatrix_index) {
-    PartitionLhData res;
+    PartitionLhData res{0.0, 0.0, 0.0};
     for (size_t i = 0; i < sumtables.size(); ++i) {
         mpfr::mpreal tree_logl;
         mpfr::mpreal tree_logl_prime;
