@@ -285,12 +285,19 @@ namespace netrax
     }
 
     double computeReticulationConfigLogProb(const ReticulationConfigSet& choices, const std::vector<double>& reticulationProbs) {
-        // TODO: Due to numerical issues when having low reticulation probs, avoid calling this function
         mpfr::mpreal prob = 0.0;
         for (size_t i = 0; i < choices.configs.size(); ++i) {
             prob += mpfr::exp(computeReticulationChoicesLogProb_internal(choices.configs[i], reticulationProbs));
         }
         return mpfr::log(prob).toDouble();
+    }
+
+    double computeReticulationConfigProb(const ReticulationConfigSet& choices, const std::vector<double>& reticulationProbs) {
+        mpfr::mpreal prob = 0.0;
+        for (size_t i = 0; i < choices.configs.size(); ++i) {
+            prob += mpfr::exp(computeReticulationChoicesLogProb_internal(choices.configs[i], reticulationProbs));
+        }
+        return prob.toDouble();
     }
 
     //bool reticulationChoicesCompatible(const std::vector<ReticulationState>& left, const std::vector<ReticulationState>& right);

@@ -970,7 +970,7 @@ std::vector<std::vector<SumtableInfo> > computePartitionSumtables(AnnotatedNetwo
                 ReticulationConfigSet restrictions = combineReticulationChoices(sourceTrees[i].treeLoglData.reticulationChoices, targetTrees[j].treeLoglData.reticulationChoices);
                 if (isActiveBranch(ann_network, restrictions, pmatrix_index)) {
                     SumtableInfo sumtableInfo;
-                    sumtableInfo.tree_prob = exp(computeReticulationConfigLogProb(restrictions, ann_network.reticulation_probs));
+                    sumtableInfo.tree_prob = computeReticulationConfigProb(restrictions, ann_network.reticulation_probs);
                     sumtableInfo.sumtable = computeSumtable(ann_network, p, sourceTrees[i], targetTrees[j]);
                     res[p].emplace_back(sumtableInfo);
                 }
