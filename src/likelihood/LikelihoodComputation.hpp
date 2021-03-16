@@ -28,19 +28,22 @@ struct SumtableInfo {
         size_t sumtable_size = 0;
         size_t alignment = 16;
 
-        SumtableInfo(size_t sumtable_size, size_t alignment) : sumtable_size{sumtable_size}, alignment{alignment} {}
+        DisplayedTreeData* left_tree;
+        DisplayedTreeData* right_tree;
+
+        SumtableInfo(size_t sumtable_size, size_t alignment, DisplayedTreeData* left_tree, DisplayedTreeData* right_tree) : sumtable_size{sumtable_size}, alignment{alignment}, left_tree{left_tree}, right_tree{right_tree} {}
 
         ~SumtableInfo() {
                 pll_aligned_free(sumtable);
         }
 
-        SumtableInfo(SumtableInfo&& rhs) : tree_prob{rhs.tree_prob}, sumtable{rhs.sumtable}, sumtable_size{rhs.sumtable_size}, alignment{rhs.alignment}
+        SumtableInfo(SumtableInfo&& rhs) : tree_prob{rhs.tree_prob}, sumtable{rhs.sumtable}, sumtable_size{rhs.sumtable_size}, alignment{rhs.alignment}, left_tree{rhs.left_tree}, right_tree{rhs.right_tree}
         {
                 rhs.sumtable = nullptr;
         }
 
         SumtableInfo(const SumtableInfo& rhs)
-        : tree_prob{rhs.tree_prob}, sumtable_size{rhs.sumtable_size}, alignment{rhs.alignment}
+        : tree_prob{rhs.tree_prob}, sumtable_size{rhs.sumtable_size}, alignment{rhs.alignment}, left_tree{rhs.left_tree}, right_tree{rhs.right_tree}
         {
                 sumtable = (double*) pll_aligned_alloc(rhs.sumtable_size, rhs.alignment);
                 memcpy(sumtable, rhs.sumtable, rhs.sumtable_size * sizeof(double));
@@ -55,6 +58,8 @@ struct SumtableInfo {
                         sumtable_size = rhs.sumtable_size;
                         alignment = rhs.alignment;
                         rhs.sumtable = nullptr;
+                        left_tree = rhs.left_tree;
+                        right_tree = rhs.right_tree;
                 }
                 return *this;
         }
@@ -68,6 +73,8 @@ struct SumtableInfo {
                         memcpy(sumtable, rhs.sumtable, rhs.sumtable_size * sizeof(double));
                         sumtable_size = rhs.sumtable_size;
                         alignment = rhs.alignment;
+                        left_tree = rhs.left_tree;
+                        right_tree = rhs.right_tree;
                 }
                 return *this;
         }

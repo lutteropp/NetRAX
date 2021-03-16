@@ -948,12 +948,25 @@ struct PartitionLhData {
 
 PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned int partition_idx, const std::vector<SumtableInfo>& sumtables, unsigned int pmatrix_index) {
     PartitionLhData res{0.0, 0.0, 0.0};
+    pll_partition_t* partition = ann_network.fake_treeinfo->partitions[partition_idx];
+    Node* source = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
+    Node* target = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
     for (size_t i = 0; i < sumtables.size(); ++i) {
         double tree_logl;
         double tree_logl_prime;
         double tree_logl_prime_prime;
-        // ...
-        throw std::runtime_error("TODO: Compute displayed tree logl plus its derivatives out of the given sumtable");
+
+        pll_compute_likelihood_derivatives(partition, 
+                                           source->scaler_index, 
+                                           sumtables[i].left_tree->scale_buffer,
+                                           target->scaler_index, 
+                                           sumtables[i].right_tree->scale_buffer,
+                                           ann_network.fake_treeinfo->branch_lengths[partition_idx][pmatrix_index],
+                                           ann_network.fake_treeinfo->param_indices[partition_idx],
+                                           sumtables[i].sumtable,
+                                           &tree_logl,
+                                           &tree_logl_prime,
+                                           &tree_logl_prime_prime);
 
         if (ann_network.options.likelihood_variant == LikelihoodVariant::AVERAGE_DISPLAYED_TREES) {
             res.lh += mpfr::exp(tree_logl) * sumtables[i].tree_prob;
@@ -970,9 +983,6 @@ PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned i
 
 LoglDerivatives computeLoglikelihoodDerivatives(AnnotatedNetwork& ann_network, const std::vector<std::vector<SumtableInfo> >& sumtables, unsigned int pmatrix_index, bool incremental, bool update_pmatrices) {
     setup_pmatrices(ann_network, incremental, update_pmatrices);
-    Node* source = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
-    Node* target = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
-    
     mpfr::mpreal network_logl_prime = 0.0;
     mpfr::mpreal network_logl_prime_prime = 0.0;
     assert(sumtables.size() == ann_network.fake_treeinfo->partition_count);
@@ -987,7 +997,7 @@ LoglDerivatives computeLoglikelihoodDerivatives(AnnotatedNetwork& ann_network, c
 SumtableInfo computeSumtable(AnnotatedNetwork& ann_network, size_t partition_idx, const ReticulationConfigSet& restrictions, DisplayedTreeData& left_tree, size_t left_clv_index, DisplayedTreeData& right_tree, size_t right_clv_index) {
     pll_partition_t * partition = ann_network.fake_treeinfo->partitions[partition_idx];
     size_t sumtableSize = (partition->sites + partition->states) * partition->rate_cats * partition->states_padded;
-    SumtableInfo sumtableInfo(sumtableSize, partition->alignment);
+    SumtableInfo sumtableInfo(sumtableSize, partition->alignment, &left_tree, &right_tree);
 
     sumtableInfo.tree_prob = computeReticulationConfigProb(restrictions, ann_network.reticulation_probs);
     sumtableInfo.sumtable = (double*) pll_aligned_alloc(sumtableSize * sizeof(double), partition->alignment);
