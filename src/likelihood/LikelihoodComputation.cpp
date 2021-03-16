@@ -949,9 +949,9 @@ struct PartitionLhData {
 PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned int partition_idx, const std::vector<SumtableInfo>& sumtables, unsigned int pmatrix_index) {
     PartitionLhData res{0.0, 0.0, 0.0};
     for (size_t i = 0; i < sumtables.size(); ++i) {
-        mpfr::mpreal tree_logl;
-        mpfr::mpreal tree_logl_prime;
-        mpfr::mpreal tree_logl_prime_prime;
+        double tree_logl;
+        double tree_logl_prime;
+        double tree_logl_prime_prime;
         // ...
         throw std::runtime_error("TODO: Compute displayed tree logl plus its derivatives out of the given sumtable");
 
@@ -970,6 +970,9 @@ PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned i
 
 LoglDerivatives computeLoglikelihoodDerivatives(AnnotatedNetwork& ann_network, const std::vector<std::vector<SumtableInfo> >& sumtables, unsigned int pmatrix_index, bool incremental, bool update_pmatrices) {
     setup_pmatrices(ann_network, incremental, update_pmatrices);
+    Node* source = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
+    Node* target = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
+    
     mpfr::mpreal network_logl_prime = 0.0;
     mpfr::mpreal network_logl_prime_prime = 0.0;
     assert(sumtables.size() == ann_network.fake_treeinfo->partition_count);
@@ -981,8 +984,18 @@ LoglDerivatives computeLoglikelihoodDerivatives(AnnotatedNetwork& ann_network, c
     return LoglDerivatives{network_logl_prime.toDouble(), network_logl_prime_prime.toDouble()};
 }
 
-std::vector<double> computeSumtable(AnnotatedNetwork& ann_network, pll_partition_t* partition, DisplayedTreeData& left_tree, DisplayedTreeData& right_tree) {
-    throw std::runtime_error("computeSumtable not implemented yet");
+SumtableInfo computeSumtable(AnnotatedNetwork& ann_network, size_t partition_idx, const ReticulationConfigSet& restrictions, DisplayedTreeData& left_tree, size_t left_clv_index, DisplayedTreeData& right_tree, size_t right_clv_index) {
+    pll_partition_t * partition = ann_network.fake_treeinfo->partitions[partition_idx];
+    size_t sumtableSize = (partition->sites + partition->states) * partition->rate_cats * partition->states_padded;
+    SumtableInfo sumtableInfo(sumtableSize, partition->alignment);
+
+    sumtableInfo.tree_prob = computeReticulationConfigProb(restrictions, ann_network.reticulation_probs);
+    sumtableInfo.sumtable = (double*) pll_aligned_alloc(sumtableSize * sizeof(double), partition->alignment);
+    if (!sumtableInfo.sumtable) {
+        throw std::runtime_error("Error in allocating memory for sumtable");
+    }
+    pll_update_sumtable(partition, left_clv_index, left_tree.clv_vector, right_clv_index, right_tree.clv_vector, left_tree.scale_buffer, right_tree.scale_buffer, ann_network.fake_treeinfo->param_indices[partition_idx], sumtableInfo.sumtable);
+    return sumtableInfo;
 }
 
 std::vector<std::vector<SumtableInfo> > computePartitionSumtables(AnnotatedNetwork& ann_network, unsigned int pmatrix_index) {
@@ -990,9 +1003,7 @@ std::vector<std::vector<SumtableInfo> > computePartitionSumtables(AnnotatedNetwo
     Node* source = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
     Node* target = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
 
-    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-        pll_partition_t* partition = ann_network.fake_treeinfo->partitions[p];
-        
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {        
         size_t n_trees_source = ann_network.pernode_displayed_tree_data[p][source->clv_index].num_active_displayed_trees;
         size_t n_trees_target = ann_network.pernode_displayed_tree_data[p][target->clv_index].num_active_displayed_trees;
         std::vector<DisplayedTreeData>& sourceTrees = ann_network.pernode_displayed_tree_data[p][source->clv_index].displayed_trees;
@@ -1005,10 +1016,7 @@ std::vector<std::vector<SumtableInfo> > computePartitionSumtables(AnnotatedNetwo
                 }
                 ReticulationConfigSet restrictions = combineReticulationChoices(sourceTrees[i].treeLoglData.reticulationChoices, targetTrees[j].treeLoglData.reticulationChoices);
                 if (isActiveBranch(ann_network, restrictions, pmatrix_index)) {
-                    SumtableInfo sumtableInfo;
-                    sumtableInfo.tree_prob = computeReticulationConfigProb(restrictions, ann_network.reticulation_probs);
-                    sumtableInfo.sumtable = computeSumtable(ann_network, partition, sourceTrees[i], targetTrees[j]);
-                    res[p].emplace_back(sumtableInfo);
+                    res[p].emplace_back(computeSumtable(ann_network, p, restrictions, sourceTrees[i], source->clv_index, targetTrees[j], target->clv_index));
                 }
             }
         }

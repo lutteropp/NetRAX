@@ -24,7 +24,53 @@ namespace netrax {
 double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental = 1, int update_pmatrices = 1);
 struct SumtableInfo {
         double tree_prob = 0.0;
-        std::vector<double> sumtable;
+        double* sumtable = nullptr;
+        size_t sumtable_size = 0;
+        size_t alignment = 16;
+
+        SumtableInfo(size_t sumtable_size, size_t alignment) : sumtable_size{sumtable_size}, alignment{alignment} {}
+
+        ~SumtableInfo() {
+                pll_aligned_free(sumtable);
+        }
+
+        SumtableInfo(SumtableInfo&& rhs) : tree_prob{rhs.tree_prob}, sumtable{rhs.sumtable}, sumtable_size{rhs.sumtable_size}, alignment{rhs.alignment}
+        {
+                rhs.sumtable = nullptr;
+        }
+
+        SumtableInfo(const SumtableInfo& rhs)
+        : tree_prob{rhs.tree_prob}, sumtable_size{rhs.sumtable_size}, alignment{rhs.alignment}
+        {
+                sumtable = (double*) pll_aligned_alloc(rhs.sumtable_size, rhs.alignment);
+                memcpy(sumtable, rhs.sumtable, rhs.sumtable_size * sizeof(double));
+        }
+
+        SumtableInfo& operator =(SumtableInfo&& rhs)
+        {
+                if (this != &rhs)
+                {
+                        tree_prob = rhs.tree_prob;
+                        sumtable = rhs.sumtable;
+                        sumtable_size = rhs.sumtable_size;
+                        alignment = rhs.alignment;
+                        rhs.sumtable = nullptr;
+                }
+                return *this;
+        }
+
+        SumtableInfo& operator =(const SumtableInfo& rhs)
+        {
+                if (this != &rhs)
+                {
+                        tree_prob = rhs.tree_prob;
+                        sumtable = (double*) pll_aligned_alloc(rhs.sumtable_size, rhs.alignment);
+                        memcpy(sumtable, rhs.sumtable, rhs.sumtable_size * sizeof(double));
+                        sumtable_size = rhs.sumtable_size;
+                        alignment = rhs.alignment;
+                }
+                return *this;
+        }
 };
 
 struct LoglDerivatives {
