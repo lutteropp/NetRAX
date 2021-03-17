@@ -1091,8 +1091,8 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
                 }*/
 
                 if (isActiveBranch(ann_network, combinedTreeData.reticulationChoices, pmatrix_index)) {
-                    std::cout << std::setprecision(70);
-                    std::cout << "active branch case, combining " << source->clv_index << " and " << target->clv_index << " for branch " << pmatrix_index << " with length " << ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] << "\n";
+                    //std::cout << std::setprecision(70);
+                    //std::cout << "active branch case, combining " << source->clv_index << " and " << target->clv_index << " for branch " << pmatrix_index << " with length " << ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] << "\n";
                     //std::cout << "source CLV vector at " << source->clv_index << "\n";
                     //printClv(*ann_network.fake_treeinfo, source->clv_index, sourceTrees[i].clv_vector, p);
                     //std::cout << "target CLV vector at " << target->clv_index << "\n";
@@ -1103,7 +1103,7 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
                                                                 pmatrix_index, ann_network.fake_treeinfo->param_indices[p], nullptr);
                     combinedTreeData.tree_logprob = computeReticulationConfigLogProb(combinedTreeData.reticulationChoices, ann_network.reticulation_probs);
                 } else {
-                    std::cout << "inactive branch\n";
+                    //std::cout << "inactive branch\n";
                     const TreeLoglData& oldTree = getMatchingOldTree(ann_network, oldTrees[p], combinedTreeData.reticulationChoices);
                     assert(oldTree.tree_logl_valid);
                     combinedTreeData.tree_logl = oldTree.tree_logl;
@@ -1173,7 +1173,7 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
     ann_network.cached_logl = network_logl;
     ann_network.cached_logl_valid = true;
 
-    std::cout << network_logl << "\n";
+    //std::cout << network_logl << "\n";
     return network_logl;
 }
 
