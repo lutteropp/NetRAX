@@ -909,12 +909,10 @@ void updateCLVsVirtualRerootTrees(AnnotatedNetwork& ann_network, Node* old_virtu
         ClvRangeInfo clvInfo = get_clv_range(ann_network.fake_treeinfo->partitions[partition_idx]);
         ScaleBufferRangeInfo scaleBufferInfo = get_scale_buffer_range(ann_network.fake_treeinfo->partitions[partition_idx]);
         for (size_t p = 0; p < paths.size(); ++p) {
-            /*if (ann_network.network.num_reticulations() == 1) {
-                std::cout << "PROCESSING PATH " << p << " ON PARTITION " << partition_idx << "\n";
-                printPathToVirtualRoot(paths[p]);
-                std::cout << "The path has the following restrictions: \n";
-                printReticulationChoices(paths[p].reticulationChoices);
-            }*/
+            /*std::cout << "PROCESSING PATH " << p << " ON PARTITION " << partition_idx << "\n";
+            printPathToVirtualRoot(paths[p]);
+            std::cout << "The path has the following restrictions: \n";
+            printReticulationChoices(paths[p].reticulationChoices);*/
 
             // Restore required old NodeInformations for the path
             for (size_t nodeIndexToRestore : nodeSaveInfo.pathNodesToRestore[p]) {
@@ -1035,6 +1033,10 @@ std::vector<std::vector<SumtableInfo> > computePartitionSumtables(AnnotatedNetwo
 }
 
 double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::vector<std::vector<TreeLoglData> >& oldTrees, unsigned int pmatrix_index, int incremental, int update_pmatrices) {
+    if (ann_network.cached_logl_valid) {
+        return ann_network.cached_logl;
+    }
+    
     Node* source = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
     Node* target = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
     assert(reuseOldDisplayedTreesCheck(ann_network, incremental)); // TODO: Doesn't this need the virtual_root pointer, too?
@@ -1089,11 +1091,19 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
                 }*/
 
                 if (isActiveBranch(ann_network, combinedTreeData.reticulationChoices, pmatrix_index)) {
+                    std::cout << std::setprecision(70);
+                    std::cout << "active branch case, combining " << source->clv_index << " and " << target->clv_index << " for branch " << pmatrix_index << " with length " << ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] << "\n";
+                    //std::cout << "source CLV vector at " << source->clv_index << "\n";
+                    //printClv(*ann_network.fake_treeinfo, source->clv_index, sourceTrees[i].clv_vector, p);
+                    //std::cout << "target CLV vector at " << target->clv_index << "\n";
+                    //printClv(*ann_network.fake_treeinfo, target->clv_index, targetTrees[j].clv_vector, p);
+                    
                     combinedTreeData.tree_logl = pll_compute_edge_loglikelihood(partition, source->clv_index, sourceTrees[i].clv_vector, sourceTrees[i].scale_buffer, 
                                                                 target->clv_index, targetTrees[j].clv_vector, targetTrees[j].scale_buffer, 
                                                                 pmatrix_index, ann_network.fake_treeinfo->param_indices[p], nullptr);
                     combinedTreeData.tree_logprob = computeReticulationConfigLogProb(combinedTreeData.reticulationChoices, ann_network.reticulation_probs);
                 } else {
+                    std::cout << "inactive branch\n";
                     const TreeLoglData& oldTree = getMatchingOldTree(ann_network, oldTrees[p], combinedTreeData.reticulationChoices);
                     assert(oldTree.tree_logl_valid);
                     combinedTreeData.tree_logl = oldTree.tree_logl;
@@ -1108,6 +1118,7 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
 
         for (size_t i = 0; i < n_trees_source; ++i) {
             if (!source_tree_seen[i]) {
+                //std::cout << "unseen source tree\n";
                 const TreeLoglData& oldTree = getMatchingOldTree(ann_network, oldTrees[p], sourceTrees[i].treeLoglData.reticulationChoices);
                 assert(oldTree.tree_logl_valid);
                 sourceTrees[i].treeLoglData.tree_logl = oldTree.tree_logl;
@@ -1121,6 +1132,7 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
 
         for (size_t j = 0; j < n_trees_target; ++j) {
             if (!target_tree_seen[j]) {
+                //std::cout << "unseen target tree\n";
                 const TreeLoglData& oldTree = getMatchingOldTree(ann_network, oldTrees[p], targetTrees[j].treeLoglData.reticulationChoices);
                 assert(oldTree.tree_logl_valid);
                 targetTrees[j].treeLoglData.tree_logl = oldTree.tree_logl;
@@ -1160,6 +1172,8 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
 
     ann_network.cached_logl = network_logl;
     ann_network.cached_logl_valid = true;
+
+    std::cout << network_logl << "\n";
     return network_logl;
 }
 

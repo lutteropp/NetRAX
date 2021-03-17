@@ -29,7 +29,7 @@
 
 namespace netrax {
 
-void printClv(const pllmod_treeinfo_t &treeinfo, size_t clv_index, size_t partition_index) {
+void printClv(const pllmod_treeinfo_t &treeinfo, size_t clv_index, double* clv, size_t partition_index) {
     size_t sites = treeinfo.partitions[partition_index]->sites;
     size_t rate_cats = treeinfo.partitions[partition_index]->rate_cats;
     size_t states = treeinfo.partitions[partition_index]->states;
@@ -39,8 +39,7 @@ void printClv(const pllmod_treeinfo_t &treeinfo, size_t clv_index, size_t partit
         for (unsigned int i = 0; i < rate_cats; ++i) {
             for (unsigned int j = 0; j < states; ++j) {
                 std::cout
-                        << treeinfo.partitions[partition_index]->clv[clv_index][j
-                                + i * states_padded] << "\n";
+                        << clv[j + i * states_padded] << "\n";
             }
         }
     }
