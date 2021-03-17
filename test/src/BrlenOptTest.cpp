@@ -34,11 +34,13 @@ TEST (BrlenOptTest, testTheTest) {
 
 TEST (BrlenOptTest, treeVirtualRoots) {
     // initial setup
-    std::string treePath = DATA_PATH + "tree.nw";
-    std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
+    std::string treePath = DATA_PATH + "0_4_taxa_1_reticulations_CELINE_PERFECT_SAMPLING_200_msasize_1_0_brlenScaler_0_5_reticulation_prob.raxml.bestTree";
+    std::string msaPath = DATA_PATH + "0_4_taxa_1_reticulations_CELINE_PERFECT_SAMPLING_200_msasize_1_0_brlenScaler_0_5_reticulation_prob_msa.txt";
+    std::string partitionsPath = DATA_PATH + "0_4_taxa_1_reticulations_CELINE_PERFECT_SAMPLING_200_msasize_1_0_brlenScaler_0_5_reticulation_prob_partitions.txt";
     NetraxOptions treeOptions;
     treeOptions.start_network_file = treePath;
     treeOptions.msa_file = msaPath;
+    treeOptions.model_file = partitionsPath;
     treeOptions.use_repeats = false;
     treeOptions.seed = 42;
     AnnotatedNetwork annTreeNetwork = build_annotated_network(treeOptions);
