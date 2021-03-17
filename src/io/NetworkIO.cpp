@@ -401,13 +401,12 @@ void updateNetwork(AnnotatedNetwork &ann_network) {
     // If we have unlinked branch lenghts/probs, replace the entries in the network by their average
     if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
         for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
-            double lenSum = 0.0;
             size_t pmatrix_index = ann_network.network.edges[i].pmatrix_index;
+            ann_network.network.edges_by_index[pmatrix_index]->length = 0.0;
             for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-                lenSum += ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index];
+                double w = ann_network.partition_contributions[p];
+                ann_network.network.edges_by_index[pmatrix_index]->length += ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] * w;
             }
-            ann_network.network.edges_by_index[pmatrix_index]->length = lenSum
-                    / ann_network.fake_treeinfo->partition_count;
         }
     } else {
         for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
