@@ -26,6 +26,15 @@
 
 namespace netrax {
 
+void destroy_network_treeinfo(pllmod_treeinfo_t *treeinfo) {
+    if (!treeinfo)
+        return;
+    if (treeinfo->likelihood_computation_params != treeinfo) {
+        free(treeinfo->likelihood_computation_params);
+    }
+    pllmod_treeinfo_destroy(treeinfo);
+}
+
 void allocateBranchProbsArray(AnnotatedNetwork& ann_network) {
     // allocate branch probs array...
      ann_network.reticulation_probs = std::vector<double>(ann_network.options.max_reticulations, 0.5);
@@ -39,6 +48,9 @@ void allocateBranchProbsArray(AnnotatedNetwork& ann_network) {
 void init_annotated_network(AnnotatedNetwork &ann_network, std::mt19937& rng) {
     ann_network.rng = rng;
 
+    RaxmlWrapper wrapper(ann_network.options);
+    ann_network.fake_treeinfo = wrapper.createNetworkPllTreeinfo(ann_network);
+
     ann_network.travbuffer = netrax::reversed_topological_sort(ann_network.network);
 
     allocateBranchProbsArray(ann_network);
@@ -46,11 +58,6 @@ void init_annotated_network(AnnotatedNetwork &ann_network, std::mt19937& rng) {
         double firstParentProb = ann_network.network.edges_by_index[ann_network.network.reticulation_nodes[i]->getReticulationData()->getLinkToFirstParent()->edge_pmatrix_index]->prob;
         ann_network.reticulation_probs[i] = firstParentProb;
     }
-
-    netrax::RaxmlWrapper wrapper(ann_network.options);
-    ann_network.raxml_treeinfo = std::unique_ptr<TreeInfo>(wrapper.createRaxmlTreeinfo(ann_network));
-
-    assert(static_cast<RaxmlWrapper::NetworkParams*>(ann_network.raxml_treeinfo->pll_treeinfo().likelihood_computation_params)->ann_network == &ann_network);
 
     ann_network.fake_treeinfo->active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
     netrax::setup_pmatrices(ann_network, false, true);

@@ -21,6 +21,7 @@
 #include "../optimization/Moves.hpp"
 #include "../optimization/BranchLengthOptimization.hpp"
 #include "../optimization/ReticulationOptimization.hpp"
+#include "../optimization/ModelOptimization.hpp"
 #include "../likelihood/LikelihoodComputation.hpp"
 #include "../graph/Network.hpp"
 #include "../graph/NetworkTopology.hpp"
@@ -67,7 +68,7 @@ template<typename T>
 double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, double old_score, bool greedy=true, bool randomizeCandidates=false, bool brlenopt_inside = true) {
     if (candidates.empty()) {
         std::cout << "empty list of candidates\n";
-        return bic(ann_network, ann_network.raxml_treeinfo->loglh(true));
+        return bic(ann_network, computeLoglikelihood(ann_network));
     } else {
         std::cout << candidates.size() << " candidates\n";
     }
@@ -94,7 +95,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     double brlen_smooth_factor = 0.25;
     int max_iters = 1; //brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
     int radius = 1;
-    double start_logl = ann_network.raxml_treeinfo->loglh(true);
+    double start_logl = computeLoglikelihood(ann_network);
 
     /*std::cout << "Number of candidates: " << candidates.size() << "\n";
     std::cout << "old_score: " << old_score << "\n";
@@ -123,11 +124,11 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         }
 
         if (isComplexityChanging(move.moveType)) {
-            ann_network.raxml_treeinfo->optimize_model(ann_network.options.lh_epsilon);
+            optimizeModel(ann_network);
             //optimize_branches(ann_network, max_iters, radius);
         }
 
-        double new_logl = ann_network.raxml_treeinfo->loglh(true);
+        double new_logl = computeLoglikelihood(ann_network);
         double new_score = bic(ann_network, new_logl);
 
         bool foundBetterScore = false;
@@ -151,15 +152,15 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
             assert(network_states_equal(start_state_to_reuse, extract_network_state(ann_network, complexityChanging)));
         }
 
-        if (fabs(ann_network.raxml_treeinfo->loglh(true) - start_logl) >= ann_network.options.lh_epsilon) {
-            double new_value = ann_network.raxml_treeinfo->loglh(true);
+        if (fabs(computeLoglikelihood(ann_network) - start_logl) >= ann_network.options.lh_epsilon) {
+            double new_value = computeLoglikelihood(ann_network);
             if (complexityChanging) {
                 std::cout << "we are complexity changing\n";
             }
             assert(network_states_equal(start_state_to_reuse, extract_network_state(ann_network, complexityChanging)));
             throw std::runtime_error("Rolling back did not work correctly");
         }
-        assert(fabs(ann_network.raxml_treeinfo->loglh(true) - start_logl) < ann_network.options.lh_epsilon);
+        assert(fabs(computeLoglikelihood(ann_network) - start_logl) < ann_network.options.lh_epsilon);
         if (greedy && foundBetterScore) {
             break;
         }
@@ -179,11 +180,11 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
             optimizeReticulationProbs(ann_network);
         }
 
-        best_score = bic(ann_network, ann_network.raxml_treeinfo->loglh(true));
+        best_score = bic(ann_network, computeLoglikelihood(ann_network));
         ann_network.stats.moves_taken[candidates[best_idx].moveType]++;
 
         std::cout << " Took " << toString(candidates[best_idx].moveType) << "\n";
-        double logl = ann_network.raxml_treeinfo->loglh(true);
+        double logl = computeLoglikelihood(ann_network);
         double bic_score = bic(ann_network, logl);
         double aic_score = aic(ann_network, logl);
         double aicc_score = aicc(ann_network, logl);
@@ -199,7 +200,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
 }
 
 double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, MoveType type, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, bool greedy, bool enforce_apply_move, size_t max_iterations) {
-    double old_logl = ann_network.raxml_treeinfo->loglh(true);
+    double old_logl = computeLoglikelihood(ann_network);
     double old_bic = bic(ann_network, old_logl);
     //std::cout << "start_logl: " << old_logl <<", start_bic: " << old_bic << "\n";
     std::cout << "Using move type: " << toString(type) << "\n";
@@ -256,12 +257,12 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, MoveType type, 
            break;
        }
     } while (old_bic - new_score > ann_network.options.score_epsilon);
-    return ann_network.raxml_treeinfo->loglh(true);
+    return computeLoglikelihood(ann_network);
 }
 
 double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, const std::vector<MoveType>& types, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, bool greedy, size_t max_iterations) {
     unsigned int type_idx = 0;
-    double old_logl = ann_network.raxml_treeinfo->loglh(true);
+    double old_logl = computeLoglikelihood(ann_network);
     double new_logl = old_logl;
     double old_bic = bic(ann_network, old_logl);
     double new_score = old_bic;

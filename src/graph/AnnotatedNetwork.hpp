@@ -115,15 +115,18 @@ struct NodeDisplayedTreeData {
     }
 };
 
+void destroy_network_treeinfo(pllmod_treeinfo_t *treeinfo);
+
 struct AnnotatedNetwork {
     NetraxOptions options;
     Network network; // The network topology itself
     
     size_t total_num_model_parameters = 0;
     size_t total_num_sites = 0;
-    std::unique_ptr<TreeInfo> raxml_treeinfo = nullptr;
     pllmod_treeinfo_t *fake_treeinfo = nullptr;
     std::vector<double> reticulation_probs; // the first-parent reticulation probs
+
+    std::vector<double> partition_contributions;
 
     std::vector<std::vector<NodeDisplayedTreeData> > pernode_displayed_tree_data;
 
@@ -137,6 +140,12 @@ struct AnnotatedNetwork {
 
     AnnotatedNetwork(AnnotatedNetwork&&) = default;
     AnnotatedNetwork() = default;
+
+    ~AnnotatedNetwork() {
+        if (fake_treeinfo) {
+            destroy_network_treeinfo(fake_treeinfo);
+        }
+    }
 };
 
 AnnotatedNetwork build_annotated_network(NetraxOptions &options);

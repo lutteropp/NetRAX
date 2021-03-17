@@ -247,11 +247,16 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
  */
 void optimizeBranches(AnnotatedNetwork &ann_network) {
     double old_score = scoreNetwork(ann_network);
-    ann_network.raxml_treeinfo->optimize_branches(ann_network.options.lh_epsilon, 10); // TODO: Which function gets called here???
+
+    int brlen_smooth_factor = 10;
+    int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
+    int radius = PLLMOD_OPT_BRLEN_OPTIMIZE_ALL;
+    optimize_branches(ann_network, max_iters, radius);
+
     double new_score = scoreNetwork(ann_network);
     std::cout << "BIC score after branch length optimization: " << new_score << "\n";
     assert(new_score <= old_score + ann_network.options.score_epsilon);
-    if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED) {
+    if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED && ann_network.fake_treeinfo->partition_count > 1) {
         old_score = scoreNetwork(ann_network);
         pllmod_algo_opt_brlen_scalers_treeinfo(ann_network.fake_treeinfo,
                                                         RAXML_BRLEN_SCALER_MIN,

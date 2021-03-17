@@ -39,9 +39,10 @@ public:
             TreeInfo::tinfo_behaviour &behaviour);
     pllmod_treeinfo_t* createStandardPllTreeinfo(const pll_utree_t *utree, unsigned int partitions,
             int brlen_linkage);
-    pllmod_treeinfo_t* createNetworkPllTreeinfo(AnnotatedNetwork &ann_network, unsigned int tips,
+    pllmod_treeinfo_t* createNetworkPllTreeinfoInternal(AnnotatedNetwork &ann_network, unsigned int tips,
             unsigned int partitions, int brlen_linkage);
-    void destroy_network_treeinfo(pllmod_treeinfo_t *treeinfo);
+    pllmod_treeinfo_t* createNetworkPllTreeinfo(AnnotatedNetwork &ann_network);
+    //void destroy_network_treeinfo(pllmod_treeinfo_t *treeinfo);
 
     void enableRaxmlDebugOutput();
 

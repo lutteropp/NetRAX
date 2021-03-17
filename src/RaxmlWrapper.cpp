@@ -170,7 +170,7 @@ TreeInfo* RaxmlWrapper::createRaxmlTreeinfo(AnnotatedNetwork &ann_network) {
     assert(!instance.tip_id_map.empty());
     reset_tip_ids(network, instance.tip_id_map);
     assert(networkIsConnected(network));
-    pllmod_treeinfo_t *pllTreeinfo = createNetworkPllTreeinfo(ann_network, network.num_tips(),
+    pllmod_treeinfo_t *pllTreeinfo = createNetworkPllTreeinfoInternal(ann_network, network.num_tips(),
             instance.parted_msa->part_count(), instance.opts.brlen_linkage);
     ann_network.fake_treeinfo = pllTreeinfo;
 
@@ -457,7 +457,7 @@ int fake_init_tree(pllmod_treeinfo_t *treeinfo, Network &network) {
     return PLL_SUCCESS;
 }
 
-pllmod_treeinfo_t* RaxmlWrapper::createNetworkPllTreeinfo(AnnotatedNetwork &ann_network,
+pllmod_treeinfo_t* RaxmlWrapper::createNetworkPllTreeinfoInternal(AnnotatedNetwork &ann_network,
         unsigned int tips, unsigned int partitions, int brlen_linkage) {
     Network &network = ann_network.network;
 
@@ -572,13 +572,85 @@ pllmod_treeinfo_t* RaxmlWrapper::createNetworkPllTreeinfo(AnnotatedNetwork &ann_
     return treeinfo;
 }
 
-void RaxmlWrapper::destroy_network_treeinfo(pllmod_treeinfo_t *treeinfo) {
-    if (!treeinfo)
-        return;
-    if (treeinfo->likelihood_computation_params != treeinfo) {
-        free(treeinfo->likelihood_computation_params);
+pllmod_treeinfo_t* RaxmlWrapper::createNetworkPllTreeinfo(AnnotatedNetwork &ann_network) {
+    Network &network = ann_network.network;
+    // Check that the MSA has already been loaded
+    assert(!instance.tip_id_map.empty());
+    reset_tip_ids(network, instance.tip_id_map);
+    assert(networkIsConnected(network));
+    pllmod_treeinfo_t *pllTreeinfo = createNetworkPllTreeinfoInternal(ann_network, network.num_tips(),
+            instance.parted_msa->part_count(), instance.opts.brlen_linkage);
+    ann_network.fake_treeinfo = pllTreeinfo;
+
+    ann_network.total_num_sites = instance.parted_msa->total_sites();
+    ann_network.total_num_model_parameters = instance.parted_msa->total_free_model_params();
+    const PartitionAssignment &part_assign = instance.proc_part_assign.at(ParallelContext::proc_id());
+
+
+    const PartitionedMSA& parted_msa = (*instance.parted_msa.get());
+    const IDVector& tip_msa_idmap = instance.tip_msa_idmap;
+    const Options &opts = instance.opts;
+    IDSet parts_master = IDSet();
+    const std::vector<doubleVector> partition_brlens = std::vector<doubleVector>();
+    size_t num_branches = ann_network.network.num_branches();
+    const std::vector<uintVector> site_weights = std::vector<uintVector>(); // they are only relevant for bootstrapping
+
+    ann_network.partition_contributions.resize(parted_msa.part_count());
+    double total_weight = 0;
+
+    pllmod_treeinfo_set_parallel_context(pllTreeinfo, (void *) nullptr,
+                                        ParallelContext::parallel_reduce_cb);
+
+    // init partitions
+    int optimize_branches = opts.optimize_brlen ? PLLMOD_OPT_PARAM_BRANCHES_ITERATIVE : 0;
+
+    for (size_t p = 0; p < parted_msa.part_count(); ++p)
+    {
+    const PartitionInfo& pinfo = parted_msa.part_info(p);
+    const auto& weights = site_weights.empty() ? pinfo.msa().weights() : site_weights.at(p);
+    int params_to_optimize = opts.optimize_model ? pinfo.model().params_to_optimize() : 0;
+    params_to_optimize |= optimize_branches;
+
+    ann_network.partition_contributions[p] = std::accumulate(weights.begin(), weights.end(), 0);
+    total_weight += ann_network.partition_contributions[p];
+
+    PartitionAssignment::const_iterator part_range = part_assign.find(p);
+    if (part_range != part_assign.end())
+    {
+        /* create and init PLL partition structure */
+        network_create_init_partition_wrapper(p, params_to_optimize, pllTreeinfo, opts,
+                pinfo, tip_msa_idmap, part_range,
+                weights);
+
+        // set per-partition branch lengths or scalers
+        if (opts.brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED)
+        {
+        assert (pll_treeinfo->brlen_scalers);
+        pllTreeinfo->brlen_scalers[p] = pinfo.model().brlen_scaler();
+        }
+        else if (opts.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED && !partition_brlens.empty())
+        {
+        assert(pll_treeinfo->branch_lengths[p]);
+        memcpy(pllTreeinfo->branch_lengths[p], partition_brlens[p].data(),
+                num_branches * sizeof(double));
+        }
+
+        if (part_range->master())
+        parts_master.insert(p);
     }
-    pllmod_treeinfo_destroy(treeinfo);
+    else
+    {
+        // this partition will be processed by other threads, but we still need to know
+        // which parameters to optimize
+        pllTreeinfo->params_to_optimize[p] = params_to_optimize;
+    }
+    }
+
+    // finalize partition contribution computation
+    for (auto& c: ann_network.partition_contributions)
+    c /= total_weight;
+
+    return pllTreeinfo;
 }
 
 TreeInfo* RaxmlWrapper::createRaxmlTreeinfo(pllmod_treeinfo_t *treeinfo,
