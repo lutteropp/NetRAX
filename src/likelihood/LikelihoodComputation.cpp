@@ -1104,10 +1104,15 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
                                                                 pmatrix_index, ann_network.fake_treeinfo->param_indices[p], nullptr);
                     if (combinedTreeData.tree_logl == -std::numeric_limits<double>::infinity()) {
                         std::cout << exportDebugInfo(ann_network) << "\n";
+                        std::cout << "i: " << i << "\n";
                         std::cout << "j: " << j << "\n";
                         std::cout << "pmatrix_index: " << pmatrix_index << "\n";
                         std::cout << "source: " << source->clv_index << "\n";
                         std::cout << "target: " << target->clv_index << "\n";
+                        std::cout << "source clv vector:\n";
+                        printClv(*ann_network.fake_treeinfo, source->clv_index, sourceTrees[i].clv_vector, p);
+                        std::cout << "target clv vector:\n";
+                        printClv(*ann_network.fake_treeinfo, target->clv_index, targetTrees[j].clv_vector, p);
                     }
                     assert(combinedTreeData.tree_logl != -std::numeric_limits<double>::infinity());
                     combinedTreeData.tree_logprob = computeReticulationConfigLogProb(combinedTreeData.reticulationChoices, ann_network.reticulation_probs);
