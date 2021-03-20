@@ -32,6 +32,93 @@ TEST (BrlenOptTest, testTheTest) {
     ASSERT_TRUE(true);
 }
 
+TEST (BrlenOptTest, treeVirtualRootProblem) {
+    // initial setup
+    std::string treePath = DATA_PATH + "0_4_taxa_1_reticulations_CELINE_PERFECT_SAMPLING_200_msasize_1_0_brlenScaler_0_5_reticulation_prob.raxml.bestTree";
+    std::string msaPath = DATA_PATH + "0_4_taxa_1_reticulations_CELINE_PERFECT_SAMPLING_200_msasize_1_0_brlenScaler_0_5_reticulation_prob_msa.txt";
+    std::string partitionsPath = DATA_PATH + "0_4_taxa_1_reticulations_CELINE_PERFECT_SAMPLING_200_msasize_1_0_brlenScaler_0_5_reticulation_prob_partitions.txt";
+    NetraxOptions treeOptions;
+    treeOptions.start_network_file = treePath;
+    treeOptions.msa_file = msaPath;
+    treeOptions.model_file = partitionsPath;
+    treeOptions.use_repeats = false;
+    treeOptions.seed = 42;
+    AnnotatedNetwork ann_network = build_annotated_network(treeOptions);
+    init_annotated_network(ann_network);
+
+    optimizeModel(ann_network);
+
+    ann_network.cached_logl_valid = false;
+    double old_logl = computeLoglikelihood(ann_network, 1, 1);
+
+    std::cout << exportDebugInfo(ann_network) << "\n";
+
+    Node* old_virtual_root = ann_network.network.root;
+    auto oldTrees = extractOldTrees(ann_network, ann_network.network.root);
+    std::uniform_int_distribution<std::mt19937::result_type> dist(0, ann_network.network.num_branches() - 1);
+
+    size_t pmatrix_index = 5;
+    std::cout << "Testing with pmatrix index: " << pmatrix_index << "\n";
+
+    Edge* edge = ann_network.network.edges_by_index[pmatrix_index];
+    Node* new_virtual_root = getSource(ann_network.network, edge);
+    Node* new_virtual_root_back = getTarget(ann_network.network, edge);
+    std::cout << "old_virtual_root: " << old_virtual_root->clv_index << "\n";
+    std::cout << "new_virtual_root: " << new_virtual_root->clv_index << "\n";
+    std::cout << "new_virtual_root_back: " << new_virtual_root_back->clv_index << "\n";
+    updateCLVsVirtualRerootTrees(ann_network, old_virtual_root, new_virtual_root, new_virtual_root_back);
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        ann_network.fake_treeinfo->pmatrix_valid[p][pmatrix_index] = 0;
+    }
+    ann_network.cached_logl_valid = false;
+
+
+    double old_brlen = ann_network.fake_treeinfo->branch_lengths[0][pmatrix_index];
+    std::cout << "old brlen: " << old_brlen << "\n";
+    double old_logl_reroot = computeLoglikelihoodBrlenOpt(ann_network, oldTrees, edge->pmatrix_index, 1, 1);
+
+    std::cout << "reroot logl old brlen: " << old_logl_reroot << "\n";
+    std::cout << "  reroot logl old brlen, partition 0: " << ann_network.fake_treeinfo->partition_loglh[0] << "\n";
+    std::cout << "  reroot logl old brlen, partition 1: " << ann_network.fake_treeinfo->partition_loglh[1] << "\n";
+    ann_network.fake_treeinfo->branch_lengths[0][pmatrix_index] = 0.049539358966596169775442604077397845685482025146484375;
+    for (size_t partition_idx = 0; partition_idx < ann_network.fake_treeinfo->partition_count; ++partition_idx) {
+        ann_network.fake_treeinfo->pmatrix_valid[partition_idx][pmatrix_index] = 0;
+    }
+    ann_network.cached_logl_valid = false;
+    double new_logl_reroot = computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index);
+    std::cout << "reroot logl new brlen: " << new_logl_reroot << "\n";
+    std::cout << "  reroot logl new brlen, partition 0: " << ann_network.fake_treeinfo->partition_loglh[0] << "\n";
+    std::cout << "  reroot logl new brlen, partition 1: " << ann_network.fake_treeinfo->partition_loglh[1] << "\n";
+
+    invalidatePmatrixIndex(ann_network, pmatrix_index);
+    double true_logl_new_brlen = computeLoglikelihood(ann_network);
+    std::cout << "true logl new brlen: " << true_logl_new_brlen << "\n";
+    std::cout << "  true logl new brlen, partition 0: " << ann_network.fake_treeinfo->partition_loglh[0] << "\n";
+    std::cout << "  true logl new brlen, partition 1: " << ann_network.fake_treeinfo->partition_loglh[1] << "\n";
+    updateCLVsVirtualRerootTrees(ann_network, ann_network.network.root, getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]), getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]));
+    ann_network.cached_logl_valid = false;
+    std::cout << "reroot logl new brlen, after computing true logl new brlen: " << computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index) << "\n";
+    std::cout << "  reroot logl new brlen, after computing true logl new brlen, partition 0: " << ann_network.fake_treeinfo->partition_loglh[0] << "\n";
+    std::cout << "  reroot logl new brlen, after computing true logl new brlen, partition 1: " << ann_network.fake_treeinfo->partition_loglh[1] << "\n";
+    ann_network.fake_treeinfo->branch_lengths[0][pmatrix_index] = old_brlen;
+    //invalidatePmatrixIndex(ann_network, pmatrix_index);
+    for (size_t partition_idx = 0; partition_idx < ann_network.fake_treeinfo->partition_count; ++partition_idx) {
+        ann_network.fake_treeinfo->pmatrix_valid[partition_idx][pmatrix_index] = 0;
+    }
+    ann_network.cached_logl_valid = false;
+    std::cout << "reroot logl old brlen here: " << computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index) << "\n";
+    std::cout << "  reroot logl old brlen here, partition 0: " << ann_network.fake_treeinfo->partition_loglh[0] << "\n";
+    std::cout << "  reroot logl old brlen here, partition 1: " << ann_network.fake_treeinfo->partition_loglh[1] << "\n";
+    invalidatePmatrixIndex(ann_network, pmatrix_index);
+    double true_logl_old_brlen_again = computeLoglikelihood(ann_network);
+    std::cout << "true logl old brlen again: " << true_logl_old_brlen_again << "\n";
+    std::cout << "  true logl old brlen again, partition 0: " << ann_network.fake_treeinfo->partition_loglh[0] << "\n";
+    std::cout << "  true logl old brlen again, partition 1: " << ann_network.fake_treeinfo->partition_loglh[1] << "\n";
+
+    ASSERT_DOUBLE_EQ(old_logl, old_logl_reroot);
+    ASSERT_DOUBLE_EQ(new_logl_reroot, true_logl_new_brlen);
+}
+
 TEST (BrlenOptTest, treeVirtualRoots) {
     // initial setup
     std::string treePath = DATA_PATH + "0_4_taxa_1_reticulations_CELINE_PERFECT_SAMPLING_200_msasize_1_0_brlenScaler_0_5_reticulation_prob.raxml.bestTree";
