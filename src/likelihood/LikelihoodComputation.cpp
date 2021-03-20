@@ -1099,9 +1099,11 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
                     //std::cout << "target CLV vector at " << target->clv_index << "\n";
                     //printClv(*ann_network.fake_treeinfo, target->clv_index, targetTrees[j].clv_vector, p);
 
+                    std::vector<double> persite_logl(ann_network.fake_treeinfo->partitions[p]->sites);
+
                     combinedTreeData.tree_logl = pll_compute_edge_loglikelihood(partition, source->clv_index, sourceTrees[i].clv_vector, sourceTrees[i].scale_buffer, 
                                                                 target->clv_index, targetTrees[j].clv_vector, targetTrees[j].scale_buffer, 
-                                                                pmatrix_index, ann_network.fake_treeinfo->param_indices[p], nullptr);
+                                                                pmatrix_index, ann_network.fake_treeinfo->param_indices[p], persite_logl.data());
                     if (combinedTreeData.tree_logl == -std::numeric_limits<double>::infinity()) {
                         std::cout << exportDebugInfo(ann_network) << "\n";
                         std::cout << "i: " << i << "\n";
@@ -1109,10 +1111,23 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
                         std::cout << "pmatrix_index: " << pmatrix_index << "\n";
                         std::cout << "source: " << source->clv_index << "\n";
                         std::cout << "target: " << target->clv_index << "\n";
-                        std::cout << "source clv vector:\n";
+                        std::cout << "\nsource clv vector:\n";
                         printClv(*ann_network.fake_treeinfo, source->clv_index, sourceTrees[i].clv_vector, p);
-                        std::cout << "target clv vector:\n";
+                        std::cout << "\ntarget clv vector:\n";
                         printClv(*ann_network.fake_treeinfo, target->clv_index, targetTrees[j].clv_vector, p);
+                        for (size_t pidx = 0; pidx < 4; pidx++) {
+                            std::cout << "\n pmatrix entry for pidx " << pidx << "\n";
+                            for (size_t c1 = 0; c1 < ann_network.fake_treeinfo->partitions[p]->states; ++c1) {
+                                for (size_t c2 = 0; c2 < ann_network.fake_treeinfo->partitions[p]->states; ++c2) {
+                                    std::cout << ann_network.fake_treeinfo->partitions[p]->pmatrix[pidx][c1*ann_network.fake_treeinfo->partitions[p]->states_padded + c2] << "\n";
+                                }
+                            }
+                        }
+                        std::cout << "partition alpha: " << ann_network.fake_treeinfo->alphas[p] << "\n";
+                        std::cout << "persite logl:\n";
+                        for (size_t tt = 0; tt < persite_logl.size(); ++tt) {
+                            std::cout << persite_logl[tt] << "\n";
+                        }
                     }
                     assert(combinedTreeData.tree_logl != -std::numeric_limits<double>::infinity());
                     combinedTreeData.tree_logprob = computeReticulationConfigLogProb(combinedTreeData.reticulationChoices, ann_network.reticulation_probs);

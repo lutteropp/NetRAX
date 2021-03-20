@@ -118,10 +118,6 @@ void add_neighbors_in_radius(AnnotatedNetwork& ann_network, std::unordered_set<s
 }
 
 double optimize_branch(AnnotatedNetwork &ann_network, std::vector<std::vector<TreeLoglData> >& oldTrees, size_t pmatrix_index, size_t partition_index, BrlenOptMethod brlenOptMethod) {
-    /*if (ann_network.network.num_reticulations() == 1) {
-        std::cout << "optimizing branch " << pmatrix_index << " at partition " << partition_index << "...\n";
-    }*/
-
     ann_network.cached_logl_valid = false;
 
     double min_brlen = ann_network.options.brlen_min;
@@ -134,7 +130,6 @@ double optimize_branch(AnnotatedNetwork &ann_network, std::vector<std::vector<Tr
     } else {
         start_logl = computeLoglikelihood(ann_network);
     }
-    //std::cout << "This call finished\n";
 
     ClvRangeInfo clvInfo = get_clv_range(ann_network.fake_treeinfo->partitions[partition_index]);
     double* old_source_clv = clone_single_clv_vector(clvInfo, ann_network.pernode_displayed_tree_data[partition_index][getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index])->clv_index].displayed_trees[0].clv_vector);
@@ -203,9 +198,9 @@ std::vector<std::vector<TreeLoglData> > extractOldTrees(AnnotatedNetwork& ann_ne
 }
 
 double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, BrlenOptMethod brlenOptMethod) {
-    invalidatePmatrixIndex(ann_network, pmatrix_index);
+    //invalidatePmatrixIndex(ann_network, pmatrix_index);
 
-    double old_logl_normal = computeLoglikelihood(ann_network);
+    double old_logl_normal = computeLoglikelihood(ann_network); // TODOL Why does the error change if I do double old_logl_normal = computeLoglikelihood(ann_network, 0, 1);
     double old_logl_reroot;
 
     double old_logl;
@@ -290,26 +285,16 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
 
         double new_logl = optimize_branch(ann_network, pmatrix_index, brlenOptMethod);
 
-        /*for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-            invalidateHigherCLVs(ann_network, new_virtual_root, p, true);
-        }*/
-        invalidatePmatrixIndex(ann_network, pmatrix_index);
-        double recomputedLogl = computeLoglikelihood(ann_network);
-
-        if (brlenOptMethod != BrlenOptMethod::BRENT_NORMAL) {
-            oldTrees = extractOldTrees(ann_network, ann_network.network.root);
-        }
-
         if (new_logl - old_logl > lh_epsilon) { // add all neighbors of the branch to the candidates
             add_neighbors_in_radius(ann_network, candidates, pmatrix_index, 1);
         }
-        old_logl = recomputedLogl;
+        old_logl = new_logl;
         //old_virtual_root = new_virtual_root;
     }
     if ((old_logl < start_logl) && (fabs(old_logl - start_logl) >= 1E-3)) {
         std::cout << "old_logl: " << old_logl << "\n";
         std::cout << "start_logl: " << start_logl << "\n";
-        //throw std::runtime_error("Overall loglikelihood got worse");
+        throw std::runtime_error("Overall loglikelihood got worse");
     }
     assert((old_logl >= start_logl) || (fabs(old_logl - start_logl) < 1E-3));
     
