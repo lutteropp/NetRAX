@@ -46,26 +46,31 @@ TEST (BrlenOptTest, treeVirtualRootProblem) {
     AnnotatedNetwork ann_network = build_annotated_network(treeOptions);
     init_annotated_network(ann_network);
 
-    optimizeModel(ann_network);
+    std::cout << exportDebugInfo(ann_network) << "\n";
+
+    //optimizeModel(ann_network);
 
     ann_network.cached_logl_valid = false;
     double old_logl = computeLoglikelihood(ann_network, 1, 1);
 
-    std::cout << exportDebugInfo(ann_network) << "\n";
-
-    Node* old_virtual_root = ann_network.network.root;
-    auto oldTrees = extractOldTrees(ann_network, ann_network.network.root);
-    std::uniform_int_distribution<std::mt19937::result_type> dist(0, ann_network.network.num_branches() - 1);
-
     size_t pmatrix_index = 5;
     std::cout << "Testing with pmatrix index: " << pmatrix_index << "\n";
 
+    Node* old_virtual_root = ann_network.network.root;
     Edge* edge = ann_network.network.edges_by_index[pmatrix_index];
     Node* new_virtual_root = getSource(ann_network.network, edge);
     Node* new_virtual_root_back = getTarget(ann_network.network, edge);
     std::cout << "old_virtual_root: " << old_virtual_root->clv_index << "\n";
     std::cout << "new_virtual_root: " << new_virtual_root->clv_index << "\n";
     std::cout << "new_virtual_root_back: " << new_virtual_root_back->clv_index << "\n";
+
+    std::cout << "true logl old brlen: " << old_logl << "\n";
+    std::cout << "  true logl old brlen, partition 0: " << ann_network.fake_treeinfo->partition_loglh[0] << "\n";
+    std::cout << "  true logl old brlen, partition 1: " << ann_network.fake_treeinfo->partition_loglh[1] << "\n";
+
+    auto oldTrees = extractOldTrees(ann_network, ann_network.network.root);
+    std::uniform_int_distribution<std::mt19937::result_type> dist(0, ann_network.network.num_branches() - 1);
+
     updateCLVsVirtualRerootTrees(ann_network, old_virtual_root, new_virtual_root, new_virtual_root_back);
     for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
         ann_network.fake_treeinfo->pmatrix_valid[p][pmatrix_index] = 0;
