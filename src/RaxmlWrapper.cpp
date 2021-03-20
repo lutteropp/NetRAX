@@ -625,12 +625,12 @@ pllmod_treeinfo_t* RaxmlWrapper::createNetworkPllTreeinfo(AnnotatedNetwork &ann_
         // set per-partition branch lengths or scalers
         if (opts.brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED)
         {
-        assert (pll_treeinfo->brlen_scalers);
+        assert(pllTreeinfo->brlen_scalers);
         pllTreeinfo->brlen_scalers[p] = pinfo.model().brlen_scaler();
         }
         else if (opts.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED && !partition_brlens.empty())
         {
-        assert(pll_treeinfo->branch_lengths[p]);
+        assert(pllTreeinfo->branch_lengths[p]);
         memcpy(pllTreeinfo->branch_lengths[p], partition_brlens[p].data(),
                 num_branches * sizeof(double));
         }
