@@ -1098,10 +1098,16 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
                     //printClv(*ann_network.fake_treeinfo, source->clv_index, sourceTrees[i].clv_vector, p);
                     //std::cout << "target CLV vector at " << target->clv_index << "\n";
                     //printClv(*ann_network.fake_treeinfo, target->clv_index, targetTrees[j].clv_vector, p);
+
+                    assert(sourceTrees[i].treeLoglData.tree_logl_valid);
+                    assert(sourceTrees[i].treeLoglData.tree_logl != -std::numeric_limits<double>::infinity());
+                    assert(targetTrees[j].treeLoglData.tree_logl_valid);
+                    assert(targetTrees[j].treeLoglData.tree_logl != -std::numeric_limits<double>::infinity());
                     
                     combinedTreeData.tree_logl = pll_compute_edge_loglikelihood(partition, source->clv_index, sourceTrees[i].clv_vector, sourceTrees[i].scale_buffer, 
                                                                 target->clv_index, targetTrees[j].clv_vector, targetTrees[j].scale_buffer, 
                                                                 pmatrix_index, ann_network.fake_treeinfo->param_indices[p], nullptr);
+                    assert(combinedTreeData.tree_logl != -std::numeric_limits<double>::infinity());
                     combinedTreeData.tree_logprob = computeReticulationConfigLogProb(combinedTreeData.reticulationChoices, ann_network.reticulation_probs);
 
                 } else {
@@ -1109,6 +1115,7 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
                     const TreeLoglData& oldTree = getMatchingOldTree(ann_network, oldTrees[p], combinedTreeData.reticulationChoices);
                     assert(oldTree.tree_logl_valid);
                     combinedTreeData.tree_logl = oldTree.tree_logl;
+                    assert(combinedTreeData.tree_logl != -std::numeric_limits<double>::infinity());
                     assert(oldTree.tree_logprob_valid);
                     combinedTreeData.tree_logprob = oldTree.tree_logprob;
                 }
@@ -1128,6 +1135,8 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
                 sourceTrees[i].treeLoglData.tree_logprob = oldTree.tree_logprob;
                 sourceTrees[i].treeLoglData.tree_logl_valid = true;
                 sourceTrees[i].treeLoglData.tree_logprob_valid = true;
+                assert(sourceTrees[i].treeLoglData.tree_logl_valid);
+                assert(sourceTrees[i].treeLoglData.tree_logl != -std::numeric_limits<double>::infinity());
                 combinedTrees.emplace_back(sourceTrees[i].treeLoglData);
             }
         }
@@ -1142,8 +1151,15 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
                 targetTrees[j].treeLoglData.tree_logprob = oldTree.tree_logprob;
                 targetTrees[j].treeLoglData.tree_logl_valid = true;
                 targetTrees[j].treeLoglData.tree_logprob_valid = true;
+                assert(targetTrees[j].treeLoglData.tree_logl_valid);
+                assert(targetTrees[j].treeLoglData.tree_logl != -std::numeric_limits<double>::infinity());
                 combinedTrees.emplace_back(targetTrees[j].treeLoglData);
             }
+        }
+
+        for (size_t c = 0; c < combinedTrees.size(); ++c) {
+            assert(combinedTrees[c].tree_logl_valid);
+            assert(combinedTrees[c].tree_logl != -std::numeric_limits<double>::infinity());
         }
 
         network_logl += evaluateTreesPartition(ann_network, p, combinedTrees);
