@@ -156,6 +156,7 @@ struct DisplayedTreeData {
     unsigned int* scale_buffer = nullptr;
     ClvRangeInfo clvInfo;
     ScaleBufferRangeInfo scaleBufferInfo;
+    bool isTip = false;
 
     DisplayedTreeData(ClvRangeInfo clvRangeInfo, ScaleBufferRangeInfo scaleBufferRangeInfo, size_t max_reticulations) : treeLoglData(max_reticulations) { // inner node
         clv_vector = create_single_empty_clv(clvRangeInfo);
@@ -166,28 +167,36 @@ struct DisplayedTreeData {
 
     DisplayedTreeData(double* tip_clv_vector, size_t max_reticulations) : treeLoglData(max_reticulations) { // tip node
         clv_vector = tip_clv_vector;
+        isTip = true;
         scale_buffer = nullptr;
     }
 
     DisplayedTreeData(DisplayedTreeData&& rhs)
-      : treeLoglData{rhs.treeLoglData}, clv_vector{rhs.clv_vector}, scale_buffer{rhs.scale_buffer}, clvInfo{rhs.clvInfo}, scaleBufferInfo{rhs.scaleBufferInfo}
+      : treeLoglData{rhs.treeLoglData}, clv_vector{rhs.clv_vector}, scale_buffer{rhs.scale_buffer}, clvInfo{rhs.clvInfo}, scaleBufferInfo{rhs.scaleBufferInfo}, isTip{rhs.isTip}
     {
         rhs.clv_vector = nullptr;
         rhs.scale_buffer = nullptr;
     }
 
     DisplayedTreeData(const DisplayedTreeData& rhs)
-      : treeLoglData{rhs.treeLoglData}, clvInfo{rhs.clvInfo}, scaleBufferInfo{rhs.scaleBufferInfo}
+      : treeLoglData{rhs.treeLoglData}, clvInfo{rhs.clvInfo}, scaleBufferInfo{rhs.scaleBufferInfo}, isTip{rhs.isTip}
     {
-        clv_vector = clone_single_clv_vector(rhs.clvInfo, rhs.clv_vector);
-        scale_buffer = clone_single_scale_buffer(rhs.scaleBufferInfo, rhs.scale_buffer);
+        if (isTip) {
+            clv_vector = rhs.clv_vector;
+            scale_buffer = rhs.scale_buffer;
+        } else {
+            clv_vector = clone_single_clv_vector(rhs.clvInfo, rhs.clv_vector);
+            scale_buffer = clone_single_scale_buffer(rhs.scaleBufferInfo, rhs.scale_buffer);
+        }
     }
 
     DisplayedTreeData& operator =(DisplayedTreeData&& rhs)
     {
         if (this != &rhs)
         {
-            pll_aligned_free(clv_vector);
+            if (!isTip) {
+                pll_aligned_free(clv_vector);
+            }
             free(scale_buffer);
             treeLoglData = rhs.treeLoglData;
             clv_vector = rhs.clv_vector;
@@ -197,6 +206,7 @@ struct DisplayedTreeData {
 
             rhs.clv_vector = nullptr;
             rhs.scale_buffer = nullptr;
+            isTip = rhs.isTip;
         }
         return *this;
     }
@@ -207,10 +217,22 @@ struct DisplayedTreeData {
         {
             treeLoglData = rhs.treeLoglData;
             if ((clv_vector && rhs.clv_vector) && (clvInfo == rhs.clvInfo)) { // simply overwrite
-                memcpy(clv_vector, rhs.clv_vector, clvInfo.inner_clv_num_entries * sizeof(double));
+                if (rhs.isTip) {
+                    clv_vector = rhs.clv_vector;
+                } else {
+                    memcpy(clv_vector, rhs.clv_vector, clvInfo.inner_clv_num_entries * sizeof(double));
+                }
             } else {
-                pll_aligned_free(clv_vector);
-                clv_vector = clone_single_clv_vector(rhs.clvInfo, rhs.clv_vector);
+                if (isTip) {
+                    clv_vector = rhs.clv_vector;
+                } else {
+                    pll_aligned_free(clv_vector);
+                    if (rhs.isTip) {
+                        clv_vector = rhs.clv_vector;
+                    } else {
+                        clv_vector = clone_single_clv_vector(rhs.clvInfo, rhs.clv_vector);
+                    }
+                }
             }
             if ((scale_buffer && rhs.scale_buffer) && (scaleBufferInfo == rhs.scaleBufferInfo)) { // simply overwrite
                 memcpy(scale_buffer, rhs.scale_buffer, scaleBufferInfo.scaler_size * sizeof(unsigned int));
@@ -220,12 +242,15 @@ struct DisplayedTreeData {
             }
             clvInfo = rhs.clvInfo;
             scaleBufferInfo = rhs.scaleBufferInfo;
+            isTip = rhs.isTip;
         }
         return *this;
     }
 
     ~DisplayedTreeData() {
-        pll_aligned_free(clv_vector);
+        if (isTip) {
+            pll_aligned_free(clv_vector);
+        }
         free(scale_buffer);
     }
 };
