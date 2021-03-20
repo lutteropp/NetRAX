@@ -547,7 +547,7 @@ const TreeLoglData& getMatchingOldTree(AnnotatedNetwork& ann_network, const std:
 }
 
 double evaluateTreesPartition(AnnotatedNetwork& ann_network, size_t partition_idx, std::vector<TreeLoglData>& treeLoglData) {
-    ann_network.fake_treeinfo->active_partition = partition_idx;
+    //ann_network.fake_treeinfo->active_partition = partition_idx;
     size_t n_trees = treeLoglData.size();
 
     if (ann_network.options.likelihood_variant == LikelihoodVariant::AVERAGE_DISPLAYED_TREES) {
@@ -591,7 +591,7 @@ double evaluateTreesPartition(AnnotatedNetwork& ann_network, size_t partition_id
 }
 
 double evaluateTreesPartition(AnnotatedNetwork& ann_network, size_t partition_idx, NodeDisplayedTreeData& nodeDisplayedTreeData) {
-    ann_network.fake_treeinfo->active_partition = partition_idx;
+    //ann_network.fake_treeinfo->active_partition = partition_idx;
     std::vector<DisplayedTreeData>& displayed_root_trees = nodeDisplayedTreeData.displayed_trees;
     size_t n_trees = nodeDisplayedTreeData.num_active_displayed_trees;
 
@@ -1036,6 +1036,7 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
     if (ann_network.cached_logl_valid) {
         return ann_network.cached_logl;
     }
+    ann_network.fake_treeinfo->active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
     
     Node* source = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
     Node* target = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
@@ -1102,6 +1103,7 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
                                                                 target->clv_index, targetTrees[j].clv_vector, targetTrees[j].scale_buffer, 
                                                                 pmatrix_index, ann_network.fake_treeinfo->param_indices[p], nullptr);
                     combinedTreeData.tree_logprob = computeReticulationConfigLogProb(combinedTreeData.reticulationChoices, ann_network.reticulation_probs);
+
                 } else {
                     //std::cout << "inactive branch\n";
                     const TreeLoglData& oldTree = getMatchingOldTree(ann_network, oldTrees[p], combinedTreeData.reticulationChoices);

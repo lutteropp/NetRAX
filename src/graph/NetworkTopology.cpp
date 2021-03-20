@@ -465,6 +465,7 @@ void invalidateHigherClvs(AnnotatedNetwork &ann_network, pllmod_treeinfo_t *tree
     } else {
         invalidateHigherClvs(ann_network, treeinfo, getActiveParent(network, node), partition_idx, true, visited);
     }
+    ann_network.cached_logl_valid = false;
 }
 
 void invalidateHigherCLVs(AnnotatedNetwork &ann_network, Node *node, size_t partition_idx, bool invalidate_myself,
