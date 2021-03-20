@@ -248,7 +248,7 @@ struct DisplayedTreeData {
     }
 
     ~DisplayedTreeData() {
-        if (isTip) {
+        if (!isTip) {
             pll_aligned_free(clv_vector);
         }
         free(scale_buffer);
