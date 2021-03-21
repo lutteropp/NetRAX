@@ -1217,7 +1217,7 @@ double computeLoglikelihoodImproved(AnnotatedNetwork &ann_network, int increment
             return ann_network.cached_logl;
         }
         //std::cout << "reuse displayed trees\n";
-        for (size_t p = 0; p < fake_treeinfo.partition_count; ++p) { // TODO: Why is this needed here?
+        for (size_t p = 0; p < fake_treeinfo.partition_count; ++p) { // This is in here due to reticulation prob optimization
             std::vector<DisplayedTreeData>& displayed_root_trees = ann_network.pernode_displayed_tree_data[p][network.root->clv_index].displayed_trees;
             size_t n_trees = ann_network.pernode_displayed_tree_data[p][network.root->clv_index].num_active_displayed_trees;
             for (size_t t = 0; t < n_trees; ++t) {

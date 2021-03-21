@@ -262,6 +262,12 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
                 }
                 score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
             }
+
+            if (score_improvement.global_improved) {
+                count_add_reticulation_failed = 0;
+                keepSearching = true;
+            }
+
             if (score_improvement.local_improved) {
                 keepSearching = true;
                 continue;
@@ -313,7 +319,7 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
                 continue;
             } else {
                 count_add_reticulation_failed++;
-                if (count_add_reticulation_failed <= 5) {
+                if (count_add_reticulation_failed <= 10) {
                     keepSearching = true;
                     continue;
                 }
