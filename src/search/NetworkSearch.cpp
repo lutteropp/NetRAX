@@ -295,7 +295,7 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
         // then try adding a reticulation
         if (ann_network.network.num_reticulations() < ann_network.options.max_reticulations) {
             // old and deprecated: randomly add new reticulation
-            std::cout << "Randomly adding a reticulation\n";
+            std::cout << "\nRandomly adding a reticulation\n";
             add_extra_reticulations(ann_network, ann_network.network.num_reticulations() + 1);
             ann_network.stats.moves_taken[MoveType::ArcInsertionMove]++;
 
