@@ -266,6 +266,7 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
             if (score_improvement.global_improved) {
                 count_add_reticulation_failed = 0;
                 keepSearching = true;
+                continue;
             }
 
             if (score_improvement.local_improved) {
