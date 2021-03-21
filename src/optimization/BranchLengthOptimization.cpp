@@ -199,6 +199,11 @@ double optimize_branch(AnnotatedNetwork &ann_network, std::vector<std::vector<Tr
     if (brlenOptMethod == BrlenOptMethod::BRENT_NORMAL || brlenOptMethod == BrlenOptMethod::BRENT_REROOT) {
         optimize_branch_brent(ann_network, oldTrees, pmatrix_index, partition_index, brlenOptMethod);
     } else { // BrlenOptMethod::NEWTON_RAPHSON_REROOT
+        std::cout << "Starting with network logl: " << start_logl << "\n";
+        double logl_from_sumtables = computeLoglikelihoodFromSumtables(ann_network, sumtables, pmatrix_index);
+        std::cout << "Network logl from sumtables: " << logl_from_sumtables << "\n";
+        assert(start_logl == logl_from_sumtables);
+
         optimize_branch_newton_raphson(ann_network, sumtables, pmatrix_index, partition_index, brlenOptMethod, max_iters);
     }
 

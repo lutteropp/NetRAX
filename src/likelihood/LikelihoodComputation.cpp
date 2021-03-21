@@ -1012,6 +1012,19 @@ LoglDerivatives computeLoglikelihoodDerivatives(AnnotatedNetwork& ann_network, c
     return LoglDerivatives{network_logl_prime.toDouble(), network_logl_prime_prime.toDouble(), partition_logls_prime, partition_logls_prime_prime};
 }
 
+double computeLoglikelihoodFromSumtables(AnnotatedNetwork& ann_network, const std::vector<std::vector<SumtableInfo> >& sumtables, unsigned int pmatrix_index, bool incremental, bool update_pmatrices) {
+    setup_pmatrices(ann_network, incremental, update_pmatrices);
+    mpfr::mpreal network_logl = 0.0;
+
+    assert(sumtables.size() == ann_network.fake_treeinfo->partition_count);
+
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        PartitionLhData pdata = computePartitionLhData(ann_network, p, sumtables[p], pmatrix_index);
+        network_logl += mpfr::log(pdata.lh);
+    }
+    return network_logl.toDouble();
+}
+
 SumtableInfo computeSumtable(AnnotatedNetwork& ann_network, size_t partition_idx, const ReticulationConfigSet& restrictions, DisplayedTreeData& left_tree, size_t left_clv_index, DisplayedTreeData& right_tree, size_t right_clv_index) {
     pll_partition_t * partition = ann_network.fake_treeinfo->partitions[partition_idx];
     size_t sumtableSize = (partition->sites + partition->states) * partition->rate_cats * partition->states_padded;
