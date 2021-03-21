@@ -269,7 +269,7 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
     while (!candidates.empty()) {
         size_t pmatrix_index = *candidates.begin();
         candidates.erase(candidates.begin());
-        std::cout << "optimizing branch " << pmatrix_index << "\n";
+        //std::cout << "optimizing branch " << pmatrix_index << "\n";
 
         if (act_iters[pmatrix_index] >= max_iters) {
             continue;
