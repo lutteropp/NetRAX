@@ -1020,6 +1020,9 @@ double computeLoglikelihoodFromSumtables(AnnotatedNetwork& ann_network, const st
 
     for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
         PartitionLhData pdata = computePartitionLhData(ann_network, p, sumtables[p], pmatrix_index);
+        std::cout << "pdata.lh: " << pdata.lh << "\n";
+        std::cout << "pdata.lh_prime: " << pdata.lh_prime << "\n";
+        std::cout << "pdata.lh_prime_prime: " << pdata.lh_prime_prime << "\n";
         network_logl += mpfr::log(pdata.lh);
     }
     return network_logl.toDouble();
