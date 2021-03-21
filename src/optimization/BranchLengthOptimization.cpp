@@ -63,8 +63,8 @@ static double brent_target_networks(void *p, double x) {
 double optimize_branch_brent(AnnotatedNetwork &ann_network, std::vector<std::vector<TreeLoglData> >& oldTrees, size_t pmatrix_index, size_t partition_index, BrlenOptMethod brlenOptMethod) {
     assert(brlenOptMethod == BrlenOptMethod::BRENT_NORMAL || brlenOptMethod == BrlenOptMethod::BRENT_REROOT);
     double old_brlen = ann_network.fake_treeinfo->branch_lengths[partition_index][pmatrix_index];
-    assert(old_brlen >= min_brlen);
-    assert(old_brlen <= max_brlen);
+    assert(old_brlen >= ann_network.options.brlen_min);
+    assert(old_brlen <= ann_network.options.brlen_max);
 
     BrentBrlenParams params;
     params.ann_network = &ann_network;
@@ -82,8 +82,8 @@ double optimize_branch_brent(AnnotatedNetwork &ann_network, std::vector<std::vec
     double f2x;
     double new_brlen = pllmod_opt_minimize_brent(min_brlen, old_brlen, max_brlen, tolerance, &score,
             &f2x, (void*) &params, &brent_target_networks);
-    assert(new_brlen >= min_brlen);
-    assert(new_brlen <= max_brlen);
+    assert(new_brlen >= ann_network.options.brlen_min);
+    assert(new_brlen <= ann_network.options.brlen_max);
 
     return new_brlen;
 }
@@ -127,8 +127,8 @@ double optimize_branch_newton_raphson(AnnotatedNetwork &ann_network, std::vector
     assert(brlenOptMethod == BrlenOptMethod::NEWTON_RAPHSON_REROOT);
 
     double old_brlen = ann_network.fake_treeinfo->branch_lengths[partition_index][pmatrix_index];
-    assert(old_brlen >= min_brlen);
-    assert(old_brlen <= max_brlen);
+    assert(old_brlen >= ann_network.options.brlen_min);
+    assert(old_brlen <= ann_network.options.brlen_max);
 
     NewtonBrlenParams params;
     params.ann_network = &ann_network;
@@ -150,8 +150,8 @@ double optimize_branch_newton_raphson(AnnotatedNetwork &ann_network, std::vector
                                     network_derivative_func_multi);
 
     double new_brlen = params.new_brlen;
-    assert(new_brlen >= min_brlen);
-    assert(new_brlen <= max_brlen);
+    assert(new_brlen >= ann_network.options.brlen_min);
+    assert(new_brlen <= ann_network.options.brlen_max);
 
     return new_brlen;
 }
@@ -252,9 +252,10 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
         invalidatePmatrixIndex(ann_network, pmatrix_index);
     }
 
-    assert((logl >= old_logl) || (fabs(logl - old_logl) < 1E-3));
+    double final_logl = computeLoglikelihood(ann_network);
+    assert((final_logl >= old_logl) || (fabs(final_logl - old_logl) < 1E-3));
 
-    return computeLoglikelihood(ann_network);
+    return final_logl;
 }
 
 double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radius,
