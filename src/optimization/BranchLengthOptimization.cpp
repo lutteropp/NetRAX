@@ -88,17 +88,68 @@ double optimize_branch_brent(AnnotatedNetwork &ann_network, std::vector<std::vec
     return new_brlen;
 }
 
-double optimize_branch_newton_raphson(AnnotatedNetwork &ann_network, std::vector<std::vector<SumtableInfo> >& sumtables, size_t pmatrix_index, size_t partition_index, BrlenOptMethod brlenOptMethod) {
+
+struct NewtonBrlenParams
+{
+    AnnotatedNetwork *ann_network;
+    size_t pmatrix_index;
+    size_t partition_index;
+    std::vector<std::vector<SumtableInfo> >* sumtables;
+    double new_brlen;
+};
+
+
+static void network_derivative_func_multi (void * parameters, double * proposal,
+                                         double *df, double *ddf)
+{
+  NewtonBrlenParams * params =
+                                (NewtonBrlenParams *) parameters;
+  AnnotatedNetwork* ann_network = params->ann_network;
+
+  ann_network->fake_treeinfo->branch_lengths[params->partition_index][params->pmatrix_index] = params->new_brlen;
+  invalidPmatrixIndexOnly(*ann_network, params->pmatrix_index);
+  LoglDerivatives logl_derivatives = computeLoglikelihoodDerivatives(*ann_network, *(params->sumtables), params->pmatrix_index);
+
+  /*int unlinked = (ann_network->options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) ? 1 : 0;
+
+  if (unlinked) {
+    for (size_t p = 0; p < ann_network->fake_treeinfo->partition_count; ++p) {
+      df[p] = logl_derivatives.partition_logl_prime[p];
+      ddf[p] = logl_derivatives.partition_logl_prime_prime[p];
+    }
+  } else {*/
+    *df = logl_derivatives.logl_prime;
+    *ddf = logl_derivatives.logl_prime_prime;
+  //}
+}
+
+double optimize_branch_newton_raphson(AnnotatedNetwork &ann_network, std::vector<std::vector<SumtableInfo> >& sumtables, size_t pmatrix_index, size_t partition_index, BrlenOptMethod brlenOptMethod, unsigned int max_iters) {
     assert(brlenOptMethod == BrlenOptMethod::NEWTON_RAPHSON_REROOT);
+
     double old_brlen = ann_network.fake_treeinfo->branch_lengths[partition_index][pmatrix_index];
     assert(old_brlen >= min_brlen);
     assert(old_brlen <= max_brlen);
 
-    throw std::runtime_error("Not implemented yet");
-    double new_brlen;
+    NewtonBrlenParams params;
+    params.ann_network = &ann_network;
+    params.partition_index = partition_index;
+    params.pmatrix_index = pmatrix_index;
+    params.sumtables = &sumtables;
+    params.new_brlen = old_brlen;
 
-    //...
+    double tolerance = (ann_network.options.brlen_min > 0) ? ann_network.options.brlen_min /10.0: PLLMOD_OPT_TOL_BRANCH_LEN;
 
+    pllmod_opt_minimize_newton_multi(1,
+                                    ann_network.options.brlen_min,
+                                    &(params.new_brlen),
+                                    ann_network.options.brlen_max,
+                                    tolerance,
+                                    max_iters,
+                                    NULL,
+                                    &params,
+                                    network_derivative_func_multi);
+
+    double new_brlen = params.new_brlen;
     assert(new_brlen >= min_brlen);
     assert(new_brlen <= max_brlen);
 
@@ -135,7 +186,7 @@ void add_neighbors_in_radius(AnnotatedNetwork& ann_network, std::unordered_set<s
     add_neighbors_in_radius(ann_network, candidates, pmatrix_index, radius, seen);
 }
 
-double optimize_branch(AnnotatedNetwork &ann_network, std::vector<std::vector<TreeLoglData> >& oldTrees, std::vector<std::vector<SumtableInfo> >& sumtables, size_t pmatrix_index, size_t partition_index, BrlenOptMethod brlenOptMethod) {
+double optimize_branch(AnnotatedNetwork &ann_network, std::vector<std::vector<TreeLoglData> >& oldTrees, std::vector<std::vector<SumtableInfo> >& sumtables, size_t pmatrix_index, size_t partition_index, BrlenOptMethod brlenOptMethod, unsigned int max_iters) {
     ann_network.cached_logl_valid = false;
 
     double start_logl;
@@ -148,7 +199,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, std::vector<std::vector<Tr
     if (brlenOptMethod == BrlenOptMethod::BRENT_NORMAL || brlenOptMethod == BrlenOptMethod::BRENT_REROOT) {
         optimize_branch_brent(ann_network, oldTrees, pmatrix_index, partition_index, brlenOptMethod);
     } else { // BrlenOptMethod::NEWTON_RAPHSON_REROOT
-        optimize_branch_newton_raphson(ann_network, sumtables, pmatrix_index, partition_index, brlenOptMethod);
+        optimize_branch_newton_raphson(ann_network, sumtables, pmatrix_index, partition_index, brlenOptMethod, max_iters);
     }
 
     double best_logl;
@@ -162,7 +213,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, std::vector<std::vector<Tr
     return best_logl;
 }
 
-double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, BrlenOptMethod brlenOptMethod) {
+double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, BrlenOptMethod brlenOptMethod, unsigned int max_iters) {
     double old_logl = computeLoglikelihood(ann_network);
     std::vector<std::vector<TreeLoglData> > oldTrees;
     std::vector<std::vector<SumtableInfo> > sumtables;
@@ -189,10 +240,11 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
     if (unlinkedMode) {
         n_partitions = ann_network.fake_treeinfo->partition_count;
     }
+
     ann_network.fake_treeinfo->active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
     for (size_t p = 0; p < n_partitions; ++p) {
         // TODO: Set the active partitions in the fake_treeinfo
-        optimize_branch(ann_network, oldTrees, sumtables, pmatrix_index, p, brlenOptMethod);
+        optimize_branch(ann_network, oldTrees, sumtables, pmatrix_index, p, brlenOptMethod, max_iters);
     }
 
     // restore the network root
@@ -228,7 +280,7 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
         }
         act_iters[pmatrix_index]++;
 
-        double new_logl = optimize_branch(ann_network, pmatrix_index, brlenOptMethod);
+        double new_logl = optimize_branch(ann_network, pmatrix_index, brlenOptMethod, max_iters);
 
         if (new_logl - old_logl > lh_epsilon) { // add all neighbors of the branch to the candidates
             add_neighbors_in_radius(ann_network, candidates, pmatrix_index, 1);

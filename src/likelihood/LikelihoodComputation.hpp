@@ -83,6 +83,8 @@ struct SumtableInfo {
 struct LoglDerivatives {
         double logl_prime = std::numeric_limits<double>::infinity();
         double logl_prime_prime = std::numeric_limits<double>::infinity();
+        std::vector<double> partition_logl_prime;
+        std::vector<double> partition_logl_prime_prime;
 };
 
 std::vector<std::vector<TreeLoglData> > extractOldTrees(AnnotatedNetwork& ann_network, Node* virtual_root);
