@@ -198,14 +198,12 @@ std::vector<std::vector<TreeLoglData> > extractOldTrees(AnnotatedNetwork& ann_ne
 }
 
 double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, BrlenOptMethod brlenOptMethod) {
-    //invalidatePmatrixIndex(ann_network, pmatrix_index);
-
     double old_logl_normal = computeLoglikelihood(ann_network); // TODOL Why does the error change if I do double old_logl_normal = computeLoglikelihood(ann_network, 0, 1);
+    std::vector<std::vector<TreeLoglData> > oldTrees = extractOldTrees(ann_network, ann_network.network.root);
     double old_logl_reroot;
 
     double old_logl;
 
-    std::vector<std::vector<TreeLoglData> > oldTrees;
     // step 1: Do the virtual rerooting.
     if (brlenOptMethod != BrlenOptMethod::BRENT_NORMAL) {
         Node* old_virtual_root = ann_network.network.root;
@@ -214,7 +212,6 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
             Node* new_virtual_root_back = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
             updateCLVsVirtualRerootTrees(ann_network, old_virtual_root, new_virtual_root, new_virtual_root_back);
         }
-        oldTrees = extractOldTrees(ann_network, new_virtual_root);
         ann_network.cached_logl_valid = false;
         old_logl_reroot = computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index);
         old_logl = old_logl_reroot;
@@ -268,10 +265,6 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
     BrlenOptMethod brlenOptMethod = ann_network.options.brlenOptMethod;
 
     Node* old_virtual_root = ann_network.network.root;
-    std::vector<std::vector<TreeLoglData> > oldTrees;
-    if (brlenOptMethod != BrlenOptMethod::BRENT_NORMAL) {
-        oldTrees = extractOldTrees(ann_network, ann_network.network.root);
-    }
 
     while (!candidates.empty()) {
         size_t pmatrix_index = *candidates.begin();

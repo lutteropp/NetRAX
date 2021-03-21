@@ -216,7 +216,7 @@ struct DisplayedTreeData {
         if (this != &rhs)
         {
             treeLoglData = rhs.treeLoglData;
-            if ((clv_vector && rhs.clv_vector) && (clvInfo == rhs.clvInfo)) { // simply overwrite
+            if ((clv_vector && rhs.clv_vector) && (clvInfo == rhs.clvInfo) && (isTip == rhs.isTip)) { // simply overwrite
                 if (rhs.isTip) {
                     clv_vector = rhs.clv_vector;
                 } else {

@@ -80,7 +80,7 @@ void printDisplayedTrees(AnnotatedNetwork& ann_network) {
         displayed_trees.emplace_back(std::make_pair(newick, 1.0));
     } else {
         size_t n_trees = ann_network.pernode_displayed_tree_data[0][ann_network.network.root->clv_index].num_active_displayed_trees;
-        for (int j = 0; j < n_trees; ++j) {
+        for (size_t j = 0; j < n_trees; ++j) {
             DisplayedTreeData& tree = ann_network.pernode_displayed_tree_data[0][ann_network.network.root->clv_index].displayed_trees[j];
             pll_utree_t* utree = netrax::displayed_tree_to_utree(ann_network.network, tree.treeLoglData.reticulationChoices.configs[0]);
             double prob = std::exp(tree.treeLoglData.tree_logprob);
