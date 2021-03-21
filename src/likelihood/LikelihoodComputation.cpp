@@ -1314,6 +1314,18 @@ double computeLoglikelihoodNaiveUtree(AnnotatedNetwork &ann_network, int increme
     return network_logl.toDouble();
 }
 
+std::vector<std::vector<TreeLoglData> > extractOldTrees(AnnotatedNetwork& ann_network, Node* virtual_root) {
+    std::vector<std::vector<TreeLoglData> > oldTrees(ann_network.fake_treeinfo->partition_count);
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        NodeDisplayedTreeData& nodeTrees = ann_network.pernode_displayed_tree_data[p][virtual_root->clv_index];
+        for (size_t i = 0; i < nodeTrees.num_active_displayed_trees; ++i) {
+            DisplayedTreeData& tree = nodeTrees.displayed_trees[i];
+            TreeLoglData data = tree.treeLoglData;
+            oldTrees[p].emplace_back(data);
+        }
+    }
+    return oldTrees;
+}
 
 double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices) {
     //just for debug

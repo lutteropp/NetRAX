@@ -28,22 +28,7 @@ struct BrentBrlenParams {
     size_t partition_index;
     std::vector<std::vector<TreeLoglData> >* oldTrees;
     BrlenOptMethod brlenOptMethod;
-
-    double* old_source_clv = nullptr;
-    double* old_target_clv = nullptr;
 };
-
-void checkClvs(AnnotatedNetwork* ann_network, ClvRangeInfo clvInfo, double* old_source_clv, double* old_target_clv, size_t partition_index, size_t pmatrix_index, std::string msg) {
-    double* new_source_clv = ann_network->pernode_displayed_tree_data[partition_index][getSource(ann_network->network, ann_network->network.edges_by_index[pmatrix_index])->clv_index].displayed_trees[0].clv_vector;
-    double* new_target_clv = ann_network->pernode_displayed_tree_data[partition_index][getTarget(ann_network->network, ann_network->network.edges_by_index[pmatrix_index])->clv_index].displayed_trees[0].clv_vector;
-
-    if (!clv_single_entries_equal(clvInfo, old_source_clv, new_source_clv)) {
-        throw std::runtime_error(msg + "Different source clv");
-    }
-    if (!clv_single_entries_equal(clvInfo, old_target_clv, new_target_clv)) {
-        throw std::runtime_error(msg + "Different target clv");
-    }
-}
 
 void invalidPmatrixIndexOnly(AnnotatedNetwork& ann_network, size_t pmatrix_index) {
     for (size_t partition_idx = 0; partition_idx < ann_network.fake_treeinfo->partition_count; ++partition_idx) {
@@ -58,11 +43,6 @@ static double brent_target_networks(void *p, double x) {
     size_t partition_index = ((BrentBrlenParams*) p)->partition_index;
     std::vector<std::vector<TreeLoglData>>* oldTrees = ((BrentBrlenParams*) p)->oldTrees;
     BrlenOptMethod brlenOptMethod = ((BrentBrlenParams*) p)->brlenOptMethod;
-
-    // TODO: Just for debug, remove again
-    ClvRangeInfo clvInfo = get_clv_range(ann_network->fake_treeinfo->partitions[partition_index]);
-    double* old_source_clv = ((BrentBrlenParams*) p)->old_source_clv;
-    double* old_target_clv = ((BrentBrlenParams*) p)->old_target_clv;
 
     double old_x = ann_network->fake_treeinfo->branch_lengths[partition_index][pmatrix_index];
     double score;
@@ -131,10 +111,6 @@ double optimize_branch(AnnotatedNetwork &ann_network, std::vector<std::vector<Tr
         start_logl = computeLoglikelihood(ann_network);
     }
 
-    ClvRangeInfo clvInfo = get_clv_range(ann_network.fake_treeinfo->partitions[partition_index]);
-    double* old_source_clv = clone_single_clv_vector(clvInfo, ann_network.pernode_displayed_tree_data[partition_index][getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index])->clv_index].displayed_trees[0].clv_vector);
-    double* old_target_clv = clone_single_clv_vector(clvInfo, ann_network.pernode_displayed_tree_data[partition_index][getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index])->clv_index].displayed_trees[0].clv_vector);
-
     double best_logl = start_logl;
     BrentBrlenParams params;
     params.ann_network = &ann_network;
@@ -142,15 +118,12 @@ double optimize_branch(AnnotatedNetwork &ann_network, std::vector<std::vector<Tr
     params.partition_index = partition_index;
     params.oldTrees = &oldTrees;
     params.brlenOptMethod = brlenOptMethod;
-    params.old_source_clv = old_source_clv;
-    params.old_target_clv = old_target_clv;
     double old_brlen = ann_network.fake_treeinfo->branch_lengths[partition_index][pmatrix_index];
 
     assert(old_brlen >= min_brlen);
     assert(old_brlen <= max_brlen);
 
     // Do Brent's method to find a better branch length
-    //std::cout << " optimizing branch " << pmatrix_index << ":\n";
     double score = 0;
     double f2x;
     double new_brlen = pllmod_opt_minimize_brent(min_brlen, old_brlen, max_brlen, tolerance, &score,
@@ -158,51 +131,19 @@ double optimize_branch(AnnotatedNetwork &ann_network, std::vector<std::vector<Tr
 
     assert(new_brlen >= min_brlen && new_brlen <= max_brlen);
 
-    //std::cout << "  score: " << score << "\n";
-    //std::cout << "  old_brlen: " << old_brlen << ", new_brlen: " << new_brlen << "\n";
     if (brlenOptMethod != BrlenOptMethod::BRENT_NORMAL) {
         best_logl = computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index, 1, 1);
     } else {
         best_logl = computeLoglikelihood(ann_network);
     }
-    //std::cout << " start logl for branch " << pmatrix_index << " with length " << old_brlen << ": " << start_logl
-     //       << "\n";
-    //std::cout << "   end logl for branch " << pmatrix_index << " with length " << new_brlen << ": " << best_logl
-    //        << "\n";
-    //std::cout << "\n";
-
-    if (best_logl < start_logl) {
-        std::cout << "best_logl: " << best_logl << "\n";
-        std::cout << "start_logl: " << start_logl << "\n";
-    }
     assert(best_logl >= start_logl);
-
-    pll_aligned_free(old_source_clv);
-    pll_aligned_free(old_target_clv);
-
 
     return best_logl;
 }
 
-std::vector<std::vector<TreeLoglData> > extractOldTrees(AnnotatedNetwork& ann_network, Node* virtual_root) {
-    std::vector<std::vector<TreeLoglData> > oldTrees(ann_network.fake_treeinfo->partition_count);
-    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-        NodeDisplayedTreeData& nodeTrees = ann_network.pernode_displayed_tree_data[p][virtual_root->clv_index];
-        for (size_t i = 0; i < nodeTrees.num_active_displayed_trees; ++i) {
-            DisplayedTreeData& tree = nodeTrees.displayed_trees[i];
-            TreeLoglData data = tree.treeLoglData;
-            oldTrees[p].emplace_back(data);
-        }
-    }
-    return oldTrees;
-}
-
 double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, BrlenOptMethod brlenOptMethod) {
-    double old_logl_normal = computeLoglikelihood(ann_network); // TODOL Why does the error change if I do double old_logl_normal = computeLoglikelihood(ann_network, 0, 1);
+    double old_logl = computeLoglikelihood(ann_network);
     std::vector<std::vector<TreeLoglData> > oldTrees = extractOldTrees(ann_network, ann_network.network.root);
-    double old_logl_reroot;
-
-    double old_logl;
 
     // step 1: Do the virtual rerooting.
     if (brlenOptMethod != BrlenOptMethod::BRENT_NORMAL) {
@@ -213,10 +154,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
             updateCLVsVirtualRerootTrees(ann_network, old_virtual_root, new_virtual_root, new_virtual_root_back);
         }
         ann_network.cached_logl_valid = false;
-        old_logl_reroot = computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index);
-        old_logl = old_logl_reroot;
-    } else {
-        old_logl = old_logl_normal;
+        assert(old_logl == computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index));
     }
 
     size_t n_partitions = 1;
@@ -224,33 +162,20 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
     if (unlinkedMode) {
         n_partitions = ann_network.fake_treeinfo->partition_count;
     }
-    double logl_normal;
-    double logl_reroot;
-    double logl;
     ann_network.fake_treeinfo->active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
     for (size_t p = 0; p < n_partitions; ++p) {
         // TODO: Set the active partitions in the fake_treeinfo
-        logl = optimize_branch(ann_network, oldTrees, pmatrix_index, p, brlenOptMethod);
-        if (brlenOptMethod != BrlenOptMethod::BRENT_NORMAL) {
-            logl_reroot = logl;
-        } else {
-            logl_normal = logl;
-        }
+        optimize_branch(ann_network, oldTrees, pmatrix_index, p, brlenOptMethod);
     }
 
     // restore the network root
     if (brlenOptMethod != BrlenOptMethod::BRENT_NORMAL) {
         invalidatePmatrixIndex(ann_network, pmatrix_index);
-        logl_normal = computeLoglikelihood(ann_network);
     }
 
-    // check whether new_logl >= old_logl
-    if (logl_normal < old_logl_normal && fabs(logl_normal - old_logl_normal) >= 1E-3) {
-        throw std::runtime_error("problem in brlen optimization");
-    }
     assert((logl >= old_logl) || (fabs(logl - old_logl) < 1E-3));
 
-    return logl_normal;
+    return computeLoglikelihood(ann_network);
 }
 
 double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radius,
