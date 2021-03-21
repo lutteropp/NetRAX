@@ -320,7 +320,7 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
                 continue;
             } else {
                 count_add_reticulation_failed++;
-                if (count_add_reticulation_failed <= 10) {
+                if (count_add_reticulation_failed <= 5) {
                     keepSearching = true;
                     continue;
                 }
