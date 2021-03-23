@@ -191,7 +191,7 @@ double optimizeEverythingRun(AnnotatedNetwork & ann_network, std::vector<MoveTyp
             break;
         }
         double old_score = scoreNetwork(ann_network);
-        optimizeTopology(ann_network, typesBySpeed[type_idx], start_state_to_reuse, best_state_to_reuse, greedy, false, 1);
+        optimizeTopology(ann_network, typesBySpeed[type_idx], start_state_to_reuse, best_state_to_reuse, greedy, false, false, 1);
         double new_score = scoreNetwork(ann_network);
         if (old_score - new_score > ann_network.options.score_epsilon) { // score got better
             new_score = scoreNetwork(ann_network);
@@ -291,6 +291,9 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
 
             //continue;
         }
+
+        auto insertionMoves = possibleArcInsertionMoves(ann_network);
+        rankArcInsertionCandidates(ann_network, insertionMoves);
 
         // then try adding a reticulation
         if (ann_network.network.num_reticulations() < ann_network.options.max_reticulations) {

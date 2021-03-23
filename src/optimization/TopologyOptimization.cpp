@@ -65,12 +65,12 @@ bool isComplexityChanging(MoveType& moveType) {
 }
 
 template<typename T>
-double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, double old_score, bool greedy=true, bool randomizeCandidates=false, bool brlenopt_inside = true) {
+double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, double old_score, bool greedy=true, bool randomizeCandidates=false, bool brlenopt_inside = true, bool silent = false) {
     if (candidates.empty()) {
-        std::cout << "empty list of candidates\n";
+        if (!silent) std::cout << "empty list of candidates\n";
         return bic(ann_network, computeLoglikelihood(ann_network));
     } else {
-        std::cout << candidates.size() << " candidates\n";
+        if (!silent) std::cout << candidates.size() << " candidates\n";
     }
 
     bool complexityChanging = isComplexityChanging(candidates[0].moveType);
@@ -183,7 +183,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         best_score = bic(ann_network, computeLoglikelihood(ann_network));
         ann_network.stats.moves_taken[candidates[best_idx].moveType]++;
 
-        std::cout << " Took " << toString(candidates[best_idx].moveType) << "\n";
+        if (!silent) std::cout << " Took " << toString(candidates[best_idx].moveType) << "\n";
         double logl = computeLoglikelihood(ann_network);
         double bic_score = bic(ann_network, logl);
         double aic_score = aic(ann_network, logl);
@@ -191,24 +191,24 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
 
         //assert(fabs(computeLoglikelihood(ann_network, 1, 1) - computeLoglikelihood(ann_network, 0, 1)) < ann_network.options.lh_epsilon);
 
-        std::cout << "  Logl: " << logl << ", BIC: " << bic_score << ", AIC: " << aic_score << ", AICc: " << aicc_score <<  "\n";
-        std::cout << "  param_count: " << get_param_count(ann_network) << ", sample_size:" << get_sample_size(ann_network) << "\n";
-        std::cout << "  num_reticulations: " << ann_network.network.num_reticulations() << "\n";
-        std::cout << toExtendedNewick(ann_network) << "\n";
+        if (!silent) std::cout << "  Logl: " << logl << ", BIC: " << bic_score << ", AIC: " << aic_score << ", AICc: " << aicc_score <<  "\n";
+        if (!silent) std::cout << "  param_count: " << get_param_count(ann_network) << ", sample_size:" << get_sample_size(ann_network) << "\n";
+        if (!silent) std::cout << "  num_reticulations: " << ann_network.network.num_reticulations() << "\n";
+        if (!silent) std::cout << toExtendedNewick(ann_network) << "\n";
     }
     return best_score;
 }
 
-double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, MoveType type, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, bool greedy, bool enforce_apply_move, size_t max_iterations) {
+double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, MoveType type, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, bool greedy, bool enforce_apply_move, bool silent, size_t max_iterations) {
     double old_logl = computeLoglikelihood(ann_network);
     double old_bic = bic(ann_network, old_logl);
     //std::cout << "start_logl: " << old_logl <<", start_bic: " << old_bic << "\n";
-    std::cout << "Using move type: " << toString(type) << "\n";
+    if (!silent) std::cout << "Using move type: " << toString(type) << "\n";
 
     size_t act_iterations = 0;
 
     if (enforce_apply_move) {
-        std::cout << "enforce apply move is active\n";
+        if (!silent) std::cout << "enforce apply move is active\n";
         old_bic = std::numeric_limits<double>::max();
     }
 
@@ -218,35 +218,35 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, MoveType type, 
 
         switch (type) {
         case MoveType::RNNIMove:
-            new_score = hillClimbingStep(ann_network, possibleRNNIMoves(ann_network), start_state_to_reuse, best_state_to_reuse, old_bic, greedy);
+            new_score = hillClimbingStep(ann_network, possibleRNNIMoves(ann_network), start_state_to_reuse, best_state_to_reuse, old_bic, greedy, false, true, silent);
             break;
         case MoveType::RSPRMove:
-            new_score = hillClimbingStep(ann_network, possibleRSPRMoves(ann_network), start_state_to_reuse, best_state_to_reuse, old_bic, greedy);
+            new_score = hillClimbingStep(ann_network, possibleRSPRMoves(ann_network), start_state_to_reuse, best_state_to_reuse, old_bic, greedy, false, true, silent);
             break;
         case MoveType::RSPR1Move:
-            new_score = hillClimbingStep(ann_network, possibleRSPR1Moves(ann_network), start_state_to_reuse, best_state_to_reuse, old_bic, greedy);
+            new_score = hillClimbingStep(ann_network, possibleRSPR1Moves(ann_network), start_state_to_reuse, best_state_to_reuse, old_bic, greedy, false, true, silent);
             break;
         case MoveType::HeadMove:
-            new_score = hillClimbingStep(ann_network, possibleHeadMoves(ann_network), start_state_to_reuse, best_state_to_reuse, old_bic, greedy);
+            new_score = hillClimbingStep(ann_network, possibleHeadMoves(ann_network), start_state_to_reuse, best_state_to_reuse, old_bic, greedy, false, true, silent);
             break;
         case MoveType::TailMove:
-            new_score = hillClimbingStep(ann_network, possibleTailMoves(ann_network), start_state_to_reuse, best_state_to_reuse, old_bic, greedy);
+            new_score = hillClimbingStep(ann_network, possibleTailMoves(ann_network), start_state_to_reuse, best_state_to_reuse, old_bic, greedy, false, true, silent);
             break;
         case MoveType::ArcInsertionMove:
             new_score = hillClimbingStep(ann_network, possibleArcInsertionMoves(ann_network), start_state_to_reuse, best_state_to_reuse, 
-                    old_bic, greedy);
+                    old_bic, greedy, false, true, silent);
             break;
         case MoveType::DeltaPlusMove:
             new_score = hillClimbingStep(ann_network, possibleDeltaPlusMoves(ann_network), start_state_to_reuse, best_state_to_reuse,
-                    old_bic, greedy);
+                    old_bic, greedy, false, true, silent);
             break;
         case MoveType::ArcRemovalMove:
             new_score = hillClimbingStep(ann_network, possibleArcRemovalMoves(ann_network), start_state_to_reuse, best_state_to_reuse,
-                    old_bic, greedy);
+                    old_bic, greedy, false, true, silent);
             break;
         case MoveType::DeltaMinusMove:
             new_score = hillClimbingStep(ann_network, possibleDeltaMinusMoves(ann_network), start_state_to_reuse, best_state_to_reuse,
-                    old_bic, greedy);
+                    old_bic, greedy, false, true, silent);
             break;
         default:
             throw std::runtime_error("Invalid move type");
@@ -260,7 +260,7 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, MoveType type, 
     return computeLoglikelihood(ann_network);
 }
 
-double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, const std::vector<MoveType>& types, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, bool greedy, size_t max_iterations) {
+double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, const std::vector<MoveType>& types, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, bool greedy, bool silent, size_t max_iterations) {
     unsigned int type_idx = 0;
     double old_logl = computeLoglikelihood(ann_network);
     double new_logl = old_logl;
@@ -275,7 +275,7 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, const std::vect
             moves_cnt++;
         }
         //std::cout << "Using move type: " << toString(types[type_idx]) << "\n";
-        new_logl = greedyHillClimbingTopology(ann_network, types[type_idx], start_state_to_reuse, best_state_to_reuse, greedy, false, 1);
+        new_logl = greedyHillClimbingTopology(ann_network, types[type_idx], start_state_to_reuse, best_state_to_reuse, greedy, false, silent, 1);
         new_score = bic(ann_network, new_logl);
         type_idx = (type_idx + 1) % types.size();
         moves_cnt++;
@@ -291,6 +291,50 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, const std::vect
         }
     } while (moves_cnt < types.size());
     return new_logl;
+}
+
+double getWorstReticulationScore(AnnotatedNetwork& ann_network) {
+    double worst = 1.0;
+    for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
+        double score = fabs(0.5 - ann_network.reticulation_probs[i]);
+        score = 1.0 - (2.0 * score); // 1.0 is best result, 0 is worst result
+
+        worst = std::min(worst, score);
+    }
+    return worst; // 1.0 is best result, 0 is worst result
+}
+
+void rankArcInsertionCandidates(AnnotatedNetwork& ann_network, std::vector<ArcInsertionMove>& candidates) {
+    double brlen_smooth_factor = 0.25;
+    int max_iters = 1; //brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
+    int radius = 1;
+
+    NetworkState oldState = extract_network_state(ann_network);
+
+    NetworkState reuseMe1 = extract_network_state(ann_network);
+    NetworkState reuseMe2 = extract_network_state(ann_network);
+
+    for (size_t i = 0; i < candidates.size(); ++i) {
+        ArcInsertionMove move = candidates[i];
+        performMove(ann_network, move);
+
+        //std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
+        //assert(!brlen_opt_candidates.empty());
+        //add_neighbors_in_radius(ann_network, brlen_opt_candidates, 1);
+        //optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
+        //optimizeBranches(ann_network);
+        //optimizeModel(ann_network);
+
+
+        greedyHillClimbingTopology(ann_network, MoveType::RNNIMove, reuseMe1, reuseMe2, true, false, true);
+
+        optimizeReticulationProbs(ann_network);
+
+        double worstScore = getWorstReticulationScore(ann_network);
+        std::cout << "candidate " << i +1 << "/" << candidates.size() << " has worst score " << worstScore << "\n";
+
+        apply_network_state(ann_network, oldState, true);
+    }
 }
 
 bool logl_same_after_recompute(AnnotatedNetwork& ann_network) {
@@ -309,12 +353,12 @@ bool logl_same_after_recompute(AnnotatedNetwork& ann_network) {
  * 
  * @param ann_network The network.
  */
-void optimizeTopology(AnnotatedNetwork &ann_network, const std::vector<MoveType>& types, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, bool greedy, size_t max_iterations) {
+void optimizeTopology(AnnotatedNetwork &ann_network, const std::vector<MoveType>& types, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, bool greedy, bool silent, size_t max_iterations) {
     assert(logl_same_after_recompute(ann_network));
     double old_score = scoreNetwork(ann_network);
-    greedyHillClimbingTopology(ann_network, types, start_state_to_reuse, best_state_to_reuse, greedy, max_iterations);
+    greedyHillClimbingTopology(ann_network, types, start_state_to_reuse, best_state_to_reuse, greedy, silent, max_iterations);
     double new_score = scoreNetwork(ann_network);
-    std::cout << "BIC after topology optimization: " << new_score << "\n";
+    if (!silent) std::cout << "BIC after topology optimization: " << new_score << "\n";
     assert(new_score <= old_score + ann_network.options.score_epsilon);
 }
 
@@ -323,10 +367,10 @@ void optimizeTopology(AnnotatedNetwork &ann_network, const std::vector<MoveType>
  * 
  * @param ann_network The network.
  */
-void optimizeTopology(AnnotatedNetwork &ann_network, MoveType& type, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, bool greedy, bool enforce_apply_move, size_t max_iterations) {
+void optimizeTopology(AnnotatedNetwork &ann_network, MoveType& type, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, bool greedy, bool enforce_apply_move, bool silent, size_t max_iterations) {
     assert(logl_same_after_recompute(ann_network));
     double old_score = scoreNetwork(ann_network);
-    greedyHillClimbingTopology(ann_network, type, start_state_to_reuse, best_state_to_reuse, greedy, enforce_apply_move, max_iterations);
+    greedyHillClimbingTopology(ann_network, type, start_state_to_reuse, best_state_to_reuse, greedy, enforce_apply_move, silent, max_iterations);
     double new_score = scoreNetwork(ann_network);
     //std::cout << "BIC after topology optimization: " << new_score << "\n";
 
