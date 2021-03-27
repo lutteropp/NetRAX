@@ -1008,9 +1008,7 @@ LoglDerivatives computeLoglikelihoodDerivatives(AnnotatedNetwork& ann_network, c
         PartitionLhData pdata = computePartitionLhData(ann_network, p, sumtables[p], pmatrix_index);
         mpfr::mpreal partition_logl_prime = (pdata.lh_prime / pdata.lh);
         mpfr::mpreal partition_logl_prime_prime = ((pdata.lh_prime_prime * pdata.lh) - (pdata.lh_prime * pdata.lh_prime)) / (pdata.lh * pdata.lh);
-
-        //mpfr::mpreal partition_logl_prime_prime = (pdata.lh_prime_prime / pdata.lh) - (pdata.lh_prime * pdata.lh_prime)) / (pdata.lh_prime * pdata.lh_prime);
-
+        //mpfr::mpreal partition_logl_prime_prime = (pdata.lh_prime_prime / pdata.lh) - (pdata.lh_prime * pdata.lh_prime) / (pdata.lh * pdata.lh);
 
         std::cout << " Network partition likelihood derivatives for partition " << p << ":\n";
         std::cout << " partition_lh: " << pdata.lh << "\n";

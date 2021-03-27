@@ -149,6 +149,10 @@ double optimize_branch_newton_raphson(AnnotatedNetwork &ann_network, std::vector
                                     NULL,
                                     &params,
                                     network_derivative_func_multi);
+    if (pll_errno) {
+        std::cout << pll_errmsg << "\n";
+    }
+    assert(!pll_errno);
 
     double new_brlen = params.new_brlen;
     assert(new_brlen >= ann_network.options.brlen_min);
