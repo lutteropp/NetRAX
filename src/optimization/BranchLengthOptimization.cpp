@@ -106,22 +106,46 @@ static void network_derivative_func_multi (void * parameters, double * proposal,
                                 (NewtonBrlenParams *) parameters;
   AnnotatedNetwork* ann_network = params->ann_network;
 
-  std::cout << "proposing brlen: " << params->new_brlen << "\n";
+  //std::cout << "proposing brlen: " << params->new_brlen << "\n";
   ann_network->fake_treeinfo->branch_lengths[params->partition_index][params->pmatrix_index] = params->new_brlen;
   invalidPmatrixIndexOnly(*ann_network, params->pmatrix_index);
   LoglDerivatives logl_derivatives = computeLoglikelihoodDerivatives(*ann_network, *(params->sumtables), params->pmatrix_index);
 
-  /*int unlinked = (ann_network->options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) ? 1 : 0;
+  int unlinked = (ann_network->options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) ? 1 : 0;
 
   if (unlinked) {
     for (size_t p = 0; p < ann_network->fake_treeinfo->partition_count; ++p) {
       df[p] = logl_derivatives.partition_logl_prime[p];
       ddf[p] = logl_derivatives.partition_logl_prime_prime[p];
     }
-  } else {*/
+  } else {
     *df = logl_derivatives.logl_prime;
     *ddf = logl_derivatives.logl_prime_prime;
-  //}
+  }
+}
+
+double search_newton_raphson(AnnotatedNetwork& ann_network, std::vector<std::vector<SumtableInfo> >& sumtables, size_t pmatrix_index, size_t partition_index, unsigned int max_iters) {
+    double old_brlen = ann_network.fake_treeinfo->branch_lengths[partition_index][pmatrix_index];
+    LoglDerivatives logl_derivatives = computeLoglikelihoodDerivatives(ann_network, sumtables, pmatrix_index);
+
+    double tolerance = (ann_network.options.brlen_min > 0) ? ann_network.options.brlen_min /10.0: PLLMOD_OPT_TOL_BRANCH_LEN;
+
+    double xguess = old_brlen;
+    /*for (size_t it = 0; it < max_iters; ++it) {
+        xguess -= logl_derivatives.quotient.toDouble();
+        std::cout << "proposing brlen: " << xguess << "\n";
+        ann_network.fake_treeinfo->branch_lengths[partition_index][pmatrix_index] = xguess;
+        invalidPmatrixIndexOnly(ann_network, pmatrix_index);
+        logl_derivatives = computeLoglikelihoodDerivatives(ann_network, sumtables, pmatrix_index);
+
+
+        if (fabs(xguess - logl_derivatives.quotient.toDouble()) < tolerance) {
+            // converged
+            break;
+        }
+    }
+    return xguess;*/
+    throw std::runtime_error("not implemented yet");
 }
 
 double optimize_branch_newton_raphson(AnnotatedNetwork &ann_network, std::vector<std::vector<SumtableInfo> >& sumtables, size_t pmatrix_index, size_t partition_index, BrlenOptMethod brlenOptMethod, unsigned int max_iters) {
@@ -131,15 +155,18 @@ double optimize_branch_newton_raphson(AnnotatedNetwork &ann_network, std::vector
     assert(old_brlen >= ann_network.options.brlen_min);
     assert(old_brlen <= ann_network.options.brlen_max);
 
+    double tolerance = (ann_network.options.brlen_min > 0) ? ann_network.options.brlen_min /10.0: PLLMOD_OPT_TOL_BRANCH_LEN;
+
+    //double new_brlen = search_newton_raphson(ann_network, sumtables, pmatrix_index, partition_index, max_iters);
+
+    //std::cout << "MAX_ITERS: \n" << max_iters << "\n";
+
     NewtonBrlenParams params;
     params.ann_network = &ann_network;
     params.partition_index = partition_index;
     params.pmatrix_index = pmatrix_index;
     params.sumtables = &sumtables;
     params.new_brlen = old_brlen;
-
-    double tolerance = (ann_network.options.brlen_min > 0) ? ann_network.options.brlen_min /10.0: PLLMOD_OPT_TOL_BRANCH_LEN;
-
     pllmod_opt_minimize_newton_multi(1,
                                     ann_network.options.brlen_min,
                                     &(params.new_brlen),
@@ -152,14 +179,16 @@ double optimize_branch_newton_raphson(AnnotatedNetwork &ann_network, std::vector
     if (pll_errno) {
         std::cout << pll_errmsg << "\n";
     }
-    assert(!pll_errno);
+    //assert(!pll_errno);
 
     double new_brlen = params.new_brlen;
     assert(new_brlen >= ann_network.options.brlen_min);
     assert(new_brlen <= ann_network.options.brlen_max);
 
-    std::cout << "old brlen: " << old_brlen << "\n";
-    std::cout << "new brlen: " << new_brlen << "\n";
+    //std::cout << "old brlen: " << old_brlen << "\n";
+    //std::cout << "new brlen: " << new_brlen << "\n";
+
+    //throw std::runtime_error("I WANT TO QUIT HERE");
 
     return new_brlen;
 }
@@ -207,8 +236,14 @@ double optimize_branch(AnnotatedNetwork &ann_network, std::vector<std::vector<Tr
     if (brlenOptMethod == BrlenOptMethod::BRENT_NORMAL || brlenOptMethod == BrlenOptMethod::BRENT_REROOT) {
         optimize_branch_brent(ann_network, oldTrees, pmatrix_index, partition_index, brlenOptMethod);
     } else { // BrlenOptMethod::NEWTON_RAPHSON_REROOT
-        std::cout << "\nStarting with network logl: " << start_logl << "\n";
+        //std::cout << "\nStarting with network logl: " << start_logl << "\n";
+        double old_brlen = ann_network.fake_treeinfo->branch_lengths[partition_index][pmatrix_index];
         optimize_branch_newton_raphson(ann_network, sumtables, pmatrix_index, partition_index, brlenOptMethod, max_iters);
+        double new_logl = computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index, 1, 1);
+        if (new_logl < start_logl) { // this can happen in rare cases, if NR didn't converge. If it happens, reoad the old branch length.
+            ann_network.fake_treeinfo->branch_lengths[partition_index][pmatrix_index] = old_brlen;
+            invalidPmatrixIndexOnly(ann_network, pmatrix_index);
+        }
     }
 
     double best_logl;
@@ -217,8 +252,8 @@ double optimize_branch(AnnotatedNetwork &ann_network, std::vector<std::vector<Tr
     } else {
         best_logl = computeLoglikelihood(ann_network);
     }
-    std::cout << "start_logl: " << start_logl << "\n";
-    std::cout << "best_logl: " << best_logl << "\n";
+    //std::cout << "start_logl: " << start_logl << "\n";
+    //std::cout << "best_logl: " << best_logl << "\n";
     assert(best_logl >= start_logl);
 
     return best_logl;

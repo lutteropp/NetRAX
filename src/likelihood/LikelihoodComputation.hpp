@@ -10,6 +10,8 @@
 #include <stddef.h>
 #include <vector>
 
+#include "mpreal.h"
+
 extern "C" {
 #include <libpll/pll.h>
 #include <libpll/pll_tree.h>

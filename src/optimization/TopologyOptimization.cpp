@@ -197,7 +197,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     }*/
 
     double brlen_smooth_factor = 0.25;
-    int max_iters = 1; //brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
+    int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
     int radius = 1;
     double start_logl = computeLoglikelihood(ann_network);
 
