@@ -26,7 +26,8 @@ struct BrentBrlenParams {
     AnnotatedNetwork *ann_network;
     size_t pmatrix_index;
     size_t partition_index;
-    std::vector<std::vector<TreeLoglData> >* oldTrees;
+    std::vector<std::vector<TreeLoglData> >* oldTrees = nullptr;
+    std::vector<std::vector<SumtableInfo> >* sumtables = nullptr;
     BrlenOptMethod brlenOptMethod;
 };
 
@@ -35,24 +36,36 @@ static double brent_target_networks(void *p, double x) {
     size_t pmatrix_index = ((BrentBrlenParams*) p)->pmatrix_index;
     size_t partition_index = ((BrentBrlenParams*) p)->partition_index;
     std::vector<std::vector<TreeLoglData>>* oldTrees = ((BrentBrlenParams*) p)->oldTrees;
+    std::vector<std::vector<SumtableInfo>>* sumtables = ((BrentBrlenParams*) p)->sumtables;
     BrlenOptMethod brlenOptMethod = ((BrentBrlenParams*) p)->brlenOptMethod;
 
     double old_x = ann_network->fake_treeinfo->branch_lengths[partition_index][pmatrix_index];
     double score;
     if (old_x == x) {
-        if (brlenOptMethod != BrlenOptMethod::BRENT_NORMAL) {
+        if (brlenOptMethod == BrlenOptMethod::BRENT_REROOT_SUMTABLE) {
+            score = -1 * computeLoglikelihoodFromSumtables(*ann_network, *sumtables, pmatrix_index, 1, 1);
+        } else if (brlenOptMethod == BrlenOptMethod::BRENT_REROOT) {
             score = -1 * computeLoglikelihoodBrlenOpt(*ann_network, *oldTrees, pmatrix_index, 1, 1);
-        } else {
+        } else { // BRENT_NORMAL
             score = -1 * computeLoglikelihood(*ann_network);
         }
     } else {
         ann_network->fake_treeinfo->branch_lengths[partition_index][pmatrix_index] = x;
+        invalidPmatrixIndexOnly(*ann_network, pmatrix_index);
 
-        if (brlenOptMethod != BrlenOptMethod::BRENT_NORMAL) {
-            invalidPmatrixIndexOnly(*ann_network, pmatrix_index);
+        if (brlenOptMethod == BrlenOptMethod::BRENT_REROOT_SUMTABLE) {
+            double sumtable_logl = computeLoglikelihoodFromSumtables(*ann_network, *sumtables, pmatrix_index, 1, 1);
+            double reroot_logl = computeLoglikelihoodBrlenOpt(*ann_network, *oldTrees, pmatrix_index, 1, 1);
+            score = -1 * sumtable_logl;
+            if (ann_network->network.num_reticulations() == 1) {
+                std::cout << "logl from sumtables: " << sumtable_logl << "\n";
+                std::cout << "logl from reroot: " << reroot_logl << "\n";
+            }
+            assert(fabs(sumtable_logl - reroot_logl) < 1E-3);
+        }
+        if (brlenOptMethod == BrlenOptMethod::BRENT_REROOT) {
             score = -1 * computeLoglikelihoodBrlenOpt(*ann_network, *oldTrees, pmatrix_index, 1, 1);
-        } else {
-            invalidatePmatrixIndex(*ann_network, pmatrix_index);
+        } else { // BRENT_NORMAL
             score = -1 * computeLoglikelihood(*ann_network, 1, 1);
         }
     }
@@ -60,8 +73,8 @@ static double brent_target_networks(void *p, double x) {
     return score;
 }
 
-double optimize_branch_brent(AnnotatedNetwork &ann_network, std::vector<std::vector<TreeLoglData> >& oldTrees, size_t pmatrix_index, size_t partition_index, BrlenOptMethod brlenOptMethod) {
-    assert(brlenOptMethod == BrlenOptMethod::BRENT_NORMAL || brlenOptMethod == BrlenOptMethod::BRENT_REROOT);
+double optimize_branch_brent(AnnotatedNetwork &ann_network, std::vector<std::vector<TreeLoglData> >& oldTrees, std::vector<std::vector<SumtableInfo> >& sumtables, size_t pmatrix_index, size_t partition_index, BrlenOptMethod brlenOptMethod) {
+    assert(brlenOptMethod == BrlenOptMethod::BRENT_NORMAL || brlenOptMethod == BrlenOptMethod::BRENT_REROOT || brlenOptMethod == BrlenOptMethod::BRENT_REROOT_SUMTABLE);
     double old_brlen = ann_network.fake_treeinfo->branch_lengths[partition_index][pmatrix_index];
     assert(old_brlen >= ann_network.options.brlen_min);
     assert(old_brlen <= ann_network.options.brlen_max);
@@ -71,6 +84,7 @@ double optimize_branch_brent(AnnotatedNetwork &ann_network, std::vector<std::vec
     params.pmatrix_index = pmatrix_index;
     params.partition_index = partition_index;
     params.oldTrees = &oldTrees;
+    params.sumtables = &sumtables;
     params.brlenOptMethod = brlenOptMethod;
 
     double min_brlen = ann_network.options.brlen_min;
@@ -234,8 +248,8 @@ double optimize_branch(AnnotatedNetwork &ann_network, std::vector<std::vector<Tr
         start_logl = computeLoglikelihood(ann_network);
     }
 
-    if (brlenOptMethod == BrlenOptMethod::BRENT_NORMAL || brlenOptMethod == BrlenOptMethod::BRENT_REROOT) {
-        optimize_branch_brent(ann_network, oldTrees, pmatrix_index, partition_index, brlenOptMethod);
+    if (brlenOptMethod == BrlenOptMethod::BRENT_NORMAL || brlenOptMethod == BrlenOptMethod::BRENT_REROOT || brlenOptMethod == BrlenOptMethod::BRENT_REROOT_SUMTABLE) {
+        optimize_branch_brent(ann_network, oldTrees, sumtables, pmatrix_index, partition_index, brlenOptMethod);
     } else { // BrlenOptMethod::NEWTON_RAPHSON_REROOT
         //std::cout << "\nStarting with network logl: " << start_logl << "\n";
         double old_brlen = ann_network.fake_treeinfo->branch_lengths[partition_index][pmatrix_index];
@@ -278,7 +292,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
         ann_network.cached_logl_valid = false;
         assert(fabs(old_logl - computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index)) < 1E-3);
 
-        if (brlenOptMethod == BrlenOptMethod::NEWTON_RAPHSON_REROOT) {
+        if (brlenOptMethod == BrlenOptMethod::NEWTON_RAPHSON_REROOT || brlenOptMethod == BrlenOptMethod::BRENT_REROOT_SUMTABLE) {
             sumtables = computePartitionSumtables(ann_network, pmatrix_index);
         }
     }
@@ -301,6 +315,8 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
     }
 
     double final_logl = computeLoglikelihood(ann_network);
+    //std::cout << "old_logl: " << old_logl << "\n";
+    //std::cout << "final_logl: " << final_logl << "\n";
     assert((final_logl >= old_logl) || (fabs(final_logl - old_logl) < 1E-3));
 
     return final_logl;
