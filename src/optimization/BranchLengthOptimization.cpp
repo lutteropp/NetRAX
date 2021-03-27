@@ -164,7 +164,7 @@ double search_newton_raphson(AnnotatedNetwork& ann_network, std::vector<std::vec
 }
 
 double optimize_branch_newton_raphson(AnnotatedNetwork &ann_network, std::vector<std::vector<SumtableInfo> >& sumtables, std::vector<std::vector<TreeLoglData> >& oldTrees, size_t pmatrix_index, size_t partition_index, BrlenOptMethod brlenOptMethod, unsigned int max_iters) {
-    assert(brlenOptMethod == BrlenOptMethod::NEWTON_RAPHSON_REROOT);
+    assert(brlenOptMethod == BrlenOptMethod::NEWTON_RAPHSON);
 
     double old_brlen = ann_network.fake_treeinfo->branch_lengths[partition_index][pmatrix_index];
     assert(old_brlen >= ann_network.options.brlen_min);
@@ -296,7 +296,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
         ann_network.cached_logl_valid = false;
         assert(fabs(old_logl - computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index)) < 1E-3);
 
-        if (brlenOptMethod == BrlenOptMethod::NEWTON_RAPHSON_REROOT || brlenOptMethod == BrlenOptMethod::BRENT_REROOT_SUMTABLE) {
+        if (brlenOptMethod == BrlenOptMethod::NEWTON_RAPHSON || brlenOptMethod == BrlenOptMethod::BRENT_REROOT_SUMTABLE) {
             sumtables = computePartitionSumtables(ann_network, pmatrix_index);
         }
     }

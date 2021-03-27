@@ -18,7 +18,7 @@ enum class BrlenOptMethod {
     BRENT_NORMAL = 0,
     BRENT_REROOT = 1,
     BRENT_REROOT_SUMTABLE = 2,
-    NEWTON_RAPHSON_REROOT = 3
+    NEWTON_RAPHSON = 3
 };
 
 class NetraxOptions {
@@ -62,7 +62,7 @@ public:
     bool use_graycode = true; // deprecated, value is ignored now (always set to true)
     bool use_incremental = true; // deprecated, value is ignored now (always set to true)
 
-    unsigned int max_reticulations = 32;
+    unsigned int max_reticulations = 1;//32;
 
     unsigned int num_random_start_networks = 10;
     unsigned int num_parsimony_start_networks = 10;
@@ -81,7 +81,7 @@ public:
     double tolerance = DEF_LH_EPSILON; //RAXML_BRLEN_TOLERANCE;
     double brlen_smoothings = RAXML_BRLEN_SMOOTHINGS;
 
-    BrlenOptMethod brlenOptMethod = BrlenOptMethod::NEWTON_RAPHSON_REROOT;//BrlenOptMethod::BRENT_REROOT; //BrlenOptMethod::BRENT_REROOT_SUMTABLE; //BrlenOptMethod::BRENT_REROOT;//BrlenOptMethod::NEWTON_RAPHSON_REROOT;// BrlenOptMethod::BRENT_NORMAL;
+    BrlenOptMethod brlenOptMethod = BrlenOptMethod::NEWTON_RAPHSON;//BrlenOptMethod::BRENT_REROOT; //BrlenOptMethod::BRENT_REROOT_SUMTABLE; //BrlenOptMethod::BRENT_REROOT;//BrlenOptMethod::NEWTON_RAPHSON_REROOT;// BrlenOptMethod::BRENT_NORMAL;
 
     std::string msa_file = "";
     std::string model_file = "DNA";

@@ -982,7 +982,7 @@ PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned i
         source_tree_seen[sumtables[i].left_tree_idx] = true;
         target_tree_seen[sumtables[i].right_tree_idx] = true;
 
-        double tree_logl_double;
+        //double tree_logl_double;
         double tree_logl_prime_double;
         double tree_logl_prime_prime_double;
 
@@ -998,7 +998,7 @@ PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned i
                                            &tree_logl_prime_double,
                                            &tree_logl_prime_prime_double);
 
-        mpfr::mpreal tree_logl = tree_logl_double;
+        //mpfr::mpreal tree_logl = tree_logl_double;
         mpfr::mpreal tree_logl_prime = tree_logl_prime_double;
         mpfr::mpreal tree_logl_prime_prime = tree_logl_prime_prime_double;
 
@@ -1100,7 +1100,7 @@ PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned i
     }
     */
 
-    res.logl = mpfr::log(logl).toDouble();
+    res.logl = 0.0;//mpfr::log(logl).toDouble();
     res.logl_prime = mpfr::log(logl_prime).toDouble();
     res.logl_prime_prime = mpfr::log(logl_prime_prime).toDouble();
 
