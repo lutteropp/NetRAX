@@ -106,6 +106,7 @@ static void network_derivative_func_multi (void * parameters, double * proposal,
                                 (NewtonBrlenParams *) parameters;
   AnnotatedNetwork* ann_network = params->ann_network;
 
+  std::cout << "proposing brlen: " << params->new_brlen << "\n";
   ann_network->fake_treeinfo->branch_lengths[params->partition_index][params->pmatrix_index] = params->new_brlen;
   invalidPmatrixIndexOnly(*ann_network, params->pmatrix_index);
   LoglDerivatives logl_derivatives = computeLoglikelihoodDerivatives(*ann_network, *(params->sumtables), params->pmatrix_index);
@@ -153,6 +154,9 @@ double optimize_branch_newton_raphson(AnnotatedNetwork &ann_network, std::vector
     assert(new_brlen >= ann_network.options.brlen_min);
     assert(new_brlen <= ann_network.options.brlen_max);
 
+    std::cout << "old brlen: " << old_brlen << "\n";
+    std::cout << "new brlen: " << new_brlen << "\n";
+
     return new_brlen;
 }
 
@@ -199,11 +203,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, std::vector<std::vector<Tr
     if (brlenOptMethod == BrlenOptMethod::BRENT_NORMAL || brlenOptMethod == BrlenOptMethod::BRENT_REROOT) {
         optimize_branch_brent(ann_network, oldTrees, pmatrix_index, partition_index, brlenOptMethod);
     } else { // BrlenOptMethod::NEWTON_RAPHSON_REROOT
-        std::cout << "Starting with network logl: " << start_logl << "\n";
-        double logl_from_sumtables = computeLoglikelihoodFromSumtables(ann_network, sumtables, pmatrix_index);
-        std::cout << "Network logl from sumtables: " << logl_from_sumtables << "\n";
-        assert(start_logl == logl_from_sumtables);
-
+        std::cout << "\nStarting with network logl: " << start_logl << "\n";
         optimize_branch_newton_raphson(ann_network, sumtables, pmatrix_index, partition_index, brlenOptMethod, max_iters);
     }
 
@@ -213,6 +213,8 @@ double optimize_branch(AnnotatedNetwork &ann_network, std::vector<std::vector<Tr
     } else {
         best_logl = computeLoglikelihood(ann_network);
     }
+    std::cout << "start_logl: " << start_logl << "\n";
+    std::cout << "best_logl: " << best_logl << "\n";
     assert(best_logl >= start_logl);
 
     return best_logl;
