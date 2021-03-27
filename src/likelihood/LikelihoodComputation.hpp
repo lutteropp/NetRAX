@@ -44,13 +44,6 @@ struct SumtableInfo {
                 rhs.sumtable = nullptr;
         }
 
-        SumtableInfo(const SumtableInfo& rhs)
-        : tree_prob{rhs.tree_prob}, sumtable_size{rhs.sumtable_size}, alignment{rhs.alignment}, left_tree{rhs.left_tree}, right_tree{rhs.right_tree}
-        {
-                sumtable = (double*) pll_aligned_alloc(rhs.sumtable_size, rhs.alignment);
-                memcpy(sumtable, rhs.sumtable, rhs.sumtable_size * sizeof(double));
-        }
-
         SumtableInfo& operator =(SumtableInfo&& rhs)
         {
                 if (this != &rhs)
