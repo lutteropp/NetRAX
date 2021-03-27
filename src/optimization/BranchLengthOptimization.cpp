@@ -387,7 +387,7 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
 void optimizeBranches(AnnotatedNetwork &ann_network) {
     double old_score = scoreNetwork(ann_network);
 
-    int brlen_smooth_factor = 10;
+    int brlen_smooth_factor = 100;
     int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
     int radius = PLLMOD_OPT_BRLEN_OPTIMIZE_ALL;
     optimize_branches(ann_network, max_iters, radius);

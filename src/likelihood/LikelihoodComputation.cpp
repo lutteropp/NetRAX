@@ -1007,7 +1007,7 @@ PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned i
             std::cout << "  tree_logl_prime: " << tree_logl_prime << "\n";
             std::cout << "  tree_logl_prime_prime: " << tree_logl_prime_prime << "\n";
         }*/
-        assert(tree_logl != 0.0);
+        //assert(tree_logl != 0.0);
 
         if (ann_network.options.likelihood_variant == LikelihoodVariant::AVERAGE_DISPLAYED_TREES) {
             //logl += mpfr::exp(tree_logl) * sumtables[i].tree_prob;
