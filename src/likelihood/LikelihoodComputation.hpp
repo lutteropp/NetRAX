@@ -71,6 +71,7 @@ struct SumtableInfo {
                 if (this != &rhs)
                 {
                         tree_prob = rhs.tree_prob;
+                        pll_aligned_free(sumtable);
                         sumtable = (double*) pll_aligned_alloc(rhs.sumtable_size, rhs.alignment);
                         memcpy(sumtable, rhs.sumtable, rhs.sumtable_size * sizeof(double));
                         sumtable_size = rhs.sumtable_size;
