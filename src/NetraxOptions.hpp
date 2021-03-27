@@ -80,7 +80,7 @@ public:
     double tolerance = DEF_LH_EPSILON; //RAXML_BRLEN_TOLERANCE;
     double brlen_smoothings = RAXML_BRLEN_SMOOTHINGS;
 
-    BrlenOptMethod brlenOptMethod = BrlenOptMethod::BRENT_REROOT; //BrlenOptMethod::BRENT_REROOT;//BrlenOptMethod::NEWTON_RAPHSON_REROOT;// BrlenOptMethod::BRENT_NORMAL;
+    BrlenOptMethod brlenOptMethod = BrlenOptMethod::NEWTON_RAPHSON_REROOT; //BrlenOptMethod::BRENT_REROOT;//BrlenOptMethod::NEWTON_RAPHSON_REROOT;// BrlenOptMethod::BRENT_NORMAL;
 
     std::string msa_file = "";
     std::string model_file = "DNA";

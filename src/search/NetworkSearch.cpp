@@ -239,11 +239,9 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
     optimizeEverythingRun(ann_network, typesBySpeed, start_state_to_reuse, best_state_to_reuse, start_time, true);
     score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
 
-    std::vector<ArcInsertionMove> arcInsertionCandidates = possibleArcInsertionMoves(ann_network);
+    //std::vector<ArcInsertionMove> arcInsertionCandidates = possibleArcInsertionMoves(ann_network);
 
     size_t count_add_reticulation_failed = 0;
-
-    size_t insertion_cand_idx = 0;
 
     //AnnotatedNetwork ann_network_before
 
@@ -271,15 +269,11 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
 
             if (score_improvement.global_improved) {
                 count_add_reticulation_failed = 0;
-                arcInsertionCandidates = possibleArcInsertionMoves(ann_network);
-                insertion_cand_idx = 0;
                 keepSearching = true;
                 continue;
             }
 
             if (score_improvement.local_improved) {
-                arcInsertionCandidates = possibleArcInsertionMoves(ann_network);
-                insertion_cand_idx++;
                 keepSearching = true;
                 continue;
             }
@@ -306,7 +300,7 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
         //rankArcInsertionCandidates(ann_network, insertionMoves);
 
         // then try adding a reticulation
-        if (ann_network.network.num_reticulations() < ann_network.options.max_reticulations && insertion_cand_idx < arcInsertionCandidates.size()) {
+        if (ann_network.network.num_reticulations() < ann_network.options.max_reticulations) {
             std::cout << "\n Adding a reticulation\n";
             //std::cout << "insertion cand index:\n";
             //performMove(ann_network, arcInsertionCandidates[insertion_cand_idx]);
@@ -336,17 +330,11 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
 
             if (score_improvement.global_improved) {
                 count_add_reticulation_failed = 0;
-                arcInsertionCandidates = possibleArcInsertionMoves(ann_network);
-                insertion_cand_idx = 0;
                 keepSearching = true;
                 continue;
             } else {
                 count_add_reticulation_failed++;
                 if (count_add_reticulation_failed <= 5) {
-                    if (score_improvement.local_improved) {
-                        arcInsertionCandidates = possibleArcInsertionMoves(ann_network);
-                        insertion_cand_idx = 0;
-                    }
                     keepSearching = true;
                     continue;
                 }
