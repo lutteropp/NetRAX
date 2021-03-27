@@ -557,17 +557,17 @@ double evaluateTreesPartition(AnnotatedNetwork& ann_network, size_t partition_id
             assert(tree.tree_logprob_valid);
             assert(tree.tree_logl != 0);
             assert(tree.tree_logl != -std::numeric_limits<double>::infinity());
-            if (ann_network.network.num_reticulations() == 1) {
+            /*if (ann_network.network.num_reticulations() == 1) {
                 std::cout << "tree " << tree_idx << " partition " << partition_idx << " logl: " << tree.tree_logl << "\n";
-            }
+            }*/
             if (tree.tree_logprob != std::numeric_limits<double>::infinity()) {
                 partition_lh += mpfr::exp(tree.tree_logprob) * mpfr::exp(tree.tree_logl);
             }
         }
         double partition_logl = mpfr::log(partition_lh).toDouble();
-        if (ann_network.network.num_reticulations() == 1) {
+        /*if (ann_network.network.num_reticulations() == 1) {
             std::cout << "partition " << partition_idx << " logl: " << partition_logl << "\n";
-        }
+        }*/
         ann_network.fake_treeinfo->partition_loglh[partition_idx] = partition_logl;
         return partition_logl;
     } else { // LikelihoodVariant::BEST_DISPLAYED_TREE
@@ -948,11 +948,18 @@ struct PartitionLhData {
     double logl_prime_prime = 0.0;
 };
 
-PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned int partition_idx, const std::vector<SumtableInfo>& sumtables, unsigned int pmatrix_index) {
+PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned int partition_idx, const std::vector<SumtableInfo>& sumtables, const std::vector<std::vector<TreeLoglData> >& oldTrees, unsigned int pmatrix_index) {
     PartitionLhData res{0.0, 0.0, 0.0};
     pll_partition_t* partition = ann_network.fake_treeinfo->partitions[partition_idx];
     Node* source = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
     Node* target = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
+
+    size_t n_trees_source = ann_network.pernode_displayed_tree_data[partition_idx][source->clv_index].num_active_displayed_trees;
+    size_t n_trees_target = ann_network.pernode_displayed_tree_data[partition_idx][target->clv_index].num_active_displayed_trees;
+    std::vector<DisplayedTreeData>& sourceTrees = ann_network.pernode_displayed_tree_data[partition_idx][source->clv_index].displayed_trees;
+    std::vector<DisplayedTreeData>& targetTrees = ann_network.pernode_displayed_tree_data[partition_idx][target->clv_index].displayed_trees;
+    std::vector<bool> source_tree_seen(n_trees_source, false);
+    std::vector<bool> target_tree_seen(n_trees_target, false);
 
     // TODO: Get NetRAX to correctly work with scaled brlens...
     if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED) {
@@ -967,11 +974,14 @@ PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned i
     mpfr::mpreal logl_prime = 0.0;
     mpfr::mpreal logl_prime_prime = 0.0;
 
-    if (ann_network.network.num_reticulations() == 1) {
+    /*if (ann_network.network.num_reticulations() == 1) {
         std::cout << "\ncomputePartitionLoglData for partition " << partition_idx << ":\n";
         std::cout << "number of sumtables: " << sumtables.size() << "\n";
-    }
+    }*/
     for (size_t i = 0; i < sumtables.size(); ++i) {
+        source_tree_seen[sumtables[i].left_tree_idx] = true;
+        target_tree_seen[sumtables[i].right_tree_idx] = true;
+
         double tree_logl_double;
         double tree_logl_prime_double;
         double tree_logl_prime_prime_double;
@@ -992,11 +1002,11 @@ PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned i
         mpfr::mpreal tree_logl_prime = tree_logl_prime_double;
         mpfr::mpreal tree_logl_prime_prime = tree_logl_prime_prime_double;
 
-        if (ann_network.network.num_reticulations() == 1) {
+        /*if (ann_network.network.num_reticulations() == 1) {
             std::cout << "  tree_logl: " << tree_logl << "\n";
             std::cout << "  tree_logl_prime: " << tree_logl_prime << "\n";
             std::cout << "  tree_logl_prime_prime: " << tree_logl_prime_prime << "\n";
-        }
+        }*/
         assert(tree_logl != 0.0);
 
         if (ann_network.options.likelihood_variant == LikelihoodVariant::AVERAGE_DISPLAYED_TREES) {
@@ -1009,23 +1019,102 @@ PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned i
             logl_prime_prime += std::max(logl_prime_prime, mpfr::exp(tree_logl_prime_prime) * sumtables[i].tree_prob);
         }
     }
+
+    for (size_t i = 0; i < n_trees_source; ++i) {
+        if (source_tree_seen[i]) continue;
+        for (size_t j = 0; j < n_trees_target; ++j) {
+            if (target_tree_seen[j]) continue;
+
+            TreeLoglData combinedTreeData;
+            combinedTreeData.reticulationChoices = combineReticulationChoices(sourceTrees[i].treeLoglData.reticulationChoices, targetTrees[j].treeLoglData.reticulationChoices);
+            if (!isActiveBranch(ann_network, combinedTreeData.reticulationChoices, pmatrix_index)) {
+                source_tree_seen[i] = true;
+                target_tree_seen[j] = true;
+                //std::cout << "inactive branch\n";
+                const TreeLoglData& oldTree = getMatchingOldTree(ann_network, oldTrees[partition_idx], combinedTreeData.reticulationChoices);
+                if (!oldTree.tree_logl_valid) {
+                    std::cout << exportDebugInfo(ann_network) << "\n";
+                    std::cout << "i: " << i << "\n";
+                    std::cout << "j: " << j << "\n";
+                    std::cout << "pmatrix_index: " << pmatrix_index << "\n";
+                    std::cout << "source: " << source->clv_index << "\n";
+                    std::cout << "target: " << target->clv_index << "\n";
+                }
+                assert(oldTree.tree_logl_valid);
+                combinedTreeData.tree_logl = oldTree.tree_logl;
+                assert(combinedTreeData.tree_logl != -std::numeric_limits<double>::infinity());
+                assert(oldTree.tree_logprob_valid);
+                combinedTreeData.tree_logprob = oldTree.tree_logprob;
+
+                if (ann_network.options.likelihood_variant == LikelihoodVariant::AVERAGE_DISPLAYED_TREES) {
+                    logl += mpfr::exp(combinedTreeData.tree_logl) * mpfr::exp(combinedTreeData.tree_logprob);
+                } else { // LikelihoodVariant::BEST_DISPLAYED_TREE
+                    logl += std::max(logl, mpfr::exp(combinedTreeData.tree_logl) * mpfr::exp(combinedTreeData.tree_logprob));
+                }
+
+            }
+        }
+    }
+
+    for (size_t i = 0; i < n_trees_source; ++i) {
+        if (!source_tree_seen[i]) {
+            //std::cout << "unseen source tree\n";
+            const TreeLoglData& oldTree = getMatchingOldTree(ann_network, oldTrees[partition_idx], sourceTrees[i].treeLoglData.reticulationChoices);
+            assert(oldTree.tree_logl_valid);
+            sourceTrees[i].treeLoglData.tree_logl = oldTree.tree_logl;
+            assert(oldTree.tree_logprob_valid);
+            sourceTrees[i].treeLoglData.tree_logprob = oldTree.tree_logprob;
+            sourceTrees[i].treeLoglData.tree_logl_valid = true;
+            sourceTrees[i].treeLoglData.tree_logprob_valid = true;
+            assert(sourceTrees[i].treeLoglData.tree_logl_valid);
+            assert(sourceTrees[i].treeLoglData.tree_logl != -std::numeric_limits<double>::infinity());
+
+            if (ann_network.options.likelihood_variant == LikelihoodVariant::AVERAGE_DISPLAYED_TREES) {
+                logl += mpfr::exp(sourceTrees[i].treeLoglData.tree_logl) * mpfr::exp(sourceTrees[i].treeLoglData.tree_logprob);
+            } else { // LikelihoodVariant::BEST_DISPLAYED_TREE
+                logl += std::max(logl, mpfr::exp(sourceTrees[i].treeLoglData.tree_logl) * mpfr::exp(sourceTrees[i].treeLoglData.tree_logprob));
+            }
+        }
+    }
+
+    for (size_t j = 0; j < n_trees_target; ++j) {
+        if (!target_tree_seen[j]) {
+            //std::cout << "unseen target tree\n";
+            const TreeLoglData& oldTree = getMatchingOldTree(ann_network, oldTrees[partition_idx], targetTrees[j].treeLoglData.reticulationChoices);
+            assert(oldTree.tree_logl_valid);
+            targetTrees[j].treeLoglData.tree_logl = oldTree.tree_logl;
+            assert(oldTree.tree_logprob_valid);
+            targetTrees[j].treeLoglData.tree_logprob = oldTree.tree_logprob;
+            targetTrees[j].treeLoglData.tree_logl_valid = true;
+            targetTrees[j].treeLoglData.tree_logprob_valid = true;
+            assert(targetTrees[j].treeLoglData.tree_logl_valid);
+            assert(targetTrees[j].treeLoglData.tree_logl != -std::numeric_limits<double>::infinity());
+
+            if (ann_network.options.likelihood_variant == LikelihoodVariant::AVERAGE_DISPLAYED_TREES) {
+                logl += mpfr::exp(targetTrees[j].treeLoglData.tree_logl) * mpfr::exp(targetTrees[j].treeLoglData.tree_logprob);
+            } else { // LikelihoodVariant::BEST_DISPLAYED_TREE
+                logl += std::max(logl, mpfr::exp(targetTrees[j].treeLoglData.tree_logl) * mpfr::exp(targetTrees[j].treeLoglData.tree_logprob));
+            }
+        }
+    }
+
     res.logl = mpfr::log(logl).toDouble();
     res.logl_prime = mpfr::log(logl_prime).toDouble();
     res.logl_prime_prime = mpfr::log(logl_prime_prime).toDouble();
 
-    if (ann_network.network.num_reticulations() == 1) {
+    /*if (ann_network.network.num_reticulations() == 1) {
         std::cout << " partition_index: " << partition_idx << "\n";
         std::cout << " partition_logl: " << res.logl << "\n";
         std::cout << " partition_logl_prime: " << res.logl_prime << "\n";
         std::cout << " partition_logl_prime_prime: " << res.logl_prime_prime << "\n\n";
-    }
+    }*/
 
     //res.lh_prime *= s;
     //res.lh_prime_prime *= s * s;
     return res;
 }
 
-LoglDerivatives computeLoglikelihoodDerivatives(AnnotatedNetwork& ann_network, const std::vector<std::vector<SumtableInfo> >& sumtables, unsigned int pmatrix_index, bool incremental, bool update_pmatrices) {
+LoglDerivatives computeLoglikelihoodDerivatives(AnnotatedNetwork& ann_network, const std::vector<std::vector<SumtableInfo> >& sumtables, const std::vector<std::vector<TreeLoglData> >& oldTrees, unsigned int pmatrix_index, bool incremental, bool update_pmatrices) {
     setup_pmatrices(ann_network, incremental, update_pmatrices);
     double network_logl = 0.0;
     double network_logl_prime = 0.0;
@@ -1035,7 +1124,7 @@ LoglDerivatives computeLoglikelihoodDerivatives(AnnotatedNetwork& ann_network, c
     std::vector<double> partition_logls_prime_prime(ann_network.fake_treeinfo->partition_count);
 
     for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-        PartitionLhData pdata = computePartitionLhData(ann_network, p, sumtables[p], pmatrix_index);
+        PartitionLhData pdata = computePartitionLhData(ann_network, p, sumtables[p], oldTrees, pmatrix_index);
 
         /*std::cout << " Network partition likelihood derivatives for partition " << p << ":\n";
         std::cout << " partition_logl: " << pdata.logl << "\n";
@@ -1059,23 +1148,23 @@ LoglDerivatives computeLoglikelihoodDerivatives(AnnotatedNetwork& ann_network, c
     return LoglDerivatives{network_logl_prime, network_logl_prime_prime, partition_logls_prime, partition_logls_prime_prime};
 }
 
-double computeLoglikelihoodFromSumtables(AnnotatedNetwork& ann_network, const std::vector<std::vector<SumtableInfo> >& sumtables, unsigned int pmatrix_index, bool incremental, bool update_pmatrices) {
+double computeLoglikelihoodFromSumtables(AnnotatedNetwork& ann_network, const std::vector<std::vector<SumtableInfo> >& sumtables, const std::vector<std::vector<TreeLoglData> >& oldTrees, unsigned int pmatrix_index, bool incremental, bool update_pmatrices) {
     setup_pmatrices(ann_network, incremental, update_pmatrices);
     mpfr::mpreal network_logl = 0.0;
 
     assert(sumtables.size() == ann_network.fake_treeinfo->partition_count);
 
     for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-        PartitionLhData pdata = computePartitionLhData(ann_network, p, sumtables[p], pmatrix_index);
+        PartitionLhData pdata = computePartitionLhData(ann_network, p, sumtables[p], oldTrees, pmatrix_index);
         network_logl += pdata.logl;
     }
     return network_logl.toDouble();
 }
 
-SumtableInfo computeSumtable(AnnotatedNetwork& ann_network, size_t partition_idx, const ReticulationConfigSet& restrictions, DisplayedTreeData& left_tree, size_t left_clv_index, DisplayedTreeData& right_tree, size_t right_clv_index) {
+SumtableInfo computeSumtable(AnnotatedNetwork& ann_network, size_t partition_idx, const ReticulationConfigSet& restrictions, DisplayedTreeData& left_tree, size_t left_clv_index, DisplayedTreeData& right_tree, size_t right_clv_index, size_t left_tree_idx, size_t right_tree_idx) {
     pll_partition_t * partition = ann_network.fake_treeinfo->partitions[partition_idx];
     size_t sumtableSize = (partition->sites + partition->states) * partition->rate_cats * partition->states_padded;
-    SumtableInfo sumtableInfo(sumtableSize, partition->alignment, &left_tree, &right_tree);
+    SumtableInfo sumtableInfo(sumtableSize, partition->alignment, &left_tree, &right_tree, left_tree_idx, right_tree_idx);
 
     sumtableInfo.tree_prob = computeReticulationConfigProb(restrictions, ann_network.reticulation_probs);
     sumtableInfo.sumtable = (double*) pll_aligned_alloc(sumtableSize * sizeof(double), partition->alignment);
@@ -1103,13 +1192,16 @@ std::vector<std::vector<SumtableInfo> > computePartitionSumtables(AnnotatedNetwo
                 if (!reticulationConfigsCompatible(sourceTrees[i].treeLoglData.reticulationChoices, targetTrees[j].treeLoglData.reticulationChoices)) {
                     continue;
                 }
+
                 ReticulationConfigSet restrictions = combineReticulationChoices(sourceTrees[i].treeLoglData.reticulationChoices, targetTrees[j].treeLoglData.reticulationChoices);
                 if (isActiveBranch(ann_network, restrictions, pmatrix_index)) {
-                    res[p].emplace_back(std::move(computeSumtable(ann_network, p, restrictions, sourceTrees[i], source->clv_index, targetTrees[j], target->clv_index)));
+                    res[p].emplace_back(std::move(computeSumtable(ann_network, p, restrictions, sourceTrees[i], source->clv_index, targetTrees[j], target->clv_index, i, j)));
                 }
             }
         }
     }
+
+    // TODO: This is just for comining left and right tree. Sometimes, we need a single tree...
     return res;
 }
 

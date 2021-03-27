@@ -32,14 +32,16 @@ struct SumtableInfo {
 
         DisplayedTreeData* left_tree;
         DisplayedTreeData* right_tree;
+        size_t left_tree_idx;
+        size_t right_tree_idx;
 
-        SumtableInfo(size_t sumtable_size, size_t alignment, DisplayedTreeData* left_tree, DisplayedTreeData* right_tree) : sumtable_size{sumtable_size}, alignment{alignment}, left_tree{left_tree}, right_tree{right_tree} {}
+        SumtableInfo(size_t sumtable_size, size_t alignment, DisplayedTreeData* left_tree, DisplayedTreeData* right_tree, size_t left_tree_idx, size_t right_tree_idx) : sumtable_size{sumtable_size}, alignment{alignment}, left_tree{left_tree}, right_tree{right_tree}, left_tree_idx{left_tree_idx}, right_tree_idx{right_tree_idx} {}
 
         ~SumtableInfo() {
                 pll_aligned_free(sumtable);
         }
 
-        SumtableInfo(SumtableInfo&& rhs) : tree_prob{rhs.tree_prob}, sumtable{rhs.sumtable}, sumtable_size{rhs.sumtable_size}, alignment{rhs.alignment}, left_tree{rhs.left_tree}, right_tree{rhs.right_tree}
+        SumtableInfo(SumtableInfo&& rhs) : tree_prob{rhs.tree_prob}, sumtable{rhs.sumtable}, sumtable_size{rhs.sumtable_size}, alignment{rhs.alignment}, left_tree{rhs.left_tree}, right_tree{rhs.right_tree}, left_tree_idx{rhs.left_tree_idx}, right_tree_idx{rhs.right_tree_idx}
         {
                 rhs.sumtable = nullptr;
         }
@@ -55,6 +57,8 @@ struct SumtableInfo {
                         rhs.sumtable = nullptr;
                         left_tree = rhs.left_tree;
                         right_tree = rhs.right_tree;
+                        left_tree_idx = rhs.left_tree_idx;
+                        right_tree_idx = rhs.right_tree_idx;
                 }
                 return *this;
         }
@@ -71,6 +75,8 @@ struct SumtableInfo {
                         alignment = rhs.alignment;
                         left_tree = rhs.left_tree;
                         right_tree = rhs.right_tree;
+                        left_tree_idx = rhs.left_tree_idx;
+                        right_tree_idx = rhs.right_tree_idx;
                 }
                 return *this;
         }
@@ -85,9 +91,9 @@ struct LoglDerivatives {
 
 std::vector<std::vector<TreeLoglData> > extractOldTrees(AnnotatedNetwork& ann_network, Node* virtual_root);
 
-LoglDerivatives computeLoglikelihoodDerivatives(AnnotatedNetwork& ann_network, const std::vector<std::vector<SumtableInfo> >& sumtables, unsigned int pmatrix_index, bool incremental = true, bool update_pmatrices = true);
+LoglDerivatives computeLoglikelihoodDerivatives(AnnotatedNetwork& ann_network, const std::vector<std::vector<SumtableInfo> >& sumtables, const std::vector<std::vector<TreeLoglData> >& oldTree, unsigned int pmatrix_index, bool incremental = true, bool update_pmatrices = true);
 std::vector<std::vector<SumtableInfo> > computePartitionSumtables(AnnotatedNetwork& ann_network, unsigned int pmatrix_index);
-double computeLoglikelihoodFromSumtables(AnnotatedNetwork& ann_network, const std::vector<std::vector<SumtableInfo> >& sumtables, unsigned int pmatrix_index, bool incremental = true, bool update_pmatrices = true);
+double computeLoglikelihoodFromSumtables(AnnotatedNetwork& ann_network, const std::vector<std::vector<SumtableInfo> >& sumtables, const std::vector<std::vector<TreeLoglData> >& oldTrees, unsigned int pmatrix_index, bool incremental = true, bool update_pmatrices = true);
 
 void updateCLVsVirtualRerootTrees(AnnotatedNetwork& ann_network, Node* old_virtual_root, Node* new_virtual_root, Node* new_virtual_root_back);
 double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::vector<std::vector<TreeLoglData> >& oldTrees, unsigned int pmatrix_index, int incremental = 1, int update_pmatrices = 1);
