@@ -994,7 +994,7 @@ PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned i
                                            p_brlen,
                                            ann_network.fake_treeinfo->param_indices[partition_idx],
                                            sumtables[i].sumtable,
-                                           &tree_logl_double,
+                                           nullptr, //&tree_logl_double,
                                            &tree_logl_prime_double,
                                            &tree_logl_prime_prime_double);
 
@@ -1010,16 +1010,17 @@ PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned i
         assert(tree_logl != 0.0);
 
         if (ann_network.options.likelihood_variant == LikelihoodVariant::AVERAGE_DISPLAYED_TREES) {
-            logl += mpfr::exp(tree_logl) * sumtables[i].tree_prob;
+            //logl += mpfr::exp(tree_logl) * sumtables[i].tree_prob;
             logl_prime += mpfr::exp(tree_logl_prime) * sumtables[i].tree_prob;
             logl_prime_prime += mpfr::exp(tree_logl_prime_prime) * sumtables[i].tree_prob;
         } else { // LikelihoodVariant::BEST_DISPLAYED_TREE
-            logl += std::max(logl, mpfr::exp(tree_logl) * sumtables[i].tree_prob);
+            //logl += std::max(logl, mpfr::exp(tree_logl) * sumtables[i].tree_prob);
             logl_prime += std::max(logl_prime, mpfr::exp(tree_logl_prime) * sumtables[i].tree_prob);
             logl_prime_prime += std::max(logl_prime_prime, mpfr::exp(tree_logl_prime_prime) * sumtables[i].tree_prob);
         }
     }
 
+    /*
     for (size_t i = 0; i < n_trees_source; ++i) {
         if (source_tree_seen[i]) continue;
         for (size_t j = 0; j < n_trees_target; ++j) {
@@ -1097,6 +1098,7 @@ PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned i
             }
         }
     }
+    */
 
     res.logl = mpfr::log(logl).toDouble();
     res.logl_prime = mpfr::log(logl_prime).toDouble();

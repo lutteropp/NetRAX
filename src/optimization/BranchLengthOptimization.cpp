@@ -335,6 +335,10 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
     std::vector<size_t> act_iters(ann_network.network.num_branches(), 0);
     BrlenOptMethod brlenOptMethod = ann_network.options.brlenOptMethod;
 
+    if (ann_network.network.num_reticulations() == 0) {
+        brlenOptMethod = BrlenOptMethod::NEWTON_RAPHSON_REROOT;
+    }
+
     Node* old_virtual_root = ann_network.network.root;
 
     while (!candidates.empty()) {
