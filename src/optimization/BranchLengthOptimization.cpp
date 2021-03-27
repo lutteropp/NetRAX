@@ -193,7 +193,7 @@ double optimize_branch_newton_raphson(AnnotatedNetwork &ann_network, std::vector
                                     &params,
                                     network_derivative_func_multi);
     if (pll_errno) {
-        std::cout << pll_errmsg << "\n";
+        //std::cout << pll_errmsg << "\n";
     }
     libpll_reset_error();
     //assert(!pll_errno);
@@ -258,10 +258,12 @@ double optimize_branch(AnnotatedNetwork &ann_network, std::vector<std::vector<Tr
         optimize_branch_newton_raphson(ann_network, sumtables, oldTrees, pmatrix_index, partition_index, brlenOptMethod, max_iters);
         double new_logl = computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index, 1, 1);
         if (new_logl < start_logl) { // this can happen in rare cases, if NR didn't converge. If it happens, reoad the old branch length.
-            std::cout << "reload old brlen\n";
+            //std::cout << "reload old brlen\n";
             ann_network.fake_treeinfo->branch_lengths[partition_index][pmatrix_index] = old_brlen;
             invalidPmatrixIndexOnly(ann_network, pmatrix_index);
-        }
+        } /*else if (new_logl > start_logl && ann_network.network.num_reticulations() > 0) {
+            std::cout << "actually found a better brlen with NR\n";
+        }*/
     }
 
     double best_logl;
@@ -335,9 +337,9 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
     std::vector<size_t> act_iters(ann_network.network.num_branches(), 0);
     BrlenOptMethod brlenOptMethod = ann_network.options.brlenOptMethod;
 
-    if (ann_network.network.num_reticulations() == 0) {
+    /*if (ann_network.network.num_reticulations() == 0) {
         brlenOptMethod = BrlenOptMethod::NEWTON_RAPHSON_REROOT;
-    }
+    }*/
 
     Node* old_virtual_root = ann_network.network.root;
 
