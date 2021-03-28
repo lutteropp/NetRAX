@@ -63,7 +63,7 @@ static double brent_target_networks(void *p, double x) {
                 std::cout << "logl from sumtables: " << sumtable_logl << "\n";
                 std::cout << "logl from reroot: " << reroot_logl << "\n";
             }*/
-            assert(fabs(sumtable_logl - reroot_logl) < 1E-3);
+            //assert(fabs(sumtable_logl - reroot_logl) < 1E-3);
         }
         if (brlenOptMethod == BrlenOptMethod::BRENT_REROOT) {
             score = -1 * computeLoglikelihoodBrlenOpt(*ann_network, *oldTrees, pmatrix_index, 1, 1);

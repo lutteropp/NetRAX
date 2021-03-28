@@ -1003,6 +1003,14 @@ PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned i
     double best_tree_logl_prime_score = -std::numeric_limits<double>::infinity();
     double best_tree_logl_prime_prime_score = -std::numeric_limits<double>::infinity();
 
+    double branch_length = ann_network.fake_treeinfo->branch_lengths[partition_idx][pmatrix_index];
+    double ** eigenvals;
+    double * prop_invar;
+    pll_compute_eigenvals_and_prop_invar(partition, ann_network.fake_treeinfo->param_indices[partition_idx], &eigenvals, &prop_invar);
+
+    double * diagptable = pll_compute_diagptable(partition->states, partition->rate_cats, branch_length, prop_invar, partition->rates, eigenvals);
+    free (eigenvals);
+
     /*if (ann_network.network.num_reticulations() == 1) {
         std::cout << "\ncomputePartitionLoglData for partition " << partition_idx << ":\n";
         std::cout << "number of sumtables: " << sumtables.size() << "\n";
@@ -1015,7 +1023,7 @@ PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned i
         double tree_logl_prime;
         double tree_logl_prime_prime;
 
-        pll_compute_likelihood_derivatives(partition, 
+        pll_compute_loglikelihood_derivatives(partition, 
                                            source->scaler_index, 
                                            sumtables[i].left_tree->scale_buffer,
                                            target->scaler_index, 
@@ -1025,7 +1033,9 @@ PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned i
                                            sumtables[i].sumtable,
                                            &tree_logl,
                                            &tree_logl_prime,
-                                           &tree_logl_prime_prime);
+                                           &tree_logl_prime_prime,
+                                           diagptable,
+                                           prop_invar);
 
         TreeDerivatives treeDerivatives = computeTreeDerivatives(tree_logl, tree_logl_prime, tree_logl_prime_prime);
 
@@ -1048,6 +1058,9 @@ PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned i
             }
         }
     }
+
+    pll_aligned_free (diagptable);
+    free (prop_invar);
 
     if (ann_network.options.likelihood_variant == LikelihoodVariant::AVERAGE_DISPLAYED_TREES) {
         res.logl_prime = (lh_prime_sum / lh_sum).toDouble();
