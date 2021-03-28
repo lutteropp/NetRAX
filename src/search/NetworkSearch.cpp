@@ -51,6 +51,9 @@ bool logl_stays_same(AnnotatedNetwork& ann_network) {
             std::cout << "logl: " << tree.treeLoglData.tree_logl << ", logprob: " << tree.treeLoglData.tree_logprob << "\n";
         }
     }
+
+    std::cout << "incremental: " << incremental << "\n";
+    std::cout << "normal: " << normal << "\n";
     return (incremental == normal);
 }
 
