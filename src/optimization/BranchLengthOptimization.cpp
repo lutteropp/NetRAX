@@ -43,7 +43,8 @@ static double brent_target_networks(void *p, double x) {
     double score;
     if (old_x == x) {
         if (brlenOptMethod == BrlenOptMethod::BRENT_REROOT_SUMTABLE) {
-            score = -1 * computeLoglikelihoodFromSumtables(*ann_network, *sumtables, *oldTrees, pmatrix_index, 1, 1);
+            throw std::runtime_error("This is currently not supported");
+            //score = -1 * computeLoglikelihoodFromSumtables(*ann_network, *sumtables, *oldTrees, pmatrix_index, 1, 1);
         } else if (brlenOptMethod == BrlenOptMethod::BRENT_REROOT) {
             score = -1 * computeLoglikelihoodBrlenOpt(*ann_network, *oldTrees, pmatrix_index, 1, 1);
         } else { // BRENT_NORMAL
@@ -54,9 +55,10 @@ static double brent_target_networks(void *p, double x) {
         invalidPmatrixIndexOnly(*ann_network, pmatrix_index);
 
         if (brlenOptMethod == BrlenOptMethod::BRENT_REROOT_SUMTABLE) {
-            double sumtable_logl = computeLoglikelihoodFromSumtables(*ann_network, *sumtables, *oldTrees, pmatrix_index, 1, 1);
+            throw std::runtime_error("This is currently not supported");
+            //double sumtable_logl = computeLoglikelihoodFromSumtables(*ann_network, *sumtables, *oldTrees, pmatrix_index, 1, 1);
             double reroot_logl = computeLoglikelihoodBrlenOpt(*ann_network, *oldTrees, pmatrix_index, 1, 1);
-            score = -1 * sumtable_logl;
+            //score = -1 * sumtable_logl;
             /*if (ann_network->network.num_reticulations() == 1) {
                 std::cout << "logl from sumtables: " << sumtable_logl << "\n";
                 std::cout << "logl from reroot: " << reroot_logl << "\n";
