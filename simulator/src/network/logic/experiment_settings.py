@@ -109,8 +109,8 @@ def smoke_test_fixed():
     settings.start_types = [StartType.FROM_RAXML]
     settings.brlen_linkage_types = [BrlenLinkageType.LINKED]
     settings.likelihood_types = [LikelihoodType.AVERAGE]
-    settings.partition_sizes = [100]
-    settings.fixed_n_taxa = [4]
+    settings.partition_sizes = [1000]
+    settings.fixed_n_taxa = [10]
     settings.fixed_n_reticulations = [1]
     settings.fixed_reticulation_probs = [0.5]
     settings.use_fixed_simulation = True

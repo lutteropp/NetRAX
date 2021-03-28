@@ -951,7 +951,8 @@ TreeDerivatives computeTreeDerivatives(double logl, double logl_prime, double lo
     TreeDerivatives res;
     mpfr::mpreal lh = mpfr::exp(logl);
     mpfr::mpreal lh_prime = lh * logl_prime;
-    mpfr::mpreal lh_prime_prime = (lh * logl_prime * logl_prime - lh * logl_prime_prime) / (logl_prime * logl_prime);
+    mpfr::mpreal logl_prime_2 = logl_prime * logl_prime;
+    mpfr::mpreal lh_prime_prime = (lh * logl_prime_2 - lh * logl_prime_prime) / (logl_prime_2);
 
     /*std::cout << "tree_logl: " << logl << "\n";
     std::cout << "tree_logl_prime: " << logl_prime << "\n";
