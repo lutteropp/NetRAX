@@ -218,6 +218,9 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
     for (size_t i = 0; i < candidates.size(); ++i) {
         T move = candidates[i];
         performMove(ann_network, move);
+        if (move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::DeltaMinusMove) { // because arc removals change the reticulation indices, breaking the stored reticulationChoices in the displayed trees
+            computeLoglikelihood(ann_network, 0, 1);
+        }
         if (brlenopt_inside) {
             // Do brlen optimization locally around the move
             std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
