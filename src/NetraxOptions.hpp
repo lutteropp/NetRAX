@@ -17,7 +17,8 @@ namespace netrax {
 enum class BrlenOptMethod {
     BRENT_NORMAL = 0,
     BRENT_REROOT = 1,
-    NEWTON_RAPHSON_REROOT = 2
+    BRENT_REROOT_SUMTABLE = 2,
+    NEWTON_RAPHSON = 3
 };
 
 class NetraxOptions {
@@ -80,7 +81,7 @@ public:
     double tolerance = DEF_LH_EPSILON; //RAXML_BRLEN_TOLERANCE;
     double brlen_smoothings = RAXML_BRLEN_SMOOTHINGS;
 
-    BrlenOptMethod brlenOptMethod = BrlenOptMethod::BRENT_REROOT;// BrlenOptMethod::BRENT_NORMAL;
+    BrlenOptMethod brlenOptMethod = BrlenOptMethod::NEWTON_RAPHSON;//BrlenOptMethod::BRENT_REROOT; //BrlenOptMethod::BRENT_REROOT_SUMTABLE; //BrlenOptMethod::BRENT_REROOT;//BrlenOptMethod::NEWTON_RAPHSON_REROOT;// BrlenOptMethod::BRENT_NORMAL;
 
     std::string msa_file = "";
     std::string model_file = "DNA";

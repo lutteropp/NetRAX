@@ -502,6 +502,13 @@ void invalidatePmatrixIndex(AnnotatedNetwork &ann_network, size_t pmatrix_index)
     invalidatePmatrixIndex(ann_network, pmatrix_index, noVisited);
 }
 
+void invalidPmatrixIndexOnly(AnnotatedNetwork& ann_network, size_t pmatrix_index) {
+    for (size_t partition_idx = 0; partition_idx < ann_network.fake_treeinfo->partition_count; ++partition_idx) {
+        ann_network.fake_treeinfo->pmatrix_valid[partition_idx][pmatrix_index] = 0;
+    }
+    ann_network.cached_logl_valid = false;
+}
+
 bool assertReticulationProbs(AnnotatedNetwork &ann_network) {
     bool unlinkedMode = (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
     size_t n_partitions = 1;

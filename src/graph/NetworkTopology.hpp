@@ -73,6 +73,8 @@ void invalidatePmatrixIndex(AnnotatedNetwork &ann_network, size_t pmatrix_index,
         std::vector<bool> &visited);
 void invalidatePmatrixIndex(AnnotatedNetwork &ann_network, size_t pmatrix_index);
 
+void invalidPmatrixIndexOnly(AnnotatedNetwork& ann_network, size_t pmatrix_index);
+
 bool assertReticulationProbs(AnnotatedNetwork &ann_network);
 
 std::unordered_set<size_t> getNeighborPmatrixIndices(Network &network, Edge *edge);

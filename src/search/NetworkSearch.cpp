@@ -51,6 +51,9 @@ bool logl_stays_same(AnnotatedNetwork& ann_network) {
             std::cout << "logl: " << tree.treeLoglData.tree_logl << ", logprob: " << tree.treeLoglData.tree_logprob << "\n";
         }
     }
+
+    std::cout << "incremental: " << incremental << "\n";
+    std::cout << "normal: " << normal << "\n";
     return (incremental == normal);
 }
 
@@ -191,7 +194,7 @@ double optimizeEverythingRun(AnnotatedNetwork & ann_network, std::vector<MoveTyp
             break;
         }
         double old_score = scoreNetwork(ann_network);
-        optimizeTopology(ann_network, typesBySpeed[type_idx], start_state_to_reuse, best_state_to_reuse, greedy, false, 1);
+        optimizeTopology(ann_network, typesBySpeed[type_idx], start_state_to_reuse, best_state_to_reuse, greedy, false, false, 1);
         double new_score = scoreNetwork(ann_network);
         if (old_score - new_score > ann_network.options.score_epsilon) { // score got better
             new_score = scoreNetwork(ann_network);
@@ -239,7 +242,11 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
     optimizeEverythingRun(ann_network, typesBySpeed, start_state_to_reuse, best_state_to_reuse, start_time, true);
     score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
 
+    //std::vector<ArcInsertionMove> arcInsertionCandidates = possibleArcInsertionMoves(ann_network);
+
     size_t count_add_reticulation_failed = 0;
+
+    //AnnotatedNetwork ann_network_before
 
     bool keepSearching = true;
     while (keepSearching) {
@@ -292,10 +299,19 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
             //continue;
         }
 
+        //auto insertionMoves = possibleArcInsertionMoves(ann_network);
+        //rankArcInsertionCandidates(ann_network, insertionMoves);
+
         // then try adding a reticulation
         if (ann_network.network.num_reticulations() < ann_network.options.max_reticulations) {
+            std::cout << "\n Adding a reticulation\n";
+            //std::cout << "insertion cand index:\n";
+            //performMove(ann_network, arcInsertionCandidates[insertion_cand_idx]);
+            //forceApplyArcInsertion(ann_network, arcInsertionCandidates[insertion_cand_idx]);
+
+
             // old and deprecated: randomly add new reticulation
-            std::cout << "\nRandomly adding a reticulation\n";
+            //std::cout << "\nRandomly adding a reticulation\n";
             add_extra_reticulations(ann_network, ann_network.network.num_reticulations() + 1);
             ann_network.stats.moves_taken[MoveType::ArcInsertionMove]++;
 
@@ -314,13 +330,14 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
 
             optimizeEverythingRun(ann_network, typesBySpeed, start_state_to_reuse, best_state_to_reuse, start_time, true);
             score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
+
             if (score_improvement.global_improved) {
                 count_add_reticulation_failed = 0;
                 keepSearching = true;
                 continue;
             } else {
                 count_add_reticulation_failed++;
-                if (count_add_reticulation_failed <= 10) {
+                if (count_add_reticulation_failed <= 5) {
                     keepSearching = true;
                     continue;
                 }
