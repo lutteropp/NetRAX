@@ -1036,8 +1036,6 @@ PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned i
                                            diagptable,
                                            prop_invar);
 
-        TreeDerivatives treeDerivatives = computeTreeDerivatives(tree_logl, tree_logl_prime, tree_logl_prime_prime);
-
         /*if (ann_network.network.num_reticulations() == 1) {
             std::cout << "  tree_logl: " << tree_logl << "\n";
             std::cout << "  tree_logl_prime: " << tree_logl_prime << "\n";
@@ -1046,6 +1044,7 @@ PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned i
         //assert(tree_logl != 0.0);
 
         if (ann_network.options.likelihood_variant == LikelihoodVariant::AVERAGE_DISPLAYED_TREES) {
+            TreeDerivatives treeDerivatives = computeTreeDerivatives(tree_logl, tree_logl_prime, tree_logl_prime_prime);
             lh_sum += mpfr::exp(tree_logl) * sumtables[i].tree_prob;
             lh_prime_sum += treeDerivatives.lh_prime * sumtables[i].tree_prob;
             lh_prime_prime_sum += treeDerivatives.lh_prime_prime * sumtables[i].tree_prob;
