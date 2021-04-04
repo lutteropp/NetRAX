@@ -13,6 +13,6 @@ extern "C" {
 
 namespace netrax {
 
-void optimizeReticulationProbs(AnnotatedNetwork &ann_network);
+void optimizeReticulationProbs(AnnotatedNetwork &ann_network, bool silent = true);
 
 }

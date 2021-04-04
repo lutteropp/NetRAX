@@ -387,7 +387,7 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
  * 
  * @param ann_network The network.
  */
-void optimizeBranches(AnnotatedNetwork &ann_network) {
+void optimizeBranches(AnnotatedNetwork &ann_network, bool silent) {
     double old_score = scoreNetwork(ann_network);
 
     int brlen_smooth_factor = 100;
@@ -396,7 +396,7 @@ void optimizeBranches(AnnotatedNetwork &ann_network) {
     optimize_branches(ann_network, max_iters, radius);
 
     double new_score = scoreNetwork(ann_network);
-    std::cout << "BIC score after branch length optimization: " << new_score << "\n";
+    if (!silent) std::cout << "BIC score after branch length optimization: " << new_score << "\n";
 
     if (new_score > old_score) {
         std::cout << "old score: " << old_score << "\n";

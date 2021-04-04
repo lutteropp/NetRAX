@@ -105,7 +105,7 @@ double optimize_reticulations(AnnotatedNetwork &ann_network, int max_iters) {
  * 
  * @param ann_network The network.
  */
-void optimizeReticulationProbs(AnnotatedNetwork &ann_network) {
+void optimizeReticulationProbs(AnnotatedNetwork &ann_network, bool silent) {
     if (ann_network.network.num_reticulations() == 0) {
         return;
     }
@@ -113,7 +113,7 @@ void optimizeReticulationProbs(AnnotatedNetwork &ann_network) {
     double old_score = scoreNetwork(ann_network);
     netrax::optimize_reticulations(ann_network, 100);
     double new_score = scoreNetwork(ann_network);
-    //std::cout << "BIC score after updating reticulation probs: " << new_score << "\n";
+    if (!silent) std::cout << "BIC score after updating reticulation probs: " << new_score << "\n";
     assert(new_score <= old_score + ann_network.options.score_epsilon);
 }
 

@@ -57,15 +57,15 @@ bool logl_stays_same(AnnotatedNetwork& ann_network) {
     return (incremental == normal);
 }
 
-void optimizeAllNonTopology(AnnotatedNetwork &ann_network, bool extremeOpt) {
+void optimizeAllNonTopology(AnnotatedNetwork &ann_network, bool extremeOpt, bool silent) {
     assert(logl_stays_same(ann_network));
     bool gotBetter = true;
     while (gotBetter) {
         gotBetter = false;
         double score_before = scoreNetwork(ann_network);
-        optimizeModel(ann_network);
-        optimizeBranches(ann_network);
-        optimizeReticulationProbs(ann_network);
+        optimizeModel(ann_network, silent);
+        optimizeBranches(ann_network, silent);
+        optimizeReticulationProbs(ann_network, silent);
         double score_after = scoreNetwork(ann_network);
 
         if (score_after < score_before - ann_network.options.score_epsilon && extremeOpt) {
@@ -220,6 +220,117 @@ double optimizeEverythingRun(AnnotatedNetwork & ann_network, std::vector<MoveTyp
     return best_score;
 }
 
+double getWorstReticulationScore(AnnotatedNetwork& ann_network) {
+    double worst = 1.0;
+    for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
+        double score = fabs(0.5 - ann_network.reticulation_probs[i]);
+        score = 1.0 - (2.0 * score); // 1.0 is best result, 0 is worst result
+
+        worst = std::min(worst, score);
+    }
+    return worst; // 1.0 is best result, 0 is worst result
+}
+
+struct ScoreItem {
+    ArcInsertionMove move;
+    double worstScore;
+    double bicScore;
+};
+
+template <typename T>
+void rankArcInsertionCandidatesTemplated(AnnotatedNetwork& ann_network, std::vector<T>& candidates) {
+    double brlen_smooth_factor = 0.25;
+    int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
+    int radius = 1;
+
+    NetworkState oldState = extract_network_state(ann_network);
+
+    NetworkState reuseMe1 = extract_network_state(ann_network);
+    NetworkState reuseMe2 = extract_network_state(ann_network);
+
+    std::vector<ScoreItem> scores(candidates.size());
+
+    for (size_t i = 0; i < candidates.size(); ++i) {
+        T move = candidates[i];
+        performMove(ann_network, move);
+
+        //optimizeModel(ann_network);
+
+        std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
+        //assert(!brlen_opt_candidates.empty());
+        add_neighbors_in_radius(ann_network, brlen_opt_candidates, 1);
+        optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
+        //optimizeBranches(ann_network);
+        optimizeReticulationProbs(ann_network);
+
+        //greedyHillClimbingTopology(ann_network, MoveType::RNNIMove, reuseMe1, reuseMe2, true, false, true);
+
+        //optimizeAllNonTopology(ann_network, false, true);
+        
+        double worstScore = getWorstReticulationScore(ann_network);
+        double bicScore = scoreNetwork(ann_network);
+        scores[i] = ScoreItem{move, worstScore, bicScore};
+
+        //undoMove(ann_network, move);
+
+        apply_network_state(ann_network, oldState, true);
+    }
+
+    std::sort(scores.begin(), scores.end(), [](const ScoreItem& lhs, const ScoreItem& rhs) {
+        if (lhs.worstScore == rhs.worstScore) {
+            return lhs.bicScore < rhs.bicScore;
+        }
+        return lhs.worstScore > rhs.worstScore;
+    });
+
+    for (size_t i = 0; i < candidates.size(); ++i) {
+        std::cout << "candidate " << i + 1 << "/" << candidates.size() << " has worst score " << scores[i].worstScore << ", BIC: " << scores[i].bicScore << "\n";
+        candidates[i] = scores[i].move;
+    }
+}
+
+void rankArcInsertionCandidates(AnnotatedNetwork& ann_network, std::vector<ArcInsertionMove>& candidates) {
+    return rankArcInsertionCandidatesTemplated(ann_network, candidates);
+}
+
+double forceApplyArcInsertion(AnnotatedNetwork& ann_network) {
+    double old_logl = computeLoglikelihood(ann_network);
+    NetworkState startState = extract_network_state(ann_network);
+
+    NetworkState reuseMe1 = extract_network_state(ann_network);
+    NetworkState reuseMe2 = extract_network_state(ann_network);
+
+    std::vector<ArcInsertionMove> candidates = possibleArcInsertionMoves(ann_network);
+    rankArcInsertionCandidates(ann_network, candidates);
+    for (size_t i = 0; i < candidates.size(); ++i) {
+        ArcInsertionMove move = candidates[i];
+        performMove(ann_network, move);
+
+        //std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
+        //assert(!brlen_opt_candidates.empty());
+        //add_neighbors_in_radius(ann_network, brlen_opt_candidates, 1);
+        //optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
+        //optimizeBranches(ann_network);
+        //optimizeModel(ann_network);
+
+        greedyHillClimbingTopology(ann_network, MoveType::RNNIMove, reuseMe1, reuseMe2, true, false, true);
+
+        optimizeReticulationProbs(ann_network);
+
+        double worstScore = getWorstReticulationScore(ann_network);
+        std::cout << "candidate " << i + 1 << "/" << candidates.size() << " has worst score " << worstScore << "\n";
+
+        if (worstScore > 0.001) {
+            // accept the move
+            break;
+        }
+
+        apply_network_state(ann_network, startState, true);
+    }
+
+    return computeLoglikelihood(ann_network);
+}
+
 void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData, std::mt19937& rng) {
     NetworkState start_state_to_reuse = extract_network_state(ann_network, false);
     NetworkState best_state_to_reuse = extract_network_state(ann_network, false);
@@ -299,8 +410,8 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
             //continue;
         }
 
-        //auto insertionMoves = possibleArcInsertionMoves(ann_network);
-        //rankArcInsertionCandidates(ann_network, insertionMoves);
+        auto insertionMoves = possibleArcInsertionMoves(ann_network);
+        rankArcInsertionCandidates(ann_network, insertionMoves);
 
         // then try adding a reticulation
         if (ann_network.network.num_reticulations() < ann_network.options.max_reticulations) {
