@@ -33,7 +33,7 @@ public:
         this->use_repeats = use_repeats;
     }
 
-    LikelihoodVariant likelihood_variant = LikelihoodVariant::BEST_DISPLAYED_TREE;
+    LikelihoodVariant likelihood_variant = LikelihoodVariant::AVERAGE_DISPLAYED_TREES;
 
     bool optimize_brlen = true;
     bool optimize_model = true;
