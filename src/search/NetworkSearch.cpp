@@ -201,6 +201,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
     double old_bic = scoreNetwork(ann_network);
 
     NetworkState oldState = extract_network_state(ann_network);
+    std::string oldNetworkString = exportDebugInfoNetwork(ann_network.network);
 
     std::vector<ScoreItem<T> > scores(candidates.size());
 
@@ -218,12 +219,18 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
 
         scores[i] = ScoreItem<T>{move, worstScore, bicScore};
 
+        std::string midNetworkString = exportDebugInfoNetwork(ann_network.network);
+        assert(oldNetworkString != midNetworkString);
+
         if (isComplexityChangingMove(move.moveType)) {
             apply_network_state(ann_network, oldState, true);
         } else {
             undoMove(ann_network, move);
             apply_network_state(ann_network, oldState, false);
         }
+
+        std::string newNetworkString = exportDebugInfoNetwork(ann_network.network);
+        assert(oldNetworkString == newNetworkString);
 
         assert(checkSanity(ann_network, move));
 
