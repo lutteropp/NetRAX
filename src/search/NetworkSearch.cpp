@@ -214,6 +214,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
         optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
         double worstScore = getWorstReticulationScore(ann_network);
         double bicScore = scoreNetwork(ann_network);
+
         scores[i] = ScoreItem<T>{move, worstScore, bicScore};
 
         if (isComplexityChangingMove(move.moveType)) {
@@ -221,6 +222,12 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
         } else {
             undoMove(ann_network, move);
             apply_network_state(ann_network, oldState, false);
+        }
+
+        if (bicScore < old_bic) {
+            candidates[0] = candidates[i];
+            candidates.resize(1);
+            return;
         }
     }
 
@@ -253,9 +260,9 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
         return;
     }
 
-    /*if (candidates[0].moveType != MoveType::ArcRemovalMove) {
+    if (candidates[0].moveType != MoveType::ArcRemovalMove) {
         prefilterCandidates(ann_network, candidates, true);
-    }*/
+    }
 
     std::cout << "MoveType: " << toString(candidates[0].moveType) << "\n";
 
@@ -281,6 +288,7 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
         
         double worstScore = getWorstReticulationScore(ann_network);
         double bicScore = scoreNetwork(ann_network);
+
         scores[i] = ScoreItem<T>{move, worstScore, bicScore};
 
         if (isComplexityChangingMove(move.moveType)) {
@@ -288,6 +296,12 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
         } else {
             undoMove(ann_network, move);
             apply_network_state(ann_network, oldState, false);
+        }
+
+        if (bicScore < old_bic) {
+            candidates[0] = candidates[i];
+            candidates.resize(1);
+            return;
         }
     }
 
@@ -442,14 +456,10 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
     double best_score = std::numeric_limits<double>::infinity();
     ScoreImprovementResult score_improvement;
 
-    // remove bad reticulations
-    std::vector<MoveType> removalMove = {MoveType::ArcRemovalMove};
-    optimizeEverythingRun(ann_network, removalMove, start_state_to_reuse, best_state_to_reuse, start_time, true);
-
     //std::vector<MoveType> typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::HeadMove, MoveType::ArcInsertionMove};
     //std::vector<MoveType> typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::HeadMove, MoveType::DeltaPlusMove};
 
-    std::vector<MoveType> typesBySpeed = {MoveType::RNNIMove, MoveType::DeltaPlusMove};
+    std::vector<MoveType> typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::DeltaPlusMove};
 
     std::cout << "Initial network is:\n" << toExtendedNewick(ann_network) << "\n\n";
 
