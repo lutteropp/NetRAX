@@ -295,7 +295,7 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
             apply_network_state(ann_network, oldState, true);
         } else {
             undoMove(ann_network, move);
-            apply_network_state(ann_network, oldState, false);
+            apply_network_state(ann_network, oldState, true);
         }
 
         if (bicScore < old_bic) {
@@ -459,7 +459,7 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
     //std::vector<MoveType> typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::HeadMove, MoveType::ArcInsertionMove};
     //std::vector<MoveType> typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::HeadMove, MoveType::DeltaPlusMove};
 
-    std::vector<MoveType> typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::DeltaPlusMove};
+    std::vector<MoveType> typesBySpeed = {MoveType::DeltaMinusMove, MoveType::RNNIMove, MoveType::DeltaPlusMove};
 
     std::cout << "Initial network is:\n" << toExtendedNewick(ann_network) << "\n\n";
 
