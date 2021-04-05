@@ -270,10 +270,10 @@ void rankArcInsertionCandidatesTemplated(AnnotatedNetwork& ann_network, std::vec
     }
 
     std::sort(scores.begin(), scores.end(), [](const ScoreItem& lhs, const ScoreItem& rhs) {
-        if (lhs.worstScore == rhs.worstScore) {
-            return lhs.bicScore < rhs.bicScore;
+        if (lhs.bicScore == rhs.bicScore) {
+            return lhs.worstScore > rhs.worstScore;
         }
-        return lhs.worstScore > rhs.worstScore;
+        return lhs.bicScore < rhs.bicScore;
     });
 
     for (size_t i = 0; i < candidates.size(); ++i) {
