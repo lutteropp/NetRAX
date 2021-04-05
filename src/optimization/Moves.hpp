@@ -29,6 +29,28 @@ struct GeneralMove {
             moveType(type) {
     }
     MoveType moveType;
+
+    GeneralMove(GeneralMove&& rhs) : moveType{rhs.moveType} {}
+
+    GeneralMove(const GeneralMove& rhs) : moveType{rhs.moveType} {}
+
+    GeneralMove& operator =(GeneralMove&& rhs)
+    {
+        if (this != &rhs)
+        {
+            moveType = rhs.moveType;
+        }
+        return *this;
+    }
+
+    GeneralMove& operator =(const GeneralMove& rhs)
+    {
+        if (this != &rhs)
+        {
+            moveType = rhs.moveType;
+        }
+        return *this;
+    }
 };
 
 enum class RNNIMoveType {
@@ -45,6 +67,38 @@ struct RNNIMove: public GeneralMove {
     size_t s_clv_index = 0;
     size_t t_clv_index = 0;
     RNNIMoveType type = RNNIMoveType::ONE;
+
+    RNNIMove(RNNIMove&& rhs) : GeneralMove{rhs}, u_clv_index{rhs.u_clv_index}, v_clv_index{rhs.u_clv_index}, s_clv_index{rhs.s_clv_index}, t_clv_index{rhs.t_clv_index}, type{rhs.type} {}
+
+    RNNIMove(const RNNIMove& rhs) : GeneralMove{rhs}, u_clv_index{rhs.u_clv_index}, v_clv_index{rhs.u_clv_index}, s_clv_index{rhs.s_clv_index}, t_clv_index{rhs.t_clv_index}, type{rhs.type} {}
+
+    RNNIMove& operator =(RNNIMove&& rhs)
+    {
+        if (this != &rhs)
+        {
+            u_clv_index = rhs.u_clv_index;
+            v_clv_index = rhs.v_clv_index;
+            s_clv_index = rhs.s_clv_index;
+            t_clv_index = rhs.t_clv_index;
+            type = rhs.type;
+        }
+        GeneralMove::operator=(rhs);
+        return *this;
+    }
+
+    RNNIMove& operator =(const RNNIMove& rhs)
+    {
+        if (this != &rhs)
+        {
+            u_clv_index = rhs.u_clv_index;
+            v_clv_index = rhs.v_clv_index;
+            s_clv_index = rhs.s_clv_index;
+            t_clv_index = rhs.t_clv_index;
+            type = rhs.type;
+        }
+        GeneralMove::operator=(rhs);
+        return *this;
+    }
 };
 
 struct RSPRMove: public GeneralMove {
@@ -61,6 +115,44 @@ struct RSPRMove: public GeneralMove {
     std::vector<double> x_z_len = {0};
     std::vector<double> z_y_len = {0};
     std::vector<double> x_prime_y_prime_len = {0};
+
+    RSPRMove(RSPRMove&& rhs) : GeneralMove{rhs}, x_prime_clv_index{rhs.x_prime_clv_index}, y_prime_clv_index{rhs.y_prime_clv_index}, x_clv_index{rhs.x_clv_index}, y_clv_index{rhs.y_clv_index}, z_clv_index{rhs.z_clv_index}, x_z_len{rhs.x_z_len}, z_y_len{rhs.z_y_len}, x_prime_y_prime_len{rhs.x_prime_y_prime_len} {}
+
+    RSPRMove(const RSPRMove& rhs) : GeneralMove{rhs}, x_prime_clv_index{rhs.x_prime_clv_index}, y_prime_clv_index{rhs.y_prime_clv_index}, x_clv_index{rhs.x_clv_index}, y_clv_index{rhs.y_clv_index}, z_clv_index{rhs.z_clv_index}, x_z_len{rhs.x_z_len}, z_y_len{rhs.z_y_len}, x_prime_y_prime_len{rhs.x_prime_y_prime_len} {}
+
+    RSPRMove& operator =(RSPRMove&& rhs)
+    {
+        if (this != &rhs)
+        {
+            x_prime_clv_index = rhs.x_prime_clv_index;
+            y_prime_clv_index = rhs.y_prime_clv_index;
+            x_clv_index = rhs.x_clv_index;
+            y_clv_index = rhs.y_clv_index;
+            z_clv_index = rhs.z_clv_index;
+            x_z_len = rhs.x_z_len;
+            z_y_len = rhs.z_y_len;
+            x_prime_y_prime_len = rhs.x_prime_y_prime_len;
+        }
+        GeneralMove::operator=(rhs);
+        return *this;
+    }
+
+    RSPRMove& operator =(const RSPRMove& rhs)
+    {
+        if (this != &rhs)
+        {
+            x_prime_clv_index = rhs.x_prime_clv_index;
+            y_prime_clv_index = rhs.y_prime_clv_index;
+            x_clv_index = rhs.x_clv_index;
+            y_clv_index = rhs.y_clv_index;
+            z_clv_index = rhs.z_clv_index;
+            x_z_len = rhs.x_z_len;
+            z_y_len = rhs.z_y_len;
+            x_prime_y_prime_len = rhs.x_prime_y_prime_len;
+        }
+        GeneralMove::operator=(rhs);
+        return *this;
+    }
 };
 
 struct ArcInsertionMove: public GeneralMove {
@@ -92,6 +184,68 @@ struct ArcInsertionMove: public GeneralMove {
 
     std::vector<double> v_d_len = {0};
     std::vector<double> u_b_len = {0};
+
+    ArcInsertionMove(ArcInsertionMove&& rhs) : GeneralMove{rhs}, a_clv_index{rhs.a_clv_index}, b_clv_index{rhs.b_clv_index}, c_clv_index{rhs.c_clv_index}, d_clv_index{rhs.d_clv_index}, u_v_len{rhs.u_v_len}, c_v_len{rhs.c_v_len}, a_u_len{rhs.a_u_len}, wanted_u_clv_index{rhs.wanted_u_clv_index}, wanted_v_clv_index{rhs.wanted_v_clv_index}, wanted_au_pmatrix_index{rhs.wanted_au_pmatrix_index}, wanted_ub_pmatrix_index{rhs.wanted_ub_pmatrix_index}, wanted_cv_pmatrix_index{rhs.wanted_cv_pmatrix_index}, wanted_vd_pmatrix_index{rhs.wanted_vd_pmatrix_index}, wanted_uv_pmatrix_index{rhs.wanted_uv_pmatrix_index}, ab_pmatrix_index{rhs.ab_pmatrix_index}, cd_pmatrix_index{rhs.cd_pmatrix_index}, a_b_len{rhs.a_b_len}, c_d_len{rhs.c_d_len}, v_d_len{rhs.v_d_len}, u_b_len{rhs.u_b_len}  {}
+
+    ArcInsertionMove(const ArcInsertionMove& rhs) : GeneralMove{rhs}, a_clv_index{rhs.a_clv_index}, b_clv_index{rhs.b_clv_index}, c_clv_index{rhs.c_clv_index}, d_clv_index{rhs.d_clv_index}, u_v_len{rhs.u_v_len}, c_v_len{rhs.c_v_len}, a_u_len{rhs.a_u_len}, wanted_u_clv_index{rhs.wanted_u_clv_index}, wanted_v_clv_index{rhs.wanted_v_clv_index}, wanted_au_pmatrix_index{rhs.wanted_au_pmatrix_index}, wanted_ub_pmatrix_index{rhs.wanted_ub_pmatrix_index}, wanted_cv_pmatrix_index{rhs.wanted_cv_pmatrix_index}, wanted_vd_pmatrix_index{rhs.wanted_vd_pmatrix_index}, wanted_uv_pmatrix_index{rhs.wanted_uv_pmatrix_index}, ab_pmatrix_index{rhs.ab_pmatrix_index}, cd_pmatrix_index{rhs.cd_pmatrix_index}, a_b_len{rhs.a_b_len}, c_d_len{rhs.c_d_len}, v_d_len{rhs.v_d_len}, u_b_len{rhs.u_b_len}  {}
+
+    ArcInsertionMove& operator =(ArcInsertionMove&& rhs)
+    {
+        if (this != &rhs)
+        {
+            a_clv_index = rhs.a_clv_index;
+            b_clv_index = rhs.b_clv_index;
+            c_clv_index = rhs.c_clv_index;
+            d_clv_index = rhs.d_clv_index;
+            u_v_len = rhs.u_v_len;
+            c_v_len = rhs.c_v_len;
+            a_u_len = rhs.a_u_len;
+            wanted_u_clv_index = rhs.wanted_u_clv_index;
+            wanted_v_clv_index = rhs.wanted_v_clv_index;
+            wanted_au_pmatrix_index = rhs.wanted_au_pmatrix_index;
+            wanted_ub_pmatrix_index = rhs.wanted_ub_pmatrix_index;
+            wanted_cv_pmatrix_index = rhs.wanted_cv_pmatrix_index;
+            wanted_vd_pmatrix_index = rhs.wanted_vd_pmatrix_index;
+            wanted_uv_pmatrix_index = rhs.wanted_uv_pmatrix_index;
+            ab_pmatrix_index = rhs.ab_pmatrix_index;
+            cd_pmatrix_index = rhs.cd_pmatrix_index;
+            a_b_len = rhs.a_b_len;
+            c_d_len = rhs.c_d_len;
+            v_d_len = rhs.v_d_len;
+            u_b_len = rhs.u_b_len;
+        }
+        GeneralMove::operator=(rhs);
+        return *this;
+    }
+
+    ArcInsertionMove& operator =(const ArcInsertionMove& rhs)
+    {
+        if (this != &rhs)
+        {
+            a_clv_index = rhs.a_clv_index;
+            b_clv_index = rhs.b_clv_index;
+            c_clv_index = rhs.c_clv_index;
+            d_clv_index = rhs.d_clv_index;
+            u_v_len = rhs.u_v_len;
+            c_v_len = rhs.c_v_len;
+            a_u_len = rhs.a_u_len;
+            wanted_u_clv_index = rhs.wanted_u_clv_index;
+            wanted_v_clv_index = rhs.wanted_v_clv_index;
+            wanted_au_pmatrix_index = rhs.wanted_au_pmatrix_index;
+            wanted_ub_pmatrix_index = rhs.wanted_ub_pmatrix_index;
+            wanted_cv_pmatrix_index = rhs.wanted_cv_pmatrix_index;
+            wanted_vd_pmatrix_index = rhs.wanted_vd_pmatrix_index;
+            wanted_uv_pmatrix_index = rhs.wanted_uv_pmatrix_index;
+            ab_pmatrix_index = rhs.ab_pmatrix_index;
+            cd_pmatrix_index = rhs.cd_pmatrix_index;
+            a_b_len = rhs.a_b_len;
+            c_d_len = rhs.c_d_len;
+            v_d_len = rhs.v_d_len;
+            u_b_len = rhs.u_b_len;
+        }
+        GeneralMove::operator=(rhs);
+        return *this;
+    }
 };
 
 struct ArcRemovalMove: public GeneralMove {
@@ -123,6 +277,68 @@ struct ArcRemovalMove: public GeneralMove {
 
     std::vector<double> v_d_len = {0};
     std::vector<double> u_b_len = {0};
+
+    ArcRemovalMove(ArcRemovalMove&& rhs) : GeneralMove{rhs}, a_clv_index{rhs.a_clv_index}, b_clv_index{rhs.b_clv_index}, c_clv_index{rhs.c_clv_index}, d_clv_index{rhs.d_clv_index}, u_clv_index{rhs.u_clv_index}, v_clv_index{rhs.v_clv_index}, u_v_len{rhs.u_v_len}, c_v_len{rhs.c_v_len}, a_u_len{rhs.a_u_len}, au_pmatrix_index{rhs.au_pmatrix_index}, ub_pmatrix_index{rhs.ub_pmatrix_index}, cv_pmatrix_index{rhs.cv_pmatrix_index}, vd_pmatrix_index{rhs.vd_pmatrix_index}, uv_pmatrix_index{rhs.uv_pmatrix_index}, wanted_ab_pmatrix_index{rhs.wanted_ab_pmatrix_index}, wanted_cd_pmatrix_index{rhs.wanted_cd_pmatrix_index}, a_b_len{rhs.a_b_len}, c_d_len{rhs.c_d_len}, v_d_len{rhs.v_d_len}, u_b_len{rhs.u_b_len} {}
+
+    ArcRemovalMove(const ArcRemovalMove& rhs) : GeneralMove{rhs}, a_clv_index{rhs.a_clv_index}, b_clv_index{rhs.b_clv_index}, c_clv_index{rhs.c_clv_index}, d_clv_index{rhs.d_clv_index}, u_clv_index{rhs.u_clv_index}, v_clv_index{rhs.v_clv_index}, u_v_len{rhs.u_v_len}, c_v_len{rhs.c_v_len}, a_u_len{rhs.a_u_len}, au_pmatrix_index{rhs.au_pmatrix_index}, ub_pmatrix_index{rhs.ub_pmatrix_index}, cv_pmatrix_index{rhs.cv_pmatrix_index}, vd_pmatrix_index{rhs.vd_pmatrix_index}, uv_pmatrix_index{rhs.uv_pmatrix_index}, wanted_ab_pmatrix_index{rhs.wanted_ab_pmatrix_index}, wanted_cd_pmatrix_index{rhs.wanted_cd_pmatrix_index}, a_b_len{rhs.a_b_len}, c_d_len{rhs.c_d_len}, v_d_len{rhs.v_d_len}, u_b_len{rhs.u_b_len} {}
+
+    ArcRemovalMove& operator =(ArcRemovalMove&& rhs)
+    {
+        if (this != &rhs)
+        {
+            a_clv_index = rhs.a_clv_index;
+            b_clv_index = rhs.b_clv_index;
+            c_clv_index = rhs.c_clv_index;
+            d_clv_index = rhs.d_clv_index;
+            u_clv_index = rhs.u_clv_index;
+            v_clv_index = rhs.v_clv_index;
+            u_v_len = rhs.u_v_len;
+            c_v_len = rhs.c_v_len;
+            a_u_len = rhs.a_u_len;
+            au_pmatrix_index = rhs.au_pmatrix_index;
+            ub_pmatrix_index = rhs.ub_pmatrix_index;
+            cv_pmatrix_index = rhs.cv_pmatrix_index;
+            vd_pmatrix_index = rhs.vd_pmatrix_index;
+            uv_pmatrix_index = rhs.uv_pmatrix_index;
+            wanted_ab_pmatrix_index = rhs.wanted_ab_pmatrix_index;
+            wanted_cd_pmatrix_index = rhs.wanted_cd_pmatrix_index;
+            a_b_len = rhs.a_b_len;
+            c_d_len = rhs.c_d_len;
+            v_d_len = rhs.v_d_len;
+            u_b_len = rhs.u_b_len;
+        }
+        GeneralMove::operator=(rhs);
+        return *this;
+    }
+
+    ArcRemovalMove& operator =(const ArcRemovalMove& rhs)
+    {
+        if (this != &rhs)
+        {
+            a_clv_index = rhs.a_clv_index;
+            b_clv_index = rhs.b_clv_index;
+            c_clv_index = rhs.c_clv_index;
+            d_clv_index = rhs.d_clv_index;
+            u_clv_index = rhs.u_clv_index;
+            v_clv_index = rhs.v_clv_index;
+            u_v_len = rhs.u_v_len;
+            c_v_len = rhs.c_v_len;
+            a_u_len = rhs.a_u_len;
+            au_pmatrix_index = rhs.au_pmatrix_index;
+            ub_pmatrix_index = rhs.ub_pmatrix_index;
+            cv_pmatrix_index = rhs.cv_pmatrix_index;
+            vd_pmatrix_index = rhs.vd_pmatrix_index;
+            uv_pmatrix_index = rhs.uv_pmatrix_index;
+            wanted_ab_pmatrix_index = rhs.wanted_ab_pmatrix_index;
+            wanted_cd_pmatrix_index = rhs.wanted_cd_pmatrix_index;
+            a_b_len = rhs.a_b_len;
+            c_d_len = rhs.c_d_len;
+            v_d_len = rhs.v_d_len;
+            u_b_len = rhs.u_b_len;
+        }
+        GeneralMove::operator=(rhs);
+        return *this;
+    }
 };
 
 std::vector<double> get_edge_lengths(AnnotatedNetwork &ann_network, size_t pmatrix_index);
