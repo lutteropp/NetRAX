@@ -122,6 +122,12 @@ void extract_network_state(AnnotatedNetwork &ann_network, NetworkState& state_to
 
     state_to_reuse.cached_logl = ann_network.cached_logl;
     state_to_reuse.cached_logl_valid = ann_network.cached_logl_valid;
+
+    state_to_reuse.bic_score = scoreNetwork(ann_network);
+
+    if (!ann_network.cached_logl_valid) {
+        throw std::runtime_error("Invalid cached logl");
+    }
 }
 
 NetworkState extract_network_state(AnnotatedNetwork &ann_network, bool extract_network) {

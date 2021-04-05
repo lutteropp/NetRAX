@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <queue>
 
 #include "../likelihood/mpreal.h"
 #include "../graph/AnnotatedNetwork.hpp"
@@ -168,7 +169,7 @@ ScoreImprovementResult check_score_improvement(AnnotatedNetwork& ann_network, do
     return ScoreImprovementResult{local_improved, global_improved};
 }
 
-double optimizeEverythingRun(AnnotatedNetwork & ann_network, std::vector<MoveType>& typesBySpeed, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, const std::chrono::high_resolution_clock::time_point& start_time, bool greedy = true) {
+double optimizeEverythingRun(AnnotatedNetwork & ann_network, std::vector<MoveType>& typesBySpeed, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, const std::chrono::high_resolution_clock::time_point& start_time, TopoSettings topoSettings) {
     unsigned int type_idx = 0;
     unsigned int max_seconds = ann_network.options.timeout;
     double best_score = scoreNetwork(ann_network);
@@ -194,7 +195,7 @@ double optimizeEverythingRun(AnnotatedNetwork & ann_network, std::vector<MoveTyp
             break;
         }
         double old_score = scoreNetwork(ann_network);
-        optimizeTopology(ann_network, typesBySpeed[type_idx], start_state_to_reuse, best_state_to_reuse, greedy, false, false, 1);
+        optimizeTopology(ann_network, typesBySpeed[type_idx], start_state_to_reuse, best_state_to_reuse, topoSettings, 1);
         double new_score = scoreNetwork(ann_network);
         if (old_score - new_score > ann_network.options.score_epsilon) { // score got better
             new_score = scoreNetwork(ann_network);
@@ -238,10 +239,10 @@ struct ScoreItem {
 };
 
 template <typename T>
-std::vector<NetworkState> rankArcInsertionCandidatesTemplated(AnnotatedNetwork& ann_network, std::vector<T>& candidates) {
+void rankArcInsertionCandidatesTemplated(AnnotatedNetwork& ann_network, std::vector<T>& candidates) {
     std::vector<NetworkState> states;
     if (candidates.empty()) {
-        return states;
+        return;
     }
 
     double brlen_smooth_factor = 0.2;
@@ -276,10 +277,6 @@ std::vector<NetworkState> rankArcInsertionCandidatesTemplated(AnnotatedNetwork& 
         double worstScore = getWorstReticulationScore(ann_network);
         double bicScore = scoreNetwork(ann_network);
 
-        if (bicScore <= old_bic) {
-            states.emplace_back(extract_network_state(ann_network));
-        }
-
         scores[i] = ScoreItem{move, worstScore, bicScore};
 
         //undoMove(ann_network, move);
@@ -308,12 +305,10 @@ std::vector<NetworkState> rankArcInsertionCandidatesTemplated(AnnotatedNetwork& 
     }
     std::cout << "New size of candidates: " << new_size << "\n";
     candidates.resize(new_size);
-
-    return states;
 }
 
-std::vector<NetworkState> rankArcInsertionCandidates(AnnotatedNetwork& ann_network, std::vector<ArcInsertionMove>& candidates) {
-    return rankArcInsertionCandidatesTemplated(ann_network, candidates);
+void rankArcInsertionCandidates(AnnotatedNetwork& ann_network, std::vector<ArcInsertionMove>& candidates) {
+    rankArcInsertionCandidatesTemplated(ann_network, candidates);
 }
 
 void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData, std::mt19937& rng) {
@@ -331,30 +326,37 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
 
     score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
 
+    TopoSettings topoSettings;
+    topoSettings.greedy = true;
+    //topoSettings.randomize_candidates = true;
+
     // try removing reticulations
     MoveType removalType = MoveType::ArcRemovalMove;
-    netrax::greedyHillClimbingTopology(ann_network, removalType, start_state_to_reuse, best_state_to_reuse, false);
+    netrax::greedyHillClimbingTopology(ann_network, removalType, start_state_to_reuse, best_state_to_reuse, topoSettings);
 
     // try horizontal moves
-    optimizeEverythingRun(ann_network, typesBySpeed, start_state_to_reuse, best_state_to_reuse, start_time, true);
+    optimizeEverythingRun(ann_network, typesBySpeed, start_state_to_reuse, best_state_to_reuse, start_time, topoSettings);
     score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
 
     bool improved = true;
     while (improved) {
         std::vector<ArcInsertionMove> arcInsertionCandidates = possibleArcInsertionMoves(ann_network);
-        std::vector<NetworkState> states = rankArcInsertionCandidates(ann_network, arcInsertionCandidates);
+        rankArcInsertionCandidates(ann_network, arcInsertionCandidates);
+        NetworkState old_state = extract_network_state(ann_network);
 
         improved = false;
 
-        for (size_t i = 0; i < states.size(); ++i) {
-            apply_network_state(ann_network, states[i]);
-            ann_network.stats.moves_taken[MoveType::ArcInsertionMove]++;
-            optimizeEverythingRun(ann_network, typesBySpeed, start_state_to_reuse, best_state_to_reuse, start_time, true);
+        for (size_t i = 0; i < arcInsertionCandidates.size(); ++i) {
+            performMove(ann_network, arcInsertionCandidates[i]);
+            optimizeAllNonTopology(ann_network);
+
+            optimizeEverythingRun(ann_network, typesBySpeed, start_state_to_reuse, best_state_to_reuse, start_time, topoSettings);
             score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
             if (score_improvement.local_improved) {
                 improved = true;
+                break;
             }
-            i++;
+            apply_network_state(ann_network, old_state);
         }
     }
 }

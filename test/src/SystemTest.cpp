@@ -159,7 +159,7 @@ void problemTestOptTopology(const std::string &newick, MoveType type) {
 
     NetworkState start_state_to_reuse = extract_network_state(ann_network, false);
     NetworkState best_state_to_reuse = extract_network_state(ann_network, false);
-    greedyHillClimbingTopology(ann_network, type, start_state_to_reuse, best_state_to_reuse);
+    greedyHillClimbingTopology(ann_network, type, start_state_to_reuse, best_state_to_reuse, TopoSettings());
 }
 
 TEST (SystemTest, problemFillSkippedNodesRecursive) {

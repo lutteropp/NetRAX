@@ -27,6 +27,15 @@ struct NetworkState {
 
     double cached_logl;
     bool cached_logl_valid;
+    double bic_score;
+};
+
+
+struct CompareBIC {
+    bool operator()(const NetworkState& s1, const NetworkState& s2)
+    {
+        return s1.bic_score > s2.bic_score;
+    }
 };
 
 NetworkState extract_network_state(AnnotatedNetwork &ann_network, bool extract_network = true);
