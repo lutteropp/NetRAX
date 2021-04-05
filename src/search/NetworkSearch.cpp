@@ -212,14 +212,10 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
     NetworkState oldState = extract_network_state(ann_network);
     std::string oldNetworkString = exportDebugInfoNetwork(ann_network.network);
 
-    if (candidates[0].moveType == MoveType::DeltaMinusMove) {
-        printCandidates(candidates);
-    }
-
     std::vector<ScoreItem<T> > scores(candidates.size());
 
     for (size_t i = 0; i < candidates.size(); ++i) {
-        T move = candidates[i];
+        T move(candidates[i]);
         assert(checkSanity(ann_network, move));
         performMove(ann_network, move);
         optimizeReticulationProbs(ann_network);
@@ -251,11 +247,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
 
         assert(neighborsSame(ann_network.network, oldState.network));
 
-        if (candidates[0].moveType == MoveType::DeltaMinusMove) {
-            printCandidates(candidates);
-            std::cout << toString(move) << "\n";
-        }
-        assert(checkSanity(ann_network, move));
+        assert(checkSanity(ann_network, candidates[i]));
 
         if (bicScore < old_bic) {
             candidates[0] = candidates[i];
@@ -284,10 +276,6 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
     }
     if (!silent) std::cout << "New size after prefiltering: " << newSize << " vs. " << candidates.size() << "\n";
 
-    if (candidates[0].moveType == MoveType::DeltaMinusMove) {
-        printCandidates(candidates);
-    }
-
     candidates.resize(newSize);
 }
 
@@ -314,7 +302,7 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
     std::vector<ScoreItem<T> > scores(candidates.size());
 
     for (size_t i = 0; i < candidates.size(); ++i) {
-        T move = candidates[i];
+        T move(candidates[i]);
         performMove(ann_network, move);
 
         std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
@@ -334,7 +322,7 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
             undoMove(ann_network, move);
             apply_network_state(ann_network, oldState, true);
         }
-        assert(checkSanity(ann_network, move));
+        assert(checkSanity(ann_network, candidates[i]));
 
         if (bicScore < old_bic) {
             candidates[0] = candidates[i];
