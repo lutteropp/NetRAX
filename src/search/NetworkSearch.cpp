@@ -168,58 +168,6 @@ ScoreImprovementResult check_score_improvement(AnnotatedNetwork& ann_network, do
     return ScoreImprovementResult{local_improved, global_improved};
 }
 
-double optimizeEverythingRun(AnnotatedNetwork & ann_network, std::vector<MoveType>& typesBySpeed, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, const std::chrono::high_resolution_clock::time_point& start_time, bool greedy = true) {
-    unsigned int type_idx = 0;
-    unsigned int max_seconds = ann_network.options.timeout;
-    double best_score = scoreNetwork(ann_network);
-    do {
-        while (ann_network.network.num_reticulations() == 0
-            && (typesBySpeed[type_idx] == MoveType::DeltaMinusMove || typesBySpeed[type_idx] == MoveType::ArcRemovalMove)) {
-            type_idx++;
-            if (type_idx >= typesBySpeed.size()) {
-                break;
-            }
-        }
-        if (type_idx >= typesBySpeed.size()) {
-            break;
-        }
-        while (ann_network.network.num_reticulations() == ann_network.options.max_reticulations
-            && (typesBySpeed[type_idx] == MoveType::DeltaPlusMove || typesBySpeed[type_idx] == MoveType::ArcInsertionMove)) {
-            type_idx++;
-            if (type_idx >= typesBySpeed.size()) {
-                break;
-            }
-        }
-        if (type_idx >= typesBySpeed.size()) {
-            break;
-        }
-        double old_score = scoreNetwork(ann_network);
-        optimizeTopology(ann_network, typesBySpeed[type_idx], start_state_to_reuse, best_state_to_reuse, greedy, false, false, 1);
-        double new_score = scoreNetwork(ann_network);
-        if (old_score - new_score > ann_network.options.score_epsilon) { // score got better
-            new_score = scoreNetwork(ann_network);
-            best_score = new_score;
-
-            type_idx = 0; // go back to fastest move type        
-        } else { // try next-slower move type
-            type_idx++;
-        }
-        assert(new_score <= old_score + ann_network.options.score_epsilon);
-
-        if (max_seconds != 0) {
-            auto act_time = std::chrono::high_resolution_clock::now();
-            if (std::chrono::duration_cast<std::chrono::seconds>( act_time - start_time ).count() >= max_seconds) {
-                break;
-            }
-        }
-    } while (type_idx < typesBySpeed.size());
-
-    optimizeAllNonTopology(ann_network, true);
-    best_score = scoreNetwork(ann_network);
-
-    return best_score;
-}
-
 double getWorstReticulationScore(AnnotatedNetwork& ann_network) {
     double worst = 1.0;
     for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
@@ -281,6 +229,58 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates) {
         std::cout << "candidate " << i + 1 << "/" << candidates.size() << " has worst score " << scores[i].worstScore << ", BIC: " << scores[i].bicScore << "\n";
         candidates[i] = scores[i].move;
     }
+}
+
+double optimizeEverythingRun(AnnotatedNetwork & ann_network, std::vector<MoveType>& typesBySpeed, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, const std::chrono::high_resolution_clock::time_point& start_time, bool greedy = true) {
+    unsigned int type_idx = 0;
+    unsigned int max_seconds = ann_network.options.timeout;
+    double best_score = scoreNetwork(ann_network);
+    do {
+        while (ann_network.network.num_reticulations() == 0
+            && (typesBySpeed[type_idx] == MoveType::DeltaMinusMove || typesBySpeed[type_idx] == MoveType::ArcRemovalMove)) {
+            type_idx++;
+            if (type_idx >= typesBySpeed.size()) {
+                break;
+            }
+        }
+        if (type_idx >= typesBySpeed.size()) {
+            break;
+        }
+        while (ann_network.network.num_reticulations() == ann_network.options.max_reticulations
+            && (typesBySpeed[type_idx] == MoveType::DeltaPlusMove || typesBySpeed[type_idx] == MoveType::ArcInsertionMove)) {
+            type_idx++;
+            if (type_idx >= typesBySpeed.size()) {
+                break;
+            }
+        }
+        if (type_idx >= typesBySpeed.size()) {
+            break;
+        }
+        double old_score = scoreNetwork(ann_network);
+        optimizeTopology(ann_network, typesBySpeed[type_idx], start_state_to_reuse, best_state_to_reuse, greedy, false, false, 1);
+        double new_score = scoreNetwork(ann_network);
+        if (old_score - new_score > ann_network.options.score_epsilon) { // score got better
+            new_score = scoreNetwork(ann_network);
+            best_score = new_score;
+
+            type_idx = 0; // go back to fastest move type        
+        } else { // try next-slower move type
+            type_idx++;
+        }
+        assert(new_score <= old_score + ann_network.options.score_epsilon);
+
+        if (max_seconds != 0) {
+            auto act_time = std::chrono::high_resolution_clock::now();
+            if (std::chrono::duration_cast<std::chrono::seconds>( act_time - start_time ).count() >= max_seconds) {
+                break;
+            }
+        }
+    } while (type_idx < typesBySpeed.size());
+
+    optimizeAllNonTopology(ann_network, true);
+    best_score = scoreNetwork(ann_network);
+
+    return best_score;
 }
 
 double forceApplyArcInsertion(AnnotatedNetwork& ann_network) {

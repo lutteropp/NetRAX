@@ -263,7 +263,7 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, MoveType type, 
        if (act_iterations >= max_iterations) {
            break;
        }
-    } while (old_bic - new_score > ann_network.options.score_epsilon);
+    } while (new_score < old_bic);
     return computeLoglikelihood(ann_network);
 }
 
