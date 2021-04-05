@@ -200,9 +200,6 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
 
     NetworkState oldState = extract_network_state(ann_network);
 
-    NetworkState reuseMe1 = extract_network_state(ann_network);
-    NetworkState reuseMe2 = extract_network_state(ann_network);
-
     std::vector<ScoreItem<T> > scores(candidates.size());
 
     for (size_t i = 0; i < candidates.size(); ++i) {
