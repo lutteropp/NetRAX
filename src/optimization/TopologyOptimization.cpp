@@ -139,7 +139,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         double new_score = bic(ann_network, new_logl);
 
         bool foundBetterScore = false;
-        if (new_score < old_score - ann_network.options.score_epsilon) {
+        if (new_score < old_score) {
             best_score = new_score;
             best_idx = i;
             extract_network_state(ann_network, best_state_to_reuse, complexityChanging);
