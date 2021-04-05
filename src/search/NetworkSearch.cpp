@@ -290,7 +290,7 @@ double forceApplyArcInsertion(AnnotatedNetwork& ann_network) {
     double brlen_smooth_factor = 0.25;
     int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
     int radius = 1;
-    
+
     double old_logl = computeLoglikelihood(ann_network);
     NetworkState startState = extract_network_state(ann_network);
 
@@ -410,12 +410,11 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
             //std::cout << "insertion cand index:\n";
             //performMove(ann_network, arcInsertionCandidates[insertion_cand_idx]);
             forceApplyArcInsertion(ann_network);
-
+            ann_network.stats.moves_taken[MoveType::ArcInsertionMove]++;
 
             // old and deprecated: randomly add new reticulation
             //std::cout << "\nRandomly adding a reticulation\n";
             //add_extra_reticulations(ann_network, ann_network.network.num_reticulations() + 1);
-            //ann_network.stats.moves_taken[MoveType::ArcInsertionMove]++;
 
             // new version: search for good place to add the new reticulation
             //MoveType insertionType = MoveType::ArcInsertionMove;
