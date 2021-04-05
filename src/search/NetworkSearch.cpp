@@ -232,6 +232,10 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
         std::string newNetworkString = exportDebugInfoNetwork(ann_network.network);
         assert(oldNetworkString == newNetworkString);
 
+        for (size_t j = 0; j < ann_network.network.num_nodes(); ++j) {
+            assert(ann_network.network.nodes_by_index[j]->clv_index == j);
+        }
+
         assert(checkSanity(ann_network, move));
 
         if (bicScore < old_bic) {
