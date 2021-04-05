@@ -355,8 +355,6 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
 
     //std::vector<ArcInsertionMove> arcInsertionCandidates = possibleArcInsertionMoves(ann_network);
 
-    size_t count_add_reticulation_failed = 0;
-
     //AnnotatedNetwork ann_network_before
 
     bool keepSearching = true;
@@ -379,12 +377,6 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
                     optimizeEverythingRun(ann_network, typesBySpeed, start_state_to_reuse, best_state_to_reuse, start_time, true);
                 }
                 score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
-            }
-
-            if (score_improvement.global_improved) {
-                count_add_reticulation_failed = 0;
-                keepSearching = true;
-                continue;
             }
 
             if (score_improvement.local_improved) {
@@ -443,15 +435,8 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
             score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
 
             if (score_improvement.global_improved) {
-                count_add_reticulation_failed = 0;
                 keepSearching = true;
                 continue;
-            } else {
-                count_add_reticulation_failed++;
-                if (count_add_reticulation_failed <= 5) {
-                    keepSearching = true;
-                    continue;
-                }
             }
         }
     }
