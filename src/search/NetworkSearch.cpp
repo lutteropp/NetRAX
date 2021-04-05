@@ -321,24 +321,24 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
     optimizeAllNonTopology(ann_network, true);
     std::cout << "Initial network after modelopt+brlenopt+reticulation opt is:\n" << toExtendedNewick(ann_network) << "\n\n";
 
-    std::vector<MoveType> typesBySpeed = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::HeadMove};
+    std::vector<MoveType> typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::HeadMove, MoveType::ArcInsertionMove};
     ScoreImprovementResult score_improvement;
 
     score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
 
     TopoSettings topoSettings;
-    topoSettings.greedy = true;
+    topoSettings.greedy = false;
     //topoSettings.randomize_candidates = true;
 
     // try removing reticulations
-    MoveType removalType = MoveType::ArcRemovalMove;
-    netrax::greedyHillClimbingTopology(ann_network, removalType, start_state_to_reuse, best_state_to_reuse, topoSettings);
+    //MoveType removalType = MoveType::ArcRemovalMove;
+    //netrax::greedyHillClimbingTopology(ann_network, removalType, start_state_to_reuse, best_state_to_reuse, topoSettings);
 
     // try horizontal moves
     optimizeEverythingRun(ann_network, typesBySpeed, start_state_to_reuse, best_state_to_reuse, start_time, topoSettings);
     score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
 
-    bool improved = true;
+    /*bool improved = true;
     while (improved) {
         std::vector<ArcInsertionMove> arcInsertionCandidates = possibleArcInsertionMoves(ann_network);
         rankArcInsertionCandidates(ann_network, arcInsertionCandidates);
@@ -358,7 +358,7 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
             }
             apply_network_state(ann_network, old_state);
         }
-    }
+    }*/
 }
 
 void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
