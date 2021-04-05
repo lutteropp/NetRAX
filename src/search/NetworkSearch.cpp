@@ -299,8 +299,9 @@ double forceApplyArcInsertion(AnnotatedNetwork& ann_network) {
 
     std::vector<ArcInsertionMove> candidates = possibleArcInsertionMoves(ann_network);
     rankArcInsertionCandidates(ann_network, candidates);
-    for (size_t i = 0; i < candidates.size(); ++i) {
-        ArcInsertionMove move = candidates[i];
+
+    if (!candidates.empty()) {
+        ArcInsertionMove move = candidates[0];
         performMove(ann_network, move);
 
         std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
@@ -308,23 +309,6 @@ double forceApplyArcInsertion(AnnotatedNetwork& ann_network) {
         add_neighbors_in_radius(ann_network, brlen_opt_candidates, 1);
         optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
         optimizeReticulationProbs(ann_network);
-
-        //std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
-        //assert(!brlen_opt_candidates.empty());
-        //add_neighbors_in_radius(ann_network, brlen_opt_candidates, 1);
-        //optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
-        //optimizeBranches(ann_network);
-        //optimizeModel(ann_network);
-
-        double worstScore = getWorstReticulationScore(ann_network);
-        std::cout << "candidate " << i + 1 << "/" << candidates.size() << " has worst score " << worstScore << "\n";
-
-        if (worstScore > 0.001) {
-            // accept the move
-            break;
-        }
-
-        apply_network_state(ann_network, startState, true);
     }
 
     return computeLoglikelihood(ann_network);
