@@ -206,6 +206,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
 
     for (size_t i = 0; i < candidates.size(); ++i) {
         T move = candidates[i];
+        assert(checkSanity(ann_network, move));
         performMove(ann_network, move);
         optimizeReticulationProbs(ann_network);
         
@@ -251,7 +252,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
             newSize++;
         }
     }
-    std::cout << "New size after prefiltering: " << newSize << " vs. " << candidates.size() << "\n";
+    if (!silent) std::cout << "New size after prefiltering: " << newSize << " vs. " << candidates.size() << "\n";
 
     candidates.resize(newSize);
 }
@@ -420,7 +421,7 @@ double optimizeEverythingRun(AnnotatedNetwork & ann_network, std::vector<MoveTyp
             applyBestCandidate(ann_network, possibleArcRemovalMoves(ann_network));
             break;
         case MoveType::DeltaMinusMove:
-            std::cout << exportDebugInfo(ann_network) << "\n";
+            //std::cout << exportDebugInfo(ann_network) << "\n";
             applyBestCandidate(ann_network, possibleDeltaMinusMoves(ann_network));
             break;
         default:
