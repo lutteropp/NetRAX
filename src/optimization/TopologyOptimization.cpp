@@ -188,20 +188,18 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         }
 
         best_score = bic(ann_network, computeLoglikelihood(ann_network));
-        ann_network.stats.moves_taken[candidates[best_idx].moveType]++;
 
-        if (!silent) std::cout << " Took " << toString(candidates[best_idx].moveType) << "\n";
         double logl = computeLoglikelihood(ann_network);
         double bic_score = bic(ann_network, logl);
         double aic_score = aic(ann_network, logl);
         double aicc_score = aicc(ann_network, logl);
 
-        //assert(fabs(computeLoglikelihood(ann_network, 1, 1) - computeLoglikelihood(ann_network, 0, 1)) < ann_network.options.lh_epsilon);
-
+        if (!silent) std::cout << " Took " << toString(candidates[best_idx].moveType) << "\n";
         if (!silent) std::cout << "  Logl: " << logl << ", BIC: " << bic_score << ", AIC: " << aic_score << ", AICc: " << aicc_score <<  "\n";
         if (!silent) std::cout << "  param_count: " << get_param_count(ann_network) << ", sample_size:" << get_sample_size(ann_network) << "\n";
         if (!silent) std::cout << "  num_reticulations: " << ann_network.network.num_reticulations() << "\n";
         if (!silent) std::cout << toExtendedNewick(ann_network) << "\n";
+        ann_network.stats.moves_taken[candidates[best_idx].moveType]++;
     }
     return best_score;
 }
