@@ -224,6 +224,8 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
             apply_network_state(ann_network, oldState, false);
         }
 
+        assert(checkSanity(ann_network, move));
+
         if (bicScore < old_bic) {
             candidates[0] = candidates[i];
             candidates.resize(1);
@@ -418,6 +420,7 @@ double optimizeEverythingRun(AnnotatedNetwork & ann_network, std::vector<MoveTyp
             applyBestCandidate(ann_network, possibleArcRemovalMoves(ann_network));
             break;
         case MoveType::DeltaMinusMove:
+            std::cout << exportDebugInfo(ann_network) << "\n";
             applyBestCandidate(ann_network, possibleDeltaMinusMoves(ann_network));
             break;
         default:

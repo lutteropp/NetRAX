@@ -341,6 +341,11 @@ struct ArcRemovalMove: public GeneralMove {
     }
 };
 
+bool checkSanity(AnnotatedNetwork& ann_network, ArcRemovalMove& move);
+bool checkSanity(AnnotatedNetwork& ann_network, ArcInsertionMove& move);
+bool checkSanity(AnnotatedNetwork& ann_network, RNNIMove& move);
+bool checkSanity(AnnotatedNetwork& ann_network, RSPRMove& move);
+
 std::vector<double> get_edge_lengths(AnnotatedNetwork &ann_network, size_t pmatrix_index);
 
 std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network, const Edge *edge);

@@ -101,7 +101,9 @@ Node* findFirstNodeWithTwoActiveChildren(AnnotatedNetwork& ann_network, const Re
 
     // all these reticulation choices led to the same tree, thus it is safe to simply use the first one for detecting which nodes to skip...
     for (size_t i = 0; i < reticulationChoices.configs[0].size(); ++i) { // apply the reticulation choices
-        setReticulationState(ann_network.network, i, reticulationChoices.configs[0][i]);
+        if (reticulationChoices.configs[0][i] != ReticulationState::DONT_CARE) {
+            setReticulationState(ann_network.network, i, reticulationChoices.configs[0][i]);
+        }
     }
 
     Node* displayed_tree_root = nullptr;

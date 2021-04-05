@@ -544,6 +544,7 @@ std::unordered_set<size_t> getNeighborPmatrixIndices(Network &network, Edge *edg
 }
 
 void setReticulationState(Network &network, size_t reticulation_idx, ReticulationState state) {
+    assert(reticulation_idx < network.reticulation_nodes.size());
     if (state == ReticulationState::DONT_CARE) {
         return;
     } else if (state == ReticulationState::TAKE_FIRST_PARENT) {

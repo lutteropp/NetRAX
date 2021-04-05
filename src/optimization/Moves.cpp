@@ -30,6 +30,7 @@
 #include "../graph/NodeType.hpp"
 #include "../graph/ReticulationData.hpp"
 #include "../NetraxOptions.hpp"
+#include "../DebugPrintFunctions.hpp"
 
 extern "C" {
 #include <libpll/pll.h>
@@ -37,6 +38,92 @@ extern "C" {
 }
 
 namespace netrax {
+
+bool checkSanity(AnnotatedNetwork& ann_network, ArcRemovalMove& move) {
+    assert(move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::DeltaMinusMove);
+    assert(ann_network.network.nodes_by_index[move.a_clv_index]);
+    assert(ann_network.network.nodes_by_index[move.b_clv_index]);
+    assert(ann_network.network.nodes_by_index[move.c_clv_index]);
+    assert(ann_network.network.nodes_by_index[move.d_clv_index]);
+    assert(ann_network.network.nodes_by_index[move.u_clv_index]);
+    assert(ann_network.network.nodes_by_index[move.v_clv_index]);
+    assert(ann_network.network.edges_by_index[move.au_pmatrix_index]);
+    assert(ann_network.network.edges_by_index[move.ub_pmatrix_index]);
+    assert(ann_network.network.edges_by_index[move.uv_pmatrix_index]);
+    assert(ann_network.network.edges_by_index[move.cv_pmatrix_index]);
+    assert(ann_network.network.edges_by_index[move.vd_pmatrix_index]);
+
+    assert(move.a_clv_index != move.u_clv_index);
+    assert(move.u_clv_index != move.b_clv_index);
+    assert(move.c_clv_index != move.v_clv_index);
+    assert(move.v_clv_index != move.d_clv_index);
+    assert(move.u_clv_index != move.v_clv_index);
+
+    assert(hasNeighbor(ann_network.network.nodes_by_index[move.a_clv_index], ann_network.network.nodes_by_index[move.u_clv_index]));
+    assert(hasNeighbor(ann_network.network.nodes_by_index[move.u_clv_index], ann_network.network.nodes_by_index[move.b_clv_index]));
+    assert(hasNeighbor(ann_network.network.nodes_by_index[move.u_clv_index], ann_network.network.nodes_by_index[move.v_clv_index]));
+    assert(hasNeighbor(ann_network.network.nodes_by_index[move.c_clv_index], ann_network.network.nodes_by_index[move.v_clv_index]));
+    assert(hasNeighbor(ann_network.network.nodes_by_index[move.v_clv_index], ann_network.network.nodes_by_index[move.d_clv_index]));
+
+    return true;
+}
+
+bool checkSanity(AnnotatedNetwork& ann_network, ArcInsertionMove& move) {
+    assert(move.moveType == MoveType::ArcInsertionMove || move.moveType == MoveType::DeltaPlusMove);
+    assert(ann_network.network.nodes_by_index[move.a_clv_index]);
+    assert(ann_network.network.nodes_by_index[move.b_clv_index]);
+    assert(ann_network.network.nodes_by_index[move.c_clv_index]);
+    assert(ann_network.network.nodes_by_index[move.d_clv_index]);
+
+    assert(ann_network.network.edges_by_index[move.ab_pmatrix_index]);
+    assert(ann_network.network.edges_by_index[move.cd_pmatrix_index]);
+
+    assert(move.a_clv_index != move.b_clv_index);
+    assert(move.c_clv_index != move.d_clv_index);
+
+    assert(hasNeighbor(ann_network.network.nodes_by_index[move.a_clv_index], ann_network.network.nodes_by_index[move.b_clv_index]));
+    assert(hasNeighbor(ann_network.network.nodes_by_index[move.c_clv_index], ann_network.network.nodes_by_index[move.d_clv_index]));
+
+    return true;
+}
+
+bool checkSanity(AnnotatedNetwork& ann_network, RNNIMove& move) {
+    assert(move.moveType == MoveType::RNNIMove);
+
+    assert(ann_network.network.nodes_by_index[move.u_clv_index]);
+    assert(ann_network.network.nodes_by_index[move.v_clv_index]);
+    assert(ann_network.network.nodes_by_index[move.s_clv_index]);
+    assert(ann_network.network.nodes_by_index[move.t_clv_index]);
+
+    assert(hasNeighbor(ann_network.network.nodes_by_index[move.s_clv_index], ann_network.network.nodes_by_index[move.u_clv_index]));
+    assert(hasNeighbor(ann_network.network.nodes_by_index[move.u_clv_index], ann_network.network.nodes_by_index[move.v_clv_index]));
+    assert(hasNeighbor(ann_network.network.nodes_by_index[move.v_clv_index], ann_network.network.nodes_by_index[move.t_clv_index]));
+
+    assert(!hasNeighbor(ann_network.network.nodes_by_index[move.u_clv_index], ann_network.network.nodes_by_index[move.t_clv_index]));
+    assert(!hasNeighbor(ann_network.network.nodes_by_index[move.s_clv_index], ann_network.network.nodes_by_index[move.v_clv_index]));
+
+    return true;
+}
+
+bool checkSanity(AnnotatedNetwork& ann_network, RSPRMove& move) {
+    assert(move.moveType == MoveType::RSPRMove || move.moveType == MoveType::RSPR1Move || move.moveType == MoveType::HeadMove || move.moveType == MoveType::TailMove);
+
+    assert(ann_network.network.nodes_by_index[move.x_clv_index]);
+    assert(ann_network.network.nodes_by_index[move.x_prime_clv_index]);
+    assert(ann_network.network.nodes_by_index[move.y_clv_index]);
+    assert(ann_network.network.nodes_by_index[move.y_prime_clv_index]);
+    assert(ann_network.network.nodes_by_index[move.z_clv_index]);
+
+    assert(hasNeighbor(ann_network.network.nodes_by_index[move.x_clv_index], ann_network.network.nodes_by_index[move.z_clv_index]));
+    assert(hasNeighbor(ann_network.network.nodes_by_index[move.z_clv_index], ann_network.network.nodes_by_index[move.y_clv_index]));
+    assert(hasNeighbor(ann_network.network.nodes_by_index[move.x_prime_clv_index], ann_network.network.nodes_by_index[move.y_prime_clv_index]));
+
+    assert(!hasNeighbor(ann_network.network.nodes_by_index[move.x_prime_clv_index], ann_network.network.nodes_by_index[move.z_clv_index]));
+    assert(!hasNeighbor(ann_network.network.nodes_by_index[move.z_clv_index], ann_network.network.nodes_by_index[move.y_prime_clv_index]));
+    assert(!hasNeighbor(ann_network.network.nodes_by_index[move.x_clv_index], ann_network.network.nodes_by_index[move.y_clv_index]));
+
+    return true;
+}
 
 bool assertConsecutiveIndices(AnnotatedNetwork& ann_network) {
     for (size_t i = 0; i < ann_network.network.num_nodes(); ++i) {
@@ -596,6 +683,7 @@ bool assertAfterMove(Network &network, RNNIMove &move) {
 }
 
 void performMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
+    assert(checkSanity(ann_network, move));
     assert(move.moveType == MoveType::RNNIMove);
     assert(assertConsecutiveIndices(ann_network));
     Network &network = ann_network.network;
@@ -1128,6 +1216,8 @@ std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_networ
 
         assert(move.a_clv_index != move.u_clv_index);
 
+        assert(checkSanity(ann_network, move));
+
         res.emplace_back(move);
     }
     return res;
@@ -1182,6 +1272,7 @@ std::vector<ArcRemovalMove> possibleDeltaMinusMoves(AnnotatedNetwork &ann_networ
 }
 
 void performMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
+    assert(checkSanity(ann_network, move));
     assert(move.moveType == MoveType::RSPRMove || move.moveType == MoveType::RSPR1Move || move.moveType == MoveType::HeadMove || move.moveType == MoveType::TailMove);
     assert(assertConsecutiveIndices(ann_network));
     Network &network = ann_network.network;
@@ -1542,6 +1633,7 @@ bool assertBranchLengths(AnnotatedNetwork& ann_network) {
 }
 
 void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
+    assert(checkSanity(ann_network, move));
     assert(move.moveType == MoveType::ArcInsertionMove || move.moveType == MoveType::DeltaPlusMove);
     assert(assertConsecutiveIndices(ann_network));
     assert(assertBranchLengths(ann_network));
@@ -1853,28 +1945,6 @@ void repairConsecutivePmatrixIndices(AnnotatedNetwork &ann_network, ArcRemovalMo
     assert(move_pmatrix_indices.size() == 5);
 }
 
-bool checkSanity(AnnotatedNetwork& ann_network, ArcRemovalMove& move) {
-    assert(move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::DeltaMinusMove);
-    assert(ann_network.network.nodes_by_index[move.a_clv_index]);
-    assert(ann_network.network.nodes_by_index[move.b_clv_index]);
-    assert(ann_network.network.nodes_by_index[move.c_clv_index]);
-    assert(ann_network.network.nodes_by_index[move.d_clv_index]);
-    assert(ann_network.network.nodes_by_index[move.u_clv_index]);
-    assert(ann_network.network.nodes_by_index[move.v_clv_index]);
-    assert(ann_network.network.edges_by_index[move.au_pmatrix_index]);
-    assert(ann_network.network.edges_by_index[move.ub_pmatrix_index]);
-    assert(ann_network.network.edges_by_index[move.uv_pmatrix_index]);
-    assert(ann_network.network.edges_by_index[move.cv_pmatrix_index]);
-    assert(ann_network.network.edges_by_index[move.vd_pmatrix_index]);
-
-    assert(move.a_clv_index != move.u_clv_index);
-    assert(move.u_clv_index != move.b_clv_index);
-    assert(move.c_clv_index != move.v_clv_index);
-    assert(move.v_clv_index != move.d_clv_index);
-    assert(move.u_clv_index != move.v_clv_index);
-    return true;
-}
-
 bool assert_links_in_range2(const Network& network) {
     for (size_t i = 0; i < network.num_nodes(); ++i) {
         for (size_t j = 0; j < network.nodes_by_index[i]->links.size(); ++j) {
@@ -1898,10 +1968,10 @@ void repairConsecutiveIndices(AnnotatedNetwork &ann_network, ArcRemovalMove& mov
 }
 
 void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
+    assert(checkSanity(ann_network, move));
     assert(assert_links_in_range2(ann_network.network));
     assert(assertBranchLengths(ann_network));
 
-    assert(checkSanity(ann_network, move));
     assert(move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::DeltaMinusMove);
     assert(assertConsecutiveIndices(ann_network));
     Network &network = ann_network.network;
