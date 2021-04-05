@@ -68,9 +68,9 @@ struct RNNIMove: public GeneralMove {
     size_t t_clv_index = 0;
     RNNIMoveType type = RNNIMoveType::ONE;
 
-    RNNIMove(RNNIMove&& rhs) : GeneralMove{rhs}, u_clv_index{rhs.u_clv_index}, v_clv_index{rhs.u_clv_index}, s_clv_index{rhs.s_clv_index}, t_clv_index{rhs.t_clv_index}, type{rhs.type} {}
+    RNNIMove(RNNIMove&& rhs) : GeneralMove{rhs}, u_clv_index{rhs.u_clv_index}, v_clv_index{rhs.v_clv_index}, s_clv_index{rhs.s_clv_index}, t_clv_index{rhs.t_clv_index}, type{rhs.type} {}
 
-    RNNIMove(const RNNIMove& rhs) : GeneralMove{rhs}, u_clv_index{rhs.u_clv_index}, v_clv_index{rhs.u_clv_index}, s_clv_index{rhs.s_clv_index}, t_clv_index{rhs.t_clv_index}, type{rhs.type} {}
+    RNNIMove(const RNNIMove& rhs) : GeneralMove{rhs}, u_clv_index{rhs.u_clv_index}, v_clv_index{rhs.v_clv_index}, s_clv_index{rhs.s_clv_index}, t_clv_index{rhs.t_clv_index}, type{rhs.type} {}
 
     RNNIMove& operator =(RNNIMove&& rhs)
     {
