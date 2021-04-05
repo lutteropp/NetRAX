@@ -254,18 +254,11 @@ void rankArcInsertionCandidatesTemplated(AnnotatedNetwork& ann_network, std::vec
         T move = candidates[i];
         performMove(ann_network, move);
 
-        //optimizeModel(ann_network);
-
         std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
-        //assert(!brlen_opt_candidates.empty());
+        assert(!brlen_opt_candidates.empty());
         add_neighbors_in_radius(ann_network, brlen_opt_candidates, 1);
         optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
-        //optimizeBranches(ann_network);
         optimizeReticulationProbs(ann_network);
-
-        //greedyHillClimbingTopology(ann_network, MoveType::RNNIMove, reuseMe1, reuseMe2, true, false, true);
-
-        //optimizeAllNonTopology(ann_network, false, true);
         
         double worstScore = getWorstReticulationScore(ann_network);
         double bicScore = scoreNetwork(ann_network);
@@ -294,6 +287,10 @@ void rankArcInsertionCandidates(AnnotatedNetwork& ann_network, std::vector<ArcIn
 }
 
 double forceApplyArcInsertion(AnnotatedNetwork& ann_network) {
+    double brlen_smooth_factor = 0.25;
+    int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
+    int radius = 1;
+    
     double old_logl = computeLoglikelihood(ann_network);
     NetworkState startState = extract_network_state(ann_network);
 
@@ -306,16 +303,18 @@ double forceApplyArcInsertion(AnnotatedNetwork& ann_network) {
         ArcInsertionMove move = candidates[i];
         performMove(ann_network, move);
 
+        std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
+        assert(!brlen_opt_candidates.empty());
+        add_neighbors_in_radius(ann_network, brlen_opt_candidates, 1);
+        optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
+        optimizeReticulationProbs(ann_network);
+
         //std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
         //assert(!brlen_opt_candidates.empty());
         //add_neighbors_in_radius(ann_network, brlen_opt_candidates, 1);
         //optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
         //optimizeBranches(ann_network);
         //optimizeModel(ann_network);
-
-        greedyHillClimbingTopology(ann_network, MoveType::RNNIMove, reuseMe1, reuseMe2, true, false, true);
-
-        optimizeReticulationProbs(ann_network);
 
         double worstScore = getWorstReticulationScore(ann_network);
         std::cout << "candidate " << i + 1 << "/" << candidates.size() << " has worst score " << worstScore << "\n";
@@ -402,25 +401,25 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
             //continue;
         }
 
-        auto insertionMoves = possibleArcInsertionMoves(ann_network);
-        rankArcInsertionCandidates(ann_network, insertionMoves);
+        //auto insertionMoves = possibleArcInsertionMoves(ann_network);
+        //rankArcInsertionCandidates(ann_network, insertionMoves);
 
         // then try adding a reticulation
         if (ann_network.network.num_reticulations() < ann_network.options.max_reticulations) {
             std::cout << "\n Adding a reticulation\n";
             //std::cout << "insertion cand index:\n";
             //performMove(ann_network, arcInsertionCandidates[insertion_cand_idx]);
-            //forceApplyArcInsertion(ann_network, arcInsertionCandidates[insertion_cand_idx]);
+            forceApplyArcInsertion(ann_network);
 
 
             // old and deprecated: randomly add new reticulation
             //std::cout << "\nRandomly adding a reticulation\n";
-            add_extra_reticulations(ann_network, ann_network.network.num_reticulations() + 1);
-            ann_network.stats.moves_taken[MoveType::ArcInsertionMove]++;
+            //add_extra_reticulations(ann_network, ann_network.network.num_reticulations() + 1);
+            //ann_network.stats.moves_taken[MoveType::ArcInsertionMove]++;
 
             // new version: search for good place to add the new reticulation
             //MoveType insertionType = MoveType::ArcInsertionMove;
-            //greedyHillClimbingTopology(ann_network, insertionType, start_state_to_reuse, best_state_to_reuse, false, true, 1);
+            //greedyHillClimbingTopology(ann_network, insertionType, start_state_to_reuse, best_state_to_reuse, true, false, 1);
 
             optimizeAllNonTopology(ann_network);
 
