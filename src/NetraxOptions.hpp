@@ -58,10 +58,6 @@ public:
     bool endless = false;
     int seed = 0;
 
-    bool use_blobs = true; // deprecated, value is ignored now (always set to true)
-    bool use_graycode = true; // deprecated, value is ignored now (always set to true)
-    bool use_incremental = true; // deprecated, value is ignored now (always set to true)
-
     unsigned int max_reticulations = 32;
 
     unsigned int num_random_start_networks = 10;

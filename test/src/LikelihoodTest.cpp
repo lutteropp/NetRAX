@@ -213,20 +213,12 @@ void compareLikelihoodFunctions(const std::string &networkPath, const std::strin
     std::vector<double> treewise_logl_norep;
     std::vector<double> treewise_logl_naive;
 
-    ann_network.options.use_blobs = false;
-    ann_network.options.use_graycode = false;
     double norep_logl = computeLoglikelihood(ann_network, 0, 1);
     ASSERT_NE(norep_logl, -std::numeric_limits<double>::infinity());
-    ann_network.options.use_blobs = false;
-    ann_network.options.use_graycode = true;
     double norep_logl_graycode = computeLoglikelihood(ann_network, 0, 1);
     ASSERT_NE(norep_logl, -std::numeric_limits<double>::infinity());
-    ann_network.options.use_blobs = true;
-    ann_network.options.use_graycode = false;
     double norep_logl_blobs = computeLoglikelihood(ann_network, 0, 1);
     ASSERT_NE(norep_logl_blobs, -std::numeric_limits<double>::infinity());
-    ann_network.options.use_blobs = true;
-    ann_network.options.use_graycode = true;
     double norep_logl_blobs_graycode = computeLoglikelihood(ann_network, 0, 1);
     ASSERT_NE(norep_logl_blobs_graycode, -std::numeric_limits<double>::infinity());
     double naive_logl = computeLoglikelihoodNaiveUtree(ann_network, 0, 1,
@@ -256,9 +248,6 @@ void incrementalTest(const std::string &networkPath, const std::string &msaPath)
     options.start_network_file = networkPath;
     options.msa_file = msaPath;
     options.use_repeats = true;
-    options.use_blobs = true;
-    options.use_graycode = true;
-    options.use_incremental = true;
     AnnotatedNetwork ann_network = build_annotated_network(options);
     init_annotated_network(ann_network);
     Network &network = ann_network.network;
