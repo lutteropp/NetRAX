@@ -231,14 +231,15 @@ double getWorstReticulationScore(AnnotatedNetwork& ann_network) {
     return worst; // 1.0 is best result, 0 is worst result
 }
 
+template <typename T>
 struct ScoreItem {
-    ArcInsertionMove move;
+    T move;
     double worstScore;
     double bicScore;
 };
 
 template <typename T>
-void rankArcInsertionCandidatesTemplated(AnnotatedNetwork& ann_network, std::vector<T>& candidates) {
+void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates) {
     double brlen_smooth_factor = 0.25;
     int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
     int radius = 1;
@@ -248,7 +249,7 @@ void rankArcInsertionCandidatesTemplated(AnnotatedNetwork& ann_network, std::vec
     NetworkState reuseMe1 = extract_network_state(ann_network);
     NetworkState reuseMe2 = extract_network_state(ann_network);
 
-    std::vector<ScoreItem> scores(candidates.size());
+    std::vector<ScoreItem<T> > scores(candidates.size());
 
     for (size_t i = 0; i < candidates.size(); ++i) {
         T move = candidates[i];
@@ -262,14 +263,14 @@ void rankArcInsertionCandidatesTemplated(AnnotatedNetwork& ann_network, std::vec
         
         double worstScore = getWorstReticulationScore(ann_network);
         double bicScore = scoreNetwork(ann_network);
-        scores[i] = ScoreItem{move, worstScore, bicScore};
+        scores[i] = ScoreItem<T>{move, worstScore, bicScore};
 
         //undoMove(ann_network, move);
 
         apply_network_state(ann_network, oldState, true);
     }
 
-    std::sort(scores.begin(), scores.end(), [](const ScoreItem& lhs, const ScoreItem& rhs) {
+    std::sort(scores.begin(), scores.end(), [](const ScoreItem<T>& lhs, const ScoreItem<T>& rhs) {
         if (lhs.bicScore == rhs.bicScore) {
             return lhs.worstScore > rhs.worstScore;
         }
@@ -280,10 +281,6 @@ void rankArcInsertionCandidatesTemplated(AnnotatedNetwork& ann_network, std::vec
         std::cout << "candidate " << i + 1 << "/" << candidates.size() << " has worst score " << scores[i].worstScore << ", BIC: " << scores[i].bicScore << "\n";
         candidates[i] = scores[i].move;
     }
-}
-
-void rankArcInsertionCandidates(AnnotatedNetwork& ann_network, std::vector<ArcInsertionMove>& candidates) {
-    return rankArcInsertionCandidatesTemplated(ann_network, candidates);
 }
 
 double forceApplyArcInsertion(AnnotatedNetwork& ann_network) {
@@ -298,7 +295,7 @@ double forceApplyArcInsertion(AnnotatedNetwork& ann_network) {
     NetworkState reuseMe2 = extract_network_state(ann_network);
 
     std::vector<ArcInsertionMove> candidates = possibleArcInsertionMoves(ann_network);
-    rankArcInsertionCandidates(ann_network, candidates);
+    rankCandidates(ann_network, candidates);
 
     if (!candidates.empty()) {
         ArcInsertionMove move = candidates[0];
