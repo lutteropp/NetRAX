@@ -50,9 +50,14 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     app.add_option("--brlen", brlen_linkage, "branch length linkage between partitions (linked, scaled, or unlinked) (default: scaled)");
 
     bool average_displayed_tree_variant = false;
+    bool best_displayed_tree_variant = false;
     app.add_flag("--average_displayed_tree_variant", average_displayed_tree_variant, "Use weighted average instead of only best displayed tree in network likelihood formula.");
+    app.add_flag("--best_displayed_tree_variant", best_displayed_tree_variant, "Use best displayed tree instead of weighted average in network likelihood formula.");
 
     CLI11_PARSE(app, argc, argv);
+    if (average_displayed_tree_variant && best_displayed_tree_variant) {
+        throw std::runtime_error("Cannot specify both --average_displayed_tree_variant and --best_displayed_tree_variant at once");
+    }
     options->likelihood_variant = (average_displayed_tree_variant) ? LikelihoodVariant::AVERAGE_DISPLAYED_TREES : LikelihoodVariant::BEST_DISPLAYED_TREE;
 
     if (brlen_linkage == "scaled")

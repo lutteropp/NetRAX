@@ -16,6 +16,8 @@ def score_network(network_path, msa_path, partitions_path, likelihood_type, brle
 
     if likelihood_type == LikelihoodType.AVERAGE:
         netrax_cmd += " --average_displayed_tree_variant"
+    else:
+        netrax_cmd += " --best_displayed_tree_variant"
 
     if brlen_linkage_type == BrlenLinkageType.UNLINKED:
         netrax_cmd += " --brlen unlinked"
@@ -54,6 +56,8 @@ def infer_networks(ds):
 
         if var.likelihood_type == LikelihoodType.AVERAGE:
             netrax_cmd += " --average_displayed_tree_variant"
+        else:
+            netrax_cmd += " --best_displayed_tree_variant"
 
         if var.start_type == StartType.ENDLESS:
             netrax_cmd += " --endless --timeout " + str(var.timeout)

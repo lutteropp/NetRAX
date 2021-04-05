@@ -93,16 +93,16 @@ double optimize_params(AnnotatedNetwork& ann_network, double lh_epsilon)
  * 
  * @param ann_network The network.
  */
-void optimizeModel(AnnotatedNetwork &ann_network) {
+void optimizeModel(AnnotatedNetwork &ann_network, bool silent) {
     //assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
     double old_score = scoreNetwork(ann_network);
-    std::cout << "BIC score before model optimization: " << old_score << "\n";
+    if (!silent) std::cout << "BIC score before model optimization: " << old_score << "\n";
 
     optimize_params(ann_network, ann_network.options.lh_epsilon);
 
     //assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
     double new_score = scoreNetwork(ann_network);
-    std::cout << "BIC score after model optimization: " << new_score << "\n";
+    if (!silent) std::cout << "BIC score after model optimization: " << new_score << "\n";
     assert(new_score <= old_score + ann_network.options.score_epsilon);
 }
 

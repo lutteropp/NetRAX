@@ -64,106 +64,6 @@ bool isComplexityChanging(MoveType& moveType) {
     return (moveType == MoveType::ArcRemovalMove || moveType == MoveType::ArcInsertionMove || moveType == MoveType::DeltaMinusMove || moveType == MoveType::DeltaPlusMove);
 }
 
-double getWorstReticulationScore(AnnotatedNetwork& ann_network) {
-    double worst = 1.0;
-    for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
-        double score = fabs(0.5 - ann_network.reticulation_probs[i]);
-        score = 1.0 - (2.0 * score); // 1.0 is best result, 0 is worst result
-
-        worst = std::min(worst, score);
-    }
-    return worst; // 1.0 is best result, 0 is worst result
-}
-
-template <typename T>
-void rankArcInsertionCandidatesTemplated(AnnotatedNetwork& ann_network, std::vector<T>& candidates) {
-    double brlen_smooth_factor = 0.25;
-    int max_iters = 1; //brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
-    int radius = 1;
-
-    NetworkState oldState = extract_network_state(ann_network);
-
-    NetworkState reuseMe1 = extract_network_state(ann_network);
-    NetworkState reuseMe2 = extract_network_state(ann_network);
-
-    std::vector<std::pair<T, double> > scores(candidates.size());
-
-    for (size_t i = 0; i < candidates.size(); ++i) {
-        T move = candidates[i];
-        performMove(ann_network, move);
-
-        //std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
-        //assert(!brlen_opt_candidates.empty());
-        //add_neighbors_in_radius(ann_network, brlen_opt_candidates, 1);
-        //optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
-        //optimizeBranches(ann_network);
-        //optimizeModel(ann_network);
-
-
-        //greedyHillClimbingTopology(ann_network, MoveType::RNNIMove, reuseMe1, reuseMe2, true, false, true);
-
-        optimizeReticulationProbs(ann_network);
-
-        double worstScore = getWorstReticulationScore(ann_network);
-        scores[i] = std::make_pair(move, worstScore);
-
-        undoMove(ann_network, move);
-
-        apply_network_state(ann_network, oldState, true);
-    }
-
-    std::sort(scores.begin(), scores.end(), [](const std::pair<T, double>& lhs, const std::pair<T, double>& rhs) {
-        return lhs.second > rhs.second;
-    });
-
-    for (size_t i = 0; i < candidates.size(); ++i) {
-        std::cout << "candidate " << i +1 << "/" << candidates.size() << " has worst score " << scores[i].second << "\n";
-        candidates[i] = scores[i].first;
-    }
-}
-
-void rankArcInsertionCandidates(AnnotatedNetwork& ann_network, std::vector<ArcInsertionMove>& candidates) {
-    return rankArcInsertionCandidatesTemplated(ann_network, candidates);
-}
-
-double forceApplyArcInsertion(AnnotatedNetwork& ann_network) {
-    double old_logl = computeLoglikelihood(ann_network);
-    NetworkState startState = extract_network_state(ann_network);
-
-    NetworkState reuseMe1 = extract_network_state(ann_network);
-    NetworkState reuseMe2 = extract_network_state(ann_network);
-
-    std::vector<ArcInsertionMove> candidates = possibleArcInsertionMoves(ann_network);
-    rankArcInsertionCandidates(ann_network, candidates);
-    for (size_t i = 0; i < candidates.size(); ++i) {
-        ArcInsertionMove move = candidates[i];
-        performMove(ann_network, move);
-
-        //std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
-        //assert(!brlen_opt_candidates.empty());
-        //add_neighbors_in_radius(ann_network, brlen_opt_candidates, 1);
-        //optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
-        //optimizeBranches(ann_network);
-        //optimizeModel(ann_network);
-
-        greedyHillClimbingTopology(ann_network, MoveType::RSPR1Move, reuseMe1, reuseMe2, true, false, true);
-
-        optimizeReticulationProbs(ann_network);
-
-        double worstScore = getWorstReticulationScore(ann_network);
-        std::cout << "candidate " << i + 1 << "/" << candidates.size() << " has worst score " << worstScore << "\n";
-
-        if (worstScore > 0.001) {
-            // accept the move
-            break;
-        }
-
-        apply_network_state(ann_network, startState, true);
-    }
-
-    return computeLoglikelihood(ann_network);
-}
-
 template<typename T>
 double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, double old_score, bool greedy=true, bool randomizeCandidates=false, bool brlenopt_inside = true, bool silent = false) {
     if (candidates.empty()) {
@@ -239,7 +139,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         double new_score = bic(ann_network, new_logl);
 
         bool foundBetterScore = false;
-        if (new_score < old_score - ann_network.options.score_epsilon) {
+        if (new_score < old_score) {
             best_score = new_score;
             best_idx = i;
             extract_network_state(ann_network, best_state_to_reuse, complexityChanging);
@@ -288,20 +188,18 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
         }
 
         best_score = bic(ann_network, computeLoglikelihood(ann_network));
-        ann_network.stats.moves_taken[candidates[best_idx].moveType]++;
 
-        if (!silent) std::cout << " Took " << toString(candidates[best_idx].moveType) << "\n";
         double logl = computeLoglikelihood(ann_network);
         double bic_score = bic(ann_network, logl);
         double aic_score = aic(ann_network, logl);
         double aicc_score = aicc(ann_network, logl);
 
-        //assert(fabs(computeLoglikelihood(ann_network, 1, 1) - computeLoglikelihood(ann_network, 0, 1)) < ann_network.options.lh_epsilon);
-
+        if (!silent) std::cout << " Took " << toString(candidates[best_idx].moveType) << "\n";
         if (!silent) std::cout << "  Logl: " << logl << ", BIC: " << bic_score << ", AIC: " << aic_score << ", AICc: " << aicc_score <<  "\n";
         if (!silent) std::cout << "  param_count: " << get_param_count(ann_network) << ", sample_size:" << get_sample_size(ann_network) << "\n";
         if (!silent) std::cout << "  num_reticulations: " << ann_network.network.num_reticulations() << "\n";
         if (!silent) std::cout << toExtendedNewick(ann_network) << "\n";
+        ann_network.stats.moves_taken[candidates[best_idx].moveType]++;
     }
     return best_score;
 }
@@ -363,7 +261,7 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, MoveType type, 
        if (act_iterations >= max_iterations) {
            break;
        }
-    } while (old_bic - new_score > ann_network.options.score_epsilon);
+    } while (new_score < old_bic);
     return computeLoglikelihood(ann_network);
 }
 

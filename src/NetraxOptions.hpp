@@ -33,7 +33,7 @@ public:
         this->use_repeats = use_repeats;
     }
 
-    LikelihoodVariant likelihood_variant = LikelihoodVariant::BEST_DISPLAYED_TREE;
+    LikelihoodVariant likelihood_variant = LikelihoodVariant::AVERAGE_DISPLAYED_TREES;
 
     bool optimize_brlen = true;
     bool optimize_model = true;
@@ -57,10 +57,6 @@ public:
 
     bool endless = false;
     int seed = 0;
-
-    bool use_blobs = true; // deprecated, value is ignored now (always set to true)
-    bool use_graycode = true; // deprecated, value is ignored now (always set to true)
-    bool use_incremental = true; // deprecated, value is ignored now (always set to true)
 
     unsigned int max_reticulations = 32;
 
