@@ -16,7 +16,7 @@
 
 namespace netrax {
 
-Node* getTargetNode(Network &network, const Link *link) {
+Node* getTargetNode(const Network &network, const Link *link) {
     assert(link);
     if (network.edges_by_index[link->edge_pmatrix_index]->link1 == link) {
         return network.nodes_by_index[network.edges_by_index[link->edge_pmatrix_index]->link2->node_clv_index];
@@ -250,7 +250,7 @@ bool hasChild(Network &network, Node *parent, Node *candidate) {
     return (std::find(children.begin(), children.end(), candidate) != children.end());
 }
 
-std::vector<Node*> getNeighbors(Network &network, const Node *node) {
+std::vector<Node*> getNeighbors(const Network &network, const Node *node) {
     assert(node);
     std::vector<Node*> neighbors;
     for (const auto &link : node->links) {
