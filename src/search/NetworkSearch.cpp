@@ -191,6 +191,15 @@ bool isComplexityChangingMove(MoveType& moveType) {
 }
 
 template <typename T>
+void printCandidates(std::vector<T>& candidates) {
+    std::cout << "The candidates are:\n";
+    for (size_t i = 0; i < candidates.size(); ++i) {
+        std::cout << toString(candidates[i]) << "\n";
+    }
+    std::cout << "End of candidates.\n";
+}
+
+template <typename T>
 void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, bool silent = false) {
     if (candidates.empty()) {
         return;
@@ -202,6 +211,10 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
 
     NetworkState oldState = extract_network_state(ann_network);
     std::string oldNetworkString = exportDebugInfoNetwork(ann_network.network);
+
+    if (candidates[0].moveType == MoveType::DeltaMinusMove) {
+        printCandidates(candidates);
+    }
 
     std::vector<ScoreItem<T> > scores(candidates.size());
 
@@ -236,6 +249,12 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
             assert(ann_network.network.nodes_by_index[j]->clv_index == j);
         }
 
+        assert(neighborsSame(ann_network.network, oldState.network));
+
+        if (candidates[0].moveType == MoveType::DeltaMinusMove) {
+            printCandidates(candidates);
+            std::cout << toString(move) << "\n";
+        }
         assert(checkSanity(ann_network, move));
 
         if (bicScore < old_bic) {
@@ -264,6 +283,10 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
         }
     }
     if (!silent) std::cout << "New size after prefiltering: " << newSize << " vs. " << candidates.size() << "\n";
+
+    if (candidates[0].moveType == MoveType::DeltaMinusMove) {
+        printCandidates(candidates);
+    }
 
     candidates.resize(newSize);
 }
@@ -311,6 +334,7 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
             undoMove(ann_network, move);
             apply_network_state(ann_network, oldState, true);
         }
+        assert(checkSanity(ann_network, move));
 
         if (bicScore < old_bic) {
             candidates[0] = candidates[i];

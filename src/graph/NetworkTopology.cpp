@@ -422,6 +422,12 @@ bool hasNeighbor(Node *node1, Node *node2) {
             return true;
         }
     }
+
+    for (const auto &link : node2->links) {
+        if (link.outer->node_clv_index == node1->clv_index) {
+            throw std::runtime_error("The links are not symmetric");
+        }
+    }
     return false;
 }
 
