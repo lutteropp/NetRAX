@@ -369,7 +369,7 @@ void optimizeBranches(AnnotatedNetwork &ann_network, bool silent, bool restricte
     int brlen_smooth_factor = 100;
     int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
     int radius = PLLMOD_OPT_BRLEN_OPTIMIZE_ALL;
-    optimize_branches(ann_network, max_iters, radius);
+    optimize_branches(ann_network, max_iters, radius, restricted_neighborhood);
 
     double new_score = scoreNetwork(ann_network);
     if (!silent) std::cout << "BIC score after branch length optimization: " << new_score << "\n";
