@@ -128,6 +128,7 @@ RaxmlInstance createRaxmlInstance(NetraxOptions &options) {
     instance.opts.brlen_linkage = options.brlen_linkage;
     instance.opts.brlen_opt_method = options.brlen_opt_method;
     instance.opts.lh_epsilon = options.lh_epsilon;
+    instance.opts.random_seed = options.seed;
     init_part_info(instance);
     load_parted_msa(instance);
     // ensure linked brlens for unpartitioned MSA
