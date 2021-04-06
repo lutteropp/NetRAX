@@ -296,6 +296,7 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
 
     for (size_t i = 0; i < candidates.size(); ++i) {
         T move(candidates[i]);
+        assert(checkSanity(ann_network, move));
         performMove(ann_network, move);
 
         std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
