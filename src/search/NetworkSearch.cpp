@@ -352,7 +352,7 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
 }
 
 template <typename T>
-double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidates, bool silent = true) {
+double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidates, bool silent = false) {
     double brlen_smooth_factor = 0.25;
     int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
     int radius = 1;
@@ -390,7 +390,7 @@ double forceApplyArcInsertion(AnnotatedNetwork& ann_network) {
     return applyBestCandidate(ann_network, candidates);
 }
 
-double optimizeEverythingRun(AnnotatedNetwork & ann_network, std::vector<MoveType>& typesBySpeed, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, const std::chrono::high_resolution_clock::time_point& start_time, bool greedy = true) {
+double optimizeEverythingRun(AnnotatedNetwork & ann_network, std::vector<MoveType>& typesBySpeed, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, const std::chrono::high_resolution_clock::time_point& start_time) {
     unsigned int type_idx = 0;
     unsigned int max_seconds = ann_network.options.timeout;
     double best_score = scoreNetwork(ann_network);
@@ -494,7 +494,7 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
     std::string best_network = toExtendedNewick(ann_network);
     score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
 
-    optimizeEverythingRun(ann_network, typesBySpeed, start_state_to_reuse, best_state_to_reuse, start_time, true);
+    optimizeEverythingRun(ann_network, typesBySpeed, start_state_to_reuse, best_state_to_reuse, start_time);
     score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
 }
 
@@ -535,41 +535,47 @@ void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {
     size_t start_reticulations = 0;
     size_t n_iterations = 0;
     // random start networks
-    while (true) {
-        n_iterations++;
-        std::cout << "Starting with new random network with " << start_reticulations << " reticulations.\n";
-        netrax::AnnotatedNetwork ann_network = build_random_annotated_network(netraxOptions);
-        init_annotated_network(ann_network, rng);
-        add_extra_reticulations(ann_network, start_reticulations);
+    if (netraxOptions.num_random_start_networks > 0) {
+        while (true) {
+            n_iterations++;
+            std::cout << "Starting with new random network with " << start_reticulations << " reticulations.\n";
+            netrax::AnnotatedNetwork ann_network = build_random_annotated_network(netraxOptions);
+            init_annotated_network(ann_network, rng);
+            add_extra_reticulations(ann_network, start_reticulations);
 
-        wavesearch(ann_network, &bestNetworkData, rng);
-        if (netraxOptions.timeout > 0) {
-            auto act_time = std::chrono::high_resolution_clock::now();
-            if (std::chrono::duration_cast<std::chrono::seconds>(act_time - start_time).count() >= netraxOptions.timeout) {
+            wavesearch(ann_network, &bestNetworkData, rng);
+            //std::cout << "Ending with new random tree with " << ann_network.network.num_reticulations() << " reticulations.\n";
+            if (netraxOptions.timeout > 0) {
+                auto act_time = std::chrono::high_resolution_clock::now();
+                if (std::chrono::duration_cast<std::chrono::seconds>(act_time - start_time).count() >= netraxOptions.timeout) {
+                    break;
+                }
+            } else if (n_iterations >= netraxOptions.num_random_start_networks) {
                 break;
             }
-        } else if (n_iterations >= netraxOptions.num_random_start_networks) {
-            break;
         }
     }
 
     // TODO: Get rid of the code duplication here
     // parsimony start networks
     n_iterations = 0;
-    while (true) {
-        n_iterations++;
-        std::cout << "Starting with new parsimony tree with " << start_reticulations << " reticulations.\n";
-        netrax::AnnotatedNetwork ann_network = build_parsimony_annotated_network(netraxOptions);
-        init_annotated_network(ann_network, rng);
-        add_extra_reticulations(ann_network, start_reticulations);
-        wavesearch(ann_network, &bestNetworkData, rng);
-        if (netraxOptions.timeout > 0) {
-            auto act_time = std::chrono::high_resolution_clock::now();
-            if (std::chrono::duration_cast<std::chrono::seconds>(act_time - start_time).count() >= netraxOptions.timeout) {
+    if (netraxOptions.num_parsimony_start_networks > 0) {
+        while (true) {
+            n_iterations++;
+            std::cout << "Starting with new parsimony tree with " << start_reticulations << " reticulations.\n";
+            netrax::AnnotatedNetwork ann_network = build_parsimony_annotated_network(netraxOptions);
+            init_annotated_network(ann_network, rng);
+            add_extra_reticulations(ann_network, start_reticulations);
+            wavesearch(ann_network, &bestNetworkData, rng);
+            //std::cout << "Ending with new parsimony tree with " << ann_network.network.num_reticulations() << " reticulations.\n";
+            if (netraxOptions.timeout > 0) {
+                auto act_time = std::chrono::high_resolution_clock::now();
+                if (std::chrono::duration_cast<std::chrono::seconds>(act_time - start_time).count() >= netraxOptions.timeout) {
+                    break;
+                }
+            } else if (n_iterations >= netraxOptions.num_parsimony_start_networks) {
                 break;
             }
-        } else if (n_iterations >= netraxOptions.num_parsimony_start_networks) {
-            break;
         }
     }
 
