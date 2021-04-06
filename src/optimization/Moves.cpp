@@ -626,16 +626,16 @@ void checkReticulationProperties(Node *notReticulation, Node *reticulation) {
 void checkLinkDirections(Network &network) {
     for (size_t i = 0; i < network.num_nodes(); ++i) {
         unsigned int targetOutgoing = 2;
-        if (network.nodes[i].type == NodeType::RETICULATION_NODE) {
+        if (network.nodes_by_index[i]->type == NodeType::RETICULATION_NODE) {
             targetOutgoing = 1;
         } else if (network.root == &network.nodes[i]) {
             targetOutgoing = 2;
-        } else if (network.nodes[i].isTip()) {
+        } else if (network.nodes_by_index[i]->isTip()) {
             targetOutgoing = 0;
         }
         unsigned int n_out = 0;
-        for (size_t j = 0; j < network.nodes[i].links.size(); ++j) {
-            if (network.nodes[i].links[j].direction == Direction::OUTGOING) {
+        for (size_t j = 0; j < network.nodes_by_index[i]->links.size(); ++j) {
+            if (network.nodes_by_index[i]->links[j].direction == Direction::OUTGOING) {
                 n_out++;
             }
         }
