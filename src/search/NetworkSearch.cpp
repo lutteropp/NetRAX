@@ -199,6 +199,19 @@ void printCandidates(std::vector<T>& candidates) {
     std::cout << "End of candidates.\n";
 }
 
+bool needsRecompute(AnnotatedNetwork& ann_network, const ArcRemovalMove& move) {
+    return (ann_network.network.reticulation_nodes[ann_network.network.num_reticulations() - 1]->clv_index != move.v_clv_index);
+}
+bool needsRecompute(AnnotatedNetwork& ann_network, const ArcInsertionMove& move) {
+    return false;
+}
+bool needsRecompute(AnnotatedNetwork& ann_network, const RSPRMove& move) {
+    return false;
+}
+bool needsRecompute(AnnotatedNetwork& ann_network, const RNNIMove& move) {
+    return false;
+}
+
 template <typename T>
 void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, bool silent = true) {
     if (candidates.empty()) {
@@ -218,8 +231,10 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
     for (size_t i = 0; i < candidates.size(); ++i) {
         T move(candidates[i]);
         assert(checkSanity(ann_network, move));
+        bool recompute_from_scratch = needsRecompute(ann_network, move);
+
         performMove(ann_network, move);
-        if (move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::DeltaMinusMove) {
+        if (recompute_from_scratch) {
             computeLoglikelihood(ann_network, 0, 0); // this is needed because arc removal changes the reticulation indices
         }
         optimizeReticulationProbs(ann_network);
@@ -308,8 +323,10 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, N
     for (size_t i = 0; i < candidates.size(); ++i) {
         T move(candidates[i]);
         assert(checkSanity(ann_network, move));
+        bool recompute_from_scratch = needsRecompute(ann_network, move);
+
         performMove(ann_network, move);
-        if (move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::DeltaMinusMove) {
+        if (recompute_from_scratch) {
             computeLoglikelihood(ann_network, 0, 0); // this is needed because arc removal changes the reticulation indices
         }
 
