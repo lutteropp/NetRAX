@@ -200,7 +200,7 @@ void printCandidates(std::vector<T>& candidates) {
 }
 
 template <typename T>
-void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, bool silent = false, bool too_greedy = false) {
+void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, bool silent = false, bool too_greedy = true) {
     if (candidates.empty()) {
         return;
     }
