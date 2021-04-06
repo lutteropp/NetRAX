@@ -492,6 +492,11 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
     }
 
     std::vector<MoveType> typesBySpeed;
+    if (ann_network.options.include_rspr1_moves) {
+        typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, insertionType};
+    } else {
+        typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, insertionType};
+    }
     if (ann_network.options.include_rspr_moves) {
         typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPRMove, insertionType};
     } else {

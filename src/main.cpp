@@ -55,7 +55,8 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     app.add_flag("--best_displayed_tree_variant", best_displayed_tree_variant, "Use best displayed tree instead of weighted average in network likelihood formula.");
     app.add_option("--prefilter_fraction", options->prefilter_fraction, "Fraction of move candidates to keep after filtering. A value >= 1.0 disables prefiltering. (default: 0.25)");
     app.add_flag("--extreme_greedy", options->use_extreme_greedy, "Use extreme greedy for fast results with worse inference quality.");
-    app.add_flag("--include_rspr_moves", options->include_rspr_moves, "Also use rSPR moves (slow).");
+    app.add_flag("--include_rspr1_moves", options->include_rspr1_moves, "Also use rSPR1 moves (slow).");
+    app.add_flag("--include_rspr_moves", options->include_rspr_moves, "Also use rSPR moves (super slow).");
     app.add_flag("--full_arc_insertion", options->full_arc_insertion, "Use full ArcInsertion moves instead of only DeltaPlus moves (slow).");
 
     CLI11_PARSE(app, argc, argv);
