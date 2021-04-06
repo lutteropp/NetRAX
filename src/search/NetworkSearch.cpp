@@ -393,6 +393,7 @@ double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidat
     if (found_better_state) {
         apply_network_state(ann_network, state);
 
+        optimizeAllNonTopology(ann_network);
         double logl = computeLoglikelihood(ann_network);
         double bic_score = bic(ann_network, logl);
         double aic_score = aic(ann_network, logl);
