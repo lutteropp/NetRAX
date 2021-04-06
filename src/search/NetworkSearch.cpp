@@ -219,6 +219,9 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
         T move(candidates[i]);
         assert(checkSanity(ann_network, move));
         performMove(ann_network, move);
+        if (move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::DeltaMinusMove) {
+            computeLoglikelihood(ann_network, 0, 0); // this is needed because arc removal changes the reticulation indices
+        }
         optimizeReticulationProbs(ann_network);
         
         std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
@@ -306,6 +309,9 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, N
         T move(candidates[i]);
         assert(checkSanity(ann_network, move));
         performMove(ann_network, move);
+        if (move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::DeltaMinusMove) {
+            computeLoglikelihood(ann_network, 0, 0); // this is needed because arc removal changes the reticulation indices
+        }
 
         std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
         assert(!brlen_opt_candidates.empty());
