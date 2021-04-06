@@ -270,6 +270,11 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
     if (!silent) std::cout << "New size after prefiltering: " << newSize << " vs. " << candidates.size() << "\n";
 
     candidates.resize(newSize);
+
+    for (size_t i = 0; i < candidates.size(); ++i) {
+        T move(candidates[i]);
+        assert(checkSanity(ann_network, move));
+    }
 }
 
 template <typename T>
