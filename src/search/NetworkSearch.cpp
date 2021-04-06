@@ -299,6 +299,7 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, N
 
     double old_bic = scoreNetwork(ann_network);
     double best_bic = old_bic;
+    bool found_better = false;
 
     NetworkState oldState = extract_network_state(ann_network);
 
@@ -320,7 +321,12 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, N
 
         if (bicScore < best_bic) {
             best_bic = bicScore;
-            *state = extract_network_state(ann_network);
+            if (found_better) {
+                extract_network_state(ann_network, *state);
+            } else {
+                *state = extract_network_state(ann_network);
+            }
+            found_better = true;
         }
 
         if (ann_network.options.use_extreme_greedy) {
@@ -361,7 +367,7 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, N
 
     candidates.resize(newSize);
 
-    return (best_bic < old_bic);
+    return found_better;
 }
 
 template <typename T>
