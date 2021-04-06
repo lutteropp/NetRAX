@@ -486,7 +486,17 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
     //std::vector<MoveType> typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::HeadMove, MoveType::ArcInsertionMove};
     //std::vector<MoveType> typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::HeadMove, MoveType::DeltaPlusMove};
 
-    std::vector<MoveType> typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::DeltaPlusMove};
+    MoveType insertionType = MoveType::DeltaPlusMove;
+    if (ann_network.options.full_arc_insertion) {
+        insertionType = MoveType::ArcInsertionMove;
+    }
+
+    std::vector<MoveType> typesBySpeed;
+    if (ann_network.options.include_rspr_moves) {
+        typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPRMove, insertionType};
+    } else {
+        typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, insertionType};
+    }
 
     //std::cout << "Initial network is:\n" << toExtendedNewick(ann_network) << "\n\n";
 
