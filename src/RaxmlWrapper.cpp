@@ -670,7 +670,7 @@ double RaxmlWrapper::network_opt_brlen_wrapper(pllmod_treeinfo_t *fake_treeinfo,
         double max_brlen, double lh_epsilon, int max_iters, int opt_method, int radius) {
     AnnotatedNetwork *ann_network =
             ((NetworkParams*) (fake_treeinfo->likelihood_computation_params))->ann_network;
-    return optimize_branches(*ann_network, max_iters, radius);
+    return optimize_branches(*ann_network, max_iters, max_iters, radius);
 
 }
 double RaxmlWrapper::network_spr_round_wrapper(pllmod_treeinfo_t *treeinfo, unsigned int radius_min,

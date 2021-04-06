@@ -126,7 +126,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
             std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
             assert(!brlen_opt_candidates.empty());
             add_neighbors_in_radius(ann_network, brlen_opt_candidates, 1);
-            optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
+            optimize_branches(ann_network, max_iters, max_iters, radius, brlen_opt_candidates);
             optimizeReticulationProbs(ann_network);
         }
 
@@ -183,7 +183,7 @@ double hillClimbingStep(AnnotatedNetwork &ann_network, std::vector<T> candidates
             std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, bestMove);
             assert(!brlen_opt_candidates.empty());
             add_neighbors_in_radius(ann_network, brlen_opt_candidates, 1);
-            optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
+            optimize_branches(ann_network, max_iters, max_iters, radius, brlen_opt_candidates);
             optimizeReticulationProbs(ann_network);
         }
 

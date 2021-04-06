@@ -305,7 +305,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
     return final_logl;
 }
 
-double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radius,
+double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int max_iters_outside, int radius,
         std::unordered_set<size_t> candidates, bool restricted_total_iters) {
     for (size_t idx : candidates) {
         assert(idx < ann_network.network.num_branches());
@@ -330,11 +330,11 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
         //std::cout << "optimizing branch " << pmatrix_index << "\n";
 
         total_iters++;
-        if (restricted_total_iters && total_iters >= max_iters) {
+        if (restricted_total_iters && total_iters >= max_iters_outside) {
             continue;
         }
 
-        if (act_iters[pmatrix_index] >= max_iters) {
+        if (act_iters[pmatrix_index] >= max_iters_outside) {
             continue;
         }
         act_iters[pmatrix_index]++;
@@ -357,12 +357,12 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
     return old_logl;
 }
 
-double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radius, bool restricted_total_iters) {
+double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int max_iters_outside, int radius, bool restricted_total_iters) {
     std::unordered_set<size_t> candidates;
     for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
         candidates.emplace(i);
     }
-    return optimize_branches(ann_network, max_iters, radius, candidates, restricted_total_iters);
+    return optimize_branches(ann_network, max_iters, max_iters_outside, radius, candidates, restricted_total_iters);
 }
 
 /**
@@ -376,7 +376,7 @@ void optimizeBranches(AnnotatedNetwork &ann_network, bool silent, bool restricte
     int brlen_smooth_factor = 100;
     int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
     int radius = PLLMOD_OPT_BRLEN_OPTIMIZE_ALL;
-    optimize_branches(ann_network, max_iters, radius, restricted_total_iters);
+    optimize_branches(ann_network, max_iters, max_iters, radius, restricted_total_iters);
 
     double new_score = scoreNetwork(ann_network);
     if (!silent) std::cout << "BIC score after branch length optimization: " << new_score << "\n";
