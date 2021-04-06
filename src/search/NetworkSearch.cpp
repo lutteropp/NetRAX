@@ -280,9 +280,9 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
 }
 
 template <typename T>
-void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, bool silent = true) {
+bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, NetworkState* state, bool silent = true) {
     if (candidates.empty()) {
-        return;
+        return false;
     }
     if (ann_network.options.prefilter_fraction < 1.0) {
         if (ann_network.options.prefilter_fraction < 0.0) {
@@ -298,6 +298,7 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
     int radius = 1;
 
     double old_bic = scoreNetwork(ann_network);
+    double best_bic = old_bic;
 
     NetworkState oldState = extract_network_state(ann_network);
 
@@ -317,6 +318,19 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
         double worstScore = getWorstReticulationScore(ann_network);
         double bicScore = scoreNetwork(ann_network);
 
+        if (bicScore < best_bic) {
+            best_bic = bicScore;
+            *state = extract_network_state(ann_network);
+        }
+
+        if (ann_network.options.use_extreme_greedy) {
+            if (bicScore < old_bic) {
+                candidates[0] = candidates[i];
+                candidates.resize(1);
+                return true;
+            }
+        }
+
         scores[i] = ScoreItem<T>{candidates[i], worstScore, bicScore};
 
         if (isComplexityChangingMove(move.moveType)) {
@@ -326,14 +340,6 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
             apply_network_state(ann_network, oldState, true);
         }
         assert(checkSanity(ann_network, candidates[i]));
-
-        if (ann_network.options.use_extreme_greedy) {
-            if (bicScore < old_bic) {
-                candidates[0] = candidates[i];
-                candidates.resize(1);
-                return;
-            }
-        }
     }
 
     std::sort(scores.begin(), scores.end(), [](const ScoreItem<T>& lhs, const ScoreItem<T>& rhs) {
@@ -354,6 +360,8 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
     }
 
     candidates.resize(newSize);
+
+    return (best_bic < old_bic);
 }
 
 template <typename T>
@@ -362,29 +370,23 @@ double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidat
     int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
     int radius = 1;
 
-    rankCandidates(ann_network, candidates, true);
+    NetworkState state;
+    bool found_better_state = rankCandidates(ann_network, candidates, &state, true);
 
-    if (!candidates.empty()) {
-        T move = candidates[0];
-        performMove(ann_network, move);
-
-        std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
-        assert(!brlen_opt_candidates.empty());
-        add_neighbors_in_radius(ann_network, brlen_opt_candidates, 1);
-        optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
-        optimizeReticulationProbs(ann_network);
+    if (found_better_state) {
+        apply_network_state(ann_network, state);
 
         double logl = computeLoglikelihood(ann_network);
         double bic_score = bic(ann_network, logl);
         double aic_score = aic(ann_network, logl);
         double aicc_score = aicc(ann_network, logl);
 
-        if (!silent) std::cout << " Took " << toString(move.moveType) << "\n";
+        if (!silent) std::cout << " Took " << toString(candidates[0].moveType) << "\n";
         if (!silent) std::cout << "  Logl: " << logl << ", BIC: " << bic_score << ", AIC: " << aic_score << ", AICc: " << aicc_score <<  "\n";
         if (!silent) std::cout << "  param_count: " << get_param_count(ann_network) << ", sample_size:" << get_sample_size(ann_network) << "\n";
         if (!silent) std::cout << "  num_reticulations: " << ann_network.network.num_reticulations() << "\n";
         if (!silent) std::cout << toExtendedNewick(ann_network) << "\n";
-        ann_network.stats.moves_taken[move.moveType]++;
+        ann_network.stats.moves_taken[candidates[0].moveType]++;
     }
 
     return computeLoglikelihood(ann_network);
