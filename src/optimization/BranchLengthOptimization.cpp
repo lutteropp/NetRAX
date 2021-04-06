@@ -262,6 +262,13 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
     std::vector<std::vector<TreeLoglData> > oldTrees;
     std::vector<std::vector<SumtableInfo> > sumtables;
 
+    size_t n_partitions = 1;
+    bool unlinkedMode = (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
+    if (unlinkedMode) {
+        n_partitions = ann_network.fake_treeinfo->partition_count;
+    }
+    std::vector<double> old_brlens(n_partitions);
+
     // step 1: Do the virtual rerooting.
     if (brlenOptMethod != BrlenOptMethod::BRENT_NORMAL) {
         oldTrees = extractOldTrees(ann_network, ann_network.network.root);
@@ -280,15 +287,10 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
         }
     }
 
-    size_t n_partitions = 1;
-    bool unlinkedMode = (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
-    if (unlinkedMode) {
-        n_partitions = ann_network.fake_treeinfo->partition_count;
-    }
-
     ann_network.fake_treeinfo->active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
     for (size_t p = 0; p < n_partitions; ++p) {
         // TODO: Set the active partitions in the fake_treeinfo
+        old_brlens[p] = ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index];
         optimize_branch(ann_network, oldTrees, sumtables, pmatrix_index, p, brlenOptMethod, max_iters);
     }
 
@@ -298,9 +300,19 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
     }
 
     double final_logl = computeLoglikelihood(ann_network);
-    //std::cout << "old_logl: " << old_logl << "\n";
-    //std::cout << "final_logl: " << final_logl << "\n";
-    assert((final_logl >= old_logl) || (fabs(final_logl - old_logl) < 1E-3));
+    if (final_logl < old_logl) {
+        std::cout << "old_logl: " << old_logl << "\n";
+        std::cout << "final_logl: " << final_logl << "\n";
+
+        std::cout << "Optimizing branch length led to worse loglikelihood. Rerolling old brlen...\n";
+        for (size_t p = 0; p < n_partitions; ++p) {
+            ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] = old_brlens[p];
+        }
+        invalidatePmatrixIndex(ann_network, pmatrix_index);
+        final_logl = computeLoglikelihood(ann_network);
+    }
+
+    assert(final_logl >= old_logl);
 
     return final_logl;
 }
