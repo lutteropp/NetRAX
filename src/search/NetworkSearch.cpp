@@ -228,12 +228,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
 
         scores[i] = ScoreItem<T>{candidates[i], worstScore, bicScore};
 
-        if (isComplexityChangingMove(move.moveType)) {
-            apply_network_state(ann_network, oldState, true);
-        } else {
-            undoMove(ann_network, move);
-            apply_network_state(ann_network, oldState, false);
-        }
+        apply_network_state(ann_network, oldState);
 
         for (size_t j = 0; j < ann_network.network.num_nodes(); ++j) {
             assert(ann_network.network.nodes_by_index[j]->clv_index == j);
@@ -339,12 +334,7 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, N
 
         scores[i] = ScoreItem<T>{candidates[i], worstScore, bicScore};
 
-        if (isComplexityChangingMove(move.moveType)) {
-            apply_network_state(ann_network, oldState, true);
-        } else {
-            undoMove(ann_network, move);
-            apply_network_state(ann_network, oldState, true);
-        }
+        apply_network_state(ann_network, oldState);
         assert(checkSanity(ann_network, candidates[i]));
     }
 
@@ -372,10 +362,6 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, N
 
 template <typename T>
 double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidates, bool silent = true) {
-    double brlen_smooth_factor = 1.0;
-    int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
-    int radius = 1;
-
     NetworkState state;
     bool found_better_state = rankCandidates(ann_network, candidates, &state, true);
 
