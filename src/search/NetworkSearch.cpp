@@ -204,6 +204,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
     if (candidates.empty()) {
         return;
     }
+
     double brlen_smooth_factor = 0.25;
     int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
     int radius = 1;
@@ -225,7 +226,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
         double worstScore = getWorstReticulationScore(ann_network);
         double bicScore = scoreNetwork(ann_network);
 
-        scores[i] = ScoreItem<T>{move, worstScore, bicScore};
+        scores[i] = ScoreItem<T>{candidates[i], worstScore, bicScore};
 
         if (isComplexityChangingMove(move.moveType)) {
             apply_network_state(ann_network, oldState, true);
@@ -272,8 +273,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
     candidates.resize(newSize);
 
     for (size_t i = 0; i < candidates.size(); ++i) {
-        T move(candidates[i]);
-        assert(checkSanity(ann_network, move));
+        assert(checkSanity(ann_network, candidates[i]));
     }
 }
 
@@ -313,7 +313,7 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
         double worstScore = getWorstReticulationScore(ann_network);
         double bicScore = scoreNetwork(ann_network);
 
-        scores[i] = ScoreItem<T>{move, worstScore, bicScore};
+        scores[i] = ScoreItem<T>{candidates[i], worstScore, bicScore};
 
         if (isComplexityChangingMove(move.moveType)) {
             apply_network_state(ann_network, oldState, true);
