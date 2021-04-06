@@ -280,7 +280,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
         }
         ann_network.cached_logl_valid = false;
         // TODO: Leaving out this assertion is dangerous...
-        //assert(fabs(old_logl - computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index)) < 1E-3);
+        assert(fabs(old_logl - computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index)) < 1E-3);
 
         if (brlenOptMethod == BrlenOptMethod::NEWTON_RAPHSON || brlenOptMethod == BrlenOptMethod::BRENT_REROOT_SUMTABLE) {
             sumtables = computePartitionSumtables(ann_network, pmatrix_index);
