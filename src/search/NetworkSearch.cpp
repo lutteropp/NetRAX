@@ -222,7 +222,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
         
         std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
         assert(!brlen_opt_candidates.empty());
-        optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
+        optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates, true);
         double worstScore = getWorstReticulationScore(ann_network);
         double bicScore = scoreNetwork(ann_network);
 
@@ -293,7 +293,7 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
 
     if (!silent) std::cout << "MoveType: " << toString(candidates[0].moveType) << "\n";
 
-    double brlen_smooth_factor = 0.25;
+    double brlen_smooth_factor = 1.0;
     int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
     int radius = 1;
 
@@ -311,7 +311,7 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
         std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
         assert(!brlen_opt_candidates.empty());
         add_neighbors_in_radius(ann_network, brlen_opt_candidates, 1);
-        optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates);
+        optimize_branches(ann_network, max_iters, radius, brlen_opt_candidates, true);
         optimizeReticulationProbs(ann_network);
         
         double worstScore = getWorstReticulationScore(ann_network);
@@ -358,7 +358,7 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
 
 template <typename T>
 double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidates, bool silent = true) {
-    double brlen_smooth_factor = 0.25;
+    double brlen_smooth_factor = 1.0;
     int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
     int radius = 1;
 

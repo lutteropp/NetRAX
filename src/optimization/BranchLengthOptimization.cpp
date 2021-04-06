@@ -322,10 +322,17 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
 
     Node* old_virtual_root = ann_network.network.root;
 
+    size_t total_iters = 0;
+
     while (!candidates.empty()) {
         size_t pmatrix_index = *candidates.begin();
         candidates.erase(candidates.begin());
         //std::cout << "optimizing branch " << pmatrix_index << "\n";
+
+        total_iters++;
+        if (restricted_neighborhood && total_iters >= max_iters) {
+            continue;
+        }
 
         if (act_iters[pmatrix_index] >= max_iters) {
             continue;
