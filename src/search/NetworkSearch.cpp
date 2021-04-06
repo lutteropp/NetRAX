@@ -200,7 +200,7 @@ void printCandidates(std::vector<T>& candidates) {
 }
 
 template <typename T>
-void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, bool silent = false) {
+void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, bool silent = true) {
     if (candidates.empty()) {
         return;
     }
@@ -280,13 +280,13 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
 }
 
 template <typename T>
-void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, bool silent = false) {
+void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, bool silent = true) {
     if (candidates.empty()) {
         return;
     }
     prefilterCandidates(ann_network, candidates, true);
 
-    std::cout << "MoveType: " << toString(candidates[0].moveType) << "\n";
+    if (!silent) std::cout << "MoveType: " << toString(candidates[0].moveType) << "\n";
 
     double brlen_smooth_factor = 0.25;
     int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
@@ -352,7 +352,7 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
 }
 
 template <typename T>
-double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidates, bool silent = false) {
+double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidates, bool silent = true) {
     double brlen_smooth_factor = 0.25;
     int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
     int radius = 1;
@@ -487,10 +487,10 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
 
     std::vector<MoveType> typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::DeltaPlusMove};
 
-    std::cout << "Initial network is:\n" << toExtendedNewick(ann_network) << "\n\n";
+    //std::cout << "Initial network is:\n" << toExtendedNewick(ann_network) << "\n\n";
 
     optimizeAllNonTopology(ann_network, true);
-    std::cout << "Initial network after modelopt+brlenopt+reticulation opt is:\n" << toExtendedNewick(ann_network) << "\n\n";
+    //std::cout << "Initial network after modelopt+brlenopt+reticulation opt is:\n" << toExtendedNewick(ann_network) << "\n\n";
     std::string best_network = toExtendedNewick(ann_network);
     score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
 
