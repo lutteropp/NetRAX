@@ -131,38 +131,33 @@ ScoreImprovementResult check_score_improvement(AnnotatedNetwork& ann_network, do
     
     double new_score = scoreNetwork(ann_network);
     double score_diff = bestNetworkData->bic[ann_network.network.num_reticulations()] - new_score;
-    if (score_diff > 0.0001) {
+    if (score_diff > 0) {
+        double old_global_best = bestNetworkData->bic[bestNetworkData->best_n_reticulations];
         bestNetworkData->bic[ann_network.network.num_reticulations()] = new_score;
         bestNetworkData->logl[ann_network.network.num_reticulations()] = computeLoglikelihood(ann_network, 1, 1);
         bestNetworkData->newick[ann_network.network.num_reticulations()] = toExtendedNewick(ann_network);
         
         local_improved = true;
-        if (new_score < *local_best) {
-            std::cout << "SCORE DIFF: " << score_diff << "\n";
-            std::cout << "OLD LOCAL BEST SCORE WAS: " << *local_best << "\n";
-            *local_best = new_score;
-            std::cout << "IMPROVED LOCAL BEST SCORE FOUND SO FAR: " << new_score << "\n\n";
 
-            double old_global_best = bestNetworkData->bic[bestNetworkData->best_n_reticulations];
-
-            if (new_score < old_global_best) {
-                if (hasBadReticulation(ann_network)) {
-                    std::cout << "Network contains BAD RETICULATIONS. Not updating the global best found network and score.\n";
-                } else {
-                    bestNetworkData->best_n_reticulations = ann_network.network.num_reticulations();
-                    global_improved = true;
-                    std::cout << "OLD GLOBAL BEST SCORE WAS: " << old_global_best << "\n";
-                    std::cout << "IMPROVED GLOBAL BEST SCORE FOUND SO FAR: " << new_score << "\n\n";
-                    writeNetwork(ann_network, ann_network.options.output_file);
-                    std::cout << toExtendedNewick(ann_network) << "\n";
-                    std::cout << "Better network written to " << ann_network.options.output_file << "\n";
-                    printDisplayedTrees(ann_network);
-                }
+        if (new_score < old_global_best) {
+            if (hasBadReticulation(ann_network)) {
+                std::cout << "Network contains BAD RETICULATIONS. Not updating the global best found network and score.\n";
             } else {
-                std::cout << "REMAINED GLOBAL BEST SCORE FOUND SO FAR: " << old_global_best << "\n\n";
+                bestNetworkData->best_n_reticulations = ann_network.network.num_reticulations();
+                global_improved = true;
+                //std::cout << "OLD GLOBAL BEST SCORE WAS: " << old_global_best << "\n";
+                std::cout << "IMPROVED GLOBAL BEST SCORE FOUND SO FAR: " << new_score << "\n\n";
+                writeNetwork(ann_network, ann_network.options.output_file);
+                std::cout << toExtendedNewick(ann_network) << "\n";
+                std::cout << "Better network written to " << ann_network.options.output_file << "\n";
+                //printDisplayedTrees(ann_network);
             }
-        } else {
-            std::cout << "REMAINED LOCAL BEST SCORE FOUND SO FAR: " << *local_best << "\n\n";
+            *local_best = new_score;
+        } else if (new_score < *local_best) {
+            //std::cout << "SCORE DIFF: " << score_diff << "\n";
+            //std::cout << "OLD LOCAL BEST SCORE WAS: " << *local_best << "\n";
+            *local_best = new_score;
+            //std::cout << "IMPROVED LOCAL BEST SCORE FOUND SO FAR: " << new_score << "\n\n";
         }
     }
     return ScoreImprovementResult{local_improved, global_improved};
@@ -386,7 +381,7 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, N
 }
 
 template <typename T>
-double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidates, bool silent = true) {
+double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidates, double* best_score, BestNetworkData* bestNetworkData, bool silent = true) {
     NetworkState state;
     bool found_better_state = rankCandidates(ann_network, candidates, &state, true);
 
@@ -405,17 +400,14 @@ double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidat
         if (!silent) std::cout << "  num_reticulations: " << ann_network.network.num_reticulations() << "\n";
         if (!silent) std::cout << toExtendedNewick(ann_network) << "\n";
         ann_network.stats.moves_taken[candidates[0].moveType]++;
+
+        check_score_improvement(ann_network, best_score, bestNetworkData);
     }
 
     return computeLoglikelihood(ann_network);
 }
 
-double forceApplyArcInsertion(AnnotatedNetwork& ann_network) {
-    std::vector<ArcInsertionMove> candidates = possibleArcInsertionMoves(ann_network);
-    return applyBestCandidate(ann_network, candidates);
-}
-
-double optimizeEverythingRun(AnnotatedNetwork & ann_network, std::vector<MoveType>& typesBySpeed, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, const std::chrono::high_resolution_clock::time_point& start_time) {
+double optimizeEverythingRun(AnnotatedNetwork & ann_network, std::vector<MoveType>& typesBySpeed, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, const std::chrono::high_resolution_clock::time_point& start_time, BestNetworkData* bestNetworkData) {
     unsigned int type_idx = 0;
     unsigned int max_seconds = ann_network.options.timeout;
     double best_score = scoreNetwork(ann_network);
@@ -445,31 +437,31 @@ double optimizeEverythingRun(AnnotatedNetwork & ann_network, std::vector<MoveTyp
 
         switch (typesBySpeed[type_idx]) {
         case MoveType::RNNIMove:
-            applyBestCandidate(ann_network, possibleRNNIMoves(ann_network));
+            applyBestCandidate(ann_network, possibleRNNIMoves(ann_network), &best_score, bestNetworkData);
             break;
         case MoveType::RSPRMove:
-            applyBestCandidate(ann_network, possibleRSPRMoves(ann_network, ann_network.options.classic_moves));
+            applyBestCandidate(ann_network, possibleRSPRMoves(ann_network, ann_network.options.classic_moves), &best_score, bestNetworkData);
             break;
         case MoveType::RSPR1Move:
-            applyBestCandidate(ann_network, possibleRSPR1Moves(ann_network));
+            applyBestCandidate(ann_network, possibleRSPR1Moves(ann_network), &best_score, bestNetworkData);
             break;
         case MoveType::HeadMove:
-            applyBestCandidate(ann_network, possibleHeadMoves(ann_network, ann_network.options.classic_moves));
+            applyBestCandidate(ann_network, possibleHeadMoves(ann_network, ann_network.options.classic_moves), &best_score, bestNetworkData);
             break;
         case MoveType::TailMove:
-            applyBestCandidate(ann_network, possibleTailMoves(ann_network, ann_network.options.classic_moves));
+            applyBestCandidate(ann_network, possibleTailMoves(ann_network, ann_network.options.classic_moves), &best_score, bestNetworkData);
             break;
         case MoveType::ArcInsertionMove:
-            applyBestCandidate(ann_network, possibleArcInsertionMoves(ann_network));
+            applyBestCandidate(ann_network, possibleArcInsertionMoves(ann_network), &best_score, bestNetworkData);
             break;
         case MoveType::DeltaPlusMove:
-            applyBestCandidate(ann_network, possibleDeltaPlusMoves(ann_network));
+            applyBestCandidate(ann_network, possibleDeltaPlusMoves(ann_network), &best_score, bestNetworkData);
             break;
         case MoveType::ArcRemovalMove:
-            applyBestCandidate(ann_network, possibleArcRemovalMoves(ann_network));
+            applyBestCandidate(ann_network, possibleArcRemovalMoves(ann_network), &best_score, bestNetworkData);
             break;
         case MoveType::DeltaMinusMove:
-            applyBestCandidate(ann_network, possibleDeltaMinusMoves(ann_network));
+            applyBestCandidate(ann_network, possibleDeltaMinusMoves(ann_network), &best_score, bestNetworkData);
             break;
         default:
             throw std::runtime_error("Invalid move type");
@@ -538,7 +530,7 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
     std::string best_network = toExtendedNewick(ann_network);
     score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
 
-    optimizeEverythingRun(ann_network, typesBySpeed, start_state_to_reuse, best_state_to_reuse, start_time);
+    optimizeEverythingRun(ann_network, typesBySpeed, start_state_to_reuse, best_state_to_reuse, start_time, bestNetworkData);
     score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
 }
 
