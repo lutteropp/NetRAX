@@ -53,6 +53,8 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     bool best_displayed_tree_variant = false;
     app.add_flag("--average_displayed_tree_variant", average_displayed_tree_variant, "Use weighted average instead of only best displayed tree in network likelihood formula.");
     app.add_flag("--best_displayed_tree_variant", best_displayed_tree_variant, "Use best displayed tree instead of weighted average in network likelihood formula.");
+    app.add_option("--prefilter_fraction", options->prefilter_fraction, "Fraction of move candidates to keep after filtering. A value >= 1.0 disabled prefiltering. (default: 0.25)");
+    app.add_flag("--extreme_greedy", options->use_extreme_greedy, "Use extreme greedy for fast results with worse inference quality.");
 
     CLI11_PARSE(app, argc, argv);
     if (average_displayed_tree_variant && best_displayed_tree_variant) {
