@@ -444,7 +444,6 @@ double optimizeEverythingRun(AnnotatedNetwork & ann_network, std::vector<MoveTyp
             applyBestCandidate(ann_network, possibleArcRemovalMoves(ann_network));
             break;
         case MoveType::DeltaMinusMove:
-            //std::cout << exportDebugInfo(ann_network) << "\n";
             applyBestCandidate(ann_network, possibleDeltaMinusMoves(ann_network));
             break;
         default:
@@ -486,7 +485,7 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
     //std::vector<MoveType> typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::HeadMove, MoveType::ArcInsertionMove};
     //std::vector<MoveType> typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::HeadMove, MoveType::DeltaPlusMove};
 
-    std::vector<MoveType> typesBySpeed = {MoveType::DeltaMinusMove, MoveType::RNNIMove, MoveType::DeltaPlusMove};
+    std::vector<MoveType> typesBySpeed = {MoveType::RNNIMove, MoveType::ArcRemovalMove, MoveType::DeltaPlusMove};
 
     std::cout << "Initial network is:\n" << toExtendedNewick(ann_network) << "\n\n";
 
