@@ -410,8 +410,7 @@ void updateNetwork(AnnotatedNetwork &ann_network) {
         }
     } else {
         for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
-            size_t pmatrix_index = ann_network.network.edges[i].pmatrix_index;
-            ann_network.network.edges_by_index[pmatrix_index]->length = ann_network.fake_treeinfo->branch_lengths[0][pmatrix_index];
+            ann_network.network.edges_by_index[i]->length = ann_network.fake_treeinfo->branch_lengths[0][i];
         }
     }
 
