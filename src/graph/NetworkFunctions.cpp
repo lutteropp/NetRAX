@@ -315,7 +315,9 @@ pll_utree_t* displayed_tree_to_utree(Network &network, size_t tree_index) {
 
 pll_utree_t* displayed_tree_to_utree(Network &network, const std::vector<ReticulationState>& reticulationChoices) {
     for (size_t i = 0; i < reticulationChoices.size(); ++i) { // apply the reticulation choices
-        setReticulationState(network, i, reticulationChoices[i]);
+        if (reticulationChoices[i] != ReticulationState::DONT_CARE) {
+            setReticulationState(network, i, reticulationChoices[i]);
+        }
     }
 
     std::vector<bool> dead_nodes = collect_dead_nodes(network, network.root->clv_index);
