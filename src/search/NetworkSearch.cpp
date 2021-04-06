@@ -200,7 +200,7 @@ void printCandidates(std::vector<T>& candidates) {
 }
 
 template <typename T>
-void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, bool silent = false, bool too_greedy = true) {
+void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, bool silent = false) {
     if (candidates.empty()) {
         return;
     }
@@ -243,7 +243,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
 
         assert(checkSanity(ann_network, candidates[i]));
 
-        if (too_greedy) {
+        if (ann_network.options.use_extreme_greedy) {
             if (bicScore < old_bic) {
                 candidates[0] = candidates[i];
                 candidates.resize(1);
@@ -280,7 +280,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
 }
 
 template <typename T>
-void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, bool silent = false, bool too_greedy = true) {
+void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, bool silent = false) {
     if (candidates.empty()) {
         return;
     }
@@ -322,7 +322,7 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
         }
         assert(checkSanity(ann_network, candidates[i]));
 
-        if (too_greedy) {
+        if (ann_network.options.use_extreme_greedy) {
             if (bicScore < old_bic) {
                 candidates[0] = candidates[i];
                 candidates.resize(1);
@@ -485,7 +485,7 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
     //std::vector<MoveType> typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::HeadMove, MoveType::ArcInsertionMove};
     //std::vector<MoveType> typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::HeadMove, MoveType::DeltaPlusMove};
 
-    std::vector<MoveType> typesBySpeed = {MoveType::RNNIMove, MoveType::ArcRemovalMove, MoveType::DeltaPlusMove};
+    std::vector<MoveType> typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::DeltaPlusMove};
 
     std::cout << "Initial network is:\n" << toExtendedNewick(ann_network) << "\n\n";
 
@@ -529,6 +529,7 @@ void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
 }
 
 void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {
+    netraxOptions.use_extreme_greedy = true;
     BestNetworkData bestNetworkData(netraxOptions.max_reticulations);
 
     auto start_time = std::chrono::high_resolution_clock::now();
