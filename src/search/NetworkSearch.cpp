@@ -261,7 +261,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
 
     size_t newSize = 0;
 
-    double cutoff_bic = scores[scores.size()*0.1].bicScore;
+    double cutoff_bic = scores[scores.size()*ann_network.options.prefilter_fraction].bicScore;
 
     for (size_t i = 0; i < candidates.size(); ++i) {
         if (!silent) std::cout << "prefiltered candidate " << i + 1 << "/" << candidates.size() << " has worst score " << scores[i].worstScore << ", BIC: " << scores[i].bicScore << "\n";
@@ -284,7 +284,12 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
     if (candidates.empty()) {
         return;
     }
-    prefilterCandidates(ann_network, candidates, true);
+    if (ann_network.options.prefilter_fraction < 1.0) {
+        if (!ann_network.options.prefilter_fraction > 0.0) {
+            throw std::runtime_error("invalid prefilter fraction");
+        }
+        prefilterCandidates(ann_network, candidates, true);
+    }
 
     if (!silent) std::cout << "MoveType: " << toString(candidates[0].moveType) << "\n";
 
@@ -352,7 +357,7 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
 }
 
 template <typename T>
-double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidates, bool silent = false) {
+double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidates, bool silent = true) {
     double brlen_smooth_factor = 0.25;
     int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
     int radius = 1;

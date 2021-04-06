@@ -66,6 +66,7 @@ public:
     unsigned int timeout = 0; // maximum number of seconds to run the network search, value of zero will be ignored
 
     bool use_extreme_greedy = false;
+    double prefilter_fraction = 0.25; // if >= 1.0, then prefiltering is disabled
 
     int brlen_linkage = PLLMOD_COMMON_BRLEN_LINKED;
     int brlen_opt_method = PLLMOD_OPT_BLO_NEWTON_FAST;
