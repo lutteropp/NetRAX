@@ -285,7 +285,7 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
         return;
     }
     if (ann_network.options.prefilter_fraction < 1.0) {
-        if (!ann_network.options.prefilter_fraction > 0.0) {
+        if (ann_network.options.prefilter_fraction < 0.0) {
             throw std::runtime_error("invalid prefilter fraction");
         }
         prefilterCandidates(ann_network, candidates, true);
