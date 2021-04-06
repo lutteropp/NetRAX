@@ -22,12 +22,12 @@ namespace netrax {
 void add_neighbors_in_radius(AnnotatedNetwork& ann_network, std::unordered_set<size_t>& candidates, int radius);
 void add_neighbors_in_radius(AnnotatedNetwork& ann_network, std::unordered_set<size_t>& candidates, size_t pmatrix_index, int radius);
 
-double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radius, bool most_likely_tree_only = false);
+double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radius, bool restricted_neighborhood = false);
 double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radius,
-        std::unordered_set<size_t> candidates, bool most_likely_tree_only = false);
+        std::unordered_set<size_t> candidates, bool restricted_neighborhood = false);
 
 std::vector<std::vector<TreeLoglData> > extractOldTrees(AnnotatedNetwork& ann_network, Node* virtual_root);
 
-void optimizeBranches(AnnotatedNetwork &ann_network, bool silent = true, bool most_likely_tree_only = false);
+void optimizeBranches(AnnotatedNetwork &ann_network, bool silent = true, bool restricted_neighborhood = false);
 
 }
