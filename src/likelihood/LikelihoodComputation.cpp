@@ -973,13 +973,24 @@ struct PartitionLhData {
     double logl_prime_prime = 0.0;
 };
 
-PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned int partition_idx, const std::vector<SumtableInfo>& sumtables, const std::vector<std::vector<TreeLoglData> >& oldTrees, unsigned int pmatrix_index) {
+PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned int partition_idx, const std::vector<SumtableInfo>& sumtables, const std::vector<std::vector<TreeLoglData> >& oldTrees, unsigned int pmatrix_index, bool most_likely_tree_only) {
     PartitionLhData res{0.0, 0.0};
     pll_partition_t* partition = ann_network.fake_treeinfo->partitions[partition_idx];
     Node* source = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
     Node* target = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
 
-    bool single_tree_mode = (sumtables.size() == 1);
+    size_t most_likely_sumtable = 0;
+    if (most_likely_tree_only) {
+        double most_likely_prob = -std::numeric_limits<double>::infinity();
+        for (size_t i = 0; i < sumtables.size(); ++i) {
+            if (sumtables[i].tree_prob > most_likely_prob) {
+                most_likely_prob = sumtables[i].tree_prob;
+                most_likely_sumtable = i;
+            }
+        }
+    }
+
+    bool single_tree_mode = (sumtables.size() == 1) || (most_likely_tree_only);
 
     /*size_t n_trees_source = ann_network.pernode_displayed_tree_data[partition_idx][source->clv_index].num_active_displayed_trees;
     size_t n_trees_target = ann_network.pernode_displayed_tree_data[partition_idx][target->clv_index].num_active_displayed_trees;
@@ -1019,6 +1030,12 @@ PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned i
         std::cout << "number of sumtables: " << sumtables.size() << "\n";
     }*/
     for (size_t i = 0; i < sumtables.size(); ++i) {
+        if (most_likely_tree_only) {
+            if (i != most_likely_sumtable) {
+                continue;
+            }
+        }
+
         //source_tree_seen[sumtables[i].left_tree_idx] = true;
         //target_tree_seen[sumtables[i].right_tree_idx] = true;
 
@@ -1174,7 +1191,7 @@ PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned i
     return res;
 }
 
-LoglDerivatives computeLoglikelihoodDerivatives(AnnotatedNetwork& ann_network, const std::vector<std::vector<SumtableInfo> >& sumtables, const std::vector<std::vector<TreeLoglData> >& oldTrees, unsigned int pmatrix_index, bool incremental, bool update_pmatrices) {
+LoglDerivatives computeLoglikelihoodDerivatives(AnnotatedNetwork& ann_network, const std::vector<std::vector<SumtableInfo> >& sumtables, const std::vector<std::vector<TreeLoglData> >& oldTrees, unsigned int pmatrix_index, bool incremental, bool update_pmatrices, bool most_likely_tree_only) {
     //setup_pmatrices(ann_network, incremental, update_pmatrices);
     //double network_logl = 0.0;
     double network_logl_prime = 0.0;
@@ -1184,7 +1201,7 @@ LoglDerivatives computeLoglikelihoodDerivatives(AnnotatedNetwork& ann_network, c
     std::vector<double> partition_logls_prime_prime(ann_network.fake_treeinfo->partition_count);
 
     for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-        PartitionLhData pdata = computePartitionLhData(ann_network, p, sumtables[p], oldTrees, pmatrix_index);
+        PartitionLhData pdata = computePartitionLhData(ann_network, p, sumtables[p], oldTrees, pmatrix_index, most_likely_tree_only);
 
         //std::cout << " Network partition loglikelihood derivatives for partition " << p << ":\n";
         //std::cout << " partition_logl: " << pdata.logl << "\n";

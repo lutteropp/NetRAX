@@ -113,6 +113,7 @@ struct NewtonBrlenParams
     std::vector<std::vector<TreeLoglData> >* oldTrees = nullptr;
     std::vector<std::vector<SumtableInfo> >* sumtables = nullptr;
     double new_brlen;
+    bool most_likely_tree_only;
 };
 
 
@@ -126,7 +127,7 @@ static void network_derivative_func_multi (void * parameters, double * proposal,
   //std::cout << "proposing brlen: " << params->new_brlen << "\n";
   ann_network->fake_treeinfo->branch_lengths[params->partition_index][params->pmatrix_index] = params->new_brlen;
   invalidPmatrixIndexOnly(*ann_network, params->pmatrix_index);
-  LoglDerivatives logl_derivatives = computeLoglikelihoodDerivatives(*ann_network, *(params->sumtables), *(params->oldTrees), params->pmatrix_index);
+  LoglDerivatives logl_derivatives = computeLoglikelihoodDerivatives(*ann_network, *(params->sumtables), *(params->oldTrees), params->pmatrix_index, 1, 1, params->most_likely_tree_only);
 
   int unlinked = (ann_network->options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) ? 1 : 0;
 
@@ -141,31 +142,7 @@ static void network_derivative_func_multi (void * parameters, double * proposal,
   }
 }
 
-double search_newton_raphson(AnnotatedNetwork& ann_network, std::vector<std::vector<SumtableInfo> >& sumtables, size_t pmatrix_index, size_t partition_index, unsigned int max_iters) {
-    double old_brlen = ann_network.fake_treeinfo->branch_lengths[partition_index][pmatrix_index];
-    //LoglDerivatives logl_derivatives = computeLoglikelihoodDerivatives(ann_network, sumtables, oldTrees, pmatrix_index);
-
-    double tolerance = (ann_network.options.brlen_min > 0) ? ann_network.options.brlen_min /10.0: PLLMOD_OPT_TOL_BRANCH_LEN;
-
-    double xguess = old_brlen;
-    /*for (size_t it = 0; it < max_iters; ++it) {
-        xguess -= logl_derivatives.quotient.toDouble();
-        std::cout << "proposing brlen: " << xguess << "\n";
-        ann_network.fake_treeinfo->branch_lengths[partition_index][pmatrix_index] = xguess;
-        invalidPmatrixIndexOnly(ann_network, pmatrix_index);
-        logl_derivatives = computeLoglikelihoodDerivatives(ann_network, sumtables, pmatrix_index);
-
-
-        if (fabs(xguess - logl_derivatives.quotient.toDouble()) < tolerance) {
-            // converged
-            break;
-        }
-    }
-    return xguess;*/
-    throw std::runtime_error("not implemented yet");
-}
-
-double optimize_branch_newton_raphson(AnnotatedNetwork &ann_network, std::vector<std::vector<SumtableInfo> >& sumtables, std::vector<std::vector<TreeLoglData> >& oldTrees, size_t pmatrix_index, size_t partition_index, BrlenOptMethod brlenOptMethod, unsigned int max_iters) {
+double optimize_branch_newton_raphson(AnnotatedNetwork &ann_network, std::vector<std::vector<SumtableInfo> >& sumtables, std::vector<std::vector<TreeLoglData> >& oldTrees, size_t pmatrix_index, size_t partition_index, BrlenOptMethod brlenOptMethod, unsigned int max_iters, bool most_likely_tree_only) {
     assert(brlenOptMethod == BrlenOptMethod::NEWTON_RAPHSON);
 
     double old_brlen = ann_network.fake_treeinfo->branch_lengths[partition_index][pmatrix_index];
@@ -185,6 +162,7 @@ double optimize_branch_newton_raphson(AnnotatedNetwork &ann_network, std::vector
     params.oldTrees = &oldTrees;
     params.sumtables = &sumtables;
     params.new_brlen = old_brlen;
+    params.most_likely_tree_only = most_likely_tree_only;
     pllmod_opt_minimize_newton_multi(1,
                                     ann_network.options.brlen_min,
                                     &(params.new_brlen),
@@ -242,7 +220,7 @@ void add_neighbors_in_radius(AnnotatedNetwork& ann_network, std::unordered_set<s
     add_neighbors_in_radius(ann_network, candidates, pmatrix_index, radius, seen);
 }
 
-double optimize_branch(AnnotatedNetwork &ann_network, std::vector<std::vector<TreeLoglData> >& oldTrees, std::vector<std::vector<SumtableInfo> >& sumtables, size_t pmatrix_index, size_t partition_index, BrlenOptMethod brlenOptMethod, unsigned int max_iters) {
+double optimize_branch(AnnotatedNetwork &ann_network, std::vector<std::vector<TreeLoglData> >& oldTrees, std::vector<std::vector<SumtableInfo> >& sumtables, size_t pmatrix_index, size_t partition_index, BrlenOptMethod brlenOptMethod, unsigned int max_iters, bool most_likely_tree_only) {
     ann_network.cached_logl_valid = false;
 
     double start_logl;
@@ -257,7 +235,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, std::vector<std::vector<Tr
     } else { // BrlenOptMethod::NEWTON_RAPHSON_REROOT
         //std::cout << "\nStarting with network logl: " << start_logl << "\n";
         double old_brlen = ann_network.fake_treeinfo->branch_lengths[partition_index][pmatrix_index];
-        optimize_branch_newton_raphson(ann_network, sumtables, oldTrees, pmatrix_index, partition_index, brlenOptMethod, max_iters);
+        optimize_branch_newton_raphson(ann_network, sumtables, oldTrees, pmatrix_index, partition_index, brlenOptMethod, max_iters, most_likely_tree_only);
         double new_logl = computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index, 1, 1);
         if (new_logl < start_logl) { // this can happen in rare cases, if NR didn't converge. If it happens, reoad the old branch length.
             //std::cout << "reload old brlen\n";
@@ -281,7 +259,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, std::vector<std::vector<Tr
     return best_logl;
 }
 
-double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, BrlenOptMethod brlenOptMethod, unsigned int max_iters) {
+double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, BrlenOptMethod brlenOptMethod, unsigned int max_iters, bool most_likely_tree_only) {
     double old_logl = computeLoglikelihood(ann_network);
     std::vector<std::vector<TreeLoglData> > oldTrees;
     std::vector<std::vector<SumtableInfo> > sumtables;
@@ -313,7 +291,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
     ann_network.fake_treeinfo->active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
     for (size_t p = 0; p < n_partitions; ++p) {
         // TODO: Set the active partitions in the fake_treeinfo
-        optimize_branch(ann_network, oldTrees, sumtables, pmatrix_index, p, brlenOptMethod, max_iters);
+        optimize_branch(ann_network, oldTrees, sumtables, pmatrix_index, p, brlenOptMethod, max_iters, most_likely_tree_only);
     }
 
     // restore the network root
@@ -330,7 +308,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
 }
 
 double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radius,
-        std::unordered_set<size_t> candidates) {
+        std::unordered_set<size_t> candidates, bool most_likely_tree_only) {
     for (size_t idx : candidates) {
         assert(idx < ann_network.network.num_branches());
     }
@@ -356,7 +334,7 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
         }
         act_iters[pmatrix_index]++;
 
-        double new_logl = optimize_branch(ann_network, pmatrix_index, brlenOptMethod, max_iters);
+        double new_logl = optimize_branch(ann_network, pmatrix_index, brlenOptMethod, max_iters, most_likely_tree_only);
 
         if (new_logl - old_logl > lh_epsilon) { // add all neighbors of the branch to the candidates
             add_neighbors_in_radius(ann_network, candidates, pmatrix_index, 1);
@@ -374,12 +352,12 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
     return old_logl;
 }
 
-double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radius) {
+double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radius, bool most_likely_tree_only) {
     std::unordered_set<size_t> candidates;
     for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
         candidates.emplace(i);
     }
-    return optimize_branches(ann_network, max_iters, radius, candidates);
+    return optimize_branches(ann_network, max_iters, radius, candidates, most_likely_tree_only);
 }
 
 /**
@@ -387,13 +365,13 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int radiu
  * 
  * @param ann_network The network.
  */
-void optimizeBranches(AnnotatedNetwork &ann_network, bool silent) {
+void optimizeBranches(AnnotatedNetwork &ann_network, bool silent, bool most_likely_tree_only) {
     double old_score = scoreNetwork(ann_network);
 
     int brlen_smooth_factor = 100;
     int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
     int radius = PLLMOD_OPT_BRLEN_OPTIMIZE_ALL;
-    optimize_branches(ann_network, max_iters, radius);
+    optimize_branches(ann_network, max_iters, radius, most_likely_tree_only);
 
     double new_score = scoreNetwork(ann_network);
     if (!silent) std::cout << "BIC score after branch length optimization: " << new_score << "\n";
