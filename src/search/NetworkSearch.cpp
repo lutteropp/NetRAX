@@ -200,7 +200,7 @@ void printCandidates(std::vector<T>& candidates) {
 }
 
 template <typename T>
-void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, bool silent = false) {
+void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, bool silent = false, bool too_greedy = false) {
     if (candidates.empty()) {
         return;
     }
@@ -243,10 +243,12 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
 
         assert(checkSanity(ann_network, candidates[i]));
 
-        if (bicScore < old_bic) {
-            candidates[0] = candidates[i];
-            candidates.resize(1);
-            return;
+        if (too_greedy) {
+            if (bicScore < old_bic) {
+                candidates[0] = candidates[i];
+                candidates.resize(1);
+                return;
+            }
         }
     }
 
@@ -278,14 +280,11 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
 }
 
 template <typename T>
-void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, bool silent = false) {
+void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, bool silent = false, bool too_greedy = true) {
     if (candidates.empty()) {
         return;
     }
-
-    if (candidates[0].moveType != MoveType::ArcRemovalMove) {
-        prefilterCandidates(ann_network, candidates, true);
-    }
+    prefilterCandidates(ann_network, candidates, true);
 
     std::cout << "MoveType: " << toString(candidates[0].moveType) << "\n";
 
@@ -323,10 +322,12 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
         }
         assert(checkSanity(ann_network, candidates[i]));
 
-        if (bicScore < old_bic) {
-            candidates[0] = candidates[i];
-            candidates.resize(1);
-            return;
+        if (too_greedy) {
+            if (bicScore < old_bic) {
+                candidates[0] = candidates[i];
+                candidates.resize(1);
+                return;
+            }
         }
     }
 
