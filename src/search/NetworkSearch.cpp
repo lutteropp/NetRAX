@@ -448,16 +448,16 @@ double optimizeEverythingRun(AnnotatedNetwork & ann_network, std::vector<MoveTyp
             applyBestCandidate(ann_network, possibleRNNIMoves(ann_network));
             break;
         case MoveType::RSPRMove:
-            applyBestCandidate(ann_network, possibleRSPRMoves(ann_network));
+            applyBestCandidate(ann_network, possibleRSPRMoves(ann_network, ann_network.options.classic_moves));
             break;
         case MoveType::RSPR1Move:
             applyBestCandidate(ann_network, possibleRSPR1Moves(ann_network));
             break;
         case MoveType::HeadMove:
-            applyBestCandidate(ann_network, possibleHeadMoves(ann_network));
+            applyBestCandidate(ann_network, possibleHeadMoves(ann_network, ann_network.options.classic_moves));
             break;
         case MoveType::TailMove:
-            applyBestCandidate(ann_network, possibleTailMoves(ann_network));
+            applyBestCandidate(ann_network, possibleTailMoves(ann_network, ann_network.options.classic_moves));
             break;
         case MoveType::ArcInsertionMove:
             applyBestCandidate(ann_network, possibleArcInsertionMoves(ann_network));
@@ -516,15 +516,19 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
     }
 
     std::vector<MoveType> typesBySpeed;
-    if (ann_network.options.include_rspr1_moves) {
-        typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, insertionType};
+    if (ann_network.options.classic_moves) {
+        typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::HeadMove, MoveType::ArcInsertionMove};
     } else {
-        typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, insertionType};
-    }
-    if (ann_network.options.include_rspr_moves) {
-        typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPRMove, insertionType};
-    } else {
-        typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, insertionType};
+        if (ann_network.options.include_rspr1_moves) {
+            typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, insertionType};
+        } else {
+            typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, insertionType};
+        }
+        if (ann_network.options.include_rspr_moves) {
+            typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPRMove, insertionType};
+        } else {
+            typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, insertionType};
+        }
     }
 
     //std::cout << "Initial network is:\n" << toExtendedNewick(ann_network) << "\n\n";

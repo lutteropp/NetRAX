@@ -58,6 +58,7 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     app.add_flag("--include_rspr1_moves", options->include_rspr1_moves, "Also use rSPR1 moves (slow).");
     app.add_flag("--include_rspr_moves", options->include_rspr_moves, "Also use rSPR moves (super slow).");
     app.add_flag("--full_arc_insertion", options->full_arc_insertion, "Use full ArcInsertion moves instead of only DeltaPlus moves (slow).");
+    app.add_flag("--classic_moves", options->classic_moves, "Stick to the classic moves selection (super duper slow).");
 
     CLI11_PARSE(app, argc, argv);
     if (average_displayed_tree_variant && best_displayed_tree_variant) {

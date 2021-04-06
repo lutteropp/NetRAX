@@ -70,6 +70,7 @@ public:
     bool include_rspr_moves = false;
     bool include_rspr1_moves = false;
     bool full_arc_insertion = false;
+    bool classic_moves = false;
 
     int brlen_linkage = PLLMOD_COMMON_BRLEN_LINKED;
     int brlen_opt_method = PLLMOD_OPT_BLO_NEWTON_FAST;
