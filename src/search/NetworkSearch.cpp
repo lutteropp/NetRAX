@@ -127,7 +127,7 @@ bool hasBadReticulation(AnnotatedNetwork& ann_network) {
     return false;
 }
 
-ScoreImprovementResult check_score_improvement(AnnotatedNetwork& ann_network, double* local_best, BestNetworkData* bestNetworkData) {
+ScoreImprovementResult check_score_improvement(AnnotatedNetwork& ann_network, double* local_best, BestNetworkData* bestNetworkData, bool silent = true) {
     bool local_improved = false;
     bool global_improved = false;
     
@@ -148,10 +148,10 @@ ScoreImprovementResult check_score_improvement(AnnotatedNetwork& ann_network, do
                 bestNetworkData->best_n_reticulations = ann_network.network.num_reticulations();
                 global_improved = true;
                 //std::cout << "OLD GLOBAL BEST SCORE WAS: " << old_global_best << "\n";
-                std::cout << "IMPROVED GLOBAL BEST SCORE FOUND SO FAR: " << new_score << "\n\n";
+                std::cout << "IMPROVED GLOBAL BEST SCORE FOUND SO FAR: " << new_score << "\n";
                 writeNetwork(ann_network, ann_network.options.output_file);
-                std::cout << toExtendedNewick(ann_network) << "\n";
-                std::cout << "Better network written to " << ann_network.options.output_file << "\n";
+                if (!silent) std::cout << toExtendedNewick(ann_network) << "\n";
+                if (!silent) std::cout << "Better network written to " << ann_network.options.output_file << "\n";
                 //printDisplayedTrees(ann_network);
             }
             *local_best = new_score;
@@ -583,8 +583,9 @@ void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {
     if (netraxOptions.num_random_start_networks > 0) {
         while (true) {
             n_iterations++;
-            std::cout << "Starting with new random network " << n_iterations << " with " << start_reticulations << " reticulations.\n";
-            netrax::AnnotatedNetwork ann_network = build_random_annotated_network(netraxOptions, dist(rng));
+            int seed = dist(rng);
+            std::cout << "Starting with new parsimony tree " << n_iterations << " with " << start_reticulations << " reticulations, tree seed = " << seed << ".\n";
+            netrax::AnnotatedNetwork ann_network = build_random_annotated_network(netraxOptions, seed);
             init_annotated_network(ann_network, rng);
             add_extra_reticulations(ann_network, start_reticulations);
 
@@ -611,8 +612,9 @@ void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {
     if (netraxOptions.num_parsimony_start_networks > 0) {
         while (true) {
             n_iterations++;
-            std::cout << "Starting with new parsimony tree " << n_iterations << " with " << start_reticulations << " reticulations.\n";
-            netrax::AnnotatedNetwork ann_network = build_parsimony_annotated_network(netraxOptions, dist(rng));
+            int seed = dist(rng);
+            std::cout << "Starting with new parsimony tree " << n_iterations << " with " << start_reticulations << " reticulations, tree seed = " << seed << ".\n";
+            netrax::AnnotatedNetwork ann_network = build_parsimony_annotated_network(netraxOptions, seed);
             init_annotated_network(ann_network, rng);
             add_extra_reticulations(ann_network, start_reticulations);
             wavesearch(ann_network, &bestNetworkData, rng);

@@ -708,11 +708,9 @@ void RaxmlWrapper::enableRaxmlDebugOutput() {
 }
 
 Tree RaxmlWrapper::generateRandomTree(double seed) const {
-    std::cout << "seed: " << seed << "\n";
     return generate_tree(instance, StartingTree::random, seed);
 }
 Tree RaxmlWrapper::generateParsimonyTree(double seed) const {
-    std::cout << "seed: " << seed << "\n";
     return generate_tree(instance, StartingTree::parsimony, seed);
 }
 Tree RaxmlWrapper::bestRaxmlTree() const {
