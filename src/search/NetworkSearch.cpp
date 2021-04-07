@@ -567,7 +567,7 @@ void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
 }
 
 void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {
-    std::uniform_int_distribution<long> dist(std::numeric_limits<long>::min(),std::numeric_limits<long>::max());
+    std::uniform_int_distribution<long> dist(0, RAND_MAX);
     BestNetworkData bestNetworkData(netraxOptions.max_reticulations);
 
     Statistics totalStats;

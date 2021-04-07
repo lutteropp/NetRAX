@@ -297,7 +297,7 @@ void generate_random_network_only(NetraxOptions &netraxOptions, std::mt19937 &rn
     {
         throw std::runtime_error("Need output file to write the generated network");
     }
-    std::uniform_int_distribution<long> dist(std::numeric_limits<long>::min(),std::numeric_limits<long>::max());
+    std::uniform_int_distribution<long> dist(0, RAND_MAX);
     netrax::AnnotatedNetwork ann_network = build_random_annotated_network(netraxOptions, dist(rng));
     init_annotated_network(ann_network, rng);
     add_extra_reticulations(ann_network, netraxOptions.max_reticulations);

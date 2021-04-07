@@ -709,10 +709,12 @@ void RaxmlWrapper::enableRaxmlDebugOutput() {
 
 Tree RaxmlWrapper::generateRandomTree(double seed) {
     instance.opts.random_seed = seed;
+    std::cout << "seed: " << seed << "\n";
     return generate_tree(instance, StartingTree::random);
 }
 Tree RaxmlWrapper::generateParsimonyTree(double seed) {
     instance.opts.random_seed = seed;
+    std::cout << "seed: " << seed << "\n";
     return generate_tree(instance, StartingTree::parsimony);
 }
 Tree RaxmlWrapper::bestRaxmlTree() const {
