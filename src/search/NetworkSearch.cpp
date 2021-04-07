@@ -587,6 +587,7 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
     score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
 
     if (ann_network.options.scrambling > 0) {
+        std::cout << " Starting scrambling phase...\n";
         unsigned int tries = 0;
         NetworkState bestState = extract_network_state(ann_network);
         if (!silent) std::cout << " Network before scrambling has BIC Score: " << scoreNetwork(ann_network) << "\n";
