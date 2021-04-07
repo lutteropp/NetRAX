@@ -584,7 +584,7 @@ void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {
         while (true) {
             n_iterations++;
             int seed = dist(rng);
-            std::cout << "Starting with new parsimony tree " << n_iterations << " with " << start_reticulations << " reticulations, tree seed = " << seed << ".\n";
+            std::cout << "Starting with new random network " << n_iterations << " with " << start_reticulations << " reticulations, tree seed = " << seed << ".\n";
             netrax::AnnotatedNetwork ann_network = build_random_annotated_network(netraxOptions, seed);
             init_annotated_network(ann_network, rng);
             add_extra_reticulations(ann_network, start_reticulations);
@@ -639,6 +639,7 @@ void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {
     for (const auto& entry : totalStats.moves_taken) {
         std::cout << toString(entry.first) << ": " << entry.second << "\n";
     }
+    std::cout << "\n";
 
     std::cout << "Best inferred network has " << bestNetworkData.best_n_reticulations << " reticulations, logl = " << bestNetworkData.logl[bestNetworkData.best_n_reticulations] << ", bic = " << bestNetworkData.bic[bestNetworkData.best_n_reticulations] << "\n";
     std::cout << "Best inferred network is: \n";
