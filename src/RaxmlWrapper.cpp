@@ -707,15 +707,13 @@ void RaxmlWrapper::enableRaxmlDebugOutput() {
     logger().add_log_stream(&cout);
 }
 
-Tree RaxmlWrapper::generateRandomTree(double seed) {
-    instance.opts.random_seed = seed;
+Tree RaxmlWrapper::generateRandomTree(double seed) const {
     std::cout << "seed: " << seed << "\n";
-    return generate_tree(instance, StartingTree::random);
+    return generate_tree(instance, StartingTree::random, seed);
 }
-Tree RaxmlWrapper::generateParsimonyTree(double seed) {
-    instance.opts.random_seed = seed;
+Tree RaxmlWrapper::generateParsimonyTree(double seed) const {
     std::cout << "seed: " << seed << "\n";
-    return generate_tree(instance, StartingTree::parsimony);
+    return generate_tree(instance, StartingTree::parsimony, seed);
 }
 Tree RaxmlWrapper::bestRaxmlTree() const {
     throw std::runtime_error("Not implemented yet");
