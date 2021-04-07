@@ -513,12 +513,12 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
     if (ann_network.options.classic_moves) {
         typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::HeadMove, MoveType::ArcInsertionMove};
     } else {
-        if (ann_network.options.include_rspr1_moves) {
+        if (ann_network.options.use_rspr1_moves) {
             typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, insertionType};
         } else {
             typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, insertionType};
         }
-        if (ann_network.options.include_rspr_moves) {
+        if (ann_network.options.use_rspr_moves) {
             typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPRMove, insertionType};
         } else {
             typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, insertionType};
