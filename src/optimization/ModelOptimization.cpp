@@ -103,7 +103,7 @@ void optimizeModel(AnnotatedNetwork &ann_network, bool silent) {
     //assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
     double new_score = scoreNetwork(ann_network);
     if (!silent) std::cout << "BIC score after model optimization: " << new_score << "\n";
-    assert(new_score <= old_score + ann_network.options.score_epsilon);
+    assert(new_score <= old_score);
 }
 
 }

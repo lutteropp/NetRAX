@@ -70,7 +70,7 @@ void optimizeAllNonTopology(AnnotatedNetwork &ann_network, bool extremeOpt, bool
         optimizeReticulationProbs(ann_network, silent);
         double score_after = scoreNetwork(ann_network);
 
-        if (score_after < score_before - ann_network.options.score_epsilon && extremeOpt) {
+        if (score_after < score_before && extremeOpt) {
             gotBetter = true;
         }
     }
@@ -605,7 +605,7 @@ double optimizeEverythingRun(AnnotatedNetwork& ann_network, std::vector<MoveType
         } else { // try next-slower move type
             type_idx++;
         }
-        assert(new_score <= old_score + ann_network.options.score_epsilon);
+        assert(new_score <= old_score);
 
         if (max_seconds != 0) {
             auto act_time = std::chrono::high_resolution_clock::now();

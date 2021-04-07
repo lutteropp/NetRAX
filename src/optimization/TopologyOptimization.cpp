@@ -285,7 +285,7 @@ double greedyHillClimbingTopology(AnnotatedNetwork &ann_network, const std::vect
         type_idx = (type_idx + 1) % types.size();
         moves_cnt++;
 
-        if (old_bic - new_score > ann_network.options.score_epsilon) {
+        if (new_score < old_bic) {
             //std::cout << "Improved bic from " << old_bic << " to " << new_score << "\n";
             old_bic = new_score;
             moves_cnt = 0;
@@ -320,7 +320,7 @@ void optimizeTopology(AnnotatedNetwork &ann_network, const std::vector<MoveType>
     greedyHillClimbingTopology(ann_network, types, start_state_to_reuse, best_state_to_reuse, greedy, silent, max_iterations);
     double new_score = scoreNetwork(ann_network);
     if (!silent) std::cout << "BIC after topology optimization: " << new_score << "\n";
-    assert(new_score <= old_score + ann_network.options.score_epsilon);
+    assert(new_score <= old_score);
 }
 
 /**
@@ -335,7 +335,7 @@ void optimizeTopology(AnnotatedNetwork &ann_network, MoveType& type, NetworkStat
     double new_score = scoreNetwork(ann_network);
     //std::cout << "BIC after topology optimization: " << new_score << "\n";
 
-    assert(new_score <= old_score + ann_network.options.score_epsilon);
+    assert(new_score <= old_score);
 }
 
 }

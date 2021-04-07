@@ -399,7 +399,7 @@ void optimizeBranches(AnnotatedNetwork &ann_network, bool silent, bool restricte
         throw std::runtime_error("Complete brlenopt made BIC worse");
     }
 
-    assert(new_score <= old_score + ann_network.options.score_epsilon);
+    assert(new_score <= old_score);
     if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED && ann_network.fake_treeinfo->partition_count > 1) {
         old_score = scoreNetwork(ann_network);
         pllmod_algo_opt_brlen_scalers_treeinfo(ann_network.fake_treeinfo,
@@ -410,7 +410,7 @@ void optimizeBranches(AnnotatedNetwork &ann_network, bool silent, bool restricte
                                                         RAXML_PARAM_EPSILON);
         new_score = scoreNetwork(ann_network);
         std::cout << "BIC score after branch length scaler optimization: " << new_score << "\n";
-        assert(new_score <= old_score + ann_network.options.score_epsilon);
+        assert(new_score <= old_score);
     }
 }
 
