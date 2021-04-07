@@ -71,7 +71,8 @@ public:
     bool use_rspr1_moves = false;
     bool full_arc_insertion = false;
     bool classic_moves = false;
-    unsigned int scrambling = 25;
+    unsigned int scrambling = 5;
+    unsigned int scrambling_radius = 1;
 
     int brlen_linkage = PLLMOD_COMMON_BRLEN_LINKED;
     int brlen_opt_method = PLLMOD_OPT_BLO_NEWTON_FAST;
