@@ -567,6 +567,12 @@ void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
 void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {
     BestNetworkData bestNetworkData(netraxOptions.max_reticulations);
 
+    Statistics totalStats;
+    std::vector<MoveType> allTypes = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::TailMove, MoveType::RSPRMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove, MoveType::DeltaMinusMove, MoveType::ArcRemovalMove};
+    for (MoveType type : allTypes) {
+        totalStats.moves_taken[type] = 0;
+    }
+
     auto start_time = std::chrono::high_resolution_clock::now();
     size_t start_reticulations = 0;
     size_t n_iterations = 0;
@@ -574,12 +580,15 @@ void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {
     if (netraxOptions.num_random_start_networks > 0) {
         while (true) {
             n_iterations++;
-            std::cout << "Starting with new random network with " << start_reticulations << " reticulations.\n";
+            std::cout << "Starting with new random network " << n_iterations << " with " << start_reticulations << " reticulations.\n";
             netrax::AnnotatedNetwork ann_network = build_random_annotated_network(netraxOptions);
             init_annotated_network(ann_network, rng);
             add_extra_reticulations(ann_network, start_reticulations);
 
             wavesearch(ann_network, &bestNetworkData, rng);
+            for (MoveType type : allTypes) {
+                totalStats.moves_taken[type] += ann_network.stats.moves_taken[type];
+            }
             //std::cout << "Ending with new random tree with " << ann_network.network.num_reticulations() << " reticulations.\n";
             if (netraxOptions.timeout > 0) {
                 auto act_time = std::chrono::high_resolution_clock::now();
@@ -598,11 +607,14 @@ void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {
     if (netraxOptions.num_parsimony_start_networks > 0) {
         while (true) {
             n_iterations++;
-            std::cout << "Starting with new parsimony tree with " << start_reticulations << " reticulations.\n";
+            std::cout << "Starting with new parsimony tree " << n_iterations << " with " << start_reticulations << " reticulations.\n";
             netrax::AnnotatedNetwork ann_network = build_parsimony_annotated_network(netraxOptions);
             init_annotated_network(ann_network, rng);
             add_extra_reticulations(ann_network, start_reticulations);
             wavesearch(ann_network, &bestNetworkData, rng);
+            for (MoveType type : allTypes) {
+                totalStats.moves_taken[type] += ann_network.stats.moves_taken[type];
+            }
             //std::cout << "Ending with new parsimony tree with " << ann_network.network.num_reticulations() << " reticulations.\n";
             if (netraxOptions.timeout > 0) {
                 auto act_time = std::chrono::high_resolution_clock::now();
@@ -613,6 +625,11 @@ void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {
                 break;
             }
         }
+    }
+
+    std::cout << "\nAggregated statistics on which moves were taken:\n";
+    for (const auto& entry : totalStats.moves_taken) {
+        std::cout << toString(entry.first) << ": " << entry.second << "\n";
     }
 
     std::cout << "Best inferred network has " << bestNetworkData.best_n_reticulations << " reticulations, logl = " << bestNetworkData.logl[bestNetworkData.best_n_reticulations] << ", bic = " << bestNetworkData.bic[bestNetworkData.best_n_reticulations] << "\n";
