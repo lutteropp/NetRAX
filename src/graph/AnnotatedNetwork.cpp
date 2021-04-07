@@ -179,9 +179,9 @@ void add_extra_reticulations(AnnotatedNetwork &ann_network, unsigned int targetC
  * 
  * @param options The options specified by the user.
  */
-AnnotatedNetwork build_random_annotated_network(NetraxOptions &options) {
+AnnotatedNetwork build_random_annotated_network(NetraxOptions &options, double seed) {
     RaxmlWrapper wrapper(options);
-    Tree tree = wrapper.generateRandomTree();
+    Tree tree = wrapper.generateRandomTree(seed);
     AnnotatedNetwork ann_network = build_annotated_network_from_utree(options, tree.pll_utree());
     return ann_network;
 }
@@ -191,9 +191,9 @@ AnnotatedNetwork build_random_annotated_network(NetraxOptions &options) {
  * 
  * @param options The options specified by the user.
  */
-AnnotatedNetwork build_parsimony_annotated_network(NetraxOptions &options) {
+AnnotatedNetwork build_parsimony_annotated_network(NetraxOptions &options, double seed) {
     RaxmlWrapper wrapper(options);
-    Tree tree = wrapper.generateParsimonyTree();
+    Tree tree = wrapper.generateParsimonyTree(seed);
     AnnotatedNetwork ann_network = build_annotated_network_from_utree(options, tree.pll_utree());
     return ann_network;
 }

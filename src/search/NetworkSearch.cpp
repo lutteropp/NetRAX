@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <random>
+#include <limits>
 
 #include "../likelihood/mpreal.h"
 #include "../graph/AnnotatedNetwork.hpp"
@@ -565,6 +567,7 @@ void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
 }
 
 void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {
+    std::uniform_int_distribution<long> dist(std::numeric_limits<long>::min(),std::numeric_limits<long>::max());
     BestNetworkData bestNetworkData(netraxOptions.max_reticulations);
 
     Statistics totalStats;
@@ -581,9 +584,10 @@ void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {
         while (true) {
             n_iterations++;
             std::cout << "Starting with new random network " << n_iterations << " with " << start_reticulations << " reticulations.\n";
-            netrax::AnnotatedNetwork ann_network = build_random_annotated_network(netraxOptions);
+            netrax::AnnotatedNetwork ann_network = build_random_annotated_network(netraxOptions, dist(rng));
             init_annotated_network(ann_network, rng);
             add_extra_reticulations(ann_network, start_reticulations);
+            std::cout << toExtendedNewick(ann_network) << "\n";
 
             wavesearch(ann_network, &bestNetworkData, rng);
             std::cout << " Inferred " << ann_network.network.num_reticulations() << " reticulations, logl = " << computeLoglikelihood(ann_network) << ", bic = " << scoreNetwork(ann_network) << "\n";
@@ -609,9 +613,10 @@ void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {
         while (true) {
             n_iterations++;
             std::cout << "Starting with new parsimony tree " << n_iterations << " with " << start_reticulations << " reticulations.\n";
-            netrax::AnnotatedNetwork ann_network = build_parsimony_annotated_network(netraxOptions);
+            netrax::AnnotatedNetwork ann_network = build_parsimony_annotated_network(netraxOptions, dist(rng));
             init_annotated_network(ann_network, rng);
             add_extra_reticulations(ann_network, start_reticulations);
+            std::cout << toExtendedNewick(ann_network) << "\n";
             wavesearch(ann_network, &bestNetworkData, rng);
             std::cout << " Inferred " << ann_network.network.num_reticulations() << " reticulations, logl = " << computeLoglikelihood(ann_network) << ", bic = " << scoreNetwork(ann_network) << "\n";
 

@@ -1,5 +1,7 @@
 #include <iostream>
 #include <string>
+#include <random>
+#include <limits>
 
 #include <CLI11.hpp>
 #include "likelihood/mpreal.h"
@@ -295,7 +297,8 @@ void generate_random_network_only(NetraxOptions &netraxOptions, std::mt19937 &rn
     {
         throw std::runtime_error("Need output file to write the generated network");
     }
-    netrax::AnnotatedNetwork ann_network = build_random_annotated_network(netraxOptions);
+    std::uniform_int_distribution<long> dist(std::numeric_limits<long>::min(),std::numeric_limits<long>::max());
+    netrax::AnnotatedNetwork ann_network = build_random_annotated_network(netraxOptions, dist(rng));
     init_annotated_network(ann_network, rng);
     add_extra_reticulations(ann_network, netraxOptions.max_reticulations);
     writeNetwork(ann_network, netraxOptions.output_file);

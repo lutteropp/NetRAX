@@ -122,7 +122,7 @@ TEST (SystemTest, randomNetwork) {
     smallOptions.use_repeats = true;
     RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
     unsigned int n_reticulations = 8;
-    AnnotatedNetwork ann_network = build_random_annotated_network(smallOptions);
+    AnnotatedNetwork ann_network = build_random_annotated_network(smallOptions, rand());
     init_annotated_network(ann_network);
     add_extra_reticulations(ann_network, n_reticulations);
     assert(ann_network.network.num_reticulations() == n_reticulations);

@@ -67,8 +67,8 @@ public:
 
     size_t num_partitions() const;
 
-    Tree generateRandomTree() const;
-    Tree generateParsimonyTree() const;
+    Tree generateRandomTree(double seed);
+    Tree generateParsimonyTree(double seed);
     Tree bestRaxmlTree() const;
 
 private:

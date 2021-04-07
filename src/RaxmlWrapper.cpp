@@ -707,10 +707,12 @@ void RaxmlWrapper::enableRaxmlDebugOutput() {
     logger().add_log_stream(&cout);
 }
 
-Tree RaxmlWrapper::generateRandomTree() const {
+Tree RaxmlWrapper::generateRandomTree(double seed) {
+    instance.opts.random_seed = seed;
     return generate_tree(instance, StartingTree::random);
 }
-Tree RaxmlWrapper::generateParsimonyTree() const {
+Tree RaxmlWrapper::generateParsimonyTree(double seed) {
+    instance.opts.random_seed = seed;
     return generate_tree(instance, StartingTree::parsimony);
 }
 Tree RaxmlWrapper::bestRaxmlTree() const {
