@@ -587,7 +587,6 @@ void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {
             netrax::AnnotatedNetwork ann_network = build_random_annotated_network(netraxOptions, dist(rng));
             init_annotated_network(ann_network, rng);
             add_extra_reticulations(ann_network, start_reticulations);
-            std::cout << toExtendedNewick(ann_network) << "\n";
 
             wavesearch(ann_network, &bestNetworkData, rng);
             std::cout << " Inferred " << ann_network.network.num_reticulations() << " reticulations, logl = " << computeLoglikelihood(ann_network) << ", bic = " << scoreNetwork(ann_network) << "\n";
@@ -616,7 +615,6 @@ void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {
             netrax::AnnotatedNetwork ann_network = build_parsimony_annotated_network(netraxOptions, dist(rng));
             init_annotated_network(ann_network, rng);
             add_extra_reticulations(ann_network, start_reticulations);
-            std::cout << toExtendedNewick(ann_network) << "\n";
             wavesearch(ann_network, &bestNetworkData, rng);
             std::cout << " Inferred " << ann_network.network.num_reticulations() << " reticulations, logl = " << computeLoglikelihood(ann_network) << ", bic = " << scoreNetwork(ann_network) << "\n";
 
