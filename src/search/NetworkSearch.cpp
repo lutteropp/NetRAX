@@ -410,7 +410,7 @@ double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidat
 }
 
 template <typename T>
-bool simanneal_step(AnnotatedNetwork& ann_network, double t, std::vector<T> neighbors, const NetworkState& oldState, bool silent = false) {
+bool simanneal_step(AnnotatedNetwork& ann_network, double t, std::vector<T> neighbors, const NetworkState& oldState, bool silent = true) {
     if (neighbors.empty() || t <= 0) {
         return false;
     }
@@ -527,9 +527,7 @@ double simanneal(AnnotatedNetwork& ann_network, double t_start, MoveType& type, 
         t = update_temperature(t);
     }
 
-    if (best_bic < start_bic) {
-        apply_network_state(ann_network, best_state_to_reuse);
-    }
+    apply_network_state(ann_network, best_state_to_reuse);
 }
 
 double optimizeEverythingRun(AnnotatedNetwork& ann_network, std::vector<MoveType>& typesBySpeed, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, const std::chrono::high_resolution_clock::time_point& start_time, BestNetworkData* bestNetworkData) {
