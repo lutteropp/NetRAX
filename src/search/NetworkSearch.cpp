@@ -461,7 +461,7 @@ bool simanneal_step(AnnotatedNetwork& ann_network, double t, std::vector<T> neig
             return true;
         }
         apply_network_state(ann_network, oldState);
-        assert(checkSanity(ann_network, candidates[i]));
+        assert(checkSanity(ann_network, neighbors[i]));
     }
 
     return false;
