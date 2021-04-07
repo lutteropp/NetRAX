@@ -586,6 +586,7 @@ void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {
             add_extra_reticulations(ann_network, start_reticulations);
 
             wavesearch(ann_network, &bestNetworkData, rng);
+            std::cout << " Inferred " << ann_network.network.num_reticulations() << " reticulations, logl = " << computeLoglikelihood(ann_network) << ", bic = " << scoreNetwork(ann_network) << "\n";
             for (MoveType type : allTypes) {
                 totalStats.moves_taken[type] += ann_network.stats.moves_taken[type];
             }
@@ -612,6 +613,8 @@ void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {
             init_annotated_network(ann_network, rng);
             add_extra_reticulations(ann_network, start_reticulations);
             wavesearch(ann_network, &bestNetworkData, rng);
+            std::cout << " Inferred " << ann_network.network.num_reticulations() << " reticulations, logl = " << computeLoglikelihood(ann_network) << ", bic = " << scoreNetwork(ann_network) << "\n";
+
             for (MoveType type : allTypes) {
                 totalStats.moves_taken[type] += ann_network.stats.moves_taken[type];
             }
