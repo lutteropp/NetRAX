@@ -64,6 +64,9 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     app.add_option("--scrambling", options->scrambling, "Number of scrambling retries for escaping out of local maxima (default: 3).");
     app.add_option("--scrambling_radius", options->scrambling_radius, "Number of random moves to apply when scrambling a network (default: 1).");
 
+    app.add_flag("--sim_anneal", options->sim_anneal, "Use simulated annealing instead of hill climbing during network topology search.");
+    app.add_option("--start_temperature", options->start_temperature, "Start temperature to be used for simulated annealing (default: 100).");
+
     CLI11_PARSE(app, argc, argv);
     if (average_displayed_tree_variant && best_displayed_tree_variant) {
         throw std::runtime_error("Cannot specify both --average_displayed_tree_variant and --best_displayed_tree_variant at once");

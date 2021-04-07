@@ -74,6 +74,9 @@ public:
     unsigned int scrambling = 3;
     unsigned int scrambling_radius = 1;
 
+    bool sim_anneal = false;
+    double start_temperature = 100;
+
     int brlen_linkage = PLLMOD_COMMON_BRLEN_LINKED;
     int brlen_opt_method = PLLMOD_OPT_BLO_NEWTON_FAST;
     double brlen_min = RAXML_BRLEN_MIN;

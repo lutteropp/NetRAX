@@ -409,7 +409,120 @@ double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidat
     return computeLoglikelihood(ann_network);
 }
 
-double optimizeEverythingRun(AnnotatedNetwork & ann_network, std::vector<MoveType>& typesBySpeed, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, const std::chrono::high_resolution_clock::time_point& start_time, BestNetworkData* bestNetworkData) {
+template <typename T>
+bool simanneal_step(AnnotatedNetwork& ann_network, double t, std::vector<T> neighbors, const NetworkState& oldState, bool silent = false) {
+    if (neighbors.empty() || t <= 0) {
+        return false;
+    }
+
+    //if (!silent) std::cout << "MoveType: " << toString(neighbors[0].moveType) << "\n";
+
+    double brlen_smooth_factor = 1.0;
+    int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
+    int max_iters_outside = max_iters;
+    int radius = 1;
+
+    double old_bic = scoreNetwork(ann_network);
+    double best_bic = old_bic;
+    std::vector<ScoreItem<T> > scores(neighbors.size());
+
+    for (size_t i = 0; i < neighbors.size(); ++i) {
+        T move(neighbors[i]);
+        assert(checkSanity(ann_network, move));
+        bool recompute_from_scratch = needsRecompute(ann_network, move);
+        performMove(ann_network, move);
+        if (recompute_from_scratch) {
+            computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
+        }
+        std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
+        assert(!brlen_opt_candidates.empty());
+        add_neighbors_in_radius(ann_network, brlen_opt_candidates, 1);
+        optimize_branches(ann_network, max_iters, max_iters_outside, radius, brlen_opt_candidates);
+        optimizeReticulationProbs(ann_network);
+        
+        double bicScore = scoreNetwork(ann_network);
+
+        if (bicScore < old_bic) {
+            return true;
+        }
+
+        double acceptance_ratio = exp(-((bicScore - old_bic) / t)); // I took this one from: https://de.wikipedia.org/wiki/Simulated_Annealing
+        double x = std::uniform_real_distribution<double>(0,1)(ann_network.rng);
+        if (x <= acceptance_ratio) {
+            return true;
+        }
+        apply_network_state(ann_network, oldState);
+        assert(checkSanity(ann_network, candidates[i]));
+    }
+
+    return false;
+}
+
+double update_temperature(double t) {
+    return t*0.95; // TODO: Better temperature update ? I took this one from: https://de.mathworks.com/help/gads/how-simulated-annealing-works.html
+}
+
+double simanneal(AnnotatedNetwork& ann_network, double t_start, MoveType& type, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, BestNetworkData* bestNetworkData) {
+    double start_bic = scoreNetwork(ann_network);
+    double best_bic = start_bic;
+    extract_network_state(ann_network, best_state_to_reuse);
+    extract_network_state(ann_network, start_state_to_reuse);
+    double t = t_start;
+    bool network_changed = true;
+    while (network_changed) {
+        network_changed = false;
+        extract_network_state(ann_network, start_state_to_reuse);
+
+        switch (type) {
+        case MoveType::RNNIMove:
+            network_changed = simanneal_step(ann_network, t, possibleRNNIMoves(ann_network), start_state_to_reuse);
+            break;
+        case MoveType::RSPRMove:
+            network_changed = simanneal_step(ann_network, t, possibleRSPRMoves(ann_network, ann_network.options.classic_moves), start_state_to_reuse);
+            break;
+        case MoveType::RSPR1Move:
+            network_changed = simanneal_step(ann_network, t, possibleRSPR1Moves(ann_network), start_state_to_reuse);
+            break;
+        case MoveType::HeadMove:
+            network_changed = simanneal_step(ann_network, t, possibleHeadMoves(ann_network, ann_network.options.classic_moves), start_state_to_reuse);
+            break;
+        case MoveType::TailMove:
+            network_changed = simanneal_step(ann_network, t, possibleTailMoves(ann_network, ann_network.options.classic_moves), start_state_to_reuse);
+            break;
+        case MoveType::ArcInsertionMove:
+            network_changed = simanneal_step(ann_network, t, possibleArcInsertionMoves(ann_network), start_state_to_reuse);
+            break;
+        case MoveType::DeltaPlusMove:
+            network_changed = simanneal_step(ann_network, t, possibleDeltaPlusMoves(ann_network), start_state_to_reuse);
+            break;
+        case MoveType::ArcRemovalMove:
+            network_changed = simanneal_step(ann_network, t, possibleArcRemovalMoves(ann_network), start_state_to_reuse);
+            break;
+        case MoveType::DeltaMinusMove:
+            network_changed = simanneal_step(ann_network, t, possibleDeltaMinusMoves(ann_network), start_state_to_reuse);
+            break;
+        default:
+            throw std::runtime_error("Invalid move type");
+        }
+
+        if (network_changed) {
+            double act_bic = scoreNetwork(ann_network);
+            if (act_bic < best_bic) {
+                optimizeAllNonTopology(ann_network, true);
+                check_score_improvement(ann_network, &best_bic, bestNetworkData);
+                extract_network_state(ann_network, best_state_to_reuse);
+            }
+        }
+
+        t = update_temperature(t);
+    }
+
+    if (best_bic < start_bic) {
+        apply_network_state(ann_network, best_state_to_reuse);
+    }
+}
+
+double optimizeEverythingRun(AnnotatedNetwork& ann_network, std::vector<MoveType>& typesBySpeed, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, const std::chrono::high_resolution_clock::time_point& start_time, BestNetworkData* bestNetworkData) {
     unsigned int type_idx = 0;
     unsigned int max_seconds = ann_network.options.timeout;
     double best_score = scoreNetwork(ann_network);
@@ -437,36 +550,40 @@ double optimizeEverythingRun(AnnotatedNetwork & ann_network, std::vector<MoveTyp
         double old_score = scoreNetwork(ann_network);
         //optimizeTopology(ann_network, typesBySpeed[type_idx], start_state_to_reuse, best_state_to_reuse, greedy, false, false, 1);
 
-        switch (typesBySpeed[type_idx]) {
-        case MoveType::RNNIMove:
-            applyBestCandidate(ann_network, possibleRNNIMoves(ann_network), &best_score, bestNetworkData);
-            break;
-        case MoveType::RSPRMove:
-            applyBestCandidate(ann_network, possibleRSPRMoves(ann_network, ann_network.options.classic_moves), &best_score, bestNetworkData);
-            break;
-        case MoveType::RSPR1Move:
-            applyBestCandidate(ann_network, possibleRSPR1Moves(ann_network), &best_score, bestNetworkData);
-            break;
-        case MoveType::HeadMove:
-            applyBestCandidate(ann_network, possibleHeadMoves(ann_network, ann_network.options.classic_moves), &best_score, bestNetworkData);
-            break;
-        case MoveType::TailMove:
-            applyBestCandidate(ann_network, possibleTailMoves(ann_network, ann_network.options.classic_moves), &best_score, bestNetworkData);
-            break;
-        case MoveType::ArcInsertionMove:
-            applyBestCandidate(ann_network, possibleArcInsertionMoves(ann_network), &best_score, bestNetworkData);
-            break;
-        case MoveType::DeltaPlusMove:
-            applyBestCandidate(ann_network, possibleDeltaPlusMoves(ann_network), &best_score, bestNetworkData);
-            break;
-        case MoveType::ArcRemovalMove:
-            applyBestCandidate(ann_network, possibleArcRemovalMoves(ann_network), &best_score, bestNetworkData);
-            break;
-        case MoveType::DeltaMinusMove:
-            applyBestCandidate(ann_network, possibleDeltaMinusMoves(ann_network), &best_score, bestNetworkData);
-            break;
-        default:
-            throw std::runtime_error("Invalid move type");
+        if (ann_network.options.sim_anneal) {
+            simanneal(ann_network, ann_network.options.start_temperature, typesBySpeed[type_idx], start_state_to_reuse, best_state_to_reuse, bestNetworkData);
+        } else {
+            switch (typesBySpeed[type_idx]) {
+            case MoveType::RNNIMove:
+                applyBestCandidate(ann_network, possibleRNNIMoves(ann_network), &best_score, bestNetworkData);
+                break;
+            case MoveType::RSPRMove:
+                applyBestCandidate(ann_network, possibleRSPRMoves(ann_network, ann_network.options.classic_moves), &best_score, bestNetworkData);
+                break;
+            case MoveType::RSPR1Move:
+                applyBestCandidate(ann_network, possibleRSPR1Moves(ann_network), &best_score, bestNetworkData);
+                break;
+            case MoveType::HeadMove:
+                applyBestCandidate(ann_network, possibleHeadMoves(ann_network, ann_network.options.classic_moves), &best_score, bestNetworkData);
+                break;
+            case MoveType::TailMove:
+                applyBestCandidate(ann_network, possibleTailMoves(ann_network, ann_network.options.classic_moves), &best_score, bestNetworkData);
+                break;
+            case MoveType::ArcInsertionMove:
+                applyBestCandidate(ann_network, possibleArcInsertionMoves(ann_network), &best_score, bestNetworkData);
+                break;
+            case MoveType::DeltaPlusMove:
+                applyBestCandidate(ann_network, possibleDeltaPlusMoves(ann_network), &best_score, bestNetworkData);
+                break;
+            case MoveType::ArcRemovalMove:
+                applyBestCandidate(ann_network, possibleArcRemovalMoves(ann_network), &best_score, bestNetworkData);
+                break;
+            case MoveType::DeltaMinusMove:
+                applyBestCandidate(ann_network, possibleDeltaMinusMoves(ann_network), &best_score, bestNetworkData);
+                break;
+            default:
+                throw std::runtime_error("Invalid move type");
+            }
         }
 
         double new_score = scoreNetwork(ann_network);
