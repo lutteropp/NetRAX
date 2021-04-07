@@ -416,6 +416,7 @@ bool simanneal_step(AnnotatedNetwork& ann_network, double t, std::vector<T> neig
     }
 
     //if (!silent) std::cout << "MoveType: " << toString(neighbors[0].moveType) << "\n";
+    if (!silent) std::cout << "t: " << t << "\n";
 
     double brlen_smooth_factor = 1.0;
     int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
@@ -443,12 +444,20 @@ bool simanneal_step(AnnotatedNetwork& ann_network, double t, std::vector<T> neig
         double bicScore = scoreNetwork(ann_network);
 
         if (bicScore < old_bic) {
+            if (!silent) std::cout << " Took " << toString(move.moveType) << "\n";
+            if (!silent) std::cout << "  Logl: " << computeLoglikelihood(ann_network) << ", BIC: " << scoreNetwork(ann_network) << "\n";
+            if (!silent) std::cout << "  num_reticulations: " << ann_network.network.num_reticulations() << "\n";
+            if (!silent) std::cout << toExtendedNewick(ann_network) << "\n";
             return true;
         }
 
         double acceptance_ratio = exp(-((bicScore - old_bic) / t)); // I took this one from: https://de.wikipedia.org/wiki/Simulated_Annealing
         double x = std::uniform_real_distribution<double>(0,1)(ann_network.rng);
         if (x <= acceptance_ratio) {
+            if (!silent) std::cout << " Took " << toString(move.moveType) << "\n";
+            if (!silent) std::cout << "  Logl: " << computeLoglikelihood(ann_network) << ", BIC: " << scoreNetwork(ann_network) << "\n";
+            if (!silent) std::cout << "  num_reticulations: " << ann_network.network.num_reticulations() << "\n";
+            //if (!silent) std::cout << toExtendedNewick(ann_network) << "\n";
             return true;
         }
         apply_network_state(ann_network, oldState);
@@ -462,7 +471,8 @@ double update_temperature(double t) {
     return t*0.95; // TODO: Better temperature update ? I took this one from: https://de.mathworks.com/help/gads/how-simulated-annealing-works.html
 }
 
-double simanneal(AnnotatedNetwork& ann_network, double t_start, MoveType& type, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, BestNetworkData* bestNetworkData) {
+double simanneal(AnnotatedNetwork& ann_network, double t_start, MoveType& type, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, BestNetworkData* bestNetworkData, bool silent = false) {
+    if (!silent) std::cout << "Move type: " << toString(type) << "\n";
     double start_bic = scoreNetwork(ann_network);
     double best_bic = start_bic;
     extract_network_state(ann_network, best_state_to_reuse);
