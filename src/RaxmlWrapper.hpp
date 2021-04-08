@@ -25,7 +25,7 @@ public:
         }
     };
 
-    RaxmlWrapper(NetraxOptions &options);
+    RaxmlWrapper(const NetraxOptions &options);
 
     Options getRaxmlOptions() const;
 
@@ -74,7 +74,7 @@ public:
 private:
     RaxmlInstance instance;
     TreeInfo::tinfo_behaviour network_behaviour;
-    NetraxOptions netraxOptions;
+    const NetraxOptions& netraxOptions;
 };
 
 }

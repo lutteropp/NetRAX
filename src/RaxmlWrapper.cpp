@@ -112,7 +112,7 @@ Options createDefaultOptions() {
     return opts;
 }
 
-RaxmlInstance createRaxmlInstance(NetraxOptions &options) {
+RaxmlInstance createRaxmlInstance(const NetraxOptions &options) {
     assert(!options.use_repeats);
     RaxmlInstance instance;
     instance.opts = createDefaultOptions();
@@ -133,7 +133,9 @@ RaxmlInstance createRaxmlInstance(NetraxOptions &options) {
     load_parted_msa(instance);
     // ensure linked brlens for unpartitioned MSA
     if (instance.parted_msa->part_count() == 1) {
-        options.brlen_linkage = PLLMOD_COMMON_BRLEN_LINKED;
+        if (options.brlen_linkage != PLLMOD_COMMON_BRLEN_LINKED) {
+            throw std::runtime_error("Only one partition given, but brlen linkage is not set to linked");
+        }
         instance.opts.brlen_linkage = PLLMOD_COMMON_BRLEN_LINKED;
     }
     check_options(instance);
@@ -141,7 +143,7 @@ RaxmlInstance createRaxmlInstance(NetraxOptions &options) {
     return instance;
 }
 
-RaxmlWrapper::RaxmlWrapper(NetraxOptions &options) :
+RaxmlWrapper::RaxmlWrapper(const NetraxOptions &options) :
         netraxOptions(options) {
     instance = createRaxmlInstance(options);
     network_behaviour.compute_ancestral_function = [&](pllmod_treeinfo_t *treeinfo) {

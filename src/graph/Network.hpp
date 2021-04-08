@@ -44,7 +44,7 @@ public:
     std::vector<Node> nodes;
     std::vector<Edge> edges;
 
-    // reule of five
+    // rule of five
     Network() = default; // default constructor
     ~Network() = default; // destructor
     Network(Network&& other) noexcept { // move constructor

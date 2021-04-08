@@ -118,7 +118,7 @@ struct NodeDisplayedTreeData {
 void destroy_network_treeinfo(pllmod_treeinfo_t *treeinfo);
 
 struct AnnotatedNetwork {
-    NetraxOptions options;
+    const NetraxOptions& options;
     Network network; // The network topology itself
     
     size_t total_num_model_parameters = 0;
@@ -139,13 +139,15 @@ struct AnnotatedNetwork {
     bool cached_logl_valid = false;
 
     AnnotatedNetwork(AnnotatedNetwork&&) = default;
-    AnnotatedNetwork() = default;
+    AnnotatedNetwork(const NetraxOptions& options) : options{options} {};
 
     ~AnnotatedNetwork() {
         if (fake_treeinfo) {
             destroy_network_treeinfo(fake_treeinfo);
         }
     }
+
+    AnnotatedNetwork(const AnnotatedNetwork& orig_network);
 };
 
 AnnotatedNetwork build_annotated_network(NetraxOptions &options);

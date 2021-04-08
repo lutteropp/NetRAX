@@ -5,6 +5,7 @@
 #include <fstream>
 #include <random>
 #include <limits>
+#include <omp.h>
 
 #include "../likelihood/mpreal.h"
 #include "../graph/AnnotatedNetwork.hpp"
@@ -214,7 +215,7 @@ bool needsRecompute(AnnotatedNetwork& ann_network, GeneralMove* move) {
 }
 
 template <typename T>
-void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, bool silent = true) {
+void prefilterCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T>& candidates, std::vector<AnnotatedNetwork>& ann_network_thread, bool silent = true) {
     if (candidates.empty()) {
         return;
     }
@@ -223,18 +224,27 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
     int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
     int max_iters_outside = max_iters;
     int radius = 1;
-    double old_bic = scoreNetwork(ann_network);
+    double old_bic = scoreNetwork(ann_network_orig);
 
     double best_bic = std::numeric_limits<double>::infinity();
 
-    NetworkState oldState = extract_network_state(ann_network);
+    NetworkState oldState = extract_network_state(ann_network_orig);
 
     std::vector<ScoreItem<T> > scores(candidates.size());
 
+    bool stop = false;
+
+    #pragma omp parallel for schedule(dynamic)
     for (size_t i = 0; i < candidates.size(); ++i) {
+        if (stop) {
+            continue;
+        }
+        AnnotatedNetwork& ann_network = ann_network_thread[omp_get_thread_num()];
+        apply_network_state(ann_network, oldState);
         T move(candidates[i]);
-        assert(checkSanity(ann_network, move));
         bool recompute_from_scratch = needsRecompute(ann_network, move);
+
+        assert(checkSanity(ann_network, move));
 
         performMove(ann_network, move);
         if (recompute_from_scratch) {
@@ -258,27 +268,35 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
 
         scores[i] = ScoreItem<T>{candidates[i], worstScore, bicScore};
 
-        apply_network_state(ann_network, oldState);
-
         for (size_t j = 0; j < ann_network.network.num_nodes(); ++j) {
             assert(ann_network.network.nodes_by_index[j]->clv_index == j);
         }
 
-        assert(neighborsSame(ann_network.network, oldState.network));
-
         if (bicScore < best_bic) {
-            best_bic = bicScore;
-        }
-
-        assert(checkSanity(ann_network, candidates[i]));
-
-        if (ann_network.options.use_extreme_greedy) {
-            if (bicScore < old_bic) {
-                candidates[0] = candidates[i];
-                candidates.resize(1);
-                return;
+            #pragma omp critical
+            {
+                if (bicScore < best_bic) {
+                    best_bic = bicScore;
+                }
             }
         }
+
+        if (ann_network.options.use_extreme_greedy) {
+            if (bicScore < old_bic && !stop) {
+                #pragma omp critical
+                {
+                    if (bicScore < old_bic && !stop) {
+                        candidates[0] = candidates[i];
+                        stop = true;
+                    }
+                }
+            }
+        }
+    }
+
+    if (stop) {
+        candidates.resize(1);
+        return;
     }
 
     std::sort(scores.begin(), scores.end(), [](const ScoreItem<T>& lhs, const ScoreItem<T>& rhs) {
@@ -304,17 +322,19 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
     candidates.resize(newSize);
 
     for (size_t i = 0; i < candidates.size(); ++i) {
-        assert(checkSanity(ann_network, candidates[i]));
+        assert(checkSanity(ann_network_orig, candidates[i]));
     }
+
+    //apply_network_state(ann_network_orig, oldState);
 }
 
 template <typename T>
-bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T> candidates, NetworkState* state, bool silent = true) {
+bool rankCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T> candidates, NetworkState* state, std::vector<AnnotatedNetwork>& ann_network_thread, bool silent = true) {
     if (candidates.empty()) {
         return false;
     }
-    if (!ann_network.options.no_prefiltering) {
-        prefilterCandidates(ann_network, candidates, true);
+    if (!ann_network_orig.options.no_prefiltering) {
+        prefilterCandidates(ann_network_orig, candidates, ann_network_thread, true);
     }
 
     if (!silent) std::cout << "MoveType: " << toString(candidates[0].moveType) << "\n";
@@ -324,18 +344,27 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T> candidates, Ne
     int max_iters_outside = max_iters;
     int radius = 1;
 
-    double old_bic = scoreNetwork(ann_network);
+    double old_bic = scoreNetwork(ann_network_orig);
     double best_bic = old_bic;
     bool found_better = false;
 
-    NetworkState oldState = extract_network_state(ann_network);
+    NetworkState oldState = extract_network_state(ann_network_orig);
 
     std::vector<ScoreItem<T> > scores(candidates.size());
 
+    bool stop = false;
+
+    #pragma omp parallel for schedule(dynamic)
     for (size_t i = 0; i < candidates.size(); ++i) {
+        if (stop) {
+            continue;
+        }
+        AnnotatedNetwork& ann_network = ann_network_thread[omp_get_thread_num()];
+        apply_network_state(ann_network, oldState);
         T move(candidates[i]);
-        assert(checkSanity(ann_network, move));
         bool recompute_from_scratch = needsRecompute(ann_network, move);
+
+        assert(checkSanity(ann_network, move));
 
         performMove(ann_network, move);
         if (recompute_from_scratch) {
@@ -350,28 +379,39 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T> candidates, Ne
         double worstScore = getWorstReticulationScore(ann_network);
         double bicScore = scoreNetwork(ann_network);
 
-        if (bicScore < best_bic) {
-            best_bic = bicScore;
-            if (found_better) {
-                extract_network_state(ann_network, *state);
-            } else {
-                *state = extract_network_state(ann_network);
+        if (bicScore < best_bic && !stop) {
+            #pragma omp critical
+            {
+                if (bicScore < best_bic && !stop) {
+                    best_bic = bicScore;
+                    if (found_better) {
+                        extract_network_state(ann_network, *state);
+                    } else {
+                        *state = extract_network_state(ann_network);
+                    }
+                    found_better = true;
+                }
             }
-            found_better = true;
         }
 
         if (ann_network.options.use_extreme_greedy) {
-            if (bicScore < old_bic) {
-                candidates[0] = candidates[i];
-                candidates.resize(1);
-                return true;
+            if (bicScore < old_bic && !stop) {
+                #pragma omp critical
+                {
+                    if (bicScore < old_bic && !stop) {
+                        candidates[0] = candidates[i];
+                        stop = true;
+                    }
+                }
             }
         }
 
         scores[i] = ScoreItem<T>{candidates[i], worstScore, bicScore};
+    }
 
-        apply_network_state(ann_network, oldState);
-        assert(checkSanity(ann_network, candidates[i]));
+    if (stop) {
+        candidates.resize(1);
+        return found_better;
     }
 
     std::sort(scores.begin(), scores.end(), [](const ScoreItem<T>& lhs, const ScoreItem<T>& rhs) {
@@ -393,13 +433,15 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T> candidates, Ne
 
     candidates.resize(newSize);
 
+    //apply_network_state(ann_network_orig, oldState);
+
     return found_better;
 }
 
 template <typename T>
-double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidates, double* best_score, BestNetworkData* bestNetworkData, bool silent = true) {
+double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidates, double* best_score, BestNetworkData* bestNetworkData, std::vector<AnnotatedNetwork>& ann_network_thread, bool silent = true) {
     NetworkState state;
-    bool found_better_state = rankCandidates(ann_network, candidates, &state, true);
+    bool found_better_state = rankCandidates(ann_network, candidates, &state, ann_network_thread, true);
 
     if (found_better_state) {
         apply_network_state(ann_network, state);
@@ -424,13 +466,13 @@ double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidat
 }
 
 template <typename T>
-bool simanneal_step(AnnotatedNetwork& ann_network, double t, std::vector<T> neighbors, const NetworkState& oldState, std::unordered_set<double>& seen_bics, bool silent = true) {
+bool simanneal_step(AnnotatedNetwork& ann_network, double t, std::vector<T> neighbors, const NetworkState& oldState, std::unordered_set<double>& seen_bics, std::vector<AnnotatedNetwork>& ann_network_thread, bool silent = true) {
     if (neighbors.empty() || t <= 0) {
         return false;
     }
 
     if (!ann_network.options.no_prefiltering) {
-        prefilterCandidates(ann_network, neighbors, true);
+        prefilterCandidates(ann_network, neighbors, ann_network_thread, true);
     }
 
     //if (!silent) std::cout << "MoveType: " << toString(neighbors[0].moveType) << "\n";
@@ -490,7 +532,7 @@ double update_temperature(double t) {
     return t*0.95; // TODO: Better temperature update ? I took this one from: https://de.mathworks.com/help/gads/how-simulated-annealing-works.html
 }
 
-double simanneal(AnnotatedNetwork& ann_network, double t_start, MoveType type, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, BestNetworkData* bestNetworkData, bool silent = false) {
+double simanneal(AnnotatedNetwork& ann_network, double t_start, MoveType type, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, BestNetworkData* bestNetworkData, std::vector<AnnotatedNetwork>& ann_network_thread, bool silent = false) {
     double start_bic = scoreNetwork(ann_network);
     double best_bic = start_bic;
     extract_network_state(ann_network, best_state_to_reuse);
@@ -504,31 +546,31 @@ double simanneal(AnnotatedNetwork& ann_network, double t_start, MoveType type, N
 
         switch (type) {
         case MoveType::RNNIMove:
-            network_changed = simanneal_step(ann_network, t, possibleRNNIMoves(ann_network), start_state_to_reuse, seen_bics);
+            network_changed = simanneal_step(ann_network, t, possibleRNNIMoves(ann_network), start_state_to_reuse, seen_bics, ann_network_thread);
             break;
         case MoveType::RSPRMove:
-            network_changed = simanneal_step(ann_network, t, possibleRSPRMoves(ann_network, ann_network.options.classic_moves), start_state_to_reuse, seen_bics);
+            network_changed = simanneal_step(ann_network, t, possibleRSPRMoves(ann_network, ann_network.options.classic_moves), start_state_to_reuse, seen_bics, ann_network_thread);
             break;
         case MoveType::RSPR1Move:
-            network_changed = simanneal_step(ann_network, t, possibleRSPR1Moves(ann_network), start_state_to_reuse, seen_bics);
+            network_changed = simanneal_step(ann_network, t, possibleRSPR1Moves(ann_network), start_state_to_reuse, seen_bics, ann_network_thread);
             break;
         case MoveType::HeadMove:
-            network_changed = simanneal_step(ann_network, t, possibleHeadMoves(ann_network, ann_network.options.classic_moves), start_state_to_reuse, seen_bics);
+            network_changed = simanneal_step(ann_network, t, possibleHeadMoves(ann_network, ann_network.options.classic_moves), start_state_to_reuse, seen_bics, ann_network_thread);
             break;
         case MoveType::TailMove:
-            network_changed = simanneal_step(ann_network, t, possibleTailMoves(ann_network, ann_network.options.classic_moves), start_state_to_reuse, seen_bics);
+            network_changed = simanneal_step(ann_network, t, possibleTailMoves(ann_network, ann_network.options.classic_moves), start_state_to_reuse, seen_bics, ann_network_thread);
             break;
         case MoveType::ArcInsertionMove:
-            network_changed = simanneal_step(ann_network, t, possibleArcInsertionMoves(ann_network), start_state_to_reuse, seen_bics);
+            network_changed = simanneal_step(ann_network, t, possibleArcInsertionMoves(ann_network), start_state_to_reuse, seen_bics, ann_network_thread);
             break;
         case MoveType::DeltaPlusMove:
-            network_changed = simanneal_step(ann_network, t, possibleDeltaPlusMoves(ann_network), start_state_to_reuse, seen_bics);
+            network_changed = simanneal_step(ann_network, t, possibleDeltaPlusMoves(ann_network), start_state_to_reuse, seen_bics, ann_network_thread);
             break;
         case MoveType::ArcRemovalMove:
-            network_changed = simanneal_step(ann_network, t, possibleArcRemovalMoves(ann_network), start_state_to_reuse, seen_bics);
+            network_changed = simanneal_step(ann_network, t, possibleArcRemovalMoves(ann_network), start_state_to_reuse, seen_bics, ann_network_thread);
             break;
         case MoveType::DeltaMinusMove:
-            network_changed = simanneal_step(ann_network, t, possibleDeltaMinusMoves(ann_network), start_state_to_reuse, seen_bics);
+            network_changed = simanneal_step(ann_network, t, possibleDeltaMinusMoves(ann_network), start_state_to_reuse, seen_bics, ann_network_thread);
             break;
         default:
             throw std::runtime_error("Invalid move type");
@@ -558,7 +600,7 @@ bool isArcRemoval(MoveType& type) {
     return (type == MoveType::ArcRemovalMove || type == MoveType::DeltaMinusMove);
 }
 
-double optimizeEverythingRun(AnnotatedNetwork& ann_network, std::vector<MoveType>& typesBySpeed, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, const std::chrono::high_resolution_clock::time_point& start_time, BestNetworkData* bestNetworkData) {
+double optimizeEverythingRun(AnnotatedNetwork& ann_network, std::vector<MoveType>& typesBySpeed, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, const std::chrono::high_resolution_clock::time_point& start_time, BestNetworkData* bestNetworkData, std::vector<AnnotatedNetwork>& ann_network_thread) {
     unsigned int type_idx = 0;
     unsigned int max_seconds = ann_network.options.timeout;
     double best_score = scoreNetwork(ann_network);
@@ -585,35 +627,35 @@ double optimizeEverythingRun(AnnotatedNetwork& ann_network, std::vector<MoveType
         //optimizeTopology(ann_network, typesBySpeed[type_idx], start_state_to_reuse, best_state_to_reuse, greedy, false, false, 1);
 
         if (ann_network.options.sim_anneal && !isComplexityChangingMove(typesBySpeed[type_idx])) {
-            simanneal(ann_network, ann_network.options.start_temperature, typesBySpeed[type_idx], start_state_to_reuse, best_state_to_reuse, bestNetworkData);
+            simanneal(ann_network, ann_network.options.start_temperature, typesBySpeed[type_idx], start_state_to_reuse, best_state_to_reuse, bestNetworkData, ann_network_thread);
         } else {
             switch (typesBySpeed[type_idx]) {
             case MoveType::RNNIMove:
-                applyBestCandidate(ann_network, possibleRNNIMoves(ann_network), &best_score, bestNetworkData);
+                applyBestCandidate(ann_network, possibleRNNIMoves(ann_network), &best_score, bestNetworkData, ann_network_thread);
                 break;
             case MoveType::RSPRMove:
-                applyBestCandidate(ann_network, possibleRSPRMoves(ann_network, ann_network.options.classic_moves), &best_score, bestNetworkData);
+                applyBestCandidate(ann_network, possibleRSPRMoves(ann_network, ann_network.options.classic_moves), &best_score, bestNetworkData, ann_network_thread);
                 break;
             case MoveType::RSPR1Move:
-                applyBestCandidate(ann_network, possibleRSPR1Moves(ann_network), &best_score, bestNetworkData);
+                applyBestCandidate(ann_network, possibleRSPR1Moves(ann_network), &best_score, bestNetworkData, ann_network_thread);
                 break;
             case MoveType::HeadMove:
-                applyBestCandidate(ann_network, possibleHeadMoves(ann_network, ann_network.options.classic_moves), &best_score, bestNetworkData);
+                applyBestCandidate(ann_network, possibleHeadMoves(ann_network, ann_network.options.classic_moves), &best_score, bestNetworkData, ann_network_thread);
                 break;
             case MoveType::TailMove:
-                applyBestCandidate(ann_network, possibleTailMoves(ann_network, ann_network.options.classic_moves), &best_score, bestNetworkData);
+                applyBestCandidate(ann_network, possibleTailMoves(ann_network, ann_network.options.classic_moves), &best_score, bestNetworkData, ann_network_thread);
                 break;
             case MoveType::ArcInsertionMove:
-                applyBestCandidate(ann_network, possibleArcInsertionMoves(ann_network), &best_score, bestNetworkData);
+                applyBestCandidate(ann_network, possibleArcInsertionMoves(ann_network), &best_score, bestNetworkData, ann_network_thread);
                 break;
             case MoveType::DeltaPlusMove:
-                applyBestCandidate(ann_network, possibleDeltaPlusMoves(ann_network), &best_score, bestNetworkData);
+                applyBestCandidate(ann_network, possibleDeltaPlusMoves(ann_network), &best_score, bestNetworkData, ann_network_thread);
                 break;
             case MoveType::ArcRemovalMove:
-                applyBestCandidate(ann_network, possibleArcRemovalMoves(ann_network), &best_score, bestNetworkData);
+                applyBestCandidate(ann_network, possibleArcRemovalMoves(ann_network), &best_score, bestNetworkData, ann_network_thread);
                 break;
             case MoveType::DeltaMinusMove:
-                applyBestCandidate(ann_network, possibleDeltaMinusMoves(ann_network), &best_score, bestNetworkData);
+                applyBestCandidate(ann_network, possibleDeltaMinusMoves(ann_network), &best_score, bestNetworkData, ann_network_thread);
                 break;
             default:
                 throw std::runtime_error("Invalid move type");
@@ -696,7 +738,7 @@ void scrambleNetwork(AnnotatedNetwork& ann_network, MoveType type, size_t scramb
     optimizeAllNonTopology(ann_network);
 }
 
-void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData, std::mt19937& rng, bool silent = false) {
+void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData, std::mt19937& rng, std::vector<AnnotatedNetwork>& ann_network_thread, bool silent = false) {
     NetworkState start_state_to_reuse = extract_network_state(ann_network, false);
     NetworkState best_state_to_reuse = extract_network_state(ann_network, false);
     auto start_time = std::chrono::high_resolution_clock::now();
@@ -734,7 +776,7 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
     std::string best_network = toExtendedNewick(ann_network);
     score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
 
-    optimizeEverythingRun(ann_network, typesBySpeed, start_state_to_reuse, best_state_to_reuse, start_time, bestNetworkData);
+    optimizeEverythingRun(ann_network, typesBySpeed, start_state_to_reuse, best_state_to_reuse, start_time, bestNetworkData, ann_network_thread);
     score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
 
     if (ann_network.options.scrambling > 0) {
@@ -745,7 +787,7 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
         while (tries < ann_network.options.scrambling) {
             apply_network_state(ann_network, bestState);
             scrambleNetwork(ann_network, MoveType::RSPRMove, 2);
-            optimizeEverythingRun(ann_network, typesBySpeed, start_state_to_reuse, best_state_to_reuse, start_time, bestNetworkData);
+            optimizeEverythingRun(ann_network, typesBySpeed, start_state_to_reuse, best_state_to_reuse, start_time, bestNetworkData, ann_network_thread);
             if (!silent) std::cout << " scrambling BIC: " << scoreNetwork(ann_network) << "\n";
             score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
             if (score_improvement.local_improved) {
@@ -762,8 +804,9 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
 void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
     netrax::AnnotatedNetwork ann_network = build_annotated_network(netraxOptions);
     init_annotated_network(ann_network, rng);
+    std::vector<AnnotatedNetwork> ann_network_thread(omp_get_max_threads(), AnnotatedNetwork(ann_network));
     BestNetworkData bestNetworkData(ann_network.options.max_reticulations);
-    wavesearch(ann_network, &bestNetworkData, rng);
+    wavesearch(ann_network, &bestNetworkData, rng, ann_network_thread);
 
     std::cout << "Statistics on which moves were taken:\n";
     for (const auto& entry : ann_network.stats.moves_taken) {
@@ -793,6 +836,9 @@ void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {
     std::uniform_int_distribution<long> dist(0, RAND_MAX);
     BestNetworkData bestNetworkData(netraxOptions.max_reticulations);
 
+    netrax::AnnotatedNetwork ann_network_proto = build_random_annotated_network(netraxOptions, 42);
+    std::vector<AnnotatedNetwork> ann_network_thread(omp_get_max_threads(), AnnotatedNetwork(ann_network_proto));
+
     Statistics totalStats;
     std::vector<MoveType> allTypes = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::TailMove, MoveType::RSPRMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove, MoveType::DeltaMinusMove, MoveType::ArcRemovalMove};
     for (MoveType type : allTypes) {
@@ -812,7 +858,7 @@ void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {
             init_annotated_network(ann_network, rng);
             add_extra_reticulations(ann_network, start_reticulations);
 
-            wavesearch(ann_network, &bestNetworkData, rng);
+            wavesearch(ann_network, &bestNetworkData, rng, ann_network_thread);
             std::cout << " Inferred " << ann_network.network.num_reticulations() << " reticulations, logl = " << computeLoglikelihood(ann_network) << ", bic = " << scoreNetwork(ann_network) << "\n";
             for (MoveType type : allTypes) {
                 totalStats.moves_taken[type] += ann_network.stats.moves_taken[type];
@@ -840,7 +886,7 @@ void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {
             netrax::AnnotatedNetwork ann_network = build_parsimony_annotated_network(netraxOptions, seed);
             init_annotated_network(ann_network, rng);
             add_extra_reticulations(ann_network, start_reticulations);
-            wavesearch(ann_network, &bestNetworkData, rng);
+            wavesearch(ann_network, &bestNetworkData, rng, ann_network_thread);
             std::cout << " Inferred " << ann_network.network.num_reticulations() << " reticulations, logl = " << computeLoglikelihood(ann_network) << ", bic = " << scoreNetwork(ann_network) << "\n";
 
             for (MoveType type : allTypes) {

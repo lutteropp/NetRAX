@@ -94,8 +94,7 @@ void init_annotated_network(AnnotatedNetwork &ann_network) {
  * @param options The information specified by the user.
  */
 AnnotatedNetwork build_annotated_network(NetraxOptions &options) {
-    AnnotatedNetwork ann_network;
-    ann_network.options = options;
+    AnnotatedNetwork ann_network(options);
     ann_network.network = std::move(netrax::readNetworkFromFile(options.start_network_file,
             options.max_reticulations));
     return ann_network;
@@ -109,8 +108,7 @@ AnnotatedNetwork build_annotated_network(NetraxOptions &options) {
  */
 AnnotatedNetwork build_annotated_network_from_string(NetraxOptions &options,
         const std::string &newickString) {
-    AnnotatedNetwork ann_network;
-    ann_network.options = options;
+    AnnotatedNetwork ann_network(options);
     ann_network.network = netrax::readNetworkFromString(newickString, options.max_reticulations);
     return ann_network;
 }
@@ -123,8 +121,7 @@ AnnotatedNetwork build_annotated_network_from_string(NetraxOptions &options,
  */
 AnnotatedNetwork build_annotated_network_from_file(NetraxOptions &options,
         const std::string &networkPath) {
-    AnnotatedNetwork ann_network;
-    ann_network.options = options;
+    AnnotatedNetwork ann_network(options);
     ann_network.network = std::move(netrax::readNetworkFromFile(networkPath,
             options.max_reticulations));
     return ann_network;
@@ -138,8 +135,7 @@ AnnotatedNetwork build_annotated_network_from_file(NetraxOptions &options,
  */
 AnnotatedNetwork build_annotated_network_from_utree(NetraxOptions &options,
         const pll_utree_t &utree) {
-    AnnotatedNetwork ann_network;
-    ann_network.options = options;
+    AnnotatedNetwork ann_network(options);
     ann_network.network = netrax::convertUtreeToNetwork(utree, options.max_reticulations);
     return ann_network;
 }
@@ -208,6 +204,11 @@ AnnotatedNetwork build_best_raxml_annotated_network(NetraxOptions &options) {
     Tree tree = wrapper.bestRaxmlTree();
     AnnotatedNetwork ann_network = build_annotated_network_from_utree(options, tree.pll_utree());
     return ann_network;
+}
+
+AnnotatedNetwork::AnnotatedNetwork(const AnnotatedNetwork& orig_network) : options{orig_network.options} {
+    network = orig_network.network;
+    init_annotated_network(*this);
 }
 
 }
