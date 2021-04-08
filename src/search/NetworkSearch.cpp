@@ -333,12 +333,12 @@ void prefilterCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T>& can
 }
 
 template <typename T>
-bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T> candidates, NetworkState* state, std::vector<AnnotatedNetwork>& ann_network_thread, bool silent = true) {
+bool rankCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T> candidates, NetworkState* state, std::vector<AnnotatedNetwork>& ann_network_thread, bool silent = true) {
     if (candidates.empty()) {
         return false;
     }
-    if (!ann_network.options.no_prefiltering) {
-        prefilterCandidates(ann_network, candidates, ann_network_thread, true);
+    if (!ann_network_orig.options.no_prefiltering) {
+        prefilterCandidates(ann_network_orig, candidates, ann_network_thread, true);
     }
 
     if (!silent) std::cout << "MoveType: " << toString(candidates[0].moveType) << "\n";
@@ -348,18 +348,27 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T> candidates, Ne
     int max_iters_outside = max_iters;
     int radius = 1;
 
-    double old_bic = scoreNetwork(ann_network);
+    double old_bic = scoreNetwork(ann_network_orig);
     double best_bic = old_bic;
     bool found_better = false;
 
-    NetworkState oldState = extract_network_state(ann_network);
+    NetworkState oldState = extract_network_state(ann_network_orig);
 
     std::vector<ScoreItem<T> > scores(candidates.size());
 
+    bool stop = false;
+
+    #pragma omp parallel for
     for (size_t i = 0; i < candidates.size(); ++i) {
+        if (stop) {
+            continue;
+        }
+        AnnotatedNetwork& ann_network = ann_network_thread[omp_get_thread_num()];
         T move(candidates[i]);
         assert(checkSanity(ann_network, move));
         bool recompute_from_scratch = needsRecompute(ann_network, move);
+
+        apply_network_state(ann_network, oldState);
 
         performMove(ann_network, move);
         if (recompute_from_scratch) {
@@ -374,28 +383,41 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T> candidates, Ne
         double worstScore = getWorstReticulationScore(ann_network);
         double bicScore = scoreNetwork(ann_network);
 
-        if (bicScore < best_bic) {
-            best_bic = bicScore;
-            if (found_better) {
-                extract_network_state(ann_network, *state);
-            } else {
-                *state = extract_network_state(ann_network);
+        if (bicScore < best_bic && !stop) {
+            #pragma omp critical
+            {
+                if (bicScore < best_bic && !stop) {
+                    best_bic = bicScore;
+                    if (found_better) {
+                        extract_network_state(ann_network, *state);
+                    } else {
+                        *state = extract_network_state(ann_network);
+                    }
+                    found_better = true;
+                }
             }
-            found_better = true;
         }
 
         if (ann_network.options.use_extreme_greedy) {
-            if (bicScore < old_bic) {
-                candidates[0] = candidates[i];
-                candidates.resize(1);
-                return true;
+            if (bicScore < old_bic && !stop) {
+                #pragma omp critical
+                {
+                    if (bicScore < old_bic && !stop) {
+                        candidates[0] = candidates[i];
+                        stop = true;
+                    }
+                }
             }
         }
 
         scores[i] = ScoreItem<T>{candidates[i], worstScore, bicScore};
 
-        apply_network_state(ann_network, oldState);
         assert(checkSanity(ann_network, candidates[i]));
+    }
+
+    if (stop) {
+        candidates.resize(1);
+        return found_better;
     }
 
     std::sort(scores.begin(), scores.end(), [](const ScoreItem<T>& lhs, const ScoreItem<T>& rhs) {
@@ -416,6 +438,8 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T> candidates, Ne
     }
 
     candidates.resize(newSize);
+
+    //apply_network_state(ann_network_orig, oldState);
 
     return found_better;
 }
