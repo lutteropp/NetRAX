@@ -410,7 +410,7 @@ double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidat
 }
 
 template <typename T>
-bool simanneal_step(AnnotatedNetwork& ann_network, double t, std::vector<T> neighbors, const NetworkState& oldState, bool silent = true) {
+bool simanneal_step(AnnotatedNetwork& ann_network, double t, std::vector<T> neighbors, const NetworkState& oldState, std::unordered_set<double>& seen_bics, bool silent = true) {
     if (neighbors.empty() || t <= 0) {
         return false;
     }
@@ -418,7 +418,7 @@ bool simanneal_step(AnnotatedNetwork& ann_network, double t, std::vector<T> neig
     //if (!silent) std::cout << "MoveType: " << toString(neighbors[0].moveType) << "\n";
     if (!silent) std::cout << "t: " << t << "\n";
 
-    double brlen_smooth_factor = 1.0;
+    double brlen_smooth_factor = 0.25;
     int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
     int max_iters_outside = max_iters;
     int radius = 1;
@@ -450,14 +450,17 @@ bool simanneal_step(AnnotatedNetwork& ann_network, double t, std::vector<T> neig
             return true;
         }
 
-        double acceptance_ratio = exp(-((bicScore - old_bic) / t)); // I took this one from: https://de.wikipedia.org/wiki/Simulated_Annealing
-        double x = std::uniform_real_distribution<double>(0,1)(ann_network.rng);
-        if (x <= acceptance_ratio) {
-            if (!silent) std::cout << " Took " << toString(move.moveType) << "\n";
-            if (!silent) std::cout << "  Logl: " << computeLoglikelihood(ann_network) << ", BIC: " << scoreNetwork(ann_network) << "\n";
-            if (!silent) std::cout << "  num_reticulations: " << ann_network.network.num_reticulations() << "\n";
-            //if (!silent) std::cout << toExtendedNewick(ann_network) << "\n";
-            return true;
+        if (seen_bics.count(bicScore) == 0) {
+            seen_bics.emplace(bicScore);
+            double acceptance_ratio = exp(-((bicScore - old_bic) / t)); // I took this one from: https://de.wikipedia.org/wiki/Simulated_Annealing
+            double x = std::uniform_real_distribution<double>(0,1)(ann_network.rng);
+            if (x <= acceptance_ratio) {
+                if (!silent) std::cout << " Took " << toString(move.moveType) << "\n";
+                if (!silent) std::cout << "  Logl: " << computeLoglikelihood(ann_network) << ", BIC: " << scoreNetwork(ann_network) << "\n";
+                if (!silent) std::cout << "  num_reticulations: " << ann_network.network.num_reticulations() << "\n";
+                //if (!silent) std::cout << toExtendedNewick(ann_network) << "\n";
+                return true;
+            }
         }
         apply_network_state(ann_network, oldState);
         assert(checkSanity(ann_network, neighbors[i]));
@@ -471,44 +474,44 @@ double update_temperature(double t) {
 }
 
 double simanneal(AnnotatedNetwork& ann_network, double t_start, MoveType& type, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, BestNetworkData* bestNetworkData, bool silent = false) {
-    if (!silent) std::cout << "Move type: " << toString(type) << "\n";
     double start_bic = scoreNetwork(ann_network);
     double best_bic = start_bic;
     extract_network_state(ann_network, best_state_to_reuse);
     extract_network_state(ann_network, start_state_to_reuse);
     double t = t_start;
     bool network_changed = true;
+    std::unordered_set<double> seen_bics;
     while (network_changed) {
         network_changed = false;
         extract_network_state(ann_network, start_state_to_reuse);
 
         switch (type) {
         case MoveType::RNNIMove:
-            network_changed = simanneal_step(ann_network, t, possibleRNNIMoves(ann_network), start_state_to_reuse);
+            network_changed = simanneal_step(ann_network, t, possibleRNNIMoves(ann_network), start_state_to_reuse, seen_bics);
             break;
         case MoveType::RSPRMove:
-            network_changed = simanneal_step(ann_network, t, possibleRSPRMoves(ann_network, ann_network.options.classic_moves), start_state_to_reuse);
+            network_changed = simanneal_step(ann_network, t, possibleRSPRMoves(ann_network, ann_network.options.classic_moves), start_state_to_reuse, seen_bics);
             break;
         case MoveType::RSPR1Move:
-            network_changed = simanneal_step(ann_network, t, possibleRSPR1Moves(ann_network), start_state_to_reuse);
+            network_changed = simanneal_step(ann_network, t, possibleRSPR1Moves(ann_network), start_state_to_reuse, seen_bics);
             break;
         case MoveType::HeadMove:
-            network_changed = simanneal_step(ann_network, t, possibleHeadMoves(ann_network, ann_network.options.classic_moves), start_state_to_reuse);
+            network_changed = simanneal_step(ann_network, t, possibleHeadMoves(ann_network, ann_network.options.classic_moves), start_state_to_reuse, seen_bics);
             break;
         case MoveType::TailMove:
-            network_changed = simanneal_step(ann_network, t, possibleTailMoves(ann_network, ann_network.options.classic_moves), start_state_to_reuse);
+            network_changed = simanneal_step(ann_network, t, possibleTailMoves(ann_network, ann_network.options.classic_moves), start_state_to_reuse, seen_bics);
             break;
         case MoveType::ArcInsertionMove:
-            network_changed = simanneal_step(ann_network, t, possibleArcInsertionMoves(ann_network), start_state_to_reuse);
+            network_changed = simanneal_step(ann_network, t, possibleArcInsertionMoves(ann_network), start_state_to_reuse, seen_bics);
             break;
         case MoveType::DeltaPlusMove:
-            network_changed = simanneal_step(ann_network, t, possibleDeltaPlusMoves(ann_network), start_state_to_reuse);
+            network_changed = simanneal_step(ann_network, t, possibleDeltaPlusMoves(ann_network), start_state_to_reuse, seen_bics);
             break;
         case MoveType::ArcRemovalMove:
-            network_changed = simanneal_step(ann_network, t, possibleArcRemovalMoves(ann_network), start_state_to_reuse);
+            network_changed = simanneal_step(ann_network, t, possibleArcRemovalMoves(ann_network), start_state_to_reuse, seen_bics);
             break;
         case MoveType::DeltaMinusMove:
-            network_changed = simanneal_step(ann_network, t, possibleDeltaMinusMoves(ann_network), start_state_to_reuse);
+            network_changed = simanneal_step(ann_network, t, possibleDeltaMinusMoves(ann_network), start_state_to_reuse, seen_bics);
             break;
         default:
             throw std::runtime_error("Invalid move type");
