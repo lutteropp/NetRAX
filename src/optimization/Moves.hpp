@@ -345,10 +345,6 @@ bool checkSanity(AnnotatedNetwork& ann_network, ArcRemovalMove& move);
 bool checkSanity(AnnotatedNetwork& ann_network, ArcInsertionMove& move);
 bool checkSanity(AnnotatedNetwork& ann_network, RNNIMove& move);
 bool checkSanity(AnnotatedNetwork& ann_network, RSPRMove& move);
-bool checkSanity(AnnotatedNetwork& ann_network, std::vector<ArcRemovalMove>& moves);
-bool checkSanity(AnnotatedNetwork& ann_network, std::vector<ArcInsertionMove>& moves);
-bool checkSanity(AnnotatedNetwork& ann_network, std::vector<RNNIMove>& moves);
-bool checkSanity(AnnotatedNetwork& ann_network, std::vector<RSPRMove>& moves);
 
 template <typename T>
 bool checkSanity(AnnotatedNetwork& ann_network, std::vector<T>& moves) {
