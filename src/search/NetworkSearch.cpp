@@ -326,12 +326,7 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, N
         if (recompute_from_scratch) {
             computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
         }
-
-        std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
-        assert(!brlen_opt_candidates.empty());
-        add_neighbors_in_radius(ann_network, brlen_opt_candidates, 1);
-        optimize_branches(ann_network, max_iters, max_iters_outside, radius, brlen_opt_candidates);
-        optimizeReticulationProbs(ann_network);
+        optimizeAllNonTopology(ann_network, true);
         
         double worstScore = getWorstReticulationScore(ann_network);
         double bicScore = scoreNetwork(ann_network);
