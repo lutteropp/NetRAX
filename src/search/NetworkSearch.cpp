@@ -234,10 +234,6 @@ void prefilterCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T>& can
 
     bool stop = false;
 
-    for (size_t i = 0; i < ann_network_thread.size(); ++i) {
-        apply_network_state(ann_network_thread[i], oldState);
-    }
-
     #pragma omp parallel for
     for (size_t i = 0; i < candidates.size(); ++i) {
         if (stop) {
@@ -247,6 +243,8 @@ void prefilterCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T>& can
         T move(candidates[i]);
         assert(checkSanity(ann_network, move));
         bool recompute_from_scratch = needsRecompute(ann_network, move);
+
+        apply_network_state(ann_network, oldState);
 
         performMove(ann_network, move);
         if (recompute_from_scratch) {
@@ -269,8 +267,6 @@ void prefilterCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T>& can
         double worstScore = getWorstReticulationScore(ann_network);
 
         scores[i] = ScoreItem<T>{candidates[i], worstScore, bicScore};
-
-        apply_network_state(ann_network, oldState);
 
         for (size_t j = 0; j < ann_network.network.num_nodes(); ++j) {
             assert(ann_network.network.nodes_by_index[j]->clv_index == j);
@@ -332,6 +328,8 @@ void prefilterCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T>& can
     for (size_t i = 0; i < candidates.size(); ++i) {
         assert(checkSanity(ann_network_orig, candidates[i]));
     }
+
+    //apply_network_state(ann_network_orig, oldState);
 }
 
 template <typename T>
