@@ -2511,4 +2511,80 @@ RSPRMove randomHeadMove(AnnotatedNetwork &ann_network) {
     throw std::runtime_error("No random move found");
 }
 
+void performMove(AnnotatedNetwork &ann_network, GeneralMove *move) {
+    assert(move);
+    switch (move->moveType) {
+        case MoveType::ArcInsertionMove:
+            performMove(ann_network, *((ArcInsertionMove*) move));
+            break;
+        case MoveType::ArcRemovalMove:
+            performMove(ann_network, *((ArcRemovalMove*) move));
+            break;
+        case MoveType::RNNIMove:
+            performMove(ann_network, *((RNNIMove*) move));
+            break;
+        case MoveType::RSPRMove:
+            performMove(ann_network, *((RSPRMove*) move));
+            break;
+        default:
+            throw std::runtime_error("Invalid move type");
+            break;
+    }
+}
+
+void undoMove(AnnotatedNetwork &ann_network, GeneralMove *move) {
+    assert(move);
+    switch (move->moveType) {
+        case MoveType::ArcInsertionMove:
+            undoMove(ann_network, *((ArcInsertionMove*) move));
+            break;
+        case MoveType::ArcRemovalMove:
+            undoMove(ann_network, *((ArcRemovalMove*) move));
+            break;
+        case MoveType::RNNIMove:
+            undoMove(ann_network, *((RNNIMove*) move));
+            break;
+        case MoveType::RSPRMove:
+            undoMove(ann_network, *((RSPRMove*) move));
+            break;
+        default:
+            throw std::runtime_error("Invalid move type");
+            break;
+    }
+}
+
+std::string toString(GeneralMove *move) {
+    assert(move);
+    switch (move->moveType) {
+        case MoveType::ArcInsertionMove:
+            return toString(*((ArcInsertionMove*) move));
+        case MoveType::ArcRemovalMove:
+            return toString(*((ArcRemovalMove*) move));
+        case MoveType::RNNIMove:
+            return toString(*((RNNIMove*) move));
+        case MoveType::RSPRMove:
+            return toString(*((RSPRMove*) move));
+        default:
+            throw std::runtime_error("Invalid move type");
+            break;
+    }  
+}
+
+bool checkSanity(AnnotatedNetwork& ann_network, GeneralMove* move) {
+    assert(move);
+    switch (move->moveType) {
+        case MoveType::ArcInsertionMove:
+            return checkSanity(ann_network, *((ArcInsertionMove*) move));
+        case MoveType::ArcRemovalMove:
+            return checkSanity(ann_network, *((ArcRemovalMove*) move));
+        case MoveType::RNNIMove:
+            return checkSanity(ann_network, *((RNNIMove*) move));
+        case MoveType::RSPRMove:
+            return checkSanity(ann_network, *((RSPRMove*) move));
+        default:
+            throw std::runtime_error("Invalid move type");
+            break;
+    }
+}
+
 }
