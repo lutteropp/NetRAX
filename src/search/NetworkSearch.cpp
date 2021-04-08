@@ -213,8 +213,7 @@ bool needsRecompute(AnnotatedNetwork& ann_network, GeneralMove* move) {
     return (move->moveType == MoveType::ArcRemovalMove) && (ann_network.network.reticulation_nodes[ann_network.network.num_reticulations() - 1]->clv_index != ((ArcRemovalMove*) move)->v_clv_index);
 }
 
-template <typename T>
-void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, bool silent = true) {
+void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<GeneralMove*>& candidates, bool silent = true) {
     if (candidates.empty()) {
         return;
     }
@@ -229,10 +228,10 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
 
     NetworkState oldState = extract_network_state(ann_network);
 
-    std::vector<ScoreItem<T> > scores(candidates.size());
+    std::vector<ScoreItem<GeneralMove*> > scores(candidates.size());
 
     for (size_t i = 0; i < candidates.size(); ++i) {
-        T move = copyMove(candidates[i]);
+        GeneralMove* move = copyMove(candidates[i]);
         assert(checkSanity(ann_network, move));
         bool recompute_from_scratch = needsRecompute(ann_network, move);
 
@@ -250,7 +249,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
 
         delete move;
 
-        scores[i] = ScoreItem<T>{candidates[i], worstScore, bicScore};
+        scores[i] = ScoreItem<GeneralMove*>{candidates[i], worstScore, bicScore};
 
         apply_network_state(ann_network, oldState);
 
@@ -275,7 +274,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
         }
     }
 
-    std::sort(scores.begin(), scores.end(), [](const ScoreItem<T>& lhs, const ScoreItem<T>& rhs) {
+    std::sort(scores.begin(), scores.end(), [](const ScoreItem<GeneralMove*>& lhs, const ScoreItem<GeneralMove*>& rhs) {
         if (lhs.bicScore == rhs.bicScore) {
             return lhs.worstScore > rhs.worstScore;
         }
@@ -302,8 +301,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
     }
 }
 
-template <typename T>
-bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, NetworkState* state, bool silent = true) {
+bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<GeneralMove*>& candidates, NetworkState* state, bool silent = true) {
     if (candidates.empty()) {
         return false;
     }
@@ -324,10 +322,10 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, N
 
     NetworkState oldState = extract_network_state(ann_network);
 
-    std::vector<ScoreItem<T> > scores(candidates.size());
+    std::vector<ScoreItem<GeneralMove*> > scores(candidates.size());
 
     for (size_t i = 0; i < candidates.size(); ++i) {
-        T move = copyMove(candidates[i]);
+        GeneralMove* move = copyMove(candidates[i]);
         assert(checkSanity(ann_network, move));
         bool recompute_from_scratch = needsRecompute(ann_network, move);
 
@@ -364,13 +362,13 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, N
             }
         }
 
-        scores[i] = ScoreItem<T>{candidates[i], worstScore, bicScore};
+        scores[i] = ScoreItem<GeneralMove*>{candidates[i], worstScore, bicScore};
 
         apply_network_state(ann_network, oldState);
         assert(checkSanity(ann_network, candidates[i]));
     }
 
-    std::sort(scores.begin(), scores.end(), [](const ScoreItem<T>& lhs, const ScoreItem<T>& rhs) {
+    std::sort(scores.begin(), scores.end(), [](const ScoreItem<GeneralMove*>& lhs, const ScoreItem<GeneralMove*>& rhs) {
         if (lhs.bicScore == rhs.bicScore) {
             return lhs.worstScore > rhs.worstScore;
         }
@@ -392,8 +390,7 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, N
     return found_better;
 }
 
-template <typename T>
-double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T>& candidates, double* best_score, BestNetworkData* bestNetworkData, bool silent = true) {
+double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<GeneralMove*>& candidates, double* best_score, BestNetworkData* bestNetworkData, bool silent = true) {
     NetworkState state;
     bool found_better_state = rankCandidates(ann_network, candidates, &state, true);
 
@@ -419,8 +416,7 @@ double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T>& candida
     return computeLoglikelihood(ann_network);
 }
 
-template <typename T>
-bool simanneal_step(AnnotatedNetwork& ann_network, double t, std::vector<T>& neighbors, const NetworkState& oldState, std::unordered_set<double>& seen_bics, bool silent = true) {
+bool simanneal_step(AnnotatedNetwork& ann_network, double t, std::vector<GeneralMove*>& neighbors, const NetworkState& oldState, std::unordered_set<double>& seen_bics, bool silent = true) {
     if (neighbors.empty() || t <= 0) {
         return false;
     }
@@ -440,7 +436,7 @@ bool simanneal_step(AnnotatedNetwork& ann_network, double t, std::vector<T>& nei
     double old_bic = scoreNetwork(ann_network);
 
     for (size_t i = 0; i < neighbors.size(); ++i) {
-        T move = copyMove(neighbors[i]);
+        GeneralMove* move = copyMove(neighbors[i]);
         assert(checkSanity(ann_network, move));
         bool recompute_from_scratch = needsRecompute(ann_network, move);
         performMove(ann_network, move);
