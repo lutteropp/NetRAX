@@ -415,6 +415,13 @@ bool simanneal_step(AnnotatedNetwork& ann_network, double t, std::vector<T> neig
         return false;
     }
 
+    if (ann_network.options.prefilter_fraction < 1.0) {
+        if (ann_network.options.prefilter_fraction < 0.0) {
+            throw std::runtime_error("invalid prefilter fraction");
+        }
+        prefilterCandidates(ann_network, neighbors, true);
+    }
+
     //if (!silent) std::cout << "MoveType: " << toString(neighbors[0].moveType) << "\n";
     if (!silent) std::cout << "t: " << t << "\n";
 
@@ -424,7 +431,6 @@ bool simanneal_step(AnnotatedNetwork& ann_network, double t, std::vector<T> neig
     int radius = 1;
 
     double old_bic = scoreNetwork(ann_network);
-    std::vector<ScoreItem<T> > scores(neighbors.size());
 
     for (size_t i = 0; i < neighbors.size(); ++i) {
         T move(neighbors[i]);
@@ -436,7 +442,7 @@ bool simanneal_step(AnnotatedNetwork& ann_network, double t, std::vector<T> neig
         }
         std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
         assert(!brlen_opt_candidates.empty());
-        add_neighbors_in_radius(ann_network, brlen_opt_candidates, 1);
+        //add_neighbors_in_radius(ann_network, brlen_opt_candidates, 1);
         optimize_branches(ann_network, max_iters, max_iters_outside, radius, brlen_opt_candidates);
         optimizeReticulationProbs(ann_network);
         
