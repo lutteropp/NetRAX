@@ -484,7 +484,7 @@ double update_temperature(double t) {
     return t*0.95; // TODO: Better temperature update ? I took this one from: https://de.mathworks.com/help/gads/how-simulated-annealing-works.html
 }
 
-double simanneal(AnnotatedNetwork& ann_network, double t_start, MoveType& type, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, BestNetworkData* bestNetworkData, bool silent = false) {
+double simanneal(AnnotatedNetwork& ann_network, double t_start, std::vector<MoveType>& types, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, BestNetworkData* bestNetworkData, bool silent = false) {
     double start_bic = scoreNetwork(ann_network);
     double best_bic = start_bic;
     extract_network_state(ann_network, best_state_to_reuse);
@@ -496,7 +496,7 @@ double simanneal(AnnotatedNetwork& ann_network, double t_start, MoveType& type, 
         network_changed = false;
         extract_network_state(ann_network, start_state_to_reuse);
 
-        auto moves = possibleMoves(ann_network, {type});
+        auto moves = possibleMoves(ann_network, types);
         network_changed = simanneal_step(ann_network, t, moves, start_state_to_reuse, seen_bics);
         for (size_t i = 0; i < moves.size(); ++i) {
             delete moves[i];
@@ -518,13 +518,30 @@ double simanneal(AnnotatedNetwork& ann_network, double t_start, MoveType& type, 
     return computeLoglikelihood(ann_network);
 }
 
-double optimizeEverythingRun(AnnotatedNetwork& ann_network, std::vector<MoveType>& typesBySpeed, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, const std::chrono::high_resolution_clock::time_point& start_time, BestNetworkData* bestNetworkData) {
+bool onlyArcInsertions(std::vector<MoveType>& types) {
+    for (size_t i = 0; i < types.size(); ++i) {
+        if (types[i] != MoveType::ArcInsertionMove && types[i] != MoveType::DeltaPlusMove) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool onlyArcRemovals(std::vector<MoveType>& types) {
+    for (size_t i = 0; i < types.size(); ++i) {
+        if (types[i] != MoveType::ArcRemovalMove && types[i] != MoveType::DeltaMinusMove) {
+            return false;
+        }
+    }
+    return true;
+}
+
+double optimizeEverythingRun(AnnotatedNetwork& ann_network, std::vector<std::vector<MoveType> >& typesBySpeed, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, const std::chrono::high_resolution_clock::time_point& start_time, BestNetworkData* bestNetworkData) {
     unsigned int type_idx = 0;
     unsigned int max_seconds = ann_network.options.timeout;
     double best_score = scoreNetwork(ann_network);
     do {
-        while (ann_network.network.num_reticulations() == 0
-            && (typesBySpeed[type_idx] == MoveType::DeltaMinusMove || typesBySpeed[type_idx] == MoveType::ArcRemovalMove)) {
+        while (ann_network.network.num_reticulations() == 0 && onlyArcRemovals(typesBySpeed[type_idx])) {
             type_idx++;
             if (type_idx >= typesBySpeed.size()) {
                 break;
@@ -533,8 +550,7 @@ double optimizeEverythingRun(AnnotatedNetwork& ann_network, std::vector<MoveType
         if (type_idx >= typesBySpeed.size()) {
             break;
         }
-        while (ann_network.network.num_reticulations() == ann_network.options.max_reticulations
-            && (typesBySpeed[type_idx] == MoveType::DeltaPlusMove || typesBySpeed[type_idx] == MoveType::ArcInsertionMove)) {
+        while (ann_network.network.num_reticulations() == ann_network.options.max_reticulations && onlyArcInsertions(typesBySpeed[type_idx])) {
             type_idx++;
             if (type_idx >= typesBySpeed.size()) {
                 break;
@@ -546,10 +562,10 @@ double optimizeEverythingRun(AnnotatedNetwork& ann_network, std::vector<MoveType
         double old_score = scoreNetwork(ann_network);
         //optimizeTopology(ann_network, typesBySpeed[type_idx], start_state_to_reuse, best_state_to_reuse, greedy, false, false, 1);
 
-        if (ann_network.options.sim_anneal && !isComplexityChangingMove(typesBySpeed[type_idx])) {
+        if (ann_network.options.sim_anneal && !isComplexityChangingMove(typesBySpeed[type_idx][0])) {
             simanneal(ann_network, ann_network.options.start_temperature, typesBySpeed[type_idx], start_state_to_reuse, best_state_to_reuse, bestNetworkData);
         } else {
-            auto moves = possibleMoves(ann_network, {typesBySpeed[type_idx]});
+            auto moves = possibleMoves(ann_network, typesBySpeed[type_idx]);
             applyBestCandidate(ann_network, moves, &best_score, bestNetworkData);
             for (size_t i = 0; i < moves.size(); ++i) {
                 delete moves[i];
@@ -647,19 +663,19 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
         insertionType = MoveType::ArcInsertionMove;
     }
 
-    std::vector<MoveType> typesBySpeed;
+    std::vector<std::vector<MoveType> > typesBySpeed;
     if (ann_network.options.classic_moves) {
-        typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::HeadMove, MoveType::ArcInsertionMove};
+        typesBySpeed = {{MoveType::ArcRemovalMove}, {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::HeadMove}, {MoveType::ArcInsertionMove}};
     } else {
         if (ann_network.options.use_rspr1_moves) {
-            typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, insertionType};
+            typesBySpeed = {{MoveType::ArcRemovalMove}, {MoveType::RNNIMove, MoveType::RSPR1Move}, {insertionType}};
         } else {
-            typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, insertionType};
+            typesBySpeed = {{MoveType::ArcRemovalMove}, {MoveType::RNNIMove}, {insertionType}};
         }
         if (ann_network.options.use_rspr_moves) {
-            typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPRMove, insertionType};
+            typesBySpeed = {{MoveType::ArcRemovalMove}, {MoveType::RNNIMove, MoveType::RSPRMove}, {insertionType}};
         } else {
-            typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, insertionType};
+            typesBySpeed = {{MoveType::ArcRemovalMove}, {MoveType::RNNIMove}, {insertionType}};
         }
     }
 

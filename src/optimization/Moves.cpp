@@ -2664,7 +2664,7 @@ std::unordered_set<size_t> brlenOptCandidates(AnnotatedNetwork &ann_network, Gen
     }
 }
 
-std::vector<GeneralMove*> possibleMoves(AnnotatedNetwork& ann_network, std::unordered_set<MoveType> types) {
+std::vector<GeneralMove*> possibleMoves(AnnotatedNetwork& ann_network, std::vector<MoveType> types) {
     std::vector<GeneralMove*> res;
     std::vector<ArcInsertionMove> insertionMoves;
     std::vector<ArcRemovalMove> removalMoves;
