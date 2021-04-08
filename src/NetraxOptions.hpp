@@ -66,7 +66,7 @@ public:
     unsigned int timeout = 0; // maximum number of seconds to run the network search, value of zero will be ignored
 
     bool use_extreme_greedy = false;
-    double prefilter_fraction = 0.25; // if >= 1.0, then prefiltering is disabled
+    bool no_prefiltering = false;
     bool use_rspr_moves = false;
     bool use_rspr1_moves = false;
     bool full_arc_insertion = false;

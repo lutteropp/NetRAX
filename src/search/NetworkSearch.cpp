@@ -221,6 +221,8 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
     int radius = 1;
     double old_bic = scoreNetwork(ann_network);
 
+    double best_bic = std::numeric_limits<double>::infinity();
+
     NetworkState oldState = extract_network_state(ann_network);
 
     std::vector<ScoreItem<T> > scores(candidates.size());
@@ -252,6 +254,10 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
 
         assert(neighborsSame(ann_network.network, oldState.network));
 
+        if (bicScore < best_bic) {
+            best_bic = bicScore;
+        }
+
         assert(checkSanity(ann_network, candidates[i]));
 
         if (ann_network.options.use_extreme_greedy) {
@@ -272,7 +278,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
 
     size_t newSize = 0;
 
-    double cutoff_bic = scores[scores.size()*ann_network.options.prefilter_fraction].bicScore;
+    double cutoff_bic = best_bic + 0.1;
 
     for (size_t i = 0; i < candidates.size(); ++i) {
         if (!silent) std::cout << "prefiltered candidate " << i + 1 << "/" << candidates.size() << " has worst score " << scores[i].worstScore << ", BIC: " << scores[i].bicScore << "\n";
@@ -295,10 +301,7 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, N
     if (candidates.empty()) {
         return false;
     }
-    if (ann_network.options.prefilter_fraction < 1.0) {
-        if (ann_network.options.prefilter_fraction < 0.0) {
-            throw std::runtime_error("invalid prefilter fraction");
-        }
+    if (!ann_network.options.no_prefiltering) {
         prefilterCandidates(ann_network, candidates, true);
     }
 
@@ -414,10 +417,7 @@ bool simanneal_step(AnnotatedNetwork& ann_network, double t, std::vector<T> neig
         return false;
     }
 
-    if (ann_network.options.prefilter_fraction < 1.0) {
-        if (ann_network.options.prefilter_fraction < 0.0) {
-            throw std::runtime_error("invalid prefilter fraction");
-        }
+    if (!ann_network.options.no_prefiltering) {
         prefilterCandidates(ann_network, neighbors, true);
     }
 
