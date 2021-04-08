@@ -241,10 +241,10 @@ void prefilterCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T>& can
         }
         AnnotatedNetwork& ann_network = ann_network_thread[omp_get_thread_num()];
         T move(candidates[i]);
-        assert(checkSanity(ann_network, move));
         bool recompute_from_scratch = needsRecompute(ann_network, move);
 
         apply_network_state(ann_network, oldState);
+        assert(checkSanity(ann_network, move));
 
         performMove(ann_network, move);
         if (recompute_from_scratch) {
@@ -272,8 +272,6 @@ void prefilterCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T>& can
             assert(ann_network.network.nodes_by_index[j]->clv_index == j);
         }
 
-        assert(neighborsSame(ann_network.network, oldState.network));
-
         if (bicScore < best_bic) {
             #pragma omp critical
             {
@@ -282,8 +280,6 @@ void prefilterCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T>& can
                 }
             }
         }
-
-        assert(checkSanity(ann_network, candidates[i]));
 
         if (ann_network.options.use_extreme_greedy) {
             if (bicScore < old_bic && !stop) {
@@ -365,10 +361,10 @@ bool rankCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T> candidate
         }
         AnnotatedNetwork& ann_network = ann_network_thread[omp_get_thread_num()];
         T move(candidates[i]);
-        assert(checkSanity(ann_network, move));
         bool recompute_from_scratch = needsRecompute(ann_network, move);
 
         apply_network_state(ann_network, oldState);
+        assert(checkSanity(ann_network, move));
 
         performMove(ann_network, move);
         if (recompute_from_scratch) {
@@ -411,8 +407,6 @@ bool rankCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T> candidate
         }
 
         scores[i] = ScoreItem<T>{candidates[i], worstScore, bicScore};
-
-        assert(checkSanity(ann_network, candidates[i]));
     }
 
     if (stop) {
