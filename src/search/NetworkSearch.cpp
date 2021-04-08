@@ -5,6 +5,7 @@
 #include <fstream>
 #include <random>
 #include <limits>
+#include <omp.h>
 
 #include "../likelihood/mpreal.h"
 #include "../graph/AnnotatedNetwork.hpp"
@@ -214,24 +215,36 @@ bool needsRecompute(AnnotatedNetwork& ann_network, GeneralMove* move) {
 }
 
 template <typename T>
-void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, bool silent = true) {
+void prefilterCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T>& candidates, bool silent = true) {
     if (candidates.empty()) {
         return;
+    }
+
+    std::vector<AnnotatedNetwork> ann_network_thread;
+    for (int i = 0; i < omp_get_max_threads(); ++i) {
+        ann_network_thread.emplace_back(clone_ann_network(ann_network_orig));
     }
 
     double brlen_smooth_factor = 0.25;
     int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
     int max_iters_outside = max_iters;
     int radius = 1;
-    double old_bic = scoreNetwork(ann_network);
+    double old_bic = scoreNetwork(ann_network_orig);
 
     double best_bic = std::numeric_limits<double>::infinity();
 
-    NetworkState oldState = extract_network_state(ann_network);
+    NetworkState oldState = extract_network_state(ann_network_orig);
 
     std::vector<ScoreItem<T> > scores(candidates.size());
 
+    bool stop = false;
+
+    #pragma omp parallel for
     for (size_t i = 0; i < candidates.size(); ++i) {
+        if (stop) {
+            continue;
+        }
+        AnnotatedNetwork& ann_network = ann_network_thread[omp_get_thread_num()];
         T move(candidates[i]);
         assert(checkSanity(ann_network, move));
         bool recompute_from_scratch = needsRecompute(ann_network, move);
@@ -273,12 +286,21 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
         assert(checkSanity(ann_network, candidates[i]));
 
         if (ann_network.options.use_extreme_greedy) {
-            if (bicScore < old_bic) {
-                candidates[0] = candidates[i];
-                candidates.resize(1);
-                return;
+            if (bicScore < old_bic && !stop) {
+                #pragma omp critical
+                {
+                    if (bicScore < old_bic && !stop) {
+                        candidates[0] = candidates[i];
+                        stop = true;
+                    }
+                }
             }
         }
+    }
+
+    if (stop) {
+        candidates.resize(1);
+        return;
     }
 
     std::sort(scores.begin(), scores.end(), [](const ScoreItem<T>& lhs, const ScoreItem<T>& rhs) {
@@ -304,7 +326,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
     candidates.resize(newSize);
 
     for (size_t i = 0; i < candidates.size(); ++i) {
-        assert(checkSanity(ann_network, candidates[i]));
+        assert(checkSanity(ann_network_orig, candidates[i]));
     }
 }
 
