@@ -213,9 +213,102 @@ bool needsRecompute(AnnotatedNetwork& ann_network, GeneralMove* move) {
     return (move->moveType == MoveType::ArcRemovalMove) && (ann_network.network.reticulation_nodes[ann_network.network.num_reticulations() - 1]->clv_index != ((ArcRemovalMove*) move)->v_clv_index);
 }
 
+void prefilterPrefilterCandidates(AnnotatedNetwork& ann_network, std::vector<GeneralMove*>& candidates, bool silent = true) {
+    if (candidates.empty()) {
+        return;
+    }
+
+    double brlen_smooth_factor = 0.25;
+    int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
+    int max_iters_outside = 1;
+    int radius = 1;
+    double old_bic = scoreNetwork(ann_network);
+
+    double best_bic = std::numeric_limits<double>::infinity();
+
+    NetworkState oldState = extract_network_state(ann_network);
+
+    std::vector<ScoreItem<GeneralMove*> > scores(candidates.size());
+
+    for (size_t i = 0; i < candidates.size(); ++i) {
+        GeneralMove* move = copyMove(candidates[i]);
+        assert(checkSanity(ann_network, move));
+        bool recompute_from_scratch = needsRecompute(ann_network, move);
+
+        performMove(ann_network, move);
+        if (recompute_from_scratch) {
+            computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
+        }
+        optimizeReticulationProbs(ann_network);
+        std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
+        assert(!brlen_opt_candidates.empty());
+        optimize_branches(ann_network, max_iters, max_iters_outside, radius, brlen_opt_candidates);
+        optimizeReticulationProbs(ann_network);
+        
+        double worstScore = getWorstReticulationScore(ann_network);
+        double bicScore = scoreNetwork(ann_network);
+
+        delete move;
+
+        scores[i] = ScoreItem<GeneralMove*>{candidates[i], worstScore, bicScore};
+
+        apply_network_state(ann_network, oldState);
+
+        for (size_t j = 0; j < ann_network.network.num_nodes(); ++j) {
+            assert(ann_network.network.nodes_by_index[j]->clv_index == j);
+        }
+
+        assert(neighborsSame(ann_network.network, oldState.network));
+
+        if (bicScore < best_bic) {
+            best_bic = bicScore;
+        }
+
+        assert(checkSanity(ann_network, candidates[i]));
+
+        if (ann_network.options.use_extreme_greedy) {
+            if (bicScore < old_bic) {
+                candidates[0] = candidates[i];
+                candidates.resize(1);
+                return;
+            }
+        }
+    }
+
+    std::sort(scores.begin(), scores.end(), [](const ScoreItem<GeneralMove*>& lhs, const ScoreItem<GeneralMove*>& rhs) {
+        if (lhs.bicScore == rhs.bicScore) {
+            return lhs.worstScore > rhs.worstScore;
+        }
+        return lhs.bicScore < rhs.bicScore;
+    });
+
+    size_t newSize = 0;
+
+    double cutoff_bic = old_bic * 1.01;// best_bic + 0.1;
+
+    for (size_t i = 0; i < candidates.size(); ++i) {
+        if (!silent) std::cout << "prefiltered candidate " << i + 1 << "/" << candidates.size() << " has worst score " << scores[i].worstScore << ", BIC: " << scores[i].bicScore << "\n";
+        if (scores[i].bicScore <= cutoff_bic) {
+            candidates[newSize] = scores[i].move;
+            newSize++;
+        }
+    }
+    if (!silent) std::cout << "New size after prefilter-prefiltering: " << newSize << " vs. " << candidates.size() << " (act_reticulations = " << ann_network.network.num_reticulations() << ")" << "\n";
+
+    candidates.resize(newSize);
+
+    for (size_t i = 0; i < candidates.size(); ++i) {
+        assert(checkSanity(ann_network, candidates[i]));
+    }
+}
+
 void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<GeneralMove*>& candidates, bool silent = true) {
     if (candidates.empty()) {
         return;
+    }
+
+    if (candidates[0]->moveType == MoveType::ArcInsertionMove || candidates[0]->moveType == MoveType::DeltaPlusMove) {
+        prefilterPrefilterCandidates(ann_network, candidates);
     }
 
     double brlen_smooth_factor = 0.25;
