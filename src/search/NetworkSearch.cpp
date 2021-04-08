@@ -558,7 +558,7 @@ double optimizeEverythingRun(AnnotatedNetwork& ann_network, std::vector<MoveType
         double old_score = scoreNetwork(ann_network);
         //optimizeTopology(ann_network, typesBySpeed[type_idx], start_state_to_reuse, best_state_to_reuse, greedy, false, false, 1);
 
-        if (ann_network.options.sim_anneal) {
+        if (ann_network.options.sim_anneal && !isComplexityChangingMove(typesBySpeed[type_idx])) {
             simanneal(ann_network, ann_network.options.start_temperature, typesBySpeed[type_idx], start_state_to_reuse, best_state_to_reuse, bestNetworkData);
         } else {
             switch (typesBySpeed[type_idx]) {
