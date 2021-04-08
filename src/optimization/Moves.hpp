@@ -413,6 +413,7 @@ std::unordered_set<size_t> brlenOptCandidatesUndo(AnnotatedNetwork &ann_network,
 void performMove(AnnotatedNetwork &ann_network, GeneralMove *move);
 void undoMove(AnnotatedNetwork &ann_network, GeneralMove *move);
 std::string toString(GeneralMove *move);
+std::unordered_set<size_t> brlenOptCandidates(AnnotatedNetwork &ann_network, GeneralMove* move);
 
 ArcInsertionMove randomArcInsertionMove(AnnotatedNetwork &ann_network);
 ArcRemovalMove randomArcRemovalMove(AnnotatedNetwork &ann_network);

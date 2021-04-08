@@ -2587,4 +2587,21 @@ bool checkSanity(AnnotatedNetwork& ann_network, GeneralMove* move) {
     }
 }
 
+std::unordered_set<size_t> brlenOptCandidates(AnnotatedNetwork &ann_network, GeneralMove* move) {
+    assert(move);
+    switch (move->moveType) {
+        case MoveType::ArcInsertionMove:
+            return brlenOptCandidates(ann_network, *((ArcInsertionMove*) move));
+        case MoveType::ArcRemovalMove:
+            return brlenOptCandidates(ann_network, *((ArcRemovalMove*) move));
+        case MoveType::RNNIMove:
+            return brlenOptCandidates(ann_network, *((RNNIMove*) move));
+        case MoveType::RSPRMove:
+            return brlenOptCandidates(ann_network, *((RSPRMove*) move));
+        default:
+            throw std::runtime_error("Invalid move type");
+            break;
+    }
+}
+
 }
