@@ -424,7 +424,6 @@ bool simanneal_step(AnnotatedNetwork& ann_network, double t, std::vector<T> neig
     int radius = 1;
 
     double old_bic = scoreNetwork(ann_network);
-    double best_bic = old_bic;
     std::vector<ScoreItem<T> > scores(neighbors.size());
 
     for (size_t i = 0; i < neighbors.size(); ++i) {
@@ -528,6 +527,7 @@ double simanneal(AnnotatedNetwork& ann_network, double t_start, MoveType& type, 
     }
 
     apply_network_state(ann_network, best_state_to_reuse);
+    return computeLoglikelihood(ann_network);
 }
 
 double optimizeEverythingRun(AnnotatedNetwork& ann_network, std::vector<MoveType>& typesBySpeed, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, const std::chrono::high_resolution_clock::time_point& start_time, BestNetworkData* bestNetworkData) {

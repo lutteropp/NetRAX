@@ -889,6 +889,7 @@ std::vector<RSPRMove> possibleTailMoves(AnnotatedNetwork &ann_network, bool noRS
         std::vector<RSPRMove> branch_moves = possibleTailMoves(ann_network, network.edges_by_index[i], noRSPR1Moves);
         res.insert(std::end(res), std::begin(branch_moves), std::end(branch_moves));
     }
+    assert(checkSanity(ann_network, res));
     return res;
 }
 
@@ -899,6 +900,7 @@ std::vector<RSPRMove> possibleHeadMoves(AnnotatedNetwork &ann_network, bool noRS
         std::vector<RSPRMove> branch_moves = possibleHeadMoves(ann_network, network.edges_by_index[i], noRSPR1Moves);
         res.insert(std::end(res), std::begin(branch_moves), std::end(branch_moves));
     }
+    assert(checkSanity(ann_network, res));
     return res;
 }
 
@@ -939,6 +941,7 @@ std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network) {
         std::vector<RNNIMove> branch_moves = possibleRNNIMoves(ann_network, network.edges_by_index[i]);
         res.insert(std::end(res), std::begin(branch_moves), std::end(branch_moves));
     }
+    assert(checkSanity(ann_network, res));
     return res;
 }
 
@@ -949,6 +952,7 @@ std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, bool noRS
         std::vector<RSPRMove> branch_moves = possibleRSPRMoves(ann_network, network.edges_by_index[i], noRSPR1Moves);
         res.insert(std::end(res), std::begin(branch_moves), std::end(branch_moves));
     }
+    assert(checkSanity(ann_network, res));
     return res;
 }
 
@@ -959,6 +963,7 @@ std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network) {
         std::vector<RSPRMove> branch_moves = possibleRSPR1Moves(ann_network, network.edges_by_index[i]);
         res.insert(std::end(res), std::begin(branch_moves), std::end(branch_moves));
     }
+    assert(checkSanity(ann_network, res));
     return res;
 }
 
@@ -1133,6 +1138,7 @@ std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_ne
                 network.edges_by_index[i], nullptr, nullptr, MoveType::ArcInsertionMove);
         res.insert(std::end(res), std::begin(moves), std::end(moves));
     }
+    assert(checkSanity(ann_network, res));
     return res;
 }
 
@@ -1253,6 +1259,7 @@ std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_networ
                 MoveType::ArcRemovalMove);
         res.insert(std::end(res), std::begin(moves), std::end(moves));
     }
+    assert(checkSanity(ann_network, res));
     return res;
 }
 
@@ -1264,6 +1271,7 @@ std::vector<ArcInsertionMove> possibleDeltaPlusMoves(AnnotatedNetwork &ann_netwo
                 network.edges_by_index[i]);
         res.insert(std::end(res), std::begin(branch_moves), std::end(branch_moves));
     }
+    assert(checkSanity(ann_network, res));
     return res;
 }
 
@@ -1275,6 +1283,7 @@ std::vector<ArcRemovalMove> possibleDeltaMinusMoves(AnnotatedNetwork &ann_networ
                 network.reticulation_nodes[i]);
         res.insert(std::end(res), std::begin(branch_moves), std::end(branch_moves));
     }
+    assert(checkSanity(ann_network, res));
     return res;
 }
 
