@@ -232,7 +232,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
     std::vector<ScoreItem<T> > scores(candidates.size());
 
     for (size_t i = 0; i < candidates.size(); ++i) {
-        T move(candidates[i]);
+        T move = copyMove(candidates[i]);
         assert(checkSanity(ann_network, move));
         bool recompute_from_scratch = needsRecompute(ann_network, move);
 
@@ -247,6 +247,8 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
         optimize_branches(ann_network, max_iters, max_iters_outside, radius, brlen_opt_candidates, true);
         double worstScore = getWorstReticulationScore(ann_network);
         double bicScore = scoreNetwork(ann_network);
+
+        delete move;
 
         scores[i] = ScoreItem<T>{candidates[i], worstScore, bicScore};
 
@@ -309,7 +311,7 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, N
         prefilterCandidates(ann_network, candidates, true);
     }
 
-    if (!silent) std::cout << "MoveType: " << toString(candidates[0].moveType) << "\n";
+    if (!silent) std::cout << "MoveType: " << toString(candidates[0]->moveType) << "\n";
 
     double brlen_smooth_factor = 1.0;
     int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
@@ -325,7 +327,7 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, N
     std::vector<ScoreItem<T> > scores(candidates.size());
 
     for (size_t i = 0; i < candidates.size(); ++i) {
-        T move(candidates[i]);
+        T move = copyMove(candidates[i]);
         assert(checkSanity(ann_network, move));
         bool recompute_from_scratch = needsRecompute(ann_network, move);
 
@@ -339,6 +341,8 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, N
         optimize_branches(ann_network, max_iters, max_iters_outside, radius, brlen_opt_candidates);
         optimizeReticulationProbs(ann_network);
         
+        delete move;
+
         double worstScore = getWorstReticulationScore(ann_network);
         double bicScore = scoreNetwork(ann_network);
 
@@ -389,7 +393,7 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, N
 }
 
 template <typename T>
-double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidates, double* best_score, BestNetworkData* bestNetworkData, bool silent = true) {
+double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T>& candidates, double* best_score, BestNetworkData* bestNetworkData, bool silent = true) {
     NetworkState state;
     bool found_better_state = rankCandidates(ann_network, candidates, &state, true);
 
@@ -402,12 +406,12 @@ double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidat
         double aic_score = aic(ann_network, logl);
         double aicc_score = aicc(ann_network, logl);
 
-        if (!silent) std::cout << " Took " << toString(candidates[0].moveType) << "\n";
+        if (!silent) std::cout << " Took " << toString(candidates[0]->moveType) << "\n";
         if (!silent) std::cout << "  Logl: " << logl << ", BIC: " << bic_score << ", AIC: " << aic_score << ", AICc: " << aicc_score <<  "\n";
         if (!silent) std::cout << "  param_count: " << get_param_count(ann_network) << ", sample_size:" << get_sample_size(ann_network) << "\n";
         if (!silent) std::cout << "  num_reticulations: " << ann_network.network.num_reticulations() << "\n";
         if (!silent) std::cout << toExtendedNewick(ann_network) << "\n";
-        ann_network.stats.moves_taken[candidates[0].moveType]++;
+        ann_network.stats.moves_taken[candidates[0]->moveType]++;
 
         check_score_improvement(ann_network, best_score, bestNetworkData);
     }
@@ -416,7 +420,7 @@ double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidat
 }
 
 template <typename T>
-bool simanneal_step(AnnotatedNetwork& ann_network, double t, std::vector<T> neighbors, const NetworkState& oldState, std::unordered_set<double>& seen_bics, bool silent = true) {
+bool simanneal_step(AnnotatedNetwork& ann_network, double t, std::vector<T>& neighbors, const NetworkState& oldState, std::unordered_set<double>& seen_bics, bool silent = true) {
     if (neighbors.empty() || t <= 0) {
         return false;
     }
@@ -436,7 +440,7 @@ bool simanneal_step(AnnotatedNetwork& ann_network, double t, std::vector<T> neig
     double old_bic = scoreNetwork(ann_network);
 
     for (size_t i = 0; i < neighbors.size(); ++i) {
-        T move(neighbors[i]);
+        T move = copyMove(neighbors[i]);
         assert(checkSanity(ann_network, move));
         bool recompute_from_scratch = needsRecompute(ann_network, move);
         performMove(ann_network, move);
@@ -448,11 +452,13 @@ bool simanneal_step(AnnotatedNetwork& ann_network, double t, std::vector<T> neig
         add_neighbors_in_radius(ann_network, brlen_opt_candidates, 1);
         optimize_branches(ann_network, max_iters, max_iters_outside, radius, brlen_opt_candidates);
         optimizeReticulationProbs(ann_network);
+
+        delete move;
         
         double bicScore = scoreNetwork(ann_network);
 
         if (bicScore < old_bic) {
-            if (!silent) std::cout << " Took " << toString(move.moveType) << "\n";
+            if (!silent) std::cout << " Took " << toString(move->moveType) << "\n";
             if (!silent) std::cout << "  Logl: " << computeLoglikelihood(ann_network) << ", BIC: " << scoreNetwork(ann_network) << "\n";
             if (!silent) std::cout << "  num_reticulations: " << ann_network.network.num_reticulations() << "\n";
             if (!silent) std::cout << toExtendedNewick(ann_network) << "\n";
@@ -464,7 +470,7 @@ bool simanneal_step(AnnotatedNetwork& ann_network, double t, std::vector<T> neig
             double acceptance_ratio = exp(-((bicScore - old_bic) / t)); // I took this one from: https://de.wikipedia.org/wiki/Simulated_Annealing
             double x = std::uniform_real_distribution<double>(0,1)(ann_network.rng);
             if (x <= acceptance_ratio) {
-                if (!silent) std::cout << " Took " << toString(move.moveType) << "\n";
+                if (!silent) std::cout << " Took " << toString(move->moveType) << "\n";
                 if (!silent) std::cout << "  Logl: " << computeLoglikelihood(ann_network) << ", BIC: " << scoreNetwork(ann_network) << "\n";
                 if (!silent) std::cout << "  num_reticulations: " << ann_network.network.num_reticulations() << "\n";
                 //if (!silent) std::cout << toExtendedNewick(ann_network) << "\n";
@@ -494,36 +500,10 @@ double simanneal(AnnotatedNetwork& ann_network, double t_start, MoveType& type, 
         network_changed = false;
         extract_network_state(ann_network, start_state_to_reuse);
 
-        switch (type) {
-        case MoveType::RNNIMove:
-            network_changed = simanneal_step(ann_network, t, possibleRNNIMoves(ann_network), start_state_to_reuse, seen_bics);
-            break;
-        case MoveType::RSPRMove:
-            network_changed = simanneal_step(ann_network, t, possibleRSPRMoves(ann_network, ann_network.options.classic_moves), start_state_to_reuse, seen_bics);
-            break;
-        case MoveType::RSPR1Move:
-            network_changed = simanneal_step(ann_network, t, possibleRSPR1Moves(ann_network), start_state_to_reuse, seen_bics);
-            break;
-        case MoveType::HeadMove:
-            network_changed = simanneal_step(ann_network, t, possibleHeadMoves(ann_network, ann_network.options.classic_moves), start_state_to_reuse, seen_bics);
-            break;
-        case MoveType::TailMove:
-            network_changed = simanneal_step(ann_network, t, possibleTailMoves(ann_network, ann_network.options.classic_moves), start_state_to_reuse, seen_bics);
-            break;
-        case MoveType::ArcInsertionMove:
-            network_changed = simanneal_step(ann_network, t, possibleArcInsertionMoves(ann_network), start_state_to_reuse, seen_bics);
-            break;
-        case MoveType::DeltaPlusMove:
-            network_changed = simanneal_step(ann_network, t, possibleDeltaPlusMoves(ann_network), start_state_to_reuse, seen_bics);
-            break;
-        case MoveType::ArcRemovalMove:
-            network_changed = simanneal_step(ann_network, t, possibleArcRemovalMoves(ann_network), start_state_to_reuse, seen_bics);
-            break;
-        case MoveType::DeltaMinusMove:
-            network_changed = simanneal_step(ann_network, t, possibleDeltaMinusMoves(ann_network), start_state_to_reuse, seen_bics);
-            break;
-        default:
-            throw std::runtime_error("Invalid move type");
+        auto moves = possibleMoves(ann_network, {type});
+        network_changed = simanneal_step(ann_network, t, moves, start_state_to_reuse, seen_bics);
+        for (size_t i = 0; i < moves.size(); ++i) {
+            delete moves[i];
         }
 
         if (network_changed) {
@@ -573,36 +553,10 @@ double optimizeEverythingRun(AnnotatedNetwork& ann_network, std::vector<MoveType
         if (ann_network.options.sim_anneal && !isComplexityChangingMove(typesBySpeed[type_idx])) {
             simanneal(ann_network, ann_network.options.start_temperature, typesBySpeed[type_idx], start_state_to_reuse, best_state_to_reuse, bestNetworkData);
         } else {
-            switch (typesBySpeed[type_idx]) {
-            case MoveType::RNNIMove:
-                applyBestCandidate(ann_network, possibleRNNIMoves(ann_network), &best_score, bestNetworkData);
-                break;
-            case MoveType::RSPRMove:
-                applyBestCandidate(ann_network, possibleRSPRMoves(ann_network, ann_network.options.classic_moves), &best_score, bestNetworkData);
-                break;
-            case MoveType::RSPR1Move:
-                applyBestCandidate(ann_network, possibleRSPR1Moves(ann_network), &best_score, bestNetworkData);
-                break;
-            case MoveType::HeadMove:
-                applyBestCandidate(ann_network, possibleHeadMoves(ann_network, ann_network.options.classic_moves), &best_score, bestNetworkData);
-                break;
-            case MoveType::TailMove:
-                applyBestCandidate(ann_network, possibleTailMoves(ann_network, ann_network.options.classic_moves), &best_score, bestNetworkData);
-                break;
-            case MoveType::ArcInsertionMove:
-                applyBestCandidate(ann_network, possibleArcInsertionMoves(ann_network), &best_score, bestNetworkData);
-                break;
-            case MoveType::DeltaPlusMove:
-                applyBestCandidate(ann_network, possibleDeltaPlusMoves(ann_network), &best_score, bestNetworkData);
-                break;
-            case MoveType::ArcRemovalMove:
-                applyBestCandidate(ann_network, possibleArcRemovalMoves(ann_network), &best_score, bestNetworkData);
-                break;
-            case MoveType::DeltaMinusMove:
-                applyBestCandidate(ann_network, possibleDeltaMinusMoves(ann_network), &best_score, bestNetworkData);
-                break;
-            default:
-                throw std::runtime_error("Invalid move type");
+            auto moves = possibleMoves(ann_network, {typesBySpeed[type_idx]});
+            applyBestCandidate(ann_network, moves, &best_score, bestNetworkData);
+            for (size_t i = 0; i < moves.size(); ++i) {
+                delete moves[i];
             }
         }
 

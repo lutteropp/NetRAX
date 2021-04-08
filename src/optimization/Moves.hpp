@@ -370,6 +370,8 @@ std::vector<RSPRMove> possibleTailMoves(AnnotatedNetwork &ann_network, bool noRS
 std::vector<RSPRMove> possibleHeadMoves(AnnotatedNetwork &ann_network, const Edge *edge, bool noRSPR1Moves = false);
 std::vector<RSPRMove> possibleHeadMoves(AnnotatedNetwork &ann_network, bool noRSPR1Moves = false);
 
+std::vector<GeneralMove*> possibleMoves(AnnotatedNetwork& ann_network, std::unordered_set<MoveType> types);
+
 void performMove(AnnotatedNetwork &ann_network, RNNIMove &move);
 void performMove(AnnotatedNetwork &ann_network, RSPRMove &move);
 void undoMove(AnnotatedNetwork &ann_network, RNNIMove &move);
@@ -424,5 +426,7 @@ RSPRMove randomRSPRMove(AnnotatedNetwork &ann_network);
 RSPRMove randomRSPR1Move(AnnotatedNetwork &ann_network);
 RSPRMove randomTailMove(AnnotatedNetwork &ann_network);
 RSPRMove randomHeadMove(AnnotatedNetwork &ann_network);
+
+GeneralMove* copyMove(GeneralMove* move);
 
 }
