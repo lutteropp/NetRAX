@@ -201,7 +201,7 @@ bool assert_rates(AnnotatedNetwork& ann_network) {
 }
 
 void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &state, bool copy_network) {
-    ann_network.options.brlen_linkage = state.brlen_linkage;
+    //ann_network.options.brlen_linkage = state.brlen_linkage;
     assert(assert_tip_links(state.network));
     assert(assert_links_in_range(state.network));
     if (copy_network) {
