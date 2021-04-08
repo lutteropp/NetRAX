@@ -1,5 +1,7 @@
 #include <iostream>
 #include <string>
+#include <random>
+#include <limits>
 
 #include <CLI11.hpp>
 #include "likelihood/mpreal.h"
@@ -53,6 +55,17 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     bool best_displayed_tree_variant = false;
     app.add_flag("--average_displayed_tree_variant", average_displayed_tree_variant, "Use weighted average instead of only best displayed tree in network likelihood formula.");
     app.add_flag("--best_displayed_tree_variant", best_displayed_tree_variant, "Use best displayed tree instead of weighted average in network likelihood formula.");
+    app.add_option("--no_prefiltering", options->no_prefiltering, "Disable prefiltering of highly-promising move candidates.");
+    app.add_flag("--extreme_greedy", options->use_extreme_greedy, "Use extreme greedy for fast results with worse inference quality.");
+    app.add_flag("--use_rspr1_moves", options->use_rspr1_moves, "Also use rSPR1 moves (slow).");
+    app.add_flag("--use_rspr_moves", options->use_rspr_moves, "Also use rSPR moves (super slow).");
+    app.add_flag("--full_arc_insertion", options->full_arc_insertion, "Use full ArcInsertion moves instead of only DeltaPlus moves (slow).");
+    app.add_flag("--classic_moves", options->classic_moves, "Stick to the classic moves selection (super duper slow).");
+    app.add_option("--scrambling", options->scrambling, "Number of scrambling retries for escaping out of local maxima (default: 0).");
+    app.add_option("--scrambling_radius", options->scrambling_radius, "Number of random moves to apply when scrambling a network (default: 1).");
+
+    app.add_flag("--sim_anneal", options->sim_anneal, "Use simulated annealing instead of hill climbing during network topology search.");
+    app.add_option("--start_temperature", options->start_temperature, "Start temperature to be used for simulated annealing (default: 100).");
 
     CLI11_PARSE(app, argc, argv);
     if (average_displayed_tree_variant && best_displayed_tree_variant) {
@@ -289,7 +302,8 @@ void generate_random_network_only(NetraxOptions &netraxOptions, std::mt19937 &rn
     {
         throw std::runtime_error("Need output file to write the generated network");
     }
-    netrax::AnnotatedNetwork ann_network = build_random_annotated_network(netraxOptions);
+    std::uniform_int_distribution<long> dist(0, RAND_MAX);
+    netrax::AnnotatedNetwork ann_network = build_random_annotated_network(netraxOptions, dist(rng));
     init_annotated_network(ann_network, rng);
     add_extra_reticulations(ann_network, netraxOptions.max_reticulations);
     writeNetwork(ann_network, netraxOptions.output_file);

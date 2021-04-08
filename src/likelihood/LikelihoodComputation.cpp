@@ -101,7 +101,9 @@ Node* findFirstNodeWithTwoActiveChildren(AnnotatedNetwork& ann_network, const Re
 
     // all these reticulation choices led to the same tree, thus it is safe to simply use the first one for detecting which nodes to skip...
     for (size_t i = 0; i < reticulationChoices.configs[0].size(); ++i) { // apply the reticulation choices
-        setReticulationState(ann_network.network, i, reticulationChoices.configs[0][i]);
+        if (reticulationChoices.configs[0][i] != ReticulationState::DONT_CARE) {
+            setReticulationState(ann_network.network, i, reticulationChoices.configs[0][i]);
+        }
     }
 
     Node* displayed_tree_root = nullptr;
@@ -977,6 +979,8 @@ PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned i
     Node* source = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
     Node* target = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
 
+    bool single_tree_mode = (sumtables.size() == 1);
+
     /*size_t n_trees_source = ann_network.pernode_displayed_tree_data[partition_idx][source->clv_index].num_active_displayed_trees;
     size_t n_trees_target = ann_network.pernode_displayed_tree_data[partition_idx][target->clv_index].num_active_displayed_trees;
     std::vector<DisplayedTreeData>& sourceTrees = ann_network.pernode_displayed_tree_data[partition_idx][source->clv_index].displayed_trees;
@@ -1030,7 +1034,7 @@ PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned i
                                            p_brlen,
                                            ann_network.fake_treeinfo->param_indices[partition_idx],
                                            sumtables[i].sumtable,
-                                           &tree_logl,
+                                           (single_tree_mode) ? nullptr : &tree_logl,
                                            &tree_logl_prime,
                                            &tree_logl_prime_prime,
                                            diagptable,
@@ -1042,6 +1046,14 @@ PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned i
             std::cout << "  tree_logl_prime_prime: " << tree_logl_prime_prime << "\n";
         }*/
         //assert(tree_logl != 0.0);
+
+        if (single_tree_mode) {
+            pll_aligned_free (diagptable);
+            free (prop_invar);
+            res.logl_prime = tree_logl_prime;
+            res.logl_prime_prime = tree_logl_prime_prime;
+            return res;
+        }
 
         if (ann_network.options.likelihood_variant == LikelihoodVariant::AVERAGE_DISPLAYED_TREES) {
             TreeDerivatives treeDerivatives = computeTreeDerivatives(tree_logl, tree_logl_prime, tree_logl_prime_prime);

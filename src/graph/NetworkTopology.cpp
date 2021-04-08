@@ -16,7 +16,7 @@
 
 namespace netrax {
 
-Node* getTargetNode(Network &network, const Link *link) {
+Node* getTargetNode(const Network &network, const Link *link) {
     assert(link);
     if (network.edges_by_index[link->edge_pmatrix_index]->link1 == link) {
         return network.nodes_by_index[network.edges_by_index[link->edge_pmatrix_index]->link2->node_clv_index];
@@ -250,7 +250,7 @@ bool hasChild(Network &network, Node *parent, Node *candidate) {
     return (std::find(children.begin(), children.end(), candidate) != children.end());
 }
 
-std::vector<Node*> getNeighbors(Network &network, const Node *node) {
+std::vector<Node*> getNeighbors(const Network &network, const Node *node) {
     assert(node);
     std::vector<Node*> neighbors;
     for (const auto &link : node->links) {
@@ -422,6 +422,12 @@ bool hasNeighbor(Node *node1, Node *node2) {
             return true;
         }
     }
+
+    for (const auto &link : node2->links) {
+        if (link.outer->node_clv_index == node1->clv_index) {
+            throw std::runtime_error("The links are not symmetric");
+        }
+    }
     return false;
 }
 
@@ -544,6 +550,7 @@ std::unordered_set<size_t> getNeighborPmatrixIndices(Network &network, Edge *edg
 }
 
 void setReticulationState(Network &network, size_t reticulation_idx, ReticulationState state) {
+    assert(reticulation_idx < network.reticulation_nodes.size());
     if (state == ReticulationState::DONT_CARE) {
         return;
     } else if (state == ReticulationState::TAKE_FIRST_PARENT) {

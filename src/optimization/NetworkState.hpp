@@ -29,6 +29,8 @@ struct NetworkState {
     bool cached_logl_valid;
 };
 
+bool neighborsSame(const Network& n1, const Network& n2);
+
 NetworkState extract_network_state(AnnotatedNetwork &ann_network, bool extract_network = true);
 void extract_network_state(AnnotatedNetwork &ann_network, NetworkState& state_to_reuse, bool extract_network = true);
 void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &state, bool copy_network = true);

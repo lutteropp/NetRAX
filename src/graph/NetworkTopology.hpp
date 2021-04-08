@@ -19,7 +19,7 @@
 
 namespace netrax {
 
-Node* getTargetNode(Network &network, const Link *link);
+Node* getTargetNode(const Network &network, const Link *link);
 bool isOutgoing(Network &network, Node *from, Node *to);
 std::vector<Link*> getLinksToClvIndex(Network &network, Node *node, size_t target_index);
 Link* getLinkToNode(Network &network, Node *node, Node *target);
@@ -45,7 +45,7 @@ std::vector<Node*> getChildrenIgnoreDirections(Network &network, Node *node, con
 std::vector<Node*> getActiveChildrenUndirected(Network &network, Node *node, const Node *myParent);
 Node* getOtherChild(Network &network, Node *parent, Node *aChild);
 bool hasChild(Network &network, Node *parent, Node *candidate);
-std::vector<Node*> getNeighbors(Network &network, const Node *node);
+std::vector<Node*> getNeighbors(const Network &network, const Node *node);
 std::vector<Node*> getActiveNeighbors(Network &network, const Node *node);
 std::vector<Node*> getActiveAliveNeighbors(Network &network, const std::vector<bool> &dead_nodes,
         const Node *node);

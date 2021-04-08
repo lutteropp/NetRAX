@@ -155,8 +155,8 @@ AnnotatedNetwork build_annotated_network_from_file(NetraxOptions &options,
         const std::string &networkPath);
 AnnotatedNetwork build_annotated_network_from_utree(NetraxOptions &options,
         const pll_utree_t &utree);
-AnnotatedNetwork build_random_annotated_network(NetraxOptions &options);
-AnnotatedNetwork build_parsimony_annotated_network(NetraxOptions &options);
+AnnotatedNetwork build_random_annotated_network(NetraxOptions &options, double seed);
+AnnotatedNetwork build_parsimony_annotated_network(NetraxOptions &options, double seed);
 AnnotatedNetwork build_best_raxml_annotated_network(NetraxOptions &options);
 void add_extra_reticulations(AnnotatedNetwork &ann_network, unsigned int targetCount);
 void init_annotated_network(AnnotatedNetwork &ann_network, std::mt19937& rng);

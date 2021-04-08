@@ -30,6 +30,7 @@
 #include "../graph/NodeType.hpp"
 #include "../graph/ReticulationData.hpp"
 #include "../NetraxOptions.hpp"
+#include "../DebugPrintFunctions.hpp"
 
 extern "C" {
 #include <libpll/pll.h>
@@ -37,6 +38,95 @@ extern "C" {
 }
 
 namespace netrax {
+
+bool checkSanity(AnnotatedNetwork& ann_network, ArcRemovalMove& move) {
+    bool good = true;
+    good &= (move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::DeltaMinusMove);
+    if (!good) std::cout << "wrong move type\n";
+    good &= (ann_network.network.nodes_by_index[move.a_clv_index] != nullptr);
+    good &= (ann_network.network.nodes_by_index[move.b_clv_index] != nullptr);
+    good &= (ann_network.network.nodes_by_index[move.c_clv_index] != nullptr);
+    good &= (ann_network.network.nodes_by_index[move.d_clv_index] != nullptr);
+    good &= (ann_network.network.nodes_by_index[move.u_clv_index] != nullptr);
+    good &= (ann_network.network.nodes_by_index[move.v_clv_index] != nullptr);
+    if (!good) std::cout << "some nodes do not exist\n";
+    good &= (ann_network.network.edges_by_index[move.au_pmatrix_index] != nullptr);
+    good &= (ann_network.network.edges_by_index[move.ub_pmatrix_index] != nullptr);
+    good &= (ann_network.network.edges_by_index[move.uv_pmatrix_index] != nullptr);
+    good &= (ann_network.network.edges_by_index[move.cv_pmatrix_index] != nullptr);
+    good &= (ann_network.network.edges_by_index[move.vd_pmatrix_index] != nullptr);
+    if (!good) std::cout << "some edges do not exist\n";
+    good &= (move.a_clv_index != move.u_clv_index);
+    good &= (move.u_clv_index != move.b_clv_index);
+    good &= (move.c_clv_index != move.v_clv_index);
+    good &= (move.v_clv_index != move.d_clv_index);
+    good &= (move.u_clv_index != move.v_clv_index);
+    if (!good) std::cout << "the move indices are wrong\n";
+    good &= (hasNeighbor(ann_network.network.nodes_by_index[move.a_clv_index], ann_network.network.nodes_by_index[move.u_clv_index]));
+    good &= (hasNeighbor(ann_network.network.nodes_by_index[move.u_clv_index], ann_network.network.nodes_by_index[move.b_clv_index]));
+    good &= (hasNeighbor(ann_network.network.nodes_by_index[move.u_clv_index], ann_network.network.nodes_by_index[move.v_clv_index]));
+    good &= (hasNeighbor(ann_network.network.nodes_by_index[move.c_clv_index], ann_network.network.nodes_by_index[move.v_clv_index]));
+    good &= (hasNeighbor(ann_network.network.nodes_by_index[move.v_clv_index], ann_network.network.nodes_by_index[move.d_clv_index]));
+    if (!good) std::cout << "neighbor issue\n";
+
+    return good;
+}
+
+bool checkSanity(AnnotatedNetwork& ann_network, ArcInsertionMove& move) {
+    bool good = true;
+    good &= (move.moveType == MoveType::ArcInsertionMove || move.moveType == MoveType::DeltaPlusMove);
+    good &= (ann_network.network.nodes_by_index[move.a_clv_index] != nullptr);
+    good &= (ann_network.network.nodes_by_index[move.b_clv_index] != nullptr);
+    good &= (ann_network.network.nodes_by_index[move.c_clv_index] != nullptr);
+    good &= (ann_network.network.nodes_by_index[move.d_clv_index] != nullptr);
+
+    good &= (ann_network.network.edges_by_index[move.ab_pmatrix_index] != nullptr);
+    good &= (ann_network.network.edges_by_index[move.cd_pmatrix_index] != nullptr);
+
+    good &= (move.a_clv_index != move.b_clv_index);
+    good &= (move.c_clv_index != move.d_clv_index);
+
+    good &= (hasNeighbor(ann_network.network.nodes_by_index[move.a_clv_index], ann_network.network.nodes_by_index[move.b_clv_index]));
+    good &= (hasNeighbor(ann_network.network.nodes_by_index[move.c_clv_index], ann_network.network.nodes_by_index[move.d_clv_index]));
+
+    return good;
+}
+
+bool checkSanity(AnnotatedNetwork& ann_network, RNNIMove& move) {
+    bool good = true;
+    good &= (move.moveType == MoveType::RNNIMove);
+
+    good &= (ann_network.network.nodes_by_index[move.u_clv_index] != nullptr);
+    good &= (ann_network.network.nodes_by_index[move.v_clv_index] != nullptr);
+    good &= (ann_network.network.nodes_by_index[move.s_clv_index] != nullptr);
+    good &= (ann_network.network.nodes_by_index[move.t_clv_index] != nullptr);
+
+    good &= (hasNeighbor(ann_network.network.nodes_by_index[move.s_clv_index], ann_network.network.nodes_by_index[move.u_clv_index]));
+    good &= (hasNeighbor(ann_network.network.nodes_by_index[move.u_clv_index], ann_network.network.nodes_by_index[move.v_clv_index]));
+    good &= (hasNeighbor(ann_network.network.nodes_by_index[move.v_clv_index], ann_network.network.nodes_by_index[move.t_clv_index]));
+
+    good &= (!hasNeighbor(ann_network.network.nodes_by_index[move.u_clv_index], ann_network.network.nodes_by_index[move.t_clv_index]));
+    good &= (!hasNeighbor(ann_network.network.nodes_by_index[move.s_clv_index], ann_network.network.nodes_by_index[move.v_clv_index]));
+
+    return good;
+}
+
+bool checkSanity(AnnotatedNetwork& ann_network, RSPRMove& move) {
+    bool good = true;
+    good &= (move.moveType == MoveType::RSPRMove || move.moveType == MoveType::RSPR1Move || move.moveType == MoveType::HeadMove || move.moveType == MoveType::TailMove);
+
+    good &= (ann_network.network.nodes_by_index[move.x_clv_index] != nullptr);
+    good &= (ann_network.network.nodes_by_index[move.x_prime_clv_index] != nullptr);
+    good &= (ann_network.network.nodes_by_index[move.y_clv_index] != nullptr);
+    good &= (ann_network.network.nodes_by_index[move.y_prime_clv_index] != nullptr);
+    good &= (ann_network.network.nodes_by_index[move.z_clv_index] != nullptr);
+
+    good &= (hasNeighbor(ann_network.network.nodes_by_index[move.x_clv_index], ann_network.network.nodes_by_index[move.z_clv_index]));
+    good &= (hasNeighbor(ann_network.network.nodes_by_index[move.z_clv_index], ann_network.network.nodes_by_index[move.y_clv_index]));
+    good &= (hasNeighbor(ann_network.network.nodes_by_index[move.x_prime_clv_index], ann_network.network.nodes_by_index[move.y_prime_clv_index]));
+
+    return good;
+}
 
 bool assertConsecutiveIndices(AnnotatedNetwork& ann_network) {
     for (size_t i = 0; i < ann_network.network.num_nodes(); ++i) {
@@ -532,16 +622,16 @@ void checkReticulationProperties(Node *notReticulation, Node *reticulation) {
 void checkLinkDirections(Network &network) {
     for (size_t i = 0; i < network.num_nodes(); ++i) {
         unsigned int targetOutgoing = 2;
-        if (network.nodes[i].type == NodeType::RETICULATION_NODE) {
+        if (network.nodes_by_index[i]->type == NodeType::RETICULATION_NODE) {
             targetOutgoing = 1;
         } else if (network.root == &network.nodes[i]) {
             targetOutgoing = 2;
-        } else if (network.nodes[i].isTip()) {
+        } else if (network.nodes_by_index[i]->isTip()) {
             targetOutgoing = 0;
         }
         unsigned int n_out = 0;
-        for (size_t j = 0; j < network.nodes[i].links.size(); ++j) {
-            if (network.nodes[i].links[j].direction == Direction::OUTGOING) {
+        for (size_t j = 0; j < network.nodes_by_index[i]->links.size(); ++j) {
+            if (network.nodes_by_index[i]->links[j].direction == Direction::OUTGOING) {
                 n_out++;
             }
         }
@@ -596,6 +686,7 @@ bool assertAfterMove(Network &network, RNNIMove &move) {
 }
 
 void performMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
+    assert(checkSanity(ann_network, move));
     assert(move.moveType == MoveType::RNNIMove);
     assert(assertConsecutiveIndices(ann_network));
     Network &network = ann_network.network;
@@ -791,9 +882,10 @@ std::vector<RSPRMove> possibleTailMoves(AnnotatedNetwork &ann_network, bool noRS
     std::vector<RSPRMove> res;
     Network &network = ann_network.network;
     for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::vector<RSPRMove> branch_moves = possibleTailMoves(ann_network, &network.edges[i], noRSPR1Moves);
+        std::vector<RSPRMove> branch_moves = possibleTailMoves(ann_network, network.edges_by_index[i], noRSPR1Moves);
         res.insert(std::end(res), std::begin(branch_moves), std::end(branch_moves));
     }
+    assert(checkSanity(ann_network, res));
     return res;
 }
 
@@ -801,9 +893,10 @@ std::vector<RSPRMove> possibleHeadMoves(AnnotatedNetwork &ann_network, bool noRS
     std::vector<RSPRMove> res;
     Network &network = ann_network.network;
     for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::vector<RSPRMove> branch_moves = possibleHeadMoves(ann_network, &network.edges[i], noRSPR1Moves);
+        std::vector<RSPRMove> branch_moves = possibleHeadMoves(ann_network, network.edges_by_index[i], noRSPR1Moves);
         res.insert(std::end(res), std::begin(branch_moves), std::end(branch_moves));
     }
+    assert(checkSanity(ann_network, res));
     return res;
 }
 
@@ -841,9 +934,10 @@ std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network) {
     std::vector<RNNIMove> res;
     Network &network = ann_network.network;
     for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::vector<RNNIMove> branch_moves = possibleRNNIMoves(ann_network, &network.edges[i]);
+        std::vector<RNNIMove> branch_moves = possibleRNNIMoves(ann_network, network.edges_by_index[i]);
         res.insert(std::end(res), std::begin(branch_moves), std::end(branch_moves));
     }
+    assert(checkSanity(ann_network, res));
     return res;
 }
 
@@ -851,9 +945,10 @@ std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, bool noRS
     std::vector<RSPRMove> res;
     Network &network = ann_network.network;
     for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::vector<RSPRMove> branch_moves = possibleRSPRMoves(ann_network, &network.edges[i], noRSPR1Moves);
+        std::vector<RSPRMove> branch_moves = possibleRSPRMoves(ann_network, network.edges_by_index[i], noRSPR1Moves);
         res.insert(std::end(res), std::begin(branch_moves), std::end(branch_moves));
     }
+    assert(checkSanity(ann_network, res));
     return res;
 }
 
@@ -861,9 +956,10 @@ std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network) {
     std::vector<RSPRMove> res;
     Network &network = ann_network.network;
     for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::vector<RSPRMove> branch_moves = possibleRSPR1Moves(ann_network, &network.edges[i]);
+        std::vector<RSPRMove> branch_moves = possibleRSPR1Moves(ann_network, network.edges_by_index[i]);
         res.insert(std::end(res), std::begin(branch_moves), std::end(branch_moves));
     }
+    assert(checkSanity(ann_network, res));
     return res;
 }
 
@@ -969,15 +1065,15 @@ std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_ne
         }
     } else {
         for (size_t i = 0; i < network.num_branches(); ++i) {
-            if (network.edges[i].pmatrix_index == edge->pmatrix_index) {
+            if (i == edge->pmatrix_index) {
                 continue;
             }
-            Node *c_cand = getSource(network, &network.edges[i]);
-            Node *d_cand = getTarget(network, &network.edges[i]);
+            Node *c_cand = getSource(network, network.edges_by_index[i]);
+            Node *d_cand = getTarget(network, network.edges_by_index[i]);
             if (!hasPath(network, d_cand, a)) {
                 std::vector<double> c_d_len(n_p), c_v_len(n_p), a_u_len(n_p), v_d_len(n_p), u_b_len(n_p), u_v_len(n_p);
                 for (size_t p = 0; p < n_p; ++p) {
-                    c_d_len[p] = ann_network.fake_treeinfo->branch_lengths[p][network.edges[i].pmatrix_index];
+                    c_d_len[p] = ann_network.fake_treeinfo->branch_lengths[p][i];
 
                     c_v_len[p] = std::max(c_d_len[p] / 2, min_br);
                     a_u_len[p] = std::max(a_b_len[p] / 2, min_br);
@@ -1035,9 +1131,10 @@ std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_ne
     Network &network = ann_network.network;
     for (size_t i = 0; i < network.num_branches(); ++i) {
         std::vector<ArcInsertionMove> moves = possibleArcInsertionMoves(ann_network,
-                &network.edges[i], nullptr, nullptr, MoveType::ArcInsertionMove);
+                network.edges_by_index[i], nullptr, nullptr, MoveType::ArcInsertionMove);
         res.insert(std::end(res), std::begin(moves), std::end(moves));
     }
+    assert(checkSanity(ann_network, res));
     return res;
 }
 
@@ -1128,6 +1225,8 @@ std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_networ
 
         assert(move.a_clv_index != move.u_clv_index);
 
+        assert(checkSanity(ann_network, move));
+
         res.emplace_back(move);
     }
     return res;
@@ -1156,6 +1255,7 @@ std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_networ
                 MoveType::ArcRemovalMove);
         res.insert(std::end(res), std::begin(moves), std::end(moves));
     }
+    assert(checkSanity(ann_network, res));
     return res;
 }
 
@@ -1164,9 +1264,10 @@ std::vector<ArcInsertionMove> possibleDeltaPlusMoves(AnnotatedNetwork &ann_netwo
     Network &network = ann_network.network;
     for (size_t i = 0; i < network.num_branches(); ++i) {
         std::vector<ArcInsertionMove> branch_moves = possibleDeltaPlusMoves(ann_network,
-                &network.edges[i]);
+                network.edges_by_index[i]);
         res.insert(std::end(res), std::begin(branch_moves), std::end(branch_moves));
     }
+    assert(checkSanity(ann_network, res));
     return res;
 }
 
@@ -1178,10 +1279,12 @@ std::vector<ArcRemovalMove> possibleDeltaMinusMoves(AnnotatedNetwork &ann_networ
                 network.reticulation_nodes[i]);
         res.insert(std::end(res), std::begin(branch_moves), std::end(branch_moves));
     }
+    assert(checkSanity(ann_network, res));
     return res;
 }
 
 void performMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
+    assert(checkSanity(ann_network, move));
     assert(move.moveType == MoveType::RSPRMove || move.moveType == MoveType::RSPR1Move || move.moveType == MoveType::HeadMove || move.moveType == MoveType::TailMove);
     assert(assertConsecutiveIndices(ann_network));
     Network &network = ann_network.network;
@@ -1542,6 +1645,7 @@ bool assertBranchLengths(AnnotatedNetwork& ann_network) {
 }
 
 void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
+    assert(checkSanity(ann_network, move));
     assert(move.moveType == MoveType::ArcInsertionMove || move.moveType == MoveType::DeltaPlusMove);
     assert(assertConsecutiveIndices(ann_network));
     assert(assertBranchLengths(ann_network));
@@ -1853,28 +1957,6 @@ void repairConsecutivePmatrixIndices(AnnotatedNetwork &ann_network, ArcRemovalMo
     assert(move_pmatrix_indices.size() == 5);
 }
 
-bool checkSanity(AnnotatedNetwork& ann_network, ArcRemovalMove& move) {
-    assert(move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::DeltaMinusMove);
-    assert(ann_network.network.nodes_by_index[move.a_clv_index]);
-    assert(ann_network.network.nodes_by_index[move.b_clv_index]);
-    assert(ann_network.network.nodes_by_index[move.c_clv_index]);
-    assert(ann_network.network.nodes_by_index[move.d_clv_index]);
-    assert(ann_network.network.nodes_by_index[move.u_clv_index]);
-    assert(ann_network.network.nodes_by_index[move.v_clv_index]);
-    assert(ann_network.network.edges_by_index[move.au_pmatrix_index]);
-    assert(ann_network.network.edges_by_index[move.ub_pmatrix_index]);
-    assert(ann_network.network.edges_by_index[move.uv_pmatrix_index]);
-    assert(ann_network.network.edges_by_index[move.cv_pmatrix_index]);
-    assert(ann_network.network.edges_by_index[move.vd_pmatrix_index]);
-
-    assert(move.a_clv_index != move.u_clv_index);
-    assert(move.u_clv_index != move.b_clv_index);
-    assert(move.c_clv_index != move.v_clv_index);
-    assert(move.v_clv_index != move.d_clv_index);
-    assert(move.u_clv_index != move.v_clv_index);
-    return true;
-}
-
 bool assert_links_in_range2(const Network& network) {
     for (size_t i = 0; i < network.num_nodes(); ++i) {
         for (size_t j = 0; j < network.nodes_by_index[i]->links.size(); ++j) {
@@ -1898,10 +1980,10 @@ void repairConsecutiveIndices(AnnotatedNetwork &ann_network, ArcRemovalMove& mov
 }
 
 void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
+    assert(checkSanity(ann_network, move));
     assert(assert_links_in_range2(ann_network.network));
     assert(assertBranchLengths(ann_network));
 
-    assert(checkSanity(ann_network, move));
     assert(move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::DeltaMinusMove);
     assert(assertConsecutiveIndices(ann_network));
     Network &network = ann_network.network;
@@ -2427,6 +2509,267 @@ RSPRMove randomHeadMove(AnnotatedNetwork &ann_network) {
         }
     }
     throw std::runtime_error("No random move found");
+}
+
+void performMove(AnnotatedNetwork &ann_network, GeneralMove *move) {
+    assert(move);
+    switch (move->moveType) {
+        case MoveType::ArcInsertionMove:
+            performMove(ann_network, *((ArcInsertionMove*) move));
+            break;
+        case MoveType::DeltaPlusMove:
+            performMove(ann_network, *((ArcInsertionMove*) move));
+            break;
+        case MoveType::ArcRemovalMove:
+            performMove(ann_network, *((ArcRemovalMove*) move));
+            break;
+        case MoveType::DeltaMinusMove:
+            performMove(ann_network, *((ArcRemovalMove*) move));
+            break;
+        case MoveType::RNNIMove:
+            performMove(ann_network, *((RNNIMove*) move));
+            break;
+        case MoveType::RSPRMove:
+            performMove(ann_network, *((RSPRMove*) move));
+            break;
+        case MoveType::RSPR1Move:
+            performMove(ann_network, *((RSPRMove*) move));
+            break;
+        case MoveType::HeadMove:
+            performMove(ann_network, *((RSPRMove*) move));
+            break;
+        case MoveType::TailMove:
+            performMove(ann_network, *((RSPRMove*) move));
+            break;
+        default:
+            throw std::runtime_error("Invalid move type performMove: " + toString(move->moveType));
+            break;
+    }
+}
+
+void undoMove(AnnotatedNetwork &ann_network, GeneralMove *move) {
+    assert(move);
+    switch (move->moveType) {
+        case MoveType::ArcInsertionMove:
+            undoMove(ann_network, *((ArcInsertionMove*) move));
+            break;
+        case MoveType::DeltaPlusMove:
+            undoMove(ann_network, *((ArcInsertionMove*) move));
+            break;
+        case MoveType::ArcRemovalMove:
+            undoMove(ann_network, *((ArcRemovalMove*) move));
+            break;
+        case MoveType::DeltaMinusMove:
+            undoMove(ann_network, *((ArcRemovalMove*) move));
+            break;
+        case MoveType::RNNIMove:
+            undoMove(ann_network, *((RNNIMove*) move));
+            break;
+        case MoveType::RSPRMove:
+            undoMove(ann_network, *((RSPRMove*) move));
+            break;
+        case MoveType::RSPR1Move:
+            undoMove(ann_network, *((RSPRMove*) move));
+            break;
+        case MoveType::HeadMove:
+            undoMove(ann_network, *((RSPRMove*) move));
+            break;
+        case MoveType::TailMove:
+            undoMove(ann_network, *((RSPRMove*) move));
+            break;
+        default:
+            throw std::runtime_error("Invalid move type undoMove: " + toString(move->moveType));
+            break;
+    }
+}
+
+std::string toString(GeneralMove *move) {
+    assert(move);
+    switch (move->moveType) {
+        case MoveType::ArcInsertionMove:
+            return toString(*((ArcInsertionMove*) move));
+        case MoveType::DeltaPlusMove:
+            return toString(*((ArcInsertionMove*) move));
+        case MoveType::ArcRemovalMove:
+            return toString(*((ArcRemovalMove*) move));
+        case MoveType::DeltaMinusMove:
+            return toString(*((ArcRemovalMove*) move));
+        case MoveType::RNNIMove:
+            return toString(*((RNNIMove*) move));
+        case MoveType::RSPRMove:
+            return toString(*((RSPRMove*) move));
+        case MoveType::RSPR1Move:
+            return toString(*((RSPRMove*) move));
+        case MoveType::HeadMove:
+            return toString(*((RSPRMove*) move));
+        case MoveType::TailMove:
+            return toString(*((RSPRMove*) move));
+        default:
+            throw std::runtime_error("Invalid move type toString: " + toString(move->moveType));
+            break;
+    }  
+}
+
+bool checkSanity(AnnotatedNetwork& ann_network, GeneralMove* move) {
+    assert(move);
+    switch (move->moveType) {
+        case MoveType::ArcInsertionMove:
+            return checkSanity(ann_network, *((ArcInsertionMove*) move));
+        case MoveType::DeltaPlusMove:
+            return checkSanity(ann_network, *((ArcInsertionMove*) move));
+        case MoveType::ArcRemovalMove:
+            return checkSanity(ann_network, *((ArcRemovalMove*) move));
+        case MoveType::DeltaMinusMove:
+            return checkSanity(ann_network, *((ArcRemovalMove*) move));
+        case MoveType::RNNIMove:
+            return checkSanity(ann_network, *((RNNIMove*) move));
+        case MoveType::RSPRMove:
+            return checkSanity(ann_network, *((RSPRMove*) move));
+        case MoveType::RSPR1Move:
+            return checkSanity(ann_network, *((RSPRMove*) move));
+        case MoveType::HeadMove:
+            return checkSanity(ann_network, *((RSPRMove*) move));
+        case MoveType::TailMove:
+            return checkSanity(ann_network, *((RSPRMove*) move));
+        default:
+            throw std::runtime_error("Invalid move type checkSanity: " + toString(move->moveType));
+            break;
+    }
+}
+
+std::unordered_set<size_t> brlenOptCandidates(AnnotatedNetwork &ann_network, GeneralMove* move) {
+    assert(move);
+    switch (move->moveType) {
+        case MoveType::ArcInsertionMove:
+            return brlenOptCandidates(ann_network, *((ArcInsertionMove*) move));
+        case MoveType::DeltaPlusMove:
+            return brlenOptCandidates(ann_network, *((ArcInsertionMove*) move));
+        case MoveType::ArcRemovalMove:
+            return brlenOptCandidates(ann_network, *((ArcRemovalMove*) move));
+        case MoveType::DeltaMinusMove:
+            return brlenOptCandidates(ann_network, *((ArcRemovalMove*) move));
+        case MoveType::RNNIMove:
+            return brlenOptCandidates(ann_network, *((RNNIMove*) move));
+        case MoveType::RSPRMove:
+            return brlenOptCandidates(ann_network, *((RSPRMove*) move));
+        case MoveType::RSPR1Move:
+            return brlenOptCandidates(ann_network, *((RSPRMove*) move));
+        case MoveType::HeadMove:
+            return brlenOptCandidates(ann_network, *((RSPRMove*) move));
+        case MoveType::TailMove:
+            return brlenOptCandidates(ann_network, *((RSPRMove*) move));
+        default:
+            throw std::runtime_error("Invalid move type brlenOptCandidates: " + toString(move->moveType));
+            break;
+    }
+}
+
+std::vector<GeneralMove*> possibleMoves(AnnotatedNetwork& ann_network, std::vector<MoveType> types) {
+    std::vector<GeneralMove*> res;
+    std::vector<ArcInsertionMove> insertionMoves;
+    std::vector<ArcRemovalMove> removalMoves;
+    std::vector<RNNIMove> rnniMoves;
+    std::vector<RSPRMove> rsprMoves;
+    for (MoveType type : types) {
+        switch (type) {
+            case MoveType::ArcInsertionMove:
+                insertionMoves = possibleArcInsertionMoves(ann_network);
+                for (size_t i = 0; i < insertionMoves.size(); ++i) {
+                    res.emplace_back(new ArcInsertionMove(insertionMoves[i]));
+                }
+                break;
+            case MoveType::DeltaPlusMove:
+                insertionMoves = possibleDeltaPlusMoves(ann_network);
+                for (size_t i = 0; i < insertionMoves.size(); ++i) {
+                    res.emplace_back(new ArcInsertionMove(insertionMoves[i]));
+                }
+                break;
+            case MoveType::ArcRemovalMove:
+                removalMoves = possibleArcRemovalMoves(ann_network);
+                for (size_t i = 0; i < removalMoves.size(); ++i) {
+                    res.emplace_back(new ArcRemovalMove(removalMoves[i]));
+                }
+                break;
+            case MoveType::DeltaMinusMove:
+                removalMoves = possibleDeltaMinusMoves(ann_network);
+                for (size_t i = 0; i < removalMoves.size(); ++i) {
+                    res.emplace_back(new ArcRemovalMove(removalMoves[i]));
+                }
+                break;
+            case MoveType::RNNIMove:
+                rnniMoves = possibleRNNIMoves(ann_network);
+                for (size_t i = 0; i < rnniMoves.size(); ++i) {
+                    res.emplace_back(new RNNIMove(rnniMoves[i]));
+                }
+                break;
+            case MoveType::RSPR1Move:
+                rsprMoves = possibleRSPR1Moves(ann_network);
+                for (size_t i = 0; i < rsprMoves.size(); ++i) {
+                    res.emplace_back(new RSPRMove(rsprMoves[i]));
+                }
+                break;
+            case MoveType::RSPRMove:
+                rsprMoves = possibleRSPRMoves(ann_network);
+                for (size_t i = 0; i < rsprMoves.size(); ++i) {
+                    res.emplace_back(new RSPRMove(rsprMoves[i]));
+                }
+                break;
+            case MoveType::HeadMove:
+                rsprMoves = possibleHeadMoves(ann_network);
+                for (size_t i = 0; i < rsprMoves.size(); ++i) {
+                    res.emplace_back(new RSPRMove(rsprMoves[i]));
+                }
+                break;
+            case MoveType::TailMove:
+                rsprMoves = possibleTailMoves(ann_network);
+                for (size_t i = 0; i < rsprMoves.size(); ++i) {
+                    res.emplace_back(new RSPRMove(rsprMoves[i]));
+                }
+                break;
+            default:
+                throw std::runtime_error("Invalid move type possibleMoves: " + toString(type));
+                break;
+        }
+    }
+    return res;
+}
+
+GeneralMove* copyMove(GeneralMove* move) {
+    assert(move);
+    GeneralMove* copied_move = nullptr;
+    switch (move->moveType) {
+        case MoveType::ArcInsertionMove:
+            copied_move = new ArcInsertionMove(*((ArcInsertionMove*) move));
+            break;
+        case MoveType::DeltaPlusMove:
+            copied_move = new ArcInsertionMove(*((ArcInsertionMove*) move));
+            break;
+        case MoveType::ArcRemovalMove:
+            copied_move = new ArcRemovalMove(*((ArcRemovalMove*) move));
+            break;
+        case MoveType::DeltaMinusMove:
+            copied_move = new ArcRemovalMove(*((ArcRemovalMove*) move));
+            break;
+        case MoveType::RNNIMove:
+            copied_move = new RNNIMove(*((RNNIMove*) move));
+            break;
+        case MoveType::RSPRMove:
+            copied_move = new RSPRMove(*((RSPRMove*) move));
+            break;
+        case MoveType::RSPR1Move:
+            copied_move = new RSPRMove(*((RSPRMove*) move));
+            break;
+        case MoveType::HeadMove:
+            copied_move = new RSPRMove(*((RSPRMove*) move));
+            break;
+        case MoveType::TailMove:
+            copied_move = new RSPRMove(*((RSPRMove*) move));
+            break;
+        default:
+            throw std::runtime_error("Invalid move type brlenOptCandidates: " + toString(move->moveType));
+            break;
+    }
+    return copied_move;
 }
 
 }

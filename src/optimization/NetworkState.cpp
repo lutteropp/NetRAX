@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "NetworkState.hpp"
 #include "../graph/NetworkTopology.hpp"
 #include "../likelihood/LikelihoodComputation.hpp"
@@ -78,6 +80,28 @@ void extract_displayed_trees_data(AnnotatedNetwork& ann_network, NetworkState& s
     }
 }
 
+bool neighborsSame(const Network& n1, const Network& n2) {
+    bool same = true;
+    for (size_t i = 0; i < n1.num_nodes(); ++i) {
+        std::vector<Node*> n1_neighbors = getNeighbors(n1, n1.nodes_by_index[i]);
+        std::vector<size_t> n1_neigh_indices(n1_neighbors.size());
+        for (size_t j = 0; j < n1_neighbors.size(); ++j) {
+            n1_neigh_indices[j] = n1_neighbors[j]->clv_index;
+        }
+        std::sort(n1_neigh_indices.begin(), n1_neigh_indices.end());
+
+        std::vector<Node*> n2_neighbors = getNeighbors(n2, n2.nodes_by_index[i]);
+        std::vector<size_t> n2_neigh_indices(n2_neighbors.size());
+        for (size_t j = 0; j < n2_neighbors.size(); ++j) {
+            n2_neigh_indices[j] = n2_neighbors[j]->clv_index;
+        }
+        std::sort(n2_neigh_indices.begin(), n2_neigh_indices.end());
+
+        same &= (n1_neigh_indices == n2_neigh_indices);
+    }
+    return same;
+}
+
 void extract_network_state(AnnotatedNetwork &ann_network, NetworkState& state_to_reuse, bool extract_network) {
     assert(assert_tip_links(ann_network.network));
     assert(assert_links_in_range(ann_network.network));
@@ -122,6 +146,10 @@ void extract_network_state(AnnotatedNetwork &ann_network, NetworkState& state_to
 
     state_to_reuse.cached_logl = ann_network.cached_logl;
     state_to_reuse.cached_logl_valid = ann_network.cached_logl_valid;
+
+    if (extract_network) {
+        assert(neighborsSame(ann_network.network, state_to_reuse.network));
+    }
 }
 
 NetworkState extract_network_state(AnnotatedNetwork &ann_network, bool extract_network) {
@@ -220,6 +248,10 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
 
     //assert_branch_lengths(ann_network);
     //assert_rates(ann_network);
+
+    if (copy_network) {
+        assert(neighborsSame(ann_network.network, state.network));
+    }
 }
 
 bool reticulation_probs_equal(const NetworkState& old_state, const NetworkState& act_state) {

@@ -65,6 +65,17 @@ public:
 
     unsigned int timeout = 0; // maximum number of seconds to run the network search, value of zero will be ignored
 
+    bool use_extreme_greedy = false;
+    bool no_prefiltering = false;
+    bool use_rspr_moves = false;
+    bool use_rspr1_moves = false;
+    bool full_arc_insertion = false;
+    bool classic_moves = false;
+    unsigned int scrambling = 0;
+    unsigned int scrambling_radius = 1;
+
+    bool sim_anneal = false;
+    double start_temperature = 100;
 
     int brlen_linkage = PLLMOD_COMMON_BRLEN_LINKED;
     int brlen_opt_method = PLLMOD_OPT_BLO_NEWTON_FAST;
@@ -73,7 +84,6 @@ public:
     double brprob_min = 0.0;
     double brprob_max = 1.0;
     double lh_epsilon = DEF_LH_EPSILON;
-    double score_epsilon = 0.0001;
     double tolerance = DEF_LH_EPSILON; //RAXML_BRLEN_TOLERANCE;
     double brlen_smoothings = RAXML_BRLEN_SMOOTHINGS;
 

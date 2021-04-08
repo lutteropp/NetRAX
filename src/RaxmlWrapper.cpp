@@ -128,6 +128,7 @@ RaxmlInstance createRaxmlInstance(NetraxOptions &options) {
     instance.opts.brlen_linkage = options.brlen_linkage;
     instance.opts.brlen_opt_method = options.brlen_opt_method;
     instance.opts.lh_epsilon = options.lh_epsilon;
+    instance.opts.random_seed = options.seed;
     init_part_info(instance);
     load_parted_msa(instance);
     // ensure linked brlens for unpartitioned MSA
@@ -670,7 +671,7 @@ double RaxmlWrapper::network_opt_brlen_wrapper(pllmod_treeinfo_t *fake_treeinfo,
         double max_brlen, double lh_epsilon, int max_iters, int opt_method, int radius) {
     AnnotatedNetwork *ann_network =
             ((NetworkParams*) (fake_treeinfo->likelihood_computation_params))->ann_network;
-    return optimize_branches(*ann_network, max_iters, radius);
+    return optimize_branches(*ann_network, max_iters, max_iters, radius);
 
 }
 double RaxmlWrapper::network_spr_round_wrapper(pllmod_treeinfo_t *treeinfo, unsigned int radius_min,
@@ -706,11 +707,11 @@ void RaxmlWrapper::enableRaxmlDebugOutput() {
     logger().add_log_stream(&cout);
 }
 
-Tree RaxmlWrapper::generateRandomTree() const {
-    return generate_tree(instance, StartingTree::random);
+Tree RaxmlWrapper::generateRandomTree(double seed) const {
+    return generate_tree(instance, StartingTree::random, seed);
 }
-Tree RaxmlWrapper::generateParsimonyTree() const {
-    return generate_tree(instance, StartingTree::parsimony);
+Tree RaxmlWrapper::generateParsimonyTree(double seed) const {
+    return generate_tree(instance, StartingTree::parsimony, seed);
 }
 Tree RaxmlWrapper::bestRaxmlTree() const {
     throw std::runtime_error("Not implemented yet");
