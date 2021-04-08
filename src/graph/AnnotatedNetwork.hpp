@@ -146,6 +146,8 @@ struct AnnotatedNetwork {
             destroy_network_treeinfo(fake_treeinfo);
         }
     }
+
+    AnnotatedNetwork(const AnnotatedNetwork& orig_network);
 };
 
 AnnotatedNetwork build_annotated_network(NetraxOptions &options);
@@ -161,7 +163,5 @@ AnnotatedNetwork build_best_raxml_annotated_network(NetraxOptions &options);
 void add_extra_reticulations(AnnotatedNetwork &ann_network, unsigned int targetCount);
 void init_annotated_network(AnnotatedNetwork &ann_network, std::mt19937& rng);
 void init_annotated_network(AnnotatedNetwork &ann_network);
-
-AnnotatedNetwork clone_ann_network(const AnnotatedNetwork& ann_network_orig);
 
 }

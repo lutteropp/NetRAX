@@ -206,11 +206,9 @@ AnnotatedNetwork build_best_raxml_annotated_network(NetraxOptions &options) {
     return ann_network;
 }
 
-AnnotatedNetwork clone_ann_network(const AnnotatedNetwork& ann_network_orig) {
-    AnnotatedNetwork ann_network(ann_network_orig.options);
-    ann_network.network = ann_network_orig.network;
-    init_annotated_network(ann_network);
-    return ann_network;
+AnnotatedNetwork::AnnotatedNetwork(const AnnotatedNetwork& orig_network) : options{orig_network.options} {
+    network = orig_network.network;
+    init_annotated_network(*this);
 }
 
 }
