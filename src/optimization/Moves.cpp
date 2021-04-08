@@ -125,10 +125,6 @@ bool checkSanity(AnnotatedNetwork& ann_network, RSPRMove& move) {
     good &= (hasNeighbor(ann_network.network.nodes_by_index[move.z_clv_index], ann_network.network.nodes_by_index[move.y_clv_index]));
     good &= (hasNeighbor(ann_network.network.nodes_by_index[move.x_prime_clv_index], ann_network.network.nodes_by_index[move.y_prime_clv_index]));
 
-    good &= (!hasNeighbor(ann_network.network.nodes_by_index[move.x_prime_clv_index], ann_network.network.nodes_by_index[move.z_clv_index]));
-    good &= (!hasNeighbor(ann_network.network.nodes_by_index[move.z_clv_index], ann_network.network.nodes_by_index[move.y_prime_clv_index]));
-    good &= (!hasNeighbor(ann_network.network.nodes_by_index[move.x_clv_index], ann_network.network.nodes_by_index[move.y_clv_index]));
-
     return good;
 }
 
