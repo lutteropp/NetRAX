@@ -240,10 +240,10 @@ void prefilterCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T>& can
             continue;
         }
         AnnotatedNetwork& ann_network = ann_network_thread[omp_get_thread_num()];
+        apply_network_state(ann_network, oldState);
         T move(candidates[i]);
         bool recompute_from_scratch = needsRecompute(ann_network, move);
 
-        apply_network_state(ann_network, oldState);
         assert(checkSanity(ann_network, move));
 
         performMove(ann_network, move);
@@ -360,10 +360,10 @@ bool rankCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T> candidate
             continue;
         }
         AnnotatedNetwork& ann_network = ann_network_thread[omp_get_thread_num()];
+        apply_network_state(ann_network, oldState);
         T move(candidates[i]);
         bool recompute_from_scratch = needsRecompute(ann_network, move);
 
-        apply_network_state(ann_network, oldState);
         assert(checkSanity(ann_network, move));
 
         performMove(ann_network, move);
