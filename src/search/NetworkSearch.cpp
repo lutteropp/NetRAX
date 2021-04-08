@@ -234,7 +234,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T>& can
 
     bool stop = false;
 
-    #pragma omp parallel for
+    #pragma omp parallel for schedule(dynamic)
     for (size_t i = 0; i < candidates.size(); ++i) {
         if (stop) {
             continue;
@@ -354,7 +354,7 @@ bool rankCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T> candidate
 
     bool stop = false;
 
-    #pragma omp parallel for
+    #pragma omp parallel for schedule(dynamic)
     for (size_t i = 0; i < candidates.size(); ++i) {
         if (stop) {
             continue;
