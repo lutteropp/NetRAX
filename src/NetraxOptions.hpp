@@ -70,7 +70,7 @@ public:
     bool use_rspr_moves = false;
     bool use_rspr1_moves = false;
     bool full_arc_insertion = false;
-    bool classic_moves = false;
+    bool less_moves = false;
     unsigned int scrambling = 0;
     unsigned int scrambling_radius = 1;
 
