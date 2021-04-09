@@ -61,7 +61,7 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     app.add_flag("--use_rspr_moves", options->use_rspr_moves, "Also use rSPR moves (super slow).");
     app.add_flag("--full_arc_insertion", options->full_arc_insertion, "Use full ArcInsertion moves instead of only DeltaPlus moves (slow).");
     app.add_flag("--less_moves", options->less_moves, "Use less move types (faster, but dangerous).");
-    app.add_option("--scrambling", options->scrambling, "Number of scrambling retries for escaping out of local maxima (default: 3).");
+    app.add_option("--scrambling", options->scrambling, "Number of scrambling retries for escaping out of local maxima (default: 5).");
     app.add_option("--scrambling_radius", options->scrambling_radius, "Number of random moves to apply when scrambling a network (default: 2).");
 
     app.add_flag("--sim_anneal", options->sim_anneal, "Use simulated annealing instead of hill climbing during network topology search.");
