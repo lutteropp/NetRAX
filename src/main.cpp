@@ -96,9 +96,9 @@ std::vector<MoveType> getTypesBySpeed(const NetraxOptions& options) {
     std::vector<MoveType> typesBySpeed;
     if (!options.less_moves) {
         if (options.full_arc_insertion) {
-            typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::HeadMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
+            typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::TailMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
         } else {
-            typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::HeadMove, MoveType::DeltaPlusMove};
+            typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::TailMove, MoveType::DeltaPlusMove};
         }
     } else {
         if (options.use_rspr1_moves) {
