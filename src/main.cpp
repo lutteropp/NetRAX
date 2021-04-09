@@ -92,6 +92,45 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     return 0;
 }
 
+std::vector<MoveType> getTypesBySpeed(const NetraxOptions& options) {
+    std::vector<MoveType> typesBySpeed;
+    if (!options.less_moves) {
+        if (options.full_arc_insertion) {
+            typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::HeadMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
+        } else {
+            typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::HeadMove, MoveType::DeltaPlusMove};
+        }
+    } else {
+        if (options.use_rspr1_moves) {
+            if (options.full_arc_insertion) {
+                typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
+            } else {
+                typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::DeltaPlusMove};
+            }
+        } else {
+            if (options.full_arc_insertion) {
+                typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
+            } else {
+                typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::DeltaPlusMove};
+            }
+        }
+        if (options.use_rspr_moves) {
+            if (options.full_arc_insertion) {
+                typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPRMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
+            } else {
+                typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPRMove, MoveType::DeltaPlusMove};
+            }
+        } else {
+            if (options.full_arc_insertion) {
+                typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
+            } else {
+                typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::DeltaPlusMove};
+            }
+        }
+    }
+    return typesBySpeed;
+}
+
 void pretty_print(NetraxOptions &netraxOptions)
 {
     if (netraxOptions.start_network_file.empty())
@@ -434,12 +473,14 @@ int main(int argc, char **argv)
 
     if (!netraxOptions.start_network_file.empty())
     {
-        run_single_start_waves(netraxOptions, rng);
+        std::vector<MoveType> typesBySpeed = getTypesBySpeed(netraxOptions);
+        run_single_start_waves(netraxOptions, typesBySpeed, rng);
         mpfr_free_cache();
     }
     else
     {
-        run_random(netraxOptions, rng);
+        std::vector<MoveType> typesBySpeed = getTypesBySpeed(netraxOptions);
+        run_random(netraxOptions, typesBySpeed, rng);
         mpfr_free_cache();
     }
 
