@@ -56,7 +56,7 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     app.add_flag("--average_displayed_tree_variant", average_displayed_tree_variant, "Use weighted average instead of only best displayed tree in network likelihood formula.");
     app.add_flag("--best_displayed_tree_variant", best_displayed_tree_variant, "Use best displayed tree instead of weighted average in network likelihood formula.");
     app.add_option("--no_prefiltering", options->no_prefiltering, "Disable prefiltering of highly-promising move candidates.");
-    app.add_flag("--extreme_greedy", options->use_extreme_greedy, "Use extreme greedy for fast results with worse inference quality.");
+    app.add_flag("--extreme_greedy", options->use_extreme_greedy, "Use extreme greedy for (maybe faster) results with worse inference quality.");
     app.add_flag("--use_rspr1_moves", options->use_rspr1_moves, "Also use rSPR1 moves (slow).");
     app.add_flag("--use_rspr_moves", options->use_rspr_moves, "Also use rSPR moves (super slow).");
     app.add_flag("--full_arc_insertion", options->full_arc_insertion, "Use full ArcInsertion moves instead of only DeltaPlus moves (slow).");
