@@ -930,6 +930,18 @@ std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network, const Ed
     return res;
 }
 
+bool isomorphicMoves(const RNNIMove& move1, const RNNIMove& move2) {
+    size_t u1 = move1.u_clv_index;
+    size_t v1 = move1.v_clv_index;
+    size_t s1 = move1.s_clv_index;
+    size_t t1 = move1.t_clv_index;
+    size_t u2 = move2.u_clv_index;
+    size_t v2 = move2.v_clv_index;
+    size_t s2 = move2.s_clv_index;
+    size_t t2 = move2.t_clv_index;
+    return (std::min(u1,v1) == std::min(u2,v2) && std::max(u1,v1) == std::max(u2,v2)) || (std::min(u1,v1) == std::min(s2,t2) && std::max(u1,v1) == std::max(s2,t2));
+}
+
 std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network) {
     std::vector<RNNIMove> res;
     Network &network = ann_network.network;
@@ -937,6 +949,24 @@ std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network) {
         std::vector<RNNIMove> branch_moves = possibleRNNIMoves(ann_network, network.edges_by_index[i]);
         res.insert(std::end(res), std::begin(branch_moves), std::end(branch_moves));
     }
+
+    // filter out duplicates
+    size_t cnt = 0;
+    for (size_t i = 0; i < res.size(); ++i) {
+        bool keep = true;
+        for (size_t j = 0; j < i; ++j) {
+            if (isomorphicMoves(res[i], res[j])) {
+                keep = false;
+                break;
+            }
+        }
+        if (keep) {
+            res[cnt] = res[i];
+            cnt++;
+        }
+    }
+    res.resize(cnt);
+
     assert(checkSanity(ann_network, res));
     return res;
 }
