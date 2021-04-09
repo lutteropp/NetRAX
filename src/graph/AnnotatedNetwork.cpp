@@ -20,7 +20,6 @@
 #include "../optimization/BranchLengthOptimization.hpp"
 #include "../optimization/ReticulationOptimization.hpp"
 #include "../optimization/ModelOptimization.hpp"
-#include "../optimization/TopologyOptimization.hpp"
 #include "../DebugPrintFunctions.hpp"
 #include "../utils.hpp"
 

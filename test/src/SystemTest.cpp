@@ -10,7 +10,6 @@
 #include "src/RaxmlWrapper.hpp"
 #include "src/graph/Network.hpp"
 #include "src/optimization/Moves.hpp"
-#include "src/optimization/TopologyOptimization.hpp"
 
 #include <gtest/gtest.h>
 #include <string>
@@ -145,23 +144,6 @@ void problemTest(const std::string &newick) {
     completeRun(ann_network);
 }
 
-void problemTestOptTopology(const std::string &newick, MoveType type) {
-    // initial setup
-    std::string smallPath = DATA_PATH + "small.nw";
-    std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
-    NetraxOptions smallOptions;
-    smallOptions.start_network_file = smallPath;
-    smallOptions.msa_file = msaPath;
-    smallOptions.use_repeats = true;
-    RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
-    AnnotatedNetwork ann_network = build_annotated_network_from_string(smallOptions, newick);
-    init_annotated_network(ann_network);
-
-    NetworkState start_state_to_reuse = extract_network_state(ann_network, false);
-    NetworkState best_state_to_reuse = extract_network_state(ann_network, false);
-    greedyHillClimbingTopology(ann_network, type, start_state_to_reuse, best_state_to_reuse);
-}
-
 TEST (SystemTest, problemFillSkippedNodesRecursive) {
     problemTest(
             "((C:0.05)#0:0.05::0.5,((B:0.05,#0:1::0.5):0.025)#1:0.025::0.5,(A:0.1,(D:0.05,#1:1::0.5):0.05):0.1);");
@@ -232,21 +214,9 @@ TEST (SystemTest, problem12) {
     problemTest("(C:0.1,(B:0.05,(A:0.05)#0:1::0.5):0.05,(#0:0.05::0.5,D:0.1):0.1);");
 }
 
-TEST (SystemTest, problem13) {
-    problemTestOptTopology("((A:1.27388e-06,D:0.331337):3.97574,C:1.91969,B:1.48272e-06);",
-            MoveType::ArcInsertionMove);
-    //problemTest("((C:0.05)#1:0.05::0.5,(B:0.05,#1:1::0.5):0.05,(((A:0.05)#0:0.025::0.5,(D:0.025)#2:1::0.5):0.025,(#2:0.025::0.5,#0:1::0.5):0.05):0.1);");
-}
-
 TEST (SystemTest, problem14) {
     problemTest(
             "(C:0.1,((B:0.1,((D:0.05)#0:0.025::0.5,((A:0.025)#1:0.5::0.5,(#0:0.5::0.5)#3:1::0.5):0.5):0.025):0.05)#2:0.05::0.5,((#1:0.0125::0.5,#2:1::0.5):0.0125,#3:0.5::0.5):0.05);");
-}
-
-TEST (SystemTest, problem15) {
-    problemTestOptTopology(
-            "(((D:1.9915e-14,(A:1.48223e-06)#1:1.48223e-06::0.5):1.9915e-14,#1:41.997::0.5):83.6231,(B:9.54015e-13,(C:1.48223e-06)#0:1.48223e-06::0.5):9.54015e-13,#0:209.632::0.5);",
-            MoveType::ArcRemovalMove);
 }
 
 TEST (SystemTest, problem16) {
@@ -272,10 +242,4 @@ TEST (SystemTest, problem19) {
 TEST (SystemTest, problem20) {
     problemTest(
             "((((((((C:0.025,((((A:0.025)#3:0.0125::0.5)#5:0.0125::0.5)#2:0.5::0.5)#4:0.5::0.5):0.0125,#3:1::0.5):0.00625,#4:1::0.5):0.00625)#0:0.025::0.5)#1:0.025::0.5,(D:0.05,#5:1::0.5):0.05):0.05,#1:1::0.5):0.05,(B:0.05,#0:1::0.5):0.05,#2:0.05::0.5);");
-}
-
-TEST (SystemTest, problem21) {
-    problemTestOptTopology(
-            "(((((((((((C:0.00625)#3:0.003125::0.5)#6:0.003125::0.5,(A:0.05)#2:1::0.5):0.003125)#9:0.003125::0.5)#5:0.00625::0.5)#1:0.00625::0.5)#4:0.00625::0.5,#3:1::0.5):0.00625,(#6:0.5::0.5,#9:1::0.5):0.5):0.00625)#0:0.05::0.5,B:0.1,(#2:0.05::0.5,((((D:0.025,((#5:0.5::0.5)#7:0.25::0.5)#8:1::0.5):0.025,((#0:0.5::0.5,#8:0.25::0.5):0.25,#7:1::0.5):0.25):0.025,#1:1::0.5):0.0125,#4:1::0.5):0.0125):0.1);",
-            MoveType::ArcRemovalMove);
 }

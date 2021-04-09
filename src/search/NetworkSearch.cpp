@@ -11,7 +11,6 @@
 #include "../graph/AnnotatedNetwork.hpp"
 #include "../io/NetworkIO.hpp"
 #include "../DebugPrintFunctions.hpp"
-#include "../optimization/TopologyOptimization.hpp"
 #include "../optimization/ModelOptimization.hpp"
 #include "../optimization/ReticulationOptimization.hpp"
 #include "../optimization/BranchLengthOptimization.hpp"

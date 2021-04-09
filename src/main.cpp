@@ -9,7 +9,6 @@
 #include "NetraxOptions.hpp"
 #include "io/NetworkIO.hpp"
 #include "DebugPrintFunctions.hpp"
-#include "optimization/TopologyOptimization.hpp"
 #include "likelihood/LikelihoodComputation.hpp"
 #include "optimization/ModelOptimization.hpp"
 #include "search/NetworkSearch.hpp"
