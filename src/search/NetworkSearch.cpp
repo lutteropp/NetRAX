@@ -623,7 +623,6 @@ double optimizeEverythingRun(AnnotatedNetwork& ann_network, const std::vector<Mo
             break;
         }
         double old_score = scoreNetwork(ann_network);
-        //optimizeTopology(ann_network, typesBySpeed[type_idx], start_state_to_reuse, best_state_to_reuse, greedy, false, false, 1);
 
         if (ann_network.options.sim_anneal && !isComplexityChangingMove(typesBySpeed[type_idx])) {
             simanneal(ann_network, ann_network.options.start_temperature, typesBySpeed[type_idx], start_state_to_reuse, best_state_to_reuse, bestNetworkData, ann_network_thread);
@@ -744,9 +743,6 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
     double best_score = std::numeric_limits<double>::infinity();
     ScoreImprovementResult score_improvement;
 
-    //std::vector<MoveType> typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::HeadMove, MoveType::ArcInsertionMove};
-    //std::vector<MoveType> typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::HeadMove, MoveType::DeltaPlusMove};
-
     //std::cout << "Initial network is:\n" << toExtendedNewick(ann_network) << "\n\n";
 
     optimizeAllNonTopology(ann_network, true);
@@ -787,8 +783,8 @@ void run_single_start_waves(NetraxOptions& netraxOptions, const std::vector<Move
     wavesearch(ann_network, &bestNetworkData, typesBySpeed, ann_network_thread);
 
     std::cout << "Statistics on which moves were taken:\n";
-    for (const auto& entry : ann_network.stats.moves_taken) {
-        std::cout << toString(entry.first) << ": " << entry.second << "\n";
+    for (const MoveType& type : typesBySpeed) {
+        std::cout << toString(type) << ": " << ann_network.stats.moves_taken[type] << "\n";
     }
     std::cout << "Best inferred network has " << bestNetworkData.best_n_reticulations << " reticulations, logl = " << bestNetworkData.logl[bestNetworkData.best_n_reticulations] << ", bic = " << bestNetworkData.bic[bestNetworkData.best_n_reticulations] << "\n";
     std::cout << "Best inferred network is: \n";
@@ -883,8 +879,8 @@ void run_random(NetraxOptions& netraxOptions, const std::vector<MoveType>& types
     }
 
     std::cout << "\nAggregated statistics on which moves were taken:\n";
-    for (const auto& entry : totalStats.moves_taken) {
-        std::cout << toString(entry.first) << ": " << entry.second << "\n";
+    for (const MoveType& type : typesBySpeed) {
+        std::cout << toString(type) << ": " << totalStats.moves_taken[type] << "\n";
     }
     std::cout << "\n";
 
