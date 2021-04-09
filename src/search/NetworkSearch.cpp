@@ -561,7 +561,7 @@ double simanneal(AnnotatedNetwork& ann_network, double t_start, MoveType type, N
             network_changed = simanneal_step(ann_network, t, possibleTailMoves(ann_network, ann_network.options.classic_moves), start_state_to_reuse, seen_bics, ann_network_thread);
             break;
         case MoveType::ArcInsertionMove:
-            network_changed = simanneal_step(ann_network, t, possibleArcInsertionMoves(ann_network), start_state_to_reuse, seen_bics, ann_network_thread);
+            network_changed = simanneal_step(ann_network, t, possibleArcInsertionMoves(ann_network, true), start_state_to_reuse, seen_bics, ann_network_thread);
             break;
         case MoveType::DeltaPlusMove:
             network_changed = simanneal_step(ann_network, t, possibleDeltaPlusMoves(ann_network), start_state_to_reuse, seen_bics, ann_network_thread);
@@ -646,7 +646,7 @@ double optimizeEverythingRun(AnnotatedNetwork& ann_network, std::vector<MoveType
                 applyBestCandidate(ann_network, possibleTailMoves(ann_network, ann_network.options.classic_moves), &best_score, bestNetworkData, ann_network_thread);
                 break;
             case MoveType::ArcInsertionMove:
-                applyBestCandidate(ann_network, possibleArcInsertionMoves(ann_network), &best_score, bestNetworkData, ann_network_thread);
+                applyBestCandidate(ann_network, possibleArcInsertionMoves(ann_network, true), &best_score, bestNetworkData, ann_network_thread);
                 break;
             case MoveType::DeltaPlusMove:
                 applyBestCandidate(ann_network, possibleDeltaPlusMoves(ann_network), &best_score, bestNetworkData, ann_network_thread);
@@ -748,24 +748,35 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
     //std::vector<MoveType> typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::HeadMove, MoveType::ArcInsertionMove};
     //std::vector<MoveType> typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::HeadMove, MoveType::DeltaPlusMove};
 
-    MoveType insertionType = MoveType::DeltaPlusMove;
-    if (ann_network.options.full_arc_insertion) {
-        insertionType = MoveType::ArcInsertionMove;
-    }
-
     std::vector<MoveType> typesBySpeed;
     if (ann_network.options.classic_moves) {
-        typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::HeadMove, MoveType::ArcInsertionMove};
+        typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::HeadMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
     } else {
         if (ann_network.options.use_rspr1_moves) {
-            typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, insertionType};
+            if (ann_network.options.full_arc_insertion) {
+                typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
+            } else {
+                typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::DeltaPlusMove};
+            }
         } else {
-            typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, insertionType};
+            if (ann_network.options.full_arc_insertion) {
+                typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
+            } else {
+                typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::DeltaPlusMove};
+            }
         }
         if (ann_network.options.use_rspr_moves) {
-            typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPRMove, insertionType};
+            if (ann_network.options.full_arc_insertion) {
+                typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPRMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
+            } else {
+                typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPRMove, MoveType::DeltaPlusMove};
+            }
         } else {
-            typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, insertionType};
+            if (ann_network.options.full_arc_insertion) {
+                typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
+            } else {
+                typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::DeltaPlusMove};
+            }
         }
     }
 
