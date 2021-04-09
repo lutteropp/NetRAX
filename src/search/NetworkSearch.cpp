@@ -737,7 +737,7 @@ void scrambleNetwork(AnnotatedNetwork& ann_network, MoveType type, size_t scramb
     optimizeAllNonTopology(ann_network);
 }
 
-void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData, std::mt19937& rng, std::vector<AnnotatedNetwork>& ann_network_thread, bool silent = false) {
+void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData, std::vector<AnnotatedNetwork>& ann_network_thread, bool silent = false) {
     NetworkState start_state_to_reuse = extract_network_state(ann_network, false);
     NetworkState best_state_to_reuse = extract_network_state(ann_network, false);
     auto start_time = std::chrono::high_resolution_clock::now();
@@ -816,7 +816,7 @@ void run_single_start_waves(NetraxOptions& netraxOptions, std::mt19937& rng) {
     init_annotated_network(ann_network, rng);
     std::vector<AnnotatedNetwork> ann_network_thread(omp_get_max_threads(), AnnotatedNetwork(ann_network));
     BestNetworkData bestNetworkData(ann_network.options.max_reticulations);
-    wavesearch(ann_network, &bestNetworkData, rng, ann_network_thread);
+    wavesearch(ann_network, &bestNetworkData, ann_network_thread);
 
     std::cout << "Statistics on which moves were taken:\n";
     for (const auto& entry : ann_network.stats.moves_taken) {
@@ -868,7 +868,7 @@ void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {
             init_annotated_network(ann_network, rng);
             add_extra_reticulations(ann_network, start_reticulations);
 
-            wavesearch(ann_network, &bestNetworkData, rng, ann_network_thread);
+            wavesearch(ann_network, &bestNetworkData, ann_network_thread);
             std::cout << " Inferred " << ann_network.network.num_reticulations() << " reticulations, logl = " << computeLoglikelihood(ann_network) << ", bic = " << scoreNetwork(ann_network) << "\n";
             for (MoveType type : allTypes) {
                 totalStats.moves_taken[type] += ann_network.stats.moves_taken[type];
@@ -896,7 +896,7 @@ void run_random(NetraxOptions& netraxOptions, std::mt19937& rng) {
             netrax::AnnotatedNetwork ann_network = build_parsimony_annotated_network(netraxOptions, seed);
             init_annotated_network(ann_network, rng);
             add_extra_reticulations(ann_network, start_reticulations);
-            wavesearch(ann_network, &bestNetworkData, rng, ann_network_thread);
+            wavesearch(ann_network, &bestNetworkData, ann_network_thread);
             std::cout << " Inferred " << ann_network.network.num_reticulations() << " reticulations, logl = " << computeLoglikelihood(ann_network) << ", bic = " << scoreNetwork(ann_network) << "\n";
 
             for (MoveType type : allTypes) {
