@@ -1063,8 +1063,8 @@ PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned i
         } else { // LikelihoodVariant::BEST_DISPLAYED_TREE
             if (tree_logl * sumtables[i].tree_prob > best_tree_logl_score) {
                 best_tree_logl_score = tree_logl * sumtables[i].tree_prob;
-                best_tree_logl_prime_score = tree_logl_prime * sumtables[i].tree_prob;
-                best_tree_logl_prime_prime_score = tree_logl_prime_prime * sumtables[i].tree_prob;
+                best_tree_logl_prime_score = tree_logl_prime;
+                best_tree_logl_prime_prime_score = tree_logl_prime_prime;
             }
         }
     }
