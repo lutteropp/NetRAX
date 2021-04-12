@@ -554,10 +554,10 @@ double simanneal(AnnotatedNetwork& ann_network, double t_start, MoveType type, N
             network_changed = simanneal_step(ann_network, t, possibleRSPR1Moves(ann_network), start_state_to_reuse, seen_bics, ann_network_thread);
             break;
         case MoveType::HeadMove:
-            network_changed = simanneal_step(ann_network, t, possibleHeadMoves(ann_network, ann_network.options.less_moves), start_state_to_reuse, seen_bics, ann_network_thread);
+            network_changed = simanneal_step(ann_network, t, possibleHeadMoves(ann_network, true), start_state_to_reuse, seen_bics, ann_network_thread);
             break;
         case MoveType::TailMove:
-            network_changed = simanneal_step(ann_network, t, possibleTailMoves(ann_network, ann_network.options.less_moves), start_state_to_reuse, seen_bics, ann_network_thread);
+            network_changed = simanneal_step(ann_network, t, possibleTailMoves(ann_network, true), start_state_to_reuse, seen_bics, ann_network_thread);
             break;
         case MoveType::ArcInsertionMove:
             network_changed = simanneal_step(ann_network, t, possibleArcInsertionMoves(ann_network, true), start_state_to_reuse, seen_bics, ann_network_thread);
@@ -638,10 +638,10 @@ double optimizeEverythingRun(AnnotatedNetwork& ann_network, const std::vector<Mo
                 applyBestCandidate(ann_network, possibleRSPR1Moves(ann_network), &best_score, bestNetworkData, ann_network_thread);
                 break;
             case MoveType::HeadMove:
-                applyBestCandidate(ann_network, possibleHeadMoves(ann_network, ann_network.options.less_moves), &best_score, bestNetworkData, ann_network_thread);
+                applyBestCandidate(ann_network, possibleHeadMoves(ann_network, true), &best_score, bestNetworkData, ann_network_thread);
                 break;
             case MoveType::TailMove:
-                applyBestCandidate(ann_network, possibleTailMoves(ann_network, ann_network.options.less_moves), &best_score, bestNetworkData, ann_network_thread);
+                applyBestCandidate(ann_network, possibleTailMoves(ann_network, true), &best_score, bestNetworkData, ann_network_thread);
                 break;
             case MoveType::ArcInsertionMove:
                 applyBestCandidate(ann_network, possibleArcInsertionMoves(ann_network, true), &best_score, bestNetworkData, ann_network_thread);
