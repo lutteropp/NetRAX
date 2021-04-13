@@ -146,6 +146,7 @@ RaxmlInstance createRaxmlInstance(const NetraxOptions &options) {
 RaxmlWrapper::RaxmlWrapper(const NetraxOptions &options) :
         netraxOptions(options) {
     instance = createRaxmlInstance(options);
+    srand(options.seed);
     network_behaviour.compute_ancestral_function = [&](pllmod_treeinfo_t *treeinfo) {
         return network_ancestral_wrapper(treeinfo);
     };
