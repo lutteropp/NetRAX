@@ -121,6 +121,15 @@ void computeDisplayedTreeLoglikelihood(AnnotatedNetwork& ann_network, unsigned i
     pll_partition_t* partition = ann_network.fake_treeinfo->partitions[partition_idx];
     double tree_logl = pll_compute_root_loglikelihood(partition, displayed_tree_root->clv_index, parent_clv, parent_scaler, ann_network.fake_treeinfo->param_indices[partition_idx], nullptr);
 
+    /* sum up likelihood from all threads */
+    if (ann_network.fake_treeinfo->parallel_reduce_cb)
+    {
+        ann_network.fake_treeinfo->parallel_reduce_cb(ann_network.fake_treeinfo->parallel_context,
+                                    &tree_logl,
+                                    1,
+                                    PLLMOD_COMMON_REDUCE_SUM);
+    }
+
     //std::cout << "computed tree logl at node " << displayed_tree_root->clv_index << ": " << tree_logl << "\n";
 
     treeAtRoot.treeLoglData.tree_logl = tree_logl;
@@ -1040,6 +1049,37 @@ PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned i
                                            diagptable,
                                            prop_invar);
 
+        /* sum up values from all threads */
+        if (ann_network.fake_treeinfo->parallel_reduce_cb)
+        {
+            if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED)
+            {
+                if (!single_tree_mode) {
+                    ann_network.fake_treeinfo->parallel_reduce_cb(ann_network.fake_treeinfo->parallel_context, &tree_logl, 
+                                                ann_network.fake_treeinfo->partition_count, PLLMOD_COMMON_REDUCE_SUM);
+                }
+                ann_network.fake_treeinfo->parallel_reduce_cb(ann_network.fake_treeinfo->parallel_context, &tree_logl_prime, 
+                                            ann_network.fake_treeinfo->partition_count, PLLMOD_COMMON_REDUCE_SUM);
+                ann_network.fake_treeinfo->parallel_reduce_cb(ann_network.fake_treeinfo->parallel_context, &tree_logl_prime_prime,
+                                            ann_network.fake_treeinfo->partition_count, PLLMOD_COMMON_REDUCE_SUM);
+            }
+            else
+            {
+                if (single_tree_mode) {
+                    double d[2] = {tree_logl_prime, tree_logl_prime_prime};
+                    ann_network.fake_treeinfo->parallel_reduce_cb(ann_network.fake_treeinfo->parallel_context, d, 2, PLLMOD_COMMON_REDUCE_SUM);
+                    tree_logl_prime = d[0];
+                    tree_logl_prime_prime = d[1];
+                } else {
+                    double d[3] = {tree_logl, tree_logl_prime, tree_logl_prime_prime};
+                    ann_network.fake_treeinfo->parallel_reduce_cb(ann_network.fake_treeinfo->parallel_context, d, 3, PLLMOD_COMMON_REDUCE_SUM);
+                    tree_logl = d[0];
+                    tree_logl_prime = d[1];
+                    tree_logl_prime_prime = d[2];
+                }
+            }
+        }
+
         /*if (ann_network.network.num_reticulations() == 1) {
             std::cout << "  tree_logl: " << tree_logl << "\n";
             std::cout << "  tree_logl_prime: " << tree_logl_prime << "\n";
@@ -1315,7 +1355,14 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
                 TreeLoglData combinedTreeData;
                 combinedTreeData.reticulationChoices = combineReticulationChoices(sourceTrees[i].treeLoglData.reticulationChoices, targetTrees[j].treeLoglData.reticulationChoices);
 
-                /*if (ann_network.network.num_reticulations() == 1) {
+                /*if (ann_network.network.num_reticulations() == 1std::cout << "displayed trees after:\n";
+    for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
+        size_t n_trees = ann_network.pernode_displayed_tree_data[i][ann_network.network.root->clv_index].num_active_displayed_trees;
+        for (size_t j = 0; j < n_trees; ++j) {
+            DisplayedTreeData& tree = ann_network.pernode_displayed_tree_data[i][ann_network.network.root->clv_index].displayed_trees[j];
+            std::cout << "logl: " << tree.treeLoglData.tree_logl << ", logprob: " << tree.treeLoglData.tree_logprob << "\n";
+        }
+    ) {
                     std::cout << "Reticulation choices source tree " << i << ":\n";
                     printReticulationChoices(sourceTrees[i].treeLoglData.reticulationChoices);
                     std::cout << "Reticulation choices target tree " << j << ":\n";
@@ -1337,6 +1384,16 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
                     combinedTreeData.tree_logl = pll_compute_edge_loglikelihood(partition, source->clv_index, sourceTrees[i].clv_vector, sourceTrees[i].scale_buffer, 
                                                                 target->clv_index, targetTrees[j].clv_vector, targetTrees[j].scale_buffer, 
                                                                 pmatrix_index, ann_network.fake_treeinfo->param_indices[p], persite_logl.data());
+
+                    /* sum up likelihood from all threads */
+                    if (ann_network.fake_treeinfo->parallel_reduce_cb)
+                    {
+                        ann_network.fake_treeinfo->parallel_reduce_cb(ann_network.fake_treeinfo->parallel_context,
+                                                    &combinedTreeData.tree_logl,
+                                                    1,
+                                                    PLLMOD_COMMON_REDUCE_SUM);
+                    }
+
                     if (combinedTreeData.tree_logl == -std::numeric_limits<double>::infinity()) {
                         std::cout << exportDebugInfo(ann_network) << "\n";
                         std::cout << "i: " << i << "\n";
