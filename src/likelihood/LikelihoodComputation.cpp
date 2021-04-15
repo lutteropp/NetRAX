@@ -1217,26 +1217,40 @@ PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned i
 LoglDerivatives computeLoglikelihoodDerivatives(AnnotatedNetwork& ann_network, const std::vector<std::vector<SumtableInfo> >& sumtables, const std::vector<std::vector<TreeLoglData> >& oldTrees, unsigned int pmatrix_index, bool incremental, bool update_pmatrices) {
     //setup_pmatrices(ann_network, incremental, update_pmatrices);
     //double network_logl = 0.0;
-    double network_logl_prime = 0.0;
-    double network_logl_prime_prime = 0.0;
     assert(sumtables.size() == ann_network.fake_treeinfo->partition_count);
-    std::vector<double> partition_logls_prime(ann_network.fake_treeinfo->partition_count);
-    std::vector<double> partition_logls_prime_prime(ann_network.fake_treeinfo->partition_count);
+    std::vector<double> partition_logls_prime(ann_network.fake_treeinfo->partition_count, 0.0);
+    std::vector<double> partition_logls_prime_prime(ann_network.fake_treeinfo->partition_count, 0.0);
 
     for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        /* skip remote partitions */
+        if (!ann_network.fake_treeinfo->partitions[p]) {
+            continue;
+        }
+        
         PartitionLhData pdata = computePartitionLhData(ann_network, p, sumtables[p], oldTrees, pmatrix_index);
 
         //std::cout << " Network partition loglikelihood derivatives for partition " << p << ":\n";
         //std::cout << " partition_logl: " << pdata.logl << "\n";
         //std::cout << " partition_logl_prime: " << pdata.logl_prime << "\n";
         //std::cout << " partition_logl_prime_prime: " << pdata.logl_prime_prime << "\n";
-
         partition_logls_prime[p] = pdata.logl_prime;
         partition_logls_prime_prime[p] = pdata.logl_prime_prime;
-
         //network_logl += pdata.logl;
-        network_logl_prime += pdata.logl_prime;
-        network_logl_prime_prime += pdata.logl_prime_prime;
+    }
+
+    if (ann_network.fake_treeinfo->parallel_reduce_cb)
+    {
+        ann_network.fake_treeinfo->parallel_reduce_cb(ann_network.fake_treeinfo->parallel_context, partition_logls_prime.data(), 
+                                    ann_network.fake_treeinfo->partition_count, PLLMOD_COMMON_REDUCE_SUM);
+        ann_network.fake_treeinfo->parallel_reduce_cb(ann_network.fake_treeinfo->parallel_context, partition_logls_prime_prime.data(),
+                                    ann_network.fake_treeinfo->partition_count, PLLMOD_COMMON_REDUCE_SUM);
+    }
+
+    double network_logl_prime = 0.0;
+    double network_logl_prime_prime = 0.0;
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        network_logl_prime += partition_logls_prime[p];
+        network_logl_prime_prime += partition_logls_prime_prime[p];
     }
 
     //std::cout << "Network loglikelihood derivatives:\n";
