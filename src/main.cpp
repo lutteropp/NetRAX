@@ -3,6 +3,8 @@
 #include <random>
 #include <limits>
 
+#include <mpi.h>
+
 #include <CLI11.hpp>
 #include "likelihood/mpreal.h"
 #include "graph/AnnotatedNetwork.hpp"
@@ -376,6 +378,14 @@ void scale_reticulation_probs_only(NetraxOptions &netraxOptions, std::mt19937 &r
 
 int main(int argc, char **argv)
 {
+    int num_procs;
+    int rank;
+    MPI_Init(&argc, &argv);
+    MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    printf("%d: hello (p=%d)\n", rank, num_procs);
+
+
     std::cout << std::setprecision(10);
     //mpfr::mpreal::set_default_prec(mpfr::digits2bits(1000));
 
@@ -483,6 +493,7 @@ int main(int argc, char **argv)
         run_random(netraxOptions, typesBySpeed, rng);
         mpfr_free_cache();
     }
+    MPI_Finalize();
 
     return 0;
 }

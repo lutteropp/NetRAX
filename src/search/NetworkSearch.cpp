@@ -233,12 +233,18 @@ void prefilterCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T>& can
 
     bool stop = false;
 
+    #ifdef _NETRAX_OPENMP
     #pragma omp parallel for schedule(dynamic)
+    #endif
     for (size_t i = 0; i < candidates.size(); ++i) {
         if (stop) {
             continue;
         }
+        #ifdef _NETRAX_OPENMP
         AnnotatedNetwork& ann_network = ann_network_thread[omp_get_thread_num()];
+        #else
+        AnnotatedNetwork& ann_network = ann_network_orig;
+        #endif
         apply_network_state(ann_network, oldState);
         T move(candidates[i]);
         bool recompute_from_scratch = needsRecompute(ann_network, move);
@@ -272,7 +278,9 @@ void prefilterCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T>& can
         }
 
         if (bicScore < best_bic) {
+            #ifdef _NETRAX_OPENMP
             #pragma omp critical
+            #endif
             {
                 if (bicScore < best_bic) {
                     best_bic = bicScore;
@@ -282,7 +290,9 @@ void prefilterCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T>& can
 
         if (ann_network.options.use_extreme_greedy) {
             if (bicScore < old_bic && !stop) {
+                #ifdef _NETRAX_OPENMP
                 #pragma omp critical
+                #endif
                 {
                     if (bicScore < old_bic && !stop) {
                         candidates[0] = candidates[i];
@@ -324,7 +334,9 @@ void prefilterCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T>& can
         assert(checkSanity(ann_network_orig, candidates[i]));
     }
 
-    //apply_network_state(ann_network_orig, oldState);
+    #ifndef _NETRAX_OPENMP
+        apply_network_state(ann_network_orig, oldState);
+    #endif
 }
 
 template <typename T>
@@ -353,12 +365,18 @@ bool rankCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T> candidate
 
     bool stop = false;
 
+    #ifdef _NETRAX_OPENMP
     #pragma omp parallel for schedule(dynamic)
+    #endif
     for (size_t i = 0; i < candidates.size(); ++i) {
         if (stop) {
             continue;
         }
+        #ifdef _NETRAX_OPENMP
         AnnotatedNetwork& ann_network = ann_network_thread[omp_get_thread_num()];
+        #else
+        AnnotatedNetwork& ann_network = ann_network_orig;
+        #endif
         apply_network_state(ann_network, oldState);
         T move(candidates[i]);
         bool recompute_from_scratch = needsRecompute(ann_network, move);
@@ -379,7 +397,9 @@ bool rankCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T> candidate
         double bicScore = scoreNetwork(ann_network);
 
         if (bicScore < best_bic && !stop) {
+            #ifdef _NETRAX_OPENMP
             #pragma omp critical
+            #endif
             {
                 if (bicScore < best_bic && !stop) {
                     best_bic = bicScore;
@@ -395,7 +415,9 @@ bool rankCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T> candidate
 
         if (ann_network.options.use_extreme_greedy) {
             if (bicScore < old_bic && !stop) {
+                #ifdef _NETRAX_OPENMP
                 #pragma omp critical
+                #endif
                 {
                     if (bicScore < old_bic && !stop) {
                         candidates[0] = candidates[i];
@@ -432,7 +454,9 @@ bool rankCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T> candidate
 
     candidates.resize(newSize);
 
-    //apply_network_state(ann_network_orig, oldState);
+    #ifndef _NETRAX_OPENMP
+        apply_network_state(ann_network_orig, oldState);
+    #endif
 
     return found_better;
 }
@@ -778,7 +802,11 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
 void run_single_start_waves(NetraxOptions& netraxOptions, const std::vector<MoveType>& typesBySpeed, std::mt19937& rng) {
     netrax::AnnotatedNetwork ann_network = build_annotated_network(netraxOptions);
     init_annotated_network(ann_network, rng);
+    #ifdef USE_OPENMP
     std::vector<AnnotatedNetwork> ann_network_thread(omp_get_max_threads(), AnnotatedNetwork(ann_network));
+    #else
+    std::vector<AnnotatedNetwork> ann_network_thread;
+    #endif
     BestNetworkData bestNetworkData(ann_network.options.max_reticulations);
     wavesearch(ann_network, &bestNetworkData, typesBySpeed, ann_network_thread);
 
@@ -810,8 +838,12 @@ void run_random(NetraxOptions& netraxOptions, const std::vector<MoveType>& types
     std::uniform_int_distribution<long> dist(0, RAND_MAX);
     BestNetworkData bestNetworkData(netraxOptions.max_reticulations);
 
+    #ifdef USE_OPENMP
     netrax::AnnotatedNetwork ann_network_proto = build_random_annotated_network(netraxOptions, 42);
     std::vector<AnnotatedNetwork> ann_network_thread(omp_get_max_threads(), AnnotatedNetwork(ann_network_proto));
+    #else
+    std::vector<AnnotatedNetwork> ann_network_thread;
+    #endif
 
     Statistics totalStats;
     std::vector<MoveType> allTypes = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::TailMove, MoveType::RSPRMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove, MoveType::DeltaMinusMove, MoveType::ArcRemovalMove};
