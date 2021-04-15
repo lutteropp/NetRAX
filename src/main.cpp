@@ -69,6 +69,7 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     app.add_option("--start_temperature", options->start_temperature, "Start temperature to be used for simulated annealing (default: 100).");
 
     CLI11_PARSE(app, argc, argv);
+
     if (average_displayed_tree_variant && best_displayed_tree_variant) {
         throw std::runtime_error("Cannot specify both --average_displayed_tree_variant and --best_displayed_tree_variant at once");
     }
@@ -385,7 +386,6 @@ int main(int argc, char **argv)
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     printf("%d: hello (p=%d)\n", rank, num_procs);
 
-
     std::cout << std::setprecision(10);
     //mpfr::mpreal::set_default_prec(mpfr::digits2bits(1000));
 
@@ -396,7 +396,22 @@ int main(int argc, char **argv)
     //netrax::Network nw = netrax::readNetworkFromString("(((12:0.0381986,(((14:0.185353,(((((13:1.42035e-06)#0:1.43322e-06::0.5)#2:1.31229e-06::0.5)#3:1.4605e-06::0.5)#4:1.34252e-06::0.5)#5:0.0625::0.5):0.0926765)#1:0.0463383::0.5,#3:1::0.5):0.0463383):1.33647e-06,((((10:0.0445575,5:0.100001):1e-06,(3:0.140615,#4:1::0.5):0.140615):1e-06,#5:1::0.5):1e-06,#1:0.449939::0.5):1e-06):1e-06,11:0.0328376,(9:0.0343774,(#0:0.0935504::0.5,#2:1::0.5):0.0935504):1.33647e-06);");
     //std::cout << netrax::exportDebugInfo(nw) << "\n";
 
+    if (argc == 1) {
+        char * temp[] = {argv[0],strdup("-h")};
+        parseOptions(2, temp, &netraxOptions);
+        free(temp[1]);
+        return 0;
+    }
     parseOptions(argc, argv, &netraxOptions);
+
+    for(int i=0;i<argc;i++)
+    {
+        if(string(argv[i]) == "-h" || string(argv[i]) == "--help")
+        {
+            return 0;
+        }
+    }
+
     std::mt19937 rng;
     if (netraxOptions.seed == 0)
     {
