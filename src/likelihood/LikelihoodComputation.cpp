@@ -119,7 +119,11 @@ void computeDisplayedTreeLoglikelihood(AnnotatedNetwork& ann_network, unsigned i
     unsigned int* parent_scaler = treeWithoutDeadPath.scale_buffer;
 
     pll_partition_t* partition = ann_network.fake_treeinfo->partitions[partition_idx];
-    double tree_logl = pll_compute_root_loglikelihood(partition, displayed_tree_root->clv_index, parent_clv, parent_scaler, ann_network.fake_treeinfo->param_indices[partition_idx], nullptr);
+
+    double tree_logl = 0.0;
+    if (partition) {
+        tree_logl = pll_compute_root_loglikelihood(partition, displayed_tree_root->clv_index, parent_clv, parent_scaler, ann_network.fake_treeinfo->param_indices[partition_idx], nullptr);
+    }
 
     /* sum up likelihood from all threads */
     if (ann_network.fake_treeinfo->parallel_reduce_cb)
@@ -1346,6 +1350,10 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
     double network_logl = 0;
 
     for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        /* skip remote partitions */
+        if (!ann_network.fake_treeinfo->partitions[p]) {
+            continue;
+        }
         std::vector<TreeLoglData> combinedTrees; // TODO
 
         pll_partition_t* partition = ann_network.fake_treeinfo->partitions[p];
