@@ -535,6 +535,10 @@ bool reuseOldDisplayedTreesCheck(AnnotatedNetwork& ann_network, int incremental)
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
     bool all_clvs_valid = true;
     for (size_t i = 0; i < fake_treeinfo.partition_count; ++i) {
+        /* skip remote partitions */
+        if (!ann_network.fake_treeinfo->partitions[i]) {
+            continue;
+        }
         all_clvs_valid &= fake_treeinfo.clv_valid[i][ann_network.network.root->clv_index];
     }
     return all_clvs_valid;
@@ -625,15 +629,25 @@ double evaluateTreesPartition(AnnotatedNetwork& ann_network, size_t partition_id
 double evaluateTrees(AnnotatedNetwork &ann_network, Node* virtual_root) {
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
     mpfr::mpreal network_logl = 0.0;
+    double network_logl_double = 0.0;
 
     for (size_t partition_idx = 0; partition_idx < fake_treeinfo.partition_count; ++partition_idx) {
+        /* skip remote partitions */
+        if (!ann_network.fake_treeinfo->partitions[partition_idx]) {
+            continue;
+        }
         double partition_logl = evaluateTreesPartition(ann_network, partition_idx, ann_network.pernode_displayed_tree_data[partition_idx][virtual_root->clv_index]);
         network_logl += partition_logl;
+    }
+    network_logl_double = network_logl.toDouble();
+
+    if (ann_network.fake_treeinfo->parallel_reduce_cb) {
+        ann_network.fake_treeinfo->parallel_reduce_cb(ann_network.fake_treeinfo->parallel_context, &network_logl_double, 1, PLLMOD_COMMON_REDUCE_SUM);
     }
 
     fake_treeinfo.active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
     //std::cout << "network logl: " << network_logl.toDouble() << "\n";
-    if (network_logl.toDouble() == -std::numeric_limits<double>::infinity()) {
+    if (network_logl_double == -std::numeric_limits<double>::infinity()) {
         std::cout << exportDebugInfo(ann_network) << "\n";
         for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
             std::cout << "reticulation node " << ann_network.network.reticulation_nodes[i]->clv_index << " has first parent " << getReticulationFirstParent(ann_network.network, ann_network.network.reticulation_nodes[i])->clv_index << "\n";
@@ -646,7 +660,7 @@ double evaluateTrees(AnnotatedNetwork &ann_network, Node* virtual_root) {
         }
         throw std::runtime_error("Invalid network likelihood: negative infinity \n");
     }
-    ann_network.cached_logl = network_logl.toDouble();
+    ann_network.cached_logl = network_logl_double;
     ann_network.cached_logl_valid = true;
     return ann_network.cached_logl;
 }
@@ -1530,6 +1544,10 @@ double computeLoglikelihoodImproved(AnnotatedNetwork &ann_network, int increment
         }
         //std::cout << "reuse displayed trees\n";
         for (size_t p = 0; p < fake_treeinfo.partition_count; ++p) { // This is in here due to reticulation prob optimization
+            /* skip remote partitions */
+            if (!ann_network.fake_treeinfo->partitions[p]) {
+                continue;
+            }
             std::vector<DisplayedTreeData>& displayed_root_trees = ann_network.pernode_displayed_tree_data[p][network.root->clv_index].displayed_trees;
             size_t n_trees = ann_network.pernode_displayed_tree_data[p][network.root->clv_index].num_active_displayed_trees;
             for (size_t t = 0; t < n_trees; ++t) {
@@ -1542,6 +1560,10 @@ double computeLoglikelihoodImproved(AnnotatedNetwork &ann_network, int increment
         fake_treeinfo.active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
         setup_pmatrices(ann_network, incremental, update_pmatrices);
         for (size_t p = 0; p < fake_treeinfo.partition_count; ++p) {
+            /* skip remote partitions */
+            if (!ann_network.fake_treeinfo->partitions[p]) {
+                continue;
+            }
             processPartitionImproved(ann_network, p, incremental);
         }
     }
