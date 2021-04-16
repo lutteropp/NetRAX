@@ -34,21 +34,28 @@ struct Statistics {
 struct NodeDisplayedTreeData {
     std::vector<DisplayedTreeData> displayed_trees;
     size_t num_active_displayed_trees = 0;
-    ClvRangeInfo clvInfo;
-    ScaleBufferRangeInfo scaleBufferInfo;
+    std::vector<ClvRangeInfo> clvInfo;
+    std::vector<ScaleBufferRangeInfo> scaleBufferInfo;
 
-    void add_displayed_tree(ClvRangeInfo clvInfo, ScaleBufferRangeInfo scaleBufferInfo, size_t maxReticulations) {
+    void add_displayed_tree(pllmod_treeinfo_t* treeinfo, const std::vector<ClvRangeInfo>& clvInfo, const std::vector<ScaleBufferRangeInfo>& scaleBufferInfo, size_t maxReticulations) {
         this->clvInfo = clvInfo;
         this->scaleBufferInfo = scaleBufferInfo;
         num_active_displayed_trees++;
         if (num_active_displayed_trees > displayed_trees.size()) {
             assert(num_active_displayed_trees == displayed_trees.size() + 1);
-            displayed_trees.emplace_back(DisplayedTreeData(clvInfo, scaleBufferInfo, maxReticulations));
+            displayed_trees.emplace_back(DisplayedTreeData(treeinfo, clvInfo, scaleBufferInfo, maxReticulations));
         } else { // zero out the clv vector and scale buffer
-            assert(displayed_trees[num_active_displayed_trees-1].clv_vector);
-            memset(displayed_trees[num_active_displayed_trees-1].clv_vector, 0, clvInfo.inner_clv_num_entries * sizeof(double));
-            if (displayed_trees[num_active_displayed_trees-1].scale_buffer) {
-                memset(displayed_trees[num_active_displayed_trees-1].scale_buffer, 0, scaleBufferInfo.scaler_size * sizeof(unsigned int));
+            for (size_t p = 0; p < treeinfo->partition_count; ++p) {
+                /* skip remote partitions */
+                if (!treeinfo->partitions[p]) {
+                    continue;
+                }
+
+                assert(displayed_trees[num_active_displayed_trees-1].clv_vector[p]);
+                memset(displayed_trees[num_active_displayed_trees-1].clv_vector[p], 0, clvInfo[p].inner_clv_num_entries * sizeof(double));
+                if (displayed_trees[num_active_displayed_trees-1].scale_buffer[p]) {
+                    memset(displayed_trees[num_active_displayed_trees-1].scale_buffer[p], 0, scaleBufferInfo[p].scaler_size * sizeof(unsigned int));
+                }
             }
         }
     }
@@ -59,11 +66,15 @@ struct NodeDisplayedTreeData {
             return false;
         }
         for (size_t i = 0; i < num_active_displayed_trees; ++i) {
-            if (!clv_single_entries_equal(clvInfo, displayed_trees[i].clv_vector, rhs.displayed_trees[i].clv_vector)) {
-                return false;
+            for (size_t p = 0; p < clvInfo.size(); ++p) {
+                if (!clv_single_entries_equal(clvInfo[p], displayed_trees[i].clv_vector[p], rhs.displayed_trees[i].clv_vector[p])) {
+                    return false;
+                }
             }
-            if (!scale_buffer_single_entries_equal(scaleBufferInfo, displayed_trees[i].scale_buffer, rhs.displayed_trees[i].scale_buffer)) {
-                return false;
+            for (size_t p = 0; p < scaleBufferInfo.size(); ++p) {
+                if (!scale_buffer_single_entries_equal(scaleBufferInfo[p], displayed_trees[i].scale_buffer[p], rhs.displayed_trees[i].scale_buffer[p])) {
+                    return false;
+                }
             }
         }
         return true;
@@ -88,6 +99,11 @@ struct NodeDisplayedTreeData {
     }
 
     NodeDisplayedTreeData() = default;
+
+    NodeDisplayedTreeData(std::vector<ClvRangeInfo>& clvInfo, std::vector<ScaleBufferRangeInfo>& scaleBufferInfo) : clvInfo{clvInfo}, scaleBufferInfo{scaleBufferInfo} {
+        num_active_displayed_trees = 0;
+        displayed_trees = std::vector<DisplayedTreeData>();
+    }
 
     NodeDisplayedTreeData& operator =(NodeDisplayedTreeData&& rhs)
     {
@@ -128,7 +144,7 @@ struct AnnotatedNetwork {
 
     std::vector<double> partition_contributions;
 
-    std::vector<std::vector<NodeDisplayedTreeData> > pernode_displayed_tree_data;
+    std::vector<NodeDisplayedTreeData> pernode_displayed_tree_data;
 
     std::vector<Node*> travbuffer;
     std::mt19937 rng;
