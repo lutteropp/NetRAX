@@ -629,10 +629,10 @@ double evaluateTreesPartition(AnnotatedNetwork& ann_network, size_t partition_id
         mpfr::mpreal partition_lh = 0.0;
         for (size_t tree_idx = 0; tree_idx < n_trees; ++tree_idx) {
             TreeLoglData& tree = treeLoglData[tree_idx];
-            assert(tree.tree_partition_logl_valid[p]);
+            assert(tree.tree_logl_valid);
             assert(tree.tree_logprob_valid);
-            assert(tree.tree_partition_logl[p] != 0);
-            assert(tree.tree_partition_logl[p] != -std::numeric_limits<double>::infinity());
+            assert(tree.tree_partition_logl[partition_idx] != 0);
+            assert(tree.tree_partition_logl[partition_idx] != -std::numeric_limits<double>::infinity());
             /*if (ann_network.network.num_reticulations() == 1) {
                 std::cout << "tree " << tree_idx << " partition " << partition_idx << " logl: " << tree.tree_logl << "\n";
             }*/
@@ -653,7 +653,7 @@ double evaluateTreesPartition(AnnotatedNetwork& ann_network, size_t partition_id
             if (!tree.tree_logl_valid) {
                 throw std::runtime_error("invalid tree logl");
             }
-            assert(tree.tree_partition_logl_valid[p]);
+            assert(tree.tree_logl_valid);
             assert(tree.tree_logprob_valid);
             assert(tree.tree_partition_logl[partition_idx] != 0);
             assert(tree.tree_partition_logl[partition_idx] != -std::numeric_limits<double>::infinity());
@@ -1516,9 +1516,9 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
                         std::cout << "source: " << source->clv_index << "\n";
                         std::cout << "target: " << target->clv_index << "\n";
                     }
-                    assert(oldTree.tree_partition_logl_valid[p]);
+                    assert(oldTree.tree_logl_valid);
                     combinedTreeData.tree_partition_logl[p] = oldTree.tree_partition_logl[p];
-                    assert(combinedTreeData.tree_partition_logl != -std::numeric_limits<double>::infinity());
+                    assert(combinedTreeData.tree_partition_logl[p] != -std::numeric_limits<double>::infinity());
                     assert(oldTree.tree_logprob_valid);
                     combinedTreeData.tree_logprob = oldTree.tree_logprob;
                 }
@@ -1532,13 +1532,13 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
             if (!source_tree_seen[i]) {
                 //std::cout << "unseen source tree\n";
                 const TreeLoglData& oldTree = getMatchingOldTree(ann_network, oldTrees, sourceTrees[i].treeLoglData.reticulationChoices);
-                assert(oldTree.tree_partition_logl_valid[p]);
+                assert(oldTree.tree_logl_valid);
                 sourceTrees[i].treeLoglData.tree_partition_logl[p] = oldTree.tree_partition_logl[p];
                 assert(oldTree.tree_logprob_valid);
                 sourceTrees[i].treeLoglData.tree_logprob = oldTree.tree_logprob;
                 sourceTrees[i].treeLoglData.tree_logl_valid = true;
                 sourceTrees[i].treeLoglData.tree_logprob_valid = true;
-                assert(sourceTrees[i].treeLoglData.tree_partition_logl_valid[p]);
+                assert(sourceTrees[i].treeLoglData.tree_logl_valid);
                 assert(sourceTrees[i].treeLoglData.tree_partition_logl[p] != -std::numeric_limits<double>::infinity());
                 combinedTrees.emplace_back(sourceTrees[i].treeLoglData);
             }
@@ -1548,20 +1548,20 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
             if (!target_tree_seen[j]) {
                 //std::cout << "unseen target tree\n";
                 const TreeLoglData& oldTree = getMatchingOldTree(ann_network, oldTrees, targetTrees[j].treeLoglData.reticulationChoices);
-                assert(oldTree.tree_partition_logl_valid[p]);
+                assert(oldTree.tree_logl_valid);
                 targetTrees[j].treeLoglData.tree_partition_logl[p] = oldTree.tree_partition_logl[p];
                 assert(oldTree.tree_logprob_valid);
                 targetTrees[j].treeLoglData.tree_logprob = oldTree.tree_logprob;
                 targetTrees[j].treeLoglData.tree_logl_valid = true;
                 targetTrees[j].treeLoglData.tree_logprob_valid = true;
-                assert(targetTrees[j].treeLoglData.tree_partition_logl_valid[p]);
+                assert(targetTrees[j].treeLoglData.tree_logl_valid);
                 assert(targetTrees[j].treeLoglData.tree_partition_logl[p] != -std::numeric_limits<double>::infinity());
                 combinedTrees.emplace_back(targetTrees[j].treeLoglData);
             }
         }
 
         for (size_t c = 0; c < combinedTrees.size(); ++c) {
-            assert(combinedTrees[c].tree_partition_logl_valid[p]);
+            assert(combinedTrees[c].tree_logl_valid);
             assert(combinedTrees[c].tree_partition_logl[p] != -std::numeric_limits<double>::infinity());
         }
 
@@ -1615,7 +1615,7 @@ double computeLoglikelihoodImproved(AnnotatedNetwork &ann_network, int increment
             std::vector<DisplayedTreeData>& displayed_root_trees = ann_network.pernode_displayed_tree_data[network.root->clv_index].displayed_trees;
             size_t n_trees = ann_network.pernode_displayed_tree_data[network.root->clv_index].num_active_displayed_trees;
             for (size_t t = 0; t < n_trees; ++t) {
-                assert(displayed_root_trees[t].treeLoglData.tree_partition_logl_valid);
+                assert(displayed_root_trees[t].treeLoglData.tree_logl_valid);
                 displayed_root_trees[t].treeLoglData.tree_logprob = computeReticulationConfigLogProb(displayed_root_trees[t].treeLoglData.reticulationChoices, ann_network.reticulation_probs);
                 displayed_root_trees[t].treeLoglData.tree_logprob_valid = true;
             }
