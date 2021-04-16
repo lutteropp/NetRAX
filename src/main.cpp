@@ -3,8 +3,6 @@
 #include <random>
 #include <limits>
 
-#include <mpi.h>
-
 #include <CLI11.hpp>
 #include "likelihood/mpreal.h"
 #include "graph/AnnotatedNetwork.hpp"
