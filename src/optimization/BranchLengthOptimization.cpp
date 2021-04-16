@@ -310,6 +310,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
         }
         invalidatePmatrixIndex(ann_network, pmatrix_index);
         final_logl = computeLoglikelihood(ann_network);
+        throw std::runtime_error("This should not happen");
     }
 
     assert(final_logl >= old_logl);
