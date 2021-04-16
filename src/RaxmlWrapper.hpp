@@ -13,7 +13,6 @@
 #include "NetraxOptions.hpp"
 #include "graph/Network.hpp"
 #include "graph/AnnotatedNetwork.hpp"
-
 namespace netrax {
 
 class RaxmlWrapper {

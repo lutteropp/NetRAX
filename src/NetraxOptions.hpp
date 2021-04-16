@@ -33,6 +33,8 @@ public:
         this->use_repeats = use_repeats;
     }
 
+    size_t num_ranks = 1;
+
     LikelihoodVariant likelihood_variant = LikelihoodVariant::AVERAGE_DISPLAYED_TREES;
 
     bool optimize_brlen = true;
@@ -56,7 +58,7 @@ public:
     double scale_branches_only = 0.0;
 
     bool endless = false;
-    int seed = 0;
+    long seed = 0;
 
     unsigned int max_reticulations = 32;
 
@@ -88,6 +90,8 @@ public:
     double brlen_smoothings = RAXML_BRLEN_SMOOTHINGS;
 
     BrlenOptMethod brlenOptMethod = BrlenOptMethod::NEWTON_RAPHSON;//BrlenOptMethod::BRENT_REROOT; //BrlenOptMethod::BRENT_REROOT_SUMTABLE; //BrlenOptMethod::BRENT_REROOT;//BrlenOptMethod::NEWTON_RAPHSON_REROOT;// BrlenOptMethod::BRENT_NORMAL;
+
+    LoadBalancing load_balance_method = LoadBalancing::benoit;
 
     std::string msa_file = "";
     std::string model_file = "DNA";

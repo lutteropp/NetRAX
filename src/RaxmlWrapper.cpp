@@ -129,7 +129,23 @@ RaxmlInstance createRaxmlInstance(const NetraxOptions &options) {
     instance.opts.brlen_opt_method = options.brlen_opt_method;
     instance.opts.lh_epsilon = options.lh_epsilon;
     instance.opts.random_seed = options.seed;
-    init_part_info(instance);
+    instance.opts.load_balance_method = options.load_balance_method;
+
+    switch(instance.opts.load_balance_method)
+    {
+        case LoadBalancing::naive:
+        instance.load_balancer.reset(new SimpleLoadBalancer());
+        break;
+        case LoadBalancing::kassian:
+        instance.load_balancer.reset(new KassianLoadBalancer());
+        break;
+        case LoadBalancing::benoit:
+        instance.load_balancer.reset(new BenoitLoadBalancer());
+        break;
+        default:
+        assert(0);
+    }
+
     load_parted_msa(instance);
     // ensure linked brlens for unpartitioned MSA
     if (instance.parted_msa->part_count() == 1) {
@@ -138,8 +154,48 @@ RaxmlInstance createRaxmlInstance(const NetraxOptions &options) {
         }
         instance.opts.brlen_linkage = PLLMOD_COMMON_BRLEN_LINKED;
     }
+    auto& parted_msa = *instance.parted_msa;
+    //autotune_threads(instance);
     check_options(instance);
+
+    //ParallelContext::init_pthreads(instance.opts, std::bind(thread_main,
+    //                                             std::ref(instance),
+    //                                             std::ref(cm)));
+
+    /* init workers */
+    assert(instance.opts.num_workers > 0);
+    for (size_t i = 0; i < ParallelContext::num_local_groups(); ++i)
+    {
+        const auto& grp = ParallelContext::thread_group(i);
+        instance.workers.emplace_back(instance, grp.group_id);
+    }
+
+    init_parallel_buffers(instance);
+
     balance_load(instance);
+
+    /* lazy-load part of the alignment assigned to the current MPI rank */
+    if (instance.opts.msa_format == FileFormat::binary && instance.opts.use_rba_partload)
+    {
+        // doesn't work with coarse-grained parallelization!
+        assert(ParallelContext::num_groups() == 1);
+
+        // collect PartitionAssignments from all worker threads
+        PartitionAssignment local_part_ranges;
+        for (size_t i = 0; i < instance.opts.num_threads; ++i)
+        {
+        auto thread_ranges = instance.proc_part_assign.at(ParallelContext::local_proc_id() + i);
+        for (auto& r: thread_ranges)
+        {
+            local_part_ranges.assign_sites(r.part_id, r.start, r.length);
+        }
+        }
+
+        LOG_DEBUG << "Loading MSA segments from RBA file..." << endl;
+        RBAStream bs(instance.opts.msa_file);
+        bs >> RBAStream::RBAOutput(parted_msa, RBAStream::RBAElement::seqdata, &local_part_ranges);
+    }
+
     return instance;
 }
 
