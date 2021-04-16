@@ -128,6 +128,9 @@ struct AnnotatedNetwork {
 
     std::vector<double> partition_contributions;
 
+    std::vector<ClvRangeInfo> partition_clv_ranges;
+    std::vector<ScaleBufferRangeInfo> partition_scale_buffer_ranges;
+
     std::vector<std::vector<NodeDisplayedTreeData> > pernode_displayed_tree_data;
 
     std::vector<Node*> travbuffer;

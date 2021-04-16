@@ -200,7 +200,7 @@ ReticulationConfigSet getRestrictionsToTakeNeighbor(AnnotatedNetwork& ann_networ
     return res;
 }
 
-unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, unsigned int partition_idx, ClvRangeInfo &clvInfo, ScaleBufferRangeInfo &scaleBufferInfo, Node* node, Node* child, const ReticulationConfigSet& extraRestrictions) {
+unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, unsigned int partition_idx, Node* node, Node* child, const ReticulationConfigSet& extraRestrictions) {
     assert(node);
     assert(child);
 
@@ -222,7 +222,7 @@ unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, unsig
         if (!reticulationConfigsCompatible(childTree.treeLoglData.reticulationChoices, restrictionsSet)) {
             continue;
         }
-        displayed_trees.add_displayed_tree(clvInfo, scaleBufferInfo, ann_network.options.max_reticulations);
+        displayed_trees.add_displayed_tree(ann_network.partition_clv_ranges[partition_idx], ann_network.partition_scale_buffer_ranges[partition_idx], ann_network.options.max_reticulations);
         DisplayedTreeData& tree = displayed_trees.displayed_trees[displayed_trees.num_active_displayed_trees-1];
         double* parent_clv = tree.clv_vector;
         unsigned int* parent_scaler = tree.scale_buffer;
@@ -319,7 +319,7 @@ ReticulationConfigSet getReticulationChoicesThisOnly(AnnotatedNetwork& ann_netwo
     return res;
 }
 
-unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsigned int partition_idx, ClvRangeInfo &clvInfo, ScaleBufferRangeInfo &scaleBufferInfo, Node* node, Node* left_child, Node* right_child, const ReticulationConfigSet& extraRestrictions) {
+unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsigned int partition_idx, Node* node, Node* left_child, Node* right_child, const ReticulationConfigSet& extraRestrictions) {
     unsigned int num_trees_added = 0;
     size_t fake_clv_index = ann_network.network.nodes.size();
     
@@ -351,7 +351,7 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
                 continue;
             }
             if (reticulationConfigsCompatible(leftTree.treeLoglData.reticulationChoices, rightTree.treeLoglData.reticulationChoices)) {
-                displayed_trees.add_displayed_tree(clvInfo, scaleBufferInfo, ann_network.options.max_reticulations);
+                displayed_trees.add_displayed_tree(ann_network.partition_clv_ranges[partition_idx], ann_network.partition_scale_buffer_ranges[partition_idx], ann_network.options.max_reticulations);
                 num_trees_added++;
                 DisplayedTreeData& newDisplayedTree = displayed_trees.displayed_trees[displayed_trees.num_active_displayed_trees-1];
 
@@ -383,7 +383,7 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
         }
 
         if (!leftOnlyConfigs.configs.empty()) {
-            displayed_trees.add_displayed_tree(clvInfo, scaleBufferInfo, ann_network.options.max_reticulations);
+            displayed_trees.add_displayed_tree(ann_network.partition_clv_ranges[partition_idx], ann_network.partition_scale_buffer_ranges[partition_idx], ann_network.options.max_reticulations);
             DisplayedTreeData& tree = displayed_trees.displayed_trees[displayed_trees.num_active_displayed_trees-1];
             double* parent_clv = tree.clv_vector;
             unsigned int* parent_scaler = tree.scale_buffer;
@@ -411,7 +411,7 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
             rightOnlyConfigs = combineReticulationChoices(rightOnlyConfigs, extraRestrictions);
         }
         if (!rightOnlyConfigs.configs.empty()) {
-            displayed_trees.add_displayed_tree(clvInfo, scaleBufferInfo, ann_network.options.max_reticulations);
+            displayed_trees.add_displayed_tree(ann_network.partition_clv_ranges[partition_idx], ann_network.partition_scale_buffer_ranges[partition_idx], ann_network.options.max_reticulations);
             DisplayedTreeData& tree = displayed_trees.displayed_trees[displayed_trees.num_active_displayed_trees-1];
             double* parent_clv = tree.clv_vector;
             unsigned int* parent_scaler = tree.scale_buffer;
@@ -429,7 +429,7 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
     return num_trees_added;
 }
 
-void processNodeImproved(AnnotatedNetwork& ann_network, unsigned int partition_idx, int incremental, ClvRangeInfo &clvInfo, ScaleBufferRangeInfo &scaleBufferInfo, Node* node, std::vector<Node*>& children, const ReticulationConfigSet& extraRestrictions, bool append = false) {
+void processNodeImproved(AnnotatedNetwork& ann_network, unsigned int partition_idx, int incremental, Node* node, std::vector<Node*>& children, const ReticulationConfigSet& extraRestrictions, bool append = false) {
     if (node->clv_index < ann_network.network.num_tips()) {
         //assert(ann_network.fake_treeinfo->clv_valid[partition_idx][node->clv_index]);
         return;
@@ -461,12 +461,12 @@ void processNodeImproved(AnnotatedNetwork& ann_network, unsigned int partition_i
     }
 
     if (children.size() == 1) {
-        processNodeImprovedSingleChild(ann_network, partition_idx, clvInfo, scaleBufferInfo, node, children[0], extraRestrictions);
+        processNodeImprovedSingleChild(ann_network, partition_idx, node, children[0], extraRestrictions);
     } else {
         assert(children.size() == 2);
         Node* left_child = children[0];
         Node* right_child = children[1];
-        processNodeImprovedTwoChildren(ann_network, partition_idx, clvInfo, scaleBufferInfo, node, left_child, right_child, extraRestrictions);
+        processNodeImprovedTwoChildren(ann_network, partition_idx, node, left_child, right_child, extraRestrictions);
     }
 
     ann_network.fake_treeinfo->clv_valid[partition_idx][node->clv_index] = 1;
@@ -484,8 +484,6 @@ void processNodeImproved(AnnotatedNetwork& ann_network, unsigned int partition_i
 void processPartitionImproved(AnnotatedNetwork& ann_network, unsigned int partition_idx, int incremental) {
     //std::cout << "\nNEW PROCESS PARTITION_IMPROVED!!!\n";
     std::vector<bool> seen(ann_network.network.num_nodes(), false);
-    ClvRangeInfo clvInfo = get_clv_range(ann_network.fake_treeinfo->partitions[partition_idx]);
-    ScaleBufferRangeInfo scaleBufferInfo = get_scale_buffer_range(ann_network.fake_treeinfo->partitions[partition_idx]);
     
     for (size_t i = 0; i < ann_network.travbuffer.size(); ++i) {
         Node* actNode = ann_network.travbuffer[i];
@@ -498,7 +496,7 @@ void processPartitionImproved(AnnotatedNetwork& ann_network, unsigned int partit
             }
         }
         assert(children.size() <= 2);
-        processNodeImproved(ann_network, partition_idx, incremental, clvInfo, scaleBufferInfo, actNode, children, {});
+        processNodeImproved(ann_network, partition_idx, incremental, actNode, children, {});
     }
 
     for (size_t i = 0; i < ann_network.pernode_displayed_tree_data[partition_idx][ann_network.network.root->clv_index].num_active_displayed_trees; ++i) {
@@ -912,8 +910,6 @@ void updateCLVsVirtualRerootTrees(AnnotatedNetwork& ann_network, Node* old_virtu
     }
 
     for (size_t partition_idx = 0; partition_idx < ann_network.fake_treeinfo->partition_count; ++partition_idx) {
-        ClvRangeInfo clvInfo = get_clv_range(ann_network.fake_treeinfo->partitions[partition_idx]);
-        ScaleBufferRangeInfo scaleBufferInfo = get_scale_buffer_range(ann_network.fake_treeinfo->partitions[partition_idx]);
         for (size_t p = 0; p < paths.size(); ++p) {
             /*std::cout << "PROCESSING PATH " << p << " ON PARTITION " << partition_idx << "\n";
             printPathToVirtualRoot(paths[p]);
@@ -931,7 +927,7 @@ void updateCLVsVirtualRerootTrees(AnnotatedNetwork& ann_network, Node* old_virtu
             for (size_t i = 0; i < paths[p].path.size(); ++i) {
                 bool appendMode = ((p > 0) && (paths[p].path[i] == new_virtual_root));
                 assert((paths[p].path[i] != new_virtual_root) || ((paths[p].path[i] == new_virtual_root) && (i == paths[p].path.size() - 1)));
-                processNodeImproved(ann_network, partition_idx, 0, clvInfo, scaleBufferInfo, paths[p].path[i], paths[p].children[i], paths[p].reticulationChoices, appendMode);
+                processNodeImproved(ann_network, partition_idx, 0, paths[p].path[i], paths[p].children[i], paths[p].reticulationChoices, appendMode);
             }
         }
     }    
