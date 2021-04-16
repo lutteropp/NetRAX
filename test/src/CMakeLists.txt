@@ -12,7 +12,11 @@ set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/test/bin)
 
 add_executable        (netrax_test_module ${NETRAX_TEST_SOURCES})
 
-target_link_libraries(netrax_test_module "${PROJECT_BINARY_DIR}/../libs/raxml-ng/bin/raxml-ng.a" ${NETRAX_LIBS})
+if(USE_MPI)
+  target_link_libraries(netrax_test_module "${PROJECT_BINARY_DIR}/../libs/raxml-ng/bin/raxml-ng-mpi.a" ${NETRAX_LIBS})
+else()
+  target_link_libraries(netrax_test_module "${PROJECT_BINARY_DIR}/../libs/raxml-ng/bin/raxml-ng.a" ${NETRAX_LIBS})
+endif()
 
 target_link_libraries (netrax_test_module gtest_main -pthread)
 
