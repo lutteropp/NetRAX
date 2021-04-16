@@ -37,22 +37,6 @@ struct NodeDisplayedTreeData {
     ClvRangeInfo clvInfo;
     ScaleBufferRangeInfo scaleBufferInfo;
 
-    void add_displayed_tree(ClvRangeInfo clvInfo, ScaleBufferRangeInfo scaleBufferInfo, size_t maxReticulations) {
-        this->clvInfo = clvInfo;
-        this->scaleBufferInfo = scaleBufferInfo;
-        num_active_displayed_trees++;
-        if (num_active_displayed_trees > displayed_trees.size()) {
-            assert(num_active_displayed_trees == displayed_trees.size() + 1);
-            displayed_trees.emplace_back(DisplayedTreeData(clvInfo, scaleBufferInfo, maxReticulations));
-        } else { // zero out the clv vector and scale buffer
-            assert(displayed_trees[num_active_displayed_trees-1].clv_vector);
-            memset(displayed_trees[num_active_displayed_trees-1].clv_vector, 0, clvInfo.inner_clv_num_entries * sizeof(double));
-            if (displayed_trees[num_active_displayed_trees-1].scale_buffer) {
-                memset(displayed_trees[num_active_displayed_trees-1].scale_buffer, 0, scaleBufferInfo.scaler_size * sizeof(unsigned int));
-            }
-        }
-    }
-
     bool operator==(const NodeDisplayedTreeData& rhs) const
     {
         if (num_active_displayed_trees != rhs.num_active_displayed_trees) {

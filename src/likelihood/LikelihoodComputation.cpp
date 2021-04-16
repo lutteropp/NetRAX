@@ -200,6 +200,22 @@ ReticulationConfigSet getRestrictionsToTakeNeighbor(AnnotatedNetwork& ann_networ
     return res;
 }
 
+void add_displayed_tree(AnnotatedNetwork& ann_network, size_t clv_index, size_t partition_idx) {
+    NodeDisplayedTreeData& data = ann_network.pernode_displayed_tree_data[partition_idx][clv_index];
+    data.num_active_displayed_trees++;
+
+    if (data.num_active_displayed_trees > data.displayed_trees.size()) {
+        assert(data.num_active_displayed_trees == data.displayed_trees.size() + 1);
+        data.displayed_trees.emplace_back(DisplayedTreeData(ann_network.partition_clv_ranges[partition_idx], ann_network.partition_scale_buffer_ranges[partition_idx], ann_network.options.max_reticulations));
+    } else { // zero out the clv vector and scale buffer
+        assert(data.displayed_trees[data.num_active_displayed_trees-1].clv_vector);
+        memset(data.displayed_trees[data.num_active_displayed_trees-1].clv_vector, 0, ann_network.partition_clv_ranges[partition_idx].inner_clv_num_entries * sizeof(double));
+        if (data.displayed_trees[data.num_active_displayed_trees-1].scale_buffer) {
+            memset(data.displayed_trees[data.num_active_displayed_trees-1].scale_buffer, 0, ann_network.partition_scale_buffer_ranges[partition_idx].scaler_size * sizeof(unsigned int));
+        }
+    }
+}
+
 unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, unsigned int partition_idx, Node* node, Node* child, const ReticulationConfigSet& extraRestrictions) {
     assert(node);
     assert(child);
@@ -222,7 +238,7 @@ unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, unsig
         if (!reticulationConfigsCompatible(childTree.treeLoglData.reticulationChoices, restrictionsSet)) {
             continue;
         }
-        displayed_trees.add_displayed_tree(ann_network.partition_clv_ranges[partition_idx], ann_network.partition_scale_buffer_ranges[partition_idx], ann_network.options.max_reticulations);
+        add_displayed_tree(ann_network, node->clv_index, partition_idx);
         DisplayedTreeData& tree = displayed_trees.displayed_trees[displayed_trees.num_active_displayed_trees-1];
         double* parent_clv = tree.clv_vector;
         unsigned int* parent_scaler = tree.scale_buffer;
@@ -351,7 +367,7 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
                 continue;
             }
             if (reticulationConfigsCompatible(leftTree.treeLoglData.reticulationChoices, rightTree.treeLoglData.reticulationChoices)) {
-                displayed_trees.add_displayed_tree(ann_network.partition_clv_ranges[partition_idx], ann_network.partition_scale_buffer_ranges[partition_idx], ann_network.options.max_reticulations);
+                add_displayed_tree(ann_network, node->clv_index, partition_idx);
                 num_trees_added++;
                 DisplayedTreeData& newDisplayedTree = displayed_trees.displayed_trees[displayed_trees.num_active_displayed_trees-1];
 
@@ -383,7 +399,7 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
         }
 
         if (!leftOnlyConfigs.configs.empty()) {
-            displayed_trees.add_displayed_tree(ann_network.partition_clv_ranges[partition_idx], ann_network.partition_scale_buffer_ranges[partition_idx], ann_network.options.max_reticulations);
+            add_displayed_tree(ann_network, node->clv_index, partition_idx);
             DisplayedTreeData& tree = displayed_trees.displayed_trees[displayed_trees.num_active_displayed_trees-1];
             double* parent_clv = tree.clv_vector;
             unsigned int* parent_scaler = tree.scale_buffer;
@@ -411,7 +427,7 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
             rightOnlyConfigs = combineReticulationChoices(rightOnlyConfigs, extraRestrictions);
         }
         if (!rightOnlyConfigs.configs.empty()) {
-            displayed_trees.add_displayed_tree(ann_network.partition_clv_ranges[partition_idx], ann_network.partition_scale_buffer_ranges[partition_idx], ann_network.options.max_reticulations);
+            add_displayed_tree(ann_network, node->clv_index, partition_idx);
             DisplayedTreeData& tree = displayed_trees.displayed_trees[displayed_trees.num_active_displayed_trees-1];
             double* parent_clv = tree.clv_vector;
             unsigned int* parent_scaler = tree.scale_buffer;
