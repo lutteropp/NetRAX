@@ -111,33 +111,35 @@ Node* findFirstNodeWithTwoActiveChildren(AnnotatedNetwork& ann_network, const Re
     return displayed_tree_root;
 }
 
-void computeDisplayedTreeLoglikelihood(AnnotatedNetwork& ann_network, unsigned int partition_idx, DisplayedTreeData& treeAtRoot, Node* actRoot) {
+void computeDisplayedTreeLoglikelihood(AnnotatedNetwork& ann_network, DisplayedTreeData& treeAtRoot, Node* actRoot) {
     Node* displayed_tree_root = findFirstNodeWithTwoActiveChildren(ann_network, treeAtRoot.treeLoglData.reticulationChoices, actRoot);
     DisplayedTreeData& treeWithoutDeadPath = findMatchingDisplayedTree(ann_network, treeAtRoot.treeLoglData.reticulationChoices, ann_network.pernode_displayed_tree_data[displayed_tree_root->clv_index]);
 
-    double* parent_clv = treeWithoutDeadPath.clv_vector[partition_idx];
-    unsigned int* parent_scaler = treeWithoutDeadPath.scale_buffer[partition_idx];
-
-    pll_partition_t* partition = ann_network.fake_treeinfo->partitions[partition_idx];
-
-    double tree_logl = 0.0;
-    if (partition) {
-        tree_logl = pll_compute_root_loglikelihood(partition, displayed_tree_root->clv_index, parent_clv, parent_scaler, ann_network.fake_treeinfo->param_indices[partition_idx], nullptr);
+    std::vector<double> tree_partition_logl(ann_network.fake_treeinfo->partition_count, 0.0);
+    for (size_t partition_idx = 0; partition_idx < ann_network.fake_treeinfo->partition_count; ++partition_idx) {
+        /* skip remote partitions */
+        if (!ann_network.fake_treeinfo->partitions[partition_idx]) {
+            continue;
+        }
+        double* parent_clv = treeWithoutDeadPath.clv_vector[partition_idx];
+        unsigned int* parent_scaler = treeWithoutDeadPath.scale_buffer[partition_idx];
+        pll_partition_t* partition = ann_network.fake_treeinfo->partitions[partition_idx];
+        tree_partition_logl[partition_idx] = pll_compute_root_loglikelihood(partition, displayed_tree_root->clv_index, parent_clv, parent_scaler, ann_network.fake_treeinfo->param_indices[partition_idx], nullptr);
     }
 
     /* sum up likelihood from all threads */
     if (ann_network.fake_treeinfo->parallel_reduce_cb)
     {
         ann_network.fake_treeinfo->parallel_reduce_cb(ann_network.fake_treeinfo->parallel_context,
-                                    &tree_logl,
-                                    1,
+                                    tree_partition_logl.data(),
+                                    ann_network.fake_treeinfo->partition_count,
                                     PLLMOD_COMMON_REDUCE_SUM);
     }
 
     //std::cout << "computed tree logl at node " << displayed_tree_root->clv_index << ": " << tree_logl << "\n";
 
-    treeAtRoot.treeLoglData.tree_logl[partition_idx] = tree_logl;
-    treeAtRoot.treeLoglData.tree_logl_valid[partition_idx] = true;
+    treeAtRoot.treeLoglData.tree_partition_logl = tree_partition_logl;
+    treeAtRoot.treeLoglData.tree_logl_valid = true;
     treeAtRoot.treeLoglData.tree_logprob = computeReticulationConfigLogProb(treeAtRoot.treeLoglData.reticulationChoices, ann_network.reticulation_probs);
     treeAtRoot.treeLoglData.tree_logprob_valid = true;
 }
@@ -213,7 +215,7 @@ ReticulationConfigSet getRestrictionsToTakeNeighbor(AnnotatedNetwork& ann_networ
     return res;
 }
 
-unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, unsigned int partition_idx, std::vector<ClvRangeInfo> &clvInfo, std::vector<ScaleBufferRangeInfo> &scaleBufferInfo, Node* node, Node* child, const ReticulationConfigSet& extraRestrictions) {
+unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, std::vector<ClvRangeInfo> &clvInfo, std::vector<ScaleBufferRangeInfo> &scaleBufferInfo, Node* node, Node* child, const ReticulationConfigSet& extraRestrictions) {
     assert(node);
     assert(child);
 
@@ -222,7 +224,6 @@ unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, unsig
     NodeDisplayedTreeData& displayed_trees = ann_network.pernode_displayed_tree_data[node->clv_index];
     NodeDisplayedTreeData& displayed_trees_child = ann_network.pernode_displayed_tree_data[child->clv_index];
     size_t fake_clv_index = ann_network.network.nodes.size();
-    pll_partition_t* partition = ann_network.fake_treeinfo->partitions[partition_idx];
 
     ReticulationConfigSet restrictionsSet = getRestrictionsToTakeNeighbor(ann_network, node, child);
 
@@ -237,16 +238,24 @@ unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, unsig
         }
         displayed_trees.add_displayed_tree(ann_network.fake_treeinfo, clvInfo, scaleBufferInfo, ann_network.options.max_reticulations);
         DisplayedTreeData& tree = displayed_trees.displayed_trees[displayed_trees.num_active_displayed_trees-1];
-        double* parent_clv = tree.clv_vector[partition_idx];
-        unsigned int* parent_scaler = tree.scale_buffer[partition_idx];
-        double* left_clv = childTree.clv_vector[partition_idx];
-        unsigned int* left_scaler = childTree.scale_buffer[partition_idx];
-        double* right_clv = partition->clv[fake_clv_index];
-        unsigned int* right_scaler = nullptr;
 
-        pll_update_partials_single(partition, &op, 1, parent_clv, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
-        tree.treeLoglData.reticulationChoices = combineReticulationChoices(childTree.treeLoglData.reticulationChoices, restrictionsSet);
-        //tree.treeLoglData.childrenTaken = {child};
+        for (size_t partition_idx = 0; partition_idx < ann_network.fake_treeinfo->partition_count; ++partition_idx) {
+            /* skip remote partitions */
+            if (!ann_network.fake_treeinfo->partitions[partition_idx]) {
+                continue;
+            }
+            pll_partition_t* partition = ann_network.fake_treeinfo->partitions[partition_idx];
+            double* parent_clv = tree.clv_vector[partition_idx];
+            unsigned int* parent_scaler = tree.scale_buffer[partition_idx];
+            double* left_clv = childTree.clv_vector[partition_idx];
+            unsigned int* left_scaler = childTree.scale_buffer[partition_idx];
+            double* right_clv = partition->clv[fake_clv_index];
+            unsigned int* right_scaler = nullptr;
+
+            pll_update_partials_single(partition, &op, 1, parent_clv, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
+            tree.treeLoglData.reticulationChoices = combineReticulationChoices(childTree.treeLoglData.reticulationChoices, restrictionsSet);
+            //tree.treeLoglData.childrenTaken = {child};
+        }
     }
     num_trees_added = displayed_trees_child.num_active_displayed_trees;
     return num_trees_added;
@@ -332,7 +341,7 @@ ReticulationConfigSet getReticulationChoicesThisOnly(AnnotatedNetwork& ann_netwo
     return res;
 }
 
-unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsigned int partition_idx, std::vector<ClvRangeInfo> &clvInfo, std::vector<ScaleBufferRangeInfo> &scaleBufferInfo, Node* node, Node* left_child, Node* right_child, const ReticulationConfigSet& extraRestrictions) {
+unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, std::vector<ClvRangeInfo> &clvInfo, std::vector<ScaleBufferRangeInfo> &scaleBufferInfo, Node* node, Node* left_child, Node* right_child, const ReticulationConfigSet& extraRestrictions) {
     unsigned int num_trees_added = 0;
     size_t fake_clv_index = ann_network.network.nodes.size();
     
@@ -340,7 +349,6 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
     NodeDisplayedTreeData& displayed_trees = ann_network.pernode_displayed_tree_data[node->clv_index];
     NodeDisplayedTreeData& displayed_trees_left_child = ann_network.pernode_displayed_tree_data[left_child->clv_index];
     NodeDisplayedTreeData& displayed_trees_right_child = ann_network.pernode_displayed_tree_data[right_child->clv_index];
-    pll_partition_t* partition = ann_network.fake_treeinfo->partitions[partition_idx];
 
     ReticulationConfigSet restrictionsBothSet = getRestrictionsToTakeNeighbor(ann_network, node, left_child);
     restrictionsBothSet = combineReticulationChoices(restrictionsBothSet, getRestrictionsToTakeNeighbor(ann_network, node, right_child));
@@ -366,18 +374,26 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
             if (reticulationConfigsCompatible(leftTree.treeLoglData.reticulationChoices, rightTree.treeLoglData.reticulationChoices)) {
                 displayed_trees.add_displayed_tree(ann_network.fake_treeinfo, clvInfo, scaleBufferInfo, ann_network.options.max_reticulations);
                 num_trees_added++;
+
                 DisplayedTreeData& newDisplayedTree = displayed_trees.displayed_trees[displayed_trees.num_active_displayed_trees-1];
 
-                double* parent_clv = newDisplayedTree.clv_vector[partition_idx];
-                unsigned int* parent_scaler = newDisplayedTree.scale_buffer[partition_idx];
-                double* left_clv = leftTree.clv_vector[partition_idx];
-                unsigned int* left_scaler = leftTree.scale_buffer[partition_idx];
-                double* right_clv = rightTree.clv_vector[partition_idx];
-                unsigned int* right_scaler = rightTree.scale_buffer[partition_idx];
-                pll_update_partials_single(partition, &op_both, 1, parent_clv, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
-                newDisplayedTree.treeLoglData.reticulationChoices = combineReticulationChoices(leftTree.treeLoglData.reticulationChoices, rightTree.treeLoglData.reticulationChoices);
-                newDisplayedTree.treeLoglData.reticulationChoices = combineReticulationChoices(newDisplayedTree.treeLoglData.reticulationChoices, restrictionsBothSet);
-                //newDisplayedTree.treeLoglData.childrenTaken = {left_child, right_child};
+                for (size_t partition_idx = 0; partition_idx < ann_network.fake_treeinfo->partition_count; ++partition_idx) {
+                    /* skip remote partitions */
+                    if (!ann_network.fake_treeinfo->partitions[partition_idx]) {
+                        continue;
+                    }
+                    pll_partition_t* partition = ann_network.fake_treeinfo->partitions[partition_idx];
+                    double* parent_clv = newDisplayedTree.clv_vector[partition_idx];
+                    unsigned int* parent_scaler = newDisplayedTree.scale_buffer[partition_idx];
+                    double* left_clv = leftTree.clv_vector[partition_idx];
+                    unsigned int* left_scaler = leftTree.scale_buffer[partition_idx];
+                    double* right_clv = rightTree.clv_vector[partition_idx];
+                    unsigned int* right_scaler = rightTree.scale_buffer[partition_idx];
+                    pll_update_partials_single(partition, &op_both, 1, parent_clv, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
+                    newDisplayedTree.treeLoglData.reticulationChoices = combineReticulationChoices(leftTree.treeLoglData.reticulationChoices, rightTree.treeLoglData.reticulationChoices);
+                    newDisplayedTree.treeLoglData.reticulationChoices = combineReticulationChoices(newDisplayedTree.treeLoglData.reticulationChoices, restrictionsBothSet);
+                    //newDisplayedTree.treeLoglData.childrenTaken = {left_child, right_child};
+                }
             }
         }
     }
@@ -398,13 +414,20 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
         if (!leftOnlyConfigs.configs.empty()) {
             displayed_trees.add_displayed_tree(ann_network.fake_treeinfo, clvInfo, scaleBufferInfo, ann_network.options.max_reticulations);
             DisplayedTreeData& tree = displayed_trees.displayed_trees[displayed_trees.num_active_displayed_trees-1];
-            double* parent_clv = tree.clv_vector[partition_idx];
-            unsigned int* parent_scaler = tree.scale_buffer[partition_idx];
-            double* left_clv = leftTree.clv_vector[partition_idx];
-            unsigned int* left_scaler = leftTree.scale_buffer[partition_idx];
-            double* right_clv = partition->clv[fake_clv_index];
-            unsigned int* right_scaler = nullptr;
-            pll_update_partials_single(partition, &op_left_only, 1, parent_clv, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
+            for (size_t partition_idx = 0; partition_idx < ann_network.fake_treeinfo->partition_count; ++partition_idx) {
+                /* skip remote partitions */
+                if (!ann_network.fake_treeinfo->partitions[partition_idx]) {
+                    continue;
+                }
+                pll_partition_t* partition = ann_network.fake_treeinfo->partitions[partition_idx];
+                double* parent_clv = tree.clv_vector[partition_idx];
+                unsigned int* parent_scaler = tree.scale_buffer[partition_idx];
+                double* left_clv = leftTree.clv_vector[partition_idx];
+                unsigned int* left_scaler = leftTree.scale_buffer[partition_idx];
+                double* right_clv = partition->clv[fake_clv_index];
+                unsigned int* right_scaler = nullptr;
+                pll_update_partials_single(partition, &op_left_only, 1, parent_clv, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
+            }
             tree.treeLoglData.reticulationChoices = leftOnlyConfigs;
             //tree.treeLoglData.childrenTaken = {left_child};
             num_trees_added++;
@@ -426,13 +449,20 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
         if (!rightOnlyConfigs.configs.empty()) {
             displayed_trees.add_displayed_tree(ann_network.fake_treeinfo, clvInfo, scaleBufferInfo, ann_network.options.max_reticulations);
             DisplayedTreeData& tree = displayed_trees.displayed_trees[displayed_trees.num_active_displayed_trees-1];
-            double* parent_clv = tree.clv_vector[partition_idx];
-            unsigned int* parent_scaler = tree.scale_buffer[partition_idx];
-            double* left_clv = rightTree.clv_vector[partition_idx];
-            unsigned int* left_scaler = rightTree.scale_buffer[partition_idx];
-            double* right_clv = partition->clv[fake_clv_index];
-            unsigned int* right_scaler = nullptr;
-            pll_update_partials_single(partition, &op_right_only, 1, parent_clv, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
+            for (size_t partition_idx = 0; partition_idx < ann_network.fake_treeinfo->partition_count; ++partition_idx) {
+                /* skip remote partitions */
+                if (!ann_network.fake_treeinfo->partitions[partition_idx]) {
+                    continue;
+                }
+                pll_partition_t* partition = ann_network.fake_treeinfo->partitions[partition_idx];
+                double* parent_clv = tree.clv_vector[partition_idx];
+                unsigned int* parent_scaler = tree.scale_buffer[partition_idx];
+                double* left_clv = rightTree.clv_vector[partition_idx];
+                unsigned int* left_scaler = rightTree.scale_buffer[partition_idx];
+                double* right_clv = partition->clv[fake_clv_index];
+                unsigned int* right_scaler = nullptr;
+                pll_update_partials_single(partition, &op_right_only, 1, parent_clv, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
+            }
             tree.treeLoglData.reticulationChoices = rightOnlyConfigs;
             //tree.treeLoglData.childrenTaken = {right_child};
             num_trees_added++;
@@ -442,13 +472,25 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, unsig
     return num_trees_added;
 }
 
-void processNodeImproved(AnnotatedNetwork& ann_network, unsigned int partition_idx, int incremental, std::vector<ClvRangeInfo> &clvInfo, std::vector<ScaleBufferRangeInfo> &scaleBufferInfo, Node* node, std::vector<Node*>& children, const ReticulationConfigSet& extraRestrictions, bool append = false) {
+bool currentClvValid(pllmod_treeinfo_t* treeinfo, unsigned int clv_index) {
+    bool valid = true;
+    for (size_t partition_idx = 0; partition_idx < treeinfo->partition_count; ++partition_idx) {
+        /* skip remote partitions */
+        if (!treeinfo->partitions[partition_idx]) {
+            continue;
+        }
+        valid &= treeinfo->clv_valid[partition_idx][clv_index];
+    }
+    return valid;
+}
+
+void processNodeImproved(AnnotatedNetwork& ann_network, int incremental, std::vector<ClvRangeInfo> &clvInfo, std::vector<ScaleBufferRangeInfo> &scaleBufferInfo, Node* node, std::vector<Node*>& children, const ReticulationConfigSet& extraRestrictions, bool append = false) {
     if (node->clv_index < ann_network.network.num_tips()) {
         //assert(ann_network.fake_treeinfo->clv_valid[partition_idx][node->clv_index]);
         return;
     }
     NodeDisplayedTreeData& displayed_trees = ann_network.pernode_displayed_tree_data[node->clv_index];
-    if (incremental && ann_network.fake_treeinfo->clv_valid[partition_idx][node->clv_index]) {
+    if (incremental && currentClvValid(ann_network.fake_treeinfo, node->clv_index)) {
         return;
     }
 
@@ -474,15 +516,21 @@ void processNodeImproved(AnnotatedNetwork& ann_network, unsigned int partition_i
     }
 
     if (children.size() == 1) {
-        processNodeImprovedSingleChild(ann_network, partition_idx, clvInfo, scaleBufferInfo, node, children[0], extraRestrictions);
+        processNodeImprovedSingleChild(ann_network, clvInfo, scaleBufferInfo, node, children[0], extraRestrictions);
     } else {
         assert(children.size() == 2);
         Node* left_child = children[0];
         Node* right_child = children[1];
-        processNodeImprovedTwoChildren(ann_network, partition_idx, clvInfo, scaleBufferInfo, node, left_child, right_child, extraRestrictions);
+        processNodeImprovedTwoChildren(ann_network, clvInfo, scaleBufferInfo, node, left_child, right_child, extraRestrictions);
     }
 
-    ann_network.fake_treeinfo->clv_valid[partition_idx][node->clv_index] = 1;
+    for (size_t partition_idx = 0; partition_idx < ann_network.fake_treeinfo->partition_count; ++partition_idx) {
+        /* skip remote partitions */
+        if (!ann_network.fake_treeinfo->partitions[partition_idx]) {
+            continue;
+        }
+        ann_network.fake_treeinfo->clv_valid[partition_idx][node->clv_index] = 1;
+    }
     /*std::cout << "Node " << node->clv_index << " has been processed, displayed trees at the node are:\n";
     for (size_t i = 0; i < displayed_trees.num_active_displayed_trees; ++i) {
         printReticulationChoices(displayed_trees.displayed_trees[i].reticulationChoices);
@@ -494,8 +542,8 @@ void processNodeImproved(AnnotatedNetwork& ann_network, unsigned int partition_i
     assert(displayed_trees.num_active_displayed_trees <= (1 << ann_network.network.num_reticulations()));
 }
 
-void processPartitionImproved(AnnotatedNetwork& ann_network, unsigned int partition_idx, int incremental) {
-    //std::cout << "\nNEW PROCESS PARTITION_IMPROVED!!!\n";
+void processImproved(AnnotatedNetwork& ann_network, int incremental) {
+    //std::cout << "\nNEW PROCESS IMPROVED!!!\n";
     std::vector<bool> seen(ann_network.network.num_nodes(), false);
     std::vector<ClvRangeInfo> clvInfo(ann_network.fake_treeinfo->partition_count);
     std::vector<ScaleBufferRangeInfo> scaleBufferInfo(ann_network.fake_treeinfo->partition_count);
@@ -520,12 +568,12 @@ void processPartitionImproved(AnnotatedNetwork& ann_network, unsigned int partit
             }
         }
         assert(children.size() <= 2);
-        processNodeImproved(ann_network, partition_idx, incremental, clvInfo, scaleBufferInfo, actNode, children, {});
+        processNodeImproved(ann_network, incremental, clvInfo, scaleBufferInfo, actNode, children, {});
     }
 
     for (size_t i = 0; i < ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].num_active_displayed_trees; ++i) {
         DisplayedTreeData& tree = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].displayed_trees[i];
-        computeDisplayedTreeLoglikelihood(ann_network, partition_idx, tree, ann_network.network.root);
+        computeDisplayedTreeLoglikelihood(ann_network, tree, ann_network.network.root);
     }
 
     /*std::cout << "\nloglikelihood for trees at each node, for partition " << partition_idx << ":\n";
@@ -581,15 +629,15 @@ double evaluateTreesPartition(AnnotatedNetwork& ann_network, size_t partition_id
         mpfr::mpreal partition_lh = 0.0;
         for (size_t tree_idx = 0; tree_idx < n_trees; ++tree_idx) {
             TreeLoglData& tree = treeLoglData[tree_idx];
-            assert(tree.tree_logl_valid[p]);
+            assert(tree.tree_partition_logl_valid[p]);
             assert(tree.tree_logprob_valid);
-            assert(tree.tree_logl[p] != 0);
-            assert(tree.tree_logl[p] != -std::numeric_limits<double>::infinity());
+            assert(tree.tree_partition_logl[p] != 0);
+            assert(tree.tree_partition_logl[p] != -std::numeric_limits<double>::infinity());
             /*if (ann_network.network.num_reticulations() == 1) {
                 std::cout << "tree " << tree_idx << " partition " << partition_idx << " logl: " << tree.tree_logl << "\n";
             }*/
             if (tree.tree_logprob != std::numeric_limits<double>::infinity()) {
-                partition_lh += mpfr::exp(tree.tree_logprob) * mpfr::exp(tree.tree_logl[partition_idx]);
+                partition_lh += mpfr::exp(tree.tree_logprob) * mpfr::exp(tree.tree_partition_logl[partition_idx]);
             }
         }
         double partition_logl = mpfr::log(partition_lh).toDouble();
@@ -602,18 +650,18 @@ double evaluateTreesPartition(AnnotatedNetwork& ann_network, size_t partition_id
         double partition_logl = -std::numeric_limits<double>::infinity();
         for (size_t tree_idx = 0; tree_idx < n_trees; ++tree_idx) {
             TreeLoglData& tree = treeLoglData[tree_idx];
-            if (!tree.tree_logl_valid[partition_idx]) {
+            if (!tree.tree_logl_valid) {
                 throw std::runtime_error("invalid tree logl");
             }
-            assert(tree.tree_logl_valid[p]);
+            assert(tree.tree_partition_logl_valid[p]);
             assert(tree.tree_logprob_valid);
-            assert(tree.tree_logl[partition_idx] != 0);
-            assert(tree.tree_logl[partition_idx] != -std::numeric_limits<double>::infinity());
+            assert(tree.tree_partition_logl[partition_idx] != 0);
+            assert(tree.tree_partition_logl[partition_idx] != -std::numeric_limits<double>::infinity());
             //std::cout << "tree " << tree_idx << " logl: " << tree.tree_logl << "\n";
             //std::cout << "tree " << tree_idx << " logprob: " << tree.tree_logprob << "\n";
             if (tree.tree_logprob != std::numeric_limits<double>::infinity()) {
                 //std::cout << "tree " << tree.tree_idx << " prob: " << mpfr::exp(tree.tree_logprob) << "\n";
-                partition_logl = std::max(partition_logl, tree.tree_logprob + tree.tree_logl[partition_idx]);
+                partition_logl = std::max(partition_logl, tree.tree_logprob + tree.tree_partition_logl[partition_idx]);
             }
         }
         ann_network.fake_treeinfo->partition_loglh[partition_idx] = partition_logl;
@@ -662,7 +710,7 @@ double evaluateTrees(AnnotatedNetwork &ann_network, Node* virtual_root) {
             std::cout << "reticulation node " << ann_network.network.reticulation_nodes[i]->clv_index << " has first parent " << getReticulationFirstParent(ann_network.network, ann_network.network.reticulation_nodes[i])->clv_index << "\n";
         }
         for (size_t i = 0; i < ann_network.network.num_nodes(); ++i) {
-            std::cout << "displayed trees stored at node " << i << ":\n";
+            std::cout << ann_network.pernode_displayed_tree_data[i].num_active_displayed_trees << " displayed trees stored at node " << i << ":\n";
             for (size_t j = 0; j < ann_network.pernode_displayed_tree_data[i].num_active_displayed_trees; ++j) {
                 printReticulationChoices(ann_network.pernode_displayed_tree_data[i].displayed_trees[j].treeLoglData.reticulationChoices);
             }
@@ -974,7 +1022,7 @@ void updateCLVsVirtualRerootTrees(AnnotatedNetwork& ann_network, Node* old_virtu
             for (size_t i = 0; i < paths[p].path.size(); ++i) {
                 bool appendMode = ((p > 0) && (paths[p].path[i] == new_virtual_root));
                 assert((paths[p].path[i] != new_virtual_root) || ((paths[p].path[i] == new_virtual_root) && (i == paths[p].path.size() - 1)));
-                processNodeImproved(ann_network, partition_idx, 0, clvInfo, scaleBufferInfo, paths[p].path[i], paths[p].children[i], paths[p].reticulationChoices, appendMode);
+                processNodeImproved(ann_network, 0, clvInfo, scaleBufferInfo, paths[p].path[i], paths[p].children[i], paths[p].reticulationChoices, appendMode);
             }
         }
     }    
@@ -1016,7 +1064,7 @@ struct PartitionLhData {
     double logl_prime_prime = 0.0;
 };
 
-PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned int partition_idx, const std::vector<SumtableInfo>& sumtables, const std::vector<std::vector<TreeLoglData> >& oldTrees, unsigned int pmatrix_index) {
+PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned int partition_idx, const std::vector<SumtableInfo>& sumtables, unsigned int pmatrix_index) {
     PartitionLhData res{0.0, 0.0};
     pll_partition_t* partition = ann_network.fake_treeinfo->partitions[partition_idx];
     Node* source = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
@@ -1248,7 +1296,7 @@ PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned i
     return res;
 }
 
-LoglDerivatives computeLoglikelihoodDerivatives(AnnotatedNetwork& ann_network, const std::vector<std::vector<SumtableInfo> >& sumtables, const std::vector<std::vector<TreeLoglData> >& oldTrees, unsigned int pmatrix_index, bool incremental, bool update_pmatrices) {
+LoglDerivatives computeLoglikelihoodDerivatives(AnnotatedNetwork& ann_network, const std::vector<std::vector<SumtableInfo> >& sumtables, unsigned int pmatrix_index, bool incremental, bool update_pmatrices) {
     //setup_pmatrices(ann_network, incremental, update_pmatrices);
     //double network_logl = 0.0;
     assert(sumtables.size() == ann_network.fake_treeinfo->partition_count);
@@ -1261,7 +1309,7 @@ LoglDerivatives computeLoglikelihoodDerivatives(AnnotatedNetwork& ann_network, c
             continue;
         }
         
-        PartitionLhData pdata = computePartitionLhData(ann_network, p, sumtables[p], oldTrees, pmatrix_index);
+        PartitionLhData pdata = computePartitionLhData(ann_network, p, sumtables[p], pmatrix_index);
 
         //std::cout << " Network partition loglikelihood derivatives for partition " << p << ":\n";
         //std::cout << " partition_logl: " << pdata.logl << "\n";
@@ -1353,7 +1401,7 @@ std::vector<std::vector<SumtableInfo> > computePartitionSumtables(AnnotatedNetwo
     return res;
 }
 
-double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::vector<std::vector<TreeLoglData> >& oldTrees, unsigned int pmatrix_index, int incremental, int update_pmatrices) {
+double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::vector<TreeLoglData>& oldTrees, unsigned int pmatrix_index, int incremental, int update_pmatrices) {
     if (ann_network.cached_logl_valid) {
         return ann_network.cached_logl;
     }
@@ -1404,7 +1452,7 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
                 source_tree_seen[i] = true;
                 target_tree_seen[j] = true;
 
-                TreeLoglData combinedTreeData(ann_network.fake_treeinfo->partition_count);
+                TreeLoglData combinedTreeData(ann_network.fake_treeinfo->partition_count, ann_network.options.max_reticulations);
                 combinedTreeData.reticulationChoices = combineReticulationChoices(sourceTrees[i].treeLoglData.reticulationChoices, targetTrees[j].treeLoglData.reticulationChoices);
 
                 /*if (ann_network.network.num_reticulations() == 1std::cout << "displayed trees after:\n";
@@ -1433,7 +1481,7 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
 
                     std::vector<double> persite_logl(ann_network.fake_treeinfo->partitions[p]->sites);
 
-                    combinedTreeData.tree_logl[p] = pll_compute_edge_loglikelihood(partition, source->clv_index, sourceTrees[i].clv_vector[p], sourceTrees[i].scale_buffer[p], 
+                    combinedTreeData.tree_partition_logl[p] = pll_compute_edge_loglikelihood(partition, source->clv_index, sourceTrees[i].clv_vector[p], sourceTrees[i].scale_buffer[p], 
                                                                 target->clv_index, targetTrees[j].clv_vector[p], targetTrees[j].scale_buffer[p], 
                                                                 pmatrix_index, ann_network.fake_treeinfo->param_indices[p], persite_logl.data());
 
@@ -1441,12 +1489,12 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
                     if (ann_network.fake_treeinfo->parallel_reduce_cb)
                     {
                         ann_network.fake_treeinfo->parallel_reduce_cb(ann_network.fake_treeinfo->parallel_context,
-                                                    &combinedTreeData.tree_logl[p],
+                                                    &combinedTreeData.tree_partition_logl[p],
                                                     1,
                                                     PLLMOD_COMMON_REDUCE_SUM);
                     }
 
-                    if (combinedTreeData.tree_logl[p] == -std::numeric_limits<double>::infinity()) {
+                    if (combinedTreeData.tree_partition_logl[p] == -std::numeric_limits<double>::infinity()) {
                         std::cout << exportDebugInfo(ann_network) << "\n";
                         std::cout << "i: " << i << "\n";
                         std::cout << "j: " << j << "\n";
@@ -1454,13 +1502,13 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
                         std::cout << "source: " << source->clv_index << "\n";
                         std::cout << "target: " << target->clv_index << "\n";
                     }
-                    assert(combinedTreeData.tree_logl[p] != -std::numeric_limits<double>::infinity());
+                    assert(combinedTreeData.tree_partition_logl[p] != -std::numeric_limits<double>::infinity());
                     combinedTreeData.tree_logprob = computeReticulationConfigLogProb(combinedTreeData.reticulationChoices, ann_network.reticulation_probs);
 
                 } else {
                     //std::cout << "inactive branch\n";
-                    const TreeLoglData& oldTree = getMatchingOldTree(ann_network, oldTrees[p], combinedTreeData.reticulationChoices);
-                    if (!oldTree.tree_logl_valid[p]) {
+                    const TreeLoglData& oldTree = getMatchingOldTree(ann_network, oldTrees, combinedTreeData.reticulationChoices);
+                    if (!oldTree.tree_logl_valid) {
                         std::cout << exportDebugInfo(ann_network) << "\n";
                         std::cout << "i: " << i << "\n";
                         std::cout << "j: " << j << "\n";
@@ -1468,13 +1516,13 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
                         std::cout << "source: " << source->clv_index << "\n";
                         std::cout << "target: " << target->clv_index << "\n";
                     }
-                    assert(oldTree.tree_logl_valid[p]);
-                    combinedTreeData.tree_logl[p] = oldTree.tree_logl[p];
-                    assert(combinedTreeData.tree_logl != -std::numeric_limits<double>::infinity());
+                    assert(oldTree.tree_partition_logl_valid[p]);
+                    combinedTreeData.tree_partition_logl[p] = oldTree.tree_partition_logl[p];
+                    assert(combinedTreeData.tree_partition_logl != -std::numeric_limits<double>::infinity());
                     assert(oldTree.tree_logprob_valid);
                     combinedTreeData.tree_logprob = oldTree.tree_logprob;
                 }
-                combinedTreeData.tree_logl_valid[p] = true;
+                combinedTreeData.tree_logl_valid = true;
                 combinedTreeData.tree_logprob_valid = true;
                 combinedTrees.emplace_back(combinedTreeData);
             }
@@ -1483,15 +1531,15 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
         for (size_t i = 0; i < n_trees_source; ++i) {
             if (!source_tree_seen[i]) {
                 //std::cout << "unseen source tree\n";
-                const TreeLoglData& oldTree = getMatchingOldTree(ann_network, oldTrees[p], sourceTrees[i].treeLoglData.reticulationChoices);
-                assert(oldTree.tree_logl_valid[p]);
-                sourceTrees[i].treeLoglData.tree_logl[p] = oldTree.tree_logl[p];
+                const TreeLoglData& oldTree = getMatchingOldTree(ann_network, oldTrees, sourceTrees[i].treeLoglData.reticulationChoices);
+                assert(oldTree.tree_partition_logl_valid[p]);
+                sourceTrees[i].treeLoglData.tree_partition_logl[p] = oldTree.tree_partition_logl[p];
                 assert(oldTree.tree_logprob_valid);
                 sourceTrees[i].treeLoglData.tree_logprob = oldTree.tree_logprob;
-                sourceTrees[i].treeLoglData.tree_logl_valid[p] = true;
+                sourceTrees[i].treeLoglData.tree_logl_valid = true;
                 sourceTrees[i].treeLoglData.tree_logprob_valid = true;
-                assert(sourceTrees[i].treeLoglData.tree_logl_valid[p]);
-                assert(sourceTrees[i].treeLoglData.tree_logl[p] != -std::numeric_limits<double>::infinity());
+                assert(sourceTrees[i].treeLoglData.tree_partition_logl_valid[p]);
+                assert(sourceTrees[i].treeLoglData.tree_partition_logl[p] != -std::numeric_limits<double>::infinity());
                 combinedTrees.emplace_back(sourceTrees[i].treeLoglData);
             }
         }
@@ -1499,22 +1547,22 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
         for (size_t j = 0; j < n_trees_target; ++j) {
             if (!target_tree_seen[j]) {
                 //std::cout << "unseen target tree\n";
-                const TreeLoglData& oldTree = getMatchingOldTree(ann_network, oldTrees[p], targetTrees[j].treeLoglData.reticulationChoices);
-                assert(oldTree.tree_logl_valid[p]);
-                targetTrees[j].treeLoglData.tree_logl[p] = oldTree.tree_logl[p];
+                const TreeLoglData& oldTree = getMatchingOldTree(ann_network, oldTrees, targetTrees[j].treeLoglData.reticulationChoices);
+                assert(oldTree.tree_partition_logl_valid[p]);
+                targetTrees[j].treeLoglData.tree_partition_logl[p] = oldTree.tree_partition_logl[p];
                 assert(oldTree.tree_logprob_valid);
                 targetTrees[j].treeLoglData.tree_logprob = oldTree.tree_logprob;
-                targetTrees[j].treeLoglData.tree_logl_valid[p] = true;
+                targetTrees[j].treeLoglData.tree_logl_valid = true;
                 targetTrees[j].treeLoglData.tree_logprob_valid = true;
-                assert(targetTrees[j].treeLoglData.tree_logl_valid[p]);
-                assert(targetTrees[j].treeLoglData.tree_logl[p] != -std::numeric_limits<double>::infinity());
+                assert(targetTrees[j].treeLoglData.tree_partition_logl_valid[p]);
+                assert(targetTrees[j].treeLoglData.tree_partition_logl[p] != -std::numeric_limits<double>::infinity());
                 combinedTrees.emplace_back(targetTrees[j].treeLoglData);
             }
         }
 
         for (size_t c = 0; c < combinedTrees.size(); ++c) {
-            assert(combinedTrees[c].tree_logl_valid[p]);
-            assert(combinedTrees[c].tree_logl[p] != -std::numeric_limits<double>::infinity());
+            assert(combinedTrees[c].tree_partition_logl_valid[p]);
+            assert(combinedTrees[c].tree_partition_logl[p] != -std::numeric_limits<double>::infinity());
         }
 
         network_logl += evaluateTreesPartition(ann_network, p, combinedTrees);
@@ -1567,7 +1615,7 @@ double computeLoglikelihoodImproved(AnnotatedNetwork &ann_network, int increment
             std::vector<DisplayedTreeData>& displayed_root_trees = ann_network.pernode_displayed_tree_data[network.root->clv_index].displayed_trees;
             size_t n_trees = ann_network.pernode_displayed_tree_data[network.root->clv_index].num_active_displayed_trees;
             for (size_t t = 0; t < n_trees; ++t) {
-                assert(displayed_root_trees[t].treeLoglData.tree_logl_valid == true);
+                assert(displayed_root_trees[t].treeLoglData.tree_partition_logl_valid);
                 displayed_root_trees[t].treeLoglData.tree_logprob = computeReticulationConfigLogProb(displayed_root_trees[t].treeLoglData.reticulationChoices, ann_network.reticulation_probs);
                 displayed_root_trees[t].treeLoglData.tree_logprob_valid = true;
             }
@@ -1575,13 +1623,7 @@ double computeLoglikelihoodImproved(AnnotatedNetwork &ann_network, int increment
     } else {
         fake_treeinfo.active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
         setup_pmatrices(ann_network, incremental, update_pmatrices);
-        for (size_t p = 0; p < fake_treeinfo.partition_count; ++p) {
-            /* skip remote partitions */
-            if (!ann_network.fake_treeinfo->partitions[p]) {
-                continue;
-            }
-            processPartitionImproved(ann_network, p, incremental);
-        }
+        processImproved(ann_network, incremental);
     }
     return evaluateTrees(ann_network, ann_network.network.root);
 }
@@ -1664,15 +1706,13 @@ double computeLoglikelihoodNaiveUtree(AnnotatedNetwork &ann_network, int increme
     return network_logl.toDouble();
 }
 
-std::vector<std::vector<TreeLoglData> > extractOldTrees(AnnotatedNetwork& ann_network, Node* virtual_root) {
-    std::vector<std::vector<TreeLoglData> > oldTrees(ann_network.fake_treeinfo->partition_count);
-    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-        NodeDisplayedTreeData& nodeTrees = ann_network.pernode_displayed_tree_data[virtual_root->clv_index];
-        for (size_t i = 0; i < nodeTrees.num_active_displayed_trees; ++i) {
-            DisplayedTreeData& tree = nodeTrees.displayed_trees[i];
-            TreeLoglData data = tree.treeLoglData;
-            oldTrees[p].emplace_back(data);
-        }
+std::vector<TreeLoglData> extractOldTrees(AnnotatedNetwork& ann_network, Node* virtual_root) {
+    std::vector<TreeLoglData> oldTrees;
+    NodeDisplayedTreeData& nodeTrees = ann_network.pernode_displayed_tree_data[virtual_root->clv_index];
+    for (size_t i = 0; i < nodeTrees.num_active_displayed_trees; ++i) {
+        DisplayedTreeData& tree = nodeTrees.displayed_trees[i];
+        TreeLoglData data = tree.treeLoglData;
+        oldTrees.emplace_back(data);
     }
     return oldTrees;
 }

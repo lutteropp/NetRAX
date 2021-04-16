@@ -74,6 +74,18 @@ void init_annotated_network(AnnotatedNetwork &ann_network, std::mt19937& rng) {
         }
     }
 
+    std::vector<ClvRangeInfo> clvInfo(ann_network.fake_treeinfo->partition_count);
+    std::vector<ScaleBufferRangeInfo> scaleBufferInfo(ann_network.fake_treeinfo->partition_count);
+
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        /* skip remote partitions */
+        if (!ann_network.fake_treeinfo->partitions[p]) {
+            continue;
+        }
+        clvInfo[p] = get_clv_range(ann_network.fake_treeinfo->partitions[p]);
+        scaleBufferInfo[p] = get_scale_buffer_range(ann_network.fake_treeinfo->partitions[p]);
+    }
+
     ann_network.pernode_displayed_tree_data.resize(ann_network.network.nodes.size()); // including all nodes that will ever be there
     for (size_t i = 0; i < ann_network.network.num_tips(); ++i) {
         std::vector<double*> tip_clvs(ann_network.fake_treeinfo->partition_count, nullptr);
@@ -84,7 +96,7 @@ void init_annotated_network(AnnotatedNetwork &ann_network, std::mt19937& rng) {
             }
             tip_clvs[p] = ann_network.fake_treeinfo->partitions[p]->clv[i];
         }
-        ann_network.pernode_displayed_tree_data[i].displayed_trees.emplace_back(DisplayedTreeData(ann_network.fake_treeinfo, tip_clvs, ann_network.options.max_reticulations));
+        ann_network.pernode_displayed_tree_data[i].displayed_trees.emplace_back(DisplayedTreeData(ann_network.fake_treeinfo, clvInfo, scaleBufferInfo, tip_clvs, ann_network.options.max_reticulations));
         ann_network.pernode_displayed_tree_data[i].num_active_displayed_trees++;
     }
 

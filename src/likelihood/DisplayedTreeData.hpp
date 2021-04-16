@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <limits>
+#include <iostream>
 
 extern "C" {
 #include <libpll/pll.h>
@@ -168,27 +169,21 @@ struct ReticulationConfigSet {
 };
 
 struct TreeLoglData {
-    std::vector<bool> tree_logl_valid;
+    bool tree_logl_valid = false;
     bool tree_logprob_valid = false;
-    std::vector<double> tree_logl;
+    std::vector<double> tree_partition_logl;
     double tree_logprob;
     ReticulationConfigSet reticulationChoices;
 
-    TreeLoglData(size_t n_partitions) {
-        tree_logl_valid = std::vector<bool>(n_partitions, false);
-        tree_logl = std::vector<double>(n_partitions, 0.0);
-    }
-
     TreeLoglData(size_t n_partitions, size_t max_reticulations) : reticulationChoices(max_reticulations) {
-        tree_logl_valid = std::vector<bool>(n_partitions, false);
-        tree_logl = std::vector<double>(n_partitions, 0.0);
+        tree_partition_logl = std::vector<double>(n_partitions, 0.0);
         std::vector<ReticulationState> allChoices(max_reticulations, ReticulationState::DONT_CARE);
         reticulationChoices.configs.emplace_back(allChoices);
     }
 
-    TreeLoglData(TreeLoglData&& rhs) : tree_logl_valid{rhs.tree_logl_valid}, tree_logprob_valid{rhs.tree_logprob_valid}, tree_logl{rhs.tree_logl}, tree_logprob{rhs.tree_logprob}, reticulationChoices{rhs.reticulationChoices} {}
+    TreeLoglData(TreeLoglData&& rhs) : tree_logl_valid{rhs.tree_logl_valid}, tree_logprob_valid{rhs.tree_logprob_valid}, tree_partition_logl{rhs.tree_partition_logl}, tree_logprob{rhs.tree_logprob}, reticulationChoices{rhs.reticulationChoices} {}
 
-    TreeLoglData(const TreeLoglData& rhs) : tree_logl_valid{rhs.tree_logl_valid}, tree_logprob_valid{rhs.tree_logprob_valid}, tree_logl{rhs.tree_logl}, tree_logprob{rhs.tree_logprob}, reticulationChoices{rhs.reticulationChoices} {}
+    TreeLoglData(const TreeLoglData& rhs) : tree_logl_valid{rhs.tree_logl_valid}, tree_logprob_valid{rhs.tree_logprob_valid}, tree_partition_logl{rhs.tree_partition_logl}, tree_logprob{rhs.tree_logprob}, reticulationChoices{rhs.reticulationChoices} {}
 
     TreeLoglData& operator =(TreeLoglData&& rhs)
     {
@@ -196,7 +191,7 @@ struct TreeLoglData {
         {
             tree_logl_valid = rhs.tree_logl_valid;
             tree_logprob_valid = rhs.tree_logprob_valid;
-            tree_logl = rhs.tree_logl;
+            tree_partition_logl = rhs.tree_partition_logl;
             tree_logprob = rhs.tree_logprob;
             reticulationChoices = std::move(rhs.reticulationChoices);
         }
@@ -209,7 +204,7 @@ struct TreeLoglData {
         {
             tree_logl_valid = rhs.tree_logl_valid;
             tree_logprob_valid = rhs.tree_logprob_valid;
-            tree_logl = rhs.tree_logl;
+            tree_partition_logl = rhs.tree_partition_logl;
             tree_logprob = rhs.tree_logprob;
             reticulationChoices = rhs.reticulationChoices;
         }
@@ -226,7 +221,7 @@ struct DisplayedTreeData {
     std::vector<ScaleBufferRangeInfo> scaleBufferInfo;
     bool isTip = false;
 
-    DisplayedTreeData(pllmod_treeinfo_t* treeinfo, const std::vector<ClvRangeInfo>& clvRangeInfo, const std::vector<ScaleBufferRangeInfo>& scaleBufferRangeInfo, size_t max_reticulations) : treeLoglData(max_reticulations) { // inner node
+    DisplayedTreeData(pllmod_treeinfo_t* treeinfo, const std::vector<ClvRangeInfo>& clvRangeInfo, const std::vector<ScaleBufferRangeInfo>& scaleBufferRangeInfo, size_t max_reticulations) : treeLoglData(treeinfo->partition_count, max_reticulations) { // inner node
         clv_vector = std::vector<double*>(treeinfo->partition_count, nullptr);
         scale_buffer = std::vector<unsigned int*>(treeinfo->partition_count, nullptr);
         for (size_t p = 0; p < treeinfo->partition_count; ++p) {
@@ -240,7 +235,7 @@ struct DisplayedTreeData {
         this->scaleBufferInfo = scaleBufferRangeInfo;
     }
 
-    DisplayedTreeData(pllmod_treeinfo_t* treeinfo, std::vector<double*> tip_clv_vector, size_t max_reticulations) : treeLoglData(max_reticulations) { // tip node
+    DisplayedTreeData(pllmod_treeinfo_t* treeinfo, const std::vector<ClvRangeInfo>& clvRangeInfo, const std::vector<ScaleBufferRangeInfo>& scaleBufferRangeInfo, std::vector<double*> tip_clv_vector, size_t max_reticulations) : treeLoglData(treeinfo->partition_count, max_reticulations) { // tip node
         clv_vector = std::vector<double*>(treeinfo->partition_count, nullptr);
         scale_buffer = std::vector<unsigned int*>(treeinfo->partition_count, nullptr);
         for (size_t p = 0; p < treeinfo->partition_count; ++p) {
@@ -249,6 +244,8 @@ struct DisplayedTreeData {
             }
         }
         
+        this->clvInfo = clvRangeInfo;
+        this->scaleBufferInfo = scaleBufferRangeInfo;
         isTip = true;
     }
 
@@ -306,8 +303,12 @@ struct DisplayedTreeData {
     {
         if (this != &rhs)
         {
+            clvInfo = rhs.clvInfo;
+            scaleBufferInfo = rhs.scaleBufferInfo;
+            isTip = rhs.isTip;
             treeLoglData = rhs.treeLoglData;
             if ((!clv_vector.empty() && !rhs.clv_vector.empty()) && (clvInfo == rhs.clvInfo) && (isTip == rhs.isTip)) { // simply overwrite
+                assert(clv_vector.size() == rhs.clv_vector.size());
                 if (rhs.isTip) {
                     clv_vector = rhs.clv_vector;
                 } else {
@@ -333,7 +334,9 @@ struct DisplayedTreeData {
                 }
             }
             if ((!scale_buffer.empty() && !rhs.scale_buffer.empty()) && (scaleBufferInfo == rhs.scaleBufferInfo)) { // simply overwrite
-                for (size_t p = 0; p < rhs.clv_vector.size(); ++p) {
+                assert(scale_buffer.size() == rhs.scale_buffer.size());
+                assert(!scaleBufferInfo.empty());
+                for (size_t p = 0; p < rhs.scale_buffer.size(); ++p) {
                     memcpy(scale_buffer[p], rhs.scale_buffer[p], scaleBufferInfo[p].scaler_size * sizeof(unsigned int));
                 }
             } else {
@@ -345,9 +348,6 @@ struct DisplayedTreeData {
                     scale_buffer[p] = clone_single_scale_buffer(rhs.scaleBufferInfo[p], rhs.scale_buffer[p]);
                 }
             }
-            clvInfo = rhs.clvInfo;
-            scaleBufferInfo = rhs.scaleBufferInfo;
-            isTip = rhs.isTip;
         }
         return *this;
     }

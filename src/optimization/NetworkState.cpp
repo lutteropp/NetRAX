@@ -208,7 +208,7 @@ NetworkState extract_network_state(AnnotatedNetwork &ann_network, bool extract_n
             tip_clv[p] = ann_network.fake_treeinfo->partitions[p]->clv[i];
         }
 
-        state.pernode_displayed_tree_data[i].displayed_trees.emplace_back(DisplayedTreeData(ann_network.fake_treeinfo, tip_clv, ann_network.options.max_reticulations));
+        state.pernode_displayed_tree_data[i].displayed_trees.emplace_back(DisplayedTreeData(ann_network.fake_treeinfo, state.displayed_tree_clv_ranges, state.displayed_tree_scale_buffer_ranges, tip_clv, ann_network.options.max_reticulations));
         state.pernode_displayed_tree_data[i].num_active_displayed_trees++;
     }
 
@@ -240,9 +240,13 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
     if (copy_network) {
         assert(state.network_valid);
         assert(state.network.root);
+        if (!state.network_valid) {
+            throw std::runtime_error("Network is not valid");
+        }
         ann_network.network = state.network;
         ann_network.travbuffer = reversed_topological_sort(ann_network.network);
     }
+
     for (size_t p = 0; p < state.partition_brlens.size(); ++p) {
         /* skip remote partitions */
         if (!ann_network.fake_treeinfo->partitions[p]) {
@@ -255,6 +259,7 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
             }
         }
     }
+
     for (size_t p = 0; p < state.partition_brlen_scalers.size(); ++p) {
         /* skip remote partitions */
         if (!ann_network.fake_treeinfo->partitions[p]) {

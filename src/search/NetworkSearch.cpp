@@ -19,6 +19,8 @@
 #include "../likelihood/LikelihoodComputation.hpp"
 #include "../optimization/NetworkState.hpp"
 
+#undef _NETRAX_OPENMP
+
 namespace netrax {
 
 struct ScoreImprovementResult {
@@ -33,7 +35,7 @@ bool logl_stays_same(AnnotatedNetwork& ann_network) {
             size_t n_trees = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].num_active_displayed_trees;
             for (size_t j = 0; j < n_trees; ++j) {
                 DisplayedTreeData& tree = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].displayed_trees[j];
-                std::cout << "logl: " << tree.treeLoglData.tree_logl[i] << ", logprob: " << tree.treeLoglData.tree_logprob << "\n";
+                std::cout << "logl: " << tree.treeLoglData.tree_partition_logl[i] << ", logprob: " << tree.treeLoglData.tree_logprob << "\n";
             }
         }
     }
@@ -44,7 +46,7 @@ bool logl_stays_same(AnnotatedNetwork& ann_network) {
             size_t n_trees = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].num_active_displayed_trees;
             for (size_t j = 0; j < n_trees; ++j) {
                 DisplayedTreeData& tree = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].displayed_trees[j];
-                std::cout << "logl: " << tree.treeLoglData.tree_logl[i] << ", logprob: " << tree.treeLoglData.tree_logprob << "\n";
+                std::cout << "logl: " << tree.treeLoglData.tree_partition_logl[i] << ", logprob: " << tree.treeLoglData.tree_logprob << "\n";
             }
         }
     }
@@ -55,7 +57,7 @@ bool logl_stays_same(AnnotatedNetwork& ann_network) {
             size_t n_trees = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].num_active_displayed_trees;
             for (size_t j = 0; j < n_trees; ++j) {
                 DisplayedTreeData& tree = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].displayed_trees[j];
-                std::cout << "logl: " << tree.treeLoglData.tree_logl[i] << ", logprob: " << tree.treeLoglData.tree_logprob << "\n";
+                std::cout << "logl: " << tree.treeLoglData.tree_partition_logl[i] << ", logprob: " << tree.treeLoglData.tree_logprob << "\n";
             }
         }
     }
