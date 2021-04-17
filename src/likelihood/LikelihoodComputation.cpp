@@ -357,13 +357,8 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, Node*
     }
 
     NodeDisplayedTreeData& displayed_trees = ann_network.pernode_displayed_tree_data[node->clv_index];
-    assert(displayed_trees.displayed_trees.size() == ann_network.fake_treeinfo->partition_count);
     NodeDisplayedTreeData& displayed_trees_left_child = ann_network.pernode_displayed_tree_data[left_child->clv_index];
-    assert(displayed_trees_left_child.displayed_trees.size() == ann_network.fake_treeinfo->partition_count);
     NodeDisplayedTreeData& displayed_trees_right_child = ann_network.pernode_displayed_tree_data[right_child->clv_index];
-    assert(displayed_trees_right_child.displayed_trees.size() == ann_network.fake_treeinfo->partition_count);
-
-    size_t start_active_displayed_trees = displayed_trees.num_active_displayed_trees;
 
     // left child and right child are not always about different reticulations... It can be that one reticulation affects both children.
     // It can even happen that there is a displayed tree for one child, that has no matching displaying tree on the other side (in terms of chosen reticulations). In this case, we have a dead node situation...
