@@ -244,27 +244,28 @@ unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, Node*
     NodeDisplayedTreeData& displayed_trees_child = ann_network.pernode_displayed_tree_data[child->clv_index];
 
     for (size_t i = 0; i < displayed_trees_child.num_active_displayed_trees; ++i) {
-        ReticulationConfigSet& childTreeChoices = displayed_trees_child.displayed_trees[i].treeLoglData.reticulationChoices;
-        if (!reticulationConfigsCompatible(childTreeChoices, restrictionsSet)) {
+        DisplayedTreeData& childTree = displayed_trees_child.displayed_trees[i];
+        if (!reticulationConfigsCompatible(childTree.treeLoglData.reticulationChoices, restrictionsSet)) {
             continue;
         }
         add_displayed_tree(ann_network, node->clv_index);
+        DisplayedTreeData& tree = displayed_trees.displayed_trees[displayed_trees.num_active_displayed_trees-1];
         for (size_t partition_idx = 0; partition_idx < ann_network.fake_treeinfo->partition_count; ++partition_idx) {
+            // skip remote partitions
+            if (!ann_network.fake_treeinfo->partitions[partition_idx]) {
+                continue;
+            }
             pll_partition_t* partition = ann_network.fake_treeinfo->partitions[partition_idx];
-            DisplayedTreeData& childTree = displayed_trees_child.displayed_trees[i];
-
-            DisplayedTreeData& tree = displayed_trees.displayed_trees[displayed_trees.num_active_displayed_trees-1];
             double* parent_clv = tree.clv_vector[partition_idx];
             unsigned int* parent_scaler = tree.scale_buffer[partition_idx];
             double* left_clv = childTree.clv_vector[partition_idx];
             unsigned int* left_scaler = childTree.scale_buffer[partition_idx];
             double* right_clv = partition->clv[fake_clv_index];
             unsigned int* right_scaler = nullptr;
-
             pll_update_partials_single(partition, &op, 1, parent_clv, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
-            tree.treeLoglData.reticulationChoices = combineReticulationChoices(childTreeChoices, restrictionsSet);
-            //tree.treeLoglData.childrenTaken = {child};
         }
+        tree.treeLoglData.reticulationChoices = combineReticulationChoices(childTree.treeLoglData.reticulationChoices, restrictionsSet);
+        //tree.treeLoglData.childrenTaken = {child};
     }
     num_trees_added = displayed_trees_child.num_active_displayed_trees;
 
