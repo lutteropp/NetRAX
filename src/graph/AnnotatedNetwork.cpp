@@ -87,7 +87,7 @@ void init_annotated_network(AnnotatedNetwork &ann_network, std::mt19937& rng) {
         for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
             tip_clv[p] = ann_network.fake_treeinfo->partitions[p]->clv[i];
         }
-        ann_network.pernode_displayed_tree_data[i].displayed_trees.emplace_back(DisplayedTreeData(ann_network.fake_treeinfo->partition_count, tip_clv, ann_network.options.max_reticulations));
+        ann_network.pernode_displayed_tree_data[i].displayed_trees.emplace_back(DisplayedTreeData(ann_network.fake_treeinfo->partition_count, ann_network.partition_clv_ranges, ann_network.partition_scale_buffer_ranges, tip_clv, ann_network.options.max_reticulations));
         ann_network.pernode_displayed_tree_data[i].num_active_displayed_trees = 1;
     }
 

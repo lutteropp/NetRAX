@@ -173,7 +173,7 @@ NetworkState extract_network_state(AnnotatedNetwork &ann_network, bool extract_n
         for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
             tip_clv[p] = ann_network.fake_treeinfo->partitions[p]->clv[i];
         }
-        state.pernode_displayed_tree_data[i].displayed_trees.emplace_back(DisplayedTreeData(ann_network.fake_treeinfo->partition_count, tip_clv, ann_network.options.max_reticulations));
+        state.pernode_displayed_tree_data[i].displayed_trees.emplace_back(DisplayedTreeData(ann_network.fake_treeinfo->partition_count, ann_network.partition_clv_ranges, ann_network.partition_scale_buffer_ranges, tip_clv, ann_network.options.max_reticulations));
         state.pernode_displayed_tree_data[i].num_active_displayed_trees = 1;
     }
 

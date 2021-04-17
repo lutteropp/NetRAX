@@ -175,11 +175,11 @@ struct DisplayedTreeData {
     std::vector<TreeLoglData> treeLoglData;
     std::vector<double*> clv_vector;
     std::vector<unsigned int*> scale_buffer;
-    std::vector<ClvRangeInfo> clvInfo;
-    std::vector<ScaleBufferRangeInfo> scaleBufferInfo;
+    const std::vector<ClvRangeInfo>& clvInfo;
+    const std::vector<ScaleBufferRangeInfo>& scaleBufferInfo;
     bool isTip = false;
 
-    DisplayedTreeData(size_t n_partitions, std::vector<ClvRangeInfo>& clvRangeInfo, std::vector<ScaleBufferRangeInfo>& scaleBufferRangeInfo, size_t max_reticulations) { // inner node
+    DisplayedTreeData(size_t n_partitions, const std::vector<ClvRangeInfo>& clvRangeInfo, const std::vector<ScaleBufferRangeInfo>& scaleBufferRangeInfo, size_t max_reticulations) : clvInfo(clvRangeInfo), scaleBufferInfo(scaleBufferRangeInfo) { // inner node
         treeLoglData = std::vector<TreeLoglData>(n_partitions, TreeLoglData(max_reticulations));
         clv_vector = std::vector<double*>(n_partitions, nullptr);
         for (size_t p = 0; p < n_partitions; ++p) {
@@ -189,11 +189,9 @@ struct DisplayedTreeData {
         for (size_t p = 0; p < n_partitions; ++p) {
             scale_buffer[p] = create_single_empty_scale_buffer(scaleBufferRangeInfo[p]);
         }
-        this->clvInfo = clvRangeInfo;
-        this->scaleBufferInfo = scaleBufferRangeInfo;
     }
 
-    DisplayedTreeData(size_t n_partitions, std::vector<double*> tip_clv_vector, size_t max_reticulations) { // tip node
+    DisplayedTreeData(size_t n_partitions, const std::vector<ClvRangeInfo>& clvRangeInfo, const std::vector<ScaleBufferRangeInfo>& scaleBufferRangeInfo, std::vector<double*> tip_clv_vector, size_t max_reticulations) : clvInfo(clvRangeInfo), scaleBufferInfo(scaleBufferRangeInfo) { // tip node
         treeLoglData = std::vector<TreeLoglData>(n_partitions, TreeLoglData(max_reticulations));
         clv_vector = std::vector<double*>(n_partitions, nullptr);
         for (size_t p = 0; p < n_partitions; ++p) {
@@ -245,8 +243,6 @@ struct DisplayedTreeData {
             treeLoglData = rhs.treeLoglData;
             clv_vector = rhs.clv_vector;
             scale_buffer = rhs.scale_buffer;
-            clvInfo = rhs.clvInfo;
-            scaleBufferInfo = rhs.scaleBufferInfo;
 
             rhs.clv_vector.clear();
             rhs.scale_buffer.clear();
@@ -302,8 +298,6 @@ struct DisplayedTreeData {
                     scale_buffer[p] = clone_single_scale_buffer(rhs.scaleBufferInfo[p], rhs.scale_buffer[p]);
                 }
             }
-            clvInfo = rhs.clvInfo;
-            scaleBufferInfo = rhs.scaleBufferInfo;
             isTip = rhs.isTip;
         }
         return *this;
