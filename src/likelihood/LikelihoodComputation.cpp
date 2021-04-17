@@ -1026,7 +1026,6 @@ struct PartitionLhData {
 
 PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned int partition_idx, const std::vector<SumtableInfo>& sumtables, const std::vector<DisplayedTreeData>& oldTrees, unsigned int pmatrix_index) {
     PartitionLhData res{0.0, 0.0};
-    pll_partition_t* partition = ann_network.fake_treeinfo->partitions[partition_idx];
     Node* source = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
     Node* target = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
 
@@ -1058,12 +1057,16 @@ PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned i
     double best_tree_logl_prime_prime_score = -std::numeric_limits<double>::infinity();
 
     double branch_length = ann_network.fake_treeinfo->branch_lengths[partition_idx][pmatrix_index];
-    double ** eigenvals;
-    double * prop_invar;
-    pll_compute_eigenvals_and_prop_invar(partition, ann_network.fake_treeinfo->param_indices[partition_idx], &eigenvals, &prop_invar);
+    double ** eigenvals = nullptr;
+    double * prop_invar = nullptr;
+    double * diagptable = nullptr;
 
-    double * diagptable = pll_compute_diagptable(partition->states, partition->rate_cats, branch_length, prop_invar, partition->rates, eigenvals);
-    free (eigenvals);
+    if (ann_network.fake_treeinfo->partitions[partition_idx]) {
+        pll_partition_t* partition = ann_network.fake_treeinfo->partitions[partition_idx];
+        pll_compute_eigenvals_and_prop_invar(partition, ann_network.fake_treeinfo->param_indices[partition_idx], &eigenvals, &prop_invar);
+        diagptable = pll_compute_diagptable(partition->states, partition->rate_cats, branch_length, prop_invar, partition->rates, eigenvals);
+        free (eigenvals);
+    }
 
     /*if (ann_network.network.num_reticulations() == 1) {
         std::cout << "\ncomputePartitionLoglData for partition " << partition_idx << ":\n";
@@ -1073,23 +1076,26 @@ PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned i
         //source_tree_seen[sumtables[i].left_tree_idx] = true;
         //target_tree_seen[sumtables[i].right_tree_idx] = true;
 
-        double tree_logl;
-        double tree_logl_prime;
-        double tree_logl_prime_prime;
+        double tree_logl = 0.0;
+        double tree_logl_prime = 0.0;
+        double tree_logl_prime_prime = 0.0;
 
-        pll_compute_loglikelihood_derivatives(partition, 
-                                           source->scaler_index, 
-                                           sumtables[i].left_tree->scale_buffer[partition_idx],
-                                           target->scaler_index, 
-                                           sumtables[i].right_tree->scale_buffer[partition_idx],
-                                           p_brlen,
-                                           ann_network.fake_treeinfo->param_indices[partition_idx],
-                                           sumtables[i].sumtable,
-                                           (single_tree_mode) ? nullptr : &tree_logl,
-                                           &tree_logl_prime,
-                                           &tree_logl_prime_prime,
-                                           diagptable,
-                                           prop_invar);
+        if (ann_network.fake_treeinfo->partitions[partition_idx]) {
+            pll_partition_t* partition = ann_network.fake_treeinfo->partitions[partition_idx];
+            pll_compute_loglikelihood_derivatives(partition, 
+                                            source->scaler_index, 
+                                            sumtables[i].left_tree->scale_buffer[partition_idx],
+                                            target->scaler_index, 
+                                            sumtables[i].right_tree->scale_buffer[partition_idx],
+                                            p_brlen,
+                                            ann_network.fake_treeinfo->param_indices[partition_idx],
+                                            sumtables[i].sumtable,
+                                            (single_tree_mode) ? nullptr : &tree_logl,
+                                            &tree_logl_prime,
+                                            &tree_logl_prime_prime,
+                                            diagptable,
+                                            prop_invar);
+        }
 
         /*if (ann_network.network.num_reticulations() == 1) {
             std::cout << "  tree_logl: " << tree_logl << "\n";
@@ -1231,10 +1237,10 @@ LoglDerivatives computeLoglikelihoodDerivatives(AnnotatedNetwork& ann_network, c
     double network_logl_prime = 0.0;
     double network_logl_prime_prime = 0.0;
     assert(sumtables.size() == ann_network.fake_treeinfo->partition_count);
-    std::vector<double> partition_logls_prime(ann_network.fake_treeinfo->partition_count);
-    std::vector<double> partition_logls_prime_prime(ann_network.fake_treeinfo->partition_count);
+    std::vector<double> partition_logls_prime(ann_network.fake_treeinfo->partition_count, 0.0);
+    std::vector<double> partition_logls_prime_prime(ann_network.fake_treeinfo->partition_count, 0.0);
 
-    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) { // here we need to go over all partitions, as the derivatives require exact tree loglikelihood
         PartitionLhData pdata = computePartitionLhData(ann_network, p, sumtables[p], oldTrees, pmatrix_index);
 
         //std::cout << " Network partition loglikelihood derivatives for partition " << p << ":\n";
@@ -1273,6 +1279,13 @@ LoglDerivatives computeLoglikelihoodDerivatives(AnnotatedNetwork& ann_network, c
 }*/
 
 SumtableInfo computeSumtable(AnnotatedNetwork& ann_network, size_t partition_idx, const ReticulationConfigSet& restrictions, DisplayedTreeData& left_tree, size_t left_clv_index, DisplayedTreeData& right_tree, size_t right_clv_index, size_t left_tree_idx, size_t right_tree_idx) {
+    //skip remote partitions
+    if (!ann_network.fake_treeinfo->partitions[partition_idx]) { // add an empty fake sumtable
+        SumtableInfo sumtableInfo(0, 0, &left_tree, &right_tree, left_tree_idx, right_tree_idx);
+        sumtableInfo.tree_prob = computeReticulationConfigProb(restrictions, ann_network.reticulation_probs);
+        return sumtableInfo;
+    }
+    
     pll_partition_t * partition = ann_network.fake_treeinfo->partitions[partition_idx];
     size_t sumtableSize = (partition->sites + partition->states) * partition->rate_cats * partition->states_padded;
     SumtableInfo sumtableInfo(sumtableSize, partition->alignment, &left_tree, &right_tree, left_tree_idx, right_tree_idx);
@@ -1305,11 +1318,7 @@ std::vector<std::vector<SumtableInfo> > computePartitionSumtables(AnnotatedNetwo
 
             ReticulationConfigSet restrictions = combineReticulationChoices(sourceTrees[i].treeLoglData.reticulationChoices, targetTrees[j].treeLoglData.reticulationChoices);
             if (isActiveBranch(ann_network, restrictions, pmatrix_index)) {
-                for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {        
-                    //skip remote partitions
-                    if (!ann_network.fake_treeinfo->partitions[p]) {
-                        continue;
-                    }
+                for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {         // here we need all partitions, as we require the sumtable info metadata
                     res[p].emplace_back(std::move(computeSumtable(ann_network, p, restrictions, sourceTrees[i], source->clv_index, targetTrees[j], target->clv_index, i, j)));
                 }
             }
