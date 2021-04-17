@@ -1292,20 +1292,24 @@ std::vector<std::vector<SumtableInfo> > computePartitionSumtables(AnnotatedNetwo
     Node* source = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
     Node* target = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
 
-    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {        
-        size_t n_trees_source = ann_network.pernode_displayed_tree_data[source->clv_index].num_active_displayed_trees;
-        size_t n_trees_target = ann_network.pernode_displayed_tree_data[target->clv_index].num_active_displayed_trees;
-        std::vector<DisplayedTreeData>& sourceTrees = ann_network.pernode_displayed_tree_data[source->clv_index].displayed_trees;
-        std::vector<DisplayedTreeData>& targetTrees = ann_network.pernode_displayed_tree_data[target->clv_index].displayed_trees;
+    size_t n_trees_source = ann_network.pernode_displayed_tree_data[source->clv_index].num_active_displayed_trees;
+    size_t n_trees_target = ann_network.pernode_displayed_tree_data[target->clv_index].num_active_displayed_trees;
+    std::vector<DisplayedTreeData>& sourceTrees = ann_network.pernode_displayed_tree_data[source->clv_index].displayed_trees;
+    std::vector<DisplayedTreeData>& targetTrees = ann_network.pernode_displayed_tree_data[target->clv_index].displayed_trees;
 
-        for (size_t i = 0; i < n_trees_source; ++i) {
-            for (size_t j = 0; j < n_trees_target; ++j) {
-                if (!reticulationConfigsCompatible(sourceTrees[i].treeLoglData.reticulationChoices, targetTrees[j].treeLoglData.reticulationChoices)) {
-                    continue;
-                }
+    for (size_t i = 0; i < n_trees_source; ++i) {
+        for (size_t j = 0; j < n_trees_target; ++j) {
+            if (!reticulationConfigsCompatible(sourceTrees[i].treeLoglData.reticulationChoices, targetTrees[j].treeLoglData.reticulationChoices)) {
+                continue;
+            }
 
-                ReticulationConfigSet restrictions = combineReticulationChoices(sourceTrees[i].treeLoglData.reticulationChoices, targetTrees[j].treeLoglData.reticulationChoices);
-                if (isActiveBranch(ann_network, restrictions, pmatrix_index)) {
+            ReticulationConfigSet restrictions = combineReticulationChoices(sourceTrees[i].treeLoglData.reticulationChoices, targetTrees[j].treeLoglData.reticulationChoices);
+            if (isActiveBranch(ann_network, restrictions, pmatrix_index)) {
+                for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {        
+                    //skip remote partitions
+                    if (!ann_network.fake_treeinfo->partitions[p]) {
+                        continue;
+                    }
                     res[p].emplace_back(std::move(computeSumtable(ann_network, p, restrictions, sourceTrees[i], source->clv_index, targetTrees[j], target->clv_index, i, j)));
                 }
             }
