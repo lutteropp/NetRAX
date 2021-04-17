@@ -26,7 +26,7 @@ struct BrentBrlenParams {
     AnnotatedNetwork *ann_network;
     size_t pmatrix_index;
     size_t partition_index;
-    std::vector<std::vector<TreeLoglData> >* oldTrees = nullptr;
+    std::vector<DisplayedTreeData>* oldTrees = nullptr;
     std::vector<std::vector<SumtableInfo> >* sumtables = nullptr;
     BrlenOptMethod brlenOptMethod;
 };
@@ -35,7 +35,7 @@ static double brent_target_networks(void *p, double x) {
     AnnotatedNetwork *ann_network = ((BrentBrlenParams*) p)->ann_network;
     size_t pmatrix_index = ((BrentBrlenParams*) p)->pmatrix_index;
     size_t partition_index = ((BrentBrlenParams*) p)->partition_index;
-    std::vector<std::vector<TreeLoglData>>* oldTrees = ((BrentBrlenParams*) p)->oldTrees;
+    std::vector<DisplayedTreeData>* oldTrees = ((BrentBrlenParams*) p)->oldTrees;
     std::vector<std::vector<SumtableInfo>>* sumtables = ((BrentBrlenParams*) p)->sumtables;
     BrlenOptMethod brlenOptMethod = ((BrentBrlenParams*) p)->brlenOptMethod;
 
@@ -75,7 +75,7 @@ static double brent_target_networks(void *p, double x) {
     return score;
 }
 
-double optimize_branch_brent(AnnotatedNetwork &ann_network, std::vector<std::vector<TreeLoglData> >& oldTrees, std::vector<std::vector<SumtableInfo> >& sumtables, size_t pmatrix_index, size_t partition_index, BrlenOptMethod brlenOptMethod) {
+double optimize_branch_brent(AnnotatedNetwork &ann_network, std::vector<DisplayedTreeData>& oldTrees, std::vector<std::vector<SumtableInfo> >& sumtables, size_t pmatrix_index, size_t partition_index, BrlenOptMethod brlenOptMethod) {
     assert(brlenOptMethod == BrlenOptMethod::BRENT_NORMAL || brlenOptMethod == BrlenOptMethod::BRENT_REROOT || brlenOptMethod == BrlenOptMethod::BRENT_REROOT_SUMTABLE);
     double old_brlen = ann_network.fake_treeinfo->branch_lengths[partition_index][pmatrix_index];
     assert(old_brlen >= ann_network.options.brlen_min);
@@ -110,7 +110,7 @@ struct NewtonBrlenParams
     AnnotatedNetwork *ann_network;
     size_t pmatrix_index;
     size_t partition_index;
-    std::vector<std::vector<TreeLoglData> >* oldTrees = nullptr;
+    std::vector<DisplayedTreeData>* oldTrees = nullptr;
     std::vector<std::vector<SumtableInfo> >* sumtables = nullptr;
     double new_brlen;
 };
@@ -141,7 +141,7 @@ static void network_derivative_func_multi (void * parameters, double * proposal,
   }
 }
 
-double optimize_branch_newton_raphson(AnnotatedNetwork &ann_network, std::vector<std::vector<SumtableInfo> >& sumtables, std::vector<std::vector<TreeLoglData> >& oldTrees, size_t pmatrix_index, size_t partition_index, BrlenOptMethod brlenOptMethod, unsigned int max_iters) {
+double optimize_branch_newton_raphson(AnnotatedNetwork &ann_network, std::vector<std::vector<SumtableInfo> >& sumtables, std::vector<DisplayedTreeData>& oldTrees, size_t pmatrix_index, size_t partition_index, BrlenOptMethod brlenOptMethod, unsigned int max_iters) {
     assert(brlenOptMethod == BrlenOptMethod::NEWTON_RAPHSON);
 
     double old_brlen = ann_network.fake_treeinfo->branch_lengths[partition_index][pmatrix_index];
@@ -218,7 +218,7 @@ void add_neighbors_in_radius(AnnotatedNetwork& ann_network, std::unordered_set<s
     add_neighbors_in_radius(ann_network, candidates, pmatrix_index, radius, seen);
 }
 
-double optimize_branch(AnnotatedNetwork &ann_network, std::vector<std::vector<TreeLoglData> >& oldTrees, std::vector<std::vector<SumtableInfo> >& sumtables, size_t pmatrix_index, size_t partition_index, BrlenOptMethod brlenOptMethod, unsigned int max_iters) {
+double optimize_branch(AnnotatedNetwork &ann_network, std::vector<DisplayedTreeData>& oldTrees, std::vector<std::vector<SumtableInfo> >& sumtables, size_t pmatrix_index, size_t partition_index, BrlenOptMethod brlenOptMethod, unsigned int max_iters) {
     ann_network.cached_logl_valid = false;
 
     double start_logl;
@@ -259,7 +259,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, std::vector<std::vector<Tr
 
 double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, BrlenOptMethod brlenOptMethod, unsigned int max_iters) {
     double old_logl = computeLoglikelihood(ann_network);
-    std::vector<std::vector<TreeLoglData> > oldTrees;
+    std::vector<DisplayedTreeData> oldTrees;
     std::vector<std::vector<SumtableInfo> > sumtables;
 
     size_t n_partitions = 1;

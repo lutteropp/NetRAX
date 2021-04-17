@@ -595,10 +595,10 @@ DisplayedTreeData& getMatchingDisplayedTreeAtNode(AnnotatedNetwork& ann_network,
     throw std::runtime_error("No compatible displayed tree data found");
 }
 
-const TreeLoglData& getMatchingOldTree(AnnotatedNetwork& ann_network, const std::vector<TreeLoglData>& oldTrees, const ReticulationConfigSet& queryChoices) {
+const TreeLoglData& getMatchingOldTree(AnnotatedNetwork& ann_network, size_t partition_index, const std::vector<DisplayedTreeData>& oldTrees, const ReticulationConfigSet& queryChoices) {
     for (size_t i = 0; i < oldTrees.size(); ++i) {
-        if (reticulationConfigsCompatible(queryChoices, oldTrees[i].reticulationChoices)) {
-            return oldTrees[i];
+        if (reticulationConfigsCompatible(queryChoices, oldTrees[i].treeLoglData[partition_index].reticulationChoices)) {
+            return oldTrees[i].treeLoglData[partition_index];
         }
     }
     std::cout << "query was:\n";
@@ -1020,7 +1020,7 @@ struct PartitionLhData {
     double logl_prime_prime = 0.0;
 };
 
-PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned int partition_idx, const std::vector<SumtableInfo>& sumtables, const std::vector<std::vector<TreeLoglData> >& oldTrees, unsigned int pmatrix_index) {
+PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned int partition_idx, const std::vector<SumtableInfo>& sumtables, const std::vector<DisplayedTreeData>& oldTrees, unsigned int pmatrix_index) {
     PartitionLhData res{0.0, 0.0};
     pll_partition_t* partition = ann_network.fake_treeinfo->partitions[partition_idx];
     Node* source = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
@@ -1221,7 +1221,7 @@ PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned i
     return res;
 }
 
-LoglDerivatives computeLoglikelihoodDerivatives(AnnotatedNetwork& ann_network, const std::vector<std::vector<SumtableInfo> >& sumtables, const std::vector<std::vector<TreeLoglData> >& oldTrees, unsigned int pmatrix_index, bool incremental, bool update_pmatrices) {
+LoglDerivatives computeLoglikelihoodDerivatives(AnnotatedNetwork& ann_network, const std::vector<std::vector<SumtableInfo> >& sumtables, const std::vector<DisplayedTreeData>& oldTrees, unsigned int pmatrix_index, bool incremental, bool update_pmatrices) {
     //setup_pmatrices(ann_network, incremental, update_pmatrices);
     //double network_logl = 0.0;
     double network_logl_prime = 0.0;
@@ -1312,7 +1312,7 @@ std::vector<std::vector<SumtableInfo> > computePartitionSumtables(AnnotatedNetwo
     return res;
 }
 
-double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::vector<std::vector<TreeLoglData> >& oldTrees, unsigned int pmatrix_index, int incremental, int update_pmatrices) {
+double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::vector<DisplayedTreeData>& oldTrees, unsigned int pmatrix_index, int incremental, int update_pmatrices) {
     if (ann_network.cached_logl_valid) {
         return ann_network.cached_logl;
     }
@@ -1397,7 +1397,7 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
 
                 } else {
                     //std::cout << "inactive branch\n";
-                    const TreeLoglData& oldTree = getMatchingOldTree(ann_network, oldTrees[p], combinedTreeData.reticulationChoices);
+                    const TreeLoglData& oldTree = getMatchingOldTree(ann_network, p, oldTrees, combinedTreeData.reticulationChoices);
                     if (!oldTree.tree_logl_valid) {
                         std::cout << exportDebugInfo(ann_network) << "\n";
                         std::cout << "i: " << i << "\n";
@@ -1421,7 +1421,7 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
         for (size_t i = 0; i < n_trees_source; ++i) {
             if (!source_tree_seen[i]) {
                 //std::cout << "unseen source tree\n";
-                const TreeLoglData& oldTree = getMatchingOldTree(ann_network, oldTrees[p], sourceTrees[i].treeLoglData[p].reticulationChoices);
+                const TreeLoglData& oldTree = getMatchingOldTree(ann_network, p, oldTrees, sourceTrees[i].treeLoglData[p].reticulationChoices);
                 assert(oldTree.tree_logl_valid);
                 sourceTrees[i].treeLoglData[p].tree_logl = oldTree.tree_logl;
                 assert(oldTree.tree_logprob_valid);
@@ -1437,7 +1437,7 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
         for (size_t j = 0; j < n_trees_target; ++j) {
             if (!target_tree_seen[j]) {
                 //std::cout << "unseen target tree\n";
-                const TreeLoglData& oldTree = getMatchingOldTree(ann_network, oldTrees[p], targetTrees[j].treeLoglData[p].reticulationChoices);
+                const TreeLoglData& oldTree = getMatchingOldTree(ann_network, p, oldTrees, targetTrees[j].treeLoglData[p].reticulationChoices);
                 assert(oldTree.tree_logl_valid);
                 targetTrees[j].treeLoglData[p].tree_logl = oldTree.tree_logl;
                 assert(oldTree.tree_logprob_valid);
@@ -1592,15 +1592,12 @@ double computeLoglikelihoodNaiveUtree(AnnotatedNetwork &ann_network, int increme
     return network_logl.toDouble();
 }
 
-std::vector<std::vector<TreeLoglData> > extractOldTrees(AnnotatedNetwork& ann_network, Node* virtual_root) {
-    std::vector<std::vector<TreeLoglData> > oldTrees(ann_network.fake_treeinfo->partition_count);
-    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-        NodeDisplayedTreeData& nodeTrees = ann_network.pernode_displayed_tree_data[virtual_root->clv_index];
-        for (size_t i = 0; i < nodeTrees.num_active_displayed_trees; ++i) {
-            DisplayedTreeData& tree = nodeTrees.displayed_trees[i];
-            TreeLoglData data = tree.treeLoglData[p];
-            oldTrees[p].emplace_back(data);
-        }
+std::vector<DisplayedTreeData> extractOldTrees(AnnotatedNetwork& ann_network, Node* virtual_root) {
+    std::vector<DisplayedTreeData> oldTrees;
+    NodeDisplayedTreeData& nodeTrees = ann_network.pernode_displayed_tree_data[virtual_root->clv_index];
+    for (size_t i = 0; i < nodeTrees.num_active_displayed_trees; ++i) {
+        DisplayedTreeData& tree = nodeTrees.displayed_trees[i];
+        oldTrees.emplace_back(tree);
     }
     return oldTrees;
 }
