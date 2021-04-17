@@ -175,8 +175,8 @@ struct DisplayedTreeData {
     std::vector<TreeLoglData> treeLoglData;
     std::vector<double*> clv_vector;
     std::vector<unsigned int*> scale_buffer;
-    std::vector<ClvRangeInfo>& clvInfo;
-    std::vector<ScaleBufferRangeInfo>& scaleBufferInfo;
+    std::vector<ClvRangeInfo> clvInfo;
+    std::vector<ScaleBufferRangeInfo> scaleBufferInfo;
     bool isTip = false;
 
     DisplayedTreeData(size_t n_partitions, std::vector<ClvRangeInfo>& clvRangeInfo, std::vector<ScaleBufferRangeInfo>& scaleBufferRangeInfo, size_t max_reticulations) { // inner node
@@ -218,10 +218,12 @@ struct DisplayedTreeData {
             scale_buffer = rhs.scale_buffer;
         } else {
             clv_vector = std::vector<double*>(rhs.clv_vector.size(), nullptr);
+            assert(rhs.clvInfo.size() == rhs.clvInfo.size());
             for (size_t p = 0; p < rhs.clv_vector.size(); ++p) {
                 clv_vector[p] = clone_single_clv_vector(rhs.clvInfo[p], rhs.clv_vector[p]);
             }
             scale_buffer = std::vector<unsigned int*>(rhs.scale_buffer.size(), nullptr);
+            assert(rhs.scaleBufferInfo.size() == rhs.scale_buffer.size());
             for (size_t p = 0; p < rhs.scale_buffer.size(); ++p) {
                 scale_buffer[p] = clone_single_scale_buffer(rhs.scaleBufferInfo[p], rhs.scale_buffer[p]);
             }
@@ -262,8 +264,9 @@ struct DisplayedTreeData {
                 if (rhs.isTip) {
                     clv_vector = rhs.clv_vector;
                 } else {
+                    assert(rhs.clvInfo.size() == rhs.clvInfo.size());
                     for (size_t p = 0; p < rhs.clv_vector.size(); ++p) {
-                        memcpy(clv_vector[p], rhs.clv_vector[p], clvInfo[p].inner_clv_num_entries * sizeof(double));
+                        memcpy(clv_vector[p], rhs.clv_vector[p], rhs.clvInfo[p].inner_clv_num_entries * sizeof(double));
                     }
                 }
             } else {
@@ -276,6 +279,7 @@ struct DisplayedTreeData {
                     if (rhs.isTip) {
                         clv_vector = rhs.clv_vector;
                     } else {
+                        assert(rhs.clvInfo.size() == rhs.clvInfo.size());
                         clv_vector = std::vector<double*>(rhs.clv_vector.size(), nullptr);
                         for (size_t p = 0; p < rhs.clv_vector.size(); ++p) {
                             clv_vector[p] = clone_single_clv_vector(rhs.clvInfo[p], rhs.clv_vector[p]);
@@ -284,14 +288,16 @@ struct DisplayedTreeData {
                 }
             }
             if ((scale_buffer.size() == rhs.scale_buffer.size()) && (scaleBufferInfo == rhs.scaleBufferInfo)) { // simply overwrite
+                assert(rhs.scaleBufferInfo.size() == rhs.scale_buffer.size());
                 for (size_t p = 0; p < rhs.scale_buffer.size(); ++p) {
-                    memcpy(scale_buffer[p], rhs.scale_buffer[p], scaleBufferInfo[p].scaler_size * sizeof(unsigned int));
+                    memcpy(scale_buffer[p], rhs.scale_buffer[p], rhs.scaleBufferInfo[p].scaler_size * sizeof(unsigned int));
                 }
             } else {
                 for (size_t p = 0; p < scale_buffer.size(); ++p) {
                     free(scale_buffer[p]);
                 }
                 scale_buffer = std::vector<unsigned int*>(rhs.scale_buffer.size(), nullptr);
+                assert(rhs.scaleBufferInfo.size() == rhs.scale_buffer.size());
                 for (size_t p = 0; p < rhs.scale_buffer.size(); ++p) {
                     scale_buffer[p] = clone_single_scale_buffer(rhs.scaleBufferInfo[p], rhs.scale_buffer[p]);
                 }
