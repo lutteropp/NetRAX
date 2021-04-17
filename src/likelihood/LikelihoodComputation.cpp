@@ -1097,6 +1097,37 @@ PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned i
                                             prop_invar);
         }
 
+        /* sum up values from all threads */
+        if (ann_network.fake_treeinfo->parallel_reduce_cb)
+        {
+            if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED)
+            {
+                if (!single_tree_mode) {
+                    ann_network.fake_treeinfo->parallel_reduce_cb(ann_network.fake_treeinfo->parallel_context, &tree_logl, 
+                                                ann_network.fake_treeinfo->partition_count, PLLMOD_COMMON_REDUCE_SUM);
+                }
+                ann_network.fake_treeinfo->parallel_reduce_cb(ann_network.fake_treeinfo->parallel_context, &tree_logl_prime, 
+                                            ann_network.fake_treeinfo->partition_count, PLLMOD_COMMON_REDUCE_SUM);
+                ann_network.fake_treeinfo->parallel_reduce_cb(ann_network.fake_treeinfo->parallel_context, &tree_logl_prime_prime,
+                                            ann_network.fake_treeinfo->partition_count, PLLMOD_COMMON_REDUCE_SUM);
+            }
+            else
+            {
+                if (single_tree_mode) {
+                    double d[2] = {tree_logl_prime, tree_logl_prime_prime};
+                    ann_network.fake_treeinfo->parallel_reduce_cb(ann_network.fake_treeinfo->parallel_context, d, 2, PLLMOD_COMMON_REDUCE_SUM);
+                    tree_logl_prime = d[0];
+                    tree_logl_prime_prime = d[1];
+                } else {
+                    double d[3] = {tree_logl, tree_logl_prime, tree_logl_prime_prime};
+                    ann_network.fake_treeinfo->parallel_reduce_cb(ann_network.fake_treeinfo->parallel_context, d, 3, PLLMOD_COMMON_REDUCE_SUM);
+                    tree_logl = d[0];
+                    tree_logl_prime = d[1];
+                    tree_logl_prime_prime = d[2];
+                }
+            }
+        }
+
         /*if (ann_network.network.num_reticulations() == 1) {
             std::cout << "  tree_logl: " << tree_logl << "\n";
             std::cout << "  tree_logl_prime: " << tree_logl_prime << "\n";
