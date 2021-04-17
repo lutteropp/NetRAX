@@ -175,8 +175,8 @@ struct DisplayedTreeData {
     std::vector<TreeLoglData> treeLoglData;
     std::vector<double*> clv_vector;
     std::vector<unsigned int*> scale_buffer;
-    std::vector<ClvRangeInfo> clvInfo;
-    std::vector<ScaleBufferRangeInfo> scaleBufferInfo;
+    std::vector<ClvRangeInfo>& clvInfo;
+    std::vector<ScaleBufferRangeInfo>& scaleBufferInfo;
     bool isTip = false;
 
     DisplayedTreeData(size_t n_partitions, std::vector<ClvRangeInfo>& clvRangeInfo, std::vector<ScaleBufferRangeInfo>& scaleBufferRangeInfo, size_t max_reticulations) { // inner node
@@ -308,9 +308,9 @@ struct DisplayedTreeData {
             for (size_t p = 0; p < clv_vector.size(); ++p) {
                 pll_aligned_free(clv_vector[p]);
             }
-        }
-        for (size_t p = 0; p < scale_buffer.size(); ++p) {
-            free(scale_buffer[p]);
+            for (size_t p = 0; p < scale_buffer.size(); ++p) {
+                free(scale_buffer[p]);
+            }
         }
     }
 };
