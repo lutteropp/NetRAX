@@ -372,25 +372,26 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, Node*
     
     // combine both children - here, both children are active
     for (size_t i = 0; i < displayed_trees_left_child.num_active_displayed_trees; ++i) {
-        ReticulationConfigSet& leftTreeChoices = displayed_trees_left_child.displayed_trees[i].treeLoglData.reticulationChoices;
-        if (!reticulationConfigsCompatible(leftTreeChoices, restrictionsBothSet)) {
+        DisplayedTreeData& leftTree = displayed_trees_left_child.displayed_trees[i];
+        if (!reticulationConfigsCompatible(leftTree.treeLoglData.reticulationChoices, restrictionsBothSet)) {
             continue;
         }
         for (size_t j = 0; j < displayed_trees_right_child.num_active_displayed_trees; ++j) {
-            ReticulationConfigSet& rightTreeChoices = displayed_trees_right_child.displayed_trees[j].treeLoglData.reticulationChoices;
-            if (!reticulationConfigsCompatible(rightTreeChoices, restrictionsBothSet)) {
+            DisplayedTreeData& rightTree = displayed_trees_right_child.displayed_trees[j];
+            if (!reticulationConfigsCompatible(rightTree.treeLoglData.reticulationChoices, restrictionsBothSet)) {
                 continue;
             }
-            if (reticulationConfigsCompatible(leftTreeChoices, rightTreeChoices)) {
+            if (reticulationConfigsCompatible(leftTree.treeLoglData.reticulationChoices, rightTree.treeLoglData.reticulationChoices)) {
                 add_displayed_tree(ann_network, node->clv_index);
                 num_trees_added++;
+                
+                DisplayedTreeData& newDisplayedTree = displayed_trees.displayed_trees[displayed_trees.num_active_displayed_trees-1];
                 for (size_t partition_idx = 0; partition_idx < ann_network.fake_treeinfo->partition_count; ++partition_idx) {
+                    //skip remote partitions
+                    if (!ann_network.fake_treeinfo->partitions[partition_idx]) {
+                        continue;
+                    }
                     pll_partition_t* partition = ann_network.fake_treeinfo->partitions[partition_idx];
-                    DisplayedTreeData& leftTree = displayed_trees_left_child.displayed_trees[i];
-                    DisplayedTreeData& rightTree = displayed_trees_right_child.displayed_trees[j];
-                    
-                    DisplayedTreeData& newDisplayedTree = displayed_trees.displayed_trees[displayed_trees.num_active_displayed_trees-1];
-
                     double* parent_clv = newDisplayedTree.clv_vector[partition_idx];
                     unsigned int* parent_scaler = newDisplayedTree.scale_buffer[partition_idx];
                     double* left_clv = leftTree.clv_vector[partition_idx];
@@ -398,13 +399,11 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, Node*
                     double* right_clv = rightTree.clv_vector[partition_idx];
                     unsigned int* right_scaler = rightTree.scale_buffer[partition_idx];
                     pll_update_partials_single(partition, &op_both, 1, parent_clv, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
-                    newDisplayedTree.treeLoglData.reticulationChoices = combineReticulationChoices(leftTreeChoices, rightTreeChoices);
-                    newDisplayedTree.treeLoglData.reticulationChoices = combineReticulationChoices(newDisplayedTree.treeLoglData.reticulationChoices, restrictionsBothSet);
-                    
-                    assert(newDisplayedTree.treeLoglData[partition_idx].reticulationChoices == displayed_trees.displayed_trees[displayed_trees.num_active_displayed_trees-1].treeLoglData[0].reticulationChoices);
-
-                    //newDisplayedTree.treeLoglData.childrenTaken = {left_child, right_child};
                 }
+                newDisplayedTree.treeLoglData.reticulationChoices = combineReticulationChoices(leftTree.treeLoglData.reticulationChoices, rightTree.treeLoglData.reticulationChoices);
+                newDisplayedTree.treeLoglData.reticulationChoices = combineReticulationChoices(newDisplayedTree.treeLoglData.reticulationChoices, restrictionsBothSet);
+                
+                //newDisplayedTree.treeLoglData.childrenTaken = {left_child, right_child};
             }
         }
     }
@@ -416,19 +415,22 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, Node*
         right_child_dead_settings = combineReticulationChoices(right_child_dead_settings, extraRestrictions);
     }
     for (size_t i = 0; i < displayed_trees_left_child.num_active_displayed_trees; ++i) {
-        ReticulationConfigSet& leftTreeChoices = displayed_trees_left_child.displayed_trees[i].treeLoglData.reticulationChoices;
-        ReticulationConfigSet leftOnlyConfigs = getReticulationChoicesThisOnly(ann_network, leftTreeChoices, right_child_dead_settings, node, left_child, right_child);
+        DisplayedTreeData& leftTree = displayed_trees_left_child.displayed_trees[i];
+        ReticulationConfigSet leftOnlyConfigs = getReticulationChoicesThisOnly(ann_network, leftTree.treeLoglData.reticulationChoices, right_child_dead_settings, node, left_child, right_child);
         if (!extraRestrictions.configs.empty()) {
             leftOnlyConfigs = combineReticulationChoices(leftOnlyConfigs, extraRestrictions);
         }
 
         if (!leftOnlyConfigs.configs.empty()) {
             add_displayed_tree(ann_network, node->clv_index);
+            DisplayedTreeData& tree = displayed_trees.displayed_trees[displayed_trees.num_active_displayed_trees-1];
+            
             for (size_t partition_idx = 0; partition_idx < ann_network.fake_treeinfo->partition_count; ++partition_idx) {
+                // skip remote partitions
+                if (!ann_network.fake_treeinfo->partitions[partition_idx]) {
+                    continue;
+                }
                 pll_partition_t* partition = ann_network.fake_treeinfo->partitions[partition_idx];
-                DisplayedTreeData& leftTree = displayed_trees_left_child.displayed_trees[i];
-
-                DisplayedTreeData& tree = displayed_trees.displayed_trees[displayed_trees.num_active_displayed_trees-1];
                 double* parent_clv = tree.clv_vector[partition_idx];
                 unsigned int* parent_scaler = tree.scale_buffer[partition_idx];
                 double* left_clv = leftTree.clv_vector[partition_idx];
@@ -436,9 +438,9 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, Node*
                 double* right_clv = partition->clv[fake_clv_index];
                 unsigned int* right_scaler = nullptr;
                 pll_update_partials_single(partition, &op_left_only, 1, parent_clv, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
-                tree.treeLoglData.reticulationChoices = leftOnlyConfigs;
-                //tree.treeLoglData.childrenTaken = {left_child};
             }
+            tree.treeLoglData.reticulationChoices = leftOnlyConfigs;
+            //tree.treeLoglData.childrenTaken = {left_child};
             num_trees_added++;
         }
     }
@@ -450,18 +452,21 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, Node*
         left_child_dead_settings = combineReticulationChoices(left_child_dead_settings, extraRestrictions);
     }
     for (size_t i = 0; i < displayed_trees_right_child.num_active_displayed_trees; ++i) {
-        ReticulationConfigSet& rightTreeChoices = displayed_trees_right_child.displayed_trees[i].treeLoglData.reticulationChoices;
-        ReticulationConfigSet rightOnlyConfigs = getReticulationChoicesThisOnly(ann_network, rightTreeChoices, left_child_dead_settings, node, right_child, left_child);
+        DisplayedTreeData& rightTree = displayed_trees_right_child.displayed_trees[i];
+        ReticulationConfigSet rightOnlyConfigs = getReticulationChoicesThisOnly(ann_network, rightTree.treeLoglData.reticulationChoices, left_child_dead_settings, node, right_child, left_child);
         if (!extraRestrictions.configs.empty()) {
             rightOnlyConfigs = combineReticulationChoices(rightOnlyConfigs, extraRestrictions);
         }
         if (!rightOnlyConfigs.configs.empty()) {
             add_displayed_tree(ann_network, node->clv_index);
-            for (size_t partition_idx = 0; partition_idx < ann_network.fake_treeinfo->partition_count; ++partition_idx) {
-                pll_partition_t* partition = ann_network.fake_treeinfo->partitions[partition_idx];
-                DisplayedTreeData& rightTree = displayed_trees_right_child.displayed_trees[i];
+            DisplayedTreeData& tree = displayed_trees.displayed_trees[displayed_trees.num_active_displayed_trees-1];
 
-                DisplayedTreeData& tree = displayed_trees.displayed_trees[displayed_trees.num_active_displayed_trees-1];
+            for (size_t partition_idx = 0; partition_idx < ann_network.fake_treeinfo->partition_count; ++partition_idx) {
+                // skip remote partitions
+                if (!ann_network.fake_treeinfo->partitions[partition_idx]) {
+                    continue;
+                }
+                pll_partition_t* partition = ann_network.fake_treeinfo->partitions[partition_idx];
                 double* parent_clv = tree.clv_vector[partition_idx];
                 unsigned int* parent_scaler = tree.scale_buffer[partition_idx];
                 double* left_clv = rightTree.clv_vector[partition_idx];
@@ -469,9 +474,9 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, Node*
                 double* right_clv = partition->clv[fake_clv_index];
                 unsigned int* right_scaler = nullptr;
                 pll_update_partials_single(partition, &op_right_only, 1, parent_clv, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
-                tree.treeLoglData.reticulationChoices = rightOnlyConfigs;
-                //tree.treeLoglData.childrenTaken = {right_child};
             }
+            tree.treeLoglData.reticulationChoices = rightOnlyConfigs;
+            //tree.treeLoglData.childrenTaken = {right_child};
             num_trees_added++;
         }
     }
