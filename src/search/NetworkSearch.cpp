@@ -19,6 +19,8 @@
 #include "../likelihood/LikelihoodComputation.hpp"
 #include "../optimization/NetworkState.hpp"
 
+//#undef _NETRAX_OPENMP
+
 namespace netrax {
 
 struct ScoreImprovementResult {
@@ -29,27 +31,27 @@ struct ScoreImprovementResult {
 bool logl_stays_same(AnnotatedNetwork& ann_network) {
     std::cout << "displayed trees before:\n";
     for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
-        size_t n_trees = ann_network.pernode_displayed_tree_data[i][ann_network.network.root->clv_index].num_active_displayed_trees;
+        size_t n_trees = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].num_active_displayed_trees;
         for (size_t j = 0; j < n_trees; ++j) {
-            DisplayedTreeData& tree = ann_network.pernode_displayed_tree_data[i][ann_network.network.root->clv_index].displayed_trees[j];
+            DisplayedTreeData& tree = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].displayed_trees[i][j];
             std::cout << "logl: " << tree.treeLoglData.tree_logl << ", logprob: " << tree.treeLoglData.tree_logprob << "\n";
         }
     }
     double incremental = netrax::computeLoglikelihood(ann_network, 1, 1);
     std::cout << "displayed trees in between:\n";
     for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
-        size_t n_trees = ann_network.pernode_displayed_tree_data[i][ann_network.network.root->clv_index].num_active_displayed_trees;
+        size_t n_trees = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].num_active_displayed_trees;
         for (size_t j = 0; j < n_trees; ++j) {
-            DisplayedTreeData& tree = ann_network.pernode_displayed_tree_data[i][ann_network.network.root->clv_index].displayed_trees[j];
+            DisplayedTreeData& tree = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].displayed_trees[i][j];
             std::cout << "logl: " << tree.treeLoglData.tree_logl << ", logprob: " << tree.treeLoglData.tree_logprob << "\n";
         }
     }
     double normal = netrax::computeLoglikelihood(ann_network, 0, 1);
     std::cout << "displayed trees after:\n";
     for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
-        size_t n_trees = ann_network.pernode_displayed_tree_data[i][ann_network.network.root->clv_index].num_active_displayed_trees;
+        size_t n_trees = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].num_active_displayed_trees;
         for (size_t j = 0; j < n_trees; ++j) {
-            DisplayedTreeData& tree = ann_network.pernode_displayed_tree_data[i][ann_network.network.root->clv_index].displayed_trees[j];
+            DisplayedTreeData& tree = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].displayed_trees[i][j];
             std::cout << "logl: " << tree.treeLoglData.tree_logl << ", logprob: " << tree.treeLoglData.tree_logprob << "\n";
         }
     }
@@ -84,9 +86,9 @@ void printDisplayedTrees(AnnotatedNetwork& ann_network) {
         std::string newick = netrax::toExtendedNewick(ann_network);
         displayed_trees.emplace_back(std::make_pair(newick, 1.0));
     } else {
-        size_t n_trees = ann_network.pernode_displayed_tree_data[0][ann_network.network.root->clv_index].num_active_displayed_trees;
+        size_t n_trees = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].num_active_displayed_trees;
         for (size_t j = 0; j < n_trees; ++j) {
-            DisplayedTreeData& tree = ann_network.pernode_displayed_tree_data[0][ann_network.network.root->clv_index].displayed_trees[j];
+            DisplayedTreeData& tree = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].displayed_trees[0][j];
             pll_utree_t* utree = netrax::displayed_tree_to_utree(ann_network.network, tree.treeLoglData.reticulationChoices.configs[0]);
             double prob = std::exp(tree.treeLoglData.tree_logprob);
             Network displayedNetwork = netrax::convertUtreeToNetwork(*utree, 0);
@@ -233,12 +235,18 @@ void prefilterCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T>& can
 
     bool stop = false;
 
+    #ifdef _NETRAX_OPENMP
     #pragma omp parallel for schedule(dynamic)
+    #endif
     for (size_t i = 0; i < candidates.size(); ++i) {
         if (stop) {
             continue;
         }
+        #ifdef _NETRAX_OPENMP
         AnnotatedNetwork& ann_network = ann_network_thread[omp_get_thread_num()];
+        #else
+        AnnotatedNetwork& ann_network = ann_network_orig;
+        #endif
         apply_network_state(ann_network, oldState);
         T move(candidates[i]);
         bool recompute_from_scratch = needsRecompute(ann_network, move);
@@ -272,16 +280,21 @@ void prefilterCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T>& can
         }
 
         if (bicScore < best_bic) {
+            #ifdef _NETRAX_OPENMP
             #pragma omp critical
             {
                 if (bicScore < best_bic) {
                     best_bic = bicScore;
                 }
             }
+            #else
+            best_bic = bicScore;
+            #endif
         }
 
         if (ann_network.options.use_extreme_greedy) {
             if (bicScore < old_bic && !stop) {
+                #ifdef _NETRAX_OPENMP
                 #pragma omp critical
                 {
                     if (bicScore < old_bic && !stop) {
@@ -289,6 +302,10 @@ void prefilterCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T>& can
                         stop = true;
                     }
                 }
+                #else
+                candidates[0] = candidates[i];
+                stop = true;
+                #endif
             }
         }
     }
@@ -320,11 +337,13 @@ void prefilterCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T>& can
 
     candidates.resize(newSize);
 
+    #ifndef _NETRAX_OPENMP
+    apply_network_state(ann_network_orig, oldState);
+    #endif
+
     for (size_t i = 0; i < candidates.size(); ++i) {
         assert(checkSanity(ann_network_orig, candidates[i]));
     }
-
-    //apply_network_state(ann_network_orig, oldState);
 }
 
 template <typename T>
@@ -353,12 +372,18 @@ bool rankCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T> candidate
 
     bool stop = false;
 
+    #ifdef _NETRAX_OPENMP
     #pragma omp parallel for schedule(dynamic)
+    #endif
     for (size_t i = 0; i < candidates.size(); ++i) {
         if (stop) {
             continue;
         }
+        #ifdef _NETRAX_OPENMP
         AnnotatedNetwork& ann_network = ann_network_thread[omp_get_thread_num()];
+        #else
+        AnnotatedNetwork& ann_network = ann_network_orig;
+        #endif
         apply_network_state(ann_network, oldState);
         T move(candidates[i]);
         bool recompute_from_scratch = needsRecompute(ann_network, move);
@@ -379,6 +404,7 @@ bool rankCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T> candidate
         double bicScore = scoreNetwork(ann_network);
 
         if (bicScore < best_bic && !stop) {
+            #ifdef _NETRAX_OPENMP
             #pragma omp critical
             {
                 if (bicScore < best_bic && !stop) {
@@ -391,10 +417,20 @@ bool rankCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T> candidate
                     found_better = true;
                 }
             }
+            #else
+            best_bic = bicScore;
+            if (found_better) {
+                extract_network_state(ann_network, *state);
+            } else {
+                *state = extract_network_state(ann_network);
+            }
+            found_better = true;
+            #endif
         }
 
         if (ann_network.options.use_extreme_greedy) {
             if (bicScore < old_bic && !stop) {
+                #ifdef _NETRAX_OPENMP
                 #pragma omp critical
                 {
                     if (bicScore < old_bic && !stop) {
@@ -402,6 +438,10 @@ bool rankCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T> candidate
                         stop = true;
                     }
                 }
+                #else
+                candidates[0] = candidates[i];
+                stop = true;
+                #endif
             }
         }
 
@@ -432,7 +472,9 @@ bool rankCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T> candidate
 
     candidates.resize(newSize);
 
-    //apply_network_state(ann_network_orig, oldState);
+    #ifndef _NETRAX_OPENMP
+    apply_network_state(ann_network_orig, oldState);
+    #endif
 
     return found_better;
 }
@@ -778,7 +820,11 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
 void run_single_start_waves(NetraxOptions& netraxOptions, const std::vector<MoveType>& typesBySpeed, std::mt19937& rng) {
     netrax::AnnotatedNetwork ann_network = build_annotated_network(netraxOptions);
     init_annotated_network(ann_network, rng);
+    #ifdef _NETRAX_OPENMP
     std::vector<AnnotatedNetwork> ann_network_thread(omp_get_max_threads(), AnnotatedNetwork(ann_network));
+    #else
+    std::vector<AnnotatedNetwork> ann_network_thread;
+    #endif
     BestNetworkData bestNetworkData(ann_network.options.max_reticulations);
     wavesearch(ann_network, &bestNetworkData, typesBySpeed, ann_network_thread);
 
@@ -810,8 +856,12 @@ void run_random(NetraxOptions& netraxOptions, const std::vector<MoveType>& types
     std::uniform_int_distribution<long> dist(0, RAND_MAX);
     BestNetworkData bestNetworkData(netraxOptions.max_reticulations);
 
+    #ifdef _NETRAX_OPENMP
     netrax::AnnotatedNetwork ann_network_proto = build_random_annotated_network(netraxOptions, 42);
     std::vector<AnnotatedNetwork> ann_network_thread(omp_get_max_threads(), AnnotatedNetwork(ann_network_proto));
+    #else
+    std::vector<AnnotatedNetwork> ann_network_thread;
+    #endif
 
     Statistics totalStats;
     std::vector<MoveType> allTypes = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::TailMove, MoveType::RSPRMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove, MoveType::DeltaMinusMove, MoveType::ArcRemovalMove};

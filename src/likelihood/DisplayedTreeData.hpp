@@ -63,6 +63,27 @@ struct ReticulationConfigSet {
     std::vector<std::vector<ReticulationState> > configs;
     size_t max_reticulations = 0;
 
+    bool operator==(const ReticulationConfigSet& other) const {
+        if (max_reticulations != other.max_reticulations) {
+            return false;
+        }
+        if (configs.size() != other.configs.size()) {
+            return false;
+        }
+        for (size_t i = 0; i < configs.size(); ++i) {
+            if (configs[i].size() != other.configs[i].size()) {
+                return false;
+            }
+            for (size_t j = 0; j < configs[i].size(); ++j) {
+                if (configs[i][j] != other.configs[i][j]) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
     ReticulationConfigSet() = default;
 
     ReticulationConfigSet(size_t max_reticulations) : max_reticulations(max_reticulations) {}

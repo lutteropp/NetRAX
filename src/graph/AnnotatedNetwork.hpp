@@ -32,10 +32,11 @@ struct Statistics {
 };
 
 struct NodeDisplayedTreeData {
-    std::vector<DisplayedTreeData> displayed_trees;
+    std::vector<std::vector<DisplayedTreeData> > displayed_trees;
     size_t num_active_displayed_trees = 0;
-    ClvRangeInfo clvInfo;
-    ScaleBufferRangeInfo scaleBufferInfo;
+    size_t partition_count = 0;
+    std::vector<ClvRangeInfo> clvInfo;
+    std::vector<ScaleBufferRangeInfo> scaleBufferInfo;
 
     bool operator==(const NodeDisplayedTreeData& rhs) const
     {
@@ -43,11 +44,13 @@ struct NodeDisplayedTreeData {
             return false;
         }
         for (size_t i = 0; i < num_active_displayed_trees; ++i) {
-            if (!clv_single_entries_equal(clvInfo, displayed_trees[i].clv_vector, rhs.displayed_trees[i].clv_vector)) {
-                return false;
-            }
-            if (!scale_buffer_single_entries_equal(scaleBufferInfo, displayed_trees[i].scale_buffer, rhs.displayed_trees[i].scale_buffer)) {
-                return false;
+            for (size_t j = 0; j < partition_count; ++j) {
+                if (!clv_single_entries_equal(clvInfo[j], displayed_trees[j][i].clv_vector, rhs.displayed_trees[j][i].clv_vector)) {
+                    return false;
+                }
+                if (!scale_buffer_single_entries_equal(scaleBufferInfo[j], displayed_trees[j][i].scale_buffer, rhs.displayed_trees[j][i].scale_buffer)) {
+                    return false;
+                }
             }
         }
         return true;
@@ -59,14 +62,14 @@ struct NodeDisplayedTreeData {
     }
 
     NodeDisplayedTreeData(NodeDisplayedTreeData&& rhs)
-      : displayed_trees{rhs.displayed_trees}, num_active_displayed_trees{rhs.num_active_displayed_trees}, clvInfo{rhs.clvInfo}, scaleBufferInfo{rhs.scaleBufferInfo}
+      : displayed_trees{rhs.displayed_trees}, num_active_displayed_trees{rhs.num_active_displayed_trees}, partition_count{rhs.partition_count}, clvInfo{rhs.clvInfo}, scaleBufferInfo{rhs.scaleBufferInfo}
     {
         rhs.num_active_displayed_trees = 0;
-        rhs.displayed_trees = std::vector<DisplayedTreeData>();
+        rhs.displayed_trees = std::vector<std::vector<DisplayedTreeData> >();
     }
 
     NodeDisplayedTreeData(const NodeDisplayedTreeData& rhs)
-      : num_active_displayed_trees{rhs.num_active_displayed_trees}, clvInfo{rhs.clvInfo}, scaleBufferInfo{rhs.scaleBufferInfo}
+      : num_active_displayed_trees{rhs.num_active_displayed_trees}, partition_count{rhs.partition_count}, clvInfo{rhs.clvInfo}, scaleBufferInfo{rhs.scaleBufferInfo}
     {
         displayed_trees = rhs.displayed_trees;
     }
@@ -79,6 +82,7 @@ struct NodeDisplayedTreeData {
         {
             displayed_trees = std::move(rhs.displayed_trees);
             num_active_displayed_trees = rhs.num_active_displayed_trees;
+            partition_count = rhs.partition_count;
             rhs.num_active_displayed_trees = 0;
             clvInfo = rhs.clvInfo;
             scaleBufferInfo = rhs.scaleBufferInfo;
@@ -92,6 +96,7 @@ struct NodeDisplayedTreeData {
         {
             displayed_trees = rhs.displayed_trees;
             num_active_displayed_trees = rhs.num_active_displayed_trees;
+            partition_count = rhs.partition_count;
             clvInfo = rhs.clvInfo;
             scaleBufferInfo = rhs.scaleBufferInfo;
         }
@@ -115,7 +120,7 @@ struct AnnotatedNetwork {
     std::vector<ClvRangeInfo> partition_clv_ranges;
     std::vector<ScaleBufferRangeInfo> partition_scale_buffer_ranges;
 
-    std::vector<std::vector<NodeDisplayedTreeData> > pernode_displayed_tree_data;
+    std::vector<NodeDisplayedTreeData> pernode_displayed_tree_data;
 
     std::vector<Node*> travbuffer;
     std::mt19937 rng;

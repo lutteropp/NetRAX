@@ -49,10 +49,8 @@ bool assert_branch_lengths(AnnotatedNetwork& ann_network) {
 }
 
 void apply_displayed_trees_data(const NetworkState& state, AnnotatedNetwork& ann_network, bool copy_network) {
-    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-        for (size_t i = 0; i < ann_network.network.nodes.size(); ++i) {
-            ann_network.pernode_displayed_tree_data[p][i] = state.pernode_displayed_tree_data[p][i];
-        }
+    for (size_t i = 0; i < ann_network.network.nodes.size(); ++i) {
+        ann_network.pernode_displayed_tree_data[i] = state.pernode_displayed_tree_data[i];
     }
 }
 
@@ -63,9 +61,9 @@ void add_missing_displayed_trees_data(AnnotatedNetwork& ann_network, NetworkStat
         ClvRangeInfo clvInfo = state.displayed_tree_clv_ranges[p];
         ScaleBufferRangeInfo scaleBufferInfo = state.displayed_tree_scale_buffer_ranges[p];
         for (size_t i = 0; i < ann_network.network.nodes.size(); ++i) {
-            while (state.pernode_displayed_tree_data[p][i].displayed_trees.size() < ann_network.pernode_displayed_tree_data[p][i].num_active_displayed_trees) {
+            while (state.pernode_displayed_tree_data[i].displayed_trees[p].size() < ann_network.pernode_displayed_tree_data[i].num_active_displayed_trees) {
                 // add another displayed tree
-                state.pernode_displayed_tree_data[p][i].displayed_trees.emplace_back(DisplayedTreeData(clvInfo, scaleBufferInfo, maxReticulations));
+                state.pernode_displayed_tree_data[i].displayed_trees[p].emplace_back(DisplayedTreeData(clvInfo, scaleBufferInfo, maxReticulations));
             }
         }
     }
@@ -73,10 +71,8 @@ void add_missing_displayed_trees_data(AnnotatedNetwork& ann_network, NetworkStat
 
 void extract_displayed_trees_data(AnnotatedNetwork& ann_network, NetworkState& state) {
     add_missing_displayed_trees_data(ann_network, state);
-    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-        for (size_t i = 0; i < ann_network.network.nodes.size(); ++i) {
-            state.pernode_displayed_tree_data[p][i] = ann_network.pernode_displayed_tree_data[p][i];
-        }
+    for (size_t i = 0; i < ann_network.network.nodes.size(); ++i) {
+        state.pernode_displayed_tree_data[i] = ann_network.pernode_displayed_tree_data[i];
     }
 }
 
@@ -174,13 +170,16 @@ NetworkState extract_network_state(AnnotatedNetwork &ann_network, bool extract_n
         state.displayed_tree_clv_ranges[p] = get_clv_range(ann_network.fake_treeinfo->partitions[p]);
         state.displayed_tree_scale_buffer_ranges[p] = get_scale_buffer_range(ann_network.fake_treeinfo->partitions[p]);
     }
-    state.pernode_displayed_tree_data.resize(ann_network.fake_treeinfo->partition_count);
-    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-        state.pernode_displayed_tree_data[p].resize(ann_network.network.nodes.size());
-         for (size_t i = 0; i < ann_network.network.num_tips(); ++i) {
-            state.pernode_displayed_tree_data[p][i].displayed_trees.emplace_back(DisplayedTreeData(ann_network.fake_treeinfo->partitions[p]->clv[i], ann_network.options.max_reticulations));
-            state.pernode_displayed_tree_data[p][i].num_active_displayed_trees++;
+    state.pernode_displayed_tree_data.resize(ann_network.network.nodes.size());
+    for (size_t i = 0; i < state.pernode_displayed_tree_data.size(); ++i) {
+        state.pernode_displayed_tree_data[i].displayed_trees.resize(ann_network.fake_treeinfo->partition_count);
+    }
+    
+    for (size_t i = 0; i < ann_network.network.num_tips(); ++i) {
+        for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+            state.pernode_displayed_tree_data[i].displayed_trees[p].emplace_back(DisplayedTreeData(ann_network.fake_treeinfo->partitions[p]->clv[i], ann_network.options.max_reticulations));
         }
+        state.pernode_displayed_tree_data[i].num_active_displayed_trees = 1;
     }
 
     extract_network_state(ann_network, state, extract_network);
@@ -356,12 +355,9 @@ bool alphas_equal(const NetworkState& old_state, const NetworkState& act_state) 
 
 bool displayed_trees_equal(const NetworkState& old_state, const NetworkState& act_state) {
     assert(old_state.pernode_displayed_tree_data.size() == act_state.pernode_displayed_tree_data.size());
-    for (size_t p = 0; p < old_state.pernode_displayed_tree_data.size(); ++p) {
-        assert(old_state.pernode_displayed_tree_data[p].size() == act_state.pernode_displayed_tree_data[p].size());
-        for (size_t i = 0; i < old_state.pernode_displayed_tree_data[p].size(); ++i) {
-            if (old_state.pernode_displayed_tree_data[p][i] != act_state.pernode_displayed_tree_data[p][i]) {
-                return false;
-            }
+    for (size_t i = 0; i < old_state.pernode_displayed_tree_data.size(); ++i) {
+        if (old_state.pernode_displayed_tree_data[i] != act_state.pernode_displayed_tree_data[i]) {
+            return false;
         }
     }
     return true;

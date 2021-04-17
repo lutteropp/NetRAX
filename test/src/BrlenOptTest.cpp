@@ -231,9 +231,9 @@ TEST (BrlenOptTest, smallVirtualRoots) {
     double old_logl = computeLoglikelihood(annTreeNetwork, 1, 1);
 
     for (size_t p = 0; p < annTreeNetwork.fake_treeinfo->partition_count; ++p) {
-        size_t n_trees = annTreeNetwork.pernode_displayed_tree_data[p][annTreeNetwork.network.root->clv_index].num_active_displayed_trees;
+        size_t n_trees = annTreeNetwork.pernode_displayed_tree_data[annTreeNetwork.network.root->clv_index].num_active_displayed_trees;
         for (size_t i = 0; i < n_trees; ++i) {
-                DisplayedTreeData& tree = annTreeNetwork.pernode_displayed_tree_data[p][annTreeNetwork.network.root->clv_index].displayed_trees[i];
+                DisplayedTreeData& tree = annTreeNetwork.pernode_displayed_tree_data[annTreeNetwork.network.root->clv_index].displayed_trees[p][i];
                 std::cout << "correct partition " << p << ", tree " << i << " logl: " << tree.treeLoglData.tree_logl << ", logprob: " << tree.treeLoglData.tree_logprob << "\n";
         }
     }
