@@ -67,6 +67,7 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     app.add_option("--start_temperature", options->start_temperature, "Start temperature to be used for simulated annealing (default: 100).");
 
     CLI11_PARSE(app, argc, argv);
+
     if (average_displayed_tree_variant && best_displayed_tree_variant) {
         throw std::runtime_error("Cannot specify both --average_displayed_tree_variant and --best_displayed_tree_variant at once");
     }
@@ -138,7 +139,9 @@ void pretty_print(NetraxOptions &netraxOptions)
         throw std::runtime_error("No input network specified to be pretty-printed");
     }
     Network network = netrax::readNetworkFromFile(netraxOptions.start_network_file);
-    std::cout << exportDebugInfoNetwork(network) << "\n";
+    if (ParallelContext::master_rank()) {
+        std::cout << exportDebugInfoNetwork(network) << "\n";
+    }
 }
 
 void score_only(NetraxOptions &netraxOptions, std::mt19937 &rng)
@@ -155,24 +158,32 @@ void score_only(NetraxOptions &netraxOptions, std::mt19937 &rng)
     init_annotated_network(ann_network, rng);
     optimizeModel(ann_network);
 
-    std::cout << "Initial, given network:\n";
-    std::cout << toExtendedNewick(ann_network) << "\n";
+    if (ParallelContext::master_rank()) {
+        std::cout << "Initial, given network:\n";
+        std::cout << toExtendedNewick(ann_network) << "\n";
+    }
 
     double start_bic = scoreNetwork(ann_network);
     double start_logl = computeLoglikelihood(ann_network, 1, 1);
-    std::cout << "Initial (before brlen and reticulation opt) BIC Score: " << start_bic << "\n";
-    std::cout << "Initial (before brlen and reticulation opt) loglikelihood: " << start_logl << "\n";
+    if (ParallelContext::master_rank()) {
+        std::cout << "Initial (before brlen and reticulation opt) BIC Score: " << start_bic << "\n";
+        std::cout << "Initial (before brlen and reticulation opt) loglikelihood: " << start_logl << "\n";
+    }
 
     optimizeAllNonTopology(ann_network, true);
 
-    std::cout << "Network after optimization of brlens and reticulation probs:\n";
-    std::cout << toExtendedNewick(ann_network) << "\n";
+    if (ParallelContext::master_rank()) {
+        std::cout << "Network after optimization of brlens and reticulation probs:\n";
+        std::cout << toExtendedNewick(ann_network) << "\n";
+    }
 
     double final_bic = scoreNetwork(ann_network);
     double final_logl = computeLoglikelihood(ann_network, 1, 1);
-    std::cout << "Number of reticulations: " << ann_network.network.num_reticulations() << "\n";
-    std::cout << "BIC Score: " << final_bic << "\n";
-    std::cout << "Loglikelihood: " << final_logl << "\n";
+    if (ParallelContext::master_rank()) {
+        std::cout << "Number of reticulations: " << ann_network.network.num_reticulations() << "\n";
+        std::cout << "BIC Score: " << final_bic << "\n";
+        std::cout << "Loglikelihood: " << final_logl << "\n";
+    }
 }
 
 void extract_taxon_names(const NetraxOptions &netraxOptions)
@@ -188,10 +199,12 @@ void extract_taxon_names(const NetraxOptions &netraxOptions)
     {
         tip_labels.emplace_back(network.nodes_by_index[i]->getLabel());
     }
-    std::cout << "Found " << tip_labels.size() << " taxa:\n";
-    for (size_t i = 0; i < tip_labels.size(); ++i)
-    {
-        std::cout << tip_labels[i] << "\n";
+    if (ParallelContext::master_rank()) {
+        std::cout << "Found " << tip_labels.size() << " taxa:\n";
+        for (size_t i = 0; i < tip_labels.size(); ++i)
+        {
+            std::cout << tip_labels[i] << "\n";
+        }
     }
 }
 
@@ -222,17 +235,18 @@ void extract_displayed_trees(NetraxOptions &netraxOptions, std::mt19937 &rng)
             displayed_trees.emplace_back(std::make_pair(newick, prob));
         }
     }
-
-    std::cout << "Number of displayed trees: " << displayed_trees.size() << "\n";
-    std::cout << "Displayed trees Newick strings:\n";
-    for (const auto &entry : displayed_trees)
-    {
-        std::cout << entry.first << "\n";
-    }
-    std::cout << "Displayed trees probabilities:\n";
-    for (const auto &entry : displayed_trees)
-    {
-        std::cout << entry.second << "\n";
+    if (ParallelContext::master_rank()) {
+        std::cout << "Number of displayed trees: " << displayed_trees.size() << "\n";
+        std::cout << "Displayed trees Newick strings:\n";
+        for (const auto &entry : displayed_trees)
+        {
+            std::cout << entry.first << "\n";
+        }
+        std::cout << "Displayed trees probabilities:\n";
+        for (const auto &entry : displayed_trees)
+        {
+            std::cout << entry.second << "\n";
+        }
     }
 }
 
@@ -253,8 +267,10 @@ void scale_branches_only(NetraxOptions &netraxOptions, std::mt19937 &rng)
         ann_network.network.edges_by_index[i]->length *= netraxOptions.scale_branches_only;
         ann_network.fake_treeinfo->branch_lengths[0][i] *= netraxOptions.scale_branches_only;
     }
-    writeNetwork(ann_network, netraxOptions.output_file);
-    std::cout << "Network with scaled branch lengths written to " << netraxOptions.output_file << "\n";
+    if (ParallelContext::master_rank()) {
+        writeNetwork(ann_network, netraxOptions.output_file);
+        std::cout << "Network with scaled branch lengths written to " << netraxOptions.output_file << "\n";
+    }
 }
 
 void network_distance_only(NetraxOptions &netraxOptions, std::mt19937 &rng)
@@ -277,16 +293,18 @@ void network_distance_only(NetraxOptions &netraxOptions, std::mt19937 &rng)
         label_to_int[ann_network_1.network.nodes_by_index[i]->label] = i;
     }
 
-    std::cout << "Unrooted softwired network distance: " << get_network_distance(ann_network_1, ann_network_2, label_to_int, NetworkDistanceType::UNROOTED_SOFTWIRED_DISTANCE) << "\n";
-    std::cout << "Unrooted hardwired network distance: " << get_network_distance(ann_network_1, ann_network_2, label_to_int, NetworkDistanceType::UNROOTED_HARDWIRED_DISTANCE) << "\n";
-    std::cout << "Unrooted displayed trees distance: " << get_network_distance(ann_network_1, ann_network_2, label_to_int, NetworkDistanceType::UNROOTED_DISPLAYED_TREES_DISTANCE) << "\n";
+    if (ParallelContext::master_rank()) {
+        std::cout << "Unrooted softwired network distance: " << get_network_distance(ann_network_1, ann_network_2, label_to_int, NetworkDistanceType::UNROOTED_SOFTWIRED_DISTANCE) << "\n";
+        std::cout << "Unrooted hardwired network distance: " << get_network_distance(ann_network_1, ann_network_2, label_to_int, NetworkDistanceType::UNROOTED_HARDWIRED_DISTANCE) << "\n";
+        std::cout << "Unrooted displayed trees distance: " << get_network_distance(ann_network_1, ann_network_2, label_to_int, NetworkDistanceType::UNROOTED_DISPLAYED_TREES_DISTANCE) << "\n";
 
-    std::cout << "Rooted softwired network distance: " << get_network_distance(ann_network_1, ann_network_2, label_to_int, NetworkDistanceType::ROOTED_SOFTWIRED_DISTANCE) << "\n";
-    std::cout << "Rooted hardwired network distance: " << get_network_distance(ann_network_1, ann_network_2, label_to_int, NetworkDistanceType::ROOTED_HARDWIRED_DISTANCE) << "\n";
-    std::cout << "Rooted displayed trees distance: " << get_network_distance(ann_network_1, ann_network_2, label_to_int, NetworkDistanceType::ROOTED_DISPLAYED_TREES_DISTANCE) << "\n";
-    std::cout << "Rooted tripartition distance: " << get_network_distance(ann_network_1, ann_network_2, label_to_int, NetworkDistanceType::ROOTED_TRIPARTITION_DISTANCE) << "\n";
-    std::cout << "Rooted path multiplicity distance: " << get_network_distance(ann_network_1, ann_network_2, label_to_int, NetworkDistanceType::ROOTED_PATH_MULTIPLICITY_DISTANCE) << "\n";
-    std::cout << "Rooted nested labels distance: " << get_network_distance(ann_network_1, ann_network_2, label_to_int, NetworkDistanceType::ROOTED_NESTED_LABELS_DISTANCE) << "\n";
+        std::cout << "Rooted softwired network distance: " << get_network_distance(ann_network_1, ann_network_2, label_to_int, NetworkDistanceType::ROOTED_SOFTWIRED_DISTANCE) << "\n";
+        std::cout << "Rooted hardwired network distance: " << get_network_distance(ann_network_1, ann_network_2, label_to_int, NetworkDistanceType::ROOTED_HARDWIRED_DISTANCE) << "\n";
+        std::cout << "Rooted displayed trees distance: " << get_network_distance(ann_network_1, ann_network_2, label_to_int, NetworkDistanceType::ROOTED_DISPLAYED_TREES_DISTANCE) << "\n";
+        std::cout << "Rooted tripartition distance: " << get_network_distance(ann_network_1, ann_network_2, label_to_int, NetworkDistanceType::ROOTED_TRIPARTITION_DISTANCE) << "\n";
+        std::cout << "Rooted path multiplicity distance: " << get_network_distance(ann_network_1, ann_network_2, label_to_int, NetworkDistanceType::ROOTED_PATH_MULTIPLICITY_DISTANCE) << "\n";
+        std::cout << "Rooted nested labels distance: " << get_network_distance(ann_network_1, ann_network_2, label_to_int, NetworkDistanceType::ROOTED_NESTED_LABELS_DISTANCE) << "\n";
+    }
 }
 
 void check_weird_network(NetraxOptions &netraxOptions, std::mt19937 &rng)
@@ -326,8 +344,10 @@ void check_weird_network(NetraxOptions &netraxOptions, std::mt19937 &rng)
         pll_utree_destroy(displayed_trees[i], nullptr);
     }
 
-    std::cout << "Number of pairs: " << n_pairs << "\n";
-    std::cout << "Number of equal pairs: " << n_equal << "\n";
+    if (ParallelContext::master_rank()) {
+        std::cout << "Number of pairs: " << n_pairs << "\n";
+        std::cout << "Number of equal pairs: " << n_equal << "\n";
+    }
 }
 
 void generate_random_network_only(NetraxOptions &netraxOptions, std::mt19937 &rng)
@@ -344,8 +364,10 @@ void generate_random_network_only(NetraxOptions &netraxOptions, std::mt19937 &rn
     netrax::AnnotatedNetwork ann_network = build_random_annotated_network(netraxOptions, dist(rng));
     init_annotated_network(ann_network, rng);
     add_extra_reticulations(ann_network, netraxOptions.max_reticulations);
-    writeNetwork(ann_network, netraxOptions.output_file);
-    std::cout << "Final network written to " << netraxOptions.output_file << "\n";
+    if (ParallelContext::master_rank()) {
+        writeNetwork(ann_network, netraxOptions.output_file);
+        std::cout << "Final network written to " << netraxOptions.output_file << "\n";
+    }
 }
 
 void scale_reticulation_probs_only(NetraxOptions &netraxOptions, std::mt19937 &rng)
@@ -369,13 +391,17 @@ void scale_reticulation_probs_only(NetraxOptions &netraxOptions, std::mt19937 &r
     for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
         ann_network.reticulation_probs[i] = netraxOptions.overwritten_reticulation_prob;
     }
-    writeNetwork(ann_network, netraxOptions.output_file);
-    std::cout << "Final network written to " << netraxOptions.output_file << "\n";
+    if (ParallelContext::master_rank()) {
+        writeNetwork(ann_network, netraxOptions.output_file);
+        std::cout << "Final network written to " << netraxOptions.output_file << "\n";
+    }
 }
 
 
-int main(int argc, char **argv)
+int internal_main_netrax(int argc, char **argv, void* comm)
 {
+    ParallelContext::init_mpi(argc, argv, comm);
+
     std::cout << std::setprecision(10);
     //mpfr::mpreal::set_default_prec(mpfr::digits2bits(1000));
 
@@ -383,10 +409,32 @@ int main(int argc, char **argv)
     //std::cin.tie(NULL);
     netrax::NetraxOptions netraxOptions;
 
+    netraxOptions.num_ranks = ParallelContext::num_ranks();
+
     //netrax::Network nw = netrax::readNetworkFromString("(((12:0.0381986,(((14:0.185353,(((((13:1.42035e-06)#0:1.43322e-06::0.5)#2:1.31229e-06::0.5)#3:1.4605e-06::0.5)#4:1.34252e-06::0.5)#5:0.0625::0.5):0.0926765)#1:0.0463383::0.5,#3:1::0.5):0.0463383):1.33647e-06,((((10:0.0445575,5:0.100001):1e-06,(3:0.140615,#4:1::0.5):0.140615):1e-06,#5:1::0.5):1e-06,#1:0.449939::0.5):1e-06):1e-06,11:0.0328376,(9:0.0343774,(#0:0.0935504::0.5,#2:1::0.5):0.0935504):1.33647e-06);");
     //std::cout << netrax::exportDebugInfo(nw) << "\n";
 
+    if (argc == 1) {
+        char * temp[] = {argv[0],strdup("-h")};
+        parseOptions(2, temp, &netraxOptions);
+        free(temp[1]);
+        return 0;
+    }
     parseOptions(argc, argv, &netraxOptions);
+
+    for(int i=0;i<argc;i++)
+    {
+        if(string(argv[i]) == "-h" || string(argv[i]) == "--help")
+        {
+            ParallelContext::finalize();
+            return 0;
+        }
+    }
+
+    // make sure all MPI ranks use the same random seed
+    ParallelContext::mpi_broadcast(&netraxOptions.seed, sizeof(long));
+    srand(netraxOptions.seed);
+
     std::mt19937 rng;
     if (netraxOptions.seed == 0)
     {
@@ -404,6 +452,7 @@ int main(int argc, char **argv)
     {
         pretty_print(netraxOptions);
         mpfr_free_cache();
+        ParallelContext::finalize();
         return 0;
     }
 
@@ -411,6 +460,7 @@ int main(int argc, char **argv)
     {
         extract_taxon_names(netraxOptions);
         mpfr_free_cache();
+        ParallelContext::finalize();
         return 0;
     }
 
@@ -418,6 +468,7 @@ int main(int argc, char **argv)
     {
         extract_displayed_trees(netraxOptions, rng);
         mpfr_free_cache();
+        ParallelContext::finalize();
         return 0;
     }
 
@@ -425,6 +476,7 @@ int main(int argc, char **argv)
     {
         check_weird_network(netraxOptions, rng);
         mpfr_free_cache();
+        ParallelContext::finalize();
         return 0;
     }
 
@@ -432,6 +484,7 @@ int main(int argc, char **argv)
     {
         generate_random_network_only(netraxOptions, rng);
         mpfr_free_cache();
+        ParallelContext::finalize();
         return 0;
     }
 
@@ -439,12 +492,14 @@ int main(int argc, char **argv)
     {
         scale_branches_only(netraxOptions, rng);
         mpfr_free_cache();
+        ParallelContext::finalize();
         return 0;
     }
 
     if (netraxOptions.change_reticulation_probs_only) {
         scale_reticulation_probs_only(netraxOptions, rng);
         mpfr_free_cache();
+        ParallelContext::finalize();
         return 0;
     }
 
@@ -452,11 +507,13 @@ int main(int argc, char **argv)
     {
         network_distance_only(netraxOptions, rng);
         mpfr_free_cache();
+        ParallelContext::finalize();
         return 0;
     }
 
     if (netraxOptions.msa_file.empty())
     {
+        ParallelContext::finalize();
         throw std::runtime_error("Need MSA to score a network");
     }
 
@@ -464,10 +521,12 @@ int main(int argc, char **argv)
     {
         score_only(netraxOptions, rng);
         mpfr_free_cache();
+        ParallelContext::finalize();
         return 0;
     }
     else if (netraxOptions.output_file.empty())
     {
+        ParallelContext::finalize();
         throw std::runtime_error("No output path specified");
     }
 
@@ -483,6 +542,24 @@ int main(int argc, char **argv)
         run_random(netraxOptions, typesBySpeed, rng);
         mpfr_free_cache();
     }
+    ParallelContext::finalize();
 
     return 0;
 }
+
+#ifdef _NETRAX_BUILD_AS_LIB
+
+extern "C" int dll_main(int argc, char** argv, void* comm)
+{
+  return internal_main_netrax(argc, argv, comm);
+}
+
+#else
+
+int main(int argc, char** argv)
+{
+  auto retval = internal_main_netrax(argc, argv, 0);
+  return retval;
+}
+
+#endif
