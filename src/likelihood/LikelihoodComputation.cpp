@@ -115,6 +115,8 @@ void computeDisplayedTreeLoglikelihood(AnnotatedNetwork& ann_network, DisplayedT
     Node* displayed_tree_root = findFirstNodeWithTwoActiveChildren(ann_network, treeAtRoot.treeLoglData.reticulationChoices, actRoot);
     DisplayedTreeData& treeWithoutDeadPath = findMatchingDisplayedTree(ann_network, treeAtRoot.treeLoglData.reticulationChoices, ann_network.pernode_displayed_tree_data[displayed_tree_root->clv_index]);
 
+    std::cout << "treeAtRoot.treeLoglData.tree_partition_logl.size(): " << treeAtRoot.treeLoglData.tree_partition_logl.size() << "\n";
+
     for (size_t partition_idx = 0; partition_idx < ann_network.fake_treeinfo->partition_count; ++partition_idx) {
         //skip remote partitions
         if (!ann_network.fake_treeinfo->partitions[partition_idx]) {
@@ -222,7 +224,7 @@ void add_displayed_tree(AnnotatedNetwork& ann_network, size_t clv_index) {
 
     if (data.num_active_displayed_trees > data.displayed_trees.size()) {
         assert(data.num_active_displayed_trees == data.displayed_trees.size() + 1);
-        data.displayed_trees.emplace_back(DisplayedTreeData(ann_network.fake_treeinfo->partition_count, ann_network.partition_clv_ranges, ann_network.partition_scale_buffer_ranges, ann_network.options.max_reticulations));
+        data.displayed_trees.emplace_back(DisplayedTreeData(ann_network.fake_treeinfo, ann_network.partition_clv_ranges, ann_network.partition_scale_buffer_ranges, ann_network.options.max_reticulations));
     } else { // zero out the clv vector and scale buffer
         for (size_t partition_idx = 0; partition_idx < ann_network.fake_treeinfo->partition_count; ++partition_idx) {
             assert(data.displayed_trees[data.num_active_displayed_trees-1].clv_vector[partition_idx]);

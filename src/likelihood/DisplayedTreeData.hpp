@@ -178,24 +178,32 @@ struct DisplayedTreeData {
     const std::vector<ScaleBufferRangeInfo>& scaleBufferInfo;
     bool isTip = false;
 
-    DisplayedTreeData(size_t n_partitions, const std::vector<ClvRangeInfo>& clvRangeInfo, const std::vector<ScaleBufferRangeInfo>& scaleBufferRangeInfo, size_t max_reticulations) : treeLoglData(n_partitions, max_reticulations), clvInfo(clvRangeInfo), scaleBufferInfo(scaleBufferRangeInfo) { // inner node
-        clv_vector = std::vector<double*>(n_partitions, nullptr);
-        for (size_t p = 0; p < n_partitions; ++p) {
+    DisplayedTreeData(pllmod_treeinfo_t* treeinfo, const std::vector<ClvRangeInfo>& clvRangeInfo, const std::vector<ScaleBufferRangeInfo>& scaleBufferRangeInfo, size_t max_reticulations) : treeLoglData(treeinfo->partition_count, max_reticulations), clvInfo(clvRangeInfo), scaleBufferInfo(scaleBufferRangeInfo) { // inner node
+        clv_vector = std::vector<double*>(treeinfo->partition_count, nullptr);
+        for (size_t p = 0; p < treeinfo->partition_count; ++p) {
+            // skip remote partitions
+            if (!treeinfo->partitions[p]) {
+                continue;
+            }
             clv_vector[p] = create_single_empty_clv(clvRangeInfo[p]);
         }
-        scale_buffer = std::vector<unsigned int*>(n_partitions, nullptr);
-        for (size_t p = 0; p < n_partitions; ++p) {
+        scale_buffer = std::vector<unsigned int*>(treeinfo->partition_count, nullptr);
+        for (size_t p = 0; p < treeinfo->partition_count; ++p) {
+            // skip remote partitions
+            if (!treeinfo->partitions[p]) {
+                continue;
+            }
             scale_buffer[p] = create_single_empty_scale_buffer(scaleBufferRangeInfo[p]);
         }
     }
 
-    DisplayedTreeData(size_t n_partitions, const std::vector<ClvRangeInfo>& clvRangeInfo, const std::vector<ScaleBufferRangeInfo>& scaleBufferRangeInfo, std::vector<double*> tip_clv_vector, size_t max_reticulations) : treeLoglData(n_partitions, max_reticulations), clvInfo(clvRangeInfo), scaleBufferInfo(scaleBufferRangeInfo) { // tip node
-        clv_vector = std::vector<double*>(n_partitions, nullptr);
-        for (size_t p = 0; p < n_partitions; ++p) {
+    DisplayedTreeData(pllmod_treeinfo_t* treeinfo, const std::vector<ClvRangeInfo>& clvRangeInfo, const std::vector<ScaleBufferRangeInfo>& scaleBufferRangeInfo, std::vector<double*> tip_clv_vector, size_t max_reticulations) : treeLoglData(treeinfo->partition_count, max_reticulations), clvInfo(clvRangeInfo), scaleBufferInfo(scaleBufferRangeInfo) { // tip node
+        clv_vector = std::vector<double*>(treeinfo->partition_count, nullptr);
+        for (size_t p = 0; p < treeinfo->partition_count; ++p) {
             clv_vector[p] = tip_clv_vector[p];
         }
         isTip = true;
-        scale_buffer = std::vector<unsigned int*>(n_partitions, nullptr);
+        scale_buffer = std::vector<unsigned int*>(treeinfo->partition_count, nullptr);
     }
 
     DisplayedTreeData(DisplayedTreeData&& rhs)
