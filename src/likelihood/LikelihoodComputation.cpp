@@ -131,6 +131,15 @@ void computeDisplayedTreeLoglikelihood(AnnotatedNetwork& ann_network, DisplayedT
         treeAtRoot.treeLoglData.tree_partition_logl[partition_idx] = tree_logl;
     }
 
+    /* sum up likelihood from all threads */
+    if (ann_network.fake_treeinfo->parallel_reduce_cb)
+    {
+        ann_network.fake_treeinfo->parallel_reduce_cb(ann_network.fake_treeinfo->parallel_context,
+                                    treeAtRoot.treeLoglData.tree_partition_logl.data(),
+                                    ann_network.fake_treeinfo->partition_count,
+                                    PLLMOD_COMMON_REDUCE_SUM);
+    }
+
     treeAtRoot.treeLoglData.tree_logl_valid = true;
     treeAtRoot.treeLoglData.tree_logprob = computeReticulationConfigLogProb(treeAtRoot.treeLoglData.reticulationChoices, ann_network.reticulation_probs);
     treeAtRoot.treeLoglData.tree_logprob_valid = true;
