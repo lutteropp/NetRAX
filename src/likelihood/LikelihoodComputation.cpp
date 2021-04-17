@@ -1460,8 +1460,18 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
                         std::cout << "source: " << source->clv_index << "\n";
                         std::cout << "target: " << target->clv_index << "\n";
                     }
+                    assert(combinedTreeData.tree_partition_logl[p] != -std::numeric_limits<double>::infinity());
                 }
-                assert(combinedTreeData.tree_partition_logl != -std::numeric_limits<double>::infinity());
+
+                /* sum up likelihood from all threads */
+                if (ann_network.fake_treeinfo->parallel_reduce_cb)
+                {
+                    ann_network.fake_treeinfo->parallel_reduce_cb(ann_network.fake_treeinfo->parallel_context,
+                                                combinedTreeData.tree_partition_logl.data(),
+                                                ann_network.fake_treeinfo->partition_count,
+                                                PLLMOD_COMMON_REDUCE_SUM);
+                }
+
                 combinedTreeData.tree_logprob = computeReticulationConfigLogProb(combinedTreeData.reticulationChoices, ann_network.reticulation_probs);
 
             } else {
