@@ -172,31 +172,42 @@ struct TreeLoglData {
 };
 
 struct DisplayedTreeData {
-    TreeLoglData treeLoglData;
-    double* clv_vector = nullptr;
-    unsigned int* scale_buffer = nullptr;
-    ClvRangeInfo clvInfo;
-    ScaleBufferRangeInfo scaleBufferInfo;
+    std::vector<TreeLoglData> treeLoglData;
+    std::vector<double*> clv_vector;
+    std::vector<unsigned int*> scale_buffer;
+    std::vector<ClvRangeInfo> clvInfo;
+    std::vector<ScaleBufferRangeInfo> scaleBufferInfo;
     bool isTip = false;
 
-    DisplayedTreeData(ClvRangeInfo clvRangeInfo, ScaleBufferRangeInfo scaleBufferRangeInfo, size_t max_reticulations) : treeLoglData(max_reticulations) { // inner node
-        clv_vector = create_single_empty_clv(clvRangeInfo);
-        scale_buffer = create_single_empty_scale_buffer(scaleBufferRangeInfo);
+    DisplayedTreeData(size_t n_partitions, std::vector<ClvRangeInfo>& clvRangeInfo, std::vector<ScaleBufferRangeInfo>& scaleBufferRangeInfo, size_t max_reticulations) { // inner node
+        treeLoglData = std::vector<TreeLoglData>(n_partitions, TreeLoglData(max_reticulations));
+        clv_vector = std::vector<double*>(n_partitions, nullptr);
+        for (size_t p = 0; p < n_partitions; ++p) {
+            clv_vector[p] = create_single_empty_clv(clvRangeInfo[p]);
+        }
+        scale_buffer = std::vector<unsigned int*>(n_partitions, nullptr);
+        for (size_t p = 0; p < n_partitions; ++p) {
+            scale_buffer[p] = create_single_empty_scale_buffer(scaleBufferRangeInfo[p]);
+        }
         this->clvInfo = clvRangeInfo;
         this->scaleBufferInfo = scaleBufferRangeInfo;
     }
 
-    DisplayedTreeData(double* tip_clv_vector, size_t max_reticulations) : treeLoglData(max_reticulations) { // tip node
-        clv_vector = tip_clv_vector;
+    DisplayedTreeData(size_t n_partitions, std::vector<double*> tip_clv_vector, size_t max_reticulations) { // tip node
+        treeLoglData = std::vector<TreeLoglData>(n_partitions, TreeLoglData(max_reticulations));
+        clv_vector = std::vector<double*>(n_partitions, nullptr);
+        for (size_t p = 0; p < n_partitions; ++p) {
+            clv_vector[p] = tip_clv_vector[p];
+        }
         isTip = true;
-        scale_buffer = nullptr;
+        scale_buffer = std::vector<unsigned int*>(n_partitions, nullptr);
     }
 
     DisplayedTreeData(DisplayedTreeData&& rhs)
       : treeLoglData{rhs.treeLoglData}, clv_vector{rhs.clv_vector}, scale_buffer{rhs.scale_buffer}, clvInfo{rhs.clvInfo}, scaleBufferInfo{rhs.scaleBufferInfo}, isTip{rhs.isTip}
     {
-        rhs.clv_vector = nullptr;
-        rhs.scale_buffer = nullptr;
+        rhs.clv_vector.clear();
+        rhs.scale_buffer.clear();
     }
 
     DisplayedTreeData(const DisplayedTreeData& rhs)
@@ -206,8 +217,14 @@ struct DisplayedTreeData {
             clv_vector = rhs.clv_vector;
             scale_buffer = rhs.scale_buffer;
         } else {
-            clv_vector = clone_single_clv_vector(rhs.clvInfo, rhs.clv_vector);
-            scale_buffer = clone_single_scale_buffer(rhs.scaleBufferInfo, rhs.scale_buffer);
+            clv_vector = std::vector<double*>(rhs.clv_vector.size(), nullptr);
+            for (size_t p = 0; p < rhs.clv_vector.size(); ++p) {
+                clv_vector[p] = clone_single_clv_vector(rhs.clvInfo[p], rhs.clv_vector[p]);
+            }
+            scale_buffer = std::vector<unsigned int*>(rhs.scale_buffer.size(), nullptr);
+            for (size_t p = 0; p < rhs.scale_buffer.size(); ++p) {
+                scale_buffer[p] = clone_single_scale_buffer(rhs.scaleBufferInfo[p], rhs.scale_buffer[p]);
+            }
         }
     }
 
@@ -216,17 +233,21 @@ struct DisplayedTreeData {
         if (this != &rhs)
         {
             if (!isTip) {
-                pll_aligned_free(clv_vector);
+                for (size_t p = 0; p < clv_vector.size(); ++p) {
+                    pll_aligned_free(clv_vector[p]);
+                }
             }
-            free(scale_buffer);
+            for (size_t p = 0; p < scale_buffer.size(); ++p) {
+                free(scale_buffer[p]);
+            }
             treeLoglData = rhs.treeLoglData;
             clv_vector = rhs.clv_vector;
             scale_buffer = rhs.scale_buffer;
             clvInfo = rhs.clvInfo;
             scaleBufferInfo = rhs.scaleBufferInfo;
 
-            rhs.clv_vector = nullptr;
-            rhs.scale_buffer = nullptr;
+            rhs.clv_vector.clear();
+            rhs.scale_buffer.clear();
             isTip = rhs.isTip;
         }
         return *this;
@@ -237,29 +258,43 @@ struct DisplayedTreeData {
         if (this != &rhs)
         {
             treeLoglData = rhs.treeLoglData;
-            if ((clv_vector && rhs.clv_vector) && (clvInfo == rhs.clvInfo) && (isTip == rhs.isTip)) { // simply overwrite
+            if ((clv_vector.size() == rhs.clv_vector.size()) && (clvInfo == rhs.clvInfo) && (isTip == rhs.isTip)) { // simply overwrite
                 if (rhs.isTip) {
                     clv_vector = rhs.clv_vector;
                 } else {
-                    memcpy(clv_vector, rhs.clv_vector, clvInfo.inner_clv_num_entries * sizeof(double));
+                    for (size_t p = 0; p < rhs.clv_vector.size(); ++p) {
+                        memcpy(clv_vector[p], rhs.clv_vector[p], clvInfo[p].inner_clv_num_entries * sizeof(double));
+                    }
                 }
             } else {
                 if (isTip) {
                     clv_vector = rhs.clv_vector;
                 } else {
-                    pll_aligned_free(clv_vector);
+                    for (size_t p = 0; p < clv_vector.size(); ++p) {
+                        pll_aligned_free(clv_vector[p]);
+                    }
                     if (rhs.isTip) {
                         clv_vector = rhs.clv_vector;
                     } else {
-                        clv_vector = clone_single_clv_vector(rhs.clvInfo, rhs.clv_vector);
+                        clv_vector = std::vector<double*>(rhs.clv_vector.size(), nullptr);
+                        for (size_t p = 0; p < rhs.clv_vector.size(); ++p) {
+                            clv_vector[p] = clone_single_clv_vector(rhs.clvInfo[p], rhs.clv_vector[p]);
+                        }
                     }
                 }
             }
-            if ((scale_buffer && rhs.scale_buffer) && (scaleBufferInfo == rhs.scaleBufferInfo)) { // simply overwrite
-                memcpy(scale_buffer, rhs.scale_buffer, scaleBufferInfo.scaler_size * sizeof(unsigned int));
+            if ((scale_buffer.size() == rhs.scale_buffer.size()) && (scaleBufferInfo == rhs.scaleBufferInfo)) { // simply overwrite
+                for (size_t p = 0; p < rhs.scale_buffer.size(); ++p) {
+                    memcpy(scale_buffer[p], rhs.scale_buffer[p], scaleBufferInfo[p].scaler_size * sizeof(unsigned int));
+                }
             } else {
-                free(scale_buffer);
-                scale_buffer = clone_single_scale_buffer(rhs.scaleBufferInfo, rhs.scale_buffer);
+                for (size_t p = 0; p < scale_buffer.size(); ++p) {
+                    free(scale_buffer[p]);
+                }
+                scale_buffer = std::vector<unsigned int*>(rhs.scale_buffer.size(), nullptr);
+                for (size_t p = 0; p < rhs.scale_buffer.size(); ++p) {
+                    scale_buffer[p] = clone_single_scale_buffer(rhs.scaleBufferInfo[p], rhs.scale_buffer[p]);
+                }
             }
             clvInfo = rhs.clvInfo;
             scaleBufferInfo = rhs.scaleBufferInfo;
@@ -270,9 +305,13 @@ struct DisplayedTreeData {
 
     ~DisplayedTreeData() {
         if (!isTip) {
-            pll_aligned_free(clv_vector);
+            for (size_t p = 0; p < clv_vector.size(); ++p) {
+                pll_aligned_free(clv_vector[p]);
+            }
         }
-        free(scale_buffer);
+        for (size_t p = 0; p < scale_buffer.size(); ++p) {
+            free(scale_buffer[p]);
+        }
     }
 };
 

@@ -32,7 +32,7 @@ struct Statistics {
 };
 
 struct NodeDisplayedTreeData {
-    std::vector<std::vector<DisplayedTreeData> > displayed_trees;
+    std::vector<DisplayedTreeData> displayed_trees;
     size_t num_active_displayed_trees = 0;
     size_t partition_count = 0;
     std::vector<ClvRangeInfo> clvInfo;
@@ -45,10 +45,10 @@ struct NodeDisplayedTreeData {
         }
         for (size_t i = 0; i < num_active_displayed_trees; ++i) {
             for (size_t j = 0; j < partition_count; ++j) {
-                if (!clv_single_entries_equal(clvInfo[j], displayed_trees[j][i].clv_vector, rhs.displayed_trees[j][i].clv_vector)) {
+                if (!clv_single_entries_equal(clvInfo[j], displayed_trees[i].clv_vector[j], rhs.displayed_trees[i].clv_vector[j])) {
                     return false;
                 }
-                if (!scale_buffer_single_entries_equal(scaleBufferInfo[j], displayed_trees[j][i].scale_buffer, rhs.displayed_trees[j][i].scale_buffer)) {
+                if (!scale_buffer_single_entries_equal(scaleBufferInfo[j], displayed_trees[i].scale_buffer[j], rhs.displayed_trees[i].scale_buffer[j])) {
                     return false;
                 }
             }
@@ -65,7 +65,7 @@ struct NodeDisplayedTreeData {
       : displayed_trees{rhs.displayed_trees}, num_active_displayed_trees{rhs.num_active_displayed_trees}, partition_count{rhs.partition_count}, clvInfo{rhs.clvInfo}, scaleBufferInfo{rhs.scaleBufferInfo}
     {
         rhs.num_active_displayed_trees = 0;
-        rhs.displayed_trees = std::vector<std::vector<DisplayedTreeData> >();
+        rhs.displayed_trees = std::vector<DisplayedTreeData>();
     }
 
     NodeDisplayedTreeData(const NodeDisplayedTreeData& rhs)

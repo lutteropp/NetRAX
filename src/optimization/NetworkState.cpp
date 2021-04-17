@@ -57,14 +57,10 @@ void apply_displayed_trees_data(const NetworkState& state, AnnotatedNetwork& ann
 
 void add_missing_displayed_trees_data(AnnotatedNetwork& ann_network, NetworkState& state) {
     size_t maxReticulations = ann_network.options.max_reticulations;
-    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-        ClvRangeInfo clvInfo = state.displayed_tree_clv_ranges[p];
-        ScaleBufferRangeInfo scaleBufferInfo = state.displayed_tree_scale_buffer_ranges[p];
-        for (size_t i = 0; i < ann_network.network.nodes.size(); ++i) {
-            while (state.pernode_displayed_tree_data[i].displayed_trees[p].size() < ann_network.pernode_displayed_tree_data[i].num_active_displayed_trees) {
-                // add another displayed tree
-                state.pernode_displayed_tree_data[i].displayed_trees[p].emplace_back(DisplayedTreeData(clvInfo, scaleBufferInfo, maxReticulations));
-            }
+    for (size_t i = 0; i < ann_network.network.nodes.size(); ++i) {
+        while (state.pernode_displayed_tree_data[i].displayed_trees.size() < ann_network.pernode_displayed_tree_data[i].num_active_displayed_trees) {
+            // add another displayed tree
+            state.pernode_displayed_tree_data[i].displayed_trees.emplace_back(DisplayedTreeData(ann_network.fake_treeinfo->partition_count, ann_network.partition_clv_ranges, ann_network.partition_scale_buffer_ranges, maxReticulations));
         }
     }
 }
@@ -171,14 +167,13 @@ NetworkState extract_network_state(AnnotatedNetwork &ann_network, bool extract_n
         state.displayed_tree_scale_buffer_ranges[p] = get_scale_buffer_range(ann_network.fake_treeinfo->partitions[p]);
     }
     state.pernode_displayed_tree_data.resize(ann_network.network.nodes.size());
-    for (size_t i = 0; i < state.pernode_displayed_tree_data.size(); ++i) {
-        state.pernode_displayed_tree_data[i].displayed_trees.resize(ann_network.fake_treeinfo->partition_count);
-    }
     
     for (size_t i = 0; i < ann_network.network.num_tips(); ++i) {
+        std::vector<double*> tip_clv(ann_network.fake_treeinfo->partition_count, nullptr);
         for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-            state.pernode_displayed_tree_data[i].displayed_trees[p].emplace_back(DisplayedTreeData(ann_network.fake_treeinfo->partitions[p]->clv[i], ann_network.options.max_reticulations));
+            tip_clv[p] = ann_network.fake_treeinfo->partitions[p]->clv[i];
         }
+        state.pernode_displayed_tree_data[i].displayed_trees.emplace_back(DisplayedTreeData(ann_network.fake_treeinfo->partition_count, tip_clv, ann_network.options.max_reticulations));
         state.pernode_displayed_tree_data[i].num_active_displayed_trees = 1;
     }
 
