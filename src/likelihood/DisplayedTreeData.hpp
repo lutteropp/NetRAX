@@ -127,32 +127,31 @@ struct ReticulationConfigSet {
 };
 
 struct TreeLoglData {
-    bool tree_logl_valid = false;
-    bool tree_logprob_valid = false;
-    double tree_logl = -std::numeric_limits<double>::infinity();
     double tree_logprob = 0;
+    bool tree_logprob_valid = false;
+    bool tree_logl_valid = false;
+    std::vector<double> tree_partition_logl;
     ReticulationConfigSet reticulationChoices;
 
-    TreeLoglData() = default;
-
-    TreeLoglData(size_t max_reticulations) : reticulationChoices(max_reticulations) {
+    TreeLoglData(size_t n_partitions, size_t max_reticulations) : reticulationChoices(max_reticulations) {
+        tree_partition_logl.resize(n_partitions);
         std::vector<ReticulationState> allChoices(max_reticulations, ReticulationState::DONT_CARE);
         reticulationChoices.configs.emplace_back(allChoices);
     }
 
-    TreeLoglData(TreeLoglData&& rhs) : tree_logl_valid{rhs.tree_logl_valid}, tree_logprob_valid{rhs.tree_logprob_valid}, tree_logl{rhs.tree_logl}, tree_logprob{rhs.tree_logprob}, reticulationChoices{rhs.reticulationChoices} {}
+    TreeLoglData(TreeLoglData&& rhs) : tree_logprob{rhs.tree_logprob}, tree_logprob_valid{rhs.tree_logprob_valid}, tree_logl_valid{rhs.tree_logl_valid}, tree_partition_logl{rhs.tree_partition_logl}, reticulationChoices{rhs.reticulationChoices} {}
 
-    TreeLoglData(const TreeLoglData& rhs) : tree_logl_valid{rhs.tree_logl_valid}, tree_logprob_valid{rhs.tree_logprob_valid}, tree_logl{rhs.tree_logl}, tree_logprob{rhs.tree_logprob}, reticulationChoices{rhs.reticulationChoices} {}
+    TreeLoglData(const TreeLoglData& rhs) : tree_logprob{rhs.tree_logprob}, tree_logprob_valid{rhs.tree_logprob_valid}, tree_logl_valid{rhs.tree_logl_valid}, tree_partition_logl{rhs.tree_partition_logl}, reticulationChoices{rhs.reticulationChoices} {}
 
     TreeLoglData& operator =(TreeLoglData&& rhs)
     {
         if (this != &rhs)
         {
-            tree_logl_valid = rhs.tree_logl_valid;
-            tree_logprob_valid = rhs.tree_logprob_valid;
-            tree_logl = rhs.tree_logl;
-            tree_logprob = rhs.tree_logprob;
+            tree_partition_logl = rhs.tree_partition_logl;
             reticulationChoices = std::move(rhs.reticulationChoices);
+            tree_logprob = rhs.tree_logprob;
+            tree_logprob_valid = rhs.tree_logprob_valid;
+            tree_logl_valid = rhs.tree_logl_valid;
         }
         return *this;
     }
@@ -161,26 +160,25 @@ struct TreeLoglData {
     {
         if (this != &rhs)
         {
-            tree_logl_valid = rhs.tree_logl_valid;
-            tree_logprob_valid = rhs.tree_logprob_valid;
-            tree_logl = rhs.tree_logl;
-            tree_logprob = rhs.tree_logprob;
+            tree_partition_logl = rhs.tree_partition_logl;
             reticulationChoices = rhs.reticulationChoices;
+            tree_logprob = rhs.tree_logprob;
+            tree_logprob_valid = rhs.tree_logprob_valid;
+            tree_logl_valid = rhs.tree_logl_valid;
         }
         return *this;
     }
 };
 
 struct DisplayedTreeData {
-    std::vector<TreeLoglData> treeLoglData;
+    TreeLoglData treeLoglData;
     std::vector<double*> clv_vector;
     std::vector<unsigned int*> scale_buffer;
     const std::vector<ClvRangeInfo>& clvInfo;
     const std::vector<ScaleBufferRangeInfo>& scaleBufferInfo;
     bool isTip = false;
 
-    DisplayedTreeData(size_t n_partitions, const std::vector<ClvRangeInfo>& clvRangeInfo, const std::vector<ScaleBufferRangeInfo>& scaleBufferRangeInfo, size_t max_reticulations) : clvInfo(clvRangeInfo), scaleBufferInfo(scaleBufferRangeInfo) { // inner node
-        treeLoglData = std::vector<TreeLoglData>(n_partitions, TreeLoglData(max_reticulations));
+    DisplayedTreeData(size_t n_partitions, const std::vector<ClvRangeInfo>& clvRangeInfo, const std::vector<ScaleBufferRangeInfo>& scaleBufferRangeInfo, size_t max_reticulations) : treeLoglData(n_partitions, max_reticulations), clvInfo(clvRangeInfo), scaleBufferInfo(scaleBufferRangeInfo) { // inner node
         clv_vector = std::vector<double*>(n_partitions, nullptr);
         for (size_t p = 0; p < n_partitions; ++p) {
             clv_vector[p] = create_single_empty_clv(clvRangeInfo[p]);
@@ -191,8 +189,7 @@ struct DisplayedTreeData {
         }
     }
 
-    DisplayedTreeData(size_t n_partitions, const std::vector<ClvRangeInfo>& clvRangeInfo, const std::vector<ScaleBufferRangeInfo>& scaleBufferRangeInfo, std::vector<double*> tip_clv_vector, size_t max_reticulations) : clvInfo(clvRangeInfo), scaleBufferInfo(scaleBufferRangeInfo) { // tip node
-        treeLoglData = std::vector<TreeLoglData>(n_partitions, TreeLoglData(max_reticulations));
+    DisplayedTreeData(size_t n_partitions, const std::vector<ClvRangeInfo>& clvRangeInfo, const std::vector<ScaleBufferRangeInfo>& scaleBufferRangeInfo, std::vector<double*> tip_clv_vector, size_t max_reticulations) : treeLoglData(n_partitions, max_reticulations), clvInfo(clvRangeInfo), scaleBufferInfo(scaleBufferRangeInfo) { // tip node
         clv_vector = std::vector<double*>(n_partitions, nullptr);
         for (size_t p = 0; p < n_partitions; ++p) {
             clv_vector[p] = tip_clv_vector[p];

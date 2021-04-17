@@ -34,7 +34,7 @@ bool logl_stays_same(AnnotatedNetwork& ann_network) {
         size_t n_trees = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].num_active_displayed_trees;
         for (size_t j = 0; j < n_trees; ++j) {
             DisplayedTreeData& tree = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].displayed_trees[j];
-            std::cout << "logl: " << tree.treeLoglData[i].tree_logl << ", logprob: " << tree.treeLoglData[i].tree_logprob << "\n";
+            std::cout << "logl: " << tree.treeLoglData.tree_partition_logl[i] << ", logprob: " << tree.treeLoglData.tree_logprob << "\n";
         }
     }
     double incremental = netrax::computeLoglikelihood(ann_network, 1, 1);
@@ -43,7 +43,7 @@ bool logl_stays_same(AnnotatedNetwork& ann_network) {
         size_t n_trees = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].num_active_displayed_trees;
         for (size_t j = 0; j < n_trees; ++j) {
             DisplayedTreeData& tree = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].displayed_trees[j];
-            std::cout << "logl: " << tree.treeLoglData[i].tree_logl << ", logprob: " << tree.treeLoglData[i].tree_logprob << "\n";
+            std::cout << "logl: " << tree.treeLoglData.tree_partition_logl[i] << ", logprob: " << tree.treeLoglData.tree_logprob << "\n";
         }
     }
     double normal = netrax::computeLoglikelihood(ann_network, 0, 1);
@@ -52,7 +52,7 @@ bool logl_stays_same(AnnotatedNetwork& ann_network) {
         size_t n_trees = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].num_active_displayed_trees;
         for (size_t j = 0; j < n_trees; ++j) {
             DisplayedTreeData& tree = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].displayed_trees[j];
-            std::cout << "logl: " << tree.treeLoglData[i].tree_logl << ", logprob: " << tree.treeLoglData[i].tree_logprob << "\n";
+            std::cout << "logl: " << tree.treeLoglData.tree_partition_logl[i] << ", logprob: " << tree.treeLoglData.tree_logprob << "\n";
         }
     }
 
@@ -89,8 +89,8 @@ void printDisplayedTrees(AnnotatedNetwork& ann_network) {
         size_t n_trees = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].num_active_displayed_trees;
         for (size_t j = 0; j < n_trees; ++j) {
             DisplayedTreeData& tree = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].displayed_trees[j];
-            pll_utree_t* utree = netrax::displayed_tree_to_utree(ann_network.network, tree.treeLoglData[0].reticulationChoices.configs[0]);
-            double prob = std::exp(tree.treeLoglData[0].tree_logprob);
+            pll_utree_t* utree = netrax::displayed_tree_to_utree(ann_network.network, tree.treeLoglData.reticulationChoices.configs[0]);
+            double prob = std::exp(tree.treeLoglData.tree_logprob);
             Network displayedNetwork = netrax::convertUtreeToNetwork(*utree, 0);
             std::string newick = netrax::toExtendedNewick(displayedNetwork);
             pll_utree_destroy(utree, nullptr);
