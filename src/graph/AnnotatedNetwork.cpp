@@ -61,6 +61,11 @@ void init_annotated_network(AnnotatedNetwork &ann_network, std::mt19937& rng) {
     ann_network.fake_treeinfo->active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
     netrax::setup_pmatrices(ann_network, false, true);
     for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
+        // skip remote partitions
+        if (!ann_network.fake_treeinfo->partitions[i]) {
+            continue;
+        }
+
         for (size_t j = 0; j < ann_network.network.num_tips(); ++j) { // tip nodes always have valid clv
             ann_network.fake_treeinfo->clv_valid[i][j] = 1;
         }
@@ -85,6 +90,10 @@ void init_annotated_network(AnnotatedNetwork &ann_network, std::mt19937& rng) {
     for (size_t i = 0; i < ann_network.network.num_tips(); ++i) {
         std::vector<double*> tip_clv(ann_network.fake_treeinfo->partition_count, nullptr);
         for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+            // skip remote partitions
+            if (!ann_network.fake_treeinfo->partitions[p]) {
+                continue;
+            }
             tip_clv[p] = ann_network.fake_treeinfo->partitions[p]->clv[i];
         }
         ann_network.pernode_displayed_tree_data[i].displayed_trees.emplace_back(DisplayedTreeData(ann_network.fake_treeinfo->partition_count, ann_network.partition_clv_ranges, ann_network.partition_scale_buffer_ranges, tip_clv, ann_network.options.max_reticulations));
