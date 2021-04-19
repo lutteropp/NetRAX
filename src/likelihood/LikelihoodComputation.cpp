@@ -138,10 +138,19 @@ void computeDisplayedTreeLoglikelihood(AnnotatedNetwork& ann_network, DisplayedT
     /* sum up likelihood from all threads */
     if (ann_network.fake_treeinfo->parallel_reduce_cb)
     {
-        ann_network.fake_treeinfo->parallel_reduce_cb(ann_network.fake_treeinfo->parallel_context,
+        if (ParallelContext::num_ranks() > ParallelContext::num_groups()) {
+            std::cout << "num ranks larger than num groups!!!\n";
+            std::cout << "num ranks: " << ParallelContext::num_ranks() << "\n";
+            std::cout << "num groups: " << ParallelContext::num_groups() << "\n";
+            ParallelContext::thread_barrier();
+        }
+        
+        MPI_Allreduce(MPI_IN_PLACE, treeAtRoot.treeLoglData.tree_partition_logl.data(), ann_network.fake_treeinfo->partition_count, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+
+        /*ann_network.fake_treeinfo->parallel_reduce_cb(ann_network.fake_treeinfo->parallel_context,
                                     treeAtRoot.treeLoglData.tree_partition_logl.data(),
                                     ann_network.fake_treeinfo->partition_count,
-                                    PLLMOD_COMMON_REDUCE_SUM);
+                                    PLLMOD_COMMON_REDUCE_SUM);*/
     }
 
     treeAtRoot.treeLoglData.tree_logl_valid = true;

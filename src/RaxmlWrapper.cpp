@@ -109,6 +109,8 @@ Options createDefaultOptions() {
     opts.use_prob_msa = false;
     opts.brlen_opt_method = PLLMOD_OPT_BLO_NEWTON_FAST;
     opts.model_file = "DNA";
+
+    opts.use_rba_partload = true;
     return opts;
 }
 
@@ -130,6 +132,7 @@ RaxmlInstance createRaxmlInstance(const NetraxOptions &options) {
     instance.opts.lh_epsilon = options.lh_epsilon;
     instance.opts.random_seed = options.seed;
     instance.opts.load_balance_method = options.load_balance_method;
+    instance.opts.use_rba_partload &= (instance.opts.num_ranks > 1 && !instance.opts.coarse()); 
 
     switch(instance.opts.load_balance_method)
     {
@@ -155,12 +158,17 @@ RaxmlInstance createRaxmlInstance(const NetraxOptions &options) {
         instance.opts.brlen_linkage = PLLMOD_COMMON_BRLEN_LINKED;
     }
     auto& parted_msa = *instance.parted_msa;
-    //autotune_threads(instance);
+    autotune_threads(instance);
     check_options(instance);
 
     //ParallelContext::init_pthreads(instance.opts, std::bind(thread_main,
     //                                             std::ref(instance),
     //                                             std::ref(cm)));
+
+
+    std::cout << "num_threads: " << instance.opts.num_threads << "\n";
+    std::cout << "num workers: " << instance.opts.num_workers << "\n";
+    std::cout << "num local groups: " << ParallelContext::num_local_groups() << "\n";
 
     /* init workers */
     assert(instance.opts.num_workers > 0);
