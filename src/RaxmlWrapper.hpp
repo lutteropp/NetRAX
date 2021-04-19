@@ -25,26 +25,20 @@ struct NetworkParams {
 class RaxmlWrapper {
 public:
     RaxmlWrapper(const NetraxOptions &options);
-
-    Options getRaxmlOptions() const;
-    // and now, the things only neccessary to be visible in this header because of the unit tests...
-
-    void enableRaxmlDebugOutput();
-    size_t num_partitions() const;
     RaxmlInstance instance;
-    TreeInfo::tinfo_behaviour network_behaviour;
-    const NetraxOptions& netraxOptions;
 };
 
+void enableRaxmlDebugOutput(RaxmlInstance& instance);
+
+TreeInfo::tinfo_behaviour createNetworkBehaviour();
 
 Tree generateRandomTree(const RaxmlInstance& instance, double seed);
 Tree generateParsimonyTree(const RaxmlInstance& instance, double seed);
 Tree bestRaxmlTree(const RaxmlInstance& instance);
 pllmod_treeinfo_t* createNetworkPllTreeinfo(AnnotatedNetwork &ann_network);
 
-/*TreeInfo* createRaxmlTreeinfo(AnnotatedNetwork &ann_network); // Creates a network treeinfo
+TreeInfo* createRaxmlTreeinfo(AnnotatedNetwork &ann_network); // Creates a network treeinfo
 TreeInfo* createRaxmlTreeinfo(pll_utree_t *utree, const RaxmlInstance& instance); // Creates a tree treeinfo
 TreeInfo* createRaxmlTreeinfo(pll_utree_t *utree, const RaxmlInstance& instance, const pllmod_treeinfo_t &model_treeinfo); // Creates a tree treeinfo, taking the model from the given treeinfo
-*/
 
 }
