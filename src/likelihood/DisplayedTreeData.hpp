@@ -32,6 +32,8 @@ struct ScaleBufferRangeInfo {
     }
 };
 
+bool single_clv_is_all_zeros(ClvRangeInfo rangeInfo, double* clv);
+
 void print_clv(ClvRangeInfo rangeInfo, double ** clv);
 ClvRangeInfo get_clv_range(pll_partition_t* partition);
 bool clv_single_entries_equal(ClvRangeInfo rangeInfo, double* clv1, double* clv2);

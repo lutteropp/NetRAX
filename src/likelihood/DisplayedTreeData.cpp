@@ -6,6 +6,15 @@
 
 namespace netrax
 {
+    bool single_clv_is_all_zeros(ClvRangeInfo rangeInfo, double* clv) {
+        for (size_t i = 0; i < rangeInfo.inner_clv_num_entries; ++i) {
+            if (clv[i] != 0.0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     void print_clv(ClvRangeInfo rangeInfo, double ** clv) {
         for (size_t i = rangeInfo.start; i < rangeInfo.end; ++i) {
             std::cout << "clv[" << i << ":\n";

@@ -295,7 +295,10 @@ unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, Node*
             unsigned int* left_scaler = childTree.scale_buffer[partition_idx];
             double* right_clv = partition->clv[fake_clv_index];
             unsigned int* right_scaler = nullptr;
+            assert(childTree.isTip || !single_clv_is_all_zeros(ann_network.partition_clv_ranges[partition_idx], left_clv));
+            assert(!single_clv_is_all_zeros(ann_network.partition_clv_ranges[partition_idx], right_clv));
             pll_update_partials_single(partition, &op, 1, parent_clv, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
+            assert(!single_clv_is_all_zeros(ann_network.partition_clv_ranges[partition_idx], parent_clv));
         }
         tree.treeLoglData.reticulationChoices = combineReticulationChoices(childTree.treeLoglData.reticulationChoices, restrictionsSet);
         //tree.treeLoglData.childrenTaken = {child};
@@ -435,7 +438,10 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, Node*
                     if (node->clv_index == ann_network.network.root->clv_index) {
                         std::cout << "I am thread " << ParallelContext::local_proc_id() << " in 2 children mode and I am updating a root clv for partition " << partition_idx << "\n";
                     }
+                    assert(leftTree.isTip || !single_clv_is_all_zeros(ann_network.partition_clv_ranges[partition_idx], left_clv));
+                    assert(rightTree.isTip || !single_clv_is_all_zeros(ann_network.partition_clv_ranges[partition_idx], right_clv));
                     pll_update_partials_single(partition, &op_both, 1, parent_clv, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
+                    assert(!single_clv_is_all_zeros(ann_network.partition_clv_ranges[partition_idx], parent_clv));
                 }
                 newDisplayedTree.treeLoglData.reticulationChoices = combineReticulationChoices(leftTree.treeLoglData.reticulationChoices, rightTree.treeLoglData.reticulationChoices);
                 newDisplayedTree.treeLoglData.reticulationChoices = combineReticulationChoices(newDisplayedTree.treeLoglData.reticulationChoices, restrictionsBothSet);
@@ -474,7 +480,10 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, Node*
                 unsigned int* left_scaler = leftTree.scale_buffer[partition_idx];
                 double* right_clv = partition->clv[fake_clv_index];
                 unsigned int* right_scaler = nullptr;
+                assert(leftTree.isTip || !single_clv_is_all_zeros(ann_network.partition_clv_ranges[partition_idx], left_clv));
+                assert(!single_clv_is_all_zeros(ann_network.partition_clv_ranges[partition_idx], right_clv));
                 pll_update_partials_single(partition, &op_left_only, 1, parent_clv, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
+                assert(!single_clv_is_all_zeros(ann_network.partition_clv_ranges[partition_idx], parent_clv));
             }
             tree.treeLoglData.reticulationChoices = leftOnlyConfigs;
             //tree.treeLoglData.childrenTaken = {left_child};
@@ -510,7 +519,10 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, Node*
                 unsigned int* left_scaler = rightTree.scale_buffer[partition_idx];
                 double* right_clv = partition->clv[fake_clv_index];
                 unsigned int* right_scaler = nullptr;
+                assert(!single_clv_is_all_zeros(ann_network.partition_clv_ranges[partition_idx], left_clv));
+                assert(rightTree.isTip || !single_clv_is_all_zeros(ann_network.partition_clv_ranges[partition_idx], right_clv));
                 pll_update_partials_single(partition, &op_right_only, 1, parent_clv, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
+                assert(!single_clv_is_all_zeros(ann_network.partition_clv_ranges[partition_idx], parent_clv));
             }
             tree.treeLoglData.reticulationChoices = rightOnlyConfigs;
             //tree.treeLoglData.childrenTaken = {right_child};
@@ -1476,6 +1488,8 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
                     pll_partition_t* partition = ann_network.fake_treeinfo->partitions[p];
                     std::vector<double> persite_logl(ann_network.fake_treeinfo->partitions[p]->sites);
 
+                    assert(sourceTrees[i].isTip || !single_clv_is_all_zeros(ann_network.partition_clv_ranges[p], sourceTrees[i].clv_vector[p]));
+                    assert(targetTrees[j].isTip || !single_clv_is_all_zeros(ann_network.partition_clv_ranges[p], targetTrees[j].clv_vector[p]));
                     combinedTreeData.tree_partition_logl[p] = pll_compute_edge_loglikelihood(partition, source->clv_index, sourceTrees[i].clv_vector[p], sourceTrees[i].scale_buffer[p], 
                                                                 target->clv_index, targetTrees[j].clv_vector[p], targetTrees[j].scale_buffer[p], 
                                                                 pmatrix_index, ann_network.fake_treeinfo->param_indices[p], persite_logl.data());
