@@ -597,8 +597,10 @@ pllmod_treeinfo_t* createNetworkPllTreeinfo(AnnotatedNetwork &ann_network) {
 
     ann_network.total_num_sites = instance.parted_msa->total_sites();
     ann_network.total_num_model_parameters = instance.parted_msa->total_free_model_params();
-    const PartitionAssignment &part_assign = instance.proc_part_assign.at(ParallelContext::proc_id());
 
+    /* get partitions assigned to the current thread */
+    const PartitionAssignment& part_assign = instance.proc_part_assign.at(ParallelContext::local_proc_id());
+    ParallelContext::thread_barrier();
 
     const PartitionedMSA& parted_msa = (*instance.parted_msa.get());
     const IDVector& tip_msa_idmap = instance.tip_msa_idmap;
