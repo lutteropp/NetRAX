@@ -600,7 +600,20 @@ pllmod_treeinfo_t* createNetworkPllTreeinfo(AnnotatedNetwork &ann_network) {
 
     /* get partitions assigned to the current thread */
     const PartitionAssignment& part_assign = instance.proc_part_assign.at(ParallelContext::local_proc_id());
+
+    std::cout << "for thread " << ParallelContext::local_proc_id() << ":\n";
+    std::cout << part_assign << "\n";
     ParallelContext::thread_barrier();
+
+    std::cout << "\n";
+    std::cout << "rank id: " << ParallelContext::rank_id() << "\n";
+    std::cout << "local rank id: " << ParallelContext::local_rank_id() << "\n";
+    std::cout << "proc id: " << ParallelContext::proc_id() << "\n";
+    std::cout << "local proc id: " << ParallelContext::local_proc_id() << "\n";
+    std::cout << "thread id: " << ParallelContext::thread_id() << "\n";
+    std::cout << "local thread id: " << ParallelContext::local_thread_id() << "\n";
+    std::cout << "group id: " << ParallelContext::group_id() << "\n";
+    std::cout << "local group id: " << ParallelContext::local_group_id() << "\n";
 
     const PartitionedMSA& parted_msa = (*instance.parted_msa.get());
     const IDVector& tip_msa_idmap = instance.tip_msa_idmap;

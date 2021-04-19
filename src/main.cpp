@@ -356,6 +356,8 @@ void netrax_thread_main(const NetraxOptions& netraxOptions, const RaxmlInstance&
     //  printf("WORKER: %u, LOCAL_THREAD: %u\n", ParallelContext::group_id(), ParallelContext::local_proc_id());
     ParallelContext::global_barrier();
 
+    std::cout << "HELLO! I am local proc id " << ParallelContext::local_proc_id() << "\n";
+
     //check_oversubscribe(instance);
 
     std::mt19937 rng(netraxOptions.seed);
@@ -404,6 +406,8 @@ void setup_parallel_stuff(const NetraxOptions& netraxOptions, RaxmlInstance& ins
     init_parallel_buffers(instance);
 
     balance_load(instance);
+
+    std::cout << instance.proc_part_assign << "\n";
 
     /* lazy-load part of the alignment assigned to the current MPI rank */
     if (instance.opts.msa_format == FileFormat::binary && instance.opts.use_rba_partload)
