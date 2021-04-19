@@ -128,6 +128,7 @@ void computeDisplayedTreeLoglikelihood(AnnotatedNetwork& ann_network, DisplayedT
 
         //std::cout << "computed tree logl at node " << displayed_tree_root->clv_index << ": " << tree_logl << "\n";
 
+        assert(tree_logl != -std::numeric_limits<double>::infinity());
         treeAtRoot.treeLoglData.tree_partition_logl[partition_idx] = tree_logl;
     }
 
@@ -138,6 +139,10 @@ void computeDisplayedTreeLoglikelihood(AnnotatedNetwork& ann_network, DisplayedT
                                     treeAtRoot.treeLoglData.tree_partition_logl.data(),
                                     ann_network.fake_treeinfo->partition_count,
                                     PLLMOD_COMMON_REDUCE_SUM);
+
+        for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+            assert(treeAtRoot.treeLoglData.tree_partition_logl[p] != -std::numeric_limits<double>::infinity());
+        }
     }
 
     treeAtRoot.treeLoglData.tree_logl_valid = true;
@@ -1474,6 +1479,12 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
                                                 combinedTreeData.tree_partition_logl.data(),
                                                 ann_network.fake_treeinfo->partition_count,
                                                 PLLMOD_COMMON_REDUCE_SUM);
+
+                    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+                        if (combinedTreeData.tree_partition_logl[p] == 0.0) {
+                            throw std::runtime_error("bad partition logl");
+                        }
+                    }
                 }
 
                 combinedTreeData.tree_logprob = computeReticulationConfigLogProb(combinedTreeData.reticulationChoices, ann_network.reticulation_probs);
