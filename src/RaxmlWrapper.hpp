@@ -23,10 +23,7 @@ struct NetworkParams {
 };
 
 RaxmlInstance createRaxmlInstance(const NetraxOptions& options);
-
 void enableRaxmlDebugOutput(RaxmlInstance& instance);
-
-TreeInfo::tinfo_behaviour createNetworkBehaviour();
 
 Tree generateRandomTree(const RaxmlInstance& instance, double seed);
 Tree generateParsimonyTree(const RaxmlInstance& instance, double seed);
