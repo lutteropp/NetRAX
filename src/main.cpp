@@ -388,7 +388,7 @@ void setup_parallel_stuff(const NetraxOptions& netraxOptions, RaxmlInstance& ins
                                                  std::ref(instance));
     ParallelContext::init_pthreads(instance.opts, thread_function);
 
-    std::cout << "num_threads: " << instance.opts.num_threads << "\n";
+    std::cout << "num_threads: " << ParallelContext::num_threads() << "\n";
     std::cout << "num workers: " << instance.opts.num_workers << "\n";
     std::cout << "num local groups: " << ParallelContext::num_local_groups() << "\n";
     std::cout << "num ranks: " << ParallelContext::num_ranks() << "\n";
