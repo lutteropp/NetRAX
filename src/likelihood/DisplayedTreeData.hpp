@@ -2,6 +2,9 @@
 
 #include <vector>
 #include <limits>
+#include <iostream>
+
+#include <raxml-ng/main.hpp>
 
 extern "C" {
 #include <libpll/pll.h>

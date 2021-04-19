@@ -124,9 +124,19 @@ void computeDisplayedTreeLoglikelihood(AnnotatedNetwork& ann_network, DisplayedT
         unsigned int* parent_scaler = treeWithoutDeadPath.scale_buffer[partition_idx];
 
         pll_partition_t* partition = ann_network.fake_treeinfo->partitions[partition_idx];
-        double tree_logl = pll_compute_root_loglikelihood(partition, displayed_tree_root->clv_index, parent_clv, parent_scaler, ann_network.fake_treeinfo->param_indices[partition_idx], nullptr);
+        std::vector<double> persite_logl(ann_network.fake_treeinfo->partitions[partition_idx]->sites, 0.0);
+        double tree_logl = pll_compute_root_loglikelihood(partition, displayed_tree_root->clv_index, parent_clv, parent_scaler, ann_network.fake_treeinfo->param_indices[partition_idx], persite_logl.data());
 
         //std::cout << "computed tree logl at node " << displayed_tree_root->clv_index << ": " << tree_logl << "\n";
+
+        if (tree_logl == -std::numeric_limits<double>::infinity()) {
+            std::cout << "I am thread " << ParallelContext::local_proc_id() << " and I have gotten negative infinity for partition " << partition_idx << "\n";
+            for (size_t i = 0; i < persite_logl.size(); ++i) {
+                std::cout << "  persite_logl[" << i << "]: " << persite_logl[i] << "\n";
+            }
+            printClv(*ann_network.fake_treeinfo, ann_network.network.root->clv_index, parent_clv, partition_idx);
+            assert(parent_clv);
+        }
 
         assert(tree_logl != -std::numeric_limits<double>::infinity());
         treeAtRoot.treeLoglData.tree_partition_logl[partition_idx] = tree_logl;
@@ -135,6 +145,11 @@ void computeDisplayedTreeLoglikelihood(AnnotatedNetwork& ann_network, DisplayedT
     /* sum up likelihood from all threads */
     if (ann_network.fake_treeinfo->parallel_reduce_cb)
     {   
+        std::cout << "I am thread " << ParallelContext::local_proc_id() << " and I have these partition loglikelihoods before Allreduce:\n";
+        for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+            std::cout << " partition " << p << " has logl: " << treeAtRoot.treeLoglData.tree_partition_logl[p] << "\n";
+        }
+
         ann_network.fake_treeinfo->parallel_reduce_cb(ann_network.fake_treeinfo->parallel_context,
                                     treeAtRoot.treeLoglData.tree_partition_logl.data(),
                                     ann_network.fake_treeinfo->partition_count,
@@ -417,6 +432,9 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, Node*
                     unsigned int* left_scaler = leftTree.scale_buffer[partition_idx];
                     double* right_clv = rightTree.clv_vector[partition_idx];
                     unsigned int* right_scaler = rightTree.scale_buffer[partition_idx];
+                    if (node->clv_index == ann_network.network.root->clv_index) {
+                        std::cout << "I am thread " << ParallelContext::local_proc_id() << " in 2 children mode and I am updating a root clv for partition " << partition_idx << "\n";
+                    }
                     pll_update_partials_single(partition, &op_both, 1, parent_clv, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
                 }
                 newDisplayedTree.treeLoglData.reticulationChoices = combineReticulationChoices(leftTree.treeLoglData.reticulationChoices, rightTree.treeLoglData.reticulationChoices);
