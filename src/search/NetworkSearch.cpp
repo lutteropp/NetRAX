@@ -28,8 +28,12 @@ struct ScoreImprovementResult {
     bool global_improved = false;
 };
 
+bool can_write(){
+    return (ParallelContext::master_rank() && ParallelContext::master_thread());
+}
+
 bool logl_stays_same(AnnotatedNetwork& ann_network) {
-    if (ParallelContext::master_rank()) {
+    if (can_write()) {
         std::cout << "displayed trees before:\n";
         for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
             size_t n_trees = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].num_active_displayed_trees;
@@ -40,7 +44,7 @@ bool logl_stays_same(AnnotatedNetwork& ann_network) {
         }
     }
     double incremental = netrax::computeLoglikelihood(ann_network, 1, 1);
-    if (ParallelContext::master_rank()) {
+    if (can_write()) {
         std::cout << "displayed trees in between:\n";
         for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
             size_t n_trees = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].num_active_displayed_trees;
@@ -51,7 +55,7 @@ bool logl_stays_same(AnnotatedNetwork& ann_network) {
         }
     }
     double normal = netrax::computeLoglikelihood(ann_network, 0, 1);
-    if (ParallelContext::master_rank()) {
+    if (can_write()) {
         std::cout << "displayed trees after:\n";
         for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
             size_t n_trees = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].num_active_displayed_trees;
@@ -62,7 +66,7 @@ bool logl_stays_same(AnnotatedNetwork& ann_network) {
         }
     }
 
-    if (ParallelContext::master_rank()) {
+    if (can_write()) {
         std::cout << "incremental: " << incremental << "\n";
         std::cout << "normal: " << normal << "\n";
     }
@@ -89,7 +93,7 @@ void optimizeAllNonTopology(AnnotatedNetwork &ann_network, bool extremeOpt, bool
 }
 
 void printDisplayedTrees(AnnotatedNetwork& ann_network) {
-    if (ParallelContext::master_rank()) {
+    if (can_write()) {
         std::vector<std::pair<std::string, double>> displayed_trees;
         if (ann_network.network.num_reticulations() == 0) {
             std::string newick = netrax::toExtendedNewick(ann_network);
@@ -155,14 +159,14 @@ ScoreImprovementResult check_score_improvement(AnnotatedNetwork& ann_network, do
 
         if (new_score < old_global_best) {
             if (hasBadReticulation(ann_network)) {
-                if (ParallelContext::master_rank()) {
+                if (can_write()) {
                     if (!silent) std::cout << "Network contains BAD RETICULATIONS. Not updating the global best found network and score.\n";
                 }
             } else {
                 bestNetworkData->best_n_reticulations = ann_network.network.num_reticulations();
                 global_improved = true;
                 //std::cout << "OLD GLOBAL BEST SCORE WAS: " << old_global_best << "\n";
-                if (ParallelContext::master_rank()) {
+                if (can_write()) {
                     std::cout << "IMPROVED GLOBAL BEST SCORE FOUND SO FAR: " << new_score << "\n";
                     writeNetwork(ann_network, ann_network.options.output_file);
                     if (!silent) std::cout << toExtendedNewick(ann_network) << "\n";
@@ -205,7 +209,7 @@ bool isComplexityChangingMove(const MoveType& moveType) {
 
 template <typename T>
 void printCandidates(std::vector<T>& candidates) {
-    if (ParallelContext::master_rank()) {
+    if (can_write()) {
         std::cout << "The candidates are:\n";
         for (size_t i = 0; i < candidates.size(); ++i) {
             std::cout << toString(candidates[i]) << "\n";
@@ -343,7 +347,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T>& can
     double cutoff_bic = std::min(best_bic, old_bic);
 
     for (size_t i = 0; i < candidates.size(); ++i) {
-        if (ParallelContext::master_rank()) {
+        if (can_write()) {
             if (!silent) std::cout << "prefiltered candidate " << i + 1 << "/" << candidates.size() << " has worst score " << scores[i].worstScore << ", BIC: " << scores[i].bicScore << "\n";
         }
         if (scores[i].bicScore <= cutoff_bic) {
@@ -351,7 +355,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T>& can
             newSize++;
         }
     }
-    if (ParallelContext::master_rank()) {
+    if (can_write()) {
         if (!silent) std::cout << "New size after prefiltering: " << newSize << " vs. " << candidates.size() << "\n";
     }
 
@@ -375,7 +379,7 @@ bool rankCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T> candidate
         prefilterCandidates(ann_network_orig, candidates, ann_network_thread, true);
     }
 
-    if (ParallelContext::master_rank()) {
+    if (can_write()) {
         if (!silent) std::cout << "MoveType: " << toString(candidates[0].moveType) << "\n";
     }
 
@@ -485,7 +489,7 @@ bool rankCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T> candidate
     size_t newSize = 0;
 
     for (size_t i = 0; i < candidates.size(); ++i) {
-        if (ParallelContext::master_rank()) {
+        if (can_write()) {
             if (!silent) std::cout << "candidate " << i + 1 << "/" << candidates.size() << " has worst score " << scores[i].worstScore << ", BIC: " << scores[i].bicScore << "\n";
         }
         if (scores[i].bicScore < old_bic) {
@@ -517,7 +521,7 @@ double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidat
         double aic_score = aic(ann_network, logl);
         double aicc_score = aicc(ann_network, logl);
 
-        if (ParallelContext::master_rank()) {
+        if (can_write()) {
             if (!silent) std::cout << " Took " << toString(candidates[0].moveType) << "\n";
             if (!silent) std::cout << "  Logl: " << logl << ", BIC: " << bic_score << ", AIC: " << aic_score << ", AICc: " << aicc_score <<  "\n";
             if (!silent) std::cout << "  param_count: " << get_param_count(ann_network) << ", sample_size:" << get_sample_size(ann_network) << "\n";
@@ -543,7 +547,7 @@ bool simanneal_step(AnnotatedNetwork& ann_network, double t, std::vector<T> neig
     }
 
     //if (!silent) std::cout << "MoveType: " << toString(neighbors[0].moveType) << "\n";
-    if (ParallelContext::master_rank()) {
+    if (can_write()) {
         if (!silent) std::cout << "t: " << t << "\n";
     }
 
@@ -571,7 +575,7 @@ bool simanneal_step(AnnotatedNetwork& ann_network, double t, std::vector<T> neig
         double bicScore = scoreNetwork(ann_network);
 
         if (bicScore < old_bic) {
-            if (ParallelContext::master_rank()) {
+            if (can_write()) {
                 if (!silent) std::cout << " Took " << toString(move.moveType) << "\n";
                 if (!silent) std::cout << "  Logl: " << computeLoglikelihood(ann_network) << ", BIC: " << scoreNetwork(ann_network) << "\n";
                 if (!silent) std::cout << "  num_reticulations: " << ann_network.network.num_reticulations() << "\n";
@@ -585,7 +589,7 @@ bool simanneal_step(AnnotatedNetwork& ann_network, double t, std::vector<T> neig
             double acceptance_ratio = exp(-((bicScore - old_bic) / t)); // I took this one from: https://de.wikipedia.org/wiki/Simulated_Annealing
             double x = std::uniform_real_distribution<double>(0,1)(ann_network.rng);
             if (x <= acceptance_ratio) {
-                if (ParallelContext::master_rank()) {
+                if (can_write()) {
                     if (!silent) std::cout << " Took " << toString(move.moveType) << "\n";
                     if (!silent) std::cout << "  Logl: " << computeLoglikelihood(ann_network) << ", BIC: " << scoreNetwork(ann_network) << "\n";
                     if (!silent) std::cout << "  num_reticulations: " << ann_network.network.num_reticulations() << "\n";
@@ -828,19 +832,19 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
     score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
 
     if (ann_network.options.scrambling > 0) {
-        if (ParallelContext::master_rank()) {
+        if (can_write()) {
             std::cout << " Starting scrambling phase...\n";
         }
         unsigned int tries = 0;
         NetworkState bestState = extract_network_state(ann_network);
-        if (ParallelContext::master_rank()) {
+        if (can_write()) {
             if (!silent) std::cout << " Network before scrambling has BIC Score: " << scoreNetwork(ann_network) << "\n";
         }
         while (tries < ann_network.options.scrambling) {
             apply_network_state(ann_network, bestState);
             scrambleNetwork(ann_network, MoveType::RSPRMove, 2);
             optimizeEverythingRun(ann_network, typesBySpeed, start_state_to_reuse, best_state_to_reuse, start_time, bestNetworkData, ann_network_thread);
-            if (ParallelContext::master_rank()) {
+            if (can_write()) {
                 if (!silent) std::cout << " scrambling BIC: " << scoreNetwork(ann_network) << "\n";
             }
             score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
@@ -855,7 +859,7 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
     }
 }
 
-void run_single_start_waves(NetraxOptions& netraxOptions, const RaxmlInstance& instance, const std::vector<MoveType>& typesBySpeed, std::mt19937& rng) {
+void run_single_start_waves(const NetraxOptions& netraxOptions, const RaxmlInstance& instance, const std::vector<MoveType>& typesBySpeed, std::mt19937& rng) {
     /* non-master ranks load starting trees from a file */
     ParallelContext::global_mpi_barrier();
     netrax::AnnotatedNetwork ann_network = build_annotated_network(netraxOptions, instance);
@@ -868,7 +872,7 @@ void run_single_start_waves(NetraxOptions& netraxOptions, const RaxmlInstance& i
     BestNetworkData bestNetworkData(ann_network.options.max_reticulations);
     wavesearch(ann_network, &bestNetworkData, typesBySpeed, ann_network_thread);
 
-    if (ParallelContext::master_rank()) {
+    if (can_write()) {
         std::cout << "Statistics on which moves were taken:\n";
         for (const MoveType& type : typesBySpeed) {
             std::cout << toString(type) << ": " << ann_network.stats.moves_taken[type] << "\n";
@@ -894,7 +898,7 @@ void run_single_start_waves(NetraxOptions& netraxOptions, const RaxmlInstance& i
     }
 }
 
-void run_random(NetraxOptions& netraxOptions, const RaxmlInstance& instance, const std::vector<MoveType>& typesBySpeed, std::mt19937& rng) {
+void run_random(const NetraxOptions& netraxOptions, const RaxmlInstance& instance, const std::vector<MoveType>& typesBySpeed, std::mt19937& rng) {
     std::uniform_int_distribution<long> dist(0, RAND_MAX);
     BestNetworkData bestNetworkData(netraxOptions.max_reticulations);
 
@@ -919,7 +923,7 @@ void run_random(NetraxOptions& netraxOptions, const RaxmlInstance& instance, con
         while (true) {
             n_iterations++;
             int seed = dist(rng);
-            if (ParallelContext::master_rank()) {
+            if (can_write()) {
                 std::cout << "Starting with new random network " << n_iterations << " with " << start_reticulations << " reticulations, tree seed = " << seed << ".\n";
             }
             netrax::AnnotatedNetwork ann_network = build_random_annotated_network(netraxOptions, instance, seed);
@@ -927,7 +931,7 @@ void run_random(NetraxOptions& netraxOptions, const RaxmlInstance& instance, con
             add_extra_reticulations(ann_network, start_reticulations);
 
             wavesearch(ann_network, &bestNetworkData, typesBySpeed, ann_network_thread);
-            if (ParallelContext::master_rank()) {
+            if (can_write()) {
                 std::cout << " Inferred " << ann_network.network.num_reticulations() << " reticulations, logl = " << computeLoglikelihood(ann_network) << ", bic = " << scoreNetwork(ann_network) << "\n";
             }
             for (MoveType type : allTypes) {
@@ -952,14 +956,14 @@ void run_random(NetraxOptions& netraxOptions, const RaxmlInstance& instance, con
         while (true) {
             n_iterations++;
             int seed = dist(rng);
-            if (ParallelContext::master_rank()) {
+            if (can_write()) {
                 std::cout << "Starting with new parsimony tree " << n_iterations << " with " << start_reticulations << " reticulations, tree seed = " << seed << ".\n";
             }
             netrax::AnnotatedNetwork ann_network = build_parsimony_annotated_network(netraxOptions, instance, seed);
             init_annotated_network(ann_network, rng);
             add_extra_reticulations(ann_network, start_reticulations);
             wavesearch(ann_network, &bestNetworkData, typesBySpeed, ann_network_thread);
-            if (ParallelContext::master_rank()) {
+            if (can_write()) {
                 std::cout << " Inferred " << ann_network.network.num_reticulations() << " reticulations, logl = " << computeLoglikelihood(ann_network) << ", bic = " << scoreNetwork(ann_network) << "\n";
             }
             for (MoveType type : allTypes) {
@@ -977,7 +981,7 @@ void run_random(NetraxOptions& netraxOptions, const RaxmlInstance& instance, con
         }
     }
 
-    if (ParallelContext::master_rank()) {
+    if (can_write()) {
         std::cout << "\nAggregated statistics on which moves were taken:\n";
         for (const MoveType& type : typesBySpeed) {
             std::cout << toString(type) << ": " << totalStats.moves_taken[type] << "\n";

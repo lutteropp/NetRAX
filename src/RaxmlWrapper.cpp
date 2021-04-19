@@ -350,6 +350,7 @@ Options createDefaultOptions() {
     opts.model_file = "DNA";
 
     opts.use_rba_partload = true;
+    opts.num_ranks = ParallelContext::num_ranks();
     return opts;
 }
 
@@ -361,7 +362,6 @@ RaxmlInstance createRaxmlInstance(const NetraxOptions &options) {
     instance.opts.msa_file = options.msa_file;
     instance.opts.model_file = options.model_file;
     instance.opts.command = Command::evaluate;
-    instance.opts.num_threads = 1;
     instance.opts.use_repeats = options.use_repeats;
     instance.opts.use_tip_inner = !options.use_repeats;
     instance.opts.brlen_min = options.brlen_min;
@@ -387,6 +387,8 @@ RaxmlInstance createRaxmlInstance(const NetraxOptions &options) {
         default:
         assert(0);
     }
+    // use naive coarse-grained load balancer for now
+    //instance.coarse_load_balancer.reset(new SimpleCoarseLoadBalancer());
 
     load_parted_msa(instance);
     // ensure linked brlens for unpartitioned MSA
@@ -396,8 +398,6 @@ RaxmlInstance createRaxmlInstance(const NetraxOptions &options) {
         }
         instance.opts.brlen_linkage = PLLMOD_COMMON_BRLEN_LINKED;
     }
-    autotune_threads(instance);
-    check_options(instance);
 
     return instance;
 }

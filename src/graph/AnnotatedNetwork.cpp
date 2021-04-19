@@ -113,7 +113,7 @@ void init_annotated_network(AnnotatedNetwork &ann_network) {
  * 
  * @param options The information specified by the user.
  */
-AnnotatedNetwork build_annotated_network(NetraxOptions &options, const RaxmlInstance& instance) {
+AnnotatedNetwork build_annotated_network(const NetraxOptions &options, const RaxmlInstance& instance) {
     AnnotatedNetwork ann_network(options, instance);
     ann_network.network = std::move(netrax::readNetworkFromFile(options.start_network_file,
             options.max_reticulations));
@@ -126,7 +126,7 @@ AnnotatedNetwork build_annotated_network(NetraxOptions &options, const RaxmlInst
  * @param options The information specified by the user.
  * @param newickString The network in Extended Newick format.
  */
-AnnotatedNetwork build_annotated_network_from_string(NetraxOptions &options, const RaxmlInstance& instance,
+AnnotatedNetwork build_annotated_network_from_string(const NetraxOptions &options, const RaxmlInstance& instance,
         const std::string &newickString) {
     AnnotatedNetwork ann_network(options, instance);
     ann_network.network = netrax::readNetworkFromString(newickString, options.max_reticulations);
@@ -139,7 +139,7 @@ AnnotatedNetwork build_annotated_network_from_string(NetraxOptions &options, con
  * @param options The information specified by the user.
  * @param newickPath The path to the network in Extended Newick format.
  */
-AnnotatedNetwork build_annotated_network_from_file(NetraxOptions &options, const RaxmlInstance& instance,
+AnnotatedNetwork build_annotated_network_from_file(const NetraxOptions &options, const RaxmlInstance& instance,
         const std::string &networkPath) {
     AnnotatedNetwork ann_network(options, instance);
     ann_network.network = std::move(netrax::readNetworkFromFile(networkPath,
@@ -153,7 +153,7 @@ AnnotatedNetwork build_annotated_network_from_file(NetraxOptions &options, const
  * @param options The options specified by the user.
  * @param utree The pll_utree_t to be converted into an annotated network.
  */
-AnnotatedNetwork build_annotated_network_from_utree(NetraxOptions &options, const RaxmlInstance& instance,
+AnnotatedNetwork build_annotated_network_from_utree(const NetraxOptions &options, const RaxmlInstance& instance,
         const pll_utree_t &utree) {
     AnnotatedNetwork ann_network(options, instance);
     ann_network.network = netrax::convertUtreeToNetwork(utree, options.max_reticulations);
@@ -195,7 +195,7 @@ void add_extra_reticulations(AnnotatedNetwork &ann_network, unsigned int targetC
  * 
  * @param options The options specified by the user.
  */
-AnnotatedNetwork build_random_annotated_network(NetraxOptions &options, const RaxmlInstance& instance, double seed) {
+AnnotatedNetwork build_random_annotated_network(const NetraxOptions &options, const RaxmlInstance& instance, double seed) {
     Tree tree = generateRandomTree(instance, seed);
     AnnotatedNetwork ann_network = build_annotated_network_from_utree(options, instance, tree.pll_utree());
     return ann_network;
@@ -206,7 +206,7 @@ AnnotatedNetwork build_random_annotated_network(NetraxOptions &options, const Ra
  * 
  * @param options The options specified by the user.
  */
-AnnotatedNetwork build_parsimony_annotated_network(NetraxOptions &options, const RaxmlInstance& instance, double seed) {
+AnnotatedNetwork build_parsimony_annotated_network(const NetraxOptions &options, const RaxmlInstance& instance, double seed) {
     Tree tree = generateParsimonyTree(instance, seed);
     AnnotatedNetwork ann_network = build_annotated_network_from_utree(options, instance, tree.pll_utree());
     return ann_network;
@@ -217,7 +217,7 @@ AnnotatedNetwork build_parsimony_annotated_network(NetraxOptions &options, const
  * 
  * @param options The options specified by the user.
  */
-AnnotatedNetwork build_best_raxml_annotated_network(NetraxOptions &options, const RaxmlInstance& instance) {
+AnnotatedNetwork build_best_raxml_annotated_network(const NetraxOptions &options, const RaxmlInstance& instance) {
     Tree tree = bestRaxmlTree(instance);
     AnnotatedNetwork ann_network = build_annotated_network_from_utree(options, instance, tree.pll_utree());
     return ann_network;

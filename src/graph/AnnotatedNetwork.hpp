@@ -143,16 +143,16 @@ struct AnnotatedNetwork {
     AnnotatedNetwork(const AnnotatedNetwork& orig_network);
 };
 
-AnnotatedNetwork build_annotated_network(NetraxOptions &options, const RaxmlInstance& instance);
-AnnotatedNetwork build_annotated_network_from_string(NetraxOptions &options, const RaxmlInstance& instance,
+AnnotatedNetwork build_annotated_network(const NetraxOptions &options, const RaxmlInstance& instance);
+AnnotatedNetwork build_annotated_network_from_string(const NetraxOptions &options, const RaxmlInstance& instance,
         const std::string &newickString);
-AnnotatedNetwork build_annotated_network_from_file(NetraxOptions &options, const RaxmlInstance& instance,
+AnnotatedNetwork build_annotated_network_from_file(const NetraxOptions &options, const RaxmlInstance& instance,
         const std::string &networkPath);
-AnnotatedNetwork build_annotated_network_from_utree(NetraxOptions &options, const RaxmlInstance& instance,
+AnnotatedNetwork build_annotated_network_from_utree(const NetraxOptions &options, const RaxmlInstance& instance,
         const pll_utree_t &utree);
-AnnotatedNetwork build_random_annotated_network(NetraxOptions &options, const RaxmlInstance& instance, double seed);
-AnnotatedNetwork build_parsimony_annotated_network(NetraxOptions &options, const RaxmlInstance& instance,  double seed);
-AnnotatedNetwork build_best_raxml_annotated_network(NetraxOptions &options, const RaxmlInstance& instance);
+AnnotatedNetwork build_random_annotated_network(const NetraxOptions &options, const RaxmlInstance& instance, double seed);
+AnnotatedNetwork build_parsimony_annotated_network(const NetraxOptions &options, const RaxmlInstance& instance,  double seed);
+AnnotatedNetwork build_best_raxml_annotated_network(const NetraxOptions &options, const RaxmlInstance& instance);
 void add_extra_reticulations(AnnotatedNetwork &ann_network, unsigned int targetCount);
 void init_annotated_network(AnnotatedNetwork &ann_network, std::mt19937& rng);
 void init_annotated_network(AnnotatedNetwork &ann_network);
