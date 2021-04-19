@@ -132,7 +132,7 @@ RaxmlInstance createRaxmlInstance(const NetraxOptions &options) {
     instance.opts.lh_epsilon = options.lh_epsilon;
     instance.opts.random_seed = options.seed;
     instance.opts.load_balance_method = options.load_balance_method;
-    instance.opts.use_rba_partload &= (instance.opts.num_ranks > 1 && !instance.opts.coarse()); 
+    check_options_early(instance.opts);
 
     switch(instance.opts.load_balance_method)
     {
