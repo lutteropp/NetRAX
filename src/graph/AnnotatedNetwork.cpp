@@ -83,9 +83,7 @@ void init_annotated_network(AnnotatedNetwork &ann_network, std::mt19937& rng) {
     }
 
     ann_network.pernode_displayed_tree_data.resize(ann_network.network.nodes.size()); // including all nodes that will ever be there
-    for (size_t i = 0; i < ann_network.pernode_displayed_tree_data.size(); ++i) {
-        ann_network.pernode_displayed_tree_data[i].displayed_trees = std::vector<DisplayedTreeData>(ann_network.fake_treeinfo->partition_count, DisplayedTreeData(ann_network.fake_treeinfo, ann_network.partition_clv_ranges, ann_network.partition_scale_buffer_ranges, ann_network.options.max_reticulations));
-    }
+
     for (size_t i = 0; i < ann_network.network.num_tips(); ++i) {
         std::vector<double*> tip_clv(ann_network.fake_treeinfo->partition_count, nullptr);
         for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
@@ -97,6 +95,9 @@ void init_annotated_network(AnnotatedNetwork &ann_network, std::mt19937& rng) {
         }
         ann_network.pernode_displayed_tree_data[i].displayed_trees.emplace_back(DisplayedTreeData(ann_network.fake_treeinfo, ann_network.partition_clv_ranges, ann_network.partition_scale_buffer_ranges, tip_clv, ann_network.options.max_reticulations));
         ann_network.pernode_displayed_tree_data[i].num_active_displayed_trees = 1;
+
+        assert(ann_network.pernode_displayed_tree_data[i].displayed_trees.size() == 1);
+        assert(ann_network.pernode_displayed_tree_data[i].displayed_trees[0].isTip);
     }
 
     netrax::computeLoglikelihood(ann_network, false, true);

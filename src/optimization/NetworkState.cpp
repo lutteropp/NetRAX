@@ -59,7 +59,7 @@ void add_missing_displayed_trees_data(AnnotatedNetwork& ann_network, NetworkStat
     size_t maxReticulations = ann_network.options.max_reticulations;
     for (size_t i = 0; i < ann_network.network.nodes.size(); ++i) {
         while (state.pernode_displayed_tree_data[i].displayed_trees.size() < ann_network.pernode_displayed_tree_data[i].num_active_displayed_trees) {
-            // add another displayed tree
+            // add another displayed tree struct
             state.pernode_displayed_tree_data[i].displayed_trees.emplace_back(DisplayedTreeData(ann_network.fake_treeinfo, ann_network.partition_clv_ranges, ann_network.partition_scale_buffer_ranges, maxReticulations));
         }
     }

@@ -438,6 +438,7 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, Node*
                     if (node->clv_index == ann_network.network.root->clv_index) {
                         std::cout << "I am thread " << ParallelContext::local_proc_id() << " in 2 children mode and I am updating a root clv for partition " << partition_idx << "\n";
                     }
+                    std::cout << "I am at node with clv index " << node->clv_index << "\n";
                     assert(leftTree.isTip || !single_clv_is_all_zeros(ann_network.partition_clv_ranges[partition_idx], left_clv));
                     assert(rightTree.isTip || !single_clv_is_all_zeros(ann_network.partition_clv_ranges[partition_idx], right_clv));
                     pll_update_partials_single(partition, &op_both, 1, parent_clv, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
