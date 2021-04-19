@@ -475,10 +475,6 @@ TreeInfo::tinfo_behaviour createNetworkBehaviour() {
     return network_behaviour;
 }
 
-RaxmlWrapper::RaxmlWrapper(const NetraxOptions &options) {
-    instance = createRaxmlInstance(options);
-}
-
 int fake_init_tree(pllmod_treeinfo_t *treeinfo, Network &network) {
     pll_utree_t *tree = (pll_utree_t*) malloc(sizeof(pll_utree_t));
     treeinfo->tree = tree;

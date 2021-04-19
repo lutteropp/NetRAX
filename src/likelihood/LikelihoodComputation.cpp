@@ -1618,7 +1618,6 @@ double computeLoglikelihoodNaiveUtree(AnnotatedNetwork &ann_network, int increme
     (void) incremental;
     (void) update_pmatrices;
     Network &network = ann_network.network;
-    RaxmlWrapper wrapper(ann_network.options);
     size_t num_partitions = ann_network.fake_treeinfo->partition_count;
     size_t num_trees = (1 << ann_network.network.num_reticulations());
 

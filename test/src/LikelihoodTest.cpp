@@ -200,8 +200,8 @@ void compareLikelihoodFunctions(const std::string &networkPath, const std::strin
     options.start_network_file = networkPath;
     options.msa_file = msaPath;
     options.use_repeats = useRepeats;
-    RaxmlWrapper wrapper(options);
-    AnnotatedNetwork ann_network = build_annotated_network(options, wrapper.instance);
+    const RaxmlInstance instance = createRaxmlInstance(options);
+    AnnotatedNetwork ann_network = build_annotated_network(options, instance);
     init_annotated_network(ann_network);
     Network &network = ann_network.network;
     print_clv_index_by_label(network);
@@ -222,15 +222,15 @@ void compareLikelihoodFunctions(const std::string &networkPath, const std::strin
     ASSERT_NE(norep_logl_blobs, -std::numeric_limits<double>::infinity());
     double norep_logl_blobs_graycode = computeLoglikelihood(ann_network, 0, 1);
     ASSERT_NE(norep_logl_blobs_graycode, -std::numeric_limits<double>::infinity());
-    /*/double naive_logl = computeLoglikelihoodNaiveUtree(ann_network, 0, 1,
-            &treewise_logl_naive);*/
+    double naive_logl = computeLoglikelihoodNaiveUtree(ann_network, 0, 1,
+            &treewise_logl_naive);
 
     EXPECT_DOUBLE_EQ(norep_logl_graycode, norep_logl);
     EXPECT_DOUBLE_EQ(norep_logl_blobs, norep_logl);
     EXPECT_DOUBLE_EQ(norep_logl_blobs_graycode, norep_logl);
-    /*if (naive_logl != -std::numeric_limits<double>::infinity()) {
+    if (naive_logl != -std::numeric_limits<double>::infinity()) {
         EXPECT_NEAR(naive_logl, norep_logl, 10);
-    }*/
+    }
 
     /*EXPECT_EQ(treewise_logl_norep.size(), treewise_logl_naive.size());
     for (size_t i = 0; i < treewise_logl_norep.size(); ++i) {
@@ -241,7 +241,7 @@ void compareLikelihoodFunctions(const std::string &networkPath, const std::strin
     std::cout << "norep_logl_graycode: " << norep_logl_graycode << "\n";
     std::cout << "norep_logl_blobs: " << norep_logl_blobs << "\n";
     std::cout << "norep_logl_blobs_graycode: " << norep_logl_blobs_graycode << "\n";
-    //std::cout << "naive logl: " << naive_logl << "\n";
+    std::cout << "naive logl: " << naive_logl << "\n";
 }
 
 void incrementalTest(const std::string &networkPath, const std::string &msaPath) {
@@ -249,8 +249,8 @@ void incrementalTest(const std::string &networkPath, const std::string &msaPath)
     options.start_network_file = networkPath;
     options.msa_file = msaPath;
     options.use_repeats = true;
-    RaxmlWrapper wrapper(options);
-    AnnotatedNetwork ann_network = build_annotated_network(options, wrapper.instance);
+    const RaxmlInstance instance = createRaxmlInstance(options);
+    AnnotatedNetwork ann_network = build_annotated_network(options, instance);
     init_annotated_network(ann_network);
     Network &network = ann_network.network;
     print_clv_index_by_label(network);
@@ -344,8 +344,8 @@ TEST_F (LikelihoodTest, celineNetworkNonzeroBranches) {
 
 TEST_F (LikelihoodTest, updateReticulationProb) {
     NetraxOptions options = NetraxOptions(networkPath, msaPath, false);
-    RaxmlWrapper wrapper(options);
-    AnnotatedNetwork ann_network = build_annotated_network(options, wrapper.instance);
+    const RaxmlInstance instance = createRaxmlInstance(options);
+    AnnotatedNetwork ann_network = build_annotated_network(options, instance);
     init_annotated_network(ann_network);
     optimizeReticulationProbs(ann_network);
     double norep_logl = computeLoglikelihood(ann_network);
@@ -361,8 +361,8 @@ TEST_F (LikelihoodTest, updateReticulationProb) {
 
 TEST_F (LikelihoodTest, simpleTreeWithRepeats) {
     NetraxOptions options = NetraxOptions(treePath, msaPath, true);
-    RaxmlWrapper wrapper(options);
-    AnnotatedNetwork ann_network = build_annotated_network(options, wrapper.instance);
+    const RaxmlInstance instance = createRaxmlInstance(options);
+    AnnotatedNetwork ann_network = build_annotated_network(options, instance);
     init_annotated_network(ann_network);
     double network_logl = computeLoglikelihood(ann_network);
     std::cout << "The computed network_logl 5 is: " << network_logl << "\n";
@@ -404,8 +404,8 @@ TEST_F (LikelihoodTest, buildAnnotatedNetworkTest) {
     options.start_network_file = treePath;
     options.msa_file = msaPath;
     options.use_repeats = true;
-    RaxmlWrapper wrapper(options);
-    AnnotatedNetwork ann_network = build_annotated_network(options, wrapper.instance);
+    const RaxmlInstance instance = createRaxmlInstance(options);
+    AnnotatedNetwork ann_network = build_annotated_network(options, instance);
     init_annotated_network(ann_network);
     ASSERT_TRUE(true);
 }
@@ -415,26 +415,25 @@ TEST_F (LikelihoodTest, simpleTreeNaiveVersusNormalRaxml) {
     options.start_network_file = treePath;
     options.msa_file = msaPath;
     options.use_repeats = true;
-    RaxmlWrapper wrapper(options);
-    AnnotatedNetwork ann_network = build_annotated_network(options, wrapper.instance);
+    const RaxmlInstance instance = createRaxmlInstance(options);
+    AnnotatedNetwork ann_network = build_annotated_network(options, instance);
     init_annotated_network(ann_network);
 
     Network &network = ann_network.network;
     print_clv_index_by_label(network);
 
-    //double naive_logl = computeLoglikelihoodNaiveUtree(ann_network, 0, 1);
+    double naive_logl = computeLoglikelihoodNaiveUtree(ann_network, 0, 1);
 
     pll_utree_t *raxml_utree = Tree::loadFromFile(treePath).pll_utree_copy();
     NetraxOptions options2 = NetraxOptions(treePath, msaPath, false);
-    std::unique_ptr<RaxmlWrapper> treeWrapper = std::make_unique<RaxmlWrapper>(
-            options2);
-    //TreeInfo *raxml_treeinfo = treeWrapper->createRaxmlTreeinfo(raxml_utree);
-    //double raxml_logl = raxml_treeinfo->loglh(false);
+    const RaxmlInstance instance2 = createRaxmlInstance(options2);
+    TreeInfo *raxml_treeinfo = createRaxmlTreeinfo(raxml_utree, instance2);
+    double raxml_logl = raxml_treeinfo->loglh(false);
 
-    //delete raxml_treeinfo;
+    delete raxml_treeinfo;
 
-    //EXPECT_NE(raxml_logl, -std::numeric_limits<double>::infinity());
-    //EXPECT_NEAR(raxml_logl, naive_logl, 0.001);
+    EXPECT_NE(raxml_logl, -std::numeric_limits<double>::infinity());
+    EXPECT_NEAR(raxml_logl, naive_logl, 0.001);
 }
 
 TEST_F (LikelihoodTest, convertUtreeToNetwork) {
@@ -443,17 +442,17 @@ TEST_F (LikelihoodTest, convertUtreeToNetwork) {
     options.msa_file = msaPath;
     options.use_repeats = true;
     pll_utree_t *raxml_utree = Tree::loadFromFile(treePath).pll_utree_copy();
+    const RaxmlInstance instance = createRaxmlInstance(options);
 
-    RaxmlWrapper wrapper(options);
-    AnnotatedNetwork ann_network = build_annotated_network_from_utree(options, wrapper.instance, *raxml_utree);
+    AnnotatedNetwork ann_network = build_annotated_network_from_utree(options, instance, *raxml_utree);
     init_annotated_network(ann_network);
     Network &network = ann_network.network;
     print_clv_index_by_label(network);
-    //double naive_utree_logl = computeLoglikelihoodNaiveUtree(ann_network, 0, 1);
+    double naive_utree_logl = computeLoglikelihoodNaiveUtree(ann_network, 0, 1);
 
-    AnnotatedNetwork ann_network_2 = build_annotated_network(options, wrapper.instance);
-    //double naive_network_logl = computeLoglikelihoodNaiveUtree(ann_network_2, 0, 1);
+    AnnotatedNetwork ann_network_2 = build_annotated_network(options, instance);
+    double naive_network_logl = computeLoglikelihoodNaiveUtree(ann_network_2, 0, 1);
 
-    //EXPECT_NE(naive_utree_logl, -std::numeric_limits<double>::infinity());
-    //EXPECT_DOUBLE_EQ(naive_network_logl, naive_utree_logl);
+    EXPECT_NE(naive_utree_logl, -std::numeric_limits<double>::infinity());
+    EXPECT_DOUBLE_EQ(naive_network_logl, naive_utree_logl);
 }

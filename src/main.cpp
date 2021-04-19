@@ -423,7 +423,7 @@ int internal_main_netrax(int argc, char **argv, void* comm)
     }
     parseOptions(argc, argv, &netraxOptions);
 
-    RaxmlWrapper wrapper(netraxOptions);
+    const RaxmlInstance instance = createRaxmlInstance(netraxOptions);
 
     for(int i=0;i<argc;i++)
     {
@@ -469,7 +469,7 @@ int internal_main_netrax(int argc, char **argv, void* comm)
 
     if (netraxOptions.extract_displayed_trees)
     {
-        extract_displayed_trees(netraxOptions, wrapper.instance, rng);
+        extract_displayed_trees(netraxOptions, instance, rng);
         mpfr_free_cache();
         ParallelContext::finalize();
         return 0;
@@ -477,7 +477,7 @@ int internal_main_netrax(int argc, char **argv, void* comm)
 
     if (netraxOptions.check_weird_network)
     {
-        check_weird_network(netraxOptions, wrapper.instance, rng);
+        check_weird_network(netraxOptions, instance, rng);
         mpfr_free_cache();
         ParallelContext::finalize();
         return 0;
@@ -485,7 +485,7 @@ int internal_main_netrax(int argc, char **argv, void* comm)
 
     if (netraxOptions.generate_random_network_only)
     {
-        generate_random_network_only(netraxOptions, wrapper.instance, rng);
+        generate_random_network_only(netraxOptions, instance, rng);
         mpfr_free_cache();
         ParallelContext::finalize();
         return 0;
@@ -493,14 +493,14 @@ int internal_main_netrax(int argc, char **argv, void* comm)
 
     if (netraxOptions.scale_branches_only != 0.0)
     {
-        scale_branches_only(netraxOptions, wrapper.instance, rng);
+        scale_branches_only(netraxOptions, instance, rng);
         mpfr_free_cache();
         ParallelContext::finalize();
         return 0;
     }
 
     if (netraxOptions.change_reticulation_probs_only) {
-        scale_reticulation_probs_only(netraxOptions, wrapper.instance, rng);
+        scale_reticulation_probs_only(netraxOptions, instance, rng);
         mpfr_free_cache();
         ParallelContext::finalize();
         return 0;
@@ -508,7 +508,7 @@ int internal_main_netrax(int argc, char **argv, void* comm)
 
     if (netraxOptions.network_distance_only)
     {
-        network_distance_only(netraxOptions, wrapper.instance, rng);
+        network_distance_only(netraxOptions, instance, rng);
         mpfr_free_cache();
         ParallelContext::finalize();
         return 0;
@@ -522,7 +522,7 @@ int internal_main_netrax(int argc, char **argv, void* comm)
 
     if (netraxOptions.score_only)
     {
-        score_only(netraxOptions, wrapper.instance, rng);
+        score_only(netraxOptions, instance, rng);
         mpfr_free_cache();
         ParallelContext::finalize();
         return 0;
@@ -536,13 +536,13 @@ int internal_main_netrax(int argc, char **argv, void* comm)
     if (!netraxOptions.start_network_file.empty())
     {
         std::vector<MoveType> typesBySpeed = getTypesBySpeed(netraxOptions);
-        run_single_start_waves(netraxOptions, wrapper.instance, typesBySpeed, rng);
+        run_single_start_waves(netraxOptions, instance, typesBySpeed, rng);
         mpfr_free_cache();
     }
     else
     {
         std::vector<MoveType> typesBySpeed = getTypesBySpeed(netraxOptions);
-        run_random(netraxOptions, wrapper.instance, typesBySpeed, rng);
+        run_random(netraxOptions, instance, typesBySpeed, rng);
         mpfr_free_cache();
     }
     ParallelContext::finalize();

@@ -47,7 +47,6 @@ void allocateBranchProbsArray(AnnotatedNetwork& ann_network) {
 void init_annotated_network(AnnotatedNetwork &ann_network, std::mt19937& rng) {
     ann_network.rng = rng;
 
-    RaxmlWrapper wrapper(ann_network.options);
     ann_network.fake_treeinfo = createNetworkPllTreeinfo(ann_network);
 
     ann_network.travbuffer = netrax::reversed_topological_sort(ann_network.network);

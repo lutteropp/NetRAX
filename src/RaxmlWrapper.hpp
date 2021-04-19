@@ -22,11 +22,7 @@ struct NetworkParams {
         }
 };
 
-class RaxmlWrapper {
-public:
-    RaxmlWrapper(const NetraxOptions &options);
-    RaxmlInstance instance;
-};
+RaxmlInstance createRaxmlInstance(const NetraxOptions& options);
 
 void enableRaxmlDebugOutput(RaxmlInstance& instance);
 
