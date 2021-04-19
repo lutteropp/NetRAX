@@ -352,6 +352,12 @@ void scale_reticulation_probs_only(const NetraxOptions &netraxOptions, const Rax
 }
 
 void netrax_thread_main(const NetraxOptions& netraxOptions, const RaxmlInstance& instance) {
+    /* wait until master thread prepares all global data */
+    //  printf("WORKER: %u, LOCAL_THREAD: %u\n", ParallelContext::group_id(), ParallelContext::local_proc_id());
+    ParallelContext::global_barrier();
+
+    //check_oversubscribe(instance);
+
     std::mt19937 rng(netraxOptions.seed);
     srand(netraxOptions.seed);
 
@@ -368,6 +374,7 @@ void netrax_thread_main(const NetraxOptions& netraxOptions, const RaxmlInstance&
         std::vector<MoveType> typesBySpeed = getTypesBySpeed(netraxOptions);
         run_random(netraxOptions, instance, typesBySpeed, rng);
     }
+    ParallelContext::global_barrier();
 }
 
 void setup_parallel_stuff(const NetraxOptions& netraxOptions, RaxmlInstance& instance) {
