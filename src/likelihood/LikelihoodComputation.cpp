@@ -115,8 +115,6 @@ void computeDisplayedTreeLoglikelihood(AnnotatedNetwork& ann_network, DisplayedT
     Node* displayed_tree_root = findFirstNodeWithTwoActiveChildren(ann_network, treeAtRoot.treeLoglData.reticulationChoices, actRoot);
     DisplayedTreeData& treeWithoutDeadPath = findMatchingDisplayedTree(ann_network, treeAtRoot.treeLoglData.reticulationChoices, ann_network.pernode_displayed_tree_data[displayed_tree_root->clv_index]);
 
-    std::cout << "treeAtRoot.treeLoglData.tree_partition_logl.size(): " << treeAtRoot.treeLoglData.tree_partition_logl.size() << "\n";
-
     for (size_t partition_idx = 0; partition_idx < ann_network.fake_treeinfo->partition_count; ++partition_idx) {
         //skip remote partitions
         if (!ann_network.fake_treeinfo->partitions[partition_idx]) {
@@ -132,6 +130,10 @@ void computeDisplayedTreeLoglikelihood(AnnotatedNetwork& ann_network, DisplayedT
 
         treeAtRoot.treeLoglData.tree_partition_logl[partition_idx] = tree_logl;
     }
+
+    std::cout << "I AM HERE with rank " << ParallelContext::rank_id() << " and treeAtRoot.treeLoglData.tree_partition_logl.size() = " << treeAtRoot.treeLoglData.tree_partition_logl.size() << "\n";
+    std::cout << "I AM HERE with rank " << ParallelContext::rank_id() << " and ann_network.fake_treeinfo->partition_count = " << ann_network.fake_treeinfo->partition_count << "\n";
+
 
     /* sum up likelihood from all threads */
     if (ann_network.fake_treeinfo->parallel_reduce_cb)
@@ -227,6 +229,10 @@ void add_displayed_tree(AnnotatedNetwork& ann_network, size_t clv_index) {
         data.displayed_trees.emplace_back(DisplayedTreeData(ann_network.fake_treeinfo, ann_network.partition_clv_ranges, ann_network.partition_scale_buffer_ranges, ann_network.options.max_reticulations));
     } else { // zero out the clv vector and scale buffer
         for (size_t partition_idx = 0; partition_idx < ann_network.fake_treeinfo->partition_count; ++partition_idx) {
+            // skip remote partitions
+            if (!ann_network.fake_treeinfo->partitions[partition_idx]) {
+                continue;
+            }
             assert(data.displayed_trees[data.num_active_displayed_trees-1].clv_vector[partition_idx]);
             memset(data.displayed_trees[data.num_active_displayed_trees-1].clv_vector[partition_idx], 0, ann_network.partition_clv_ranges[partition_idx].inner_clv_num_entries * sizeof(double));
             if (data.displayed_trees[data.num_active_displayed_trees-1].scale_buffer[partition_idx]) {
