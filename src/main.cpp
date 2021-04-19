@@ -2,6 +2,7 @@
 #include <string>
 #include <random>
 #include <limits>
+#include <functional>
 
 #include <CLI11.hpp>
 #include <raxml-ng/main.hpp>
@@ -398,6 +399,59 @@ void scale_reticulation_probs_only(NetraxOptions &netraxOptions, const RaxmlInst
     }
 }
 
+void netrax_thread_main(const NetraxOptions& netraxOptions, const RaxmlInstance& instance) {
+    // todo
+    throw std::runtime_error("Not implemented yet");
+}
+
+void setup_parallel_stuff(const NetraxOptions& netraxOptions, RaxmlInstance& instance) {
+    auto thread_function = std::bind(netrax_thread_main,
+                                                 std::ref(netraxOptions),
+                                                 std::ref(instance));
+    ParallelContext::init_pthreads(instance.opts, thread_function);
+
+    std::cout << "num_threads: " << instance.opts.num_threads << "\n";
+    std::cout << "num workers: " << instance.opts.num_workers << "\n";
+    std::cout << "num local groups: " << ParallelContext::num_local_groups() << "\n";
+    std::cout << "num ranks: " << ParallelContext::num_ranks() << "\n";
+    std::cout << "num groups: " << ParallelContext::num_groups() << "\n";
+    std::cout << "threads per group: " << ParallelContext::threads_per_group() << "\n";
+
+    /* init workers */
+    assert(instance.opts.num_workers > 0);
+    for (size_t i = 0; i < ParallelContext::num_local_groups(); ++i)
+    {
+        const auto& grp = ParallelContext::thread_group(i);
+        instance.workers.emplace_back(instance, grp.group_id);
+    }
+
+    init_parallel_buffers(instance);
+
+    balance_load(instance);
+
+    /* lazy-load part of the alignment assigned to the current MPI rank */
+    if (instance.opts.msa_format == FileFormat::binary && instance.opts.use_rba_partload)
+    {
+        // doesn't work with coarse-grained parallelization!
+        assert(ParallelContext::num_groups() == 1);
+
+        // collect PartitionAssignments from all worker threads
+        PartitionAssignment local_part_ranges;
+        for (size_t i = 0; i < instance.opts.num_threads; ++i)
+        {
+        auto thread_ranges = instance.proc_part_assign.at(ParallelContext::local_proc_id() + i);
+        for (auto& r: thread_ranges)
+        {
+            local_part_ranges.assign_sites(r.part_id, r.start, r.length);
+        }
+        }
+
+        LOG_DEBUG << "Loading MSA segments from RBA file..." << endl;
+        RBAStream bs(instance.opts.msa_file);
+        auto& parted_msa = *instance.parted_msa;
+        bs >> RBAStream::RBAOutput(parted_msa, RBAStream::RBAElement::seqdata, &local_part_ranges);
+    }
+}
 
 int internal_main_netrax(int argc, char **argv, void* comm)
 {
@@ -423,8 +477,7 @@ int internal_main_netrax(int argc, char **argv, void* comm)
     }
     parseOptions(argc, argv, &netraxOptions);
 
-    const RaxmlInstance instance = createRaxmlInstance(netraxOptions);
-
+    // early stop if the user only wanted list of commands
     for(int i=0;i<argc;i++)
     {
         if(string(argv[i]) == "-h" || string(argv[i]) == "--help")
@@ -433,6 +486,10 @@ int internal_main_netrax(int argc, char **argv, void* comm)
             return 0;
         }
     }
+
+    RaxmlInstance instance = createRaxmlInstance(netraxOptions);
+    setup_parallel_stuff(netraxOptions, instance);
+    netrax_thread_main(netraxOptions, instance);
 
     // make sure all MPI ranks use the same random seed
     ParallelContext::mpi_broadcast(&netraxOptions.seed, sizeof(long));

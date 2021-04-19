@@ -396,55 +396,8 @@ RaxmlInstance createRaxmlInstance(const NetraxOptions &options) {
         }
         instance.opts.brlen_linkage = PLLMOD_COMMON_BRLEN_LINKED;
     }
-    auto& parted_msa = *instance.parted_msa;
     autotune_threads(instance);
     check_options(instance);
-
-    //ParallelContext::init_pthreads(instance.opts, std::bind(thread_main,
-    //                                             std::ref(instance),
-    //                                             std::ref(cm)));
-
-
-    std::cout << "num_threads: " << instance.opts.num_threads << "\n";
-    std::cout << "num workers: " << instance.opts.num_workers << "\n";
-    std::cout << "num local groups: " << ParallelContext::num_local_groups() << "\n";
-    std::cout << "num ranks: " << ParallelContext::num_ranks() << "\n";
-    std::cout << "num groups: " << ParallelContext::num_groups() << "\n";
-    std::cout << "threads per group: " << ParallelContext::threads_per_group() << "\n";
-
-    /* init workers */
-    assert(instance.opts.num_workers > 0);
-    for (size_t i = 0; i < ParallelContext::num_local_groups(); ++i)
-    {
-        const auto& grp = ParallelContext::thread_group(i);
-        instance.workers.emplace_back(instance, grp.group_id);
-    }
-
-    init_parallel_buffers(instance);
-
-    balance_load(instance);
-
-    /* lazy-load part of the alignment assigned to the current MPI rank */
-    if (instance.opts.msa_format == FileFormat::binary && instance.opts.use_rba_partload)
-    {
-        // doesn't work with coarse-grained parallelization!
-        assert(ParallelContext::num_groups() == 1);
-
-        // collect PartitionAssignments from all worker threads
-        PartitionAssignment local_part_ranges;
-        for (size_t i = 0; i < instance.opts.num_threads; ++i)
-        {
-        auto thread_ranges = instance.proc_part_assign.at(ParallelContext::local_proc_id() + i);
-        for (auto& r: thread_ranges)
-        {
-            local_part_ranges.assign_sites(r.part_id, r.start, r.length);
-        }
-        }
-
-        LOG_DEBUG << "Loading MSA segments from RBA file..." << endl;
-        RBAStream bs(instance.opts.msa_file);
-        bs >> RBAStream::RBAOutput(parted_msa, RBAStream::RBAElement::seqdata, &local_part_ranges);
-    }
 
     return instance;
 }
