@@ -98,6 +98,7 @@ namespace netrax
     void assign_clv_entries(pll_partition_t* partition, double** from_clv, double** to_clv) {
         assert(from_clv);
         assert(to_clv);
+        assert(partition);
 
         ClvRangeInfo rangeInfo = get_clv_range(partition);
 
@@ -119,6 +120,7 @@ namespace netrax
     }
 
     double** clone_clv_vector(pll_partition_t *partition, double** clv) {
+        assert(partition);
         double **cloned_clv = create_empty_clv_vector(get_clv_range(partition));
         assign_clv_entries(partition, clv, cloned_clv);
         return cloned_clv;
@@ -134,6 +136,7 @@ namespace netrax
     }
 
     void delete_cloned_clv_vector(pll_partition_t *partition, double **clv) {
+        assert(partition);
         delete_cloned_clv_vector(get_clv_range(partition), clv);
     }
 

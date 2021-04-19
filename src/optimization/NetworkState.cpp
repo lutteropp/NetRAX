@@ -163,6 +163,10 @@ NetworkState extract_network_state(AnnotatedNetwork &ann_network, bool extract_n
     state.displayed_tree_clv_ranges.resize(ann_network.fake_treeinfo->partition_count);
     state.displayed_tree_scale_buffer_ranges.resize(ann_network.fake_treeinfo->partition_count);
     for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        // skip remote partitions
+        if (!ann_network.fake_treeinfo->partitions[p]) {
+            continue;
+        }
         state.displayed_tree_clv_ranges[p] = get_clv_range(ann_network.fake_treeinfo->partitions[p]);
         state.displayed_tree_scale_buffer_ranges[p] = get_scale_buffer_range(ann_network.fake_treeinfo->partitions[p]);
     }
