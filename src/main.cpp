@@ -4,6 +4,7 @@
 #include <limits>
 
 #include <CLI11.hpp>
+#include <raxml-ng/main.hpp>
 #include "likelihood/mpreal.h"
 #include "graph/AnnotatedNetwork.hpp"
 #include "NetraxOptions.hpp"
@@ -144,7 +145,7 @@ void pretty_print(NetraxOptions &netraxOptions)
     }
 }
 
-void score_only(NetraxOptions &netraxOptions, std::mt19937 &rng)
+void score_only(NetraxOptions &netraxOptions, const RaxmlInstance& instance, std::mt19937 &rng)
 {
     if (netraxOptions.msa_file.empty())
     {
@@ -154,7 +155,7 @@ void score_only(NetraxOptions &netraxOptions, std::mt19937 &rng)
     {
         throw std::runtime_error("Need network file to be scored");
     }
-    netrax::AnnotatedNetwork ann_network = build_annotated_network(netraxOptions);
+    netrax::AnnotatedNetwork ann_network = build_annotated_network(netraxOptions, instance);
     init_annotated_network(ann_network, rng);
     optimizeModel(ann_network);
 
@@ -208,14 +209,14 @@ void extract_taxon_names(const NetraxOptions &netraxOptions)
     }
 }
 
-void extract_displayed_trees(NetraxOptions &netraxOptions, std::mt19937 &rng)
+void extract_displayed_trees(NetraxOptions &netraxOptions, const RaxmlInstance& instance, std::mt19937 &rng)
 {
     if (netraxOptions.start_network_file.empty())
     {
         throw std::runtime_error("Need network to extract displayed trees");
     }
     std::vector<std::pair<std::string, double>> displayed_trees;
-    netrax::AnnotatedNetwork ann_network = build_annotated_network(netraxOptions);
+    netrax::AnnotatedNetwork ann_network = build_annotated_network(netraxOptions, instance);
     init_annotated_network(ann_network, rng);
 
     if (ann_network.network.num_reticulations() == 0)
@@ -250,7 +251,7 @@ void extract_displayed_trees(NetraxOptions &netraxOptions, std::mt19937 &rng)
     }
 }
 
-void scale_branches_only(NetraxOptions &netraxOptions, std::mt19937 &rng)
+void scale_branches_only(NetraxOptions &netraxOptions, const RaxmlInstance& instance, std::mt19937 &rng)
 {
     if (netraxOptions.start_network_file.empty())
     {
@@ -260,7 +261,7 @@ void scale_branches_only(NetraxOptions &netraxOptions, std::mt19937 &rng)
     {
         throw std::runtime_error("Need output file to write the scaled network");
     }
-    netrax::AnnotatedNetwork ann_network = build_annotated_network(netraxOptions);
+    netrax::AnnotatedNetwork ann_network = build_annotated_network(netraxOptions, instance);
     init_annotated_network(ann_network, rng);
     for (size_t i = 0; i < ann_network.network.num_branches(); ++i)
     {
@@ -273,15 +274,15 @@ void scale_branches_only(NetraxOptions &netraxOptions, std::mt19937 &rng)
     }
 }
 
-void network_distance_only(NetraxOptions &netraxOptions, std::mt19937 &rng)
+void network_distance_only(NetraxOptions &netraxOptions, const RaxmlInstance& instance, std::mt19937 &rng)
 {
     if (netraxOptions.first_network_path.empty() || netraxOptions.second_network_path.empty())
     {
         throw std::runtime_error("Need networks to compute distance");
     }
-    netrax::AnnotatedNetwork ann_network_1 = build_annotated_network_from_file(netraxOptions, netraxOptions.first_network_path);
+    netrax::AnnotatedNetwork ann_network_1 = build_annotated_network_from_file(netraxOptions, instance, netraxOptions.first_network_path);
     init_annotated_network(ann_network_1, rng);
-    netrax::AnnotatedNetwork ann_network_2 = build_annotated_network_from_file(netraxOptions, netraxOptions.second_network_path);
+    netrax::AnnotatedNetwork ann_network_2 = build_annotated_network_from_file(netraxOptions, instance, netraxOptions.second_network_path);
     init_annotated_network(ann_network_2, rng);
     if (ann_network_1.network.num_tips() != ann_network_2.network.num_tips())
     {
@@ -307,14 +308,14 @@ void network_distance_only(NetraxOptions &netraxOptions, std::mt19937 &rng)
     }
 }
 
-void check_weird_network(NetraxOptions &netraxOptions, std::mt19937 &rng)
+void check_weird_network(NetraxOptions &netraxOptions, const RaxmlInstance& instance, std::mt19937 &rng)
 {
     if (netraxOptions.start_network_file.empty())
     {
         throw std::runtime_error("Need network to extract displayed trees");
     }
     std::vector<pll_utree_t *> displayed_trees;
-    netrax::AnnotatedNetwork ann_network = build_annotated_network(netraxOptions);
+    netrax::AnnotatedNetwork ann_network = build_annotated_network(netraxOptions, instance);
     init_annotated_network(ann_network, rng);
 
     for (int tree_index = 0; tree_index < 1 << ann_network.network.num_reticulations(); ++tree_index)
@@ -350,7 +351,7 @@ void check_weird_network(NetraxOptions &netraxOptions, std::mt19937 &rng)
     }
 }
 
-void generate_random_network_only(NetraxOptions &netraxOptions, std::mt19937 &rng)
+void generate_random_network_only(NetraxOptions &netraxOptions, const RaxmlInstance& instance, std::mt19937 &rng)
 {
     if (netraxOptions.msa_file.empty())
     {
@@ -361,7 +362,7 @@ void generate_random_network_only(NetraxOptions &netraxOptions, std::mt19937 &rn
         throw std::runtime_error("Need output file to write the generated network");
     }
     std::uniform_int_distribution<long> dist(0, RAND_MAX);
-    netrax::AnnotatedNetwork ann_network = build_random_annotated_network(netraxOptions, dist(rng));
+    netrax::AnnotatedNetwork ann_network = build_random_annotated_network(netraxOptions, instance, dist(rng));
     init_annotated_network(ann_network, rng);
     add_extra_reticulations(ann_network, netraxOptions.max_reticulations);
     if (ParallelContext::master_rank()) {
@@ -370,7 +371,7 @@ void generate_random_network_only(NetraxOptions &netraxOptions, std::mt19937 &rn
     }
 }
 
-void scale_reticulation_probs_only(NetraxOptions &netraxOptions, std::mt19937 &rng)
+void scale_reticulation_probs_only(NetraxOptions &netraxOptions, const RaxmlInstance& instance, std::mt19937 &rng)
 {
     if (netraxOptions.msa_file.empty())
     {
@@ -386,7 +387,7 @@ void scale_reticulation_probs_only(NetraxOptions &netraxOptions, std::mt19937 &r
     if (netraxOptions.overwritten_reticulation_prob < 0.0 || netraxOptions.overwritten_reticulation_prob > 1.0) {
         throw std::runtime_error("new prob has to be in [0,1]");
     }
-    netrax::AnnotatedNetwork ann_network = build_annotated_network(netraxOptions);
+    netrax::AnnotatedNetwork ann_network = build_annotated_network(netraxOptions, instance);
     init_annotated_network(ann_network, rng);
     for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
         ann_network.reticulation_probs[i] = netraxOptions.overwritten_reticulation_prob;
@@ -421,6 +422,8 @@ int internal_main_netrax(int argc, char **argv, void* comm)
         return 0;
     }
     parseOptions(argc, argv, &netraxOptions);
+
+    RaxmlWrapper wrapper(netraxOptions);
 
     for(int i=0;i<argc;i++)
     {
@@ -466,7 +469,7 @@ int internal_main_netrax(int argc, char **argv, void* comm)
 
     if (netraxOptions.extract_displayed_trees)
     {
-        extract_displayed_trees(netraxOptions, rng);
+        extract_displayed_trees(netraxOptions, wrapper.instance, rng);
         mpfr_free_cache();
         ParallelContext::finalize();
         return 0;
@@ -474,7 +477,7 @@ int internal_main_netrax(int argc, char **argv, void* comm)
 
     if (netraxOptions.check_weird_network)
     {
-        check_weird_network(netraxOptions, rng);
+        check_weird_network(netraxOptions, wrapper.instance, rng);
         mpfr_free_cache();
         ParallelContext::finalize();
         return 0;
@@ -482,7 +485,7 @@ int internal_main_netrax(int argc, char **argv, void* comm)
 
     if (netraxOptions.generate_random_network_only)
     {
-        generate_random_network_only(netraxOptions, rng);
+        generate_random_network_only(netraxOptions, wrapper.instance, rng);
         mpfr_free_cache();
         ParallelContext::finalize();
         return 0;
@@ -490,14 +493,14 @@ int internal_main_netrax(int argc, char **argv, void* comm)
 
     if (netraxOptions.scale_branches_only != 0.0)
     {
-        scale_branches_only(netraxOptions, rng);
+        scale_branches_only(netraxOptions, wrapper.instance, rng);
         mpfr_free_cache();
         ParallelContext::finalize();
         return 0;
     }
 
     if (netraxOptions.change_reticulation_probs_only) {
-        scale_reticulation_probs_only(netraxOptions, rng);
+        scale_reticulation_probs_only(netraxOptions, wrapper.instance, rng);
         mpfr_free_cache();
         ParallelContext::finalize();
         return 0;
@@ -505,7 +508,7 @@ int internal_main_netrax(int argc, char **argv, void* comm)
 
     if (netraxOptions.network_distance_only)
     {
-        network_distance_only(netraxOptions, rng);
+        network_distance_only(netraxOptions, wrapper.instance, rng);
         mpfr_free_cache();
         ParallelContext::finalize();
         return 0;
@@ -519,7 +522,7 @@ int internal_main_netrax(int argc, char **argv, void* comm)
 
     if (netraxOptions.score_only)
     {
-        score_only(netraxOptions, rng);
+        score_only(netraxOptions, wrapper.instance, rng);
         mpfr_free_cache();
         ParallelContext::finalize();
         return 0;
@@ -533,13 +536,13 @@ int internal_main_netrax(int argc, char **argv, void* comm)
     if (!netraxOptions.start_network_file.empty())
     {
         std::vector<MoveType> typesBySpeed = getTypesBySpeed(netraxOptions);
-        run_single_start_waves(netraxOptions, typesBySpeed, rng);
+        run_single_start_waves(netraxOptions, wrapper.instance, typesBySpeed, rng);
         mpfr_free_cache();
     }
     else
     {
         std::vector<MoveType> typesBySpeed = getTypesBySpeed(netraxOptions);
-        run_random(netraxOptions, typesBySpeed, rng);
+        run_random(netraxOptions, wrapper.instance, typesBySpeed, rng);
         mpfr_free_cache();
     }
     ParallelContext::finalize();

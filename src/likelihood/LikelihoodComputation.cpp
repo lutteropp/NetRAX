@@ -1613,7 +1613,7 @@ double computeLoglikelihoodImproved(AnnotatedNetwork &ann_network, int increment
  * Using arbitrary-precision floating point operations for aggregating over the displayed tree loglikelihoods.
  * This naive implementation assumes a single partition in the MSA. It also doesn't do model optimization.
  **/
-double computeLoglikelihoodNaiveUtree(AnnotatedNetwork &ann_network, int incremental,
+/*double computeLoglikelihoodNaiveUtree(AnnotatedNetwork &ann_network, int incremental,
         int update_pmatrices, std::vector<double> *treewise_logl) {
     (void) incremental;
     (void) update_pmatrices;
@@ -1683,7 +1683,7 @@ double computeLoglikelihoodNaiveUtree(AnnotatedNetwork &ann_network, int increme
         ann_network.fake_treeinfo->partition_loglh[partition_idx] = partition_logl;
     }
     return network_logl.toDouble();
-}
+}*/
 
 std::vector<DisplayedTreeData> extractOldTrees(AnnotatedNetwork& ann_network, Node* virtual_root) {
     std::vector<DisplayedTreeData> oldTrees;

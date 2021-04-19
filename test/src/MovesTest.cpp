@@ -86,7 +86,8 @@ void randomMoves(const std::string &networkPath, const std::string &msaPath, boo
     options.start_network_file = networkPath;
     options.msa_file = msaPath;
     options.use_repeats = useRepeats;
-    AnnotatedNetwork ann_network = build_annotated_network(options);
+    RaxmlWrapper wrapper(options);
+    AnnotatedNetwork ann_network = build_annotated_network(options, wrapper.instance);
     init_annotated_network(ann_network);
     Network &network = ann_network.network;
 

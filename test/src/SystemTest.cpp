@@ -28,51 +28,6 @@ TEST (SystemTest, testTheTest) {
     ASSERT_TRUE(true);
 }
 
-TEST (SystemTest, allTreeOldRaxml) {
-    // initial setup
-    std::string treePath = DATA_PATH + "tree.nw";
-    std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
-
-    Tree normalTree = Tree::loadFromFile(treePath);
-    NetraxOptions treeOptions;
-    treeOptions.start_network_file = treePath;
-    treeOptions.msa_file = msaPath;
-    treeOptions.use_repeats = true;
-    RaxmlWrapper treeWrapper = RaxmlWrapper(treeOptions);
-    //treeWrapper.enableRaxmlDebugOutput();
-    TreeInfo *info = treeWrapper.createRaxmlTreeinfo(normalTree.pll_utree_copy());
-
-    // initial logl computation
-    double initial_logl = info->loglh(false);
-    std::cout << "Initial loglikelihood: " << initial_logl << "\n";
-
-    // model parameter optimization
-    double modelopt_logl = info->optimize_model(treeWrapper.getRaxmlOptions().lh_epsilon);
-    std::cout << "Loglikelihood after model optimization: " << modelopt_logl << "\n";
-
-    std::cout << "The branch lengths before brlen optimization are:\n";
-    for (size_t i = 0; i < info->pll_treeinfo().tree->edge_count; ++i) {
-        std::cout << " " << std::setprecision(17) << info->pll_treeinfo().branch_lengths[0][i]
-                << "\n";
-    }
-
-    // branch length optimization
-    double brlenopt_logl = info->optimize_branches(treeWrapper.getRaxmlOptions().lh_epsilon, 1);
-    std::cout << "Loglikelihood after branch length optimization: " << brlenopt_logl << "\n";
-
-    std::cout << "The optimized branch lengths are:\n";
-    for (size_t i = 0; i < info->pll_treeinfo().tree->edge_count; ++i) {
-        std::cout << " " << std::setprecision(17) << info->pll_treeinfo().branch_lengths[0][i]
-                << "\n";
-    }
-
-    // model parameter optimization
-    double modelopt2_logl = info->optimize_model(treeWrapper.getRaxmlOptions().lh_epsilon);
-    std::cout << "Loglikelihood after model optimization again: " << modelopt2_logl << "\n";
-
-    delete info;
-}
-
 void completeRun(AnnotatedNetwork &ann_network) {
     //std::cout << exportDebugInfo(ann_network.network) << "\n";
     std::cout << toExtendedNewick(ann_network) << "\n";
@@ -91,7 +46,8 @@ TEST (SystemTest, allTree) {
     treeOptions.msa_file = msaPath;
     treeOptions.use_repeats = true;
 
-    AnnotatedNetwork ann_network = build_annotated_network(treeOptions);
+    RaxmlWrapper wrapper(treeOptions);
+    AnnotatedNetwork ann_network = build_annotated_network(treeOptions, wrapper.instance);
     init_annotated_network(ann_network);
     completeRun(ann_network);
 }
@@ -105,7 +61,7 @@ TEST (SystemTest, allNetwork) {
     smallOptions.msa_file = msaPath;
     smallOptions.use_repeats = true;
     RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
-    AnnotatedNetwork ann_network = build_annotated_network(smallOptions);
+    AnnotatedNetwork ann_network = build_annotated_network(smallOptions, smallWrapper.instance);
     init_annotated_network(ann_network);
 
     completeRun(ann_network);
@@ -121,7 +77,7 @@ TEST (SystemTest, randomNetwork) {
     smallOptions.use_repeats = true;
     RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
     unsigned int n_reticulations = 8;
-    AnnotatedNetwork ann_network = build_random_annotated_network(smallOptions, rand());
+    AnnotatedNetwork ann_network = build_random_annotated_network(smallOptions, smallWrapper.instance, rand());
     init_annotated_network(ann_network);
     add_extra_reticulations(ann_network, n_reticulations);
     assert(ann_network.network.num_reticulations() == n_reticulations);
@@ -138,7 +94,7 @@ void problemTest(const std::string &newick) {
     smallOptions.msa_file = msaPath;
     smallOptions.use_repeats = true;
     RaxmlWrapper smallWrapper = RaxmlWrapper(smallOptions);
-    AnnotatedNetwork ann_network = build_annotated_network_from_string(smallOptions, newick);
+    AnnotatedNetwork ann_network = build_annotated_network_from_string(smallOptions, smallWrapper.instance, newick);
     init_annotated_network(ann_network);
 
     completeRun(ann_network);

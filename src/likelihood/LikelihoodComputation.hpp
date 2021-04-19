@@ -98,8 +98,8 @@ std::vector<std::vector<SumtableInfo> > computePartitionSumtables(AnnotatedNetwo
 void updateCLVsVirtualRerootTrees(AnnotatedNetwork& ann_network, Node* old_virtual_root, Node* new_virtual_root, Node* new_virtual_root_back);
 double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::vector<DisplayedTreeData>& oldTrees, unsigned int pmatrix_index, int incremental = 1, int update_pmatrices = 1);
 
-double computeLoglikelihoodNaiveUtree(AnnotatedNetwork &ann_network, int incremental,
-        int update_pmatrices, std::vector<double> *treewise_logl = nullptr);
+/*double computeLoglikelihoodNaiveUtree(AnnotatedNetwork &ann_network, int incremental,
+        int update_pmatrices, std::vector<double> *treewise_logl = nullptr);*/
 
 void setup_pmatrices(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices);
 double displayed_tree_logprob(AnnotatedNetwork &ann_network, size_t tree_index);

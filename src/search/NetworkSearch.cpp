@@ -855,10 +855,10 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
     }
 }
 
-void run_single_start_waves(NetraxOptions& netraxOptions, const std::vector<MoveType>& typesBySpeed, std::mt19937& rng) {
+void run_single_start_waves(NetraxOptions& netraxOptions, const RaxmlInstance& instance, const std::vector<MoveType>& typesBySpeed, std::mt19937& rng) {
     /* non-master ranks load starting trees from a file */
     ParallelContext::global_mpi_barrier();
-    netrax::AnnotatedNetwork ann_network = build_annotated_network(netraxOptions);
+    netrax::AnnotatedNetwork ann_network = build_annotated_network(netraxOptions, instance);
     init_annotated_network(ann_network, rng);
     #ifdef _NETRAX_OPENMP
     std::vector<AnnotatedNetwork> ann_network_thread(omp_get_max_threads(), AnnotatedNetwork(ann_network));
@@ -894,7 +894,7 @@ void run_single_start_waves(NetraxOptions& netraxOptions, const std::vector<Move
     }
 }
 
-void run_random(NetraxOptions& netraxOptions, const std::vector<MoveType>& typesBySpeed, std::mt19937& rng) {
+void run_random(NetraxOptions& netraxOptions, const RaxmlInstance& instance, const std::vector<MoveType>& typesBySpeed, std::mt19937& rng) {
     std::uniform_int_distribution<long> dist(0, RAND_MAX);
     BestNetworkData bestNetworkData(netraxOptions.max_reticulations);
 
@@ -922,7 +922,7 @@ void run_random(NetraxOptions& netraxOptions, const std::vector<MoveType>& types
             if (ParallelContext::master_rank()) {
                 std::cout << "Starting with new random network " << n_iterations << " with " << start_reticulations << " reticulations, tree seed = " << seed << ".\n";
             }
-            netrax::AnnotatedNetwork ann_network = build_random_annotated_network(netraxOptions, seed);
+            netrax::AnnotatedNetwork ann_network = build_random_annotated_network(netraxOptions, instance, seed);
             init_annotated_network(ann_network, rng);
             add_extra_reticulations(ann_network, start_reticulations);
 
@@ -955,7 +955,7 @@ void run_random(NetraxOptions& netraxOptions, const std::vector<MoveType>& types
             if (ParallelContext::master_rank()) {
                 std::cout << "Starting with new parsimony tree " << n_iterations << " with " << start_reticulations << " reticulations, tree seed = " << seed << ".\n";
             }
-            netrax::AnnotatedNetwork ann_network = build_parsimony_annotated_network(netraxOptions, seed);
+            netrax::AnnotatedNetwork ann_network = build_parsimony_annotated_network(netraxOptions, instance, seed);
             init_annotated_network(ann_network, rng);
             add_extra_reticulations(ann_network, start_reticulations);
             wavesearch(ann_network, &bestNetworkData, typesBySpeed, ann_network_thread);

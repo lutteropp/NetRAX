@@ -43,7 +43,8 @@ TEST (BrlenOptTest, treeVirtualRootProblem) {
     treeOptions.model_file = partitionsPath;
     treeOptions.use_repeats = false;
     treeOptions.seed = 42;
-    AnnotatedNetwork ann_network = build_annotated_network(treeOptions);
+    RaxmlWrapper wrapper(treeOptions);
+    AnnotatedNetwork ann_network = build_annotated_network(treeOptions, wrapper.instance);
     init_annotated_network(ann_network);
 
     std::cout << exportDebugInfo(ann_network) << "\n";
@@ -135,7 +136,8 @@ TEST (BrlenOptTest, treeVirtualRoots) {
     //treeOptions.model_file = partitionsPath;
     treeOptions.use_repeats = false;
     treeOptions.seed = 42;
-    AnnotatedNetwork annTreeNetwork = build_annotated_network(treeOptions);
+    RaxmlWrapper wrapper(treeOptions);
+    AnnotatedNetwork annTreeNetwork = build_annotated_network(treeOptions, wrapper.instance);
     init_annotated_network(annTreeNetwork);
     annTreeNetwork.cached_logl_valid = false;
     double old_logl = computeLoglikelihood(annTreeNetwork, 1, 1);
@@ -203,7 +205,8 @@ TEST (BrlenOptTest, small) {
     smallOptions.msa_file = msaPath;
     smallOptions.use_repeats = true;
     //smallWrapper.enableRaxmlDebugOutput();
-    AnnotatedNetwork annTreeNetwork = build_annotated_network(smallOptions);
+    RaxmlWrapper wrapper(smallOptions);
+    AnnotatedNetwork annTreeNetwork = build_annotated_network(smallOptions, wrapper.instance);
     init_annotated_network(annTreeNetwork);
 
     // initial logl computation
@@ -226,7 +229,8 @@ TEST (BrlenOptTest, smallVirtualRoots) {
     smallOptions.msa_file = msaPath;
     smallOptions.use_repeats = false;
     smallOptions.seed = 42;
-    AnnotatedNetwork annTreeNetwork = build_annotated_network(smallOptions);
+    RaxmlWrapper wrapper(smallOptions);
+    AnnotatedNetwork annTreeNetwork = build_annotated_network(smallOptions, wrapper.instance);
     init_annotated_network(annTreeNetwork);
     double old_logl = computeLoglikelihood(annTreeNetwork, 1, 1);
 
@@ -282,7 +286,7 @@ TEST (BrlenOptTest, celineFake) {
     RaxmlWrapper celineWrapper = RaxmlWrapper(celineOptions);
     //smallWrapper.enableRaxmlDebugOutput();
 
-    AnnotatedNetwork annTreeNetwork = build_annotated_network(celineOptions);
+    AnnotatedNetwork annTreeNetwork = build_annotated_network(celineOptions, celineWrapper.instance);
     init_annotated_network(annTreeNetwork);
 
     // initial logl computation
@@ -306,7 +310,7 @@ TEST (BrlenOptTest, celineFakeWithModelopt) {
     celineOptions.use_repeats = true;
     RaxmlWrapper celineWrapper = RaxmlWrapper(celineOptions);
     //smallWrapper.enableRaxmlDebugOutput();
-    AnnotatedNetwork annTreeNetwork = build_annotated_network(celineOptions);
+    AnnotatedNetwork annTreeNetwork = build_annotated_network(celineOptions, celineWrapper.instance);
     init_annotated_network(annTreeNetwork);
 
     // initial logl computation
