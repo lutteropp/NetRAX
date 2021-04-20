@@ -496,6 +496,10 @@ void invalidatePmatrixIndex(AnnotatedNetwork &ann_network, size_t pmatrix_index,
         std::vector<bool> &visited) {
     pllmod_treeinfo_t *treeinfo = ann_network.fake_treeinfo;
     for (size_t p = 0; p < treeinfo->partition_count; ++p) {
+        // skip remote partitions
+        if (!ann_network.fake_treeinfo->partitions[p]) {
+            continue;
+        }
         treeinfo->pmatrix_valid[p][pmatrix_index] = 0;
         invalidateHigherCLVs(ann_network,
             getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]), p, true,
@@ -510,6 +514,10 @@ void invalidatePmatrixIndex(AnnotatedNetwork &ann_network, size_t pmatrix_index)
 
 void invalidPmatrixIndexOnly(AnnotatedNetwork& ann_network, size_t pmatrix_index) {
     for (size_t partition_idx = 0; partition_idx < ann_network.fake_treeinfo->partition_count; ++partition_idx) {
+        // skip remote partitions
+        if (!ann_network.fake_treeinfo->partitions[partition_idx]) {
+            continue;
+        }
         ann_network.fake_treeinfo->pmatrix_valid[partition_idx][pmatrix_index] = 0;
     }
     ann_network.cached_logl_valid = false;
