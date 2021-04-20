@@ -23,7 +23,6 @@ extern "C" {
 
 namespace netrax {
 
-double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental = 1, int update_pmatrices = 1);
 struct SumtableInfo {
         double tree_prob = 0.0;
         double* sumtable = nullptr;
@@ -91,6 +90,7 @@ struct LoglDerivatives {
 
 std::vector<DisplayedTreeData> extractOldTrees(AnnotatedNetwork& ann_network, Node* virtual_root);
 
+double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental = 1, int update_pmatrices = 1);
 LoglDerivatives computeLoglikelihoodDerivatives(AnnotatedNetwork& ann_network, const std::vector<std::vector<SumtableInfo> >& sumtables, const std::vector<DisplayedTreeData>& oldTree, unsigned int pmatrix_index, bool incremental = true, bool update_pmatrices = true);
 std::vector<std::vector<SumtableInfo> > computePartitionSumtables(AnnotatedNetwork& ann_network, unsigned int pmatrix_index);
 //double computeLoglikelihoodFromSumtables(AnnotatedNetwork& ann_network, const std::vector<std::vector<SumtableInfo> >& sumtables, const std::vector<std::vector<TreeLoglData> >& oldTrees, unsigned int pmatrix_index, bool incremental = true, bool update_pmatrices = true);
