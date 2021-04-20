@@ -233,6 +233,10 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
         ann_network.travbuffer = reversed_topological_sort(ann_network.network);
     }
     for (size_t p = 0; p < state.partition_brlens.size(); ++p) {
+        // skip remote partitions
+        if (!ann_network.fake_treeinfo->partitions[p]) {
+            continue;
+        }
         for (size_t pmatrix_index = 0; pmatrix_index < ann_network.network.num_branches(); ++pmatrix_index) {
             if (ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] != state.partition_brlens[p][pmatrix_index]) {
                 ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] = state.partition_brlens[p][pmatrix_index];
@@ -241,12 +245,24 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
         }
     }
     for (size_t p = 0; p < state.partition_brlen_scalers.size(); ++p) {
+        // skip remote partitions
+        if (!ann_network.fake_treeinfo->partitions[p]) {
+            continue;
+        }
         ann_network.fake_treeinfo->brlen_scalers[p] = state.partition_brlen_scalers[p];
     }
     for (size_t p = 0; p < state.alphas.size(); ++p) {
+        // skip remote partitions
+        if (!ann_network.fake_treeinfo->partitions[p]) {
+            continue;
+        }
         ann_network.fake_treeinfo->alphas[p] = state.alphas[p];
     }
     for (size_t i = 0; i < state.partition_models.size(); ++i) {
+        // skip remote partitions
+        if (!ann_network.fake_treeinfo->partitions[i]) {
+            continue;
+        }
         assign(ann_network.fake_treeinfo->partitions[i], state.partition_models[i]);
     }
     ann_network.reticulation_probs = state.reticulation_probs;
@@ -261,6 +277,10 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
     apply_displayed_trees_data(state, ann_network, copy_network);
     // set all clvs to valid
     for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        // skip remote partitions
+        if (!ann_network.fake_treeinfo->partitions[p]) {
+            continue;
+        }
         for (size_t clv_index = 0; clv_index < ann_network.network.nodes.size(); ++clv_index) {
             ann_network.fake_treeinfo->clv_valid[p][clv_index] = 1;
         }
