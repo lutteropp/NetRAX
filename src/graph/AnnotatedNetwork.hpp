@@ -94,7 +94,11 @@ struct NodeDisplayedTreeData {
     {
         if (this != &rhs)
         {
-            displayed_trees = rhs.displayed_trees;
+            //displayed_trees.resize(rhs.displayed_trees.size());
+            assert(displayed_trees.size() >= rhs.displayed_trees.size());
+            for (size_t i = 0; i < rhs.displayed_trees.size(); ++i) {
+                displayed_trees[i] = rhs.displayed_trees[i];
+            }
             num_active_displayed_trees = rhs.num_active_displayed_trees;
             partition_count = rhs.partition_count;
             clvInfo = rhs.clvInfo;

@@ -55,7 +55,7 @@ void apply_displayed_trees_data(const NetworkState& state, AnnotatedNetwork& ann
 }
 
 
-void add_missing_displayed_trees_data(AnnotatedNetwork& ann_network, NetworkState& state) {
+void add_missing_displayed_trees_data(const AnnotatedNetwork& ann_network, NetworkState& state) {
     size_t maxReticulations = ann_network.options.max_reticulations;
     for (size_t i = 0; i < ann_network.network.nodes.size(); ++i) {
         while (state.pernode_displayed_tree_data[i].displayed_trees.size() < ann_network.pernode_displayed_tree_data[i].num_active_displayed_trees) {
@@ -65,7 +65,7 @@ void add_missing_displayed_trees_data(AnnotatedNetwork& ann_network, NetworkStat
     }
 }
 
-void extract_displayed_trees_data(AnnotatedNetwork& ann_network, NetworkState& state) {
+void extract_displayed_trees_data(const AnnotatedNetwork& ann_network, NetworkState& state) {
     add_missing_displayed_trees_data(ann_network, state);
     for (size_t i = 0; i < ann_network.network.nodes.size(); ++i) {
         state.pernode_displayed_tree_data[i] = ann_network.pernode_displayed_tree_data[i];

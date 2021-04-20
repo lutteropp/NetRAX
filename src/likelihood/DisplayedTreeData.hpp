@@ -205,6 +205,10 @@ struct DisplayedTreeData {
     DisplayedTreeData(pllmod_treeinfo_t* treeinfo, const std::vector<ClvRangeInfo>& clvRangeInfo, const std::vector<ScaleBufferRangeInfo>& scaleBufferRangeInfo, std::vector<double*> tip_clv_vector, size_t max_reticulations) : treeLoglData(treeinfo->partition_count, max_reticulations), clvInfo(clvRangeInfo), scaleBufferInfo(scaleBufferRangeInfo) { // tip node
         clv_vector = std::vector<double*>(treeinfo->partition_count, nullptr);
         for (size_t p = 0; p < treeinfo->partition_count; ++p) {
+            // skip remote partitions
+            if (!treeinfo->partitions[p]) {
+                continue;
+            }
             clv_vector[p] = tip_clv_vector[p];
         }
         isTip = true;
@@ -272,6 +276,10 @@ struct DisplayedTreeData {
                 } else {
                     assert(rhs.clvInfo.size() == rhs.clvInfo.size());
                     for (size_t p = 0; p < rhs.clv_vector.size(); ++p) {
+                        if (!rhs.clv_vector[p]) {
+                            continue;
+                        }
+                        assert(clv_vector[p]);
                         memcpy(clv_vector[p], rhs.clv_vector[p], rhs.clvInfo[p].inner_clv_num_entries * sizeof(double));
                     }
                 }
@@ -296,6 +304,10 @@ struct DisplayedTreeData {
             if ((scale_buffer.size() == rhs.scale_buffer.size()) && (scaleBufferInfo == rhs.scaleBufferInfo)) { // simply overwrite
                 assert(rhs.scaleBufferInfo.size() == rhs.scale_buffer.size());
                 for (size_t p = 0; p < rhs.scale_buffer.size(); ++p) {
+                    if (!rhs.scale_buffer[p]) {
+                        continue;
+                    }
+                    assert(scale_buffer[p]);
                     memcpy(scale_buffer[p], rhs.scale_buffer[p], rhs.scaleBufferInfo[p].scaler_size * sizeof(unsigned int));
                 }
             } else {

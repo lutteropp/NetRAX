@@ -640,6 +640,10 @@ bool reuseOldDisplayedTreesCheck(AnnotatedNetwork& ann_network, int incremental)
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
     bool all_clvs_valid = true;
     for (size_t i = 0; i < fake_treeinfo.partition_count; ++i) {
+        // skip remote partitions
+        if (!ann_network.fake_treeinfo->partitions[i]) {
+            continue;
+        }
         all_clvs_valid &= fake_treeinfo.clv_valid[i][ann_network.network.root->clv_index];
     }
     return all_clvs_valid;
