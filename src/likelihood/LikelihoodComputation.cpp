@@ -1532,6 +1532,7 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
                         if (combinedTreeData.tree_partition_logl[p] == 0.0) {
                             throw std::runtime_error("bad partition logl");
                         }
+                        assert(combinedTreeData.tree_partition_logl[p] < 0.0);
                     }
                 }
 
@@ -1549,7 +1550,7 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
                     std::cout << "target: " << target->clv_index << "\n";
                 }
                 assert(oldTree.tree_logl_valid);
-                for (size_t p = 0; p < ann_network.network.num_reticulations(); ++p) {
+                for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
                     assert(oldTree.tree_partition_logl[p] <= 0.0);
                 }
                 combinedTreeData.tree_partition_logl = oldTree.tree_partition_logl;
@@ -1587,7 +1588,7 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
             assert(oldTree.tree_logl_valid);
             targetTrees[j].treeLoglData.tree_partition_logl = oldTree.tree_partition_logl;
             assert(oldTree.tree_logprob_valid);
-            for (size_t p = 0; p < ann_network.network.num_reticulations(); ++p) {
+            for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
                 assert(oldTree.tree_partition_logl[p] <= 0.0);
             }
             targetTrees[j].treeLoglData.tree_logprob = oldTree.tree_logprob;
