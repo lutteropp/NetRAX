@@ -454,6 +454,10 @@ void invalidateHigherClvs(AnnotatedNetwork &ann_network, pllmod_treeinfo_t *tree
     }
     if (invalidate_myself) {
         for (size_t p = 0; p < treeinfo->partition_count; ++p) {
+            // skip remote partitions
+            if (!ann_network.fake_treeinfo->partitions[p]) {
+                continue;
+            }
             treeinfo->clv_valid[p][node->clv_index] = 0;
         }
         if (!visited.empty()) {
