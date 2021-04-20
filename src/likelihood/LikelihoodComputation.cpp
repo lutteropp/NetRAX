@@ -1491,6 +1491,7 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
                 //printClv(*ann_network.fake_treeinfo, target->clv_index, targetTrees[j].clv_vector, p);
 
                 for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+                    combinedTreeData.tree_partition_logl[p] = 0.0;
                     // skip remote partitions
                     if (!ann_network.fake_treeinfo->partitions[p]) {
                         continue;
