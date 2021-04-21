@@ -147,20 +147,20 @@ void computeDisplayedTreeLoglikelihood(AnnotatedNetwork& ann_network, DisplayedT
     /* sum up likelihood from all threads */
     if (ann_network.fake_treeinfo->parallel_reduce_cb)
     {   
-        /*std::cout << "I am thread " << ParallelContext::local_proc_id() << " and I have these partition loglikelihoods before Allreduce:\n";
+        std::cout << "I am thread " << ParallelContext::local_proc_id() << " and I have these partition loglikelihoods before Allreduce:\n";
         for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
             std::cout << " partition " << p << " has logl: " << treeAtRoot.treeLoglData.tree_partition_logl[p] << "\n";
-        }*/
+        }
 
         ann_network.fake_treeinfo->parallel_reduce_cb(ann_network.fake_treeinfo->parallel_context,
                                     treeAtRoot.treeLoglData.tree_partition_logl.data(),
                                     ann_network.fake_treeinfo->partition_count,
                                     PLLMOD_COMMON_REDUCE_SUM);
 
-        /*std::cout << "I am thread " << ParallelContext::local_proc_id() << " and I have these partition loglikelihoods after Allreduce:\n";
+        std::cout << "I am thread " << ParallelContext::local_proc_id() << " and I have these partition loglikelihoods after Allreduce:\n";
         for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
             std::cout << " partition " << p << " has logl: " << treeAtRoot.treeLoglData.tree_partition_logl[p] << "\n";
-        }*/
+        }
 
         for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
             assert(treeAtRoot.treeLoglData.tree_partition_logl[p] != -std::numeric_limits<double>::infinity());
