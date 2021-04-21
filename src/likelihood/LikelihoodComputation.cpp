@@ -147,20 +147,20 @@ void computeDisplayedTreeLoglikelihood(AnnotatedNetwork& ann_network, DisplayedT
     /* sum up likelihood from all threads */
     if (ann_network.fake_treeinfo->parallel_reduce_cb)
     {   
-        std::cout << "I am thread " << ParallelContext::local_proc_id() << " and I have these partition loglikelihoods before Allreduce:\n";
+        /*std::cout << "I am thread " << ParallelContext::local_proc_id() << " and I have these partition loglikelihoods before Allreduce:\n";
         for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
             std::cout << " partition " << p << " has logl: " << treeAtRoot.treeLoglData.tree_partition_logl[p] << "\n";
-        }
+        }*/
 
         ann_network.fake_treeinfo->parallel_reduce_cb(ann_network.fake_treeinfo->parallel_context,
                                     treeAtRoot.treeLoglData.tree_partition_logl.data(),
                                     ann_network.fake_treeinfo->partition_count,
                                     PLLMOD_COMMON_REDUCE_SUM);
 
-        std::cout << "I am thread " << ParallelContext::local_proc_id() << " and I have these partition loglikelihoods after Allreduce:\n";
+        /*std::cout << "I am thread " << ParallelContext::local_proc_id() << " and I have these partition loglikelihoods after Allreduce:\n";
         for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
             std::cout << " partition " << p << " has logl: " << treeAtRoot.treeLoglData.tree_partition_logl[p] << "\n";
-        }
+        }*/
 
         for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
             assert(treeAtRoot.treeLoglData.tree_partition_logl[p] != -std::numeric_limits<double>::infinity());
@@ -1489,8 +1489,8 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
 
             if (isActiveBranch(ann_network, combinedTreeData.reticulationChoices, pmatrix_index)) {
                 //std::cout << std::setprecision(70);
-                std::cout << "thread " << ParallelContext::local_proc_id() << " ";
-                std::cout << "active branch case, combining " << source->clv_index << " and " << target->clv_index << " for branch " << pmatrix_index  << "\n";
+                //std::cout << "thread " << ParallelContext::local_proc_id() << " ";
+                //std::cout << "active branch case, combining " << source->clv_index << " and " << target->clv_index << " for branch " << pmatrix_index  << "\n";
                 //std::cout << "source CLV vector at " << source->clv_index << "\n";
                 //printClv(*ann_network.fake_treeinfo, source->clv_index, sourceTrees[i].clv_vector, p);
                 //std::cout << "target CLV vector at " << target->clv_index << "\n";

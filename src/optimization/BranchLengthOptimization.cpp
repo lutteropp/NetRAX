@@ -243,7 +243,7 @@ void add_neighbors_in_radius(AnnotatedNetwork& ann_network, std::unordered_set<s
 }
 
 double optimize_branch(AnnotatedNetwork &ann_network, std::vector<DisplayedTreeData>& oldTrees, std::vector<std::vector<SumtableInfo> >& sumtables, size_t pmatrix_index, BrlenOptMethod brlenOptMethod, unsigned int max_iters) {
-    std::cout << "I am thread " << ParallelContext::local_proc_id() << " and am calling optimize_branch " << "with pmatrix_index= " << pmatrix_index << "\n";
+    //std::cout << "I am thread " << ParallelContext::local_proc_id() << " and am calling optimize_branch " << "with pmatrix_index= " << pmatrix_index << "\n";
 
     ann_network.cached_logl_valid = false;
 
@@ -301,7 +301,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, std::vector<DisplayedTreeD
         }*/
     }
 
-    std::cout << "I am thread " << ParallelContext::local_proc_id() << " and have survived half of optimize_branch " << "with pmatrix_index= " << pmatrix_index << "\n";
+    //std::cout << "I am thread " << ParallelContext::local_proc_id() << " and have survived half of optimize_branch " << "with pmatrix_index= " << pmatrix_index << "\n";
 
 
     double best_logl;
@@ -351,7 +351,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
         invalidatePmatrixIndex(ann_network, pmatrix_index);
     }
 
-    std::cout << "thread " << ParallelContext::local_proc_id() << " started computing final loglikelihood for branch " << pmatrix_index << "\n";
+    //std::cout << "thread " << ParallelContext::local_proc_id() << " started computing final loglikelihood for branch " << pmatrix_index << "\n";
     double final_logl = computeLoglikelihood(ann_network);
     /*if (final_logl < old_logl) {
         std::cout << "old_logl: " << old_logl << "\n";
