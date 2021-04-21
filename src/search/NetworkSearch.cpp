@@ -79,17 +79,28 @@ void optimizeAllNonTopology(AnnotatedNetwork &ann_network, bool extremeOpt, bool
     while (gotBetter) {
         gotBetter = false;
         double score_before = scoreNetwork(ann_network);
+        assert(logl_stays_same(ann_network));
+        std::cout << "thread " << ParallelContext::local_proc_id() << " optimizeAllNonTopology initial score: " << score_before << "\n";
         optimizeModel(ann_network, silent);
+        assert(logl_stays_same(ann_network));
+        std::cout << "thread " << ParallelContext::local_proc_id() << " survived model optimization \n";
         optimizeBranches(ann_network, silent);
+        assert(logl_stays_same(ann_network));
+        std::cout << "thread " << ParallelContext::local_proc_id() << " survived brlen optimization \n";
+        assert(logl_stays_same(ann_network));
         optimizeReticulationProbs(ann_network, silent);
+        std::cout << "thread " << ParallelContext::local_proc_id() << " survived reticulation prob optimization \n";
         double score_after = scoreNetwork(ann_network);
+        assert(logl_stays_same(ann_network));
 
         if (score_after < score_before && extremeOpt) {
             gotBetter = true;
+            std::cout << "thread " << ParallelContext::local_proc_id() << " entering next optimizeAllNonTopology iteration with score " << score_after << " \n";
         }
     }
 
     assert(logl_stays_same(ann_network));
+    std::cout << "thread " << ParallelContext::local_proc_id() << " survived optimizeAllNonTopology \n";
 }
 
 void printDisplayedTrees(AnnotatedNetwork& ann_network) {
@@ -823,7 +834,9 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
 
     //std::cout << "Initial network is:\n" << toExtendedNewick(ann_network) << "\n\n";
 
+    std::cout << "thread " << ParallelContext::local_proc_id() << " wavesearch is starting initial non-topology opt...\n";
     optimizeAllNonTopology(ann_network, true);
+    std::cout << "thread " << ParallelContext::local_proc_id() << " wavesearch finished initial non-topology opt...\n";
     //std::cout << "Initial network after modelopt+brlenopt+reticulation opt is:\n" << toExtendedNewick(ann_network) << "\n\n";
     std::string best_network = toExtendedNewick(ann_network);
     score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
