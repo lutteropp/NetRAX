@@ -258,6 +258,8 @@ double optimize_branch(AnnotatedNetwork &ann_network, std::vector<DisplayedTreeD
 }
 
 double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, BrlenOptMethod brlenOptMethod, unsigned int max_iters) {
+    std::cout << "thread " << ParallelContext::local_proc_id() << " is now optimizing branch " << pmatrix_index << "\n";
+
     double old_logl = computeLoglikelihood(ann_network);
     assert(old_logl <= 0.0);
     std::vector<DisplayedTreeData> oldTrees;
@@ -290,12 +292,8 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
 
     ann_network.fake_treeinfo->active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
     for (size_t p = 0; p < n_partitions; ++p) {
-        // skip remote partitions
-        if (!ann_network.fake_treeinfo->partitions[p]) {
-            continue;
-        }
         // TODO: Set the active partitions in the fake_treeinfo
-        old_brlens[p] = ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index];
+        //old_brlens[p] = ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index];
         optimize_branch(ann_network, oldTrees, sumtables, pmatrix_index, p, brlenOptMethod, max_iters);
     }
 
@@ -305,7 +303,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
     }
 
     double final_logl = computeLoglikelihood(ann_network);
-    if (final_logl < old_logl) {
+    /*if (final_logl < old_logl) {
         std::cout << "old_logl: " << old_logl << "\n";
         std::cout << "final_logl: " << final_logl << "\n";
 
@@ -319,7 +317,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
         }
         invalidatePmatrixIndex(ann_network, pmatrix_index);
         final_logl = computeLoglikelihood(ann_network);
-    }
+    }*/
 
     assert(final_logl >= old_logl);
 
