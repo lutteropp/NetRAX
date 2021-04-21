@@ -353,6 +353,8 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
 
     //std::cout << "thread " << ParallelContext::local_proc_id() << " started computing final loglikelihood for branch " << pmatrix_index << "\n";
     double final_logl = computeLoglikelihood(ann_network);
+
+    assert(computeLoglikelihood(ann_network, 0, 1) == final_logl);
     /*if (final_logl < old_logl) {
         std::cout << "old_logl: " << old_logl << "\n";
         std::cout << "final_logl: " << final_logl << "\n";
