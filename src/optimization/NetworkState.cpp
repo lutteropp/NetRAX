@@ -127,6 +127,10 @@ void extract_network_state(AnnotatedNetwork &ann_network, NetworkState& state_to
         state_to_reuse.alphas[p] = ann_network.fake_treeinfo->alphas[p];
     }
     for (size_t p = 0; p < state_to_reuse.partition_brlens.size(); ++p) {
+        // skip remote partitions
+        if (!ann_network.fake_treeinfo->partitions[p]) {
+            continue;
+        }
         for (size_t pmatrix_index = 0; pmatrix_index < ann_network.network.num_branches(); ++pmatrix_index) {
             state_to_reuse.partition_brlens[p][pmatrix_index] = ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index];
         }
@@ -168,6 +172,10 @@ NetworkState extract_network_state(AnnotatedNetwork &ann_network, bool extract_n
     }
     state.alphas.resize(ann_network.fake_treeinfo->partition_count);
     for (size_t p = 0; p < state.partition_brlens.size(); ++p) {
+        // skip remote partitions
+        if (!ann_network.fake_treeinfo->partitions[p]) {
+            continue;
+        }
         state.partition_brlens[p].resize(ann_network.network.edges.size());
     }
     state.partition_models.resize(ann_network.fake_treeinfo->partition_count);
@@ -225,6 +233,10 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
         ann_network.travbuffer = reversed_topological_sort(ann_network.network);
     }
     for (size_t p = 0; p < state.partition_brlens.size(); ++p) {
+        // skip remote partitions
+        if (!ann_network.fake_treeinfo->partitions[p]) {
+            continue;
+        }
         for (size_t pmatrix_index = 0; pmatrix_index < ann_network.network.num_branches(); ++pmatrix_index) {
             if (ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] != state.partition_brlens[p][pmatrix_index]) {
                 ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] = state.partition_brlens[p][pmatrix_index];
