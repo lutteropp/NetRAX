@@ -322,6 +322,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
 
     double old_logl = computeLoglikelihood(ann_network);
     assert(old_logl <= 0.0);
+    assert(computeLoglikelihood(ann_network, 0, 1) == old_logl);
     std::vector<DisplayedTreeData> oldTrees;
     std::vector<std::vector<SumtableInfo> > sumtables;
 
@@ -354,7 +355,12 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
     //std::cout << "thread " << ParallelContext::local_proc_id() << " started computing final loglikelihood for branch " << pmatrix_index << "\n";
     double final_logl = computeLoglikelihood(ann_network);
 
-    assert(computeLoglikelihood(ann_network, 0, 1) == final_logl);
+    double plan_logl = computeLoglikelihood(ann_network, 0, 1);
+    if (plan_logl != final_logl) {
+        std::cout << "plan logl: " << plan_logl << "\n";
+        std::cout << "final logl: " << final_logl << "\n";
+    }
+    assert(plan_logl == final_logl);
     /*if (final_logl < old_logl) {
         std::cout << "old_logl: " << old_logl << "\n";
         std::cout << "final_logl: " << final_logl << "\n";

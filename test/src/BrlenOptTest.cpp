@@ -265,9 +265,8 @@ TEST (BrlenOptTest, smallVirtualRoots) {
 
         oldTrees = extractOldTrees(annTreeNetwork, old_virtual_root);
 
-        for (size_t p = 0; p < annTreeNetwork.fake_treeinfo->partition_count; ++p) {
-            invalidateHigherCLVs(annTreeNetwork, new_virtual_root, p, true);
-        }
+        invalidateHigherCLVs(annTreeNetwork, new_virtual_root, true);
+        
         double recomputedLogl = computeLoglikelihood(annTreeNetwork, 1, 0);
         oldTrees = extractOldTrees(annTreeNetwork, annTreeNetwork.network.root);
         ASSERT_DOUBLE_EQ(old_logl, recomputedLogl);
