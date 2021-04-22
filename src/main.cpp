@@ -356,7 +356,7 @@ void netrax_thread_main(const NetraxOptions& netraxOptions, const RaxmlInstance&
     //  printf("WORKER: %u, LOCAL_THREAD: %u\n", ParallelContext::group_id(), ParallelContext::local_proc_id());
     ParallelContext::global_barrier();
 
-    std::cout << "HELLO! I am local proc id " << ParallelContext::local_proc_id() << "\n";
+    //std::cout << "HELLO! I am local proc id " << ParallelContext::local_proc_id() << "\n";
 
     //check_oversubscribe(instance);
 

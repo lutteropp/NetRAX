@@ -91,7 +91,7 @@ public:
 
     BrlenOptMethod brlenOptMethod = BrlenOptMethod::NEWTON_RAPHSON;//BrlenOptMethod::BRENT_REROOT; //BrlenOptMethod::BRENT_REROOT_SUMTABLE; //BrlenOptMethod::BRENT_REROOT;//BrlenOptMethod::NEWTON_RAPHSON_REROOT;// BrlenOptMethod::BRENT_NORMAL;
 
-    LoadBalancing load_balance_method = LoadBalancing::benoit;
+    LoadBalancing load_balance_method = LoadBalancing::benoit; //LoadBalancing::naive;
 
     std::string msa_file = "";
     std::string model_file = "DNA";

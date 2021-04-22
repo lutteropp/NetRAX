@@ -298,9 +298,9 @@ void prefilterCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T>& can
         std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
         assert(!brlen_opt_candidates.empty());
         
-        std::cout << "thread " << ParallelContext::local_proc_id() << ", " << "before brlen opt, candidate no. " << i << "\n";
+        //std::cout << "thread " << ParallelContext::local_proc_id() << ", " << "before brlen opt, candidate no. " << i << "\n";
         optimize_branches(ann_network, max_iters, max_iters_outside, radius, brlen_opt_candidates, true);
-         std::cout << "thread " << ParallelContext::local_proc_id() << ", " << "after brlen opt, candidate no. " << i << "\n";
+        //std::cout << "thread " << ParallelContext::local_proc_id() << ", " << "after brlen opt, candidate no. " << i << "\n";
         /*
         if (move->moveType == MoveType::ArcInsertionMove || move->moveType == MoveType::DeltaPlusMove) {
             optimize_branches(ann_network, max_iters, 1, radius, brlen_opt_candidates, false);

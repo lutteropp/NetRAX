@@ -94,8 +94,10 @@ struct NodeDisplayedTreeData {
     {
         if (this != &rhs)
         {
-            displayed_trees.clear();
-            for (size_t i = 0; i < rhs.displayed_trees.size(); ++i) {
+            for (size_t i = 0; i < std::min(displayed_trees.size(), rhs.displayed_trees.size()); ++i) {
+                displayed_trees[i] = rhs.displayed_trees[i];
+            }
+            for (size_t i = std::min(displayed_trees.size(), rhs.displayed_trees.size()); i < rhs.displayed_trees.size(); ++i) {
                 displayed_trees.emplace_back(rhs.displayed_trees[i]);
             }
             num_active_displayed_trees = rhs.num_active_displayed_trees;
