@@ -367,6 +367,92 @@ void print_partition(AnnotatedNetwork& ann_network, pll_partition_t* partition){
     std::cout << "tips: " << partition->tips << "\n";
 }
 
+void print_treeinfo(AnnotatedNetwork& ann_network) {
+    pllmod_treeinfo_t* treeinfo = ann_network.fake_treeinfo;
+    // things that stayed the same
+    std::cout << "active_partition: " << treeinfo->active_partition << "\n";
+    std::cout << "brlen_linkage: " << treeinfo->brlen_linkage << "\n";
+    std::cout << "brlen_scalers: " << treeinfo->brlen_scalers << "\n";
+    std::cout << "constraint: " << treeinfo->constraint << "\n";
+    std::cout << "counter: " << treeinfo->counter << "\n";
+    std::cout << "default_likelihood_computation_params: " << treeinfo->default_likelihood_computation_params << "\n";
+    std::cout << "default_likelihood_target_function: " << treeinfo->default_likelihood_target_function << "\n";
+    std::cout << "init_partition_count: " << treeinfo->init_partition_count << "\n";
+    std::cout << "likelihood_target_function: " << treeinfo->likelihood_target_function << "\n";
+    std::cout << "matrix_indices: " << treeinfo->matrix_indices << "\n";
+    std::cout << "operations: " << treeinfo->operations << "\n";
+    std::cout << "parallel_context: " << treeinfo->parallel_context << "\n";
+    std::cout << "parallel_reduce_cb: " << treeinfo->parallel_reduce_cb << "\n";
+    std::cout << "partition_count: " << treeinfo->partition_count << "\n";
+    std::cout << "root: " << treeinfo->root << "\n";
+    std::cout << "subnode_count: " << treeinfo->subnode_count << "\n";
+    std::cout << "subnodes: " << treeinfo->subnodes << "\n";
+    std::cout << "tip_count: " << treeinfo->tip_count << "\n";
+    std::cout << "travbuffer: " << treeinfo->travbuffer << "\n";
+
+    // arrays
+    std::cout << "alphas:\n";
+    for (size_t i = 0; i < treeinfo->partition_count; ++i) {
+        std::cout << treeinfo->alphas[i] << "\n";
+    }
+    std::cout << "branch_lengths:\n";
+    for (size_t i = 0; i < treeinfo->partition_count; ++i) {
+        std::cout << treeinfo->branch_lengths[i] << "\n";
+    }
+    std::cout << "deriv_precomp:\n";
+    for (size_t i = 0; i < treeinfo->partition_count; ++i) {
+        std::cout << treeinfo->deriv_precomp[i] << "\n";
+    }
+    std::cout << "gamma_mode:\n";
+    for (size_t i = 0; i < treeinfo->partition_count; ++i) {
+        std::cout << treeinfo->gamma_mode[i] << "\n";
+    }
+    std::cout << "init_partition_idx:\n";
+    for (size_t i = 0; i < treeinfo->partition_count; ++i) {
+        std::cout << treeinfo->init_partition_idx[i] << "\n";
+    }
+    std::cout << "init_partitions:\n";
+    for (size_t i = 0; i < treeinfo->partition_count; ++i) {
+        std::cout << treeinfo->init_partitions[i] << "\n";
+    }
+    //std::cout << "likelihood_computation_params: " << treeinfo->likelihood_computation_params << "\n";
+    //std::cout << "tree: " << treeinfo->tree << "\n";
+    unsigned int branch_count = treeinfo->tree->edge_count;
+    std::cout << "linked_branch_lengths:\n";
+    for (size_t i = 0; i < branch_count; ++i) {
+        std::cout << treeinfo->linked_branch_lengths[i] << "\n";
+    }
+    std::cout << "param_indices:\n";
+    for (size_t i = 0; i < treeinfo->partition_count; ++i) {
+        std::cout << treeinfo->param_indices[i] << "\n";
+    }
+    std::cout << "params_to_optimize:\n";
+    for (size_t i = 0; i < treeinfo->partition_count; ++i) {
+        std::cout << treeinfo->params_to_optimize[i] << "\n";
+    }
+    std::cout << "partition_loglh:\n";
+    for (size_t i = 0; i < treeinfo->partition_count; ++i) {
+        std::cout << treeinfo->partition_loglh[i] << "\n";
+    }
+    std::cout << "partitions:\n";
+    for (size_t i = 0; i < treeinfo->partition_count; ++i) {
+        std::cout << treeinfo->partitions[i] << "\n";
+    }
+    std::cout << "subst_matrix_symmetries:\n";
+    for (size_t i = 0; i < treeinfo->partition_count; ++i) {
+        std::cout << treeinfo->subst_matrix_symmetries[i] << "\n";
+    }
+    std::cout << "pmatrix_valid:\n";
+    for (size_t i = 0; i < treeinfo->partition_count; ++i) {
+        std::cout << treeinfo->pmatrix_valid[i] << "\n";
+    }
+    std::cout << "clv_valid:\n";
+    assert(treeinfo->clv_valid);
+    for (size_t i = 0; i < treeinfo->partition_count; ++i) {
+        std::cout << treeinfo->clv_valid[i] << "\n";
+    }
+}
+
 template <typename T>
 void prefilterCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T>& candidates, std::vector<AnnotatedNetwork>& ann_network_thread, bool silent = true) {
     if (candidates.empty()) {
@@ -390,14 +476,16 @@ void prefilterCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T>& can
         std::cout << "thread " << ParallelContext::local_proc_id() << ", " << "dbg_incremental0: " << dbg_incremental0 << "\n";
         std::cout << "thread " << ParallelContext::local_proc_id() << ", " << "dbg_normal0: " << dbg_normal0 << "\n";
         std::cout << "thread " << ParallelContext::local_proc_id() << ", " << "dbg_normal_pmatrices0: " << dbg_normal_pmatrices0 << "\n";
-        assert(dbg_incremental0 == dbg_normal_pmatrices0);
+
+    ParallelContext::mpi_barrier();
 
     if (ParallelContext::local_proc_id() == 1) {
-        for (size_t p = 0; p < ann_network_orig.fake_treeinfo->partition_count; ++p) {
+        //print_treeinfo(ann_network_orig);
+        /*for (size_t p = 0; p < ann_network_orig.fake_treeinfo->partition_count; ++p) {
             if (!ann_network_orig.fake_treeinfo->partitions[p]) {
                 continue;
             }
-            //print_partition(ann_network_orig, ann_network_orig.fake_treeinfo->partitions[p]);
+            print_partition(ann_network_orig, ann_network_orig.fake_treeinfo->partitions[p]);
             /*for (size_t i = ann_network_orig.network.num_tips(); i < ann_network_orig.network.num_nodes(); ++i) {
                 std::cout << "partition " << p << ", node " << i << ":\n";
                 std::cout << "clv vector size: " << ann_network_orig.pernode_displayed_tree_data[i].displayed_trees[0].clv_vector.size() << "\n";
@@ -407,9 +495,13 @@ void prefilterCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T>& can
                 assert(ann_network_orig.pernode_displayed_tree_data[i].displayed_trees[0].clv_vector[p]);
                 print_node_clv(ann_network_orig.partition_clv_ranges[p], ann_network_orig.pernode_displayed_tree_data[i].displayed_trees[0].clv_vector[p]);
                 print_node_scaler(ann_network_orig.partition_scale_buffer_ranges[p], ann_network_orig.pernode_displayed_tree_data[i].displayed_trees[0].scale_buffer[p]);
-            }*/
-        }
+            }
+        }*/
     }
+
+    ParallelContext::mpi_barrier();
+
+    assert(dbg_incremental0 == dbg_normal_pmatrices0);
 
     std::vector<ScoreItem<T> > scores(candidates.size());
 
@@ -436,11 +528,12 @@ void prefilterCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T>& can
         double dbg_incremental = computeLoglikelihood(ann_network);
 
         if (ParallelContext::local_proc_id() == 1 && i == 1) {
-            for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+            print_treeinfo(ann_network);
+            /*for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
                 if (!ann_network.fake_treeinfo->partitions[p]) {
                     continue;
                 }
-                print_partition(ann_network, ann_network.fake_treeinfo->partitions[p]);
+                //print_partition(ann_network, ann_network.fake_treeinfo->partitions[p]);
                 /*
                 for (size_t i = ann_network.network.num_tips(); i < ann_network.network.num_nodes(); ++i) {
                     std::cout << "partition " << p << ", node " << i << ":\n";
@@ -451,8 +544,8 @@ void prefilterCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T>& can
                     assert(ann_network.pernode_displayed_tree_data[i].displayed_trees[0].clv_vector[p]);
                     print_node_clv(ann_network.partition_clv_ranges[p], ann_network.pernode_displayed_tree_data[i].displayed_trees[0].clv_vector[p]);
                     print_node_scaler(ann_network_orig.partition_scale_buffer_ranges[p], ann_network_orig.pernode_displayed_tree_data[i].displayed_trees[0].scale_buffer[p]);
-                }*/
-            }
+                }
+            }*/
         }
 
         double dbg_normal = computeLoglikelihood(ann_network, 0, 0);

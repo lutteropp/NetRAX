@@ -292,7 +292,6 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
         assign(ann_network.fake_treeinfo->partitions[i], state.partition_models[i]);
     }
     ann_network.reticulation_probs = state.reticulation_probs;
-    pllmod_treeinfo_update_prob_matrices(ann_network.fake_treeinfo, 1); // this (full pmatrix recomputation) is needed if the model parameters changed
 
     if (copy_network) {
         assert(consecutive_indices(state.network));
@@ -320,6 +319,8 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
     if (copy_network) {
         assert(neighborsSame(ann_network.network, state.network));
     }
+
+    pllmod_treeinfo_update_prob_matrices(ann_network.fake_treeinfo, 1); // this (full pmatrix recomputation) is needed if the model parameters changed
 }
 
 bool reticulation_probs_equal(const NetworkState& old_state, const NetworkState& act_state) {
