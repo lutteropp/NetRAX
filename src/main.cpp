@@ -246,10 +246,12 @@ void scale_branches_only(const NetraxOptions &netraxOptions, const RaxmlInstance
 {
     netrax::AnnotatedNetwork ann_network = build_annotated_network(netraxOptions, instance);
     init_annotated_network(ann_network, rng);
+    ann_network.fake_treeinfo->brlen_linkage = PLLMOD_COMMON_BRLEN_LINKED;
+
     for (size_t i = 0; i < ann_network.network.num_branches(); ++i)
     {
         ann_network.network.edges_by_index[i]->length *= netraxOptions.scale_branches_only;
-        ann_network.fake_treeinfo->branch_lengths[0][i] *= netraxOptions.scale_branches_only;
+        ann_network.fake_treeinfo->linked_branch_lengths[i] *= netraxOptions.scale_branches_only;
     }
     if (can_write()) {
         writeNetwork(ann_network, netraxOptions.output_file);
@@ -331,6 +333,7 @@ void generate_random_network_only(const NetraxOptions &netraxOptions, const Raxm
     std::uniform_int_distribution<long> dist(0, RAND_MAX);
     netrax::AnnotatedNetwork ann_network = build_random_annotated_network(netraxOptions, instance, dist(rng));
     init_annotated_network(ann_network, rng);
+    ann_network.fake_treeinfo->brlen_linkage = PLLMOD_COMMON_BRLEN_LINKED;
     add_extra_reticulations(ann_network, netraxOptions.max_reticulations);
     if (can_write()) {
         writeNetwork(ann_network, netraxOptions.output_file);
@@ -342,6 +345,7 @@ void scale_reticulation_probs_only(const NetraxOptions &netraxOptions, const Rax
 {
     netrax::AnnotatedNetwork ann_network = build_annotated_network(netraxOptions, instance);
     init_annotated_network(ann_network, rng);
+    ann_network.fake_treeinfo->brlen_linkage = PLLMOD_COMMON_BRLEN_LINKED;
     for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
         ann_network.reticulation_probs[i] = netraxOptions.overwritten_reticulation_prob;
     }

@@ -177,6 +177,9 @@ ScoreImprovementResult check_score_improvement(AnnotatedNetwork& ann_network, do
                 bestNetworkData->best_n_reticulations = ann_network.network.num_reticulations();
                 global_improved = true;
                 //std::cout << "OLD GLOBAL BEST SCORE WAS: " << old_global_best << "\n";
+                if (ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
+                    collect_average_branches(ann_network);
+                }
                 if (can_write()) {
                     std::cout << "IMPROVED GLOBAL BEST SCORE FOUND SO FAR: " << new_score << "\n";
                     writeNetwork(ann_network, ann_network.options.output_file);
@@ -1051,9 +1054,7 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
 
     //std::cout << "Initial network is:\n" << toExtendedNewick(ann_network) << "\n\n";
 
-    std::cout << "thread " << ParallelContext::local_proc_id() << " wavesearch is starting initial non-topology opt...\n";
     optimizeAllNonTopology(ann_network, true);
-    std::cout << "thread " << ParallelContext::local_proc_id() << " wavesearch finished initial non-topology opt...\n";
     //std::cout << "Initial network after modelopt+brlenopt+reticulation opt is:\n" << toExtendedNewick(ann_network) << "\n\n";
     std::string best_network = toExtendedNewick(ann_network);
     score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);

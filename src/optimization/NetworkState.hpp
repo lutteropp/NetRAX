@@ -13,7 +13,7 @@ struct NetworkState {
     unsigned int n_branches;
 
     Network network;
-    std::vector<std::vector<double> > partition_brlens;
+    std::vector<std::vector<double> > partition_brlens; // only used in unlinked mode
     std::vector<double> linked_brlens;
     std::vector<double> partition_brlen_scalers;
     std::vector<double> alphas;
