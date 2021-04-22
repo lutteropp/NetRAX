@@ -281,6 +281,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T>& can
         #endif
         assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
         apply_network_state(ann_network, oldState);
+        assert(network_states_equal(extract_network_state(ann_network), oldState));
         assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
         T move(candidates[i]);
         bool recompute_from_scratch = needsRecompute(ann_network, move);

@@ -352,6 +352,8 @@ bool partition_brlens_equal(const NetworkState& old_state, const NetworkState& a
     bool all_fine = true;
     for (size_t i = 0; i < old_state.partition_brlens.size(); ++i) {
         for (size_t j = 0; j < act_state.n_branches; ++j) {
+            std::cout << ParallelContext::local_proc_id() << " -- " << "I AM HERE with j=" << j << "/ " << act_state.n_branches << "\n";
+            assert(act_state.partition_brlens[i].size() == old_state.partition_brlens[i].size());
             if (fabs(act_state.partition_brlens[i][j] - old_state.partition_brlens[i][j]) >= 1E-5) {
                 std::cout << "wanted brlens:\n";
                 for (size_t k = 0; k < old_state.n_branches; ++k) {
@@ -366,6 +368,7 @@ bool partition_brlens_equal(const NetworkState& old_state, const NetworkState& a
                 std::cout << "brlens not equal\n";
                 all_fine = false;
             }
+            std::cout << ParallelContext::local_proc_id() << " -- " <<  "I AM HERE AGAIN with j=" << j << "/ " << act_state.n_branches << "\n";
         }
     }
     return all_fine;
