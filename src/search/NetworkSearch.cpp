@@ -33,7 +33,7 @@ bool can_write(){
 }
 
 bool logl_stays_same(AnnotatedNetwork& ann_network) {
-    if (can_write()) {
+    /*if (can_write()) {
         std::cout << "displayed trees before:\n";
         for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
             size_t n_trees = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].num_active_displayed_trees;
@@ -42,9 +42,9 @@ bool logl_stays_same(AnnotatedNetwork& ann_network) {
                 std::cout << "logl: " << tree.treeLoglData.tree_partition_logl[i] << ", logprob: " << tree.treeLoglData.tree_logprob << "\n";
             }
         }
-    }
+    }*/
     double incremental = netrax::computeLoglikelihood(ann_network, 1, 1);
-    if (can_write()) {
+    /*if (can_write()) {
         std::cout << "displayed trees in between:\n";
         for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
             size_t n_trees = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].num_active_displayed_trees;
@@ -53,9 +53,9 @@ bool logl_stays_same(AnnotatedNetwork& ann_network) {
                 std::cout << "logl: " << tree.treeLoglData.tree_partition_logl[i] << ", logprob: " << tree.treeLoglData.tree_logprob << "\n";
             }
         }
-    }
+    }*/
     double normal = netrax::computeLoglikelihood(ann_network, 0, 1);
-    if (can_write()) {
+    /*if (can_write()) {
         std::cout << "displayed trees after:\n";
         for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
             size_t n_trees = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].num_active_displayed_trees;
@@ -69,7 +69,7 @@ bool logl_stays_same(AnnotatedNetwork& ann_network) {
     if (can_write()) {
         std::cout << "incremental: " << incremental << "\n";
         std::cout << "normal: " << normal << "\n";
-    }
+    }*/
     return (incremental == normal);
 }
 
@@ -80,27 +80,27 @@ void optimizeAllNonTopology(AnnotatedNetwork &ann_network, bool extremeOpt, bool
         gotBetter = false;
         double score_before = scoreNetwork(ann_network);
         assert(logl_stays_same(ann_network));
-        std::cout << "thread " << ParallelContext::local_proc_id() << " optimizeAllNonTopology initial score: " << score_before << "\n";
+        //std::cout << "thread " << ParallelContext::local_proc_id() << " optimizeAllNonTopology initial score: " << score_before << "\n";
         optimizeModel(ann_network, silent);
         assert(logl_stays_same(ann_network));
-        std::cout << "thread " << ParallelContext::local_proc_id() << " survived model optimization \n";
+        //std::cout << "thread " << ParallelContext::local_proc_id() << " survived model optimization \n";
         optimizeBranches(ann_network, silent);
         assert(logl_stays_same(ann_network));
-        std::cout << "thread " << ParallelContext::local_proc_id() << " survived brlen optimization \n";
+        //std::cout << "thread " << ParallelContext::local_proc_id() << " survived brlen optimization \n";
         assert(logl_stays_same(ann_network));
         optimizeReticulationProbs(ann_network, silent);
-        std::cout << "thread " << ParallelContext::local_proc_id() << " survived reticulation prob optimization \n";
+        //std::cout << "thread " << ParallelContext::local_proc_id() << " survived reticulation prob optimization \n";
         double score_after = scoreNetwork(ann_network);
         assert(logl_stays_same(ann_network));
 
         if (score_after < score_before && extremeOpt) {
             gotBetter = true;
-            std::cout << "thread " << ParallelContext::local_proc_id() << " entering next optimizeAllNonTopology iteration with score " << score_after << " \n";
+            //std::cout << "thread " << ParallelContext::local_proc_id() << " entering next optimizeAllNonTopology iteration with score " << score_after << " \n";
         }
     }
 
     assert(logl_stays_same(ann_network));
-    std::cout << "thread " << ParallelContext::local_proc_id() << " survived optimizeAllNonTopology \n";
+    //std::cout << "thread " << ParallelContext::local_proc_id() << " survived optimizeAllNonTopology \n";
 }
 
 void printDisplayedTrees(AnnotatedNetwork& ann_network) {
@@ -273,12 +273,15 @@ void prefilterCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T>& can
         if (stop) {
             continue;
         }
+        std::cout << "thread " << ParallelContext::local_proc_id() << ", " << "candidate no. " << i << "\n";
         #ifdef _NETRAX_OPENMP
         AnnotatedNetwork& ann_network = ann_network_thread[omp_get_thread_num()];
         #else
         AnnotatedNetwork& ann_network = ann_network_orig;
         #endif
+        assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
         apply_network_state(ann_network, oldState);
+        assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
         T move(candidates[i]);
         bool recompute_from_scratch = needsRecompute(ann_network, move);
 
@@ -290,10 +293,14 @@ void prefilterCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T>& can
         }
         optimizeReticulationProbs(ann_network);
         
+        assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
+
         std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
         assert(!brlen_opt_candidates.empty());
         
+        std::cout << "thread " << ParallelContext::local_proc_id() << ", " << "before brlen opt, candidate no. " << i << "\n";
         optimize_branches(ann_network, max_iters, max_iters_outside, radius, brlen_opt_candidates, true);
+         std::cout << "thread " << ParallelContext::local_proc_id() << ", " << "after brlen opt, candidate no. " << i << "\n";
         /*
         if (move->moveType == MoveType::ArcInsertionMove || move->moveType == MoveType::DeltaPlusMove) {
             optimize_branches(ann_network, max_iters, 1, radius, brlen_opt_candidates, false);

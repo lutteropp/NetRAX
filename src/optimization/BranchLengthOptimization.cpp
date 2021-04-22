@@ -258,10 +258,15 @@ double optimize_branch(AnnotatedNetwork &ann_network, std::vector<DisplayedTreeD
 }
 
 double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, BrlenOptMethod brlenOptMethod, unsigned int max_iters) {
-    std::cout << "thread " << ParallelContext::local_proc_id() << " is now optimizing branch " << pmatrix_index << "\n";
+    //std::cout << "thread " << ParallelContext::local_proc_id() << " is now optimizing branch " << pmatrix_index << "\n";
 
     double old_logl = computeLoglikelihood(ann_network);
     assert(old_logl <= 0.0);
+    /*double debug_logl = computeLoglikelihood(ann_network, 0, 1);
+    if (old_logl != debug_logl) {
+        std::cout << "old_logl: " << old_logl << "\n";
+        std::cout << "debug logl: " << debug_logl << "\n";
+    }*/
     assert(computeLoglikelihood(ann_network, 0, 1) == old_logl);
     std::vector<DisplayedTreeData> oldTrees;
     std::vector<std::vector<SumtableInfo> > sumtables;
