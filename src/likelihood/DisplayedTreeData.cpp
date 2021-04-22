@@ -6,6 +6,29 @@
 
 namespace netrax
 {
+    bool single_clv_is_all_zeros(ClvRangeInfo rangeInfo, double* clv) {
+        for (size_t i = 0; i < rangeInfo.inner_clv_num_entries; ++i) {
+            if (clv[i] != 0.0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    void print_node_scaler(ScaleBufferRangeInfo rangeInfo, unsigned int * scale_buffer) {
+        for (size_t j = 0; j < rangeInfo.scaler_size; ++j) {
+            std::cout << scale_buffer[j] << ", ";
+        }
+        std::cout << "\n";
+    }
+
+    void print_node_clv(ClvRangeInfo rangeInfo, double * clv) {
+        for (size_t j = 0; j < rangeInfo.inner_clv_num_entries; ++j) {
+            std::cout << clv[j] << ", ";
+        }
+        std::cout << "\n";
+    }
+
     void print_clv(ClvRangeInfo rangeInfo, double ** clv) {
         for (size_t i = rangeInfo.start; i < rangeInfo.end; ++i) {
             std::cout << "clv[" << i << ":\n";
@@ -89,6 +112,7 @@ namespace netrax
     void assign_clv_entries(pll_partition_t* partition, double** from_clv, double** to_clv) {
         assert(from_clv);
         assert(to_clv);
+        assert(partition);
 
         ClvRangeInfo rangeInfo = get_clv_range(partition);
 
@@ -110,6 +134,7 @@ namespace netrax
     }
 
     double** clone_clv_vector(pll_partition_t *partition, double** clv) {
+        assert(partition);
         double **cloned_clv = create_empty_clv_vector(get_clv_range(partition));
         assign_clv_entries(partition, clv, cloned_clv);
         return cloned_clv;
@@ -125,6 +150,7 @@ namespace netrax
     }
 
     void delete_cloned_clv_vector(pll_partition_t *partition, double **clv) {
+        assert(partition);
         delete_cloned_clv_vector(get_clv_range(partition), clv);
     }
 

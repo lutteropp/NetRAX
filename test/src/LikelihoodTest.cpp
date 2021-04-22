@@ -200,7 +200,8 @@ void compareLikelihoodFunctions(const std::string &networkPath, const std::strin
     options.start_network_file = networkPath;
     options.msa_file = msaPath;
     options.use_repeats = useRepeats;
-    AnnotatedNetwork ann_network = build_annotated_network(options);
+    const RaxmlInstance instance = createRaxmlInstance(options);
+    AnnotatedNetwork ann_network = build_annotated_network(options, instance);
     init_annotated_network(ann_network);
     Network &network = ann_network.network;
     print_clv_index_by_label(network);
@@ -248,7 +249,8 @@ void incrementalTest(const std::string &networkPath, const std::string &msaPath)
     options.start_network_file = networkPath;
     options.msa_file = msaPath;
     options.use_repeats = true;
-    AnnotatedNetwork ann_network = build_annotated_network(options);
+    const RaxmlInstance instance = createRaxmlInstance(options);
+    AnnotatedNetwork ann_network = build_annotated_network(options, instance);
     init_annotated_network(ann_network);
     Network &network = ann_network.network;
     print_clv_index_by_label(network);
@@ -342,7 +344,8 @@ TEST_F (LikelihoodTest, celineNetworkNonzeroBranches) {
 
 TEST_F (LikelihoodTest, updateReticulationProb) {
     NetraxOptions options = NetraxOptions(networkPath, msaPath, false);
-    AnnotatedNetwork ann_network = build_annotated_network(options);
+    const RaxmlInstance instance = createRaxmlInstance(options);
+    AnnotatedNetwork ann_network = build_annotated_network(options, instance);
     init_annotated_network(ann_network);
     optimizeReticulationProbs(ann_network);
     double norep_logl = computeLoglikelihood(ann_network);
@@ -358,7 +361,8 @@ TEST_F (LikelihoodTest, updateReticulationProb) {
 
 TEST_F (LikelihoodTest, simpleTreeWithRepeats) {
     NetraxOptions options = NetraxOptions(treePath, msaPath, true);
-    AnnotatedNetwork ann_network = build_annotated_network(options);
+    const RaxmlInstance instance = createRaxmlInstance(options);
+    AnnotatedNetwork ann_network = build_annotated_network(options, instance);
     init_annotated_network(ann_network);
     double network_logl = computeLoglikelihood(ann_network);
     std::cout << "The computed network_logl 5 is: " << network_logl << "\n";
@@ -400,7 +404,8 @@ TEST_F (LikelihoodTest, buildAnnotatedNetworkTest) {
     options.start_network_file = treePath;
     options.msa_file = msaPath;
     options.use_repeats = true;
-    AnnotatedNetwork ann_network = build_annotated_network(options);
+    const RaxmlInstance instance = createRaxmlInstance(options);
+    AnnotatedNetwork ann_network = build_annotated_network(options, instance);
     init_annotated_network(ann_network);
     ASSERT_TRUE(true);
 }
@@ -410,7 +415,8 @@ TEST_F (LikelihoodTest, simpleTreeNaiveVersusNormalRaxml) {
     options.start_network_file = treePath;
     options.msa_file = msaPath;
     options.use_repeats = true;
-    AnnotatedNetwork ann_network = build_annotated_network(options);
+    const RaxmlInstance instance = createRaxmlInstance(options);
+    AnnotatedNetwork ann_network = build_annotated_network(options, instance);
     init_annotated_network(ann_network);
 
     Network &network = ann_network.network;
@@ -420,9 +426,8 @@ TEST_F (LikelihoodTest, simpleTreeNaiveVersusNormalRaxml) {
 
     pll_utree_t *raxml_utree = Tree::loadFromFile(treePath).pll_utree_copy();
     NetraxOptions options2 = NetraxOptions(treePath, msaPath, false);
-    std::unique_ptr<RaxmlWrapper> treeWrapper = std::make_unique<RaxmlWrapper>(
-            options2);
-    TreeInfo *raxml_treeinfo = treeWrapper->createRaxmlTreeinfo(raxml_utree);
+    const RaxmlInstance instance2 = createRaxmlInstance(options2);
+    TreeInfo *raxml_treeinfo = createRaxmlTreeinfo(raxml_utree, instance2);
     double raxml_logl = raxml_treeinfo->loglh(false);
 
     delete raxml_treeinfo;
@@ -437,14 +442,15 @@ TEST_F (LikelihoodTest, convertUtreeToNetwork) {
     options.msa_file = msaPath;
     options.use_repeats = true;
     pll_utree_t *raxml_utree = Tree::loadFromFile(treePath).pll_utree_copy();
+    const RaxmlInstance instance = createRaxmlInstance(options);
 
-    AnnotatedNetwork ann_network = build_annotated_network_from_utree(options, *raxml_utree);
+    AnnotatedNetwork ann_network = build_annotated_network_from_utree(options, instance, *raxml_utree);
     init_annotated_network(ann_network);
     Network &network = ann_network.network;
     print_clv_index_by_label(network);
     double naive_utree_logl = computeLoglikelihoodNaiveUtree(ann_network, 0, 1);
 
-    AnnotatedNetwork ann_network_2 = build_annotated_network(options);
+    AnnotatedNetwork ann_network_2 = build_annotated_network(options, instance);
     double naive_network_logl = computeLoglikelihoodNaiveUtree(ann_network_2, 0, 1);
 
     EXPECT_NE(naive_utree_logl, -std::numeric_limits<double>::infinity());

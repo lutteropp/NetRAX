@@ -397,20 +397,38 @@ std::string printNodeNewick(Network &network, Node *node, Node *parent,
     return sb.str();
 }
 
-void updateNetwork(AnnotatedNetwork &ann_network) {
+void collect_average_branches(AnnotatedNetwork &ann_network) {
     // If we have unlinked branch lenghts/probs, replace the entries in the network by their average
-    if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
-        for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
-            ann_network.network.edges_by_index[i]->length = 0.0;
-            for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-                double w = ann_network.partition_contributions[p];
-                ann_network.network.edges_by_index[i]->length += ann_network.fake_treeinfo->branch_lengths[p][i] * w;
-            }
+    assert(ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
+    std::vector<std::vector<double> > partition_brlens(ann_network.fake_treeinfo->partition_count, std::vector<double>(ann_network.network.num_branches(), 0.0));
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        // skip remote partitions
+        if (!ann_network.fake_treeinfo->partitions[p]) {
+            continue;
         }
-    } else {
         for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
-            ann_network.network.edges_by_index[i]->length = ann_network.fake_treeinfo->branch_lengths[0][i];
+            partition_brlens[p][i] = ann_network.fake_treeinfo->branch_lengths[p][i];
         }
+    }
+
+    /* collect per-partition branch lengths from all threads */
+    if (ann_network.fake_treeinfo->parallel_reduce_cb)
+    {  
+        ann_network.fake_treeinfo->parallel_reduce_cb(ann_network.fake_treeinfo->parallel_context, ann_network.fake_treeinfo->linked_branch_lengths, ann_network.network.num_branches(), PLLMOD_COMMON_REDUCE_MAX);
+    }
+
+    memset(ann_network.fake_treeinfo->linked_branch_lengths, 0, ann_network.network.num_branches());
+    for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
+        for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+            double w = ann_network.partition_contributions[p];
+            ann_network.fake_treeinfo->linked_branch_lengths[i] += partition_brlens[p][i] * w;
+        }
+    }
+}
+
+void updateNetwork(AnnotatedNetwork &ann_network) {
+    for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
+        ann_network.network.edges_by_index[i]->length = ann_network.fake_treeinfo->linked_branch_lengths[i];
     }
 
     for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {

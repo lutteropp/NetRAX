@@ -38,6 +38,8 @@ double optimize_params(AnnotatedNetwork& ann_network, double lh_epsilon)
     assert(assert_lh_improvement(cur_loglh, new_loglh, "RATES"));
     cur_loglh = new_loglh;
 
+    //std::cout << "thread " << ParallelContext::local_proc_id() << " survived substitution rates" << "\n";
+
   /* optimize BASE FREQS */
     new_loglh = -1 * pllmod_algo_opt_frequencies_treeinfo(ann_network.fake_treeinfo,
                                                           0,
@@ -50,6 +52,8 @@ double optimize_params(AnnotatedNetwork& ann_network, double lh_epsilon)
     assert(assert_lh_improvement(cur_loglh, new_loglh, "FREQS"));
     cur_loglh = new_loglh;
 
+    //std::cout << "thread " << ParallelContext::local_proc_id() << " survived base freqs" << "\n";
+
     /* optimize ALPHA */
       new_loglh = -1 * pllmod_algo_opt_onedim_treeinfo(ann_network.fake_treeinfo,
                                                         PLLMOD_OPT_PARAM_ALPHA,
@@ -61,6 +65,8 @@ double optimize_params(AnnotatedNetwork& ann_network, double lh_epsilon)
      assert(assert_lh_improvement(cur_loglh, new_loglh, "ALPHA"));
      cur_loglh = new_loglh;
 
+    //std::cout << "thread " << ParallelContext::local_proc_id() << " survived alpha" << "\n";
+
     /* optimize PINV */
       new_loglh = -1 * pllmod_algo_opt_onedim_treeinfo(ann_network.fake_treeinfo,
                                                         PLLMOD_OPT_PARAM_PINV,
@@ -71,6 +77,8 @@ double optimize_params(AnnotatedNetwork& ann_network, double lh_epsilon)
       libpll_check_error("ERROR in p-inv optimization");
       assert(assert_lh_improvement(cur_loglh, new_loglh, "PINV"));
       cur_loglh = new_loglh;
+
+    //std::cout << "thread " << ParallelContext::local_proc_id() << " survived pinv" << "\n";
 
   /* optimize FREE RATES and WEIGHTS */
     new_loglh = -1 * pllmod_algo_opt_rates_weights_treeinfo (ann_network.fake_treeinfo,
@@ -84,6 +92,8 @@ double optimize_params(AnnotatedNetwork& ann_network, double lh_epsilon)
     libpll_check_error("ERROR in FreeRate rates/weights optimization");
     assert(assert_lh_improvement(cur_loglh, new_loglh, "FREE RATES"));
     cur_loglh = new_loglh;
+
+    //std::cout << "thread " << ParallelContext::local_proc_id() << " survived rates weights" << "\n";
 
   return new_loglh;
 }

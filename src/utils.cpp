@@ -7,6 +7,8 @@
 
 #include "utils.hpp"
 
+#include <limits>
+
 namespace netrax {
 
 bool approximatelyEqual(double a, double b)

@@ -24,6 +24,7 @@ Network readNetworkFromFile(const std::string &filename, int maxReticulations = 
 std::string toExtendedNewick(AnnotatedNetwork &ann_network);
 std::string toExtendedNewick(Network &network);
 Network convertUtreeToNetwork(const pll_utree_t &utree, unsigned int maxReticulations);
+void collect_average_branches(AnnotatedNetwork &ann_network);
 void updateNetwork(AnnotatedNetwork &ann_network);
 
 void writeNetwork(AnnotatedNetwork &ann_network, const std::string &filepath);

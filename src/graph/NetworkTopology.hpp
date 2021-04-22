@@ -64,10 +64,10 @@ bool hasNeighbor(Node *node1, Node *node2);
 Link* make_link(Node *node, Edge *edge, Direction dir);
 
 void invalidateSingleClv(pllmod_treeinfo_t *treeinfo, unsigned int clv_index);
-void invalidateHigherCLVs(AnnotatedNetwork &ann_network, Node *node, size_t partition_idx, bool invalidate_myself,
+void invalidateHigherCLVs(AnnotatedNetwork &ann_network, Node *node, bool invalidate_myself,
         std::vector<bool> &visited);
 void invalidateHigherCLVs(AnnotatedNetwork &ann_network, Node *node, bool invalidate_myself, std::vector<bool> &visited);
-void invalidateHigherCLVs(AnnotatedNetwork &ann_network, Node *node, size_t partition_idx, bool invalidate_myself);
+void invalidateHigherCLVs(AnnotatedNetwork &ann_network, Node *node, bool invalidate_myself);
 
 void invalidatePmatrixIndex(AnnotatedNetwork &ann_network, size_t pmatrix_index,
         std::vector<bool> &visited);

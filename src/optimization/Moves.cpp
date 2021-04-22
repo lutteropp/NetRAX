@@ -139,20 +139,64 @@ bool assertConsecutiveIndices(AnnotatedNetwork& ann_network) {
 }
 
 std::vector<double> get_edge_lengths(AnnotatedNetwork &ann_network, size_t pmatrix_index) {
-    std::vector<double> res(ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED ? ann_network.fake_treeinfo->partition_count : 1);
-    for (size_t p = 0; p < res.size(); ++p) {
-        res[p] = ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index];
-        assert(res[p] >= ann_network.options.brlen_min);
-        assert(res[p] <= ann_network.options.brlen_max);
+    std::vector<double> res(ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED ? ann_network.fake_treeinfo->partition_count : 1, 0.0);
+    if (ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
+        for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+            // skip remote partitions
+            if (!ann_network.fake_treeinfo->partitions[p]) {
+                continue;
+            }
+            res[p] = ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index];
+        }
+    } else {
+        res[0] = ann_network.fake_treeinfo->linked_branch_lengths[pmatrix_index];
+        assert(res[0] >= ann_network.options.brlen_min);
+        assert(res[0] <= ann_network.options.brlen_max);
+    }
+    return res;
+}
+
+std::vector<double> get_halved_edge_lengths(const std::vector<double>& lengths, double min_br) {
+    std::vector<double> res(lengths.size());
+    for (size_t p = 0; p < lengths.size(); ++p) {
+        res[p] = std::max(lengths[p] / 2, min_br);
+    }
+    return res;
+}
+
+std::vector<double> get_minus_edge_lengths(const std::vector<double>& lengths1, const std::vector<double>& lengths2, double min_br) {
+    assert(lengths1.size() == lengths2.size());
+    std::vector<double> res(lengths1.size());
+    for (size_t p = 0; p < lengths1.size(); ++p) {
+        res[p] = std::max(lengths1[p] - lengths2[p], min_br);
+    }
+    return res;
+}
+
+std::vector<double> get_plus_edge_lengths(const std::vector<double>& lengths1, const std::vector<double>& lengths2, double max_br) {
+    assert(lengths1.size() == lengths2.size());
+    std::vector<double> res(lengths1.size());
+    for (size_t p = 0; p < lengths1.size(); ++p) {
+        res[p] = std::min(lengths1[p] + lengths2[p], max_br);
     }
     return res;
 }
 
 void set_edge_lengths(AnnotatedNetwork &ann_network, size_t pmatrix_index, const std::vector<double> &lengths) {
-    for (size_t p = 0; p < lengths.size(); ++p) {
-        ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] = lengths[p];
-        assert(lengths[p] >= ann_network.options.brlen_min);
-        assert(lengths[p] <= ann_network.options.brlen_max);
+    if (ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
+        for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+            // skip remote partitions
+            if (!ann_network.fake_treeinfo->partitions[p]) {
+                continue;
+            }
+            ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] = lengths[p];
+            assert(lengths[p] >= ann_network.options.brlen_min);
+            assert(lengths[p] <= ann_network.options.brlen_max);
+        }
+    } else {
+        ann_network.fake_treeinfo->linked_branch_lengths[pmatrix_index] = lengths[0];
+        assert(lengths[0] >= ann_network.options.brlen_min);
+        assert(lengths[0] <= ann_network.options.brlen_max);
     }
 }
 
@@ -1020,14 +1064,10 @@ std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_ne
         const Edge *edge, Node *c, Node *d, MoveType moveType, bool noDeltaPlus) {
     std::vector<ArcInsertionMove> res;
     Network &network = ann_network.network;
-    size_t n_p = (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED ? ann_network.fake_treeinfo->partition_count : 1);
-// choose two distinct arcs ab, cd (with cd not ancestral to ab -> no d-a-path allowed)
+    // choose two distinct arcs ab, cd (with cd not ancestral to ab -> no d-a-path allowed)
     Node *a = getSource(network, edge);
     Node *b = getTarget(network, edge);
-    std::vector<double> a_b_len(n_p);
-    for (size_t p = 0; p < n_p; ++p) {
-        a_b_len[p] = ann_network.fake_treeinfo->branch_lengths[p][edge->pmatrix_index];
-    }
+    std::vector<double> a_b_len = get_edge_lengths(ann_network, edge->pmatrix_index);
 
     double min_br = ann_network.options.brlen_min;
 
@@ -1049,16 +1089,14 @@ std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_ne
             }
 
             if (!hasPath(network, d_cand, a)) {
-                std::vector<double> c_d_len(n_p), c_v_len(n_p), a_u_len(n_p), v_d_len(n_p), u_b_len(n_p), u_v_len(n_p);
-                for (size_t p = 0; p < n_p; ++p) {
-                    c_d_len[p] = ann_network.fake_treeinfo->branch_lengths[p][c->links[i].edge_pmatrix_index];
+                std::vector<double> c_d_len, c_v_len, a_u_len, v_d_len, u_b_len, u_v_len;
 
-                    c_v_len[p] = std::max(c_d_len[p] / 2, min_br);
-                    a_u_len[p] = std::max(a_b_len[p] / 2, min_br);
-                    v_d_len[p] = std::max(c_d_len[p] - c_v_len[p], min_br);
-                    u_b_len[p] = std::max(a_b_len[p] - a_u_len[p], min_br);
-                    u_v_len[p] = 1.0;
-                }
+                c_d_len = get_edge_lengths(ann_network, c->links[i].edge_pmatrix_index);
+                c_v_len = get_halved_edge_lengths(c_d_len, min_br);
+                a_u_len = get_halved_edge_lengths(a_b_len, min_br);
+                v_d_len = get_minus_edge_lengths(c_d_len, c_v_len, min_br);
+                u_b_len = get_minus_edge_lengths(a_b_len, a_u_len, min_br);
+                u_v_len = std::vector<double>(ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED ? ann_network.fake_treeinfo->partition_count : 1, 1.0);
 
                 ArcInsertionMove move = buildArcInsertionMove(a->clv_index, b->clv_index,
                         c_cand->clv_index, d_cand->clv_index, u_v_len, c_v_len,
@@ -1084,16 +1122,13 @@ std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_ne
                     continue;
                 }
 
-                std::vector<double> c_d_len(n_p), c_v_len(n_p), a_u_len(n_p), v_d_len(n_p), u_b_len(n_p), u_v_len(n_p);
-                for (size_t p = 0; p < n_p; ++p) {
-                    c_d_len[p] = ann_network.fake_treeinfo->branch_lengths[p][d->links[i].edge_pmatrix_index];
-
-                    c_v_len[p] = std::max(c_d_len[p] / 2, min_br);
-                    a_u_len[p] = std::max(a_b_len[p] / 2, min_br);
-                    v_d_len[p] = std::max(c_d_len[p] - c_v_len[p], min_br);
-                    u_b_len[p] = std::max(a_b_len[p] - a_u_len[p], min_br);
-                    u_v_len[p] = 1.0;
-                }
+                std::vector<double> c_d_len, c_v_len, a_u_len, v_d_len, u_b_len, u_v_len;
+                c_d_len = get_edge_lengths(ann_network, d->links[i].edge_pmatrix_index);
+                c_v_len = get_halved_edge_lengths(c_d_len, min_br);
+                a_u_len = get_halved_edge_lengths(a_b_len, min_br);
+                v_d_len = get_minus_edge_lengths(c_d_len, c_v_len, min_br);
+                u_b_len = get_minus_edge_lengths(a_b_len, a_u_len, min_br);
+                u_v_len = std::vector<double>(ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED ? ann_network.fake_treeinfo->partition_count : 1, 1.0);
 
                 ArcInsertionMove move = buildArcInsertionMove(a->clv_index, b->clv_index,
                         c_cand->clv_index, d_cand->clv_index, u_v_len, c_v_len,
@@ -1117,16 +1152,13 @@ std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_ne
             }
 
             if (!hasPath(network, d_cand, a)) {
-                std::vector<double> c_d_len(n_p), c_v_len(n_p), a_u_len(n_p), v_d_len(n_p), u_b_len(n_p), u_v_len(n_p);
-                for (size_t p = 0; p < n_p; ++p) {
-                    c_d_len[p] = ann_network.fake_treeinfo->branch_lengths[p][i];
-
-                    c_v_len[p] = std::max(c_d_len[p] / 2, min_br);
-                    a_u_len[p] = std::max(a_b_len[p] / 2, min_br);
-                    v_d_len[p] = std::max(c_d_len[p] - c_v_len[p], min_br);
-                    u_b_len[p] = std::max(a_b_len[p] - a_u_len[p], min_br);
-                    u_v_len[p] = 1.0;
-                }
+                std::vector<double> c_d_len, c_v_len, a_u_len, v_d_len, u_b_len, u_v_len;
+                c_d_len = get_edge_lengths(ann_network, i);
+                c_v_len = get_halved_edge_lengths(c_d_len, min_br);
+                a_u_len = get_halved_edge_lengths(a_b_len, min_br);
+                v_d_len = get_minus_edge_lengths(c_d_len, c_v_len, min_br);
+                u_b_len = get_minus_edge_lengths(a_b_len, a_u_len, min_br);
+                u_v_len = std::vector<double>(ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED ? ann_network.fake_treeinfo->partition_count : 1, 1.0);
 
                 ArcInsertionMove move = buildArcInsertionMove(a->clv_index, b->clv_index,
                         c_cand->clv_index, d_cand->clv_index, u_v_len, c_v_len,
@@ -1212,7 +1244,6 @@ std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_networ
 // v is a reticulation node, u is one parent of v, c is the other parent of v, a is parent of u, d is child of v, b is other child of u
     std::vector<ArcRemovalMove> res;
     Network &network = ann_network.network;
-    size_t n_p = (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED ? ann_network.fake_treeinfo->partition_count : 1);
     assert(v->type == NodeType::RETICULATION_NODE);
     Node *d = getReticulationChild(network, v);
     Node *first_parent = getReticulationFirstParent(network, v);
@@ -1245,19 +1276,14 @@ std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_networ
             continue;
         }
 
-        std::vector<double> a_u_len(n_p), u_b_len(n_p), a_b_len(n_p), c_v_len(n_p), v_d_len(n_p), c_d_len(n_p), u_v_len(n_p);
-
-        for (size_t p = 0; p < n_p; ++p) {
-            a_u_len[p] = ann_network.fake_treeinfo->branch_lengths[p][getEdgeTo(network, a, u)->pmatrix_index];
-            u_b_len[p] = ann_network.fake_treeinfo->branch_lengths[p][getEdgeTo(network, u, b)->pmatrix_index];
-            a_b_len[p] = std::min(a_u_len[p] + u_b_len[p], max_br);
-
-            c_v_len[p] = ann_network.fake_treeinfo->branch_lengths[p][getEdgeTo(network, c, v)->pmatrix_index];
-            v_d_len[p] = ann_network.fake_treeinfo->branch_lengths[p][getEdgeTo(network, v, d)->pmatrix_index];
-            c_d_len[p] = std::min(c_v_len[p] + v_d_len[p], max_br);
-
-            u_v_len[p] = ann_network.fake_treeinfo->branch_lengths[p][getEdgeTo(network, u, v)->pmatrix_index];
-        }
+        std::vector<double> a_u_len, u_b_len, a_b_len, c_v_len, v_d_len, c_d_len, u_v_len;
+        a_u_len = get_edge_lengths(ann_network, getEdgeTo(network, a, u)->pmatrix_index);
+        u_b_len = get_edge_lengths(ann_network, getEdgeTo(network, u, b)->pmatrix_index);
+        a_b_len = get_plus_edge_lengths(a_u_len, u_b_len, max_br);
+        c_v_len = get_edge_lengths(ann_network, getEdgeTo(network, c, v)->pmatrix_index);
+        v_d_len = get_edge_lengths(ann_network, getEdgeTo(network, v, d)->pmatrix_index);
+        c_d_len = get_plus_edge_lengths(c_v_len, v_d_len, max_br);
+        u_v_len = get_edge_lengths(ann_network, getEdgeTo(network, u, v)->pmatrix_index);
 
         ArcRemovalMove move = buildArcRemovalMove(a->clv_index, b->clv_index, c->clv_index,
                 d->clv_index, u->clv_index, v->clv_index, u_v_len,
@@ -1506,12 +1532,17 @@ void removeEdge(AnnotatedNetwork &ann_network, Edge *edge) {
     size_t index = edge->pmatrix_index;
     edge->clear();
     ann_network.network.edges_by_index[index] = nullptr;
-    size_t n_p = ann_network.fake_treeinfo->partition_count;
-    if (ann_network.fake_treeinfo->branch_lengths[0] == ann_network.fake_treeinfo->branch_lengths[n_p-1]) {
-        n_p = 1;
-    }
-    for (size_t p = 0; p < n_p; ++p) {
-        ann_network.fake_treeinfo->branch_lengths[p][index] = 0.0;
+
+    if (ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
+        for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+            // skip remote partitions
+            if (!ann_network.fake_treeinfo->partitions[p]) {
+                continue;
+            }
+            ann_network.fake_treeinfo->branch_lengths[p][index] = 0.0;
+        }
+    } else {
+        ann_network.fake_treeinfo->linked_branch_lengths[index] = 0.0;
     }
     ann_network.network.branchCount--;
 }
@@ -1668,13 +1699,13 @@ void invalidate_pmatrices(AnnotatedNetwork &ann_network,
         std::vector<size_t> &affectedPmatrixIndices) {
     Network &network = ann_network.network;
     pllmod_treeinfo_t *fake_treeinfo = ann_network.fake_treeinfo;
-    unsigned int partitions = 1;
-    if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) { // each partition has its branch length
-        partitions = fake_treeinfo->partition_count;
-    }
     for (size_t pmatrix_index : affectedPmatrixIndices) {
         assert(network.edges_by_index[pmatrix_index]);
-        for (size_t p = 0; p < partitions; ++p) {
+        for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+            // skip reote partitions
+            if (!fake_treeinfo->partitions[p]) {
+                continue;
+            }
             fake_treeinfo->pmatrix_valid[p][pmatrix_index] = 0;
         }
     }
@@ -1682,9 +1713,21 @@ void invalidate_pmatrices(AnnotatedNetwork &ann_network,
 }
 
 bool assertBranchLengths(AnnotatedNetwork& ann_network) {
-    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+    if (ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
+        for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+            // skip remote partitions
+            if (!ann_network.fake_treeinfo->partitions[p]) {
+                continue;
+            }
+            for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
+                assert(ann_network.fake_treeinfo->branch_lengths[p][i] >= ann_network.options.brlen_min);
+                assert(ann_network.fake_treeinfo->branch_lengths[p][i] <= ann_network.options.brlen_max);
+            }
+        }
+    } else {
         for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
-            assert(ann_network.fake_treeinfo->branch_lengths[p][i] >= ann_network.options.brlen_min);
+            assert(ann_network.fake_treeinfo->linked_branch_lengths[i] >= ann_network.options.brlen_min);
+            assert(ann_network.fake_treeinfo->linked_branch_lengths[i] <= ann_network.options.brlen_max);
         }
     }
     return true;
@@ -1957,6 +2000,10 @@ void repairConsecutivePmatrixIndices(AnnotatedNetwork &ann_network, ArcRemovalMo
             missing_pmatrix_indices.emplace_back(i);
             std::vector<bool> visited(ann_network.network.edges.size(), false);
             for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+                // skip remote partitions
+                if (!ann_network.fake_treeinfo->partitions[p]) {
+                    continue;
+                }
                 ann_network.fake_treeinfo->pmatrix_valid[p][i] = 0;
             }
         }
@@ -1972,6 +2019,10 @@ void repairConsecutivePmatrixIndices(AnnotatedNetwork &ann_network, ArcRemovalMo
             size_t new_pmatrix_index = missing_pmatrix_indices.back();
             // invalidate the pmatrix entry
             for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+                // skip remote partitions
+                if (!ann_network.fake_treeinfo->partitions[p]) {
+                    continue;
+                }
                 ann_network.fake_treeinfo->pmatrix_valid[p][old_pmatrix_index] = 0;
             }
             if (move_pmatrix_indices.find(old_pmatrix_index) != move_pmatrix_indices.end()) {
@@ -1983,14 +2034,19 @@ void repairConsecutivePmatrixIndices(AnnotatedNetwork &ann_network, ArcRemovalMo
             ann_network.network.edges_by_index[new_pmatrix_index] = &ann_network.network.edges[i];
             ann_network.network.edges_by_index[old_pmatrix_index] = nullptr;
 
-            size_t n_p = ann_network.fake_treeinfo->partition_count;
-            if (ann_network.fake_treeinfo->branch_lengths[0] == ann_network.fake_treeinfo->branch_lengths[n_p-1]) {
-                n_p = 1;
-            }
-            // also update entries in branch length array
-            for (size_t p = 0; p < n_p; ++p) {
-                ann_network.fake_treeinfo->branch_lengths[p][new_pmatrix_index] = ann_network.fake_treeinfo->branch_lengths[p][old_pmatrix_index];
-                ann_network.fake_treeinfo->branch_lengths[p][old_pmatrix_index] = 0.0;
+             // also update entries in branch length array
+            if (ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
+                for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+                    // skip remote partitions
+                    if (!ann_network.fake_treeinfo->partitions[p]) {
+                        continue;
+                    }
+                    ann_network.fake_treeinfo->branch_lengths[p][new_pmatrix_index] = ann_network.fake_treeinfo->branch_lengths[p][old_pmatrix_index];
+                    ann_network.fake_treeinfo->branch_lengths[p][old_pmatrix_index] = 0.0;
+                }
+            } else {
+                ann_network.fake_treeinfo->linked_branch_lengths[new_pmatrix_index] = ann_network.fake_treeinfo->linked_branch_lengths[old_pmatrix_index];
+                ann_network.fake_treeinfo->linked_branch_lengths[old_pmatrix_index] = 0.0;
             }
 
             ann_network.network.edges[i].link1->edge_pmatrix_index = new_pmatrix_index;

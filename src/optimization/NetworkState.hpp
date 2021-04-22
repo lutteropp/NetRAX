@@ -13,13 +13,14 @@ struct NetworkState {
     unsigned int n_branches;
 
     Network network;
-    std::vector<std::vector<double> > partition_brlens;
+    std::vector<std::vector<double> > partition_brlens; // only used in unlinked mode
+    std::vector<double> linked_brlens;
     std::vector<double> partition_brlen_scalers;
     std::vector<double> alphas;
     std::vector<Model> partition_models;
     std::vector<double> reticulation_probs; // the first-parent reticulation probs
 
-    std::vector<std::vector<NodeDisplayedTreeData> > pernode_displayed_tree_data;
+    std::vector<NodeDisplayedTreeData> pernode_displayed_tree_data;
     std::vector<ClvRangeInfo> displayed_tree_clv_ranges;
     std::vector<ScaleBufferRangeInfo> displayed_tree_scale_buffer_ranges;
 

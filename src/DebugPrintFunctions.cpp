@@ -80,14 +80,15 @@ void printReticulationParents(Network &network) {
 
 void print_brlens(AnnotatedNetwork &ann_network) {
     std::cout << "brlens:\n";
-    size_t n_partitions = 1;
     if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
-        n_partitions = ann_network.fake_treeinfo->partition_count;
-    }
-    for (size_t p = 0; p < n_partitions; ++p) {
+        for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+            for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
+                std::cout << "brlens[" << p << "][" << i << "]: " << ann_network.fake_treeinfo->branch_lengths[p][i] << "\n";
+            }
+        }
+    } else {
         for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
-            std::cout << "brlens[" << p << "][" << ann_network.network.edges[i].pmatrix_index
-                    << "]: " << ann_network.fake_treeinfo->branch_lengths[p][ann_network.network.edges[i].pmatrix_index] << "\n";
+            std::cout << "brlens[" << i << "]: " << ann_network.fake_treeinfo->linked_branch_lengths[i] << "\n";
         }
     }
     std::cout << "\n";
