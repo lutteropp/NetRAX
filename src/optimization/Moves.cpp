@@ -2077,6 +2077,8 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
 
     repairConsecutiveIndices(ann_network, move);
 
+    std::cout << ParallelContext::local_proc_id() << " -- " << "I AM HEEEEEEERE\n";
+
     Node *b = network.nodes_by_index[move.b_clv_index];
     if (b->type == NodeType::RETICULATION_NODE) {
         // u is no longer parent of b, but a is now the parent
