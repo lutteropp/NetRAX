@@ -15,6 +15,20 @@ namespace netrax
         return true;
     }
 
+    void print_node_scaler(ScaleBufferRangeInfo rangeInfo, unsigned int * scale_buffer) {
+        for (size_t j = 0; j < rangeInfo.scaler_size; ++j) {
+            std::cout << scale_buffer[j] << ", ";
+        }
+        std::cout << "\n";
+    }
+
+    void print_node_clv(ClvRangeInfo rangeInfo, double * clv) {
+        for (size_t j = 0; j < rangeInfo.inner_clv_num_entries; ++j) {
+            std::cout << clv[j] << ", ";
+        }
+        std::cout << "\n";
+    }
+
     void print_clv(ClvRangeInfo rangeInfo, double ** clv) {
         for (size_t i = rangeInfo.start; i < rangeInfo.end; ++i) {
             std::cout << "clv[" << i << ":\n";

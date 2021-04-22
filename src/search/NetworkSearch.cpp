@@ -246,6 +246,127 @@ bool needsRecompute(AnnotatedNetwork& ann_network, GeneralMove* move) {
     return (move->moveType == MoveType::ArcRemovalMove) && (ann_network.network.reticulation_nodes[ann_network.network.num_reticulations() - 1]->clv_index != ((ArcRemovalMove*) move)->v_clv_index);
 }
 
+void print_partition(AnnotatedNetwork& ann_network, pll_partition_t* partition){
+    assert(partition);
+    std::cout << "\n printing partition...\n";
+
+    size_t imax, jmax;
+
+    std::cout << "clv:\n";
+    std::cout << partition->clv << "\n";
+    for (size_t clv_index = 0; clv_index < ann_network.network.num_nodes(); ++clv_index) {
+        pll_show_clv(partition, clv_index, ann_network.network.nodes_by_index[clv_index]->scaler_index, 10);
+    }
+
+    std::cout << "pmatrix:\n";
+    for (size_t pmatrix_index = 0; pmatrix_index < ann_network.network.num_branches(); ++pmatrix_index) {
+        pll_show_pmatrix(partition, pmatrix_index, 10);
+    }
+    std::cout << partition->pmatrix << "\n";
+
+    // 2D arrays
+    std::cout << "eigenvals:\n";
+    imax = partition->rate_matrices;
+    jmax = partition->states_padded;
+    for (size_t i = 0; i < imax; ++i) {
+        for (size_t j = 0; j < jmax; ++j)
+        std::cout << partition->eigenvals[i][j] << "\n";
+    }
+    std::cout << "eigenvecs:\n";
+    imax = partition->rate_matrices;
+    jmax = partition->states * partition->states_padded;
+    for (size_t i = 0; i < imax; ++i) {
+        for (size_t j = 0; j < jmax; ++j)
+        std::cout << partition->eigenvecs[i][j] << "\n";
+    }
+    std::cout << "frequencies:\n";
+    imax = partition->rate_matrices;
+    jmax = partition->states_padded;
+    for (size_t i = 0; i < imax; ++i) {
+        for (size_t j = 0; j < jmax; ++j)
+        std::cout << partition->frequencies[i][j] << "\n";
+    }
+    std::cout << "inv_eigenvecs:\n";
+    imax = partition->rate_matrices;
+    jmax = partition->states_padded;
+    for (size_t i = 0; i < imax; ++i) {
+        for (size_t j = 0; j < jmax; ++j)
+        std::cout << partition->inv_eigenvecs[i][j] << "\n";
+    }
+    std::cout << "scale_buffer:\n";
+    imax = partition->scale_buffers;
+    unsigned int sites_alloc = (unsigned int) partition->asc_additional_sites + partition->sites;
+    size_t scaler_size = (partition->attributes & PLL_ATTRIB_RATE_SCALERS) ?
+                                                               sites_alloc * partition->rate_cats : sites_alloc;
+    jmax = scaler_size;
+    for (size_t i = 0; i < imax; ++i) {
+        for (size_t j = 0; j < jmax; ++j)
+        std::cout << partition->scale_buffer[i][j] << "\n";
+    }
+    std::cout << "subst_params:\n";
+    imax = partition->rate_matrices;
+    jmax = (partition->states * partition->states-partition->states) / 2;
+    for (size_t i = 0; i < imax; ++i) {
+        for (size_t j = 0; j < jmax; ++j)
+        std::cout << partition->subst_params[i][j] << "\n";
+    }
+    std::cout << "tipchars:\n";
+    imax = partition->tips;
+    jmax = sites_alloc;
+    for (size_t i = 0; i < imax; ++i) {
+        for (size_t j = 0; j < jmax; ++j)
+        std::cout << partition->tipchars[i][j] << "\n";
+    }
+
+    // 1D arrays
+    std::cout << "eigen_decomp_valid:\n";
+    for (size_t i = 0; i < partition->rate_matrices; ++i) {
+        std::cout << partition->eigen_decomp_valid[i] << "\n";
+    }
+    std::cout << "pattern weights:\n";
+    for (size_t i = 0; i < sites_alloc; ++i) {
+        std::cout << partition->pattern_weights[i] << "\n";
+    }
+    std::cout << "prop invar:\n";
+    for (size_t i = 0; i < partition->rate_matrices; ++i) {
+        std::cout << partition->prop_invar[i] << "\n";
+    }
+    std::cout << "rate weights:\n";
+    for (size_t i = 0; i < partition->rate_cats; ++i) {
+        std::cout << partition->rate_weights[i] << "\n";
+    }
+    std::cout << "rates:\n";
+    for (size_t i = 0; i < partition->rate_cats; ++i) {
+        std::cout << partition->rates[i] << "\n";
+    }
+    std::cout << "tipmap:\n";
+    for (size_t i = 0; i < PLL_ASCII_SIZE; ++i) {
+        std::cout << partition->tipmap[i] << "\n";
+    }
+    std::cout << "ttlookup:\n";
+    for (size_t i = 0; i < 1024 * partition->rate_cats; ++i) {
+        std::cout << partition->ttlookup[i] << "\n";
+    }
+
+    // single numbers
+    std::cout << "alignment: " << partition->alignment << "\n";
+    std::cout << "asc_additional_sites: " << partition->asc_additional_sites << "\n";
+    std::cout << "asc_bias_alloc: " << partition->asc_bias_alloc << "\n";
+    std::cout << "attributes: " << partition->attributes << "\n";
+    std::cout << "clv_buffers: " << partition->clv_buffers << "\n";
+    std::cout << "maxstates: " << partition->maxstates << "\n";
+    std::cout << "nodes: " << partition->nodes << "\n";
+    std::cout << "pattern_weight_sum: " << partition->pattern_weight_sum << "\n";
+    std::cout << "prob_matrices: " << partition->prob_matrices << "\n";
+    std::cout << "rate_cats: " << partition->rate_cats << "\n";
+    std::cout << "rate_matrices: " << partition->rate_matrices << "\n";
+    std::cout << "scale_buffers: " << partition->scale_buffers << "\n";
+    std::cout << "sites: " << partition->sites << "\n";
+    std::cout << "states: " << partition->states << "\n";
+    std::cout << "states_padded: " << partition->states_padded << "\n";
+    std::cout << "tips: " << partition->tips << "\n";
+}
+
 template <typename T>
 void prefilterCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T>& candidates, std::vector<AnnotatedNetwork>& ann_network_thread, bool silent = true) {
     if (candidates.empty()) {
@@ -262,6 +383,34 @@ void prefilterCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T>& can
 
     NetworkState oldState = extract_network_state(ann_network_orig);
 
+    // just for debug
+        double dbg_incremental0 = computeLoglikelihood(ann_network_orig);
+        double dbg_normal0 = computeLoglikelihood(ann_network_orig, 0, 0);
+        double dbg_normal_pmatrices0 = computeLoglikelihood(ann_network_orig, 0, 1);
+        std::cout << "thread " << ParallelContext::local_proc_id() << ", " << "dbg_incremental0: " << dbg_incremental0 << "\n";
+        std::cout << "thread " << ParallelContext::local_proc_id() << ", " << "dbg_normal0: " << dbg_normal0 << "\n";
+        std::cout << "thread " << ParallelContext::local_proc_id() << ", " << "dbg_normal_pmatrices0: " << dbg_normal_pmatrices0 << "\n";
+        assert(dbg_incremental0 == dbg_normal_pmatrices0);
+
+    if (ParallelContext::local_proc_id() == 1) {
+        for (size_t p = 0; p < ann_network_orig.fake_treeinfo->partition_count; ++p) {
+            if (!ann_network_orig.fake_treeinfo->partitions[p]) {
+                continue;
+            }
+            //print_partition(ann_network_orig, ann_network_orig.fake_treeinfo->partitions[p]);
+            /*for (size_t i = ann_network_orig.network.num_tips(); i < ann_network_orig.network.num_nodes(); ++i) {
+                std::cout << "partition " << p << ", node " << i << ":\n";
+                std::cout << "clv vector size: " << ann_network_orig.pernode_displayed_tree_data[i].displayed_trees[0].clv_vector.size() << "\n";
+                assert(ann_network_orig.pernode_displayed_tree_data[i].num_active_displayed_trees == 1);
+                assert(ann_network_orig.pernode_displayed_tree_data[i].displayed_trees.size() == 1);
+                assert(ann_network_orig.partition_clv_ranges[p] == ann_network_orig.pernode_displayed_tree_data[i].displayed_trees[0].clvInfo[p]);
+                assert(ann_network_orig.pernode_displayed_tree_data[i].displayed_trees[0].clv_vector[p]);
+                print_node_clv(ann_network_orig.partition_clv_ranges[p], ann_network_orig.pernode_displayed_tree_data[i].displayed_trees[0].clv_vector[p]);
+                print_node_scaler(ann_network_orig.partition_scale_buffer_ranges[p], ann_network_orig.pernode_displayed_tree_data[i].displayed_trees[0].scale_buffer[p]);
+            }*/
+        }
+    }
+
     std::vector<ScoreItem<T> > scores(candidates.size());
 
     bool stop = false;
@@ -269,7 +418,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T>& can
     #ifdef _NETRAX_OPENMP
     #pragma omp parallel for schedule(dynamic)
     #endif
-    for (size_t i = 0; i < candidates.size(); ++i) {
+    for (size_t i = 0; i < candidates.size(); ++i) {        
         if (stop) {
             continue;
         }
@@ -279,8 +428,44 @@ void prefilterCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T>& can
         #else
         AnnotatedNetwork& ann_network = ann_network_orig;
         #endif
+
         assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
         apply_network_state(ann_network, oldState);
+
+        // just for debug
+        double dbg_incremental = computeLoglikelihood(ann_network);
+
+        double dbg_normal = computeLoglikelihood(ann_network, 0, 0);
+        if (ParallelContext::local_proc_id() == 1 && i == 1) {
+            for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+                if (!ann_network.fake_treeinfo->partitions[p]) {
+                    continue;
+                }
+                print_partition(ann_network, ann_network.fake_treeinfo->partitions[p]);
+                /*
+                for (size_t i = ann_network.network.num_tips(); i < ann_network.network.num_nodes(); ++i) {
+                    std::cout << "partition " << p << ", node " << i << ":\n";
+                    std::cout << "clv vector size: " << ann_network.pernode_displayed_tree_data[i].displayed_trees[0].clv_vector.size() << "\n";
+                    assert(ann_network.pernode_displayed_tree_data[i].num_active_displayed_trees == 1);
+                    assert(ann_network.pernode_displayed_tree_data[i].displayed_trees.size() == 1);
+                    assert(ann_network.partition_clv_ranges[p] == ann_network.pernode_displayed_tree_data[i].displayed_trees[0].clvInfo[p]);
+                    assert(ann_network.pernode_displayed_tree_data[i].displayed_trees[0].clv_vector[p]);
+                    print_node_clv(ann_network.partition_clv_ranges[p], ann_network.pernode_displayed_tree_data[i].displayed_trees[0].clv_vector[p]);
+                    print_node_scaler(ann_network_orig.partition_scale_buffer_ranges[p], ann_network_orig.pernode_displayed_tree_data[i].displayed_trees[0].scale_buffer[p]);
+                }*/
+            }
+        }
+        double dbg_normal_pmatrices = computeLoglikelihood(ann_network, 0, 1);
+
+        ParallelContext::mpi_barrier();
+
+        std::cout << "thread " << ParallelContext::local_proc_id() << ", " << "dbg_incremental: " << dbg_incremental << "\n";
+        std::cout << "thread " << ParallelContext::local_proc_id() << ", " << "dbg_normal: " << dbg_normal << "\n";
+        std::cout << "thread " << ParallelContext::local_proc_id() << ", " << "dbg_normal_pmatrices: " << dbg_normal_pmatrices << "\n";
+        ParallelContext::mpi_barrier();
+        assert(dbg_incremental == dbg_normal_pmatrices);
+
+        assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
         assert(network_states_equal(extract_network_state(ann_network), oldState));
         T move(candidates[i]);
         bool recompute_from_scratch = needsRecompute(ann_network, move);
@@ -292,6 +477,16 @@ void prefilterCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T>& can
             computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
         }
         optimizeReticulationProbs(ann_network);
+
+        // just for debug
+        double dbg_incremental3 = computeLoglikelihood(ann_network);
+        double dbg_normal3 = computeLoglikelihood(ann_network, 0, 0);
+        double dbg_normal_pmatrices3 = computeLoglikelihood(ann_network, 0, 1);
+        std::cout << "thread " << ParallelContext::local_proc_id() << ", " << "dbg_incremental3: " << dbg_incremental3 << "\n";
+        std::cout << "thread " << ParallelContext::local_proc_id() << ", " << "dbg_normal3: " << dbg_normal3 << "\n";
+        std::cout << "thread " << ParallelContext::local_proc_id() << ", " << "dbg_normal_pmatrices3: " << dbg_normal_pmatrices3 << "\n";
+        assert(dbg_incremental3 == dbg_normal_pmatrices3);
+
         
         assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
 
@@ -307,6 +502,15 @@ void prefilterCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T>& can
         } else {
             optimize_branches(ann_network, max_iters, max_iters_outside, radius, brlen_opt_candidates, true);
         }*/
+
+        // just for debug
+        double dbg_incremental2 = computeLoglikelihood(ann_network);
+        double dbg_normal2 = computeLoglikelihood(ann_network, 0, 0);
+        double dbg_normal_pmatrices2 = computeLoglikelihood(ann_network, 0, 1);
+        std::cout << "thread " << ParallelContext::local_proc_id() << ", " << "dbg_incremental2: " << dbg_incremental2 << "\n";
+        std::cout << "thread " << ParallelContext::local_proc_id() << ", " << "dbg_normal2: " << dbg_normal2 << "\n";
+        std::cout << "thread " << ParallelContext::local_proc_id() << ", " << "dbg_normal_pmatrices2: " << dbg_normal_pmatrices2 << "\n";
+        assert(dbg_incremental2 == dbg_normal_pmatrices2);
 
         double bicScore = scoreNetwork(ann_network);
         double worstScore = getWorstReticulationScore(ann_network);

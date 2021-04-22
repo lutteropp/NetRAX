@@ -201,11 +201,17 @@ NetworkState extract_network_state(AnnotatedNetwork &ann_network, bool extract_n
             }
             tip_clv[p] = ann_network.fake_treeinfo->partitions[p]->clv[i];
         }
-        state.pernode_displayed_tree_data[i].displayed_trees.emplace_back(DisplayedTreeData(ann_network.fake_treeinfo, ann_network.partition_clv_ranges, ann_network.partition_scale_buffer_ranges, tip_clv, ann_network.options.max_reticulations));
+        state.pernode_displayed_tree_data[i].displayed_trees = {DisplayedTreeData(ann_network.fake_treeinfo, ann_network.partition_clv_ranges, ann_network.partition_scale_buffer_ranges, tip_clv, ann_network.options.max_reticulations)};
         state.pernode_displayed_tree_data[i].num_active_displayed_trees = 1;
     }
 
     extract_network_state(ann_network, state, extract_network);
+
+    /*// just for debug
+    if (extract_network) {
+        apply_network_state(ann_network, state);
+    }*/
+
     return state;
 }
 
@@ -314,8 +320,6 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
     if (copy_network) {
         assert(neighborsSame(ann_network.network, state.network));
     }
-
-    assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
 }
 
 bool reticulation_probs_equal(const NetworkState& old_state, const NetworkState& act_state) {

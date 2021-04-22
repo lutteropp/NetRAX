@@ -34,6 +34,8 @@ struct ScaleBufferRangeInfo {
 
 bool single_clv_is_all_zeros(ClvRangeInfo rangeInfo, double* clv);
 
+
+void print_node_clv(ClvRangeInfo rangeInfo, double * clv);
 void print_clv(ClvRangeInfo rangeInfo, double ** clv);
 ClvRangeInfo get_clv_range(pll_partition_t* partition);
 bool clv_single_entries_equal(ClvRangeInfo rangeInfo, double* clv1, double* clv2);
@@ -46,6 +48,7 @@ void delete_cloned_clv_vector(ClvRangeInfo rangeInfo, double** clv);
 void delete_cloned_clv_vector(pll_partition_t* partition, double** clv);
 void assign_clv_entries(pll_partition_t* partition, double** from_clv, double** to_clv);
 
+void print_node_scaler(ScaleBufferRangeInfo rangeInfo, unsigned int * scale_buffer);
 ScaleBufferRangeInfo get_scale_buffer_range(pll_partition_t* partition);
 bool scale_buffer_single_entries_equal(ScaleBufferRangeInfo rangeInfo, unsigned int* scale_buffer_1, unsigned int* scale_buffer_2);
 bool scale_buffer_entries_equal(ScaleBufferRangeInfo rangeInfo, unsigned int** scale_buffer_1, unsigned int** scale_buffer_2);

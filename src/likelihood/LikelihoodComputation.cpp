@@ -51,6 +51,17 @@ pll_operation_t buildOperation(Network &network, Node *parent, Node *child1, Nod
     return operation;
 }
 
+void printOperation(pll_operation_t& op) {
+    std::cout << "parent_clv_index: " << op.parent_clv_index << "\n";
+    std::cout << "parent_scaler_index: " << op.parent_scaler_index << "\n";
+    std::cout << "child1_clv_index: " << op.child1_clv_index << "\n";
+    std::cout << "child1_scaler_index: " << op.child1_scaler_index << "\n";
+    std::cout << "child1_matrix_index: " << op.child1_matrix_index << "\n";
+    std::cout << "child2_clv_index: " << op.child1_clv_index << "\n";
+    std::cout << "child2_scaler_index: " << op.child1_scaler_index << "\n";
+    std::cout << "child2_matrix_index: " << op.child1_matrix_index << "\n";
+}
+
 double displayed_tree_logprob(AnnotatedNetwork &ann_network, size_t tree_index) {
     Network &network = ann_network.network;
     setReticulationParents(network, tree_index);
@@ -443,9 +454,7 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, Node*
                     unsigned int* left_scaler = leftTree.scale_buffer[partition_idx];
                     double* right_clv = rightTree.clv_vector[partition_idx];
                     unsigned int* right_scaler = rightTree.scale_buffer[partition_idx];
-                    if (node->clv_index == ann_network.network.root->clv_index) {
-                        //std::cout << "I am thread " << ParallelContext::local_proc_id() << " in 2 children mode and I am updating a root clv for partition " << partition_idx << "\n";
-                    }
+
                     //std::cout << "I am at node with clv index " << node->clv_index << "\n";
                     assert(leftTree.isTip || !single_clv_is_all_zeros(ann_network.partition_clv_ranges[partition_idx], left_clv));
                     assert(rightTree.isTip || !single_clv_is_all_zeros(ann_network.partition_clv_ranges[partition_idx], right_clv));
