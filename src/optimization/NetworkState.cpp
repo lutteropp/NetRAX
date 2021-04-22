@@ -227,6 +227,7 @@ bool assert_rates(AnnotatedNetwork& ann_network) {
 }
 
 void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &state, bool copy_network) {
+    assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
     //ann_network.options.brlen_linkage = state.brlen_linkage;
     assert(assert_tip_links(state.network));
     assert(assert_links_in_range(state.network));
@@ -313,6 +314,8 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
     if (copy_network) {
         assert(neighborsSame(ann_network.network, state.network));
     }
+
+    assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
 }
 
 bool reticulation_probs_equal(const NetworkState& old_state, const NetworkState& act_state) {

@@ -128,7 +128,7 @@ void computeDisplayedTreeLoglikelihood(AnnotatedNetwork& ann_network, DisplayedT
         std::vector<double> persite_logl(ann_network.fake_treeinfo->partitions[partition_idx]->sites, 0.0);
         double tree_logl = pll_compute_root_loglikelihood(partition, displayed_tree_root->clv_index, parent_clv, parent_scaler, ann_network.fake_treeinfo->param_indices[partition_idx], persite_logl.data());
 
-        //std::cout << "computed tree logl at node " << displayed_tree_root->clv_index << ": " << tree_logl << "\n";
+        //std::cout << ParallelContext::local_proc_id() << " -- " << "computed tree logl at node " << displayed_tree_root->clv_index << ": " << tree_logl << "\n";
 
         if (tree_logl == -std::numeric_limits<double>::infinity()) {
             std::cout << "I am thread " << ParallelContext::local_proc_id() << " and I have gotten negative infinity for partition " << partition_idx << "\n";
@@ -451,6 +451,10 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, Node*
                     assert(rightTree.isTip || !single_clv_is_all_zeros(ann_network.partition_clv_ranges[partition_idx], right_clv));
                     pll_update_partials_single(partition, &op_both, 1, parent_clv, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
                     assert(!single_clv_is_all_zeros(ann_network.partition_clv_ranges[partition_idx], parent_clv));
+
+                    // just for debug
+                    //double tree_logl = pll_compute_root_loglikelihood(partition, node->clv_index, parent_clv, parent_scaler, ann_network.fake_treeinfo->param_indices[partition_idx], nullptr);
+                    //std::cout << ParallelContext::local_proc_id() << " -- " << "computed tree logl at node " << node->clv_index << ": " << tree_logl << "\n";
                 }
                 newDisplayedTree.treeLoglData.reticulationChoices = combineReticulationChoices(leftTree.treeLoglData.reticulationChoices, rightTree.treeLoglData.reticulationChoices);
                 newDisplayedTree.treeLoglData.reticulationChoices = combineReticulationChoices(newDisplayedTree.treeLoglData.reticulationChoices, restrictionsBothSet);
