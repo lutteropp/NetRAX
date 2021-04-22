@@ -435,7 +435,6 @@ void prefilterCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T>& can
         // just for debug
         double dbg_incremental = computeLoglikelihood(ann_network);
 
-        double dbg_normal = computeLoglikelihood(ann_network, 0, 0);
         if (ParallelContext::local_proc_id() == 1 && i == 1) {
             for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
                 if (!ann_network.fake_treeinfo->partitions[p]) {
@@ -455,6 +454,8 @@ void prefilterCandidates(AnnotatedNetwork& ann_network_orig, std::vector<T>& can
                 }*/
             }
         }
+
+        double dbg_normal = computeLoglikelihood(ann_network, 0, 0);
         double dbg_normal_pmatrices = computeLoglikelihood(ann_network, 0, 1);
 
         ParallelContext::mpi_barrier();
