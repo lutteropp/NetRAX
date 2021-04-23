@@ -601,8 +601,8 @@ pllmod_treeinfo_t* createNetworkPllTreeinfo(AnnotatedNetwork &ann_network) {
     /* get partitions assigned to the current thread */
     const PartitionAssignment& part_assign = instance.proc_part_assign.at(ParallelContext::local_proc_id());
 
-    std::cout << "for thread " << ParallelContext::local_proc_id() << ":\n";
-    std::cout << part_assign << "\n";
+    //std::cout << "for thread " << ParallelContext::local_proc_id() << ":\n";
+    //std::cout << part_assign << "\n";
     //ParallelContext::thread_barrier();
 
     /*std::cout << "\n";

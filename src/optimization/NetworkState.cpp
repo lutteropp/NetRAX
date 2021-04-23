@@ -179,6 +179,26 @@ void extract_network_state(AnnotatedNetwork &ann_network, NetworkState& state_to
     if (extract_network) {
         assert(neighborsSame(ann_network.network, state_to_reuse.network));
     }
+
+    // extract pmatrices
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        // skip remote partitions
+        if (!ann_network.fake_treeinfo->partitions[p]) {
+            continue;
+        }
+        for (size_t index = 0; index < ann_network.fake_treeinfo->tree->edge_count; ++index) {
+            for (unsigned int k = 0; k < ann_network.fake_treeinfo->partitions[p]->rate_cats; ++k) {
+                double * act_pmatrix = ann_network.fake_treeinfo->partitions[p]->pmatrix[index] + k * ann_network.fake_treeinfo->partitions[p]->states * ann_network.fake_treeinfo->partitions[p]->states_padded;
+                double * state_pmatrix = state_to_reuse.partition_pmatrix[p][index] + k * ann_network.fake_treeinfo->partitions[p]->states * ann_network.fake_treeinfo->partitions[p]->states_padded;
+
+                for (unsigned int i = 0; i < ann_network.fake_treeinfo->partitions[p]->states; ++i) {
+                    for (unsigned int j = 0; j < ann_network.fake_treeinfo->partitions[p]->states; ++j) {
+                        state_pmatrix[i*ann_network.fake_treeinfo->partitions[p]->states_padded+j] = act_pmatrix[i*ann_network.fake_treeinfo->partitions[p]->states_padded+j];
+                    }
+                }
+            }
+        }
+    }
 }
 
 NetworkState extract_network_state(AnnotatedNetwork &ann_network, bool extract_network) {
@@ -228,6 +248,37 @@ NetworkState extract_network_state(AnnotatedNetwork &ann_network, bool extract_n
         state.pernode_displayed_tree_data[i].num_active_displayed_trees = 1;
     }
 
+    // allocate pmatrices
+    state.partition_pmatrix.resize(ann_network.fake_treeinfo->partition_count);
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        // skip remote partitions
+        if (!ann_network.fake_treeinfo->partitions[p]) {
+            continue;
+        }
+        state.partition_pmatrix[p] = (double **)calloc(ann_network.fake_treeinfo->partitions[p]->prob_matrices,
+                                         sizeof(double *));
+        /* allocate transition probability matrices in contiguous space, in order
+            to save the 'displacement' amount of memory per matrix, which is
+            required for updating partials when the number of states is not a multiple
+            of states_padded. */
+        size_t displacement = (ann_network.fake_treeinfo->partitions[p]->states_padded - ann_network.fake_treeinfo->partitions[p]->states) * (ann_network.fake_treeinfo->partitions[p]->states_padded) * sizeof(double);
+        state.partition_pmatrix[p][0] = (double*) pll_aligned_alloc(ann_network.fake_treeinfo->partitions[p]->prob_matrices *
+                                                ann_network.fake_treeinfo->partitions[p]->states * ann_network.fake_treeinfo->partitions[p]->states_padded * ann_network.fake_treeinfo->partitions[p]->rate_cats *
+                                                sizeof(double) + displacement,
+                                                ann_network.fake_treeinfo->partitions[p]->alignment);
+
+        for (unsigned int i = 1; i < ann_network.fake_treeinfo->partitions[p]->prob_matrices; ++i) {
+            state.partition_pmatrix[p][i] = state.partition_pmatrix[p][i-1] +
+                                ann_network.fake_treeinfo->partitions[p]->states * ann_network.fake_treeinfo->partitions[p]->states_padded * ann_network.fake_treeinfo->partitions[p]->rate_cats;
+        }
+
+        /* zero-out p-matrices to avoid valgrind warnings when using odd number of
+            states with vectorized code */
+        memset(state.partition_pmatrix[p][0],0,ann_network.fake_treeinfo->partitions[p]->prob_matrices * ann_network.fake_treeinfo->partitions[p]->states *
+                                        ann_network.fake_treeinfo->partitions[p]->states_padded * ann_network.fake_treeinfo->partitions[p]->rate_cats * sizeof(double) +
+                                        displacement);
+    }
+
     extract_network_state(ann_network, state, extract_network);
 
     return state;
@@ -272,7 +323,7 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
                 if (!ann_network.fake_treeinfo->partitions[p]) {
                     continue;
                 }
-                ann_network.fake_treeinfo->pmatrix_valid[p][i] = 0;
+                //ann_network.fake_treeinfo->pmatrix_valid[p][i] = 0;
             }
         }
     }
@@ -285,7 +336,7 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
             for (size_t pmatrix_index = 0; pmatrix_index < ann_network.network.num_branches(); ++pmatrix_index) {
                 if (ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] != state.partition_brlens[p][pmatrix_index]) {
                     ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] = state.partition_brlens[p][pmatrix_index];
-                    ann_network.fake_treeinfo->pmatrix_valid[p][pmatrix_index] = 0;
+                    //ann_network.fake_treeinfo->pmatrix_valid[p][pmatrix_index] = 0;
                 }
             }
         }
@@ -344,7 +395,32 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
         assert(neighborsSame(ann_network.network, state.network));
     }
 
-    pllmod_treeinfo_update_prob_matrices(ann_network.fake_treeinfo, 1); // this (full pmatrix recomputation) is needed if the model parameters changed
+    // apply pmatrices
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        // skip remote partitions
+        if (!ann_network.fake_treeinfo->partitions[p]) {
+            continue;
+        }
+        assert(state.partition_pmatrix[p]);
+        for (size_t index = 0; index < ann_network.fake_treeinfo->tree->edge_count; ++index) {
+            for (unsigned int k = 0; k < ann_network.fake_treeinfo->partitions[p]->rate_cats; ++k) {
+                double * act_pmatrix = ann_network.fake_treeinfo->partitions[p]->pmatrix[index] + k * ann_network.fake_treeinfo->partitions[p]->states * ann_network.fake_treeinfo->partitions[p]->states_padded;
+                double * state_pmatrix = state.partition_pmatrix[p][index] + k * ann_network.fake_treeinfo->partitions[p]->states * ann_network.fake_treeinfo->partitions[p]->states_padded;
+
+                for (unsigned int i = 0; i < ann_network.fake_treeinfo->partitions[p]->states; ++i) {
+                    for (unsigned int j = 0; j < ann_network.fake_treeinfo->partitions[p]->states; ++j) {
+                        act_pmatrix[i*ann_network.fake_treeinfo->partitions[p]->states_padded+j] = state_pmatrix[i*ann_network.fake_treeinfo->partitions[p]->states_padded+j];
+                    }
+                }
+            }
+        }
+        
+        for (size_t pmatrix_index = 0; pmatrix_index < ann_network.network.num_branches(); ++pmatrix_index) {
+            ann_network.fake_treeinfo->pmatrix_valid[p][pmatrix_index] = 1;
+        }
+    }
+
+    //pllmod_treeinfo_update_prob_matrices(ann_network.fake_treeinfo, 1); // this (full pmatrix recomputation) is needed if the model parameters changed
 }
 
 bool reticulation_probs_equal(const NetworkState& old_state, const NetworkState& act_state) {

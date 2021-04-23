@@ -392,12 +392,12 @@ void setup_parallel_stuff(const NetraxOptions& netraxOptions, RaxmlInstance& ins
                                                  std::ref(instance));
     ParallelContext::init_pthreads(instance.opts, thread_function);
 
-    std::cout << "num_threads: " << ParallelContext::num_threads() << "\n";
+    /*std::cout << "num_threads: " << ParallelContext::num_threads() << "\n";
     std::cout << "num workers: " << instance.opts.num_workers << "\n";
     std::cout << "num local groups: " << ParallelContext::num_local_groups() << "\n";
     std::cout << "num ranks: " << ParallelContext::num_ranks() << "\n";
     std::cout << "num groups: " << ParallelContext::num_groups() << "\n";
-    std::cout << "threads per group: " << ParallelContext::threads_per_group() << "\n";
+    std::cout << "threads per group: " << ParallelContext::threads_per_group() << "\n";*/
 
     /* init workers */
     assert(instance.opts.num_workers > 0);
@@ -411,7 +411,7 @@ void setup_parallel_stuff(const NetraxOptions& netraxOptions, RaxmlInstance& ins
 
     balance_load(instance);
 
-    std::cout << instance.proc_part_assign << "\n";
+    //std::cout << instance.proc_part_assign << "\n";
 
     /* lazy-load part of the alignment assigned to the current MPI rank */
     if (instance.opts.msa_format == FileFormat::binary && instance.opts.use_rba_partload)
@@ -596,7 +596,7 @@ int internal_main_netrax(int argc, char **argv, void* comm)
         error_exit("No output path specified");
     }
 
-    logger().add_log_stream(&std::cout);
+    //logger().add_log_stream(&std::cout);
 
     setup_parallel_stuff(netraxOptions, instance);
     netrax_thread_main(netraxOptions, instance);
