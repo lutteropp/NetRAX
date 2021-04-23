@@ -28,17 +28,23 @@ const std::string DATA_PATH = "examples/sample_networks/";
 
 std::vector<std::vector<double> > extract_brlens(AnnotatedNetwork &ann_network) {
     std::vector<std::vector<double> > res;
-    bool unlinkedMode = (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED);
-    size_t n_partitions = 1;
-    if (unlinkedMode) {
-        n_partitions = ann_network.fake_treeinfo->partition_count;
-    }
-    res.resize(n_partitions);
-    for (size_t p = 0; p < n_partitions; ++p) {
-        res[p].resize(ann_network.network.edges.size());
+    if (ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
+        res.resize(ann_network.fake_treeinfo->partition_count);
+        for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+            // skip remote branch lengths
+            if (!ann_network.fake_treeinfo->partitions[p]) {
+                continue;
+            }
+            res[p].resize(ann_network.network.num_branches());
+            for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
+                res[p][i] = ann_network.fake_treeinfo->branch_lengths[p][i];
+            }
+        }
+    } else {
+        res.resize(1);
+        res[0].resize(ann_network.network.num_branches());
         for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
-            size_t pmatrix_index = ann_network.network.edges[i].pmatrix_index;
-            res[p][pmatrix_index] = ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index];
+            res[0][i] = ann_network.fake_treeinfo->linked_branch_lengths[i];
         }
     }
     return res;

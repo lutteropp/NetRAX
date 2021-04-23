@@ -79,14 +79,14 @@ TEST (BrlenOptTest, treeVirtualRootProblem) {
     ann_network.cached_logl_valid = false;
 
 
-    double old_brlen = ann_network.fake_treeinfo->branch_lengths[0][pmatrix_index];
+    double old_brlen = ann_network.fake_treeinfo->linked_branch_lengths[pmatrix_index];
     std::cout << "old brlen: " << old_brlen << "\n";
     double old_logl_reroot = computeLoglikelihoodBrlenOpt(ann_network, oldTrees, edge->pmatrix_index, 1, 1);
 
     std::cout << "reroot logl old brlen: " << old_logl_reroot << "\n";
     std::cout << "  reroot logl old brlen, partition 0: " << ann_network.fake_treeinfo->partition_loglh[0] << "\n";
     std::cout << "  reroot logl old brlen, partition 1: " << ann_network.fake_treeinfo->partition_loglh[1] << "\n";
-    ann_network.fake_treeinfo->branch_lengths[0][pmatrix_index] = 0.049539358966596169775442604077397845685482025146484375;
+    ann_network.fake_treeinfo->linked_branch_lengths[pmatrix_index] = 0.049539358966596169775442604077397845685482025146484375;
     for (size_t partition_idx = 0; partition_idx < ann_network.fake_treeinfo->partition_count; ++partition_idx) {
         ann_network.fake_treeinfo->pmatrix_valid[partition_idx][pmatrix_index] = 0;
     }
@@ -106,7 +106,7 @@ TEST (BrlenOptTest, treeVirtualRootProblem) {
     std::cout << "reroot logl new brlen, after computing true logl new brlen: " << computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index) << "\n";
     std::cout << "  reroot logl new brlen, after computing true logl new brlen, partition 0: " << ann_network.fake_treeinfo->partition_loglh[0] << "\n";
     std::cout << "  reroot logl new brlen, after computing true logl new brlen, partition 1: " << ann_network.fake_treeinfo->partition_loglh[1] << "\n";
-    ann_network.fake_treeinfo->branch_lengths[0][pmatrix_index] = old_brlen;
+    ann_network.fake_treeinfo->linked_branch_lengths[pmatrix_index] = old_brlen;
     //invalidatePmatrixIndex(ann_network, pmatrix_index);
     for (size_t partition_idx = 0; partition_idx < ann_network.fake_treeinfo->partition_count; ++partition_idx) {
         ann_network.fake_treeinfo->pmatrix_valid[partition_idx][pmatrix_index] = 0;
@@ -168,8 +168,8 @@ TEST (BrlenOptTest, treeVirtualRoots) {
         ASSERT_DOUBLE_EQ(old_logl, new_logl);
 
         // change the brlen
-        double old_brlen = annTreeNetwork.fake_treeinfo->branch_lengths[0][pmatrix_index];
-        annTreeNetwork.fake_treeinfo->branch_lengths[0][pmatrix_index] = 12345;
+        double old_brlen = annTreeNetwork.fake_treeinfo->linked_branch_lengths[pmatrix_index];
+        annTreeNetwork.fake_treeinfo->linked_branch_lengths[pmatrix_index] = 12345;
         for (size_t p = 0; p < annTreeNetwork.fake_treeinfo->partition_count; ++p) {
             annTreeNetwork.fake_treeinfo->pmatrix_valid[p][pmatrix_index] = 0;
         }
@@ -178,7 +178,7 @@ TEST (BrlenOptTest, treeVirtualRoots) {
         ASSERT_TRUE(mid_logl != new_logl);
 
         // take back the changed brlen
-        annTreeNetwork.fake_treeinfo->branch_lengths[0][pmatrix_index] = old_brlen;
+        annTreeNetwork.fake_treeinfo->linked_branch_lengths[pmatrix_index] = old_brlen;
         for (size_t p = 0; p < annTreeNetwork.fake_treeinfo->partition_count; ++p) {
             annTreeNetwork.fake_treeinfo->pmatrix_valid[p][pmatrix_index] = 0;
         }

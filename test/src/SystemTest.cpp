@@ -52,7 +52,7 @@ TEST (SystemTest, allTreeOldRaxml) {
 
     std::cout << "The branch lengths before brlen optimization are:\n";
     for (size_t i = 0; i < info->pll_treeinfo().tree->edge_count; ++i) {
-        std::cout << " " << std::setprecision(17) << info->pll_treeinfo().branch_lengths[0][i]
+        std::cout << " " << std::setprecision(17) << info->pll_treeinfo().linked_branch_lengths[i]
                 << "\n";
     }
 
@@ -62,7 +62,7 @@ TEST (SystemTest, allTreeOldRaxml) {
 
     std::cout << "The optimized branch lengths are:\n";
     for (size_t i = 0; i < info->pll_treeinfo().tree->edge_count; ++i) {
-        std::cout << " " << std::setprecision(17) << info->pll_treeinfo().branch_lengths[0][i]
+        std::cout << " " << std::setprecision(17) << info->pll_treeinfo().linked_branch_lengths[i]
                 << "\n";
     }
 
