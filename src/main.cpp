@@ -450,15 +450,6 @@ bool quick_function(const NetraxOptions& netraxOptions, const RaxmlInstance& ins
             pretty_print(netraxOptions);
         }
         return true;
-    } else if (netraxOptions.extract_taxon_names) {
-        if (netraxOptions.start_network_file.empty())
-        {
-            error_exit("Need network to extract taxon names");
-        }
-        if (can_write()) { // only the master rank does the simple work
-            extract_taxon_names(netraxOptions);
-        }
-        return true;
     } else if (netraxOptions.extract_displayed_trees) {
         if (netraxOptions.start_network_file.empty())
         {
@@ -569,6 +560,17 @@ int internal_main_netrax(int argc, char **argv, void* comm)
         }
     }
 
+    if (netraxOptions.extract_taxon_names) {
+        if (netraxOptions.start_network_file.empty())
+        {
+            error_exit("Need network to extract taxon names");
+        }
+        if (can_write()) { // only the master rank does the simple work
+            extract_taxon_names(netraxOptions);
+        }
+        return 0;
+    }
+    
     RaxmlInstance instance = createRaxmlInstance(netraxOptions);
     if (quick_function(netraxOptions, instance)) {
         mpfr_free_cache();
