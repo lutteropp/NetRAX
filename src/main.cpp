@@ -59,8 +59,8 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     app.add_flag("--change_reticulation_prob_only", options->change_reticulation_probs_only, "Only change the reticulation probs of the input network.");
     app.add_option("--overwritten_reticulation_prob", options->overwritten_reticulation_prob, "New probability to use for the reticulations in overwrite-only mode.");
 
-    std::string brlen_linkage = "scaled";
-    app.add_option("--brlen", brlen_linkage, "branch length linkage between partitions (linked, scaled, or unlinked) (default: scaled)");
+    std::string brlen_linkage = "linked";
+    app.add_option("--brlen", brlen_linkage, "branch length linkage between partitions (linked, scaled, or unlinked) (default: linked)");
 
     bool average_displayed_tree_variant = false;
     bool best_displayed_tree_variant = false;
@@ -570,7 +570,7 @@ int internal_main_netrax(int argc, char **argv, void* comm)
         }
         return 0;
     }
-    
+
     RaxmlInstance instance = createRaxmlInstance(netraxOptions);
     if (quick_function(netraxOptions, instance)) {
         mpfr_free_cache();
