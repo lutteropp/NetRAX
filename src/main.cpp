@@ -439,8 +439,9 @@ void setup_parallel_stuff(const NetraxOptions& netraxOptions, RaxmlInstance& ins
     //balance_load_coarse(instance, cm.checkp_file());
 }
 
-bool quick_function(const NetraxOptions& netraxOptions, const RaxmlInstance& instance) {
+bool quick_function(const NetraxOptions& netraxOptions) {
     std::mt19937 rng(netraxOptions.seed);
+    RaxmlInstance fake_instance;
     if (netraxOptions.pretty_print_only) {
         if (netraxOptions.start_network_file.empty())
         {
@@ -465,7 +466,7 @@ bool quick_function(const NetraxOptions& netraxOptions, const RaxmlInstance& ins
             error_exit("Need network to extract displayed trees");
         }
         if (can_write()) { // only the master rank does the simple work
-            extract_displayed_trees(netraxOptions, instance, rng);
+            extract_displayed_trees(netraxOptions, fake_instance, rng);
         }
         return true;
     } else if (netraxOptions.check_weird_network) {
@@ -474,7 +475,7 @@ bool quick_function(const NetraxOptions& netraxOptions, const RaxmlInstance& ins
             error_exit("Need network to extract displayed trees");
         }
         if (can_write()) { // only the master rank does the simple work
-            check_weird_network(netraxOptions, instance, rng);
+            check_weird_network(netraxOptions, fake_instance, rng);
         }
         return true;
     } else if (netraxOptions.generate_random_network_only) {
@@ -487,7 +488,7 @@ bool quick_function(const NetraxOptions& netraxOptions, const RaxmlInstance& ins
             error_exit("Need output file to write the generated network");
         }
         if (can_write()) { // only the master rank does the simple work
-            generate_random_network_only(netraxOptions, instance, rng);
+            generate_random_network_only(netraxOptions, fake_instance, rng);
         }
         return true;
     } else if (netraxOptions.scale_branches_only != 0.0) {
@@ -500,7 +501,7 @@ bool quick_function(const NetraxOptions& netraxOptions, const RaxmlInstance& ins
             error_exit("Need output file to write the scaled network");
         }
         if (can_write()) { // only the master rank does the simple work
-            scale_branches_only(netraxOptions, instance, rng);
+            scale_branches_only(netraxOptions, fake_instance, rng);
         }
         return true;
     } else if (netraxOptions.change_reticulation_probs_only) {
@@ -519,7 +520,7 @@ bool quick_function(const NetraxOptions& netraxOptions, const RaxmlInstance& ins
             error_exit("new prob has to be in [0,1]");
         }
         if (can_write()) { // only the master rank does the simple work
-            scale_reticulation_probs_only(netraxOptions, instance, rng);
+            scale_reticulation_probs_only(netraxOptions, fake_instance, rng);
         }
         return true;
     } else if (netraxOptions.network_distance_only) {
@@ -528,7 +529,7 @@ bool quick_function(const NetraxOptions& netraxOptions, const RaxmlInstance& ins
             error_exit("Need networks to compute distance");
         }
         if (can_write()) { // only the master rank does the simple work
-            network_distance_only(netraxOptions, instance, rng);
+            network_distance_only(netraxOptions, fake_instance, rng);
         }
         return true;
     } 
@@ -569,13 +570,13 @@ int internal_main_netrax(int argc, char **argv, void* comm)
         }
     }
 
-    RaxmlInstance instance = createRaxmlInstance(netraxOptions);
-    if (quick_function(netraxOptions, instance)) {
+    if (quick_function(netraxOptions)) {
         mpfr_free_cache();
         ParallelContext::finalize();
         return 0;
     }
-    
+    RaxmlInstance instance = createRaxmlInstance(netraxOptions);
+
     // make sure all MPI ranks use the same random seed
     //ParallelContext::mpi_broadcast(&netraxOptions.seed, sizeof(long));
 
