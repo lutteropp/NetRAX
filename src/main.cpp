@@ -355,88 +355,23 @@ void scale_reticulation_probs_only(const NetraxOptions &netraxOptions, const Rax
     }
 }
 
-void netrax_thread_main(const NetraxOptions& netraxOptions, const RaxmlInstance& instance) {
-    /* wait until master thread prepares all global data */
-    //  printf("WORKER: %u, LOCAL_THREAD: %u\n", ParallelContext::group_id(), ParallelContext::local_proc_id());
-    ParallelContext::global_barrier();
-
-    //std::cout << "HELLO! I am local proc id " << ParallelContext::local_proc_id() << "\n";
-
-    //check_oversubscribe(instance);
-
-    std::mt19937 rng(netraxOptions.seed);
-    srand(netraxOptions.seed);
-
-    if (netraxOptions.score_only)
-    {
-        score_only(netraxOptions, instance, rng);
-    }
-    else if (!netraxOptions.start_network_file.empty())
-    {
-        std::vector<MoveType> typesBySpeed = getTypesBySpeed(netraxOptions);
-        run_single_start_waves(netraxOptions, instance, typesBySpeed, rng);
-    } else
-    {
-        std::vector<MoveType> typesBySpeed = getTypesBySpeed(netraxOptions);
-        run_random(netraxOptions, instance, typesBySpeed, rng);
-    }
-    ParallelContext::global_barrier();
-}
-
-void setup_parallel_stuff(const NetraxOptions& netraxOptions, RaxmlInstance& instance) {
-    autotune_threads(instance);
-    check_options(instance);
-
-    auto thread_function = std::bind(netrax_thread_main,
-                                                 std::ref(netraxOptions),
-                                                 std::ref(instance));
-    ParallelContext::init_pthreads(instance.opts, thread_function);
-
-    /*std::cout << "num_threads: " << ParallelContext::num_threads() << "\n";
-    std::cout << "num workers: " << instance.opts.num_workers << "\n";
-    std::cout << "num local groups: " << ParallelContext::num_local_groups() << "\n";
-    std::cout << "num ranks: " << ParallelContext::num_ranks() << "\n";
-    std::cout << "num groups: " << ParallelContext::num_groups() << "\n";
-    std::cout << "threads per group: " << ParallelContext::threads_per_group() << "\n";*/
-
-    /* init workers */
-    assert(instance.opts.num_workers > 0);
-    for (size_t i = 0; i < ParallelContext::num_local_groups(); ++i)
-    {
-        const auto& grp = ParallelContext::thread_group(i);
-        instance.workers.emplace_back(instance, grp.group_id);
-    }
-
-    init_parallel_buffers(instance);
-
-    balance_load(instance);
-
-    //std::cout << instance.proc_part_assign << "\n";
-
-    /* lazy-load part of the alignment assigned to the current MPI rank */
-    if (instance.opts.msa_format == FileFormat::binary && instance.opts.use_rba_partload)
-    {
-        // doesn't work with coarse-grained parallelization!
-        assert(ParallelContext::num_groups() == 1);
-
-        // collect PartitionAssignments from all worker threads
-        PartitionAssignment local_part_ranges;
-        for (size_t i = 0; i < instance.opts.num_threads; ++i)
-        {
-        auto thread_ranges = instance.proc_part_assign.at(ParallelContext::local_proc_id() + i);
-        for (auto& r: thread_ranges)
-        {
-            local_part_ranges.assign_sites(r.part_id, r.start, r.length);
-        }
-        }
-
-        LOG_DEBUG << "Loading MSA segments from RBA file..." << endl;
-        RBAStream bs(instance.opts.msa_file);
-        auto& parted_msa = *instance.parted_msa;
-        bs >> RBAStream::RBAOutput(parted_msa, RBAStream::RBAElement::seqdata, &local_part_ranges);
-    }
-
-    //balance_load_coarse(instance, cm.checkp_file());
+bool no_parallelization_needed(const NetraxOptions& netraxOptions) {
+    if (netraxOptions.pretty_print_only) {
+        return true;
+    } else if (netraxOptions.extract_displayed_trees) {
+        return true;
+    } else if (netraxOptions.check_weird_network) {
+        return true;
+    } else if (netraxOptions.generate_random_network_only) {
+        return true;
+    } else if (netraxOptions.scale_branches_only != 0.0) {
+        return true;
+    } else if (netraxOptions.change_reticulation_probs_only) {
+        return true;
+    } else if (netraxOptions.network_distance_only) {
+        return true;
+    } 
+    return false;
 }
 
 bool quick_function(const NetraxOptions& netraxOptions, const RaxmlInstance& instance) {
@@ -526,6 +461,95 @@ bool quick_function(const NetraxOptions& netraxOptions, const RaxmlInstance& ins
     return false;
 }
 
+void netrax_thread_main(const NetraxOptions& netraxOptions, const RaxmlInstance& instance) {
+    /* wait until master thread prepares all global data */
+    //  printf("WORKER: %u, LOCAL_THREAD: %u\n", ParallelContext::group_id(), ParallelContext::local_proc_id());
+    ParallelContext::global_barrier();
+
+    if (no_parallelization_needed(netraxOptions)) {
+        if (ParallelContext::local_proc_id() == 0) {
+            quick_function(netraxOptions, instance);
+        }
+        return;    
+    }
+
+    //check_oversubscribe(instance);
+
+    std::mt19937 rng(netraxOptions.seed);
+    srand(netraxOptions.seed);
+
+    if (netraxOptions.score_only)
+    {
+        score_only(netraxOptions, instance, rng);
+    }
+    else if (!netraxOptions.start_network_file.empty())
+    {
+        std::vector<MoveType> typesBySpeed = getTypesBySpeed(netraxOptions);
+        run_single_start_waves(netraxOptions, instance, typesBySpeed, rng);
+    } else
+    {
+        std::vector<MoveType> typesBySpeed = getTypesBySpeed(netraxOptions);
+        run_random(netraxOptions, instance, typesBySpeed, rng);
+    }
+    ParallelContext::global_barrier();
+}
+
+void setup_parallel_stuff(const NetraxOptions& netraxOptions, RaxmlInstance& instance) {
+    autotune_threads(instance);
+    check_options(instance);
+
+    auto thread_function = std::bind(netrax_thread_main,
+                                                 std::ref(netraxOptions),
+                                                 std::ref(instance));
+    ParallelContext::init_pthreads(instance.opts, thread_function);
+
+    /*std::cout << "num_threads: " << ParallelContext::num_threads() << "\n";
+    std::cout << "num workers: " << instance.opts.num_workers << "\n";
+    std::cout << "num local groups: " << ParallelContext::num_local_groups() << "\n";
+    std::cout << "num ranks: " << ParallelContext::num_ranks() << "\n";
+    std::cout << "num groups: " << ParallelContext::num_groups() << "\n";
+    std::cout << "threads per group: " << ParallelContext::threads_per_group() << "\n";*/
+
+    /* init workers */
+    assert(instance.opts.num_workers > 0);
+    for (size_t i = 0; i < ParallelContext::num_local_groups(); ++i)
+    {
+        const auto& grp = ParallelContext::thread_group(i);
+        instance.workers.emplace_back(instance, grp.group_id);
+    }
+
+    init_parallel_buffers(instance);
+
+    balance_load(instance);
+
+    //std::cout << instance.proc_part_assign << "\n";
+
+    /* lazy-load part of the alignment assigned to the current MPI rank */
+    if (instance.opts.msa_format == FileFormat::binary && instance.opts.use_rba_partload)
+    {
+        // doesn't work with coarse-grained parallelization!
+        assert(ParallelContext::num_groups() == 1);
+
+        // collect PartitionAssignments from all worker threads
+        PartitionAssignment local_part_ranges;
+        for (size_t i = 0; i < instance.opts.num_threads; ++i)
+        {
+        auto thread_ranges = instance.proc_part_assign.at(ParallelContext::local_proc_id() + i);
+        for (auto& r: thread_ranges)
+        {
+            local_part_ranges.assign_sites(r.part_id, r.start, r.length);
+        }
+        }
+
+        LOG_DEBUG << "Loading MSA segments from RBA file..." << endl;
+        RBAStream bs(instance.opts.msa_file);
+        auto& parted_msa = *instance.parted_msa;
+        bs >> RBAStream::RBAOutput(parted_msa, RBAStream::RBAElement::seqdata, &local_part_ranges);
+    }
+
+    //balance_load_coarse(instance, cm.checkp_file());
+}
+
 int internal_main_netrax(int argc, char **argv, void* comm)
 {
     ParallelContext::init_mpi(argc, argv, comm);
@@ -546,6 +570,7 @@ int internal_main_netrax(int argc, char **argv, void* comm)
         char * temp[] = {argv[0],strdup("-h")};
         parseOptions(2, temp, &netraxOptions);
         free(temp[1]);
+        ParallelContext::finalize();
         return 0;
     }
     parseOptions(argc, argv, &netraxOptions);
@@ -572,30 +597,27 @@ int internal_main_netrax(int argc, char **argv, void* comm)
     }
 
     RaxmlInstance instance = createRaxmlInstance(netraxOptions);
-    if (quick_function(netraxOptions, instance)) {
-        mpfr_free_cache();
-        ParallelContext::finalize();
-        return 0;
-    }
     
     // make sure all MPI ranks use the same random seed
     //ParallelContext::mpi_broadcast(&netraxOptions.seed, sizeof(long));
 
-    if (netraxOptions.msa_file.empty())
-    {
-        error_exit("Need MSA to score a network");
-    }
-    if (netraxOptions.score_only) {
+    if (!no_parallelization_needed(netraxOptions)) {
         if (netraxOptions.msa_file.empty())
         {
             error_exit("Need MSA to score a network");
         }
-        if (netraxOptions.start_network_file.empty())
-        {
-            error_exit("Need network file to be scored");
+        if (netraxOptions.score_only) {
+            if (netraxOptions.msa_file.empty())
+            {
+                error_exit("Need MSA to score a network");
+            }
+            if (netraxOptions.start_network_file.empty())
+            {
+                error_exit("Need network file to be scored");
+            }
+        } else if (netraxOptions.output_file.empty()) {
+            error_exit("No output path specified");
         }
-    } else if (netraxOptions.output_file.empty()) {
-        error_exit("No output path specified");
     }
 
     //logger().add_log_stream(&std::cout);
