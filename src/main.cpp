@@ -59,8 +59,8 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     app.add_flag("--change_reticulation_prob_only", options->change_reticulation_probs_only, "Only change the reticulation probs of the input network.");
     app.add_option("--overwritten_reticulation_prob", options->overwritten_reticulation_prob, "New probability to use for the reticulations in overwrite-only mode.");
 
-    std::string brlen_linkage = "scaled";
-    app.add_option("--brlen", brlen_linkage, "branch length linkage between partitions (linked, scaled, or unlinked) (default: scaled)");
+    std::string brlen_linkage = "linked";
+    app.add_option("--brlen", brlen_linkage, "branch length linkage between partitions (linked, scaled, or unlinked) (default: linked)");
 
     bool average_displayed_tree_variant = false;
     bool best_displayed_tree_variant = false;
@@ -355,12 +355,123 @@ void scale_reticulation_probs_only(const NetraxOptions &netraxOptions, const Rax
     }
 }
 
+bool no_parallelization_needed(const NetraxOptions& netraxOptions) {
+    if (netraxOptions.pretty_print_only) {
+        return true;
+    } else if (netraxOptions.extract_displayed_trees) {
+        return true;
+    } else if (netraxOptions.check_weird_network) {
+        return true;
+    } else if (netraxOptions.generate_random_network_only) {
+        return true;
+    } else if (netraxOptions.scale_branches_only != 0.0) {
+        return true;
+    } else if (netraxOptions.change_reticulation_probs_only) {
+        return true;
+    } else if (netraxOptions.network_distance_only) {
+        return true;
+    } 
+    return false;
+}
+
+bool quick_function(const NetraxOptions& netraxOptions, const RaxmlInstance& instance) {
+    std::mt19937 rng(netraxOptions.seed);
+    if (netraxOptions.pretty_print_only) {
+        if (netraxOptions.start_network_file.empty())
+        {
+            error_exit("No input network specified to be pretty-printed");
+        }
+        if (can_write()) { // only the master rank does the simple work
+            pretty_print(netraxOptions);
+        }
+        return true;
+    } else if (netraxOptions.extract_displayed_trees) {
+        if (netraxOptions.start_network_file.empty())
+        {
+            error_exit("Need network to extract displayed trees");
+        }
+        if (can_write()) { // only the master rank does the simple work
+            extract_displayed_trees(netraxOptions, instance, rng);
+        }
+        return true;
+    } else if (netraxOptions.check_weird_network) {
+        if (netraxOptions.start_network_file.empty())
+        {
+            error_exit("Need network to extract displayed trees");
+        }
+        if (can_write()) { // only the master rank does the simple work
+            check_weird_network(netraxOptions, instance, rng);
+        }
+        return true;
+    } else if (netraxOptions.generate_random_network_only) {
+        if (netraxOptions.msa_file.empty())
+        {
+            error_exit("Need MSA to decide on the number of taxa");
+        }
+        if (netraxOptions.output_file.empty())
+        {
+            error_exit("Need output file to write the generated network");
+        }
+        if (can_write()) { // only the master rank does the simple work
+            generate_random_network_only(netraxOptions, instance, rng);
+        }
+        return true;
+    } else if (netraxOptions.scale_branches_only != 0.0) {
+        if (netraxOptions.start_network_file.empty())
+        {
+            error_exit("Need network to scale branches");
+        }
+        if (netraxOptions.output_file.empty())
+        {
+            error_exit("Need output file to write the scaled network");
+        }
+        if (can_write()) { // only the master rank does the simple work
+            scale_branches_only(netraxOptions, instance, rng);
+        }
+        return true;
+    } else if (netraxOptions.change_reticulation_probs_only) {
+        if (netraxOptions.msa_file.empty())
+        {
+            error_exit("Need MSA to decide on the number of taxa");
+        }
+        if (netraxOptions.output_file.empty())
+        {
+            error_exit("Need output file to write the generated network");
+        }
+        if (netraxOptions.start_network_file.empty()) {
+            error_exit("Need start network file");
+        }
+        if (netraxOptions.overwritten_reticulation_prob < 0.0 || netraxOptions.overwritten_reticulation_prob > 1.0) {
+            error_exit("new prob has to be in [0,1]");
+        }
+        if (can_write()) { // only the master rank does the simple work
+            scale_reticulation_probs_only(netraxOptions, instance, rng);
+        }
+        return true;
+    } else if (netraxOptions.network_distance_only) {
+        if (netraxOptions.first_network_path.empty() || netraxOptions.second_network_path.empty())
+        {
+            error_exit("Need networks to compute distance");
+        }
+        if (can_write()) { // only the master rank does the simple work
+            network_distance_only(netraxOptions, instance, rng);
+        }
+        return true;
+    } 
+    return false;
+}
+
 void netrax_thread_main(const NetraxOptions& netraxOptions, const RaxmlInstance& instance) {
     /* wait until master thread prepares all global data */
-    //  printf("WORKER: %u, LOCAL_THREAD: %u\n", ParallelContext::group_id(), ParallelContext::local_proc_id());
+    //printf("WORKER: %u, LOCAL_THREAD: %u\n", ParallelContext::group_id(), ParallelContext::local_proc_id());
     ParallelContext::global_barrier();
 
-    //std::cout << "HELLO! I am local proc id " << ParallelContext::local_proc_id() << "\n";
+    if (no_parallelization_needed(netraxOptions)) {
+        if (ParallelContext::local_proc_id() == 0) {
+            quick_function(netraxOptions, instance);
+        }
+        return;
+    }
 
     //check_oversubscribe(instance);
 
@@ -397,7 +508,8 @@ void setup_parallel_stuff(const NetraxOptions& netraxOptions, RaxmlInstance& ins
     std::cout << "num local groups: " << ParallelContext::num_local_groups() << "\n";
     std::cout << "num ranks: " << ParallelContext::num_ranks() << "\n";
     std::cout << "num groups: " << ParallelContext::num_groups() << "\n";
-    std::cout << "threads per group: " << ParallelContext::threads_per_group() << "\n";*/
+    std::cout << "threads per group: " << ParallelContext::threads_per_group() << "\n";
+    std::cout << "num procs: " << ParallelContext::num_procs() << "\n";*/
 
     /* init workers */
     assert(instance.opts.num_workers > 0);
@@ -439,103 +551,6 @@ void setup_parallel_stuff(const NetraxOptions& netraxOptions, RaxmlInstance& ins
     //balance_load_coarse(instance, cm.checkp_file());
 }
 
-bool quick_function(const NetraxOptions& netraxOptions) {
-    std::mt19937 rng(netraxOptions.seed);
-    RaxmlInstance fake_instance;
-    if (netraxOptions.pretty_print_only) {
-        if (netraxOptions.start_network_file.empty())
-        {
-            error_exit("No input network specified to be pretty-printed");
-        }
-        if (can_write()) { // only the master rank does the simple work
-            pretty_print(netraxOptions);
-        }
-        return true;
-    } else if (netraxOptions.extract_taxon_names) {
-        if (netraxOptions.start_network_file.empty())
-        {
-            error_exit("Need network to extract taxon names");
-        }
-        if (can_write()) { // only the master rank does the simple work
-            extract_taxon_names(netraxOptions);
-        }
-        return true;
-    } else if (netraxOptions.extract_displayed_trees) {
-        if (netraxOptions.start_network_file.empty())
-        {
-            error_exit("Need network to extract displayed trees");
-        }
-        if (can_write()) { // only the master rank does the simple work
-            extract_displayed_trees(netraxOptions, fake_instance, rng);
-        }
-        return true;
-    } else if (netraxOptions.check_weird_network) {
-        if (netraxOptions.start_network_file.empty())
-        {
-            error_exit("Need network to extract displayed trees");
-        }
-        if (can_write()) { // only the master rank does the simple work
-            check_weird_network(netraxOptions, fake_instance, rng);
-        }
-        return true;
-    } else if (netraxOptions.generate_random_network_only) {
-        if (netraxOptions.msa_file.empty())
-        {
-            error_exit("Need MSA to decide on the number of taxa");
-        }
-        if (netraxOptions.output_file.empty())
-        {
-            error_exit("Need output file to write the generated network");
-        }
-        if (can_write()) { // only the master rank does the simple work
-            generate_random_network_only(netraxOptions, fake_instance, rng);
-        }
-        return true;
-    } else if (netraxOptions.scale_branches_only != 0.0) {
-        if (netraxOptions.start_network_file.empty())
-        {
-            error_exit("Need network to scale branches");
-        }
-        if (netraxOptions.output_file.empty())
-        {
-            error_exit("Need output file to write the scaled network");
-        }
-        if (can_write()) { // only the master rank does the simple work
-            scale_branches_only(netraxOptions, fake_instance, rng);
-        }
-        return true;
-    } else if (netraxOptions.change_reticulation_probs_only) {
-        if (netraxOptions.msa_file.empty())
-        {
-            error_exit("Need MSA to decide on the number of taxa");
-        }
-        if (netraxOptions.output_file.empty())
-        {
-            error_exit("Need output file to write the generated network");
-        }
-        if (netraxOptions.start_network_file.empty()) {
-            error_exit("Need start network file");
-        }
-        if (netraxOptions.overwritten_reticulation_prob < 0.0 || netraxOptions.overwritten_reticulation_prob > 1.0) {
-            error_exit("new prob has to be in [0,1]");
-        }
-        if (can_write()) { // only the master rank does the simple work
-            scale_reticulation_probs_only(netraxOptions, fake_instance, rng);
-        }
-        return true;
-    } else if (netraxOptions.network_distance_only) {
-        if (netraxOptions.first_network_path.empty() || netraxOptions.second_network_path.empty())
-        {
-            error_exit("Need networks to compute distance");
-        }
-        if (can_write()) { // only the master rank does the simple work
-            network_distance_only(netraxOptions, fake_instance, rng);
-        }
-        return true;
-    } 
-    return false;
-}
-
 int internal_main_netrax(int argc, char **argv, void* comm)
 {
     ParallelContext::init_mpi(argc, argv, comm);
@@ -556,6 +571,7 @@ int internal_main_netrax(int argc, char **argv, void* comm)
         char * temp[] = {argv[0],strdup("-h")};
         parseOptions(2, temp, &netraxOptions);
         free(temp[1]);
+        ParallelContext::finalize();
         return 0;
     }
     parseOptions(argc, argv, &netraxOptions);
@@ -570,31 +586,39 @@ int internal_main_netrax(int argc, char **argv, void* comm)
         }
     }
 
-    if (quick_function(netraxOptions)) {
-        mpfr_free_cache();
-        ParallelContext::finalize();
+    if (netraxOptions.extract_taxon_names) {
+        if (netraxOptions.start_network_file.empty())
+        {
+            error_exit("Need network to extract taxon names");
+        }
+        if (can_write()) { // only the master rank does the simple work
+            extract_taxon_names(netraxOptions);
+        }
         return 0;
     }
-    RaxmlInstance instance = createRaxmlInstance(netraxOptions);
 
+    RaxmlInstance instance = createRaxmlInstance(netraxOptions);
+    
     // make sure all MPI ranks use the same random seed
     //ParallelContext::mpi_broadcast(&netraxOptions.seed, sizeof(long));
 
-    if (netraxOptions.msa_file.empty())
-    {
-        error_exit("Need MSA to score a network");
-    }
-    if (netraxOptions.score_only) {
+    if (!no_parallelization_needed(netraxOptions)) {
         if (netraxOptions.msa_file.empty())
         {
             error_exit("Need MSA to score a network");
         }
-        if (netraxOptions.start_network_file.empty())
-        {
-            error_exit("Need network file to be scored");
+        if (netraxOptions.score_only) {
+            if (netraxOptions.msa_file.empty())
+            {
+                error_exit("Need MSA to score a network");
+            }
+            if (netraxOptions.start_network_file.empty())
+            {
+                error_exit("Need network file to be scored");
+            }
+        } else if (netraxOptions.output_file.empty()) {
+            error_exit("No output path specified");
         }
-    } else if (netraxOptions.output_file.empty()) {
-        error_exit("No output path specified");
     }
 
     //logger().add_log_stream(&std::cout);

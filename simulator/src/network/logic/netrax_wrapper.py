@@ -94,7 +94,7 @@ def extract_displayed_trees(network_path, n_taxa):
     msa_file.write(build_fake_msa(n_taxa, network_path))
     msa_file.close()
 
-    netrax_cmd = NETRAX_PATH + " --extract_displayed_trees " + \
+    netrax_cmd = NETRAX_PATH + " --extract_displayed_trees" + \
         " --start_network " + network_path + " --msa " + msa_path + " --model DNA"
     print(netrax_cmd, flush=True)
     cmd_status, cmd_output = subprocess.getstatusoutput(netrax_cmd)

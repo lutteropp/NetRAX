@@ -19,11 +19,9 @@ include_directories("../libs/" ${CMAKE_CURRENT_SOURCE_DIR}/io)
 
 # export to the parent dir to use in GTest makefile
 set(NETRAX_SOURCES ${NETRAX_SOURCES} PARENT_SCOPE)
-if(USE_MPI)
-  set(NETRAX_LIBS pthread "${PROJECT_BINARY_DIR}/../libs/raxml-ng/bin/raxml-ng-mpi.a" ${RAXML_LIBS} gmp mpfr)
-else()
-  set(NETRAX_LIBS pthread "${PROJECT_BINARY_DIR}/../libs/raxml-ng/bin/raxml-ng.a" ${RAXML_LIBS} gmp mpfr)
-endif()
+
+set(NETRAX_LIBS pthread "${PROJECT_BINARY_DIR}/../libs/raxml-ng/bin/raxml-ng-mpi.a" ${RAXML_LIBS} gmp mpfr)
+
 set(NETRAX_LIBS ${NETRAX_LIBS} PARENT_SCOPE)
 
 add_executable(netrax ${NETRAX_SOURCES})
@@ -50,7 +48,7 @@ if(NETRAX_BINARY_NAME)
   set_target_properties(netrax PROPERTIES OUTPUT_NAME ${NETRAX_BINARY_NAME})	
 else()
   if(MPI_FOUND)
-    set_target_properties(netrax PROPERTIES OUTPUT_NAME netrax-mpi)
+    set_target_properties(netrax PROPERTIES OUTPUT_NAME netrax)
   elseif(STATIC_BUILD)
     set_target_properties(netrax PROPERTIES OUTPUT_NAME netrax-static)
   else()
