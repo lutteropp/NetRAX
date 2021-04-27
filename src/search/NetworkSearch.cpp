@@ -7,6 +7,8 @@
 #include <limits>
 #include <omp.h>
 
+#include "../colormod.h" // namespace Color
+
 #include "../likelihood/mpreal.h"
 #include "../graph/AnnotatedNetwork.hpp"
 #include "../io/NetworkIO.hpp"
@@ -181,7 +183,12 @@ ScoreImprovementResult check_score_improvement(AnnotatedNetwork& ann_network, do
                     collect_average_branches(ann_network);
                 }
                 if (can_write()) {
-                    std::cout << "IMPROVED GLOBAL BEST SCORE FOUND SO FAR: " << new_score << "\n";
+                    Color::Modifier green(Color::FG_GREEN);
+                    Color::Modifier def(Color::FG_DEFAULT);
+                    
+                    std::cout << green;
+                    std::cout << "IMPROVED GLOBAL BEST SCORE FOUND SO FAR (" << ann_network.network.num_reticulations() << " reticulations): " << new_score << "\n";
+                    std::cout << def;
                     writeNetwork(ann_network, ann_network.options.output_file);
                     if (!silent) std::cout << toExtendedNewick(ann_network) << "\n";
                     if (!silent) std::cout << "Better network written to " << ann_network.options.output_file << "\n";
@@ -463,7 +470,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
     }
 
     if (can_write()) {
-        if (print_progress) std::cout << "MoveType: " << toString(candidates[0].moveType) << " (" << candidates.size() << ")" << "\n";
+        if (print_progress) std::cout << "MoveType: " << toString(candidates[0].moveType) << " (" << candidates.size() << ")" << ", we currently have " << ann_network.network.num_reticulations() << " reticulations" << "\n";
     }
 
     float progress = 0.0;
