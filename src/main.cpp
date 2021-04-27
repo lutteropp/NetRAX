@@ -495,6 +495,23 @@ void netrax_thread_main(const NetraxOptions& netraxOptions, const RaxmlInstance&
 }
 
 void setup_parallel_stuff(const NetraxOptions& netraxOptions, RaxmlInstance& instance) {
+    if (no_parallelization_needed(netraxOptions)) {
+        instance.opts.num_threads = 1;
+        instance.opts.num_ranks = 1;
+        instance.opts.num_workers = 1;
+        //init_parallel_buffers(instance);
+
+        PartitionAssignment part_sizes;
+        /* init list of partition sizes */
+        size_t i = 0;
+        for (auto const& pinfo: instance.parted_msa->part_list())
+        {
+            part_sizes.assign_sites(i, 0, pinfo.length(), pinfo.model().clv_entry_size());
+            ++i;
+        }
+        instance.proc_part_assign = instance.load_balancer->get_all_assignments(part_sizes, 1);
+        return;
+    }
     autotune_threads(instance);
     check_options(instance);
 

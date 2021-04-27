@@ -99,8 +99,6 @@ void init_annotated_network(AnnotatedNetwork &ann_network, std::mt19937& rng) {
         assert(ann_network.pernode_displayed_tree_data[i].displayed_trees.size() == 1);
         assert(ann_network.pernode_displayed_tree_data[i].displayed_trees[0].isTip);
     }
-
-    netrax::computeLoglikelihood(ann_network, false, true);
 }
 
 void init_annotated_network(AnnotatedNetwork &ann_network) {
