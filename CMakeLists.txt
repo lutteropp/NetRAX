@@ -43,9 +43,8 @@ set(BUILD_AS_LIBRARY ON CACHE BOOL "Build NetRAX as shared library (instead of s
 set(PLLMOD_DEBUG OFF CACHE BOOL "Debug pll-modules (tons of console output!)")
 
 set (USE_PTHREADS ON CACHE BOOL "Enable multi-threading support (PTHREADS)")
-set (USE_MPI OFF CACHE BOOL "Enable MPI support")
+set (USE_MPI ON CACHE BOOL "Enable MPI support")
 set (USE_VCF OFF)
-set (USE_OPENMP OFF)
 
 # set both following options to OFF to build a portable binary 
 # (don't worry, libpll will still have full SIMD support!)
@@ -79,19 +78,6 @@ set (CMAKE_CXX_FLAGS_RELEASE  "-O3 -DNDEBUG"    CACHE INTERNAL "")
 set (CMAKE_C_FLAGS_DEBUG    "-O0 -g" CACHE INTERNAL "")
 set (CMAKE_C_FLAGS_RELEASE  "-O3 -DNDEBUG"    CACHE INTERNAL "")
 
-
-if(USE_MPI)
-else()
-  set(USE_OPENMP ON)
-endif()
-
-if(USE_OPENMP)
-set (CMAKE_CXX_FLAGS_DEBUG    "-O0 -fopenmp -g" CACHE INTERNAL "")
-set (CMAKE_CXX_FLAGS_RELEASE  "-O3 -fopenmp -DNDEBUG"    CACHE INTERNAL "")
-set (CMAKE_C_FLAGS_DEBUG    "-O0 -fopenmp -g" CACHE INTERNAL "")
-set (CMAKE_C_FLAGS_RELEASE  "-O3 -fopenmp -DNDEBUG"    CACHE INTERNAL "")
-endif()
-
 project (netrax C CXX)
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -118,8 +104,8 @@ if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS RAXML_COMPILER_TARGET_VERSION)
 endif()
 
 
-set (raxml-ng_VERSION_MAJOR 1)
-set (raxml-ng_VERSION_MINOR 0)
+set (netrax_VERSION_MAJOR 1)
+set (netrax_VERSION_MINOR 0)
 
 #set (CMAKE_BUILD_TYPE DEBUG)
 #set (CMAKE_BUILD_TYPE RELEASE)
@@ -164,11 +150,6 @@ if(ENABLE_PTHREADS)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_RAXML_PTHREADS -pthread")
 endif()
 
-if(USE_OPENMP)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_NETRAX_OPENMP -fopenmp")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_NETRAX_OPENMP -fopenmp")
-endif()
-
 
 if(BUILD_AS_LIBRARY)
   # building shared library only works with CMake!
@@ -190,18 +171,16 @@ include_directories(${RAXML_LOCALDEPS_DIR}/include ${NETRAX_LOCALDEPS_DIR}/inclu
 # build dependencies
 add_subdirectory(${PROJECT_SOURCE_DIR}/libs)
 
-if(ENABLE_MPI)
-  find_package(MPI)
-  if(MPI_CXX_FOUND)
-    # set( ENV{OMPI_CXX}            "clang++" PARENT_SCOPE )
-    set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
-    include_directories(${MPI_CXX_INCLUDE_PATH})
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MPI_CXX_COMPILER_FLAGS} -D_RAXML_MPI")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${MPI_CXX_LINK_FLAGS}")
+find_package(MPI)
+if(MPI_CXX_FOUND)
+  # set( ENV{OMPI_CXX}            "clang++" PARENT_SCOPE )
+  set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
+  include_directories(${MPI_CXX_INCLUDE_PATH})
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MPI_CXX_COMPILER_FLAGS} -D_RAXML_MPI")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${MPI_CXX_LINK_FLAGS}")
 
-    # disable static build for MPI
-    set(STATIC_BUILD OFF)
-  endif()
+  # disable static build for MPI
+  set(STATIC_BUILD OFF)
 endif()
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/src)

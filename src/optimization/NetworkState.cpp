@@ -295,6 +295,7 @@ bool assert_rates(AnnotatedNetwork& ann_network) {
 }
 
 void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &state, bool copy_network) {
+    assert(ann_network.fake_treeinfo);
     assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
     //ann_network.options.brlen_linkage = state.brlen_linkage;
     assert(assert_tip_links(state.network));
@@ -333,7 +334,6 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
             ann_network.fake_treeinfo->brlen_scalers[p] = state.partition_brlen_scalers[p];
         }
     }
-
 
     for (size_t p = 0; p < state.alphas.size(); ++p) {
         // skip remote partitions

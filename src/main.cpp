@@ -463,14 +463,14 @@ bool quick_function(const NetraxOptions& netraxOptions, const RaxmlInstance& ins
 
 void netrax_thread_main(const NetraxOptions& netraxOptions, const RaxmlInstance& instance) {
     /* wait until master thread prepares all global data */
-    //  printf("WORKER: %u, LOCAL_THREAD: %u\n", ParallelContext::group_id(), ParallelContext::local_proc_id());
+    //printf("WORKER: %u, LOCAL_THREAD: %u\n", ParallelContext::group_id(), ParallelContext::local_proc_id());
     ParallelContext::global_barrier();
 
     if (no_parallelization_needed(netraxOptions)) {
         if (ParallelContext::local_proc_id() == 0) {
             quick_function(netraxOptions, instance);
         }
-        return;    
+        return;
     }
 
     //check_oversubscribe(instance);
@@ -508,7 +508,8 @@ void setup_parallel_stuff(const NetraxOptions& netraxOptions, RaxmlInstance& ins
     std::cout << "num local groups: " << ParallelContext::num_local_groups() << "\n";
     std::cout << "num ranks: " << ParallelContext::num_ranks() << "\n";
     std::cout << "num groups: " << ParallelContext::num_groups() << "\n";
-    std::cout << "threads per group: " << ParallelContext::threads_per_group() << "\n";*/
+    std::cout << "threads per group: " << ParallelContext::threads_per_group() << "\n";
+    std::cout << "num procs: " << ParallelContext::num_procs() << "\n";*/
 
     /* init workers */
     assert(instance.opts.num_workers > 0);
