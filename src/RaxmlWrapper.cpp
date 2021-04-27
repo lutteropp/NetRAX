@@ -341,6 +341,7 @@ Options createDefaultOptions() {
     opts.num_bootstraps = 0;
     opts.force_mode = false;
     opts.safety_checks = SafetyCheck::all;
+    opts.safety_checks.unset(SafetyCheck::perf_threads);
     opts.redo_mode = false;
     opts.nofiles_mode = false;
     opts.tbe_naive = false;
