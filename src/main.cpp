@@ -571,6 +571,7 @@ int internal_main_netrax(int argc, char **argv, void* comm)
         char * temp[] = {argv[0],strdup("-h")};
         parseOptions(2, temp, &netraxOptions);
         free(temp[1]);
+        mpfr_free_cache();
         ParallelContext::finalize();
         return 0;
     }
@@ -581,6 +582,7 @@ int internal_main_netrax(int argc, char **argv, void* comm)
     {
         if(string(argv[i]) == "-h" || string(argv[i]) == "--help")
         {
+            mpfr_free_cache();
             ParallelContext::finalize();
             return 0;
         }
@@ -594,6 +596,8 @@ int internal_main_netrax(int argc, char **argv, void* comm)
         if (can_write()) { // only the master rank does the simple work
             extract_taxon_names(netraxOptions);
         }
+        mpfr_free_cache();
+        ParallelContext::finalize();
         return 0;
     }
 
