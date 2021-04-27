@@ -457,10 +457,33 @@ void print_treeinfo(AnnotatedNetwork& ann_network) {
 }
 
 template <typename T>
-void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, bool silent = true) {
+void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, bool silent = true, bool print_progress = true) {
     if (candidates.empty()) {
         return;
     }
+
+    if (can_write()) {
+        if (print_progress) std::cout << "MoveType: " << toString(candidates[0].moveType) << " (" << candidates.size() << ")" << "\n";
+    }
+
+    float progress = 0.0;
+    int barWidth = 70;
+    while (progress < 1.0) {
+        if (can_write() && print_progress) std::cout << "[";
+        int pos = barWidth * progress;
+        for (int i = 0; i < barWidth; ++i) {
+                if (can_write() && print_progress) {
+                if (i < pos) std::cout << "=";
+                else if (i == pos) std::cout << ">";
+                else std::cout << " ";
+            }
+        }
+        if (can_write() && print_progress) std::cout << "] " << int(progress * 100.0) << " %\r";
+        if (can_write() && print_progress) std::cout.flush();
+
+        progress += 0.16; // for demonstration only
+    }
+
 
     double brlen_smooth_factor = 0.25;
     int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
@@ -475,6 +498,20 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
     std::vector<ScoreItem<T> > scores(candidates.size());
 
     for (size_t i = 0; i < candidates.size(); ++i) {        
+        // progress bar code taken from https://stackoverflow.com/a/14539953/14557921
+        if (print_progress && can_write()) {
+            progress = (float) (i+1) / candidates.size();
+            std::cout << "[";
+            int pos = barWidth * progress;
+            for (int i = 0; i < barWidth; ++i) {
+                if (i < pos) std::cout << "=";
+                else if (i == pos) std::cout << ">";
+                else std::cout << " ";
+            }
+            std::cout << "] " << int(progress * 100.0) << " %\r";
+            std::cout.flush();
+        }
+
         //std::cout << "thread " << ParallelContext::local_proc_id() << ", " << "candidate no. " << i << "\n";
 
         assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
@@ -529,6 +566,10 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
         }
 
         apply_network_state(ann_network, oldState);
+    }
+
+    if (print_progress && can_write()) { 
+        std::cout << std::endl;
     }
 
     std::sort(scores.begin(), scores.end(), [](const ScoreItem<T>& lhs, const ScoreItem<T>& rhs) {
