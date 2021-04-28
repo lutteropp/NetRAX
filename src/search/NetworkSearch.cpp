@@ -240,10 +240,11 @@ void printCandidates(std::vector<T>& candidates) {
 }
 
 bool needsRecompute(AnnotatedNetwork& ann_network, const ArcRemovalMove& move) {
-    return (ann_network.network.reticulation_nodes[ann_network.network.num_reticulations() - 1]->clv_index != move.v_clv_index);
+    //return (ann_network.network.reticulation_nodes[ann_network.network.num_reticulations() - 1]->clv_index != move.v_clv_index);
+    return true;
 }
 bool needsRecompute(AnnotatedNetwork& ann_network, const ArcInsertionMove& move) {
-    return false;
+    return true;
 }
 bool needsRecompute(AnnotatedNetwork& ann_network, const RSPRMove& move) {
     return false;
