@@ -1243,7 +1243,7 @@ ArcRemovalMove buildArcRemovalMove(size_t a_clv_index, size_t b_clv_index, size_
 }
 
 std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_network, Node *v,
-        MoveType moveType, size_t edge_orig_idx) {
+        size_t edge_orig_idx, MoveType moveType) {
 // v is a reticulation node, u is one parent of v, c is the other parent of v, a is parent of u, d is child of v, b is other child of u
     std::vector<ArcRemovalMove> res;
     Network &network = ann_network.network;
@@ -1307,9 +1307,9 @@ std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_networ
     return res;
 }
 
-std::vector<ArcRemovalMove> possibleDeltaMinusMoves(AnnotatedNetwork &ann_network, Node *v) {
+std::vector<ArcRemovalMove> possibleDeltaMinusMoves(AnnotatedNetwork &ann_network, Node *v, size_t edge_orig_idx) {
     std::vector<ArcRemovalMove> res;
-    std::vector<ArcRemovalMove> allRemovals = possibleArcRemovalMoves(ann_network, v,
+    std::vector<ArcRemovalMove> allRemovals = possibleArcRemovalMoves(ann_network, v, edge_orig_idx,
             MoveType::DeltaMinusMove);
 // 3 cases: a == c, b == d, or b == c
     for (size_t i = 0; i < allRemovals.size(); ++i) {
@@ -1326,7 +1326,8 @@ std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_networ
     std::vector<ArcRemovalMove> res;
     Network &network = ann_network.network;
     for (size_t i = 0; i < network.num_reticulations(); ++i) {
-        auto moves = possibleArcRemovalMoves(ann_network, network.reticulation_nodes[i],
+        size_t edge_orig_idx = getReticulationFirstParentPmatrixIndex(ann_network.network.reticulation_nodes[i]);
+        auto moves = possibleArcRemovalMoves(ann_network, network.reticulation_nodes[i], edge_orig_idx,
                 MoveType::ArcRemovalMove);
         res.insert(std::end(res), std::begin(moves), std::end(moves));
     }
@@ -1350,8 +1351,9 @@ std::vector<ArcRemovalMove> possibleDeltaMinusMoves(AnnotatedNetwork &ann_networ
     std::vector<ArcRemovalMove> res;
     Network &network = ann_network.network;
     for (size_t i = 0; i < network.num_reticulations(); ++i) {
+        size_t edge_orig_idx = getReticulationFirstParentPmatrixIndex(ann_network.network.reticulation_nodes[i]);
         std::vector<ArcRemovalMove> branch_moves = possibleDeltaMinusMoves(ann_network,
-                network.reticulation_nodes[i]);
+                network.reticulation_nodes[i], edge_orig_idx);
         res.insert(std::end(res), std::begin(branch_moves), std::end(branch_moves));
     }
     assert(checkSanity(ann_network, res));
