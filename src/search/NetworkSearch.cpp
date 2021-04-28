@@ -561,6 +561,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
 
         if (bicScore < best_bic) {
             best_bic = bicScore;
+            ann_network.last_accepted_move_edge_orig_idx = move.edge_orig_idx;
         }
 
         if (bicScore <= old_bic - 10) {
@@ -670,12 +671,12 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T> candidates, Ne
 
         if (bicScore < best_bic) {
             best_bic = bicScore;
+            ann_network.last_accepted_move_edge_orig_idx = move.edge_orig_idx;
             if (found_better) {
                 extract_network_state(ann_network, *state);
             } else {
                 *state = extract_network_state(ann_network);
             }
-            ann_network.last_accepted_move_edge_orig_idx = move.edge_orig_idx;
             found_better = true;
         }
 

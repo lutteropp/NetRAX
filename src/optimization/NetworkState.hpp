@@ -31,8 +31,6 @@ struct NetworkState {
     double cached_logl;
     bool cached_logl_valid;
 
-    size_t last_accepted_move_edge_orig_idx;
-
     ~NetworkState() {
         for (size_t p = 0; p < partition_pmatrix.size(); ++p) {
             if (partition_pmatrix[p]) {
