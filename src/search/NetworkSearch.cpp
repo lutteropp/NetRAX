@@ -1063,6 +1063,7 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
 
     //optimizeAllNonTopology(ann_network, true);
     optimizeAllNonTopology(ann_network);
+    score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
 
     //std::cout << "Initial network is:\n" << toExtendedNewick(ann_network) << "\n\n";
 
