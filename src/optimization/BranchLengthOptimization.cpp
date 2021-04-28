@@ -336,7 +336,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
 
     double final_logl = computeLoglikelihood(ann_network);
 
-    //#ifndef NDEBUG
+    #ifndef NDEBUG
     // TODO: Kick that one out after fixing it
     double plan_logl = computeLoglikelihood(ann_network, 0, 1);
     if (plan_logl != final_logl) {
@@ -367,7 +367,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
     }*/
 
     assert(final_logl >= old_logl);
-    //#endif
+    #endif
 
     return final_logl;
 }
