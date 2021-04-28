@@ -1008,7 +1008,7 @@ double optimizeEverythingRun(AnnotatedNetwork& ann_network, const std::vector<Mo
         }
     } while (type_idx < typesBySpeed.size());
 
-    optimizeAllNonTopology(ann_network, true);
+    //optimizeAllNonTopology(ann_network, true);
     best_score = scoreNetwork(ann_network);
 
     return best_score;
@@ -1061,7 +1061,8 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
     double best_score = std::numeric_limits<double>::infinity();
     ScoreImprovementResult score_improvement;
 
-    optimizeAllNonTopology(ann_network, true);
+    //optimizeAllNonTopology(ann_network, true);
+    optimizeAllNonTopology(ann_network);
 
     //std::cout << "Initial network is:\n" << toExtendedNewick(ann_network) << "\n\n";
 
@@ -1087,7 +1088,7 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
             break;
         }
         if (can_write()) {
-            std::cout << "Doing wavesearch with move types: ";
+            std::cout << "Starting wavesearch with move types: ";
             for (size_t j = 0; j < types_to_use[i].size(); ++j) {
                 std::cout << toString(types_to_use[i][j]);
                 if (j + 1 < types_to_use[i].size()) {
@@ -1096,7 +1097,16 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
             }
             std::cout << "\n";
         }
-        wavesearch_internal(ann_network, bestNetworkData, types_to_use[i], start_state_to_reuse, best_state_to_reuse, &best_score, start_time, silent);
+        double old_best_score = best_score;
+        bool improved = true;
+        while (improved) {
+            improved = false;
+            wavesearch_internal(ann_network, bestNetworkData, types_to_use[i], start_state_to_reuse, best_state_to_reuse, &best_score, start_time, silent);
+            if (best_score < old_best_score) {
+                old_best_score = best_score;
+                improved = true;
+            }
+        }
         if (i + 1 < types_to_use.size()) {
             if (insertionMove == MoveType::DeltaPlusMove) {
                 applyBestCandidate(ann_network, possibleDeltaPlusMoves(ann_network), &best_score, bestNetworkData);
