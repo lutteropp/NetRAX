@@ -564,7 +564,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
             ann_network.last_accepted_move_edge_orig_idx = move.edge_orig_idx;
         }
 
-        if (bicScore <= old_bic - 100) {
+        if (bicScore + ann_network.options.extreme_greedy_offset < old_bic) {
             candidates[0] = candidates[i];
             candidates.resize(1);
             apply_network_state(ann_network, oldState);
@@ -572,18 +572,6 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
                 std::cout << std::endl;
             }
             return;
-        }
-
-        if (ann_network.options.use_extreme_greedy) {
-            if (bicScore < old_bic) {
-                candidates[0] = candidates[i];
-                candidates.resize(1);
-                apply_network_state(ann_network, oldState);
-                if (print_progress && can_write()) {
-                    std::cout << std::endl;
-                }
-                return;
-            }
         }
 
         apply_network_state(ann_network, oldState);
@@ -680,13 +668,12 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T> candidates, Ne
             found_better = true;
         }
 
-        if (ann_network.options.use_extreme_greedy) {
-            if (bicScore < old_bic) {
-                candidates[0] = candidates[i];
-                candidates.resize(1);
-                apply_network_state(ann_network, oldState);
-                return found_better;
-            }
+
+        if (bicScore + ann_network.options.extreme_greedy_offset < old_bic) {
+            candidates[0] = candidates[i];
+            candidates.resize(1);
+            apply_network_state(ann_network, oldState);
+            return found_better;
         }
 
         scores[i] = ScoreItem<T>{candidates[i], worstScore, bicScore};

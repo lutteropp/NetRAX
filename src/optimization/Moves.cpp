@@ -865,6 +865,9 @@ std::vector<size_t> determineEdgeOrder(AnnotatedNetwork& ann_network, size_t sta
 
 template<typename T>
 void sortByProximity(std::vector<T>& candidates, AnnotatedNetwork& ann_network) {
+    if (!ann_network.options.reorder_candidates) {
+        return;
+    }
     size_t start_edge_idx = ann_network.last_accepted_move_edge_orig_idx;
     if (start_edge_idx >= ann_network.network.num_branches()) {
         return;

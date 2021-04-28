@@ -67,10 +67,13 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     app.add_flag("--average_displayed_tree_variant", average_displayed_tree_variant, "Use weighted average instead of only best displayed tree in network likelihood formula.");
     app.add_flag("--best_displayed_tree_variant", best_displayed_tree_variant, "Use best displayed tree instead of weighted average in network likelihood formula.");
     app.add_option("--no_prefiltering", options->no_prefiltering, "Disable prefiltering of highly-promising move candidates.");
-    app.add_flag("--extreme_greedy", options->use_extreme_greedy, "Use extreme greedy for (maybe faster) results with worse inference quality.");
+    app.add_option("--extreme_greedy_offset", options->extreme_greedy_offset, "Instantly accept a move if it improves BIC by more than the given offset (default: infinity). Gives (maybe faster) results with (maybe worse) inference quality.");
+    app.add_option("--reorder_candidates", options->reorder_candidates, "Reorder move candidates by proximity to last accepted move.");
+    
     app.add_flag("--use_tail_moves", options->use_tail_moves, "Also use tail moves (slow).");
     app.add_flag("--use_head_moves", options->use_head_moves, "Also use head moves (slow).");
     app.add_flag("--full_arc_insertion", options->full_arc_insertion, "Use full ArcInsertion moves instead of only DeltaPlus moves (slow).");
+
     app.add_option("--scrambling", options->scrambling, "Maximum failed consecutive scrambling retries for escaping out of local maxima (default: 3).");
     app.add_option("--scrambling_radius", options->scrambling_radius, "Number of random rSPR moves to apply when scrambling a network (default: 2).");
 

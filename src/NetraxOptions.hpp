@@ -67,7 +67,8 @@ public:
 
     unsigned int timeout = 0; // maximum number of seconds to run the network search, value of zero will be ignored
 
-    bool use_extreme_greedy = false;
+    double extreme_greedy_offset = std::numeric_limits<double>::infinity();
+    bool reorder_candidates = false;
     bool no_prefiltering = false;
     bool use_tail_moves = false;
     bool use_head_moves = false;
