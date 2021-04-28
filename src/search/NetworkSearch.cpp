@@ -565,8 +565,18 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
             best_bic = bicScore;
         }
 
+        if (bicScore <= old_bic - 100) {
+            candidates[0] = candidates[i];
+            candidates.resize(1);
+            apply_network_state(ann_network, oldState);
+            if (print_progress && can_write()) {
+                std::cout << std::endl;
+            }
+            return;
+        }
+
         if (ann_network.options.use_extreme_greedy) {
-            if (bicScore <= old_bic - 100) {
+            if (bicScore <= old_bic) {
                 candidates[0] = candidates[i];
                 candidates.resize(1);
                 apply_network_state(ann_network, oldState);
