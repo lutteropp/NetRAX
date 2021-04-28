@@ -537,7 +537,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
 
         assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
 
-        if (!hasBadReticulation(ann_network) || ((move.moveType != MoveType::DeltaPlusMove) && (move.moveType != MoveType::DeltaPlusMove))) {
+        if (!hasBadReticulation(ann_network) || ((move.moveType != MoveType::DeltaPlusMove) && (move.moveType != MoveType::ArcInsertionMove))) {
             std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
             assert(!brlen_opt_candidates.empty());
             
