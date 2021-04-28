@@ -339,6 +339,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
     if (plan_logl != final_logl) {
         std::cout << "plan logl: " << plan_logl << "\n";
         std::cout << "final logl: " << final_logl << "\n";
+        throw std::runtime_error("Incremental loglikelihood computation led to different score than normal one");
     }
     assert(plan_logl == final_logl);
     /*if (final_logl < old_logl) {
