@@ -25,20 +25,22 @@ struct Node;
 // The moves correspond to the rNNI moves and rSPR moves from this paper: https://doi.org/10.1371/journal.pcbi.1005611
 
 struct GeneralMove {
-    GeneralMove(MoveType type) :
-            moveType(type) {
+    GeneralMove(MoveType type, size_t edge_orig_idx) :
+            moveType(type), edge_orig_idx(edge_orig_idx) {
     }
     MoveType moveType;
+    size_t edge_orig_idx;
 
-    GeneralMove(GeneralMove&& rhs) : moveType{rhs.moveType} {}
+    GeneralMove(GeneralMove&& rhs) : moveType{rhs.moveType}, edge_orig_idx(edge_orig_idx) {}
 
-    GeneralMove(const GeneralMove& rhs) : moveType{rhs.moveType} {}
+    GeneralMove(const GeneralMove& rhs) : moveType{rhs.moveType}, edge_orig_idx(edge_orig_idx) {}
 
     GeneralMove& operator =(GeneralMove&& rhs)
     {
         if (this != &rhs)
         {
             moveType = rhs.moveType;
+            edge_orig_idx = rhs.edge_orig_idx;
         }
         return *this;
     }
@@ -48,6 +50,7 @@ struct GeneralMove {
         if (this != &rhs)
         {
             moveType = rhs.moveType;
+            edge_orig_idx = rhs.edge_orig_idx;
         }
         return *this;
     }
@@ -58,8 +61,8 @@ enum class RNNIMoveType {
 };
 
 struct RNNIMove: public GeneralMove {
-    RNNIMove() :
-            GeneralMove(MoveType::RNNIMove) {
+    RNNIMove(size_t edge_orig_idx) :
+            GeneralMove(MoveType::RNNIMove, edge_orig_idx) {
     }
 
     size_t u_clv_index = 0;
@@ -102,8 +105,8 @@ struct RNNIMove: public GeneralMove {
 };
 
 struct RSPRMove: public GeneralMove {
-    RSPRMove() :
-            GeneralMove(MoveType::RSPRMove) {
+    RSPRMove(size_t edge_orig_idx) :
+            GeneralMove(MoveType::RSPRMove, edge_orig_idx) {
     }
     
     size_t x_prime_clv_index = 0;
@@ -156,8 +159,8 @@ struct RSPRMove: public GeneralMove {
 };
 
 struct ArcInsertionMove: public GeneralMove {
-    ArcInsertionMove() :
-            GeneralMove(MoveType::ArcInsertionMove) {
+    ArcInsertionMove(size_t edge_orig_idx) :
+            GeneralMove(MoveType::ArcInsertionMove, edge_orig_idx) {
     }
 
     size_t a_clv_index = 0;
@@ -249,8 +252,8 @@ struct ArcInsertionMove: public GeneralMove {
 };
 
 struct ArcRemovalMove: public GeneralMove {
-    ArcRemovalMove() :
-            GeneralMove(MoveType::ArcRemovalMove) {
+    ArcRemovalMove(size_t edge_orig_idx) :
+            GeneralMove(MoveType::ArcRemovalMove, edge_orig_idx) {
     }
 
     size_t a_clv_index = 0;

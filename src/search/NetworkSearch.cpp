@@ -889,10 +889,10 @@ bool isArcRemoval(const MoveType& type) {
 
 void scrambleNetwork(AnnotatedNetwork& ann_network, MoveType type, size_t scramble_cnt) {
     // perform scramble_cnt moves of the specified move type on the network
-    ArcInsertionMove insertionMove;
-    ArcRemovalMove removalMove;
-    RNNIMove rnniMove;
-    RSPRMove rsprMove;
+    ArcInsertionMove insertionMove(0);
+    ArcRemovalMove removalMove(0);
+    RNNIMove rnniMove(0);
+    RSPRMove rsprMove(0);
     for (size_t i = 0; i < scramble_cnt; ++i) {
         switch (type) {
         case MoveType::ArcInsertionMove:

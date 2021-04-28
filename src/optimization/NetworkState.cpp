@@ -192,6 +192,8 @@ void extract_network_state(AnnotatedNetwork &ann_network, NetworkState& state_to
                                             ann_network.fake_treeinfo->partitions[p]->states * ann_network.fake_treeinfo->partitions[p]->states_padded * ann_network.fake_treeinfo->partitions[p]->rate_cats *
                                             sizeof(double) + displacement); 
     }
+
+    state_to_reuse.last_accepted_move_edge_orig_idx = ann_network.last_accepted_move_edge_orig_idx;
 }
 
 NetworkState extract_network_state(AnnotatedNetwork &ann_network, bool extract_network) {
@@ -390,6 +392,8 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
                                             sizeof(double) + displacement);        
         memset(ann_network.fake_treeinfo->pmatrix_valid[p], 1, ann_network.network.num_branches());
     }
+
+    ann_network.last_accepted_move_edge_orig_idx = state.last_accepted_move_edge_orig_idx; 
 
     //pllmod_treeinfo_update_prob_matrices(ann_network.fake_treeinfo, 1); // this (full pmatrix recomputation) is needed if the model parameters changed
 }
