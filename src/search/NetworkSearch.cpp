@@ -491,6 +491,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
         progress += 0.16; // for demonstration only
     }
 
+    size_t num_better_than_old = 0;
 
     double brlen_smooth_factor = 0.25;
     int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
@@ -565,7 +566,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
         }
 
         if (ann_network.options.use_extreme_greedy) {
-            if (bicScore < old_bic) {
+            if (bicScore <= old_bic - 100) {
                 candidates[0] = candidates[i];
                 candidates.resize(1);
                 apply_network_state(ann_network, oldState);
@@ -577,6 +578,16 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
         }
 
         apply_network_state(ann_network, oldState);
+
+        /*if (bicScore < old_bic) {
+            num_better_than_old++;
+            if (num_better_than_old >= 4) {
+                if (print_progress && can_write()) {
+                    std::cout << std::endl;
+                }
+                break;
+            }
+        }*/
     }
 
     if (print_progress && can_write()) { 
