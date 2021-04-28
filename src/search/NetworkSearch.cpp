@@ -608,7 +608,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
     candidates.resize(newSize);
 
     for (size_t i = 0; i < candidates.size(); ++i) {
-        assert(checkSanity(ann_network_orig, candidates[i]));
+        assert(checkSanity(ann_network, candidates[i]));
     }
 }
 
