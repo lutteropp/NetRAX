@@ -564,7 +564,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
             ann_network.last_accepted_move_edge_orig_idx = move.edge_orig_idx;
         }
 
-        if (bicScore <= old_bic - 10) {
+        if (bicScore <= old_bic - 100) {
             candidates[0] = candidates[i];
             candidates.resize(1);
             apply_network_state(ann_network, oldState);

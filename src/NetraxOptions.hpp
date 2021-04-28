@@ -72,7 +72,7 @@ public:
     bool use_tail_moves = false;
     bool use_head_moves = false;
     bool full_arc_insertion = false;
-    unsigned int scrambling = 5;
+    unsigned int scrambling = 3;
     unsigned int scrambling_radius = 2;
 
     bool sim_anneal = false;
