@@ -124,29 +124,29 @@ std::vector<MoveType> getTypesBySpeed(const NetraxOptions& options) {
     if (options.use_tail_moves) {
         if (options.use_head_moves) {
             if (options.full_arc_insertion) {
-                typesBySpeed = {MoveType::RNNIMove, MoveType::ArcRemovalMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::TailMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
+                typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::TailMove};
             } else {
-                typesBySpeed = {MoveType::RNNIMove, MoveType::ArcRemovalMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::TailMove, MoveType::DeltaPlusMove};
+                typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::DeltaPlusMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::TailMove};
             }
         } else {
             if (options.full_arc_insertion) {
-                typesBySpeed = {MoveType::RNNIMove, MoveType::ArcRemovalMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
+                typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove, MoveType::RSPR1Move, MoveType::TailMove};
             } else {
-                typesBySpeed = {MoveType::RNNIMove, MoveType::ArcRemovalMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::DeltaPlusMove};
+                typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::DeltaPlusMove, MoveType::RSPR1Move, MoveType::TailMove};
             }
         }
     } else {
         if (options.full_arc_insertion) {
             if (options.use_head_moves) {
-                typesBySpeed = {MoveType::RNNIMove, MoveType::ArcRemovalMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
+                typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove, MoveType::RSPR1Move, MoveType::HeadMove};
             } else {
-                typesBySpeed = {MoveType::RNNIMove, MoveType::ArcRemovalMove, MoveType::RSPR1Move, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
+                typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove, MoveType::RSPR1Move};
             }
         } else {
             if (options.use_head_moves) {
-                typesBySpeed = {MoveType::RNNIMove, MoveType::ArcRemovalMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::DeltaPlusMove};
+                typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::DeltaPlusMove, MoveType::RSPR1Move, MoveType::HeadMove};
             } else {
-                typesBySpeed = {MoveType::RNNIMove, MoveType::ArcRemovalMove, MoveType::RSPR1Move, MoveType::DeltaPlusMove};
+                typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::DeltaPlusMove, MoveType::RSPR1Move};
             }
         }
     }

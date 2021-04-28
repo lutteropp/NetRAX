@@ -1105,7 +1105,8 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
     //std::cout << "Initial network is:\n" << toExtendedNewick(ann_network) << "\n\n";
 
     if (!ann_network.options.start_network_file.empty()) { // don't waste time trying to first horizontally optimize the user-given start network
-        applyBestCandidate(ann_network, possibleDeltaPlusMoves(ann_network), &best_score, bestNetworkData);
+        wavesearch_internal(ann_network, bestNetworkData, {MoveType::ArcRemovalMove, MoveType::DeltaPlusMove}, start_state_to_reuse, best_state_to_reuse, &best_score, start_time, silent);
+        //applyBestCandidate(ann_network, possibleDeltaPlusMoves(ann_network), &best_score, bestNetworkData);
     }
 
     wavesearch_main_internal(ann_network, bestNetworkData, typesBySpeed, start_state_to_reuse, best_state_to_reuse, &best_score, start_time, silent);
