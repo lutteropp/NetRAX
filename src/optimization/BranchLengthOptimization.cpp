@@ -345,6 +345,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
             std::cout << "final logl: " << final_logl << "\n";
             std::cout << toExtendedNewick(ann_network) << "\n";
             std::cout << exportDebugInfo(ann_network) << "\n";
+            std::cout << "pmatrix index: " << pmatrix_index << "\n";
         }
         throw std::runtime_error("Incremental loglikelihood computation led to different score than normal one");
     }
