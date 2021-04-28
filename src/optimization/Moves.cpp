@@ -844,6 +844,37 @@ bool isRSPR1Move(RSPRMove& move) {
         || (move.y_prime_clv_index == move.y_clv_index));
 }
 
+std::vector<size_t> determineEdgeOrder(AnnotatedNetwork& ann_network, size_t start_edge_idx) {
+    std::vector<size_t> res(ann_network.network.num_branches(), std::numeric_limits<size_t>::infinity());
+    res[start_edge_idx] = 0;
+    std::queue<Edge*> q;
+    q.emplace(ann_network.network.edges_by_index[start_edge_idx]);
+    while (!q.empty()) {
+        Edge* act_edge = q.front();
+        q.pop();
+        std::unordered_set<size_t> neigh_indices = getNeighborPmatrixIndices(ann_network.network, act_edge);
+        for (size_t neigh_idx : neigh_indices) {
+            if (res[neigh_idx] > res[act_edge->pmatrix_index] + 1) {
+                res[neigh_idx] = res[act_edge->pmatrix_index] + 1;
+                q.emplace(ann_network.network.edges_by_index[neigh_idx]);
+            }
+        }
+    }
+    return res;
+}
+
+template<typename T>
+void sortByProximity(std::vector<T>& candidates, AnnotatedNetwork& ann_network) {
+    size_t start_edge_idx = ann_network.last_accepted_move_edge_orig_idx;
+    if (start_edge_idx >= ann_network.network.num_branches()) {
+        return;
+    }
+    std::vector<size_t> edge_order = determineEdgeOrder(ann_network, start_edge_idx);
+    std::sort(candidates.begin(), candidates.end(), [&edge_order](const T& a, const T& b) {
+        return edge_order[a.edge_orig_idx] < edge_order[b.edge_orig_idx];
+    });
+}
+
 void possibleRSPRMovesInternal(std::vector<RSPRMove> &res, AnnotatedNetwork &ann_network, Node *x_prime,
         Node *y_prime, Node *x, Node *fixed_y, bool returnHead, bool returnTail,
         MoveType moveType, size_t edge_orig_idx, bool noRSPR1Moves) {
@@ -931,6 +962,7 @@ std::vector<RSPRMove> possibleTailMoves(AnnotatedNetwork &ann_network, bool noRS
         std::vector<RSPRMove> branch_moves = possibleTailMoves(ann_network, network.edges_by_index[i], noRSPR1Moves);
         res.insert(std::end(res), std::begin(branch_moves), std::end(branch_moves));
     }
+    sortByProximity(res, ann_network);
     assert(checkSanity(ann_network, res));
     return res;
 }
@@ -942,6 +974,7 @@ std::vector<RSPRMove> possibleHeadMoves(AnnotatedNetwork &ann_network, bool noRS
         std::vector<RSPRMove> branch_moves = possibleHeadMoves(ann_network, network.edges_by_index[i], noRSPR1Moves);
         res.insert(std::end(res), std::begin(branch_moves), std::end(branch_moves));
     }
+    sortByProximity(res, ann_network);
     assert(checkSanity(ann_network, res));
     return res;
 }
@@ -1013,7 +1046,7 @@ std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network) {
         }
     }
     res.resize(cnt);
-
+    sortByProximity(res, ann_network);
     assert(checkSanity(ann_network, res));
     return res;
 }
@@ -1025,6 +1058,7 @@ std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, bool noRS
         std::vector<RSPRMove> branch_moves = possibleRSPRMoves(ann_network, network.edges_by_index[i], noRSPR1Moves);
         res.insert(std::end(res), std::begin(branch_moves), std::end(branch_moves));
     }
+    sortByProximity(res, ann_network);
     assert(checkSanity(ann_network, res));
     return res;
 }
@@ -1036,6 +1070,7 @@ std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network) {
         std::vector<RSPRMove> branch_moves = possibleRSPR1Moves(ann_network, network.edges_by_index[i]);
         res.insert(std::end(res), std::begin(branch_moves), std::end(branch_moves));
     }
+    sortByProximity(res, ann_network);
     assert(checkSanity(ann_network, res));
     return res;
 }
@@ -1215,6 +1250,7 @@ std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_ne
                 network.edges_by_index[i], nullptr, nullptr, MoveType::ArcInsertionMove, noDeltaPlus);
         res.insert(std::end(res), std::begin(moves), std::end(moves));
     }
+    sortByProximity(res, ann_network);
     assert(checkSanity(ann_network, res));
     return res;
 }
@@ -1331,6 +1367,7 @@ std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_networ
                 MoveType::ArcRemovalMove);
         res.insert(std::end(res), std::begin(moves), std::end(moves));
     }
+    sortByProximity(res, ann_network);
     assert(checkSanity(ann_network, res));
     return res;
 }
@@ -1343,6 +1380,7 @@ std::vector<ArcInsertionMove> possibleDeltaPlusMoves(AnnotatedNetwork &ann_netwo
                 network.edges_by_index[i]);
         res.insert(std::end(res), std::begin(branch_moves), std::end(branch_moves));
     }
+    sortByProximity(res, ann_network);
     assert(checkSanity(ann_network, res));
     return res;
 }
@@ -1356,6 +1394,7 @@ std::vector<ArcRemovalMove> possibleDeltaMinusMoves(AnnotatedNetwork &ann_networ
                 network.reticulation_nodes[i], edge_orig_idx);
         res.insert(std::end(res), std::begin(branch_moves), std::end(branch_moves));
     }
+    sortByProximity(res, ann_network);
     assert(checkSanity(ann_network, res));
     return res;
 }

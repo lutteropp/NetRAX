@@ -675,6 +675,7 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T> candidates, Ne
             } else {
                 *state = extract_network_state(ann_network);
             }
+            ann_network.last_accepted_move_edge_orig_idx = move.edge_orig_idx;
             found_better = true;
         }
 
