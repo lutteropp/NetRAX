@@ -531,7 +531,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
         assert(checkSanity(ann_network, move));
 
         performMove(ann_network, move);
-        if (recompute_from_scratch) {
+        if (recompute_from_scratch) { // TODO: This is a hotfix that just masks some bugs. Fix the bugs properly.
             computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
         }
         optimizeReticulationProbs(ann_network);
