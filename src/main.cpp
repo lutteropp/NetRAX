@@ -107,15 +107,15 @@ std::vector<MoveType> getTypesBySpeed(const NetraxOptions& options) {
     std::vector<MoveType> typesBySpeed;
     if (options.use_tail_moves) {
         if (options.full_arc_insertion) {
-            typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::TailMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
+            typesBySpeed = {MoveType::RNNIMove, MoveType::ArcRemovalMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::TailMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
         } else {
-            typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::TailMove, MoveType::DeltaPlusMove};
+            typesBySpeed = {MoveType::RNNIMove, MoveType::ArcRemovalMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::TailMove, MoveType::DeltaPlusMove};
         }
     } else {
         if (options.full_arc_insertion) {
-            typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
+            typesBySpeed = {MoveType::RNNIMove, MoveType::ArcRemovalMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
         } else {
-            typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::DeltaPlusMove};
+            typesBySpeed = {MoveType::RNNIMove, MoveType::ArcRemovalMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::DeltaPlusMove};
         }
     }
 
