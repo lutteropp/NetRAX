@@ -19,6 +19,7 @@
 #include "../utils.hpp"
 #include "../graph/AnnotatedNetwork.hpp"
 #include "../DebugPrintFunctions.hpp"
+#include "../io/NetworkIO.hpp"
 
 namespace netrax {
 
@@ -335,10 +336,18 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
 
     double final_logl = computeLoglikelihood(ann_network);
 
+    //#ifndef NDEBUG
+    // TODO: Kick that one out after fixing it
     double plan_logl = computeLoglikelihood(ann_network, 0, 1);
     if (plan_logl != final_logl) {
-        std::cout << "plan logl: " << plan_logl << "\n";
-        std::cout << "final logl: " << final_logl << "\n";
+        if (ParallelContext::local_proc_id() == 0) {
+            std::cout << "plan logl: " << plan_logl << "\n";
+            std::cout << "final logl: " << final_logl << "\n";
+            std::cout << toExtendedNewick(ann_network) << "\n";
+            std::cout << exportDebugInfo(ann_network) << "\n";
+            std::cout << "pmatrix index: " << pmatrix_index << "\n";
+        }
+        throw std::runtime_error("Incremental loglikelihood computation led to different score than normal one");
     }
     assert(plan_logl == final_logl);
     /*if (final_logl < old_logl) {
@@ -358,6 +367,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
     }*/
 
     assert(final_logl >= old_logl);
+    //#endif
 
     return final_logl;
 }

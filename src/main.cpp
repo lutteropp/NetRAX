@@ -67,12 +67,16 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     app.add_flag("--average_displayed_tree_variant", average_displayed_tree_variant, "Use weighted average instead of only best displayed tree in network likelihood formula.");
     app.add_flag("--best_displayed_tree_variant", best_displayed_tree_variant, "Use best displayed tree instead of weighted average in network likelihood formula.");
     app.add_option("--no_prefiltering", options->no_prefiltering, "Disable prefiltering of highly-promising move candidates.");
-    app.add_flag("--extreme_greedy", options->use_extreme_greedy, "Use extreme greedy for (maybe faster) results with worse inference quality.");
-    app.add_flag("--use_rspr1_moves", options->use_rspr1_moves, "Also use rSPR1 moves (slow).");
-    app.add_flag("--use_rspr_moves", options->use_rspr_moves, "Also use rSPR moves (super slow).");
+    app.add_option("--greedy_factor", options->greedy_factor, "Instantly accept a move if it improves BIC by more than the given factor (default: infinity). Gives (maybe faster) results with (maybe worse) inference quality. Needs to be greater than 1.");
+    app.add_option("--reorder_candidates", options->reorder_candidates, "Reorder move candidates by proximity to last accepted move.");
+    
+    bool use_all_moves = false;
+    app.add_flag("--use_all_moves", use_all_moves, "Use the complete set of move types (super slow).");
+    app.add_flag("--use_tail_moves", options->use_tail_moves, "Also use tail moves (slow).");
+    app.add_flag("--use_head_moves", options->use_head_moves, "Also use head moves (slow).");
     app.add_flag("--full_arc_insertion", options->full_arc_insertion, "Use full ArcInsertion moves instead of only DeltaPlus moves (slow).");
-    app.add_flag("--less_moves", options->less_moves, "Use less move types (faster, but dangerous).");
-    app.add_option("--scrambling", options->scrambling, "Number of scrambling retries for escaping out of local maxima (default: 3).");
+
+    app.add_option("--scrambling", options->scrambling, "Maximum failed consecutive scrambling retries for escaping out of local maxima (default: 3).");
     app.add_option("--scrambling_radius", options->scrambling_radius, "Number of random rSPR moves to apply when scrambling a network (default: 2).");
 
     app.add_flag("--sim_anneal", options->sim_anneal, "Use simulated annealing instead of hill climbing during network topology search.");
@@ -101,46 +105,52 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     {
         error_exit("brlen_linkage needs to be one of {linked, scaled, unlinked}");
     }
+
+    if (use_all_moves) {
+        options->use_head_moves = true;
+        options->use_tail_moves = true;
+        options->full_arc_insertion = true;
+    }
+
+    if (options->greedy_factor < 1.0) {
+        error_exit("greedy_factor needs to be at least 1.0");
+    }
     assert(!options->use_repeats);
     return 0;
 }
 
 std::vector<MoveType> getTypesBySpeed(const NetraxOptions& options) {
     std::vector<MoveType> typesBySpeed;
-    if (!options.less_moves) {
-        if (options.full_arc_insertion) {
-            typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::TailMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
+    if (options.use_tail_moves) {
+        if (options.use_head_moves) {
+            if (options.full_arc_insertion) {
+                typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::TailMove};
+            } else {
+                typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::DeltaPlusMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::TailMove};
+            }
         } else {
-            typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::TailMove, MoveType::DeltaPlusMove};
+            if (options.full_arc_insertion) {
+                typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove, MoveType::RSPR1Move, MoveType::TailMove};
+            } else {
+                typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::DeltaPlusMove, MoveType::RSPR1Move, MoveType::TailMove};
+            }
         }
     } else {
-        if (options.use_rspr1_moves) {
-            if (options.full_arc_insertion) {
-                typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
+        if (options.full_arc_insertion) {
+            if (options.use_head_moves) {
+                typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove, MoveType::RSPR1Move, MoveType::HeadMove};
             } else {
-                typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::DeltaPlusMove};
+                typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove, MoveType::RSPR1Move};
             }
         } else {
-            if (options.full_arc_insertion) {
-                typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
+            if (options.use_head_moves) {
+                typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::DeltaPlusMove, MoveType::RSPR1Move, MoveType::HeadMove};
             } else {
-                typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::DeltaPlusMove};
-            }
-        }
-        if (options.use_rspr_moves) {
-            if (options.full_arc_insertion) {
-                typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPRMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
-            } else {
-                typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::RSPRMove, MoveType::DeltaPlusMove};
-            }
-        } else {
-            if (options.full_arc_insertion) {
-                typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
-            } else {
-                typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::DeltaPlusMove};
+                typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RNNIMove, MoveType::DeltaPlusMove, MoveType::RSPR1Move};
             }
         }
     }
+
     return typesBySpeed;
 }
 

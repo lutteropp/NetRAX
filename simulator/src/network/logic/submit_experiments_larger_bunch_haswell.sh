@@ -10,9 +10,9 @@
 #SBATCH -n 10
 
 module purge
-module load CMake
 module load Python
-module load OpenMPI
+module load gompi/2019a
+module load CMake/3.13.3-GCCcore-8.2.0
 module load slurm
 module load Java
 

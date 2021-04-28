@@ -25,20 +25,22 @@ struct Node;
 // The moves correspond to the rNNI moves and rSPR moves from this paper: https://doi.org/10.1371/journal.pcbi.1005611
 
 struct GeneralMove {
-    GeneralMove(MoveType type) :
-            moveType(type) {
+    GeneralMove(MoveType type, size_t edge_orig_idx) :
+            moveType(type), edge_orig_idx(edge_orig_idx) {
     }
     MoveType moveType;
+    size_t edge_orig_idx;
 
-    GeneralMove(GeneralMove&& rhs) : moveType{rhs.moveType} {}
+    GeneralMove(GeneralMove&& rhs) : moveType{rhs.moveType}, edge_orig_idx(rhs.edge_orig_idx) {}
 
-    GeneralMove(const GeneralMove& rhs) : moveType{rhs.moveType} {}
+    GeneralMove(const GeneralMove& rhs) : moveType{rhs.moveType}, edge_orig_idx(rhs.edge_orig_idx) {}
 
     GeneralMove& operator =(GeneralMove&& rhs)
     {
         if (this != &rhs)
         {
             moveType = rhs.moveType;
+            edge_orig_idx = rhs.edge_orig_idx;
         }
         return *this;
     }
@@ -48,6 +50,7 @@ struct GeneralMove {
         if (this != &rhs)
         {
             moveType = rhs.moveType;
+            edge_orig_idx = rhs.edge_orig_idx;
         }
         return *this;
     }
@@ -58,8 +61,12 @@ enum class RNNIMoveType {
 };
 
 struct RNNIMove: public GeneralMove {
+    RNNIMove(size_t edge_orig_idx) :
+            GeneralMove(MoveType::RNNIMove, edge_orig_idx) {
+    }
+
     RNNIMove() :
-            GeneralMove(MoveType::RNNIMove) {
+            GeneralMove(MoveType::RNNIMove, 0) {
     }
 
     size_t u_clv_index = 0;
@@ -102,8 +109,12 @@ struct RNNIMove: public GeneralMove {
 };
 
 struct RSPRMove: public GeneralMove {
+    RSPRMove(size_t edge_orig_idx) :
+            GeneralMove(MoveType::RSPRMove, edge_orig_idx) {
+    }
+
     RSPRMove() :
-            GeneralMove(MoveType::RSPRMove) {
+            GeneralMove(MoveType::RSPRMove, 0) {
     }
     
     size_t x_prime_clv_index = 0;
@@ -156,8 +167,12 @@ struct RSPRMove: public GeneralMove {
 };
 
 struct ArcInsertionMove: public GeneralMove {
+    ArcInsertionMove(size_t edge_orig_idx) :
+        GeneralMove(MoveType::ArcInsertionMove, edge_orig_idx) {
+    }
+
     ArcInsertionMove() :
-            GeneralMove(MoveType::ArcInsertionMove) {
+        GeneralMove(MoveType::ArcInsertionMove, 0) {
     }
 
     size_t a_clv_index = 0;
@@ -249,8 +264,12 @@ struct ArcInsertionMove: public GeneralMove {
 };
 
 struct ArcRemovalMove: public GeneralMove {
+    ArcRemovalMove(size_t edge_orig_idx) :
+        GeneralMove(MoveType::ArcRemovalMove, edge_orig_idx) {
+    }
+
     ArcRemovalMove() :
-            GeneralMove(MoveType::ArcRemovalMove) {
+        GeneralMove(MoveType::ArcRemovalMove, 0) {
     }
 
     size_t a_clv_index = 0;
@@ -380,14 +399,14 @@ void undoMove(AnnotatedNetwork &ann_network, RSPRMove &move);
 std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_network,
         const Edge *edge, bool noDeltaPlus = false);
 std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_network, bool noDeltaPlus = false);
-std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_network, Node *v,
+std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_network, Node *v, size_t edge_orig_idx,
         MoveType moveType = MoveType::ArcRemovalMove);
 std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_network);
 
 std::vector<ArcInsertionMove> possibleDeltaPlusMoves(AnnotatedNetwork &ann_network,
         const Edge *edge);
 std::vector<ArcInsertionMove> possibleDeltaPlusMoves(AnnotatedNetwork &ann_network);
-std::vector<ArcRemovalMove> possibleDeltaMinusMoves(AnnotatedNetwork &ann_network, Node *v);
+std::vector<ArcRemovalMove> possibleDeltaMinusMoves(AnnotatedNetwork &ann_network, Node *v, size_t edge_orig_idx);
 std::vector<ArcRemovalMove> possibleDeltaMinusMoves(AnnotatedNetwork &ann_network);
 
 void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move);
