@@ -131,7 +131,7 @@ struct AnnotatedNetwork {
     std::vector<Node*> travbuffer;
     std::mt19937 rng;
 
-    size_t last_accepted_move_edge_orig_idx = 0;
+    size_t last_accepted_move_edge_orig_idx = std::numeric_limits<size_t>::infinity();
 
     Statistics stats;
 
