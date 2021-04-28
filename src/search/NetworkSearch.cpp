@@ -470,7 +470,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
     }
 
     if (can_write()) {
-        if (print_progress) std::cout << "MoveType: " << toString(candidates[0].moveType) << " (" << candidates.size() << ")" << ", we currently have " << ann_network.network.num_reticulations() << " reticulations" << "\n";
+        if (print_progress) std::cout << "MoveType: " << toString(candidates[0].moveType) << " (" << candidates.size() << ")" << ", we currently have " << ann_network.network.num_reticulations() << " reticulations and BIC " << scoreNetwork(ann_network) << "\n";
     }
 
     float progress = 0.0;

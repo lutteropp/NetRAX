@@ -74,7 +74,7 @@ public:
     bool full_arc_insertion = false;
     bool less_moves = false;
     unsigned int scrambling = 3;
-    unsigned int scrambling_radius = 2;
+    unsigned int scrambling_radius = 1;
 
     bool sim_anneal = false;
     double start_temperature = 100;
