@@ -19,6 +19,7 @@
 #include "../utils.hpp"
 #include "../graph/AnnotatedNetwork.hpp"
 #include "../DebugPrintFunctions.hpp"
+#include "../io/NetworkIO.hpp"
 
 namespace netrax {
 
@@ -339,6 +340,8 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
     if (plan_logl != final_logl) {
         std::cout << "plan logl: " << plan_logl << "\n";
         std::cout << "final logl: " << final_logl << "\n";
+        std::cout << toExtendedNewick(ann_network) << "\n";
+        std::cout << exportDebugInfo(ann_network) << "\n";
         throw std::runtime_error("Incremental loglikelihood computation led to different score than normal one");
     }
     assert(plan_logl == final_logl);
