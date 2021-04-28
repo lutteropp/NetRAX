@@ -70,6 +70,8 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     app.add_option("--greedy_factor", options->greedy_factor, "Instantly accept a move if it improves BIC by more than the given factor (default: infinity). Gives (maybe faster) results with (maybe worse) inference quality. Needs to be greater than 1.");
     app.add_option("--reorder_candidates", options->reorder_candidates, "Reorder move candidates by proximity to last accepted move.");
     
+    bool use_all_moves = false;
+    app.add_flag("--use_all_moves", use_all_moves, "Use the complete set of move types (super slow).");
     app.add_flag("--use_tail_moves", options->use_tail_moves, "Also use tail moves (slow).");
     app.add_flag("--use_head_moves", options->use_head_moves, "Also use head moves (slow).");
     app.add_flag("--full_arc_insertion", options->full_arc_insertion, "Use full ArcInsertion moves instead of only DeltaPlus moves (slow).");
@@ -102,6 +104,12 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     else
     {
         error_exit("brlen_linkage needs to be one of {linked, scaled, unlinked}");
+    }
+
+    if (use_all_moves) {
+        options->use_head_moves = true;
+        options->use_tail_moves = true;
+        options->full_arc_insertion = true;
     }
 
     if (options->greedy_factor < 1.0) {
