@@ -252,10 +252,6 @@ bool needsRecompute(AnnotatedNetwork& ann_network, const RSPRMove& move) {
 bool needsRecompute(AnnotatedNetwork& ann_network, const RNNIMove& move) {
     return false;
 }
-bool needsRecompute(AnnotatedNetwork& ann_network, GeneralMove* move) {
-    assert(move);
-    return (move->moveType == MoveType::ArcRemovalMove) && (ann_network.network.reticulation_nodes[ann_network.network.num_reticulations() - 1]->clv_index != ((ArcRemovalMove*) move)->v_clv_index);
-}
 
 void print_partition(AnnotatedNetwork& ann_network, pll_partition_t* partition){
     assert(partition);
