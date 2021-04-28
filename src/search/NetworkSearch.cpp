@@ -537,18 +537,20 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
 
         assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
 
-        std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
-        assert(!brlen_opt_candidates.empty());
-        
-        //std::cout << "thread " << ParallelContext::local_proc_id() << ", " << "before brlen opt, candidate no. " << i << "\n";
-        optimize_branches(ann_network, max_iters, max_iters_outside, radius, brlen_opt_candidates, true);
-        //std::cout << "thread " << ParallelContext::local_proc_id() << ", " << "after brlen opt, candidate no. " << i << "\n";
-        /*
-        if (move->moveType == MoveType::ArcInsertionMove || move->moveType == MoveType::DeltaPlusMove) {
-            optimize_branches(ann_network, max_iters, 1, radius, brlen_opt_candidates, false);
-        } else {
+        if (!hasBadReticulation(ann_network) || ((move.moveType != MoveType::DeltaPlusMove) && (move.moveType != MoveType::DeltaPlusMove))) {
+            std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
+            assert(!brlen_opt_candidates.empty());
+            
+            //std::cout << "thread " << ParallelContext::local_proc_id() << ", " << "before brlen opt, candidate no. " << i << "\n";
             optimize_branches(ann_network, max_iters, max_iters_outside, radius, brlen_opt_candidates, true);
-        }*/
+            //std::cout << "thread " << ParallelContext::local_proc_id() << ", " << "after brlen opt, candidate no. " << i << "\n";
+            /*
+            if (move->moveType == MoveType::ArcInsertionMove || move->moveType == MoveType::DeltaPlusMove) {
+                optimize_branches(ann_network, max_iters, 1, radius, brlen_opt_candidates, false);
+            } else {
+                optimize_branches(ann_network, max_iters, max_iters_outside, radius, brlen_opt_candidates, true);
+            }*/
+        }
 
         double bicScore = scoreNetwork(ann_network);
         double worstScore = getWorstReticulationScore(ann_network);
