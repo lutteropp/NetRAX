@@ -1102,12 +1102,8 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
         while (improved) {
             improved = false;
             wavesearch_internal(ann_network, bestNetworkData, types_to_use[i], start_state_to_reuse, best_state_to_reuse, &best_score, start_time, silent);
-            if (i + 1 < types_to_use.size()) {
-                if (insertionMove == MoveType::DeltaPlusMove) {
-                    applyBestCandidate(ann_network, possibleDeltaPlusMoves(ann_network), &best_score, bestNetworkData);
-                } else {
-                    applyBestCandidate(ann_network, possibleArcInsertionMoves(ann_network), &best_score, bestNetworkData);
-                }
+            if (i + 2 < types_to_use.size()) {
+                applyBestCandidate(ann_network, possibleDeltaPlusMoves(ann_network), &best_score, bestNetworkData);
             }
             if (best_score < old_best_score) {
                 old_best_score = best_score;
