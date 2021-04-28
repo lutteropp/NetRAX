@@ -67,7 +67,7 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     app.add_flag("--average_displayed_tree_variant", average_displayed_tree_variant, "Use weighted average instead of only best displayed tree in network likelihood formula.");
     app.add_flag("--best_displayed_tree_variant", best_displayed_tree_variant, "Use best displayed tree instead of weighted average in network likelihood formula.");
     app.add_option("--no_prefiltering", options->no_prefiltering, "Disable prefiltering of highly-promising move candidates.");
-    app.add_option("--greedy_offset", options->greedy_offset, "Instantly accept a move if it improves BIC by more than the given offset (default: infinity). Gives (maybe faster) results with (maybe worse) inference quality.");
+    app.add_option("--greedy_factor", options->greedy_factor, "Instantly accept a move if it improves BIC by more than the given factor (default: infinity). Gives (maybe faster) results with (maybe worse) inference quality. Needs to be greater than 1.");
     app.add_option("--reorder_candidates", options->reorder_candidates, "Reorder move candidates by proximity to last accepted move.");
     
     app.add_flag("--use_tail_moves", options->use_tail_moves, "Also use tail moves (slow).");
@@ -102,6 +102,10 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     else
     {
         error_exit("brlen_linkage needs to be one of {linked, scaled, unlinked}");
+    }
+
+    if (options->greedy_factor < 1.0) {
+        error_exit("greedy_factor needs to be at least 1.0");
     }
     assert(!options->use_repeats);
     return 0;
