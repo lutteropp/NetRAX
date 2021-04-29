@@ -72,7 +72,7 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     
     app.add_flag("--no_tail_moves", options->no_tail_moves, "Do not use tail moves (rSPR1 moves still used).");
     app.add_flag("--no_head_moves", options->no_head_moves, "Do not use head moves (rSPR1 moves still used).");
-    app.add_flag("--no_arc_insertion", options->no_arc_insertion, "Use only DeltaPlus moves instead of full ArcInsertion moves (faster, but worse inference quality).");
+    app.add_flag("--no_arc_insertion_moves", options->no_arc_insertion_moves, "Use only DeltaPlus moves instead of full ArcInsertion moves (faster, but worse inference quality).");
 
     app.add_flag("--enforce_extra_search", options->enforce_extra_search, "After finishing the normal search, keep searching by enforcing an extra reticulation.");
 
@@ -117,20 +117,20 @@ std::vector<MoveType> getTypesBySpeed(const NetraxOptions& options) {
     std::vector<MoveType> typesBySpeed;
     if (!options.no_tail_moves) {
         if (!options.no_head_moves) {
-            if (!options.no_arc_insertion) {
+            if (!options.no_arc_insertion_moves) {
                 typesBySpeed = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::TailMove, MoveType::ArcRemovalMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
             } else {
                 typesBySpeed = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::TailMove, MoveType::ArcRemovalMove,  MoveType::DeltaPlusMove};
             }
         } else {
-            if (!options.no_arc_insertion) {
+            if (!options.no_arc_insertion_moves) {
                 typesBySpeed = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::ArcRemovalMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
             } else {
                 typesBySpeed = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::ArcRemovalMove, MoveType::DeltaPlusMove};
             }
         }
     } else {
-        if (!options.no_arc_insertion) {
+        if (!options.no_arc_insertion_moves) {
             if (!options.no_head_moves) {
                 typesBySpeed = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::ArcRemovalMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
             } else {

@@ -72,7 +72,7 @@ public:
     bool no_prefiltering = false;
     bool no_tail_moves = false;
     bool no_head_moves = false;
-    bool no_arc_insertion = false;
+    bool no_arc_insertion_moves = false;
     bool enforce_extra_search = false;
     unsigned int scrambling = 3;
     unsigned int scrambling_radius = 2;
