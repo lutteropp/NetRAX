@@ -1019,24 +1019,26 @@ void wavesearch_internal(AnnotatedNetwork& ann_network, BestNetworkData* bestNet
     optimizeEverythingRun(ann_network, typesBySpeed, start_state_to_reuse, best_state_to_reuse, start_time, bestNetworkData);
     check_score_improvement(ann_network, best_score, bestNetworkData);
 
-    // next, try enforcing some arc insertion
-    while (got_better) {
-        got_better = false;
-        
-        if (can_write()) {
-            std::cout << "Enforcing an arc insertion...\n";
-        }
-        if (ann_network.options.full_arc_insertion) {
-            applyBestCandidate(ann_network, possibleArcInsertionMoves(ann_network), best_score, bestNetworkData, true);
-        } else {
-            applyBestCandidate(ann_network, possibleDeltaPlusMoves(ann_network), best_score, bestNetworkData, true);
-        }
-        check_score_improvement(ann_network, best_score, bestNetworkData);
-        optimizeEverythingRun(ann_network, typesBySpeed, start_state_to_reuse, best_state_to_reuse, start_time, bestNetworkData);
-        check_score_improvement(ann_network, best_score, bestNetworkData);
-        if (*best_score < old_best_score) {
-            got_better = true;
-            old_best_score = *best_score;
+    if (ann_network.options.enforce_extra_search) {
+        // next, try enforcing some arc insertion
+        while (got_better) {
+            got_better = false;
+            
+            if (can_write()) {
+                std::cout << "Enforcing an arc insertion...\n";
+            }
+            if (ann_network.options.full_arc_insertion) {
+                applyBestCandidate(ann_network, possibleArcInsertionMoves(ann_network), best_score, bestNetworkData, true);
+            } else {
+                applyBestCandidate(ann_network, possibleDeltaPlusMoves(ann_network), best_score, bestNetworkData, true);
+            }
+            check_score_improvement(ann_network, best_score, bestNetworkData);
+            optimizeEverythingRun(ann_network, typesBySpeed, start_state_to_reuse, best_state_to_reuse, start_time, bestNetworkData);
+            check_score_improvement(ann_network, best_score, bestNetworkData);
+            if (*best_score < old_best_score) {
+                got_better = true;
+                old_best_score = *best_score;
+            }
         }
     }
 }
