@@ -1027,7 +1027,7 @@ void wavesearch_internal(AnnotatedNetwork& ann_network, BestNetworkData* bestNet
             if (can_write()) {
                 std::cout << "Enforcing an arc insertion...\n";
             }
-            if (!ann_network.options.no_arc_insertion) {
+            if (!ann_network.options.no_arc_insertion_moves) {
                 applyBestCandidate(ann_network, possibleArcInsertionMoves(ann_network), best_score, bestNetworkData, true);
             } else {
                 applyBestCandidate(ann_network, possibleDeltaPlusMoves(ann_network), best_score, bestNetworkData, true);
