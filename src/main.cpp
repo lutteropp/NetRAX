@@ -74,7 +74,7 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     app.add_flag("--use_all_moves", use_all_moves, "Use the complete set of move types (super slow).");
     app.add_flag("--use_tail_moves", options->use_tail_moves, "Also use tail moves (slow).");
     app.add_flag("--use_head_moves", options->use_head_moves, "Also use head moves (slow).");
-    app.add_flag("--full_arc_insertion", options->full_arc_insertion, "Use full ArcInsertion moves instead of only DeltaPlus moves (slow).");
+    app.add_flag("--less_arc_insertion", options->less_arc_insertion, "Use only DeltaPlus moves instead of full ArcInsertion moves (faster, but worse inference quality).");
 
     app.add_flag("--enforce_extra_search", options->enforce_extra_search, "After finishing the normal search, keep searching by enforcing an extra reticulation.");
 
@@ -111,7 +111,9 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     if (use_all_moves) {
         options->use_head_moves = true;
         options->use_tail_moves = true;
-        options->full_arc_insertion = true;
+        if (options->less_arc_insertion) {
+            error_exit("cannot specify both --use_all_moves and --less_arc_insertion");
+        }
     }
 
     if (options->greedy_factor < 1.0) {
