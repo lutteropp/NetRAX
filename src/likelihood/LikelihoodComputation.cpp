@@ -1737,9 +1737,9 @@ double computePseudoLoglikelihood(AnnotatedNetwork& ann_network, int incremental
         if (!ann_network.fake_treeinfo->partitions[p]) {
             continue;
         }
-        tmp_clv_1.emplace_back(create_single_empty_clv(ann_network.partition_clv_ranges[p]));
-        tmp_clv_2.emplace_back(create_single_empty_clv(ann_network.partition_clv_ranges[p]));
-        tmp_clv_3.emplace_back(create_single_empty_clv(ann_network.partition_clv_ranges[p]));
+        tmp_clv_1[p] = create_single_empty_clv(ann_network.partition_clv_ranges[p]);
+        tmp_clv_2[p] = create_single_empty_clv(ann_network.partition_clv_ranges[p]);
+        tmp_clv_3[p] = create_single_empty_clv(ann_network.partition_clv_ranges[p]);
     }
 
     // reuse the clv vectors in the treeinfo object for the final clvs
