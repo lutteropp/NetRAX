@@ -1711,7 +1711,7 @@ void merge_clvs(AnnotatedNetwork& ann_network,
             }
 
             if (weight_4 > 0.0) {
-                merged_entry += weight_1 * ann_network.fake_treeinfo->partitions[p]->clv[fake_clv_index][i];
+                merged_entry += weight_4 * ann_network.fake_treeinfo->partitions[p]->clv[fake_clv_index][i];
             }
 
             clv[i] = merged_entry;
@@ -1796,6 +1796,10 @@ double computePseudoLoglikelihood(AnnotatedNetwork& ann_network, int incremental
             pll_partition_t* partition = ann_network.fake_treeinfo->partitions[p];
             double* left_clv = (left_child) ? partition->clv[left_child->clv_index] : partition->clv[fake_clv_index];
             double* right_clv = (right_child) ? partition->clv[right_child->clv_index] : partition->clv[fake_clv_index];
+
+            assert(ann_network.fake_treeinfo->partitions[p]->clv[node->clv_index]);
+            assert(left_clv);
+            assert(right_clv);
 
             unsigned int* parent_scaler = (node->scaler_index == -1) ? nullptr : partition->scale_buffer[node->scaler_index];
             unsigned int* left_scaler = (!left_child || left_child->scaler_index == -1) ? nullptr : partition->scale_buffer[left_child->scaler_index];

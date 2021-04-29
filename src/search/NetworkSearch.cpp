@@ -711,6 +711,8 @@ double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidat
         double aicc_score = aicc(ann_network, logl);
 
         if (can_write()) {
+            std::cout << "pseudo-loglh: " << computePseudoLoglikelihood(ann_network) << "\n";
+            
             if (!silent) std::cout << " Took " << toString(candidates[0].moveType) << "\n";
             if (!silent) std::cout << "  Logl: " << logl << ", BIC: " << bic_score << ", AIC: " << aic_score << ", AICc: " << aicc_score <<  "\n";
             if (!silent) std::cout << "  param_count: " << get_param_count(ann_network) << ", sample_size:" << get_sample_size(ann_network) << "\n";
