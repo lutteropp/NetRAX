@@ -244,7 +244,7 @@ bool needsRecompute(AnnotatedNetwork& ann_network, const RSPRMove& move) {
     return true;//false;
 }
 bool needsRecompute(AnnotatedNetwork& ann_network, const RNNIMove& move) {
-    false;
+    return false;
 }
 
 void print_partition(AnnotatedNetwork& ann_network, pll_partition_t* partition){
