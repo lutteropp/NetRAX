@@ -156,7 +156,7 @@ bool hasBadReticulation(AnnotatedNetwork& ann_network) {
     return false;
 }
 
-ScoreImprovementResult check_score_improvement(AnnotatedNetwork& ann_network, double* local_best, BestNetworkData* bestNetworkData, bool silent = true) {
+ScoreImprovementResult check_score_improvement(AnnotatedNetwork& ann_network, double* local_best, BestNetworkData* bestNetworkData, bool silent = false) {
     bool local_improved = false;
     bool global_improved = false;
     
