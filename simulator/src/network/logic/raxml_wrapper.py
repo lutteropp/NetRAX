@@ -8,7 +8,9 @@ def infer_raxml_tree(dataset):
     cmd = RAXML_PATH + ' --msa ' + str(dataset.msa_path) + ' --model ' + str(
         dataset.partitions_path) + ' --prefix ' + str(dataset.name) + ' --seed 42'
     print(cmd, flush=True)
-    cmd_status, cmd_output = subprocess.getstatusoutput(cmd)
+    p = subprocess.Popen(cmd)
+    cmd_output, _ = p.communicate()
+    cmd_status = p.returncode    
     print(cmd_output)
     if cmd_status != 0:
         raise Exception("Inferring raxml tree failed")
@@ -24,7 +26,9 @@ def infer_raxml_tree(dataset):
 def compute_rf_dist(tree_1_path, tree_2_path):
     cmd = RAXML_PATH + " --rf " + tree_1_path + "," + tree_2_path
     print(cmd, flush=True)
-    cmd_status, cmd_output = subprocess.getstatusoutput(cmd)
+    p = subprocess.Popen(cmd)
+    cmd_output, _ = p.communicate()
+    cmd_status = p.returncode    
     print(cmd_output)
     if cmd_status != 0:
         raise Exception("Compute RF dist failed")

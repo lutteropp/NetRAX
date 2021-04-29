@@ -102,7 +102,7 @@ def exp_unpartitioned(n_taxa):
     return (prefix, settings)
 
 
-def smoke_test_fixed():
+def smoke_test_fixed(n_taxa, n_reticulations):
     settings = ExperimentSettings()
     prefix = 'smoke_test_fixed'
     settings.sampling_types = [SamplingType.PERFECT_SAMPLING]
@@ -110,8 +110,8 @@ def smoke_test_fixed():
     settings.brlen_linkage_types = [BrlenLinkageType.LINKED]
     settings.likelihood_types = [LikelihoodType.AVERAGE]
     settings.partition_sizes = [1000]
-    settings.fixed_n_taxa = [10]
-    settings.fixed_n_reticulations = [1]
+    settings.fixed_n_taxa = [n_taxa]
+    settings.fixed_n_reticulations = [n_reticulations]
     settings.fixed_reticulation_probs = [0.5]
     settings.use_fixed_simulation = True
     settings.use_partitioned_msa_types = [True]
@@ -125,5 +125,5 @@ def gather_labeled_settings():
     setups['t_15_change_brlen_scaler'] = exp_change_brlen_scaler(15)
     setups['t_15_change_reticulation_count'] = exp_change_reticulation_count(15)
     setups['t_15_unpartitioned'] = exp_unpartitioned(15)
-    setups['smoke_test_fixed'] = smoke_test_fixed()
+    setups['smoke_test_fixed'] = smoke_test_fixed(40, 4)
     return setups
