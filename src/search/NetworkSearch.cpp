@@ -632,8 +632,11 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T> candidates, Ne
         assert(checkSanity(ann_network, move));
 
         performMove(ann_network, move);
-        if (recompute_from_scratch) {
-            computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
+        if (recompute_from_scratch) { // TODO: This is a hotfix that just masks some bugs. Fix the bugs properly.
+            setup_pmatrices(ann_network, 0, 1);
+            if (move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::DeltaMinusMove) {
+                computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
+            }
         }
         std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
         assert(!brlen_opt_candidates.empty());
