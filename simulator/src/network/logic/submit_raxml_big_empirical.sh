@@ -9,7 +9,7 @@
 #SBATCH -N 20
 #SBATCH -n 20
  
-source /etc/profile.d/modules.sh
+module purge
 module load gompi/2019a
 
 root=/home/luttersh/NetRAX/simulator/src/network/logic/data
@@ -20,4 +20,4 @@ outdir=$root/datasets_big_empirical
 
 mkdir -p $outdir
 
-mpirun $raxng --search --msa $ali --model $model --seed 42 --prefix $outdir --redo
+mpiexec $raxng --search --msa $ali --model $model --seed 42 --prefix $outdir --redo
