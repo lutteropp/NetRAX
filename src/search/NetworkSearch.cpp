@@ -171,30 +171,24 @@ ScoreImprovementResult check_score_improvement(AnnotatedNetwork& ann_network, do
         local_improved = true;
 
         if (new_score < old_global_best) {
-            if (hasBadReticulation(ann_network)) {
-                if (can_write()) {
-                    std::cout << "Network contains BAD RETICULATIONS. Not updating the global best found network and score.\n";
-                }
-            } else {
-                bestNetworkData->best_n_reticulations = ann_network.network.num_reticulations();
-                global_improved = true;
-                //std::cout << "OLD GLOBAL BEST SCORE WAS: " << old_global_best << "\n";
-                if (ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
-                    collect_average_branches(ann_network);
-                }
-                if (can_write()) {
-                    Color::Modifier green(Color::FG_GREEN);
-                    Color::Modifier def(Color::FG_DEFAULT);
-                    
-                    std::cout << green;
-                    std::cout << "IMPROVED GLOBAL BEST SCORE FOUND SO FAR (" << ann_network.network.num_reticulations() << " reticulations): " << new_score << "\n";
-                    std::cout << def;
-                    writeNetwork(ann_network, ann_network.options.output_file);
-                    if (!silent) std::cout << toExtendedNewick(ann_network) << "\n";
-                    if (!silent) std::cout << "Better network written to " << ann_network.options.output_file << "\n";
-                }
-                //printDisplayedTrees(ann_network);
+            bestNetworkData->best_n_reticulations = ann_network.network.num_reticulations();
+            global_improved = true;
+            //std::cout << "OLD GLOBAL BEST SCORE WAS: " << old_global_best << "\n";
+            if (ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
+                collect_average_branches(ann_network);
             }
+            if (can_write()) {
+                Color::Modifier green(Color::FG_GREEN);
+                Color::Modifier def(Color::FG_DEFAULT);
+                
+                std::cout << green;
+                std::cout << "IMPROVED GLOBAL BEST SCORE FOUND SO FAR (" << ann_network.network.num_reticulations() << " reticulations): " << new_score << "\n";
+                std::cout << def;
+                writeNetwork(ann_network, ann_network.options.output_file);
+                if (!silent) std::cout << toExtendedNewick(ann_network) << "\n";
+                if (!silent) std::cout << "Better network written to " << ann_network.options.output_file << "\n";
+            }
+            //printDisplayedTrees(ann_network);
             *local_best = new_score;
         } else if (new_score < *local_best) {
             //std::cout << "SCORE DIFF: " << score_diff << "\n";
