@@ -1023,6 +1023,7 @@ void wavesearch_internal(AnnotatedNetwork& ann_network, BestNetworkData* bestNet
     double old_best_score = *best_score;
     bool got_better = true;
 
+    check_score_improvement(ann_network, best_score, bestNetworkData);
     optimizeEverythingRun(ann_network, typesBySpeed, start_state_to_reuse, best_state_to_reuse, start_time, bestNetworkData);
     check_score_improvement(ann_network, best_score, bestNetworkData);
 
