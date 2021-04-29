@@ -1754,10 +1754,6 @@ double computePseudoLoglikelihood(AnnotatedNetwork& ann_network, int incremental
             continue;
         }
 
-        if (ParallelContext::local_proc_id() == 0) {
-            std::cout << "Processing node " << node->clv_index << "\n";
-        }
-
         // now we are computing the pseudo-clv...
         std::vector<Node*> children = getChildren(ann_network.network, node);
         assert(!children.empty());
@@ -2012,6 +2008,7 @@ double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int 
     //incremental = 0;
     //update_pmatrices = 1;
     return computeLoglikelihoodImproved(ann_network, incremental, update_pmatrices);
+    //return computePseudoLoglikelihood(ann_network, incremental, update_pmatrices);
     //return computeLoglikelihoodNaiveUtree(ann_network, incremental, update_pmatrices);
 }
 

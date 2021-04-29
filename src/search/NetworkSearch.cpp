@@ -1117,9 +1117,12 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
     double best_score = std::numeric_limits<double>::infinity();
     ScoreImprovementResult score_improvement;
 
+    /*double pseudo_1 = computePseudoLoglikelihood(ann_network);
+    double pseudo_2 = computePseudoLoglikelihood(ann_network);
     if (can_write()) {
-        std::cout << "pseudo-loglh: " << computePseudoLoglikelihood(ann_network) << "\n";
-    }
+        std::cout << "pseudo-loglh: " << pseudo_1 << "\n";
+        std::cout << "pseudo-loglh again: " << pseudo_2 << "\n";
+    }*/
 
     //optimizeAllNonTopology(ann_network, true);
     optimizeAllNonTopology(ann_network);
