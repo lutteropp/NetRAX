@@ -70,11 +70,9 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     app.add_option("--greedy_factor", options->greedy_factor, "Instantly accept a move if it improves BIC by more than the given factor (default: infinity). Gives (maybe faster) results with (maybe worse) inference quality. Needs to be greater than 1.");
     app.add_option("--reorder_candidates", options->reorder_candidates, "Reorder move candidates by proximity to last accepted move.");
     
-    bool use_all_moves = false;
-    app.add_flag("--use_all_moves", use_all_moves, "Use the complete set of move types (super slow).");
-    app.add_flag("--use_tail_moves", options->use_tail_moves, "Also use tail moves (slow).");
-    app.add_flag("--use_head_moves", options->use_head_moves, "Also use head moves (slow).");
-    app.add_flag("--less_arc_insertion", options->less_arc_insertion, "Use only DeltaPlus moves instead of full ArcInsertion moves (faster, but worse inference quality).");
+    app.add_flag("--no_tail_moves", options->no_tail_moves, "Do not use tail moves (rSPR1 moves still used).");
+    app.add_flag("--no_head_moves", options->no_head_moves, "Do not use head moves (rSPR1 moves still used).");
+    app.add_flag("--no_arc_insertion", options->no_arc_insertion, "Use only DeltaPlus moves instead of full ArcInsertion moves (faster, but worse inference quality).");
 
     app.add_flag("--enforce_extra_search", options->enforce_extra_search, "After finishing the normal search, keep searching by enforcing an extra reticulation.");
 
@@ -108,14 +106,6 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
         error_exit("brlen_linkage needs to be one of {linked, scaled, unlinked}");
     }
 
-    if (use_all_moves) {
-        options->use_head_moves = true;
-        options->use_tail_moves = true;
-        if (options->less_arc_insertion) {
-            error_exit("cannot specify both --use_all_moves and --less_arc_insertion");
-        }
-    }
-
     if (options->greedy_factor < 1.0) {
         error_exit("greedy_factor needs to be at least 1.0");
     }
@@ -125,29 +115,29 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
 
 std::vector<MoveType> getTypesBySpeed(const NetraxOptions& options) {
     std::vector<MoveType> typesBySpeed;
-    if (options.use_tail_moves) {
-        if (options.use_head_moves) {
-            if (!options.less_arc_insertion) {
+    if (!options.no_tail_moves) {
+        if (!options.no_head_moves) {
+            if (!options.no_arc_insertion) {
                 typesBySpeed = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::TailMove, MoveType::ArcRemovalMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
             } else {
                 typesBySpeed = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::TailMove, MoveType::ArcRemovalMove,  MoveType::DeltaPlusMove};
             }
         } else {
-            if (!options.less_arc_insertion) {
+            if (!options.no_arc_insertion) {
                 typesBySpeed = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::ArcRemovalMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
             } else {
                 typesBySpeed = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::ArcRemovalMove, MoveType::DeltaPlusMove};
             }
         }
     } else {
-        if (!options.less_arc_insertion) {
-            if (options.use_head_moves) {
+        if (!options.no_arc_insertion) {
+            if (!options.no_head_moves) {
                 typesBySpeed = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::ArcRemovalMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
             } else {
                 typesBySpeed = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::ArcRemovalMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
             }
         } else {
-            if (options.use_head_moves) {
+            if (!options.no_head_moves) {
                 typesBySpeed = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::ArcRemovalMove, MoveType::DeltaPlusMove};
             } else {
                 typesBySpeed = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::ArcRemovalMove, MoveType::DeltaPlusMove};
