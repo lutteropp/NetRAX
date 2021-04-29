@@ -507,7 +507,10 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
 
         performMove(ann_network, move);
         if (recompute_from_scratch) { // TODO: This is a hotfix that just masks some bugs. Fix the bugs properly.
-            computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
+            setup_pmatrices(ann_network, 0, 1);
+            if (move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::DeltaMinusMove) {
+                computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
+            }
         }
         optimizeReticulationProbs(ann_network);
 
@@ -519,6 +522,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
             
             //std::cout << "thread " << ParallelContext::local_proc_id() << ", " << "before brlen opt, candidate no. " << i << "\n";
             optimize_branches(ann_network, max_iters, max_iters_outside, radius, brlen_opt_candidates, true);
+            optimizeReticulationProbs(ann_network);
             //std::cout << "thread " << ParallelContext::local_proc_id() << ", " << "after brlen opt, candidate no. " << i << "\n";
             /*
             if (move->moveType == MoveType::ArcInsertionMove || move->moveType == MoveType::DeltaPlusMove) {
