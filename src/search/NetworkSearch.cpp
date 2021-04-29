@@ -695,9 +695,10 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T> candidates, Ne
 }
 
 template <typename T>
-double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidates, double* best_score, BestNetworkData* bestNetworkData, bool enforce = false, bool silent = true) {
+double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidates, double* best_score, BestNetworkData* bestNetworkData, bool enforce, bool silent) {
     NetworkState state;
     bool found_better_state = rankCandidates(ann_network, candidates, &state, enforce, true);
+    double old_score = scoreNetwork(ann_network);
 
     if (found_better_state) {
         apply_network_state(ann_network, state);
@@ -718,6 +719,12 @@ double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidat
         ann_network.stats.moves_taken[candidates[0].moveType]++;
 
         check_score_improvement(ann_network, best_score, bestNetworkData);
+
+        if (!enforce) {
+            if (scoreNetwork(ann_network) > old_score) {
+                throw std::runtime_error("Something went wrong in the network search. Suddenly, BIC is worse!");
+            }
+        }
     }
 
     return computeLoglikelihood(ann_network);
@@ -956,31 +963,31 @@ double optimizeEverythingRun(AnnotatedNetwork& ann_network, const std::vector<Mo
         } else {
             switch (typesBySpeed[type_idx]) {
             case MoveType::RNNIMove:
-                applyBestCandidate(ann_network, possibleRNNIMoves(ann_network), &best_score, bestNetworkData);
+                applyBestCandidate(ann_network, possibleRNNIMoves(ann_network), &best_score, bestNetworkData, false, true);
                 break;
             case MoveType::RSPRMove:
-                applyBestCandidate(ann_network, possibleRSPRMoves(ann_network, rspr1_present), &best_score, bestNetworkData);
+                applyBestCandidate(ann_network, possibleRSPRMoves(ann_network, rspr1_present), &best_score, bestNetworkData, false, true);
                 break;
             case MoveType::RSPR1Move:
-                applyBestCandidate(ann_network, possibleRSPR1Moves(ann_network), &best_score, bestNetworkData);
+                applyBestCandidate(ann_network, possibleRSPR1Moves(ann_network), &best_score, bestNetworkData, false, true);
                 break;
             case MoveType::HeadMove:
-                applyBestCandidate(ann_network, possibleHeadMoves(ann_network, rspr1_present), &best_score, bestNetworkData);
+                applyBestCandidate(ann_network, possibleHeadMoves(ann_network, rspr1_present), &best_score, bestNetworkData, false, true);
                 break;
             case MoveType::TailMove:
-                applyBestCandidate(ann_network, possibleTailMoves(ann_network, rspr1_present), &best_score, bestNetworkData);
+                applyBestCandidate(ann_network, possibleTailMoves(ann_network, rspr1_present), &best_score, bestNetworkData, false, true);
                 break;
             case MoveType::ArcInsertionMove:
-                applyBestCandidate(ann_network, possibleArcInsertionMoves(ann_network, true), &best_score, bestNetworkData);
+                applyBestCandidate(ann_network, possibleArcInsertionMoves(ann_network, true), &best_score, bestNetworkData, false, true);
                 break;
             case MoveType::DeltaPlusMove:
-                applyBestCandidate(ann_network, possibleDeltaPlusMoves(ann_network), &best_score, bestNetworkData);
+                applyBestCandidate(ann_network, possibleDeltaPlusMoves(ann_network), &best_score, bestNetworkData, false, true);
                 break;
             case MoveType::ArcRemovalMove:
-                applyBestCandidate(ann_network, possibleArcRemovalMoves(ann_network), &best_score, bestNetworkData);
+                applyBestCandidate(ann_network, possibleArcRemovalMoves(ann_network), &best_score, bestNetworkData, false, true);
                 break;
             case MoveType::DeltaMinusMove:
-                applyBestCandidate(ann_network, possibleDeltaMinusMoves(ann_network), &best_score, bestNetworkData);
+                applyBestCandidate(ann_network, possibleDeltaMinusMoves(ann_network), &best_score, bestNetworkData, false, true);
                 break;
             default:
                 throw std::runtime_error("Invalid move type");
@@ -1028,9 +1035,9 @@ void wavesearch_internal(AnnotatedNetwork& ann_network, BestNetworkData* bestNet
                 std::cout << "Enforcing an arc insertion...\n";
             }
             if (!ann_network.options.no_arc_insertion_moves) {
-                applyBestCandidate(ann_network, possibleArcInsertionMoves(ann_network), best_score, bestNetworkData, true);
+                applyBestCandidate(ann_network, possibleArcInsertionMoves(ann_network), best_score, bestNetworkData, true, true);
             } else {
-                applyBestCandidate(ann_network, possibleDeltaPlusMoves(ann_network), best_score, bestNetworkData, true);
+                applyBestCandidate(ann_network, possibleDeltaPlusMoves(ann_network), best_score, bestNetworkData, true, true);
             }
             check_score_improvement(ann_network, best_score, bestNetworkData);
             optimizeEverythingRun(ann_network, typesBySpeed, start_state_to_reuse, best_state_to_reuse, start_time, bestNetworkData);
@@ -1113,7 +1120,7 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
     //std::cout << "Initial network is:\n" << toExtendedNewick(ann_network) << "\n\n";
 
     if (!ann_network.options.start_network_file.empty()) { // don't waste time trying to first horizontally optimize the user-given start network
-        applyBestCandidate(ann_network, possibleDeltaPlusMoves(ann_network), &best_score, bestNetworkData);
+        applyBestCandidate(ann_network, possibleDeltaPlusMoves(ann_network), &best_score, bestNetworkData, false, silent);
     }
 
     wavesearch_main_internal(ann_network, bestNetworkData, typesBySpeed, start_state_to_reuse, best_state_to_reuse, &best_score, start_time, silent);
