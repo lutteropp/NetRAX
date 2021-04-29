@@ -5,7 +5,7 @@ import random
 
 from experiment_model import LikelihoodType, BrlenLinkageType, StartType
 
-NETRAX_PATH = "mpiexec ../../../../bin/netrax"
+NETRAX_PATH = "mpirun ../../../../bin/netrax"
 
 NETWORK_DISTANCE_NAMES = ['unrooted_softwired_network_distance', 'unrooted_hardwired_network_distance', 'unrooted_displayed_trees_distance', 'rooted_softwired_network_distance', 'rooted_hardwired_network_distance', 'rooted_displayed_trees_distance', 'rooted_tripartition_distance', 'rooted_path_multiplicity_distance', 'rooted_nested_labels_distance']
 
