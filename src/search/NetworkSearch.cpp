@@ -1109,7 +1109,11 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
 
     if (!ann_network.options.start_network_file.empty()) { // don't waste time trying to first horizontally optimize the user-given start network
         //wavesearch_internal(ann_network, bestNetworkData, {MoveType::DeltaPlusMove}, start_state_to_reuse, best_state_to_reuse, &best_score, start_time, silent);
-        applyBestCandidate(ann_network, possibleDeltaPlusMoves(ann_network), &best_score, bestNetworkData);
+        if (ann_network.options.full_arc_insertion) {
+            applyBestCandidate(ann_network, possibleArcInsertionMoves(ann_network), &best_score, bestNetworkData);
+        } else {
+            applyBestCandidate(ann_network, possibleDeltaPlusMoves(ann_network), &best_score, bestNetworkData);
+        }
     }
 
     wavesearch_main_internal(ann_network, bestNetworkData, typesBySpeed, start_state_to_reuse, best_state_to_reuse, &best_score, start_time, silent);
