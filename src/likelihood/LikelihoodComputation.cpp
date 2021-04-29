@@ -1753,6 +1753,11 @@ double computePseudoLoglikelihood(AnnotatedNetwork& ann_network, int incremental
         if (node->isTip()) {
             continue;
         }
+
+        if (ParallelContext::local_proc_id() == 0) {
+            std::cout << "Processing node " << node->clv_index << "\n";
+        }
+
         // now we are computing the pseudo-clv...
         std::vector<Node*> children = getChildren(ann_network.network, node);
         assert(!children.empty());
@@ -1797,9 +1802,17 @@ double computePseudoLoglikelihood(AnnotatedNetwork& ann_network, int incremental
             double* left_clv = (left_child) ? partition->clv[left_child->clv_index] : partition->clv[fake_clv_index];
             double* right_clv = (right_child) ? partition->clv[right_child->clv_index] : partition->clv[fake_clv_index];
 
+            double* parent_clv_1 = tmp_clv_1[p];
+            double* parent_clv_2 = tmp_clv_2[p];
+            double* parent_clv_3 = tmp_clv_3[p];
+
+            assert(parent_clv_1);
+            assert(parent_clv_2);
+            assert(parent_clv_3);
+
             assert(ann_network.fake_treeinfo->partitions[p]->clv[node->clv_index]);
-            assert(left_clv);
-            assert(right_clv);
+            assert(left_clv || left_child->isTip());
+            assert(right_clv || right_child->isTip());
 
             unsigned int* parent_scaler = (node->scaler_index == -1) ? nullptr : partition->scale_buffer[node->scaler_index];
             unsigned int* left_scaler = (!left_child || left_child->scaler_index == -1) ? nullptr : partition->scale_buffer[left_child->scaler_index];
@@ -1809,31 +1822,31 @@ double computePseudoLoglikelihood(AnnotatedNetwork& ann_network, int incremental
                 if (right_child && right_child->getType() == NodeType::RETICULATION_NODE) {
                     // left reticulation, right reticulation
                     // case 1: take both
-                    pll_update_partials_single(partition, &take_both_op, 1, tmp_clv_1[p], left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
+                    pll_update_partials_single(partition, &take_both_op, 1, parent_clv_1, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
                     // case 2: take left only
-                    pll_update_partials_single(partition, &take_both_op, 1, tmp_clv_2[p], left_clv, partition->clv[fake_clv_index], parent_scaler, left_scaler, nullptr);
+                    pll_update_partials_single(partition, &take_both_op, 1, parent_clv_2, left_clv, partition->clv[fake_clv_index], parent_scaler, left_scaler, nullptr);
                     // case 3: take right only
-                    pll_update_partials_single(partition, &take_both_op, 1, tmp_clv_3[p], partition->clv[fake_clv_index], right_clv, parent_scaler, nullptr, right_scaler);
+                    pll_update_partials_single(partition, &take_both_op, 1, parent_clv_3, partition->clv[fake_clv_index], right_clv, parent_scaler, nullptr, right_scaler);
                  } else {
                     // left reticulation, right normal or null
                     // case 1: take both
-                    pll_update_partials_single(partition, &take_both_op, 1, tmp_clv_1[p], left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
+                    pll_update_partials_single(partition, &take_both_op, 1, parent_clv_1, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
                     // case 3: take right only
-                    pll_update_partials_single(partition, &take_both_op, 1, tmp_clv_3[p], partition->clv[fake_clv_index], right_clv, parent_scaler, nullptr, right_scaler);
+                    pll_update_partials_single(partition, &take_both_op, 1, parent_clv_3, partition->clv[fake_clv_index], right_clv, parent_scaler, nullptr, right_scaler);
                 }
             } else {
                 if (right_child && right_child->getType() == NodeType::RETICULATION_NODE) {
                     // left normal, right reticulation
                     // case 1: take both
-                    pll_update_partials_single(partition, &take_both_op, 1, tmp_clv_1[p], left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
+                    pll_update_partials_single(partition, &take_both_op, 1, parent_clv_1, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
                     // case 2: take left only
-                    pll_update_partials_single(partition, &take_both_op, 1, tmp_clv_2[p], left_clv, partition->clv[fake_clv_index], parent_scaler, left_scaler, nullptr);
+                    pll_update_partials_single(partition, &take_both_op, 1, parent_clv_2, left_clv, partition->clv[fake_clv_index], parent_scaler, left_scaler, nullptr);
                 } else {
                     // left normal, right normal or null
                     // case 1: take both
-                    pll_update_partials_single(partition, &take_both_op, 1, tmp_clv_1[p], left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
+                    pll_update_partials_single(partition, &take_both_op, 1, parent_clv_1, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
                     // case 3: take right only
-                    pll_update_partials_single(partition, &take_both_op, 1, tmp_clv_3[p], partition->clv[fake_clv_index], right_clv, parent_scaler, nullptr, right_scaler);
+                    pll_update_partials_single(partition, &take_both_op, 1, parent_clv_3, partition->clv[fake_clv_index], right_clv, parent_scaler, nullptr, right_scaler);
                 }
             }
         }

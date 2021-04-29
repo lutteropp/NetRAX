@@ -711,8 +711,8 @@ double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidat
         double aicc_score = aicc(ann_network, logl);
 
         if (can_write()) {
-            std::cout << "pseudo-loglh: " << computePseudoLoglikelihood(ann_network) << "\n";
-            
+            //std::cout << "pseudo-loglh: " << computePseudoLoglikelihood(ann_network) << "\n";
+
             if (!silent) std::cout << " Took " << toString(candidates[0].moveType) << "\n";
             if (!silent) std::cout << "  Logl: " << logl << ", BIC: " << bic_score << ", AIC: " << aic_score << ", AICc: " << aicc_score <<  "\n";
             if (!silent) std::cout << "  param_count: " << get_param_count(ann_network) << ", sample_size:" << get_sample_size(ann_network) << "\n";
@@ -1116,6 +1116,10 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
     auto start_time = std::chrono::high_resolution_clock::now();
     double best_score = std::numeric_limits<double>::infinity();
     ScoreImprovementResult score_improvement;
+
+    if (can_write()) {
+        std::cout << "pseudo-loglh: " << computePseudoLoglikelihood(ann_network) << "\n";
+    }
 
     //optimizeAllNonTopology(ann_network, true);
     optimizeAllNonTopology(ann_network);
