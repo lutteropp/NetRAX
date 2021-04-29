@@ -472,21 +472,6 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
 
     float progress = 0.0;
     int barWidth = 70;
-    while (progress < 1.0) {
-        if (can_write() && print_progress) std::cout << "[";
-        int pos = barWidth * progress;
-        for (int i = 0; i < barWidth; ++i) {
-                if (can_write() && print_progress) {
-                if (i < pos) std::cout << "=";
-                else if (i == pos) std::cout << ">";
-                else std::cout << " ";
-            }
-        }
-        if (can_write() && print_progress) std::cout << "] " << int(progress * 100.0) << " %\r";
-        if (can_write() && print_progress) std::cout.flush();
-
-        progress += 0.16; // for demonstration only
-    }
 
     double brlen_smooth_factor = 0.25;
     int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
