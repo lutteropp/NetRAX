@@ -574,7 +574,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
 
     size_t newSize = 0;
 
-    double cutoff_bic = std::min(best_bic, old_bic);
+    double cutoff_bic = best_bic;
 
     for (size_t i = 0; i < candidates.size(); ++i) {
         if (can_write()) {
@@ -597,12 +597,12 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
 }
 
 template <typename T>
-bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T> candidates, NetworkState* state, bool silent = true) {
+bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T> candidates, NetworkState* state, bool enforce, bool silent = true) {
     if (candidates.empty()) {
         return false;
     }
     if (!ann_network.options.no_prefiltering) {
-        prefilterCandidates(ann_network, candidates, true);
+        prefilterCandidates(ann_network, candidates, enforce, true);
     }
 
     if (can_write()) {
@@ -616,6 +616,11 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T> candidates, Ne
 
     double old_bic = scoreNetwork(ann_network);
     double best_bic = old_bic;
+
+    if (enforce) {
+        best_bic = std::numeric_limits<double>::infinity();
+    }
+
     bool found_better = false;
 
     NetworkState oldState = extract_network_state(ann_network);
@@ -690,9 +695,9 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T> candidates, Ne
 }
 
 template <typename T>
-double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidates, double* best_score, BestNetworkData* bestNetworkData, bool silent = true) {
+double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidates, double* best_score, BestNetworkData* bestNetworkData, bool enforce = false, bool silent = true) {
     NetworkState state;
-    bool found_better_state = rankCandidates(ann_network, candidates, &state, true);
+    bool found_better_state = rankCandidates(ann_network, candidates, &state, enforce, true);
 
     if (found_better_state) {
         apply_network_state(ann_network, state);
@@ -1008,18 +1013,29 @@ double optimizeEverythingRun(AnnotatedNetwork& ann_network, const std::vector<Mo
 }
 
 void wavesearch_internal(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData, const std::vector<MoveType>& typesBySpeed, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, double* best_score, const std::chrono::high_resolution_clock::time_point& start_time, bool silent = false) {
-    ScoreImprovementResult score_improvement;
+    double old_best_score = *best_score;
+    bool got_better = true;
 
-    //std::cout << "Initial network is:\n" << toExtendedNewick(ann_network) << "\n\n";
-
-    //std::cout << "Initial network after modelopt+brlenopt+reticulation opt is:\n" << toExtendedNewick(ann_network) << "\n\n";
-    std::string best_network = toExtendedNewick(ann_network);
-    score_improvement = check_score_improvement(ann_network, best_score, bestNetworkData);
-
-    optimizeEverythingRun(ann_network, typesBySpeed, start_state_to_reuse, best_state_to_reuse, start_time, bestNetworkData);
-
-
-    score_improvement = check_score_improvement(ann_network, best_score, bestNetworkData);
+    // next, try enforcing some arc insertion
+    while (got_better) {
+        got_better = false;
+        
+        if (can_write()) {
+            std::cout << "Enforcing an arc insertion...\n";
+        }
+        if (ann_network.options.full_arc_insertion) {
+            applyBestCandidate(ann_network, possibleArcInsertionMoves(ann_network), best_score, bestNetworkData, true);
+        } else {
+            applyBestCandidate(ann_network, possibleDeltaPlusMoves(ann_network), best_score, bestNetworkData, true);
+        }
+        check_score_improvement(ann_network, best_score, bestNetworkData);
+        optimizeEverythingRun(ann_network, typesBySpeed, start_state_to_reuse, best_state_to_reuse, start_time, bestNetworkData);
+        check_score_improvement(ann_network, best_score, bestNetworkData);
+        if (*best_score < old_best_score) {
+            got_better = true;
+            old_best_score = *best_score;
+        }
+    }
 }
 
 void wavesearch_main_internal(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData, const std::vector<MoveType>& typesBySpeed, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, double* best_score, const std::chrono::high_resolution_clock::time_point& start_time, bool silent = false) {
@@ -1033,8 +1049,11 @@ void wavesearch_main_internal(AnnotatedNetwork& ann_network, BestNetworkData* be
         }
         std::cout << "\n";
     }
-    double old_best_score = *best_score;
+
     wavesearch_internal(ann_network, bestNetworkData, typesBySpeed, start_state_to_reuse, best_state_to_reuse, best_score, start_time, silent);
+
+    double old_best_score = *best_score;
+    bool got_better = true;
 
     if (ann_network.options.scrambling > 0) {
         if (can_write()) {
