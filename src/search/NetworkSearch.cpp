@@ -602,7 +602,7 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T> candidates, Ne
         return false;
     }
     if (!ann_network.options.no_prefiltering) {
-        prefilterCandidates(ann_network, candidates, enforce, true);
+        prefilterCandidates(ann_network, candidates, true);
     }
 
     if (can_write()) {
