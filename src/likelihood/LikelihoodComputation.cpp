@@ -1823,7 +1823,7 @@ double computePseudoLoglikelihood(AnnotatedNetwork& ann_network, int incremental
         ann_network.pseudo_clv_valid[node->clv_index] = true;
     }
 
-    // TODO: Compute the pseudo loglikelihood at the root
+    // Compute the pseudo loglikelihood at the root
     std::vector<double> partition_pseudo_logl(ann_network.fake_treeinfo->partition_count, 0.0);
 
     for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
