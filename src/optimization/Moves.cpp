@@ -1994,7 +1994,7 @@ void repairConsecutiveClvIndices(AnnotatedNetwork &ann_network, ArcRemovalMove& 
     for (size_t i = 0; i < ann_network.network.num_nodes(); ++i) {
         if (!ann_network.network.nodes_by_index[i]) {
             missing_clv_indices.emplace_back(i);
-            invalidateSingleClv(ann_network.fake_treeinfo, i);
+            invalidateSingleClv(ann_network, i);
         }
     }
 
@@ -2007,7 +2007,7 @@ void repairConsecutiveClvIndices(AnnotatedNetwork &ann_network, ArcRemovalMove& 
             size_t old_clv_index = ann_network.network.nodes[i].clv_index;
             size_t new_clv_index = missing_clv_indices.back();
             // invalidate the clv entry
-            invalidateSingleClv(ann_network.fake_treeinfo, old_clv_index);
+            invalidateSingleClv(ann_network, old_clv_index);
 
             if (move_clv_indices.find(old_clv_index) != move_clv_indices.end()) {
                 updateMoveClvIndex(move, old_clv_index, new_clv_index);

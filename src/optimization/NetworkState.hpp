@@ -26,6 +26,8 @@ struct NetworkState {
     std::vector<ClvRangeInfo> displayed_tree_clv_ranges;
     std::vector<ScaleBufferRangeInfo> displayed_tree_scale_buffer_ranges;
 
+    std::vector<std::vector<double*> > pseudo_partition_clvs;
+
     bool network_valid = false;
 
     double cached_logl;
@@ -38,9 +40,14 @@ struct NetworkState {
             }
             free(partition_pmatrix[p]);
         }
+        for (size_t p = 0; p < pseudo_partition_clvs.size(); ++p) {
+                for (size_t i = 0; i < pseudo_partition_clvs[p].size(); ++i) {
+                    pll_aligned_free(pseudo_partition_clvs[p][i]);
+                }
+        }
     }
 
-    NetworkState() = default;
+    NetworkState(bool) {};
 
     NetworkState(NetworkState&& rhs) {
         brlen_linkage = rhs.brlen_linkage;

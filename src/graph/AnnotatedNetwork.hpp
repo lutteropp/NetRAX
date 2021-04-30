@@ -131,6 +131,11 @@ struct AnnotatedNetwork {
     std::vector<Node*> travbuffer;
     std::mt19937 rng;
 
+    std::vector<bool> pseudo_clv_valid;
+    std::vector<double*> tmp_clv_1;
+    std::vector<double*> tmp_clv_2;
+    std::vector<double*> tmp_clv_3;
+
     size_t last_accepted_move_edge_orig_idx = std::numeric_limits<size_t>::infinity();
 
     Statistics stats;
@@ -145,6 +150,11 @@ struct AnnotatedNetwork {
         if (fake_treeinfo) {
             destroy_network_treeinfo(fake_treeinfo);
         }
+	for (size_t p = 0; p < tmp_clv_1.size(); ++p) {
+		pll_aligned_free(tmp_clv_1[p]);
+		pll_aligned_free(tmp_clv_2[p]);
+		pll_aligned_free(tmp_clv_3[p]);
+    	}
     }
 
     AnnotatedNetwork(const AnnotatedNetwork& orig_network);

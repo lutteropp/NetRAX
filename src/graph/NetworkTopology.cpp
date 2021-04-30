@@ -437,7 +437,8 @@ Link* make_link(Node *node, Edge *edge, Direction dir) {
     return node->addLink(link);
 }
 
-void invalidateSingleClv(pllmod_treeinfo_t *treeinfo, unsigned int clv_index) {
+void invalidateSingleClv(AnnotatedNetwork& ann_network, unsigned int clv_index) {
+    pllmod_treeinfo_t* treeinfo = ann_network.fake_treeinfo;
     for (size_t p = 0; p < treeinfo->partition_count; ++p) {
         // skip remote partitions
         if (!treeinfo->partitions[p]) {
@@ -445,6 +446,7 @@ void invalidateSingleClv(pllmod_treeinfo_t *treeinfo, unsigned int clv_index) {
         }
         treeinfo->clv_valid[p][clv_index] = 0;
     }
+    ann_network.pseudo_clv_valid[clv_index] = false;
 }
 
 void invalidateHigherClvs(AnnotatedNetwork &ann_network, pllmod_treeinfo_t *treeinfo, Node *node, bool invalidate_myself, std::vector<bool> &visited) {
@@ -463,6 +465,7 @@ void invalidateHigherClvs(AnnotatedNetwork &ann_network, pllmod_treeinfo_t *tree
             }
             treeinfo->clv_valid[p][node->clv_index] = 0;
         }
+        ann_network.pseudo_clv_valid[node->clv_index] = false;
         if (!visited.empty()) {
             visited[node->clv_index] = true;
         }

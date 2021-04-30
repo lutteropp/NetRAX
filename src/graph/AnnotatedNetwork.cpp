@@ -99,6 +99,27 @@ void init_annotated_network(AnnotatedNetwork &ann_network, std::mt19937& rng) {
         assert(ann_network.pernode_displayed_tree_data[i].displayed_trees.size() == 1);
         assert(ann_network.pernode_displayed_tree_data[i].displayed_trees[0].isTip);
     }
+
+    ann_network.pseudo_clv_valid = std::vector<bool>(ann_network.network.nodes.size(), false);
+    for (size_t i = 0; i < ann_network.network.num_tips(); ++i) {
+        ann_network.pseudo_clv_valid[i] = true;
+    }
+
+    // we need at most 3 temporary clv vectors for pseudologlikelihood, allocate them now
+    ann_network.tmp_clv_1.resize(ann_network.fake_treeinfo->partition_count);
+    ann_network.tmp_clv_2.resize(ann_network.fake_treeinfo->partition_count);
+    ann_network.tmp_clv_3.resize(ann_network.fake_treeinfo->partition_count);
+
+    // allocate the temporary clv vectors
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        // skip remote partitions
+        if (!ann_network.fake_treeinfo->partitions[p]) {
+            continue;
+        }
+        ann_network.tmp_clv_1[p] = create_single_empty_clv(ann_network.partition_clv_ranges[p]);
+        ann_network.tmp_clv_2[p] = create_single_empty_clv(ann_network.partition_clv_ranges[p]);
+        ann_network.tmp_clv_3[p] = create_single_empty_clv(ann_network.partition_clv_ranges[p]);
+    }
 }
 
 void init_annotated_network(AnnotatedNetwork &ann_network) {

@@ -1726,31 +1726,21 @@ double computePseudoLoglikelihood(AnnotatedNetwork& ann_network, int incremental
     fake_treeinfo.active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
     setup_pmatrices(ann_network, incremental, update_pmatrices);
 
-    // we need at most 3 temporary clv vectors, allocate them now
-    std::vector<double*> tmp_clv_1(ann_network.fake_treeinfo->partition_count);
-    std::vector<double*> tmp_clv_2(ann_network.fake_treeinfo->partition_count);
-    std::vector<double*> tmp_clv_3(ann_network.fake_treeinfo->partition_count);
-
-    // allocate the temporary clv vectors
-    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-        // skip remote partitions
-        if (!ann_network.fake_treeinfo->partitions[p]) {
-            continue;
-        }
-        tmp_clv_1[p] = create_single_empty_clv(ann_network.partition_clv_ranges[p]);
-        tmp_clv_2[p] = create_single_empty_clv(ann_network.partition_clv_ranges[p]);
-        tmp_clv_3[p] = create_single_empty_clv(ann_network.partition_clv_ranges[p]);
-    }
+    std::vector<double*>& tmp_clv1 = ann_network.tmp_clv_1;
+    std::vector<double*>& tmp_clv2 = ann_network.tmp_clv_2;
+    std::vector<double*>& tmp_clv3 = ann_network.tmp_clv_3;
 
     // reuse the clv vectors in the treeinfo object for the final clvs
 
     size_t fake_clv_index = ann_network.network.nodes.size();
     size_t fake_pmatrix_index = ann_network.network.edges.size();
 
-    // for now, don't do it incrementally
     for (size_t i = 0; i < ann_network.travbuffer.size(); ++i) {
         Node* node = ann_network.travbuffer[i];
         if (node->isTip()) {
+            continue;
+        }
+        if (incremental && ann_network.pseudo_clv_valid[node->clv_index]) {
             continue;
         }
 
@@ -1798,9 +1788,9 @@ double computePseudoLoglikelihood(AnnotatedNetwork& ann_network, int incremental
             double* left_clv = (left_child) ? partition->clv[left_child->clv_index] : partition->clv[fake_clv_index];
             double* right_clv = (right_child) ? partition->clv[right_child->clv_index] : partition->clv[fake_clv_index];
 
-            double* parent_clv_1 = tmp_clv_1[p];
-            double* parent_clv_2 = tmp_clv_2[p];
-            double* parent_clv_3 = tmp_clv_3[p];
+            double* parent_clv_1 = ann_network.tmp_clv_1[p];
+            double* parent_clv_2 = ann_network.tmp_clv_2[p];
+            double* parent_clv_3 = ann_network.tmp_clv_3[p];
 
             assert(parent_clv_1);
             assert(parent_clv_2);
@@ -1847,18 +1837,9 @@ double computePseudoLoglikelihood(AnnotatedNetwork& ann_network, int incremental
             }
         }
 
-        merge_clvs(ann_network, node->clv_index, tmp_clv_1, tmp_clv_2, tmp_clv_3, weight_1, weight_2, weight_3, weight_4);
-    }
+        merge_clvs(ann_network, node->clv_index, ann_network.tmp_clv_1, ann_network.tmp_clv_2, ann_network.tmp_clv_3, weight_1, weight_2, weight_3, weight_4);
 
-    // deallocate the temporary clv vectors
-    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-        // skip remote partitions
-        if (!ann_network.fake_treeinfo->partitions[p]) {
-            continue;
-        }
-        pll_aligned_free(tmp_clv_1[p]);
-        pll_aligned_free(tmp_clv_2[p]);
-        pll_aligned_free(tmp_clv_3[p]);
+        ann_network.pseudo_clv_valid[node->clv_index] = true;
     }
 
     // TODO: Compute the pseudo loglikelihood at the root

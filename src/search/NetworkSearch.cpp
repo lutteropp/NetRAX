@@ -700,7 +700,7 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T> candidates, Ne
 
 template <typename T>
 double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidates, double* best_score, BestNetworkData* bestNetworkData, bool enforce, bool silent) {
-    NetworkState state;
+    NetworkState state = extract_network_state(ann_network);
     bool found_better_state = rankCandidates(ann_network, candidates, &state, enforce, true);
     double old_score = scoreNetwork(ann_network);
 
