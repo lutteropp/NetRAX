@@ -234,14 +234,13 @@ void printCandidates(std::vector<T>& candidates) {
 }
 
 bool needsRecompute(AnnotatedNetwork& ann_network, const ArcRemovalMove& move) {
-    //return (ann_network.network.reticulation_nodes[ann_network.network.num_reticulations() - 1]->clv_index != move.v_clv_index);
-    return true;
+    return (ann_network.network.reticulation_nodes[ann_network.network.num_reticulations() - 1]->clv_index != move.v_clv_index);
 }
 bool needsRecompute(AnnotatedNetwork& ann_network, const ArcInsertionMove& move) {
-    return true;
+    return false;
 }
 bool needsRecompute(AnnotatedNetwork& ann_network, const RSPRMove& move) {
-    return true;//false;
+    return false;
 }
 bool needsRecompute(AnnotatedNetwork& ann_network, const RNNIMove& move) {
     return false;
@@ -507,10 +506,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
 
         performMove(ann_network, move);
         if (recompute_from_scratch) { // TODO: This is a hotfix that just masks some bugs. Fix the bugs properly.
-            setup_pmatrices(ann_network, 0, 1);
-            if (move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::DeltaMinusMove) {
-                computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
-            }
+            computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
         }
         optimizeReticulationProbs(ann_network);
 
@@ -636,10 +632,7 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T> candidates, Ne
 
         performMove(ann_network, move);
         if (recompute_from_scratch) { // TODO: This is a hotfix that just masks some bugs. Fix the bugs properly.
-            setup_pmatrices(ann_network, 0, 1);
-            if (move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::DeltaMinusMove) {
-                computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
-            }
+            computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
         }
         std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
         assert(!brlen_opt_candidates.empty());
