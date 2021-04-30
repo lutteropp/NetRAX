@@ -40,7 +40,12 @@ static double brent_target_networks(void *p, double x) {
     std::vector<std::vector<SumtableInfo>>* sumtables = ((BrentBrlenParams*) p)->sumtables;
     BrlenOptMethod brlenOptMethod = ((BrentBrlenParams*) p)->brlenOptMethod;
 
-    double old_x = ann_network->fake_treeinfo->branch_lengths[partition_index][pmatrix_index];
+    double old_x;
+    if (ann_network->fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
+        old_x = ann_network->fake_treeinfo->branch_lengths[partition_index][pmatrix_index];
+    } else {
+        old_x = ann_network->fake_treeinfo->linked_branch_lengths[pmatrix_index];
+    }
     double score;
     if (old_x == x) {
         if (brlenOptMethod == BrlenOptMethod::BRENT_REROOT_SUMTABLE) {
@@ -52,8 +57,17 @@ static double brent_target_networks(void *p, double x) {
             score = -1 * computeLoglikelihood(*ann_network);
         }
     } else {
-        ann_network->fake_treeinfo->branch_lengths[partition_index][pmatrix_index] = x;
-        invalidPmatrixIndexOnly(*ann_network, pmatrix_index);
+        if (ann_network->fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
+            ann_network->fake_treeinfo->branch_lengths[partition_index][pmatrix_index] = x;
+        } else {
+            ann_network->fake_treeinfo->linked_branch_lengths[pmatrix_index] = x;
+        }
+
+        if (brlenOptMethod != BrlenOptMethod::BRENT_NORMAL) {
+            invalidPmatrixIndexOnly(*ann_network, pmatrix_index);
+        } else {
+            invalidatePmatrixIndex(*ann_network, pmatrix_index);
+        }
 
         if (brlenOptMethod == BrlenOptMethod::BRENT_REROOT_SUMTABLE) {
             throw std::runtime_error("This is currently not supported");
