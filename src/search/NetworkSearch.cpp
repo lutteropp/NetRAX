@@ -521,7 +521,10 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
             assert(!brlen_opt_candidates.empty());
             
             //std::cout << "thread " << ParallelContext::local_proc_id() << ", " << "before brlen opt, candidate no. " << i << "\n";
+            //LikelihoodVariant old_variant = ann_network.options.likelihood_variant;
+            //ann_network.options.likelihood_variant = LikelihoodVariant::SARAH_PSEUDO;
             optimize_branches(ann_network, max_iters, max_iters_outside, radius, brlen_opt_candidates, true);
+            //ann_network.options.likelihood_variant = old_variant;
             optimizeReticulationProbs(ann_network);
             //std::cout << "thread " << ParallelContext::local_proc_id() << ", " << "after brlen opt, candidate no. " << i << "\n";
             /*
@@ -713,6 +716,7 @@ double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidat
         double pseudo = computePseudoLoglikelihood(ann_network);
         if (can_write()) {
             std::cout << "pseudo-loglh: " << pseudo << "\n";
+            std::cout << "pseudo-bic: " << bic(ann_network, pseudo) << "\n";
 
             if (!silent) std::cout << " Took " << toString(candidates[0].moveType) << "\n";
             if (!silent) std::cout << "  Logl: " << logl << ", BIC: " << bic_score << ", AIC: " << aic_score << ", AICc: " << aicc_score <<  "\n";
@@ -1121,6 +1125,7 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
     double pseudo = computePseudoLoglikelihood(ann_network);
     if (can_write()) {
         std::cout << "pseudo-loglh: " << pseudo << "\n";
+        std::cout << "pseudo-bic: " << bic(ann_network, pseudo) << "\n";
     }
 
     //optimizeAllNonTopology(ann_network, true);
@@ -1136,7 +1141,7 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
     wavesearch_main_internal(ann_network, bestNetworkData, typesBySpeed, start_state_to_reuse, best_state_to_reuse, &best_score, start_time, silent);
 }
 
-void run_single_start_waves(const NetraxOptions& netraxOptions, const RaxmlInstance& instance, const std::vector<MoveType>& typesBySpeed, std::mt19937& rng) {
+void run_single_start_waves(NetraxOptions& netraxOptions, const RaxmlInstance& instance, const std::vector<MoveType>& typesBySpeed, std::mt19937& rng) {
     /* non-master ranks load starting trees from a file */
     ParallelContext::global_mpi_barrier();
     netrax::AnnotatedNetwork ann_network = build_annotated_network(netraxOptions, instance);
@@ -1170,7 +1175,7 @@ void run_single_start_waves(const NetraxOptions& netraxOptions, const RaxmlInsta
     }
 }
 
-void run_random(const NetraxOptions& netraxOptions, const RaxmlInstance& instance, const std::vector<MoveType>& typesBySpeed, std::mt19937& rng) {
+void run_random(NetraxOptions& netraxOptions, const RaxmlInstance& instance, const std::vector<MoveType>& typesBySpeed, std::mt19937& rng) {
     std::uniform_int_distribution<long> dist(0, RAND_MAX);
     BestNetworkData bestNetworkData(netraxOptions.max_reticulations);
 

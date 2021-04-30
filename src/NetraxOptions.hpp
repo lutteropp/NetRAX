@@ -91,6 +91,7 @@ public:
     double brlen_smoothings = RAXML_BRLEN_SMOOTHINGS;
 
     BrlenOptMethod brlenOptMethod = BrlenOptMethod::NEWTON_RAPHSON;//BrlenOptMethod::BRENT_REROOT; //BrlenOptMethod::BRENT_REROOT_SUMTABLE; //BrlenOptMethod::BRENT_REROOT;//BrlenOptMethod::NEWTON_RAPHSON_REROOT;// BrlenOptMethod::BRENT_NORMAL;
+    //BrlenOptMethod brlenOptMethod = BrlenOptMethod::BRENT_NORMAL;
 
     LoadBalancing load_balance_method = LoadBalancing::benoit; //LoadBalancing::naive;
 

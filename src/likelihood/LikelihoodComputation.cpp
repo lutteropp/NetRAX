@@ -2007,8 +2007,11 @@ double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int 
     //just for debug
     //incremental = 0;
     //update_pmatrices = 1;
-    return computeLoglikelihoodImproved(ann_network, incremental, update_pmatrices);
-    //return computePseudoLoglikelihood(ann_network, incremental, update_pmatrices);
+    if (ann_network.options.likelihood_variant == LikelihoodVariant::SARAH_PSEUDO) {
+        return computePseudoLoglikelihood(ann_network, incremental, update_pmatrices);
+    } else {
+        return computeLoglikelihoodImproved(ann_network, incremental, update_pmatrices);
+    }
     //return computeLoglikelihoodNaiveUtree(ann_network, incremental, update_pmatrices);
 }
 
@@ -2065,6 +2068,7 @@ double bic(AnnotatedNetwork &ann_network, double logl) {
  */
 double scoreNetwork(AnnotatedNetwork &ann_network) {
     double logl = computeLoglikelihood(ann_network, 1, 1);
+
     double bic_score = bic(ann_network, logl);
     if (bic_score == std::numeric_limits<double>::infinity()) {
         std::cout << "logl: " << logl << "\n";

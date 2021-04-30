@@ -156,7 +156,7 @@ void pretty_print(const NetraxOptions &netraxOptions)
     }
 }
 
-void score_only(const NetraxOptions &netraxOptions, const RaxmlInstance& instance, std::mt19937 &rng)
+void score_only(NetraxOptions &netraxOptions, const RaxmlInstance& instance, std::mt19937 &rng)
 {
     netrax::AnnotatedNetwork ann_network = build_annotated_network(netraxOptions, instance);
     init_annotated_network(ann_network, rng);
@@ -208,7 +208,7 @@ void extract_taxon_names(const NetraxOptions &netraxOptions)
     }
 }
 
-void extract_displayed_trees(const NetraxOptions &netraxOptions, const RaxmlInstance& instance, std::mt19937 &rng)
+void extract_displayed_trees(NetraxOptions &netraxOptions, const RaxmlInstance& instance, std::mt19937 &rng)
 {
     std::vector<std::pair<std::string, double>> displayed_trees;
     netrax::AnnotatedNetwork ann_network = build_annotated_network(netraxOptions, instance);
@@ -246,7 +246,7 @@ void extract_displayed_trees(const NetraxOptions &netraxOptions, const RaxmlInst
     }
 }
 
-void scale_branches_only(const NetraxOptions &netraxOptions, const RaxmlInstance& instance, std::mt19937 &rng)
+void scale_branches_only(NetraxOptions &netraxOptions, const RaxmlInstance& instance, std::mt19937 &rng)
 {
     netrax::AnnotatedNetwork ann_network = build_annotated_network(netraxOptions, instance);
     init_annotated_network(ann_network, rng);
@@ -263,7 +263,7 @@ void scale_branches_only(const NetraxOptions &netraxOptions, const RaxmlInstance
     }
 }
 
-void network_distance_only(const NetraxOptions &netraxOptions, const RaxmlInstance& instance, std::mt19937 &rng)
+void network_distance_only(NetraxOptions &netraxOptions, const RaxmlInstance& instance, std::mt19937 &rng)
 {
     netrax::AnnotatedNetwork ann_network_1 = build_annotated_network_from_file(netraxOptions, instance, netraxOptions.first_network_path);
     init_annotated_network(ann_network_1, rng);
@@ -293,7 +293,7 @@ void network_distance_only(const NetraxOptions &netraxOptions, const RaxmlInstan
     }
 }
 
-void check_weird_network(const NetraxOptions &netraxOptions, const RaxmlInstance& instance, std::mt19937 &rng)
+void check_weird_network(NetraxOptions &netraxOptions, const RaxmlInstance& instance, std::mt19937 &rng)
 {
     std::vector<pll_utree_t *> displayed_trees;
     netrax::AnnotatedNetwork ann_network = build_annotated_network(netraxOptions, instance);
@@ -332,7 +332,7 @@ void check_weird_network(const NetraxOptions &netraxOptions, const RaxmlInstance
     }
 }
 
-void generate_random_network_only(const NetraxOptions &netraxOptions, const RaxmlInstance& instance, std::mt19937 &rng)
+void generate_random_network_only(NetraxOptions &netraxOptions, const RaxmlInstance& instance, std::mt19937 &rng)
 {
     std::uniform_int_distribution<long> dist(0, RAND_MAX);
     netrax::AnnotatedNetwork ann_network = build_random_annotated_network(netraxOptions, instance, dist(rng));
@@ -345,7 +345,7 @@ void generate_random_network_only(const NetraxOptions &netraxOptions, const Raxm
     }
 }
 
-void scale_reticulation_probs_only(const NetraxOptions &netraxOptions, const RaxmlInstance& instance, std::mt19937 &rng)
+void scale_reticulation_probs_only(NetraxOptions &netraxOptions, const RaxmlInstance& instance, std::mt19937 &rng)
 {
     netrax::AnnotatedNetwork ann_network = build_annotated_network(netraxOptions, instance);
     init_annotated_network(ann_network, rng);
@@ -378,7 +378,7 @@ bool no_parallelization_needed(const NetraxOptions& netraxOptions) {
     return false;
 }
 
-bool quick_function(const NetraxOptions& netraxOptions, const RaxmlInstance& instance) {
+bool quick_function(NetraxOptions& netraxOptions, const RaxmlInstance& instance) {
     std::mt19937 rng(netraxOptions.seed);
     if (netraxOptions.pretty_print_only) {
         if (netraxOptions.start_network_file.empty())
@@ -465,7 +465,7 @@ bool quick_function(const NetraxOptions& netraxOptions, const RaxmlInstance& ins
     return false;
 }
 
-void netrax_thread_main(const NetraxOptions& netraxOptions, const RaxmlInstance& instance) {
+void netrax_thread_main(NetraxOptions& netraxOptions, const RaxmlInstance& instance) {
     /* wait until master thread prepares all global data */
     //printf("WORKER: %u, LOCAL_THREAD: %u\n", ParallelContext::group_id(), ParallelContext::local_proc_id());
     ParallelContext::global_barrier();
@@ -498,7 +498,7 @@ void netrax_thread_main(const NetraxOptions& netraxOptions, const RaxmlInstance&
     ParallelContext::global_barrier();
 }
 
-void setup_parallel_stuff(const NetraxOptions& netraxOptions, RaxmlInstance& instance) {
+void setup_parallel_stuff(NetraxOptions& netraxOptions, RaxmlInstance& instance) {
     if (no_parallelization_needed(netraxOptions)) {
         instance.opts.num_threads = 1;
         instance.opts.num_ranks = 1;
