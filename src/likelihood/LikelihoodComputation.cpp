@@ -1804,36 +1804,17 @@ double computePseudoLoglikelihood(AnnotatedNetwork& ann_network, int incremental
             unsigned int* left_scaler = (!left_child || left_child->scaler_index == -1) ? nullptr : partition->scale_buffer[left_child->scaler_index];
             unsigned int* right_scaler = (!right_child || right_child->scaler_index == -1) ? nullptr : partition->scale_buffer[right_child->scaler_index];
 
-            if (left_child->getType() == NodeType::RETICULATION_NODE) {
-                if (right_child && right_child->getType() == NodeType::RETICULATION_NODE) {
-                    // left reticulation, right reticulation
-                    // case 1: take both
-                    pll_update_partials_single(partition, &take_both_op, 1, parent_clv_1, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
-                    // case 2: take left only
-                    pll_update_partials_single(partition, &take_both_op, 1, parent_clv_2, left_clv, partition->clv[fake_clv_index], parent_scaler, left_scaler, nullptr);
-                    // case 3: take right only
-                    pll_update_partials_single(partition, &take_both_op, 1, parent_clv_3, partition->clv[fake_clv_index], right_clv, parent_scaler, nullptr, right_scaler);
-                 } else {
-                    // left reticulation, right normal or null
-                    // case 1: take both
-                    pll_update_partials_single(partition, &take_both_op, 1, parent_clv_1, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
-                    // case 3: take right only
-                    pll_update_partials_single(partition, &take_both_op, 1, parent_clv_3, partition->clv[fake_clv_index], right_clv, parent_scaler, nullptr, right_scaler);
-                }
-            } else {
-                if (right_child && right_child->getType() == NodeType::RETICULATION_NODE) {
-                    // left normal, right reticulation
-                    // case 1: take both
-                    pll_update_partials_single(partition, &take_both_op, 1, parent_clv_1, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
-                    // case 2: take left only
-                    pll_update_partials_single(partition, &take_both_op, 1, parent_clv_2, left_clv, partition->clv[fake_clv_index], parent_scaler, left_scaler, nullptr);
-                } else {
-                    // left normal, right normal or null
-                    // case 1: take both
-                    pll_update_partials_single(partition, &take_both_op, 1, parent_clv_1, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
-                    // case 3: take right only
-                    pll_update_partials_single(partition, &take_both_op, 1, parent_clv_3, partition->clv[fake_clv_index], right_clv, parent_scaler, nullptr, right_scaler);
-                }
+            if (weight_1 > 0.0) {
+                // case 1: take both
+                pll_update_partials_single(partition, &take_both_op, 1, parent_clv_1, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
+            }
+            if (weight_2 > 0.0) {
+                // case 2: take left only
+                pll_update_partials_single(partition, &take_both_op, 1, parent_clv_2, left_clv, partition->clv[fake_clv_index], parent_scaler, left_scaler, nullptr);
+            }
+            if (weight_3 > 0.0) {
+                // case 3: take right only
+                pll_update_partials_single(partition, &take_both_op, 1, parent_clv_3, partition->clv[fake_clv_index], right_clv, parent_scaler, nullptr, right_scaler);
             }
         }
 
