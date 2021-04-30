@@ -20,4 +20,4 @@ outdir=$root/datasets_big_empirical
 
 mkdir -p $outdir
 
-mpirun $raxng --search --msa $ali --seed 42 --prefix $outdir --redo --site-repeats off
+mpirun $raxng --search --msa $ali --seed 42 --prefix $outdir --redo --site-repeats off --workers 1
