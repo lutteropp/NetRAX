@@ -139,6 +139,7 @@ struct NewtonBrlenParams
     size_t partition_index;
     std::vector<DisplayedTreeData>* oldTrees = nullptr;
     std::vector<std::vector<SumtableInfo> >* sumtables = nullptr;
+    std::vector<double*>* sumtables_pseudo = nullptr;
     double new_brlen;
 };
 
@@ -159,7 +160,13 @@ static void network_derivative_func_multi (void * parameters, double * proposal,
   }
 
   invalidPmatrixIndexOnly(*ann_network, params->pmatrix_index);
-  LoglDerivatives logl_derivatives = computeLoglikelihoodDerivatives(*ann_network, *(params->sumtables), *(params->oldTrees), params->pmatrix_index);
+
+  LoglDerivatives logl_derivatives;
+  if (ann_network->options.likelihood_variant == LikelihoodVariant::SARAH_PSEUDO) {
+      logl_derivatives = computeLoglikelihoodDerivativesPseudo(*ann_network, *(params->sumtables_pseudo), params->pmatrix_index);
+  } else {
+      logl_derivatives = computeLoglikelihoodDerivatives(*ann_network, *(params->sumtables), *(params->oldTrees), params->pmatrix_index);
+  }
 
   if (ann_network->fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
     for (size_t p = 0; p < ann_network->fake_treeinfo->partition_count; ++p) {
@@ -172,7 +179,7 @@ static void network_derivative_func_multi (void * parameters, double * proposal,
   }
 }
 
-double optimize_branch_newton_raphson(AnnotatedNetwork &ann_network, std::vector<std::vector<SumtableInfo> >& sumtables, std::vector<DisplayedTreeData>& oldTrees, size_t pmatrix_index, size_t partition_index, BrlenOptMethod brlenOptMethod, unsigned int max_iters) {
+double optimize_branch_newton_raphson(AnnotatedNetwork &ann_network, std::vector<std::vector<SumtableInfo> >& sumtables, std::vector<double*>& sumtables_pseudo, std::vector<DisplayedTreeData>& oldTrees, size_t pmatrix_index, size_t partition_index, BrlenOptMethod brlenOptMethod, unsigned int max_iters) {
     assert(brlenOptMethod == BrlenOptMethod::NEWTON_RAPHSON);
 
     double old_brlen;
@@ -197,6 +204,7 @@ double optimize_branch_newton_raphson(AnnotatedNetwork &ann_network, std::vector
     params.pmatrix_index = pmatrix_index;
     params.oldTrees = &oldTrees;
     params.sumtables = &sumtables;
+    params.sumtables_pseudo = &sumtables_pseudo;
     params.new_brlen = old_brlen;
     pllmod_opt_minimize_newton_multi(1,
                                     ann_network.options.brlen_min,
@@ -255,7 +263,7 @@ void add_neighbors_in_radius(AnnotatedNetwork& ann_network, std::unordered_set<s
     add_neighbors_in_radius(ann_network, candidates, pmatrix_index, radius, seen);
 }
 
-double optimize_branch(AnnotatedNetwork &ann_network, std::vector<DisplayedTreeData>& oldTrees, std::vector<std::vector<SumtableInfo> >& sumtables, size_t pmatrix_index, size_t partition_index, BrlenOptMethod brlenOptMethod, unsigned int max_iters) {
+double optimize_branch(AnnotatedNetwork &ann_network, std::vector<DisplayedTreeData>& oldTrees, std::vector<std::vector<SumtableInfo> >& sumtables, std::vector<double*>& sumtables_pseudo, size_t pmatrix_index, size_t partition_index, BrlenOptMethod brlenOptMethod, unsigned int max_iters) {
     ann_network.cached_logl_valid = false;
 
     double start_logl;
@@ -276,7 +284,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, std::vector<DisplayedTreeD
         } else {
             old_brlen = ann_network.fake_treeinfo->linked_branch_lengths[pmatrix_index];
         }
-        optimize_branch_newton_raphson(ann_network, sumtables, oldTrees, pmatrix_index, partition_index, brlenOptMethod, max_iters);
+        optimize_branch_newton_raphson(ann_network, sumtables, sumtables_pseudo, oldTrees, pmatrix_index, partition_index, brlenOptMethod, max_iters);
         double new_logl = computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index, 1, 1);
         if (new_logl < start_logl) { // this can happen in rare cases, if NR didn't converge. If it happens, reoad the old branch length.
             //std::cout << "reload old brlen\n";
@@ -317,6 +325,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
     assert(computeLoglikelihood(ann_network, 0, 1) == old_logl);
     std::vector<DisplayedTreeData> oldTrees;
     std::vector<std::vector<SumtableInfo> > sumtables;
+    std::vector<double*> sumtables_pseudo;
 
     // step 1: Do the virtual rerooting.
     if (brlenOptMethod != BrlenOptMethod::BRENT_NORMAL) {
@@ -332,7 +341,11 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
         assert(fabs(old_logl - computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index)) < 1E-3);
 
         if (brlenOptMethod == BrlenOptMethod::NEWTON_RAPHSON || brlenOptMethod == BrlenOptMethod::BRENT_REROOT_SUMTABLE) {
-            sumtables = computePartitionSumtables(ann_network, pmatrix_index);
+            if (ann_network.options.likelihood_variant == LikelihoodVariant::SARAH_PSEUDO) {
+                sumtables_pseudo = computePartitionSumtablesPseudo(ann_network, pmatrix_index);
+            } else {
+                sumtables = computePartitionSumtables(ann_network, pmatrix_index);
+            }
         }
     }
 
@@ -344,10 +357,10 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
                 continue;
             }
             // TODO: Set the active partitions in the fake_treeinfo
-            optimize_branch(ann_network, oldTrees, sumtables, pmatrix_index, p, brlenOptMethod, max_iters);
+            optimize_branch(ann_network, oldTrees, sumtables, sumtables_pseudo, pmatrix_index, p, brlenOptMethod, max_iters);
         }
     } else {
-        optimize_branch(ann_network, oldTrees, sumtables, pmatrix_index, 0, brlenOptMethod, max_iters); // partition_idx will get ignored anyway
+        optimize_branch(ann_network, oldTrees, sumtables, sumtables_pseudo, pmatrix_index, 0, brlenOptMethod, max_iters); // partition_idx will get ignored anyway
     }
 
     // restore the network root
@@ -389,6 +402,10 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
 
     assert(final_logl >= old_logl);
     #endif
+
+    for (size_t i = 0; i < sumtables_pseudo.size(); ++i) {
+        pll_aligned_free(sumtables_pseudo[i]);
+    }
 
     return final_logl;
 }
