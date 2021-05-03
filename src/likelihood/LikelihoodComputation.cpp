@@ -1726,15 +1726,10 @@ void merge_clvs(AnnotatedNetwork& ann_network,
 }
 
 double computePseudoLoglikelihood(AnnotatedNetwork& ann_network, int incremental, int update_pmatrices) {
-    Network &network = ann_network.network;
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
 
     fake_treeinfo.active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
     setup_pmatrices(ann_network, incremental, update_pmatrices);
-
-    std::vector<double*>& tmp_clv1 = ann_network.tmp_clv_1;
-    std::vector<double*>& tmp_clv2 = ann_network.tmp_clv_2;
-    std::vector<double*>& tmp_clv3 = ann_network.tmp_clv_3;
 
     // reuse the clv vectors in the treeinfo object for the final clvs
 
