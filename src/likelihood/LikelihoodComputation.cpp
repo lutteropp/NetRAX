@@ -1224,6 +1224,9 @@ void updateCLVsVirtualRerootTreesPseudo(AnnotatedNetwork& ann_network, Node* old
         Node* node = q.front();
         q.pop();
         affected_nodes.emplace(node->clv_index);
+        if (node == old_virtual_root) {
+            continue;
+        }
         if (node->getType() == NodeType::RETICULATION_NODE) {
             q.emplace(getReticulationFirstParent(ann_network.network, node));
             q.emplace(getReticulationSecondParent(ann_network.network, node));
