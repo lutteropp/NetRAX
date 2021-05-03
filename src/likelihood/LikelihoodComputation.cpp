@@ -1973,9 +1973,6 @@ double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int 
     if (ann_network.options.likelihood_variant == LikelihoodVariant::SARAH_PSEUDO) {
         return computePseudoLoglikelihood(ann_network, incremental, update_pmatrices);
     } else {
-        if (incremental) {
-            assert(fabs(computeLoglikelihoodImproved(ann_network, 1, 1) - computeLoglikelihoodImproved(ann_network, 0, 1)) < ann_network.options.lh_epsilon);
-        }
         return computeLoglikelihoodImproved(ann_network, incremental, update_pmatrices);
     }
     //return computeLoglikelihoodNaiveUtree(ann_network, incremental, update_pmatrices);

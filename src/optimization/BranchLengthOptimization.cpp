@@ -121,6 +121,13 @@ double optimize_branch_brent(AnnotatedNetwork &ann_network, std::vector<Displaye
     assert(new_brlen >= ann_network.options.brlen_min);
     assert(new_brlen <= ann_network.options.brlen_max);
 
+    if (ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
+        ann_network.fake_treeinfo->branch_lengths[partition_index][pmatrix_index] = new_brlen;
+    } else {
+        ann_network.fake_treeinfo->linked_branch_lengths[pmatrix_index] = new_brlen;
+    }
+    invalidatePmatrixIndex(ann_network, pmatrix_index);
+
     return new_brlen;
 }
 

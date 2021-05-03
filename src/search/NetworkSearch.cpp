@@ -474,7 +474,11 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
 
     double best_bic = std::numeric_limits<double>::infinity();
 
+    assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
+
     NetworkState oldState = extract_network_state(ann_network);
+
+    assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
 
     std::vector<ScoreItem<T> > scores(candidates.size());
 
@@ -497,7 +501,6 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
 
         assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
 
-        assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
         assert(network_states_equal(extract_network_state(ann_network), oldState));
         T move(candidates[i]);
         bool recompute_from_scratch = needsRecompute(ann_network, move);
@@ -508,6 +511,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
         if (recompute_from_scratch) { // TODO: This is a hotfix that just masks some bugs. Fix the bugs properly.
             computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
         }
+        assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
         optimizeReticulationProbs(ann_network);
 
         assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));

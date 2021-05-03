@@ -44,8 +44,6 @@ double optimize_reticulation(AnnotatedNetwork &ann_network, size_t reticulation_
     double tolerance = ann_network.options.tolerance;
 
     double start_logl = computeLoglikelihood(ann_network, 1, 1);
-    //double old_logl = ann_network.raxml_treeinfo->loglh(true);
-    //assert(start_logl == old_logl);
 
     double best_logl = start_logl;
     BrentBrprobParams params;
