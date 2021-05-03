@@ -1137,7 +1137,13 @@ PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned i
     double best_tree_logl_prime_score = -std::numeric_limits<double>::infinity();
     double best_tree_logl_prime_prime_score = -std::numeric_limits<double>::infinity();
 
-    double branch_length = ann_network.fake_treeinfo->branch_lengths[partition_idx][pmatrix_index];
+    double branch_length;
+    if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
+        branch_length = ann_network.fake_treeinfo->branch_lengths[partition_idx][pmatrix_index];
+    } else {
+        branch_length = ann_network.fake_treeinfo->linked_branch_lengths[pmatrix_index];
+    }
+
     double ** eigenvals = nullptr;
     double * prop_invar = nullptr;
     double * diagptable = nullptr;
