@@ -1670,8 +1670,55 @@ std::vector<std::vector<SumtableInfo> > computePartitionSumtables(AnnotatedNetwo
     return res;
 }
 
+double computeLoglikelihoodBrlenOptPseudo(AnnotatedNetwork &ann_network, unsigned int pmatrix_index, int incremental, int update_pmatrices) {
+    assert(ann_network.options.likelihood_variant == LikelihoodVariant::SARAH_PSEUDO);
+
+    Node* source = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
+    Node* target = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
+    setup_pmatrices(ann_network, incremental, update_pmatrices);
+
+    double network_pseudo_logl = 0.0;
+
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        // skip remote partitions
+        if (!ann_network.fake_treeinfo->partitions[p]) {
+            continue;
+        }
+
+        pll_partition_t* partition = ann_network.fake_treeinfo->partitions[p];
+
+        unsigned int* source_scaler = nullptr;
+        if (source->scaler_index != -1) {
+            source_scaler = partition->scale_buffer[source->scaler_index];
+        }
+        unsigned int* target_scaler = nullptr;
+        if (target->scaler_index != -1) {
+            target_scaler = partition->scale_buffer[target->scaler_index];
+        }
+        network_pseudo_logl += pll_compute_edge_loglikelihood(partition, source->clv_index, partition->clv[source->clv_index], source_scaler, 
+                                                    target->clv_index, partition->clv[target->clv_index], target_scaler, 
+                                                    pmatrix_index, ann_network.fake_treeinfo->param_indices[p], nullptr);
+    }
+
+    /* sum up pseudologlikelihood from all threads */
+    if (ann_network.fake_treeinfo->parallel_reduce_cb)
+    {
+        ann_network.fake_treeinfo->parallel_reduce_cb(ann_network.fake_treeinfo->parallel_context,
+                                    &network_pseudo_logl,
+                                    1,
+                                    PLLMOD_COMMON_REDUCE_SUM);
+    }
+
+    return network_pseudo_logl;
+}
+
+
 double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::vector<DisplayedTreeData>& oldTrees, unsigned int pmatrix_index, int incremental, int update_pmatrices) {
-    if (ann_network.cached_logl_valid) {
+    if (ann_network.options.likelihood_variant == LikelihoodVariant::SARAH_PSEUDO) {
+        return computeLoglikelihoodBrlenOptPseudo(ann_network, pmatrix_index, incremental, update_pmatrices);
+    }
+    
+    if (incremental && ann_network.cached_logl_valid) {
         return ann_network.cached_logl;
     }
     ann_network.fake_treeinfo->active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
@@ -1694,7 +1741,7 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
 
     //Instead of going over the-source-trees-only for final loglh evaluation, we need to go over all pairs of trees, one in source node and one in target node.
 
-    double network_logl = 0;
+    double network_logl = 0.0;
 
     
     std::vector<TreeLoglData> combinedTrees; // TODO
