@@ -42,8 +42,10 @@ double optimize_reticulation_linear_search(AnnotatedNetwork &ann_network, size_t
     double best_prob = ann_network.reticulation_probs[reticulation_index];
     double best_logl = computeLoglikelihood(ann_network);
 
-    for (int i = 1; i <= 100; ++i) {
-        double mid = 1.0/i;
+    double step = 1.0/1000;
+
+    for (int i = 0; i <= 1000; ++i) {
+        double mid = i * step;
 
         ann_network.reticulation_probs[reticulation_index] = mid;
         ann_network.cached_logl_valid = false;
