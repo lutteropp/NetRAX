@@ -1349,7 +1349,7 @@ PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned i
     return res;
 }
 
-LoglDerivatives computeLoglikelihoodDerivatives(AnnotatedNetwork& ann_network, const std::vector<std::vector<SumtableInfo> >& sumtables, const std::vector<DisplayedTreeData>& oldTrees, unsigned int pmatrix_index, bool incremental, bool update_pmatrices) {
+LoglDerivatives computeLoglikelihoodDerivatives(AnnotatedNetwork& ann_network, const std::vector<std::vector<SumtableInfo> >& sumtables, const std::vector<DisplayedTreeData>& oldTrees, unsigned int pmatrix_index) {
     //setup_pmatrices(ann_network, incremental, update_pmatrices);
     //double network_logl = 0.0;
     double network_logl_prime = 0.0;

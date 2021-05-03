@@ -159,7 +159,7 @@ static void network_derivative_func_multi (void * parameters, double * proposal,
   }
 
   invalidPmatrixIndexOnly(*ann_network, params->pmatrix_index);
-  LoglDerivatives logl_derivatives = computeLoglikelihoodDerivatives(*ann_network, *(params->sumtables), *(params->oldTrees), params->pmatrix_index, 1, 1);
+  LoglDerivatives logl_derivatives = computeLoglikelihoodDerivatives(*ann_network, *(params->sumtables), *(params->oldTrees), params->pmatrix_index);
 
   if (ann_network->fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
     for (size_t p = 0; p < ann_network->fake_treeinfo->partition_count; ++p) {

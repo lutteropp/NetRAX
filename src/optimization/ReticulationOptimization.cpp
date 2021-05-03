@@ -38,7 +38,32 @@ static double brent_target_networks_prob(void *p, double x) {
     return score;
 }
 
+double optimize_reticulation_linear_search(AnnotatedNetwork &ann_network, size_t reticulation_index) {
+    double best_prob = ann_network.reticulation_probs[reticulation_index];
+    double best_logl = computeLoglikelihood(ann_network);
+
+    for (int i = 1; i <= 100; ++i) {
+        double mid = 1.0/i;
+
+        ann_network.reticulation_probs[reticulation_index] = mid;
+        ann_network.cached_logl_valid = false;
+
+        double act_logl = computeLoglikelihood(ann_network);
+
+        if (act_logl > best_logl) {
+            best_logl = act_logl;
+            best_prob = mid;
+        }
+    }
+
+    ann_network.reticulation_probs[reticulation_index] = best_prob;
+    ann_network.cached_logl_valid = false;
+    return best_prob;
+}
+
 double optimize_reticulation(AnnotatedNetwork &ann_network, size_t reticulation_index) {
+    //return optimize_reticulation_linear_search(ann_network, reticulation_index);
+
     double min_brprob = ann_network.options.brprob_min;
     double max_brprob = ann_network.options.brprob_max;
     double tolerance = ann_network.options.tolerance;
