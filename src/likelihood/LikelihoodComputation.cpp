@@ -1211,20 +1211,35 @@ double computePseudoLoglikelihood(AnnotatedNetwork& ann_network, int incremental
 }
 
 void updateCLVsVirtualRerootTreesPseudo(AnnotatedNetwork& ann_network, Node* old_virtual_root, Node* new_virtual_root, Node* new_virtual_root_back) {
-    // 1.) for all paths from retNode to new_virtual_root:
-    //     1.1) Collect the reticulation nodes encountered on the path, build extra restrictions storing the reticulation configurations used
-    //     1.2) update CLVs on that path, using extra restrictions and append mode
-    std::vector<PathToVirtualRoot> paths = getPathsToVirtualRoot(ann_network, old_virtual_root, new_virtual_root, new_virtual_root_back);
+    assert(old_virtual_root == ann_network.network.root);
 
-    for (size_t p = 0; p < paths.size(); ++p) {
-        /*std::cout << "PROCESSING PATH " << p << " ON PARTITION " << partition_idx << "\n";
-        printPathToVirtualRoot(paths[p]);
-        std::cout << "The path has the following restrictions: \n";
-        printReticulationChoices(paths[p].reticulationChoices);*/
+    std::vector<ReticulationState> dont_care_vector(ann_network.options.max_reticulations, ReticulationState::DONT_CARE);
+    ReticulationConfigSet restrictionsSet(ann_network.options.max_reticulations);
+    restrictionsSet.configs.emplace_back(dont_care_vector);
 
-        for (size_t i = 0; i < paths[p].path.size(); ++i) {
-            assert((paths[p].path[i] != new_virtual_root) || ((paths[p].path[i] == new_virtual_root) && (i == paths[p].path.size() - 1)));
-            processNodePseudo(ann_network, 0, paths[p].path[i], paths[p].children[i]);
+    std::unordered_set<size_t> affected_nodes;
+    std::queue<Node*> q;
+    q.emplace(new_virtual_root);
+    while (!q.empty()) {
+        Node* node = q.front();
+        q.pop();
+        affected_nodes.emplace(node->clv_index);
+        if (node->getType() == NodeType::RETICULATION_NODE) {
+            q.emplace(getReticulationFirstParent(ann_network.network, node));
+            q.emplace(getReticulationSecondParent(ann_network.network, node));
+        } else {
+            q.emplace(getActiveParent(ann_network.network, node));
+        }
+    }
+
+    std::vector<Node*> parent = getParentPointers(ann_network, new_virtual_root);
+    parent[new_virtual_root->clv_index] = new_virtual_root_back;
+
+    for (int i = ann_network.travbuffer.size() - 1; i >= 0; --i) {
+        Node* node = ann_network.travbuffer[i];
+        if (affected_nodes.count(node->clv_index) > 0) {
+            std::vector<Node*> children = getCurrentChildren(ann_network, node, parent[node->clv_index], restrictionsSet);
+            processNodePseudo(ann_network, 0, node, children);
         }
     }
 }
