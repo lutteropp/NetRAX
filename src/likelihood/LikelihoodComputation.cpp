@@ -1974,7 +1974,7 @@ double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental, int 
         return computePseudoLoglikelihood(ann_network, incremental, update_pmatrices);
     } else {
         if (incremental) {
-            assert(computeLoglikelihoodImproved(ann_network, 1, 1) == computeLoglikelihoodImproved(ann_network, 0, 1));
+            assert(fabs(computeLoglikelihoodImproved(ann_network, 1, 1) - computeLoglikelihoodImproved(ann_network, 0, 1)) < ann_network.options.lh_epsilon);
         }
         return computeLoglikelihoodImproved(ann_network, incremental, update_pmatrices);
     }
