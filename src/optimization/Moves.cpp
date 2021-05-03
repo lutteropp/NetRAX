@@ -2137,18 +2137,29 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     assert(assertConsecutiveIndices(ann_network));
     Network &network = ann_network.network;
     Link *from_a_link = getLinkToNode(network, move.a_clv_index, move.u_clv_index);
+    assert(from_a_link);
     Link *to_b_link = getLinkToNode(network, move.b_clv_index, move.u_clv_index);
+    assert(to_b_link);
     Link *from_c_link = getLinkToNode(network, move.c_clv_index, move.v_clv_index);
+    assert(from_c_link);
     Link *to_d_link = getLinkToNode(network, move.d_clv_index, move.v_clv_index);
+    assert(to_d_link);
 
     std::vector<double> a_b_edge_length = move.a_b_len;
     std::vector<double> c_d_edge_length = move.c_d_len;
 
+    assert(getEdgeTo(network, move.a_clv_index, move.u_clv_index));
     size_t a_u_edge_index = getEdgeTo(network, move.a_clv_index, move.u_clv_index)->pmatrix_index;
+    assert(getEdgeTo(network, move.u_clv_index, move.b_clv_index));
     size_t u_b_edge_index = getEdgeTo(network, move.u_clv_index, move.b_clv_index)->pmatrix_index;
+    assert(getEdgeTo(network, move.c_clv_index, move.v_clv_index));
     size_t c_v_edge_index = getEdgeTo(network, move.c_clv_index, move.v_clv_index)->pmatrix_index;
+    assert(getEdgeTo(network, move.v_clv_index, move.d_clv_index));
     size_t v_d_edge_index = getEdgeTo(network, move.v_clv_index, move.d_clv_index)->pmatrix_index;
+    assert(getEdgeTo(network, move.u_clv_index, move.v_clv_index));
     size_t u_v_edge_index = getEdgeTo(network, move.u_clv_index, move.v_clv_index)->pmatrix_index;
+
+    assert(network.num_reticulations() <= network.reticulation_nodes.size());
 
     for (size_t i = 0; i < network.num_reticulations(); ++i) {
         assert(network.reticulation_nodes[i]->type == NodeType::RETICULATION_NODE);
@@ -2161,10 +2172,15 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     for (size_t i = 0; i < network.num_reticulations(); ++i) {
         assert(network.reticulation_nodes[i]->type == NodeType::RETICULATION_NODE);
     }
+    assert(a_u_edge_index < network.edges_by_index.size());
     removeEdge(ann_network, network.edges_by_index[a_u_edge_index]);
+    assert(u_b_edge_index < network.edges_by_index.size());
     removeEdge(ann_network, network.edges_by_index[u_b_edge_index]);
+    assert(c_v_edge_index < network.edges_by_index.size());
     removeEdge(ann_network, network.edges_by_index[c_v_edge_index]);
+    assert(v_d_edge_index < network.edges_by_index.size());
     removeEdge(ann_network, network.edges_by_index[v_d_edge_index]);
+    assert(u_v_edge_index < network.edges_by_index.size());
     removeEdge(ann_network, network.edges_by_index[u_v_edge_index]);
 
     for (size_t i = 0; i < network.num_reticulations(); ++i) {
@@ -2173,37 +2189,47 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
 
     Edge *a_b_edge = addEdge(ann_network, from_a_link, to_b_link, a_b_edge_length[0],
             move.wanted_ab_pmatrix_index); // was ub before
+    assert(a_b_edge);
     Edge *c_d_edge = addEdge(ann_network, from_c_link, to_d_link, c_d_edge_length[0],
             move.wanted_cd_pmatrix_index); // was vd before
+    assert(c_d_edge);
     set_edge_lengths(ann_network, a_b_edge->pmatrix_index, a_b_edge_length);
     set_edge_lengths(ann_network, c_d_edge->pmatrix_index, c_d_edge_length);
 
     repairConsecutiveIndices(ann_network, move);
 
+    assert(move.b_clv_index < network.nodes_by_index.size());
     Node *b = network.nodes_by_index[move.b_clv_index];
+    assert(b);
     if (b->type == NodeType::RETICULATION_NODE) {
         // u is no longer parent of b, but a is now the parent
         Link *badToParentLink = nullptr;
+        assert(b->getReticulationData());
         if (getReticulationFirstParentPmatrixIndex(b) == u_b_edge_index) {
             badToParentLink = b->getReticulationData()->link_to_first_parent;
         } else {
             assert(getReticulationSecondParentPmatrixIndex(b) == u_b_edge_index);
             badToParentLink = b->getReticulationData()->link_to_second_parent;
         }
+        assert(badToParentLink);
         badToParentLink->outer = from_a_link;
         badToParentLink->outer->outer = badToParentLink;
     }
 
+    assert(move.d_clv_index < network.nodes_by_index.size());
     Node *d = network.nodes_by_index[move.d_clv_index];
+    assert(d);
     if (d->type == NodeType::RETICULATION_NODE) {
         // v is no longer parent of d, but c is now the parent
         Link *badToParentLink = nullptr;
+        assert(d->getReticulationData());
         if (getReticulationFirstParentPmatrixIndex(d) == v_d_edge_index) {
             badToParentLink = d->getReticulationData()->link_to_first_parent;
         } else {
             assert(getReticulationSecondParentPmatrixIndex(d) == v_d_edge_index);
             badToParentLink = d->getReticulationData()->link_to_second_parent;
         }
+        assert(badToParentLink);
         badToParentLink->outer = from_c_link;
         badToParentLink->outer->outer = badToParentLink;
     }
