@@ -1034,7 +1034,7 @@ void updateCLVsVirtualRerootTrees(AnnotatedNetwork& ann_network, Node* old_virtu
     assert(new_virtual_root);
 
     // 1.) for all paths from retNode to new_virtual_root:
-    //     1.1) Collect the reticulation nodes encountered on the path, build exta restrictions storing the reticulation configurations used
+    //     1.1) Collect the reticulation nodes encountered on the path, build extra restrictions storing the reticulation configurations used
     //     1.2) update CLVs on that path, using extra restrictions and append mode
     std::vector<PathToVirtualRoot> paths = getPathsToVirtualRoot(ann_network, old_virtual_root, new_virtual_root, new_virtual_root_back);
 
@@ -1725,6 +1725,92 @@ void merge_clvs(AnnotatedNetwork& ann_network,
     }
 }
 
+void processNodePseudo(AnnotatedNetwork& ann_network, int incremental, Node* node, std::vector<Node*>& children) {
+    if (node->isTip()) {
+        return;
+    }
+    if (incremental && ann_network.pseudo_clv_valid[node->clv_index]) {
+        return;
+    }
+    size_t fake_clv_index = ann_network.network.nodes.size();
+    size_t fake_pmatrix_index = ann_network.network.edges.size();
+    assert(!children.empty());
+    assert(children.size() <= 2);
+    Node* left_child = children[0];
+    Node* right_child = (children.size() == 1) ? nullptr : children[1];
+
+    pll_operation_t take_both_op = buildOperation(ann_network.network, node, left_child, right_child, fake_clv_index, fake_pmatrix_index);
+    pll_operation_t take_left_only_op = buildOperation(ann_network.network, node, left_child, nullptr, fake_clv_index, fake_pmatrix_index);
+    pll_operation_t take_right_only_op = buildOperation(ann_network.network, node, nullptr, right_child, fake_clv_index, fake_pmatrix_index);
+
+    double p_left = 1.0;
+    double p_right = 1.0;
+    if (left_child && left_child->getType() == NodeType::RETICULATION_NODE) {
+        if (node == getReticulationFirstParent(ann_network.network, left_child)) {
+            p_left = getReticulationFirstParentProb(ann_network, left_child);
+        } else {
+            assert(node == getReticulationSecondParent(ann_network.network, left_child));
+            p_left = getReticulationSecondParentProb(ann_network, left_child);
+        }
+    }
+    if (right_child && right_child->getType() == NodeType::RETICULATION_NODE) {
+        if (node == getReticulationFirstParent(ann_network.network, right_child)) {
+            p_right = getReticulationFirstParentProb(ann_network, right_child);
+        } else {
+            assert(node == getReticulationSecondParent(ann_network.network, right_child));
+            p_right = getReticulationSecondParentProb(ann_network, right_child);
+        }
+    }
+    double weight_1 = p_left * p_right;
+    double weight_2 = p_left * (1.0 - p_right);
+    double weight_3 = (1.0 - p_left) * p_right;
+    double weight_4 = (1.0 - p_left) * (1.0 - p_right);
+
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        // skip remote partitions
+        if (!ann_network.fake_treeinfo->partitions[p]) {
+            continue;
+        }
+
+        pll_partition_t* partition = ann_network.fake_treeinfo->partitions[p];
+        double* left_clv = (left_child) ? partition->clv[left_child->clv_index] : partition->clv[fake_clv_index];
+        double* right_clv = (right_child) ? partition->clv[right_child->clv_index] : partition->clv[fake_clv_index];
+
+        double* parent_clv_1 = ann_network.tmp_clv_1[p];
+        double* parent_clv_2 = ann_network.tmp_clv_2[p];
+        double* parent_clv_3 = ann_network.tmp_clv_3[p];
+
+        assert(parent_clv_1);
+        assert(parent_clv_2);
+        assert(parent_clv_3);
+
+        assert(ann_network.fake_treeinfo->partitions[p]->clv[node->clv_index]);
+        assert(left_clv || left_child->isTip());
+        assert(right_clv || right_child->isTip());
+
+        unsigned int* parent_scaler = (node->scaler_index == -1) ? nullptr : partition->scale_buffer[node->scaler_index];
+        unsigned int* left_scaler = (!left_child || left_child->scaler_index == -1) ? nullptr : partition->scale_buffer[left_child->scaler_index];
+        unsigned int* right_scaler = (!right_child || right_child->scaler_index == -1) ? nullptr : partition->scale_buffer[right_child->scaler_index];
+
+        if (weight_1 > 0.0) {
+            // case 1: take both
+            pll_update_partials_single(partition, &take_both_op, 1, parent_clv_1, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
+        }
+        if (weight_2 > 0.0) {
+            // case 2: take left only
+            pll_update_partials_single(partition, &take_left_only_op, 1, parent_clv_2, left_clv, partition->clv[fake_clv_index], parent_scaler, left_scaler, nullptr);
+        }
+        if (weight_3 > 0.0) {
+            // case 3: take right only
+            pll_update_partials_single(partition, &take_right_only_op, 1, parent_clv_3, partition->clv[fake_clv_index], right_clv, parent_scaler, nullptr, right_scaler);
+        }
+    }
+
+    merge_clvs(ann_network, node->clv_index, ann_network.tmp_clv_1, ann_network.tmp_clv_2, ann_network.tmp_clv_3, weight_1, weight_2, weight_3, weight_4);
+
+    ann_network.pseudo_clv_valid[node->clv_index] = true;
+}
+
 double computePseudoLoglikelihood(AnnotatedNetwork& ann_network, int incremental, int update_pmatrices) {
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
 
@@ -1732,96 +1818,11 @@ double computePseudoLoglikelihood(AnnotatedNetwork& ann_network, int incremental
     setup_pmatrices(ann_network, incremental, update_pmatrices);
 
     // reuse the clv vectors in the treeinfo object for the final clvs
-
-    size_t fake_clv_index = ann_network.network.nodes.size();
-    size_t fake_pmatrix_index = ann_network.network.edges.size();
-
     for (size_t i = 0; i < ann_network.travbuffer.size(); ++i) {
         Node* node = ann_network.travbuffer[i];
-        if (node->isTip()) {
-            continue;
-        }
-        if (incremental && ann_network.pseudo_clv_valid[node->clv_index]) {
-            continue;
-        }
-
-        // now we are computing the pseudo-clv...
+        // now we are computing the pseudo-clv..
         std::vector<Node*> children = getChildren(ann_network.network, node);
-        assert(!children.empty());
-        assert(children.size() <= 2);
-        Node* left_child = children[0];
-        Node* right_child = (children.size() == 1) ? nullptr : children[1];
-
-        pll_operation_t take_both_op = buildOperation(ann_network.network, node, left_child, right_child, fake_clv_index, fake_pmatrix_index);
-        pll_operation_t take_left_only_op = buildOperation(ann_network.network, node, left_child, nullptr, fake_clv_index, fake_pmatrix_index);
-        pll_operation_t take_right_only_op = buildOperation(ann_network.network, node, nullptr, right_child, fake_clv_index, fake_pmatrix_index);
-
-        double p_left = 1.0;
-        double p_right = 1.0;
-        if (left_child && left_child->getType() == NodeType::RETICULATION_NODE) {
-            if (node == getReticulationFirstParent(ann_network.network, left_child)) {
-                p_left = getReticulationFirstParentProb(ann_network, left_child);
-            } else {
-                assert(node == getReticulationSecondParent(ann_network.network, left_child));
-                p_left = getReticulationSecondParentProb(ann_network, left_child);
-            }
-        }
-        if (right_child && right_child->getType() == NodeType::RETICULATION_NODE) {
-            if (node == getReticulationFirstParent(ann_network.network, right_child)) {
-                p_right = getReticulationFirstParentProb(ann_network, right_child);
-            } else {
-                assert(node == getReticulationSecondParent(ann_network.network, right_child));
-                p_right = getReticulationSecondParentProb(ann_network, right_child);
-            }
-        }
-        double weight_1 = p_left * p_right;
-        double weight_2 = p_left * (1.0 - p_right);
-        double weight_3 = (1.0 - p_left) * p_right;
-        double weight_4 = (1.0 - p_left) * (1.0 - p_right);
-
-        for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-            // skip remote partitions
-            if (!ann_network.fake_treeinfo->partitions[p]) {
-                continue;
-            }
-
-            pll_partition_t* partition = ann_network.fake_treeinfo->partitions[p];
-            double* left_clv = (left_child) ? partition->clv[left_child->clv_index] : partition->clv[fake_clv_index];
-            double* right_clv = (right_child) ? partition->clv[right_child->clv_index] : partition->clv[fake_clv_index];
-
-            double* parent_clv_1 = ann_network.tmp_clv_1[p];
-            double* parent_clv_2 = ann_network.tmp_clv_2[p];
-            double* parent_clv_3 = ann_network.tmp_clv_3[p];
-
-            assert(parent_clv_1);
-            assert(parent_clv_2);
-            assert(parent_clv_3);
-
-            assert(ann_network.fake_treeinfo->partitions[p]->clv[node->clv_index]);
-            assert(left_clv || left_child->isTip());
-            assert(right_clv || right_child->isTip());
-
-            unsigned int* parent_scaler = (node->scaler_index == -1) ? nullptr : partition->scale_buffer[node->scaler_index];
-            unsigned int* left_scaler = (!left_child || left_child->scaler_index == -1) ? nullptr : partition->scale_buffer[left_child->scaler_index];
-            unsigned int* right_scaler = (!right_child || right_child->scaler_index == -1) ? nullptr : partition->scale_buffer[right_child->scaler_index];
-
-            if (weight_1 > 0.0) {
-                // case 1: take both
-                pll_update_partials_single(partition, &take_both_op, 1, parent_clv_1, left_clv, right_clv, parent_scaler, left_scaler, right_scaler);
-            }
-            if (weight_2 > 0.0) {
-                // case 2: take left only
-                pll_update_partials_single(partition, &take_left_only_op, 1, parent_clv_2, left_clv, partition->clv[fake_clv_index], parent_scaler, left_scaler, nullptr);
-            }
-            if (weight_3 > 0.0) {
-                // case 3: take right only
-                pll_update_partials_single(partition, &take_right_only_op, 1, parent_clv_3, partition->clv[fake_clv_index], right_clv, parent_scaler, nullptr, right_scaler);
-            }
-        }
-
-        merge_clvs(ann_network, node->clv_index, ann_network.tmp_clv_1, ann_network.tmp_clv_2, ann_network.tmp_clv_3, weight_1, weight_2, weight_3, weight_4);
-
-        ann_network.pseudo_clv_valid[node->clv_index] = true;
+        processNodePseudo(ann_network, incremental, node, children);
     }
 
     // Compute the pseudo loglikelihood at the root
