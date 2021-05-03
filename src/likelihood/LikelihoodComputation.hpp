@@ -93,7 +93,9 @@ std::vector<DisplayedTreeData> extractOldTrees(AnnotatedNetwork& ann_network, No
 double computePseudoLoglikelihood(AnnotatedNetwork& ann_network, int incremental = 1, int update_pmatrices = 1);
 double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental = 1, int update_pmatrices = 1);
 
+LoglDerivatives computeLoglikelihoodDerivativesPseudo(AnnotatedNetwork& ann_network, const std::vector<double*>& sumtables, unsigned int pmatrix_index);
 LoglDerivatives computeLoglikelihoodDerivatives(AnnotatedNetwork& ann_network, const std::vector<std::vector<SumtableInfo> >& sumtables, const std::vector<DisplayedTreeData>& oldTree, unsigned int pmatrix_index);
+std::vector<double*> computePartitionSumtablesPseudo(AnnotatedNetwork& ann_network, unsigned int pmatrix_index);
 std::vector<std::vector<SumtableInfo> > computePartitionSumtables(AnnotatedNetwork& ann_network, unsigned int pmatrix_index);
 //double computeLoglikelihoodFromSumtables(AnnotatedNetwork& ann_network, const std::vector<std::vector<SumtableInfo> >& sumtables, const std::vector<std::vector<TreeLoglData> >& oldTrees, unsigned int pmatrix_index, bool incremental = true, bool update_pmatrices = true);
 

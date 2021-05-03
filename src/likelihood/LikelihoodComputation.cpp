@@ -1329,6 +1329,7 @@ struct PartitionLhData {
 };
 
 PartitionLhData computePartitionLhDataPseudo(AnnotatedNetwork& ann_network, unsigned int partition_idx, double* sumtable, unsigned int pmatrix_index) {
+    assert(sumtable);
     PartitionLhData res{0.0, 0.0};
 
     // TODO: Get NetRAX to correctly work with scaled brlens...
@@ -1408,8 +1409,7 @@ PartitionLhData computePartitionLhDataPseudo(AnnotatedNetwork& ann_network, unsi
 
 PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned int partition_idx, const std::vector<SumtableInfo>& sumtables, const std::vector<DisplayedTreeData>& oldTrees, unsigned int pmatrix_index) {
     if (ann_network.options.likelihood_variant == LikelihoodVariant::SARAH_PSEUDO) {
-        assert(sumtables.size() == 1);
-        return computePartitionLhDataPseudo(ann_network, partition_idx, sumtables[0].sumtable, pmatrix_index);
+        throw std::runtime_error("Call computePartitionLhDataPseudo instead!");
     }
     
     PartitionLhData res{0.0, 0.0};
@@ -1655,6 +1655,38 @@ PartitionLhData computePartitionLhData(AnnotatedNetwork& ann_network, unsigned i
     return res;
 }
 
+LoglDerivatives computeLoglikelihoodDerivativesPseudo(AnnotatedNetwork& ann_network, const std::vector<double*>& sumtables, unsigned int pmatrix_index) {
+    assert(sumtables.size() == ann_network.fake_treeinfo->partition_count);
+    std::vector<double> partition_logls_prime(ann_network.fake_treeinfo->partition_count, 0.0);
+    std::vector<double> partition_logls_prime_prime(ann_network.fake_treeinfo->partition_count, 0.0);
+
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        // skip remote partitions
+        if (!ann_network.fake_treeinfo->partitions[p]) {
+            continue;
+        }
+        PartitionLhData pdata = computePartitionLhDataPseudo(ann_network, p, sumtables[p], pmatrix_index);
+        partition_logls_prime[p] = pdata.logl_prime;
+        partition_logls_prime_prime[p] = pdata.logl_prime_prime;
+    }
+
+    /* sum up derivatives from all threads */
+    if (ann_network.fake_treeinfo->parallel_reduce_cb)
+    {
+        ann_network.fake_treeinfo->parallel_reduce_cb(ann_network.fake_treeinfo->parallel_context,
+                                    partition_logls_prime.data(),
+                                    ann_network.fake_treeinfo->partition_count,
+                                    PLLMOD_COMMON_REDUCE_SUM);
+        ann_network.fake_treeinfo->parallel_reduce_cb(ann_network.fake_treeinfo->parallel_context,
+                                    partition_logls_prime_prime.data(),
+                                    ann_network.fake_treeinfo->partition_count,
+                                    PLLMOD_COMMON_REDUCE_SUM);
+    }
+    double pseudo_logl_prime = std::accumulate(partition_logls_prime.begin(), partition_logls_prime.end(), 0.0);
+    double pseudo_logl_prime_prime = std::accumulate(partition_logls_prime_prime.begin(), partition_logls_prime_prime.end(), 0.0);
+    return LoglDerivatives{pseudo_logl_prime, pseudo_logl_prime_prime, partition_logls_prime, partition_logls_prime_prime};
+}
+
 LoglDerivatives computeLoglikelihoodDerivatives(AnnotatedNetwork& ann_network, const std::vector<std::vector<SumtableInfo> >& sumtables, const std::vector<DisplayedTreeData>& oldTrees, unsigned int pmatrix_index) {
     //setup_pmatrices(ann_network, incremental, update_pmatrices);
     //double network_logl = 0.0;
@@ -1724,7 +1756,37 @@ SumtableInfo computeSumtable(AnnotatedNetwork& ann_network, size_t partition_idx
     return sumtableInfo;
 }
 
+std::vector<double*> computePartitionSumtablesPseudo(AnnotatedNetwork& ann_network, unsigned int pmatrix_index) {
+    std::vector<double*> res(ann_network.fake_treeinfo->partition_count, nullptr);
+    Node* source = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
+    Node* target = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
+
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {    
+        pll_partition_t* partition = ann_network.fake_treeinfo->partitions[p];
+        // skip remote partitions
+        if (!partition) {
+            continue;
+        }
+        size_t sumtableSize = (partition->sites + partition->states) * partition->rate_cats * partition->states_padded;
+        res[p] = (double*) pll_aligned_alloc(sumtableSize * sizeof(double), partition->alignment);
+        unsigned int* source_scaler = nullptr;
+        if (source->scaler_index != -1) {
+            source_scaler = partition->scale_buffer[source->scaler_index];
+        }
+        unsigned int* target_scaler = nullptr;
+        if (target->scaler_index != -1) {
+            target_scaler = partition->scale_buffer[target->scaler_index];
+        }
+        pll_update_sumtable(partition, source->clv_index, partition->clv[source->clv_index], target->clv_index, partition->clv[target->clv_index], source_scaler, target_scaler, ann_network.fake_treeinfo->param_indices[p], res[p]);
+    }
+    return res;
+}
+
 std::vector<std::vector<SumtableInfo> > computePartitionSumtables(AnnotatedNetwork& ann_network, unsigned int pmatrix_index) {
+    if (ann_network.options.likelihood_variant == LikelihoodVariant::SARAH_PSEUDO) {
+        throw std::runtime_error("Call computePartitionSumtablesPseudo instead!");
+    }
+
     std::vector<std::vector<SumtableInfo> > res(ann_network.fake_treeinfo->partition_count);
     Node* source = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
     Node* target = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
