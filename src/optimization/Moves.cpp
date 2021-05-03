@@ -2267,6 +2267,10 @@ void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
 
     bool all_clvs_valid = true;
     for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
+        // skip remote partitions
+        if (!ann_network.fake_treeinfo->partitions[i]) {
+            continue;
+        }
         all_clvs_valid &= ann_network.fake_treeinfo->clv_valid[i][ann_network.network.root->clv_index];
     }
     assert(!all_clvs_valid);
