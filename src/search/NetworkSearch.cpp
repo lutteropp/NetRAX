@@ -519,14 +519,17 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
         if (!hasBadReticulation(ann_network) || ((move.moveType != MoveType::DeltaPlusMove) && (move.moveType != MoveType::ArcInsertionMove))) {
             std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
             assert(!brlen_opt_candidates.empty());
-            
-            //std::cout << "thread " << ParallelContext::local_proc_id() << ", " << "before brlen opt, candidate no. " << i << "\n";
-            //LikelihoodVariant old_variant = ann_network.options.likelihood_variant;
+
+            //ParallelContext::mpi_barrier();
+            //LikelihoodVariant oldVariant = ann_network.options.likelihood_variant;
             //ann_network.options.likelihood_variant = LikelihoodVariant::SARAH_PSEUDO;
+            
             optimize_branches(ann_network, max_iters, max_iters_outside, radius, brlen_opt_candidates, true);
-            //ann_network.options.likelihood_variant = old_variant;
+
+            //ann_network.options.likelihood_variant = oldVariant;
+            //ParallelContext::mpi_barrier();
+
             optimizeReticulationProbs(ann_network);
-            //std::cout << "thread " << ParallelContext::local_proc_id() << ", " << "after brlen opt, candidate no. " << i << "\n";
             /*
             if (move->moveType == MoveType::ArcInsertionMove || move->moveType == MoveType::DeltaPlusMove) {
                 optimize_branches(ann_network, max_iters, 1, radius, brlen_opt_candidates, false);

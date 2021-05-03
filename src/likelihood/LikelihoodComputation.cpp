@@ -1217,6 +1217,9 @@ void updateCLVsVirtualRerootTreesPseudo(AnnotatedNetwork& ann_network, Node* old
     ReticulationConfigSet restrictionsSet(ann_network.options.max_reticulations);
     restrictionsSet.configs.emplace_back(dont_care_vector);
 
+    std::vector<Node*> parent = getParentPointers(ann_network, new_virtual_root);
+    parent[new_virtual_root->clv_index] = new_virtual_root_back;
+
     std::unordered_set<size_t> affected_nodes;
     std::queue<Node*> q;
     q.emplace(new_virtual_root);
@@ -1234,9 +1237,6 @@ void updateCLVsVirtualRerootTreesPseudo(AnnotatedNetwork& ann_network, Node* old
             q.emplace(getActiveParent(ann_network.network, node));
         }
     }
-
-    std::vector<Node*> parent = getParentPointers(ann_network, new_virtual_root);
-    parent[new_virtual_root->clv_index] = new_virtual_root_back;
 
     for (int i = ann_network.travbuffer.size() - 1; i >= 0; --i) {
         Node* node = ann_network.travbuffer[i];
@@ -1661,10 +1661,6 @@ LoglDerivatives computeLoglikelihoodDerivativesPseudo(AnnotatedNetwork& ann_netw
     std::vector<double> partition_logls_prime_prime(ann_network.fake_treeinfo->partition_count, 0.0);
 
     for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-        // skip remote partitions
-        if (!ann_network.fake_treeinfo->partitions[p]) {
-            continue;
-        }
         PartitionLhData pdata = computePartitionLhDataPseudo(ann_network, p, sumtables[p], pmatrix_index);
         partition_logls_prime[p] = pdata.logl_prime;
         partition_logls_prime_prime[p] = pdata.logl_prime_prime;
@@ -1684,6 +1680,7 @@ LoglDerivatives computeLoglikelihoodDerivativesPseudo(AnnotatedNetwork& ann_netw
     }
     double pseudo_logl_prime = std::accumulate(partition_logls_prime.begin(), partition_logls_prime.end(), 0.0);
     double pseudo_logl_prime_prime = std::accumulate(partition_logls_prime_prime.begin(), partition_logls_prime_prime.end(), 0.0);
+
     return LoglDerivatives{pseudo_logl_prime, pseudo_logl_prime_prime, partition_logls_prime, partition_logls_prime_prime};
 }
 

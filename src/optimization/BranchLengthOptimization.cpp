@@ -206,6 +206,7 @@ double optimize_branch_newton_raphson(AnnotatedNetwork &ann_network, std::vector
     params.sumtables = &sumtables;
     params.sumtables_pseudo = &sumtables_pseudo;
     params.new_brlen = old_brlen;
+
     pllmod_opt_minimize_newton_multi(1,
                                     ann_network.options.brlen_min,
                                     &(params.new_brlen),
@@ -329,7 +330,9 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
 
     // step 1: Do the virtual rerooting.
     if (brlenOptMethod != BrlenOptMethod::BRENT_NORMAL) {
-        oldTrees = extractOldTrees(ann_network, ann_network.network.root);
+        if (ann_network.options.likelihood_variant != LikelihoodVariant::SARAH_PSEUDO) {
+            oldTrees = extractOldTrees(ann_network, ann_network.network.root);
+        }
         Node* old_virtual_root = ann_network.network.root;
         Node* new_virtual_root = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
         if (brlenOptMethod != BrlenOptMethod::BRENT_NORMAL) {
