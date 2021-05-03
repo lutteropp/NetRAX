@@ -1816,11 +1816,11 @@ double computePseudoLoglikelihood(AnnotatedNetwork& ann_network, int incremental
             }
             if (weight_2 > 0.0) {
                 // case 2: take left only
-                pll_update_partials_single(partition, &take_both_op, 1, parent_clv_2, left_clv, partition->clv[fake_clv_index], parent_scaler, left_scaler, nullptr);
+                pll_update_partials_single(partition, &take_left_only_op, 1, parent_clv_2, left_clv, partition->clv[fake_clv_index], parent_scaler, left_scaler, nullptr);
             }
             if (weight_3 > 0.0) {
                 // case 3: take right only
-                pll_update_partials_single(partition, &take_both_op, 1, parent_clv_3, partition->clv[fake_clv_index], right_clv, parent_scaler, nullptr, right_scaler);
+                pll_update_partials_single(partition, &take_right_only_op, 1, parent_clv_3, partition->clv[fake_clv_index], right_clv, parent_scaler, nullptr, right_scaler);
             }
         }
 
