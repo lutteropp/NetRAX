@@ -84,9 +84,12 @@ void optimizeAllNonTopology(AnnotatedNetwork &ann_network, bool extremeOpt, bool
         assert(logl_stays_same(ann_network));
         //std::cout << "thread " << ParallelContext::local_proc_id() << " optimizeAllNonTopology initial score: " << score_before << "\n";
         optimizeModel(ann_network, silent);
+
         assert(logl_stays_same(ann_network));
         //std::cout << "thread " << ParallelContext::local_proc_id() << " survived model optimization \n";
+
         optimizeBranches(ann_network, silent);
+
         assert(logl_stays_same(ann_network));
         //std::cout << "thread " << ParallelContext::local_proc_id() << " survived brlen optimization \n";
         assert(logl_stays_same(ann_network));

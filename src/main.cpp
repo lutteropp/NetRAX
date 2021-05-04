@@ -64,8 +64,14 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
 
     bool average_displayed_tree_variant = false;
     bool best_displayed_tree_variant = false;
+    bool pseudo_variant = false;
     app.add_flag("--average_displayed_tree_variant", average_displayed_tree_variant, "Use weighted average instead of only best displayed tree in network likelihood formula.");
     app.add_flag("--best_displayed_tree_variant", best_displayed_tree_variant, "Use best displayed tree instead of weighted average in network likelihood formula.");
+    app.add_flag("--pseudo_variant", pseudo_variant, "Use pseudo network likelihood.");
+
+    bool brent_branches = false;
+    app.add_flag("--brent_branches", brent_branches, "Use brent optimization instead of newton-raphson for brlenopt.");
+
     app.add_option("--no_prefiltering", options->no_prefiltering, "Disable prefiltering of highly-promising move candidates.");
     app.add_option("--greedy_factor", options->greedy_factor, "Instantly accept a move if it improves BIC by more than the given factor (default: infinity). Gives (maybe faster) results with (maybe worse) inference quality. Needs to be greater than 1.");
     app.add_option("--reorder_candidates", options->reorder_candidates, "Reorder move candidates by proximity to last accepted move.");
@@ -87,7 +93,13 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     if (average_displayed_tree_variant && best_displayed_tree_variant) {
         error_exit("Cannot specify both --average_displayed_tree_variant and --best_displayed_tree_variant at once");
     }
-    options->likelihood_variant = (average_displayed_tree_variant) ? LikelihoodVariant::AVERAGE_DISPLAYED_TREES : LikelihoodVariant::BEST_DISPLAYED_TREE;
+    if (pseudo_variant && best_displayed_tree_variant) {
+        error_exit("Cannot specify both --pseudo_variant and --best_displayed_tree_variant at once");
+    }
+    if (average_displayed_tree_variant && pseudo_variant) {
+        error_exit("Cannot specify both --average_displayed_tree_variant and --pseudo_variant at once");
+    }
+    options->likelihood_variant = (average_displayed_tree_variant) ? LikelihoodVariant::AVERAGE_DISPLAYED_TREES : ((best_displayed_tree_variant) ? LikelihoodVariant::BEST_DISPLAYED_TREE : LikelihoodVariant::SARAH_PSEUDO);
 
     if (brlen_linkage == "scaled")
     {
@@ -104,6 +116,12 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     else
     {
         error_exit("brlen_linkage needs to be one of {linked, scaled, unlinked}");
+    }
+
+    if (brent_branches) {
+        options->brlenOptMethod = BrlenOptMethod::BRENT_NORMAL;
+    } else {
+        options->brlenOptMethod = BrlenOptMethod::NEWTON_RAPHSON;
     }
 
     if (options->greedy_factor < 1.0) {

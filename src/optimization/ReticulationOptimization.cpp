@@ -31,6 +31,10 @@ static double brent_target_networks_prob(void *p, double x) {
         ann_network->reticulation_probs[reticulation_index] = x;
         ann_network->cached_logl_valid = false;
 
+        if (ann_network->options.likelihood_variant == LikelihoodVariant::SARAH_PSEUDO) {
+            invalidateHigherCLVs(*ann_network, ann_network->network.reticulation_nodes[reticulation_index], true);
+        }
+
         score = -1 * computeLoglikelihood(*ann_network, 1, 1);
         //std::cout << "    score: " << score << ", x: " << x << ", old_x: " << old_x << ", pmatrix index:"
         //        << pmatrix_index << "\n";
