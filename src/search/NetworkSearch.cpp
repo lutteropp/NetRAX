@@ -462,6 +462,11 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
         return;
     }
 
+    LikelihoodVariant oldVariant = ann_network.options.likelihood_variant;
+    //ann_network.options.likelihood_variant = LikelihoodVariant::SARAH_PSEUDO;
+    BrlenOptMethod oldMethod = ann_network.options.brlenOptMethod;
+    //ann_network.options.brlenOptMethod = BrlenOptMethod::BRENT_NORMAL;
+
     if (can_write()) {
         if (print_progress) std::cout << "MoveType: " << toString(candidates[0].moveType) << " (" << candidates.size() << ")" << ", we currently have " << ann_network.network.num_reticulations() << " reticulations and BIC " << scoreNetwork(ann_network) << "\n";
     }
@@ -485,7 +490,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
 
     std::vector<ScoreItem<T> > scores(candidates.size());
 
-    for (size_t i = 0; i < candidates.size(); ++i) {        
+    for (size_t i = 0; i < candidates.size(); ++i) {      
         // progress bar code taken from https://stackoverflow.com/a/14539953/14557921
         if (print_progress && can_write()) {
             progress = (float) (i+1) / candidates.size();
@@ -519,7 +524,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
 
         assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
 
-        if (!hasBadReticulation(ann_network) || ((move.moveType != MoveType::DeltaPlusMove) && (move.moveType != MoveType::ArcInsertionMove))) {
+        //if (!hasBadReticulation(ann_network) || ((move.moveType != MoveType::DeltaPlusMove) && (move.moveType != MoveType::ArcInsertionMove))) {
             std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
             assert(!brlen_opt_candidates.empty());
 
@@ -539,7 +544,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
             } else {
                 optimize_branches(ann_network, max_iters, max_iters_outside, radius, brlen_opt_candidates, true);
             }*/
-        }
+        //}
 
         double bicScore = scoreNetwork(ann_network);
         double worstScore = getWorstReticulationScore(ann_network);
@@ -562,6 +567,8 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
             if (print_progress && can_write()) {
                 std::cout << std::endl;
             }
+            ann_network.options.likelihood_variant = oldVariant;
+            ann_network.options.brlenOptMethod = oldMethod;
             return;
         }
 
@@ -581,6 +588,11 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
 
     size_t newSize = 0;
 
+    if (can_write()) {
+        std::cout << "start bic: " << old_bic << "\n";
+        std::cout << "best bic: " << best_bic << "\n";
+    }
+
     double cutoff_bic = best_bic;
 
     for (size_t i = 0; i < candidates.size(); ++i) {
@@ -593,7 +605,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
         }
     }
     if (can_write()) {
-        if (!silent) std::cout << "New size after prefiltering: " << newSize << " vs. " << candidates.size() << "\n";
+        std::cout << "New size after prefiltering: " << newSize << " vs. " << candidates.size() << "\n";
     }
 
     candidates.resize(newSize);
@@ -601,6 +613,9 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
     for (size_t i = 0; i < candidates.size(); ++i) {
         assert(checkSanity(ann_network, candidates[i]));
     }
+
+    ann_network.options.likelihood_variant = oldVariant;
+    ann_network.options.brlenOptMethod = oldMethod;
 }
 
 template <typename T>

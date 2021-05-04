@@ -1205,6 +1205,10 @@ double computePseudoLoglikelihood(AnnotatedNetwork& ann_network, int incremental
                                     PLLMOD_COMMON_REDUCE_SUM);
     }
 
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        ann_network.fake_treeinfo->partition_loglh[p] = partition_pseudo_logl[p];
+    }
+
     double pseudo_logl = std::accumulate(partition_pseudo_logl.begin(), partition_pseudo_logl.end(), 0.0);
 
     return pseudo_logl;
@@ -1819,7 +1823,11 @@ double computeLoglikelihoodBrlenOptPseudo(AnnotatedNetwork &ann_network, unsigne
     Node* target = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
     setup_pmatrices(ann_network, incremental, update_pmatrices);
 
-    double network_pseudo_logl = 0.0;
+    if (target->getType() == NodeType::RETICULATION_NODE) {
+        std::cout << "target is a reticulation node\n";
+    }
+
+    std::vector<double> partition_pseudo_logl(ann_network.fake_treeinfo->partition_count, 0.0);
 
     for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
         // skip remote partitions
@@ -1837,7 +1845,9 @@ double computeLoglikelihoodBrlenOptPseudo(AnnotatedNetwork &ann_network, unsigne
         if (target->scaler_index != -1) {
             target_scaler = partition->scale_buffer[target->scaler_index];
         }
-        network_pseudo_logl += pll_compute_edge_loglikelihood(partition, source->clv_index, partition->clv[source->clv_index], source_scaler, 
+        // todo: looks like this is wrong? What to do if target is a reticulation node...
+
+        partition_pseudo_logl[p] = pll_compute_edge_loglikelihood(partition, source->clv_index, partition->clv[source->clv_index], source_scaler, 
                                                     target->clv_index, partition->clv[target->clv_index], target_scaler, 
                                                     pmatrix_index, ann_network.fake_treeinfo->param_indices[p], nullptr);
     }
@@ -1846,10 +1856,16 @@ double computeLoglikelihoodBrlenOptPseudo(AnnotatedNetwork &ann_network, unsigne
     if (ann_network.fake_treeinfo->parallel_reduce_cb)
     {
         ann_network.fake_treeinfo->parallel_reduce_cb(ann_network.fake_treeinfo->parallel_context,
-                                    &network_pseudo_logl,
-                                    1,
+                                    partition_pseudo_logl.data(),
+                                    ann_network.fake_treeinfo->partition_count,
                                     PLLMOD_COMMON_REDUCE_SUM);
     }
+
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        ann_network.fake_treeinfo->partition_loglh[p] = partition_pseudo_logl[p];
+    }
+
+    double network_pseudo_logl = std::accumulate(partition_pseudo_logl.begin(), partition_pseudo_logl.end(), 0.0);
 
     return network_pseudo_logl;
 }
@@ -1883,8 +1899,7 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
 
     //Instead of going over the-source-trees-only for final loglh evaluation, we need to go over all pairs of trees, one in source node and one in target node.
 
-    double network_logl = 0.0;
-
+    std::vector<double> partition_logl(ann_network.fake_treeinfo->partition_count, 0.0);
     
     std::vector<TreeLoglData> combinedTrees; // TODO
     
@@ -2052,7 +2067,8 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
     }
 
     for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-        network_logl += evaluateTreesPartition(ann_network, p, combinedTrees);
+        partition_logl[p] = evaluateTreesPartition(ann_network, p, combinedTrees);
+        ann_network.fake_treeinfo->partition_loglh[p] = partition_logl[p];
     }
 
     // TODO: Remove me again, this is just for debug
@@ -2077,6 +2093,8 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
     Node* new_virtual_root_back = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
     updateCLVsVirtualRerootTrees(ann_network, ann_network.network.root, new_virtual_root, new_virtual_root_back);
     */
+
+    double network_logl = std::accumulate(partition_logl.begin(), partition_logl.end(), 0.0);
 
     ann_network.cached_logl = network_logl;
     ann_network.cached_logl_valid = true;
