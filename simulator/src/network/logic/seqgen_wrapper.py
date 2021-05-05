@@ -7,12 +7,10 @@ SEQGEN_PATH = './seq-gen'
 
 
 def simulate_msa(dataset):
-    cmd = SEQGEN_PATH + ' ' + dataset.seqgen_params + ' -l' + str(dataset.msa_size)+' -p' + str(
-        dataset.n_trees)+' < ' + dataset.extracted_trees_path + ' > ' + dataset.msa_path
+    cmd = SEQGEN_PATH + ' ' + dataset.seqgen_params + ' -l' + str(dataset.msa_size)+' -p' + str(dataset.n_trees)
     print(cmd, flush=True)
-    p = subprocess.Popen(cmd)
-    cmd_output, _ = p.communicate()
-    cmd_status = p.returncode     
-    print(cmd_output)
-    if cmd_status != 0:
-        raise Exception("Simulate MSA failed")
+    infile = open(dataset.extracted_trees_path)
+    outfile = open(dataset.msa_path, "w")
+
+    p = subprocess.run(cmd.split(), stdin=infile, stdout=outfile, check=True)
+    outfile.close()

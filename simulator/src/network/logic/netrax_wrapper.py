@@ -5,7 +5,7 @@ import random
 
 from experiment_model import LikelihoodType, BrlenLinkageType, StartType
 
-NETRAX_PATH = "mpirun ../../../../bin/netrax"
+NETRAX_PATH = "mpiexec ../../../../bin/netrax"
 
 NETWORK_DISTANCE_NAMES = ['unrooted_softwired_network_distance', 'unrooted_hardwired_network_distance', 'unrooted_displayed_trees_distance', 'rooted_softwired_network_distance', 'rooted_hardwired_network_distance', 'rooted_displayed_trees_distance', 'rooted_tripartition_distance', 'rooted_path_multiplicity_distance', 'rooted_nested_labels_distance']
 
@@ -28,12 +28,9 @@ def score_network(network_path, msa_path, partitions_path, likelihood_type, brle
     netrax_cmd += " --seed 42"
 
     print(netrax_cmd)
-    p = subprocess.Popen(netrax_cmd)
-    cmd_output, _ = p.communicate()
-    cmd_status = p.returncode
+    p = subprocess.run(netrax_cmd.split(), stdout=subprocess.PIPE, check=True)
+    cmd_output = p.stdout.decode()
     print(cmd_output)
-    if cmd_status != 0:
-        raise Exception("Scoring network failed")
     netrax_output = cmd_output.splitlines()
     n_reticulations, bic, logl = 0, 0, 0
     for line in netrax_output:
@@ -81,12 +78,9 @@ def infer_networks(ds):
         print(netrax_cmd, flush=True)
         start_time = time.time()
 
-        p = subprocess.Popen(netrax_cmd)
-        cmd_output, _ = p.communicate()
-        cmd_status = p.returncode
+        p = subprocess.run(netrax_cmd.split(), stdout=subprocess.PIPE, check=True)
+        cmd_output = p.stdout.decode()
         print(cmd_output)
-        if cmd_status != 0:
-            raise Exception("Inferring network failed")
 
         var.runtime_inference = round(time.time() - start_time, 3)
 
@@ -101,12 +95,9 @@ def extract_displayed_trees(network_path, n_taxa):
     netrax_cmd = NETRAX_PATH + " --extract_displayed_trees" + \
         " --start_network " + network_path + " --msa " + msa_path + " --model DNA"
     print(netrax_cmd, flush=True)
-    p = subprocess.Popen(netrax_cmd)
-    cmd_output, _ = p.communicate()
-    cmd_status = p.returncode
+    p = subprocess.run(netrax_cmd.split(), stdout=subprocess.PIPE, check=True)
+    cmd_output = p.stdout.decode()
     print(cmd_output)
-    if cmd_status != 0:
-        raise Exception("Extract displayed trees failed")
     lines = cmd_output.splitlines()
     start_idx = 0
     n_trees = 0
@@ -134,12 +125,9 @@ def change_reticulation_prob_only(network_input_path, network_output_path, new_r
     netrax_cmd = NETRAX_PATH + " --change_reticulation_prob_only --overwritten_reticulation_prob " + str(new_ret_prob) + \
         " --start_network " + network_input_path + " --output " + network_output_path + " --msa " + msa_path + " --model DNA"
     print(netrax_cmd, flush=True)
-    p = subprocess.Popen(netrax_cmd)
-    cmd_output, _ = p.communicate()
-    cmd_status = p.returncode
+    p = subprocess.run(netrax_cmd.split(), stdout=subprocess.PIPE, check=True)
+    cmd_output = p.stdout.decode()
     print(cmd_output)
-    if cmd_status != 0:
-        raise Exception("Change reticulation prob failed")
     os.remove(msa_path)
 
 
@@ -165,12 +153,10 @@ def network_distance_only(network_1_path, network_2_path, n_taxa):
     netrax_cmd = NETRAX_PATH + " --network_distance_only " + \
         " --first_network " + network_1_path + " --second_network " + network_2_path + " --msa " + msa_path + " --model DNA"
     print(netrax_cmd, flush=True)
-    p = subprocess.Popen(netrax_cmd)
-    cmd_output, _ = p.communicate()
-    cmd_status = p.returncode
+    p = subprocess.run(netrax_cmd.split(), stdout=subprocess.PIPE, check=True)
+    cmd_output = p.stdout.decode()
     print(cmd_output)
     lines = cmd_output.splitlines()
-    dist = -1
     for line in lines:
         if line.startswith("Unrooted softwired network distance: "):
             distances['unrooted_softwired_network_distance'] = float(line.split(": ")[1])
@@ -204,12 +190,9 @@ def check_weird_network(network_path, n_taxa):
     netrax_cmd = NETRAX_PATH + " --check_weird_network " + \
         " --start_network " + network_path + " --msa " + msa_path + " --model DNA"
     print(netrax_cmd, flush=True)
-    p = subprocess.Popen(netrax_cmd)
-    cmd_output, _ = p.communicate()
-    cmd_status = p.returncode    
+    p = subprocess.run(netrax_cmd.split(), stdout=subprocess.PIPE, check=True)
+    cmd_output = p.stdout.decode()
     print(cmd_output)
-    if cmd_status != 0:
-        raise Exception("Check weird network failed")
     lines = cmd_output.splitlines()
 
     n_pairs = 0
@@ -234,12 +217,9 @@ def scale_branches_only(network_path, output_path, scaling_factor, n_taxa):
     netrax_cmd = NETRAX_PATH + " --scale_branches_only " + str(scaling_factor) + \
         " --start_network " + network_path + " --msa " + msa_path + " --model DNA" + " --output " + output_path
     print(netrax_cmd, flush=True)
-    p = subprocess.Popen(netrax_cmd)
-    cmd_output, _ = p.communicate()
-    cmd_status = p.returncode
+    p = subprocess.run(netrax_cmd.split(), stdout=subprocess.PIPE, check=True)
+    cmd_output = p.stdout.decode()
     print(cmd_output)
-    if cmd_status != 0:
-        raise Exception("Check weird network failed")
 
     os.remove(msa_path)
 
@@ -270,17 +250,15 @@ def build_fake_msa(n_taxa, network_path=""):
 
     taxon_names = []
     if network_path != "":
-        netrax_cmd = NETRAX_PATH + " --extract_taxon_names " + \
+        netrax_cmd = NETRAX_PATH + " --extract_taxon_names" + \
             " --start_network " + network_path + " --model DNA"
         print(netrax_cmd, flush=True)
 
-        p = subprocess.Popen(netrax_cmd)
-        cmd_output, _ = p.communicate()
-        cmd_status = p.returncode
+        p = subprocess.run(netrax_cmd.split(), stdout=subprocess.PIPE, check=True)
+        cmd_output = p.stdout.decode()
 
+        print("OUTPUT IS:")
         print(cmd_output)
-        if cmd_status != 0:
-            raise Exception("Extract taxon names failed")
         lines = cmd_output.splitlines()
         for line in lines[1:]:
             taxon_names.append(line)
@@ -304,10 +282,7 @@ def generate_random_network(n_taxa, n_reticulations, output_path):
         str(n_reticulations) + " --msa " + msa_path + \
         " --model DNA " + " --output " + output_path
     print(netrax_cmd, flush=True)
-    p = subprocess.Popen(netrax_cmd)
-    cmd_output, _ = p.communicate()
-    cmd_status = p.returncode    
+    p = subprocess.run(netrax_cmd.split(), stdout=subprocess.PIPE, check=True)
+    cmd_output = p.stdout.decode()
     print(cmd_output)
-    if cmd_status != 0:
-        raise Exception("Generate random network failed")
     os.remove(msa_path)
