@@ -1048,7 +1048,7 @@ void merge_clvs(AnnotatedNetwork& ann_network,
     assert(weight_3 <= 1.0);
     assert(weight_4 >= 0.0);
     assert(weight_4 <= 1.0);
-    assert(weight_1 + weight_2 + weight_3 + weight_4 == 1.0);
+    assert(fabs(weight_1 + weight_2 + weight_3 + weight_4 - 1.0) < 0.0001);
     size_t fake_clv_index = ann_network.network.nodes.size();
 
     for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
