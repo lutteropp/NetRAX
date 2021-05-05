@@ -49,10 +49,9 @@ def retrieve_topological_distances(network_1, network_2):
     dendro_cmd = XSERVER_MAGIC + " " + DENDROSCOPE_PATH + \
         " -g -c " + dendro_filename
     print(dendro_cmd)
-    cmd_status, cmd_output = subprocess.getstatusoutput(dendro_cmd)
+    p = subprocess.run(dendro_cmd.split(), stdout=subprocess.PIPE, check=True)
+    cmd_output = p.stdout.decode()    
     print(cmd_output)
-    if cmd_status != 0:
-        raise Exception("Get Dendro Scores failed")
     dendroscope_output = cmd_output.splitlines()
 
     scores = {}
