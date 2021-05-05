@@ -13,7 +13,7 @@ module purge
 module load gompi/2019a
 
 root=/home/luttersh/NetRAX/simulator/src/network/logic/data
-raxng=/home/luttersh/NetRAX/libs/raxml-ng/bin/raxml-ng-mpi
+raxng=/home/luttersh/raxml-ng/bin/raxml-ng-mpi
 ali=$root/datasets_big_empirical/merged_genes_msa.txt.raxml.rba
 model=$root/datasets_big_empirical/merged_genes_partitions.txt
 outdir=$root/datasets_big_empirical
