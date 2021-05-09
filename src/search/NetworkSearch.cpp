@@ -947,6 +947,10 @@ double optimizeEverythingRun(AnnotatedNetwork& ann_network, const std::vector<Mo
     unsigned int max_seconds = ann_network.options.timeout;
     double best_score = scoreNetwork(ann_network);
     bool rspr1_present = (std::find(typesBySpeed.begin(), typesBySpeed.end(), MoveType::RSPR1Move) != typesBySpeed.end());
+    bool delta_plus_present = (std::find(typesBySpeed.begin(), typesBySpeed.end(), MoveType::DeltaPlusMove) != typesBySpeed.end());
+
+    Edge* act_edge = ann_network.network.edges_by_index[0];
+
     do {
         while (ann_network.network.num_reticulations() == 0 && isArcRemoval(typesBySpeed[type_idx])) {
             type_idx++;
@@ -973,25 +977,53 @@ double optimizeEverythingRun(AnnotatedNetwork& ann_network, const std::vector<Mo
         } else {
             switch (typesBySpeed[type_idx]) {
             case MoveType::RNNIMove:
-                applyBestCandidate(ann_network, possibleRNNIMoves(ann_network), &best_score, bestNetworkData, false, silent);
+                if (ann_network.options.edge_by_edge) {
+                    applyBestCandidate(ann_network, possibleRNNIMoves(ann_network, act_edge), &best_score, bestNetworkData, false, silent);
+                } else {
+                    applyBestCandidate(ann_network, possibleRNNIMoves(ann_network), &best_score, bestNetworkData, false, silent);
+                }
                 break;
             case MoveType::RSPRMove:
-                applyBestCandidate(ann_network, possibleRSPRMoves(ann_network, rspr1_present), &best_score, bestNetworkData, false, silent);
+                if (ann_network.options.edge_by_edge) {
+                    applyBestCandidate(ann_network, possibleRSPRMoves(ann_network, act_edge, rspr1_present), &best_score, bestNetworkData, false, silent);
+                } else {
+                    applyBestCandidate(ann_network, possibleRSPRMoves(ann_network, rspr1_present), &best_score, bestNetworkData, false, silent);
+                }
                 break;
             case MoveType::RSPR1Move:
-                applyBestCandidate(ann_network, possibleRSPR1Moves(ann_network), &best_score, bestNetworkData, false, silent);
+                if (ann_network.options.edge_by_edge) {
+                    applyBestCandidate(ann_network, possibleRSPR1Moves(ann_network, act_edge), &best_score, bestNetworkData, false, silent);
+                } else {
+                    applyBestCandidate(ann_network, possibleRSPR1Moves(ann_network), &best_score, bestNetworkData, false, silent);
+                }
                 break;
             case MoveType::HeadMove:
-                applyBestCandidate(ann_network, possibleHeadMoves(ann_network, rspr1_present), &best_score, bestNetworkData, false, silent);
+                if (ann_network.options.edge_by_edge) {
+                    applyBestCandidate(ann_network, possibleHeadMoves(ann_network, act_edge, rspr1_present), &best_score, bestNetworkData, false, silent);
+                } else {
+                    applyBestCandidate(ann_network, possibleHeadMoves(ann_network, rspr1_present), &best_score, bestNetworkData, false, silent);
+                }
                 break;
             case MoveType::TailMove:
-                applyBestCandidate(ann_network, possibleTailMoves(ann_network, rspr1_present), &best_score, bestNetworkData, false, silent);
+                if (ann_network.options.edge_by_edge) {
+                    applyBestCandidate(ann_network, possibleTailMoves(ann_network, act_edge, rspr1_present), &best_score, bestNetworkData, false, silent);
+                } else {
+                    applyBestCandidate(ann_network, possibleTailMoves(ann_network, rspr1_present), &best_score, bestNetworkData, false, silent);
+                }
                 break;
             case MoveType::ArcInsertionMove:
-                applyBestCandidate(ann_network, possibleArcInsertionMoves(ann_network, true), &best_score, bestNetworkData, false, silent);
+                if (ann_network.options.edge_by_edge) {
+                    applyBestCandidate(ann_network, possibleArcInsertionMoves(ann_network, act_edge, delta_plus_present), &best_score, bestNetworkData, false, silent);
+                } else {
+                    applyBestCandidate(ann_network, possibleArcInsertionMoves(ann_network, delta_plus_present), &best_score, bestNetworkData, false, silent);
+                }
                 break;
             case MoveType::DeltaPlusMove:
-                applyBestCandidate(ann_network, possibleDeltaPlusMoves(ann_network), &best_score, bestNetworkData, false, silent);
+                if (ann_network.options.edge_by_edge) {
+                    applyBestCandidate(ann_network, possibleDeltaPlusMoves(ann_network, act_edge), &best_score, bestNetworkData, false, silent);
+                } else {
+                    applyBestCandidate(ann_network, possibleDeltaPlusMoves(ann_network), &best_score, bestNetworkData, false, silent);
+                }
                 break;
             case MoveType::ArcRemovalMove:
                 applyBestCandidate(ann_network, possibleArcRemovalMoves(ann_network), &best_score, bestNetworkData, false, silent);
@@ -1009,9 +1041,21 @@ double optimizeEverythingRun(AnnotatedNetwork& ann_network, const std::vector<Mo
             new_score = scoreNetwork(ann_network);
             best_score = new_score;
 
-            type_idx = 0; // go back to fastest move type        
+            type_idx = 0; // go back to fastest move type    
+            act_edge = ann_network.network.edges_by_index[0];    
         } else { // try next-slower move type
-            type_idx++;
+            if (ann_network.options.edge_by_edge && act_edge->pmatrix_index + 1 < ann_network.network.num_branches()) {
+                if (act_edge->pmatrix_index+1 >= ann_network.network.edges_by_index.size()) {
+                    throw std::runtime_error("Edge index too large");
+                }
+                act_edge = ann_network.network.edges_by_index[act_edge->pmatrix_index+1];
+                if (!act_edge) {
+                    throw std::runtime_error("act_edge is null");
+                }
+            } else {
+                type_idx++;
+                act_edge = ann_network.network.edges_by_index[0];
+            }
         }
         assert(new_score <= old_score);
 
