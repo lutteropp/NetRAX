@@ -1,13 +1,13 @@
 #!/bin/bash
-#SBATCH -o raxng_%j.out
+#SBATCH -o netrax_%j.out
 #SBATCH -B 2:8:1
 #SBATCH --ntasks-per-node=1
 ##SBATCH --ntasks-per-socket=1
 #SBATCH --cpus-per-task=16
 #SBATCH --hint=compute_bound
 #SBATCH -t 24:00:00
-#SBATCH -N 20
-#SBATCH -n 20
+#SBATCH -N 32
+#SBATCH -n 32
  
 module purge
 module load gompi/2019a
