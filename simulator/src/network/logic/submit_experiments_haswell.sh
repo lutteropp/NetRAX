@@ -15,7 +15,7 @@ module load gompi/2019a
 module load CMake/3.13.3-GCCcore-8.2.0
 module load slurm
 
-USAGE="Usage: sh run_experiments_bunch.sh SETTINGS PREFIX ITERATIONS"
+USAGE="Usage: sh submit_experiments_haswell.sh SETTINGS PREFIX ITERATIONS"
 
 if [ $# -lt 3 ]; then
     echo "Illegal number of parameters. ${USAGE}"

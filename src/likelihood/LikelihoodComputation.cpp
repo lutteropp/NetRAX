@@ -107,9 +107,7 @@ DisplayedTreeData& findMatchingDisplayedTree(AnnotatedNetwork& ann_network, cons
 }
 
 Node* findFirstNodeWithTwoActiveChildren(AnnotatedNetwork& ann_network, const ReticulationConfigSet& reticulationChoices, Node* oldRoot) {
-    // TODO: Make this work with direction-agnistic stuff (virtual rerooting)
-    //throw std::runtime_error("TODO: Make this work with direction-agnistic stuff (virtual rerooting)");
-
+    // TODO: Make this work with direction-agnostic stuff (virtual rerooting)
     // all these reticulation choices led to the same tree, thus it is safe to simply use the first one for detecting which nodes to skip...
     for (size_t i = 0; i < reticulationChoices.configs[0].size(); ++i) { // apply the reticulation choices
         if (reticulationChoices.configs[0][i] != ReticulationState::DONT_CARE) {

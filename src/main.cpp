@@ -99,7 +99,7 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     if (average_displayed_tree_variant && pseudo_variant) {
         error_exit("Cannot specify both --average_displayed_tree_variant and --pseudo_variant at once");
     }
-    options->likelihood_variant = (average_displayed_tree_variant) ? LikelihoodVariant::AVERAGE_DISPLAYED_TREES : ((best_displayed_tree_variant) ? LikelihoodVariant::BEST_DISPLAYED_TREE : LikelihoodVariant::SARAH_PSEUDO);
+    options->likelihood_variant = (average_displayed_tree_variant) ? LikelihoodVariant::AVERAGE_DISPLAYED_TREES : ((pseudo_variant) ? LikelihoodVariant::SARAH_PSEUDO : LikelihoodVariant::BEST_DISPLAYED_TREE);
 
     if (brlen_linkage == "scaled")
     {
@@ -542,13 +542,13 @@ void setup_parallel_stuff(NetraxOptions& netraxOptions, RaxmlInstance& instance)
                                                  std::ref(instance));
     ParallelContext::init_pthreads(instance.opts, thread_function);
 
-    /*std::cout << "num_threads: " << ParallelContext::num_threads() << "\n";
+    std::cout << "num_threads: " << ParallelContext::num_threads() << "\n";
     std::cout << "num workers: " << instance.opts.num_workers << "\n";
     std::cout << "num local groups: " << ParallelContext::num_local_groups() << "\n";
     std::cout << "num ranks: " << ParallelContext::num_ranks() << "\n";
     std::cout << "num groups: " << ParallelContext::num_groups() << "\n";
     std::cout << "threads per group: " << ParallelContext::threads_per_group() << "\n";
-    std::cout << "num procs: " << ParallelContext::num_procs() << "\n";*/
+    std::cout << "num procs: " << ParallelContext::num_procs() << "\n";
 
     /* init workers */
     assert(instance.opts.num_workers > 0);

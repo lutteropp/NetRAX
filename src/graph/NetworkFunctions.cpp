@@ -204,7 +204,7 @@ pll_unode_t* connect_subtree_recursive(Network &network, Node *networkNode,
     return unode->next;
 }
 
-std::vector<bool> collect_dead_nodes(Network &network, size_t megablobRootClvIndex,
+std::vector<bool> collect_dead_nodes(Network &network, size_t rootClvIndex,
         Node **displayed_tree_root) {
     std::vector<bool> dead_nodes(network.num_nodes(), false);
 
@@ -233,10 +233,10 @@ std::vector<bool> collect_dead_nodes(Network &network, size_t megablobRootClvInd
     Node *dtroot = network.root;
     std::vector<Node*> children = getActiveAliveChildren(network, dead_nodes, dtroot);
     assert(!children.empty());
-    bool seenMegablobRoot = false;
+    bool seenRoot = false;
     while (children.size() == 1) {
-        if (dtroot->clv_index == megablobRootClvIndex) {
-            seenMegablobRoot = true;
+        if (dtroot->clv_index == rootClvIndex) {
+            seenRoot = true;
         }
         dead_nodes[dtroot->clv_index] = true;
         dtroot = children[0];
@@ -244,10 +244,10 @@ std::vector<bool> collect_dead_nodes(Network &network, size_t megablobRootClvInd
         assert(!children.empty());
     }
     if (displayed_tree_root) {
-        if (seenMegablobRoot) {
+        if (seenRoot) {
             *displayed_tree_root = dtroot;
         } else {
-            *displayed_tree_root = network.nodes_by_index[megablobRootClvIndex];
+            *displayed_tree_root = network.nodes_by_index[rootClvIndex];
         }
     }
 
@@ -301,7 +301,7 @@ pll_utree_t* displayed_tree_to_utree(Network &network, size_t tree_index) {
     pll_utree_reset_template_indices(uroot, network.num_tips());
     pll_utree_t *utree = pll_utree_wraptree(uroot, network.num_tips());
 
-// ensure that the tip clv indices are the same as in the network
+    // ensure that the tip clv indices are the same as in the network
     for (size_t i = 0; i < utree->inner_count + utree->tip_count; ++i) {
         if (utree->nodes[i]->clv_index < utree->tip_count) {
             Node *networkNode = network.getNodeByLabel(utree->nodes[i]->label);
@@ -353,12 +353,14 @@ std::vector<double> collectBranchLengths(const Network &network) {
     }
     return brLengths;
 }
+
 void applyBranchLengths(Network &network, const std::vector<double> &branchLengths) {
     assert(branchLengths.size() == network.num_branches());
     for (size_t i = 0; i < network.num_branches(); ++i) {
         network.edges_by_index[i]->length = branchLengths[i];
     }
 }
+
 void setReticulationParents(Network &network, size_t treeIdx) {
     for (size_t i = 0; i < network.num_reticulations(); ++i) {
         // check if i-th bit is set in treeIdx
