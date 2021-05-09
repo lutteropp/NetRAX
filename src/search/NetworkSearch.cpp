@@ -710,8 +710,9 @@ double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidat
         double aic_score = aic(ann_network, logl);
         double aicc_score = aicc(ann_network, logl);
 
+        double pseudo;
         if (ann_network.options.computePseudo) {
-            double pseudo = computePseudoLoglikelihood(ann_network);
+            pseudo = computePseudoLoglikelihood(ann_network);
         }
         if (can_write()) {
             if (ann_network.options.computePseudo) {
