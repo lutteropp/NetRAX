@@ -88,6 +88,7 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
         error_exit("Cannot specify both --average_displayed_tree_variant and --best_displayed_tree_variant at once");
     }
     options->likelihood_variant = (average_displayed_tree_variant) ? LikelihoodVariant::AVERAGE_DISPLAYED_TREES : LikelihoodVariant::BEST_DISPLAYED_TREE;
+    //options->computePseudo = (options->likelihood_variant == LikelihoodVariant::SARAH_PSEUDO);
 
     if (brlen_linkage == "scaled")
     {

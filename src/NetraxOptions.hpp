@@ -90,6 +90,8 @@ public:
     double tolerance = DEF_LH_EPSILON; //RAXML_BRLEN_TOLERANCE;
     double brlen_smoothings = RAXML_BRLEN_SMOOTHINGS;
 
+    bool computePseudo = false;
+
     BrlenOptMethod brlenOptMethod = BrlenOptMethod::NEWTON_RAPHSON;//BrlenOptMethod::BRENT_REROOT; //BrlenOptMethod::BRENT_REROOT_SUMTABLE; //BrlenOptMethod::BRENT_REROOT;//BrlenOptMethod::NEWTON_RAPHSON_REROOT;// BrlenOptMethod::BRENT_NORMAL;
     //BrlenOptMethod brlenOptMethod = BrlenOptMethod::BRENT_NORMAL;
 

@@ -710,10 +710,14 @@ double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidat
         double aic_score = aic(ann_network, logl);
         double aicc_score = aicc(ann_network, logl);
 
-        double pseudo = computePseudoLoglikelihood(ann_network);
+        if (ann_network.options.computePseudo) {
+            double pseudo = computePseudoLoglikelihood(ann_network);
+        }
         if (can_write()) {
-            std::cout << "pseudo-loglh: " << pseudo << "\n";
-            std::cout << "pseudo-bic: " << bic(ann_network, pseudo) << "\n";
+            if (ann_network.options.computePseudo) {
+                std::cout << "pseudo-loglh: " << pseudo << "\n";
+                std::cout << "pseudo-bic: " << bic(ann_network, pseudo) << "\n";
+            }
 
             if (!silent) std::cout << " Took " << toString(candidates[0].moveType) << "\n";
             if (!silent) std::cout << "  Logl: " << logl << ", BIC: " << bic_score << ", AIC: " << aic_score << ", AICc: " << aicc_score <<  "\n";
@@ -1119,10 +1123,12 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
     double best_score = std::numeric_limits<double>::infinity();
     ScoreImprovementResult score_improvement;
 
-    double pseudo = computePseudoLoglikelihood(ann_network);
-    if (can_write()) {
-        std::cout << "pseudo-loglh: " << pseudo << "\n";
-        std::cout << "pseudo-bic: " << bic(ann_network, pseudo) << "\n";
+    if (ann_network.options.computePseudo) {
+        double pseudo = computePseudoLoglikelihood(ann_network);
+        if (can_write()) {
+            std::cout << "pseudo-loglh: " << pseudo << "\n";
+            std::cout << "pseudo-bic: " << bic(ann_network, pseudo) << "\n";
+        }
     }
 
     //optimizeAllNonTopology(ann_network, true);
