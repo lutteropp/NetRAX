@@ -19,7 +19,7 @@ bool assert_lh_improvement(double old_lh, double new_lh, const std::string& wher
   return true;
 }
 
-double optimize_params(AnnotatedNetwork& ann_network, double lh_epsilon)
+double optimize_params(AnnotatedNetwork& ann_network)
 {
   assert(!pll_errno);
 

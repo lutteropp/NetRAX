@@ -99,31 +99,31 @@ double simanneal(AnnotatedNetwork& ann_network, double t_start, bool rspr1_prese
 
         switch (type) {
         case MoveType::RNNIMove:
-            network_changed = simanneal_step(ann_network, t, possibleRNNIMoves(ann_network), start_state_to_reuse, seen_bics);
+            network_changed = simanneal_step(ann_network, t, possibleRNNIMoves(ann_network), start_state_to_reuse, seen_bics, silent);
             break;
         case MoveType::RSPRMove:
-            network_changed = simanneal_step(ann_network, t, possibleRSPRMoves(ann_network, rspr1_present), start_state_to_reuse, seen_bics);
+            network_changed = simanneal_step(ann_network, t, possibleRSPRMoves(ann_network, rspr1_present), start_state_to_reuse, seen_bics, silent);
             break;
         case MoveType::RSPR1Move:
-            network_changed = simanneal_step(ann_network, t, possibleRSPR1Moves(ann_network), start_state_to_reuse, seen_bics);
+            network_changed = simanneal_step(ann_network, t, possibleRSPR1Moves(ann_network), start_state_to_reuse, seen_bics, silent);
             break;
         case MoveType::HeadMove:
-            network_changed = simanneal_step(ann_network, t, possibleHeadMoves(ann_network, rspr1_present), start_state_to_reuse, seen_bics);
+            network_changed = simanneal_step(ann_network, t, possibleHeadMoves(ann_network, rspr1_present), start_state_to_reuse, seen_bics, silent);
             break;
         case MoveType::TailMove:
-            network_changed = simanneal_step(ann_network, t, possibleTailMoves(ann_network, rspr1_present), start_state_to_reuse, seen_bics);
+            network_changed = simanneal_step(ann_network, t, possibleTailMoves(ann_network, rspr1_present), start_state_to_reuse, seen_bics, silent);
             break;
         case MoveType::ArcInsertionMove:
-            network_changed = simanneal_step(ann_network, t, possibleArcInsertionMoves(ann_network, true), start_state_to_reuse, seen_bics);
+            network_changed = simanneal_step(ann_network, t, possibleArcInsertionMoves(ann_network, true), start_state_to_reuse, seen_bics, silent);
             break;
         case MoveType::DeltaPlusMove:
-            network_changed = simanneal_step(ann_network, t, possibleDeltaPlusMoves(ann_network), start_state_to_reuse, seen_bics);
+            network_changed = simanneal_step(ann_network, t, possibleDeltaPlusMoves(ann_network), start_state_to_reuse, seen_bics, silent);
             break;
         case MoveType::ArcRemovalMove:
-            network_changed = simanneal_step(ann_network, t, possibleArcRemovalMoves(ann_network), start_state_to_reuse, seen_bics);
+            network_changed = simanneal_step(ann_network, t, possibleArcRemovalMoves(ann_network), start_state_to_reuse, seen_bics, silent);
             break;
         case MoveType::DeltaMinusMove:
-            network_changed = simanneal_step(ann_network, t, possibleDeltaMinusMoves(ann_network), start_state_to_reuse, seen_bics);
+            network_changed = simanneal_step(ann_network, t, possibleDeltaMinusMoves(ann_network), start_state_to_reuse, seen_bics, silent);
             break;
         default:
             throw std::runtime_error("Invalid move type");

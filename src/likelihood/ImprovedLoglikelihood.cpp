@@ -56,7 +56,6 @@ void add_tree_single(AnnotatedNetwork& ann_network, size_t clv_index, pll_operat
 void add_tree_both(AnnotatedNetwork& ann_network, size_t clv_index, pll_operation_t& op, DisplayedTreeData& leftTree, DisplayedTreeData& rightTree, const ReticulationConfigSet& reticulationChoices) {
     add_displayed_tree(ann_network, clv_index);
     NodeDisplayedTreeData& displayed_trees = ann_network.pernode_displayed_tree_data[clv_index];
-    size_t fake_clv_index = ann_network.network.nodes.size();
     DisplayedTreeData& tree = displayed_trees.displayed_trees[displayed_trees.num_active_displayed_trees-1];
     for (size_t partition_idx = 0; partition_idx < ann_network.fake_treeinfo->partition_count; ++partition_idx) {
         // skip remote partitions
@@ -100,7 +99,6 @@ unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, Node*
 
 unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, Node* node, Node* left_child, Node* right_child, const ReticulationConfigSet& extraRestrictions) {
     unsigned int num_trees_added = 0;
-    size_t fake_clv_index = ann_network.network.nodes.size();
     
     pll_operation_t op_both = buildOperation(ann_network.network, node, left_child, right_child, ann_network.network.nodes.size(), ann_network.network.edges.size());
 
@@ -110,7 +108,6 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, Node*
         restrictionsBothSet = combineReticulationChoices(restrictionsBothSet, extraRestrictions);
     }
 
-    NodeDisplayedTreeData& displayed_trees = ann_network.pernode_displayed_tree_data[node->clv_index];
     NodeDisplayedTreeData& displayed_trees_left_child = ann_network.pernode_displayed_tree_data[left_child->clv_index];
     NodeDisplayedTreeData& displayed_trees_right_child = ann_network.pernode_displayed_tree_data[right_child->clv_index];
 

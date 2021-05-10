@@ -197,7 +197,7 @@ Node* findFirstNodeWithTwoActiveChildren(AnnotatedNetwork& ann_network, const Re
     return displayed_tree_root;
 }
 
-DisplayedTreeData& getMatchingDisplayedTreeAtNode(AnnotatedNetwork& ann_network, unsigned int partition_idx, unsigned int node_clv_index, const ReticulationConfigSet& queryChoices) {
+DisplayedTreeData& getMatchingDisplayedTreeAtNode(AnnotatedNetwork& ann_network, unsigned int node_clv_index, const ReticulationConfigSet& queryChoices) {
     for (size_t i = 0; i < ann_network.pernode_displayed_tree_data[node_clv_index].num_active_displayed_trees; ++i) {
         if (reticulationConfigsCompatible(queryChoices, ann_network.pernode_displayed_tree_data[node_clv_index].displayed_trees[i].treeLoglData.reticulationChoices)) {
             return ann_network.pernode_displayed_tree_data[node_clv_index].displayed_trees[i];

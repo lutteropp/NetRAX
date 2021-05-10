@@ -42,13 +42,13 @@ void optimizeBranches(AnnotatedNetwork &ann_network, bool silent, bool restricte
  * @param ann_network The network.
  */
 void optimizeModel(AnnotatedNetwork &ann_network, bool silent) {
-    //assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
+    assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
     double old_score = scoreNetwork(ann_network);
     if (!silent && ParallelContext::local_proc_id() == 0) std::cout << "BIC score before model optimization: " << old_score << "\n";
 
-    optimize_params(ann_network, ann_network.options.lh_epsilon);
+    optimize_params(ann_network);
 
-    //assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
+    assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
     double new_score = scoreNetwork(ann_network);
     if (!silent && ParallelContext::local_proc_id() == 0) std::cout << "BIC score after model optimization: " << new_score << "\n";
     assert(new_score <= old_score);
@@ -63,7 +63,7 @@ void optimizeReticulationProbs(AnnotatedNetwork &ann_network, bool silent) {
     if (ann_network.network.num_reticulations() == 0) {
         return;
     }
-    //assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
+    assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
     double old_score = scoreNetwork(ann_network);
     optimize_reticulations(ann_network, 100);
     double new_score = scoreNetwork(ann_network);

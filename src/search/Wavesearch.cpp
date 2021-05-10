@@ -139,7 +139,6 @@ void wavesearch_main_internal(AnnotatedNetwork& ann_network, BestNetworkData* be
     wavesearch_internal(ann_network, bestNetworkData, typesBySpeed, start_state_to_reuse, best_state_to_reuse, best_score, start_time, silent);
 
     double old_best_score = *best_score;
-    bool got_better = true;
 
     if (ann_network.options.scrambling > 0) {
         if (ParallelContext::local_proc_id() == 0) {
