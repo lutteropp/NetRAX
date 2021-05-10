@@ -13,6 +13,7 @@
 #include "Network.hpp"
 #include "ReticulationData.hpp"
 #include "AnnotatedNetwork.hpp"
+#include "../likelihood/DisplayedTreeData.hpp"
 
 #include <vector>
 #include <unordered_set>
@@ -80,5 +81,11 @@ bool assertReticulationProbs(AnnotatedNetwork &ann_network);
 std::unordered_set<size_t> getNeighborPmatrixIndices(Network &network, Edge *edge);
 
 void setReticulationState(Network &network, size_t reticulation_idx, ReticulationState state);
+
+bool isActiveBranch(AnnotatedNetwork& ann_network, const ReticulationConfigSet& reticulationChoices, unsigned int pmatrix_index);
+
+ReticulationConfigSet getRestrictionsToDismissNeighbor(AnnotatedNetwork& ann_network, Node* node, Node* neighbor);
+
+ReticulationConfigSet getRestrictionsToTakeNeighbor(AnnotatedNetwork& ann_network, Node* node, Node* neighbor);
 
 }

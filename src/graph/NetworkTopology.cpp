@@ -572,4 +572,65 @@ void setReticulationState(Network &network, size_t reticulation_idx, Reticulatio
     }
 }
 
+bool isActiveBranch(AnnotatedNetwork& ann_network, const ReticulationConfigSet& reticulationChoices, unsigned int pmatrix_index) {
+    Node* edge_source = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
+    Node* edge_target = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
+
+    ReticulationConfigSet restrictions = getRestrictionsToTakeNeighbor(ann_network, edge_source, edge_target);
+    return reticulationConfigsCompatible(restrictions, reticulationChoices);
+}
+
+ReticulationConfigSet getRestrictionsToDismissNeighbor(AnnotatedNetwork& ann_network, Node* node, Node* neighbor) {
+    ReticulationConfigSet res(ann_network.options.max_reticulations);
+    std::vector<ReticulationState> restrictions(ann_network.options.max_reticulations, ReticulationState::DONT_CARE);
+    assert(node);
+    assert(neighbor);
+    bool foundRestriction = false;
+    if (node->getType() == NodeType::RETICULATION_NODE) {
+        if (neighbor == getReticulationFirstParent(ann_network.network, node)) {
+            restrictions[node->getReticulationData()->reticulation_index] = ReticulationState::TAKE_SECOND_PARENT;
+            foundRestriction = true;
+        } else if (neighbor == getReticulationSecondParent(ann_network.network, node)) {
+            restrictions[node->getReticulationData()->reticulation_index] = ReticulationState::TAKE_FIRST_PARENT;
+            foundRestriction = true;
+        }
+    }
+    if (neighbor->getType() == NodeType::RETICULATION_NODE) {
+        if (node == getReticulationFirstParent(ann_network.network, neighbor)) {
+            restrictions[neighbor->getReticulationData()->reticulation_index] = ReticulationState::TAKE_SECOND_PARENT;
+            foundRestriction = true;
+        } else if (node == getReticulationSecondParent(ann_network.network, neighbor)) {
+            restrictions[neighbor->getReticulationData()->reticulation_index] = ReticulationState::TAKE_FIRST_PARENT;
+            foundRestriction = true;
+        }
+    }
+    if (foundRestriction) {
+        res.configs.emplace_back(restrictions);
+    }
+    return res;
+}
+
+ReticulationConfigSet getRestrictionsToTakeNeighbor(AnnotatedNetwork& ann_network, Node* node, Node* neighbor) {
+    ReticulationConfigSet res(ann_network.options.max_reticulations);
+    std::vector<ReticulationState> restrictions(ann_network.options.max_reticulations, ReticulationState::DONT_CARE);
+    assert(node);
+    assert(neighbor);
+    if (node->getType() == NodeType::RETICULATION_NODE) {
+        if (neighbor == getReticulationFirstParent(ann_network.network, node)) {
+            restrictions[node->getReticulationData()->reticulation_index] = ReticulationState::TAKE_FIRST_PARENT;
+        } else if (neighbor == getReticulationSecondParent(ann_network.network, node)) {
+            restrictions[node->getReticulationData()->reticulation_index] = ReticulationState::TAKE_SECOND_PARENT;
+        }
+    }
+    if (neighbor->getType() == NodeType::RETICULATION_NODE) {
+        if (node == getReticulationFirstParent(ann_network.network, neighbor)) {
+            restrictions[neighbor->getReticulationData()->reticulation_index] = ReticulationState::TAKE_FIRST_PARENT;
+        } else if (node == getReticulationSecondParent(ann_network.network, neighbor)) {
+            restrictions[neighbor->getReticulationData()->reticulation_index] = ReticulationState::TAKE_SECOND_PARENT;
+        }
+    }
+    res.configs.emplace_back(restrictions);
+    return res;
+}
+
 }
