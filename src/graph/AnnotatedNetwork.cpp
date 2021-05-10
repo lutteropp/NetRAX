@@ -58,7 +58,7 @@ void init_annotated_network(AnnotatedNetwork &ann_network, std::mt19937& rng) {
     }
 
     ann_network.fake_treeinfo->active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
-    netrax::setup_pmatrices(ann_network, false, true);
+    pllmod_treeinfo_update_prob_matrices(ann_network.fake_treeinfo, 1);
     for (size_t i = 0; i < ann_network.fake_treeinfo->partition_count; ++i) {
         // skip remote partitions
         if (!ann_network.fake_treeinfo->partitions[i]) {
