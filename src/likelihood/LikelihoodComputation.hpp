@@ -12,11 +12,6 @@
 
 #include "mpreal.h"
 
-extern "C" {
-#include <libpll/pll.h>
-#include <libpll/pll_tree.h>
-}
-
 #include "../graph/AnnotatedNetwork.hpp"
 #include "../RaxmlWrapper.hpp"
 #include <raxml-ng/TreeInfo.hpp>
@@ -29,7 +24,6 @@ void processNodeImproved(AnnotatedNetwork& ann_network, int incremental, Node* n
 const TreeLoglData& getMatchingOldTree(AnnotatedNetwork& ann_network, const std::vector<DisplayedTreeData>& oldTrees, const ReticulationConfigSet& queryChoices);
 bool reuseOldDisplayedTreesCheck(AnnotatedNetwork& ann_network, int incremental);
 
-double computePseudoLoglikelihood(AnnotatedNetwork& ann_network, int incremental = 1, int update_pmatrices = 1);
 double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental = 1, int update_pmatrices = 1);
 
 }

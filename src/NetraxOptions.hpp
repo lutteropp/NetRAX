@@ -10,7 +10,7 @@
 #include <string>
 #include <raxml-ng/constants.hpp>
 #include <raxml-ng/common.h>
-#include "LikelihoodVariant.hpp"
+#include "likelihood/LikelihoodVariant.hpp"
 
 namespace netrax {
 

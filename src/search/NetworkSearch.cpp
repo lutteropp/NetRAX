@@ -23,6 +23,8 @@
 
 #include "../likelihood/ComplexityScoring.hpp"
 
+#include "../likelihood/PseudoLoglikelihood.hpp"
+
 //#define _RAXML_PTHREADS
 
 namespace netrax {
