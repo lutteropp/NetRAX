@@ -21,6 +21,8 @@
 #include "../likelihood/LikelihoodComputation.hpp"
 #include "../optimization/NetworkState.hpp"
 
+#include "../likelihood/ComplexityScoring.hpp"
+
 //#define _RAXML_PTHREADS
 
 namespace netrax {

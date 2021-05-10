@@ -15,6 +15,7 @@
 #include "../graph/NetworkFunctions.hpp"
 #include "../graph/NetworkTopology.hpp"
 #include "../likelihood/LikelihoodComputation.hpp"
+#include "../likelihood/ComplexityScoring.hpp"
 #include "../RaxmlWrapper.hpp"
 #include "../utils.hpp"
 #include "../graph/AnnotatedNetwork.hpp"

@@ -16,6 +16,8 @@
 #include "search/NetworkSearch.hpp"
 #include "NetworkDistances.hpp"
 
+#include "likelihood/ComplexityScoring.hpp"
+
 using namespace netrax;
 
 void error_exit(std::string msg) {

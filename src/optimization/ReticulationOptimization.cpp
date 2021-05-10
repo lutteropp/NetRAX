@@ -13,6 +13,8 @@
 #include "../utils.hpp"
 #include "../graph/AnnotatedNetwork.hpp"
 
+#include "../likelihood/ComplexityScoring.hpp"
+
 namespace netrax {
 
 struct BrentBrprobParams {
