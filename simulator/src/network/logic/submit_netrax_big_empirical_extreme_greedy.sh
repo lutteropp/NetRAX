@@ -21,4 +21,4 @@ outdir=$root/datasets_big_empirical
 
 mkdir -p $outdir
 
-mpiexec $netrax --greedy_factor 1.0 --msa $ali --model $model --seed 42 --output $outdir/merged_genes_inferred_network_greedy.nw --best_displayed_tree_variant --brlen linked --start_network $raxtree
+mpiexec $netrax --greedy_factor 1.0 --no_brlenopt_prefiltering --prefilter_fraction 0.1 --no_tail_moves --no_arc_insertion_moves --msa $ali --model $model --seed 42 --output $outdir/merged_genes_inferred_network_greedy.nw --best_displayed_tree_variant --brlen linked --start_network $raxtree
