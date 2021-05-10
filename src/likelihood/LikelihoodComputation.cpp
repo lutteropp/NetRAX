@@ -16,6 +16,11 @@
 
 #include "Operation.hpp"
 
+#include "mpreal.h"
+
+#include "../RaxmlWrapper.hpp"
+#include <raxml-ng/TreeInfo.hpp>
+
 #include <cassert>
 #include <cmath>
 

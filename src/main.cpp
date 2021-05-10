@@ -16,6 +16,8 @@
 #include "search/NetworkSearch.hpp"
 #include "NetworkDistances.hpp"
 
+#include "../RaxmlWrapper.hpp"
+
 #include "likelihood/ComplexityScoring.hpp"
 
 using namespace netrax;

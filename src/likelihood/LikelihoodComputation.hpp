@@ -10,11 +10,7 @@
 #include <stddef.h>
 #include <vector>
 
-#include "mpreal.h"
-
 #include "../graph/AnnotatedNetwork.hpp"
-#include "../RaxmlWrapper.hpp"
-#include <raxml-ng/TreeInfo.hpp>
 
 namespace netrax {
 

@@ -7,6 +7,9 @@
 #include <limits>
 #include <omp.h>
 
+#include <random>
+#include <raxml-ng/main.hpp>
+
 #include "../colormod.h" // namespace Color
 
 #include "../likelihood/mpreal.h"
