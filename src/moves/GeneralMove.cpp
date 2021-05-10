@@ -25,40 +25,6 @@ void setLinkDirections(Network &network, Node *u, Node *v) {
     from_v_link->direction = Direction::INCOMING;
 }
 
-void checkReticulationProperties(Node *notReticulation, Node *reticulation) {
-    if (notReticulation) {
-        assert(notReticulation->type == NodeType::BASIC_NODE);
-        assert(notReticulation->reticulationData == nullptr);
-    }
-
-    if (reticulation) {
-        assert(reticulation->type == NodeType::RETICULATION_NODE);
-        assert(reticulation->reticulationData->link_to_first_parent);
-        assert(reticulation->reticulationData->link_to_second_parent);
-        assert(reticulation->reticulationData->link_to_child);
-    }
-}
-
-void checkLinkDirections(Network &network) {
-    for (size_t i = 0; i < network.num_nodes(); ++i) {
-        unsigned int targetOutgoing = 2;
-        if (network.nodes_by_index[i]->type == NodeType::RETICULATION_NODE) {
-            targetOutgoing = 1;
-        } else if (network.root == &network.nodes[i]) {
-            targetOutgoing = 2;
-        } else if (network.nodes_by_index[i]->isTip()) {
-            targetOutgoing = 0;
-        }
-        unsigned int n_out = 0;
-        for (size_t j = 0; j < network.nodes_by_index[i]->links.size(); ++j) {
-            if (network.nodes_by_index[i]->links[j].direction == Direction::OUTGOING) {
-                n_out++;
-            }
-        }
-        assert(n_out == targetOutgoing);
-    }
-}
-
 size_t getRandomIndex(std::mt19937& rng, size_t n) {
     std::uniform_int_distribution<std::mt19937::result_type> d(0, n-1);
     return d(rng);
@@ -269,16 +235,6 @@ void addRepairCandidates(Network &network, std::unordered_set<Node*> &repair_can
     for (Node *neigh : getNeighbors(network, node)) {
         repair_candidates.emplace(neigh);
     }
-}
-
-bool assertConsecutiveIndices(AnnotatedNetwork& ann_network) {
-    for (size_t i = 0; i < ann_network.network.num_nodes(); ++i) {
-        assert(ann_network.network.nodes_by_index[i]);
-    }
-    for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
-        assert(ann_network.network.edges_by_index[i]);
-    }
-    return true;
 }
 
 std::vector<double> get_edge_lengths(AnnotatedNetwork &ann_network, size_t pmatrix_index) {

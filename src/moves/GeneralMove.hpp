@@ -10,8 +10,7 @@ namespace netrax {
 
 void changeEdgeDirection(Network &network, Node *u, Node *v);
 void setLinkDirections(Network &network, Node *u, Node *v);
-void checkReticulationProperties(Node *notReticulation, Node *reticulation);
-void checkLinkDirections(Network &network);
+
 size_t getRandomIndex(std::mt19937& rng, size_t n);
 Edge* getRandomEdge(AnnotatedNetwork &ann_network);
 
@@ -25,7 +24,6 @@ std::vector<size_t> determineEdgeOrder(AnnotatedNetwork& ann_network, size_t sta
 void resetReticulationLinks(Node *node);
 void addRepairCandidates(Network &network, std::unordered_set<Node*> &repair_candidates,
         Node *node);
-bool assertConsecutiveIndices(AnnotatedNetwork& ann_network);
 std::vector<double> get_edge_lengths(AnnotatedNetwork &ann_network, size_t pmatrix_index);
 std::vector<double> get_halved_edge_lengths(const std::vector<double>& lengths, double min_br);
 std::vector<double> get_minus_edge_lengths(const std::vector<double>& lengths1, const std::vector<double>& lengths2, double min_br);

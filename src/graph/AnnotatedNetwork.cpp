@@ -294,4 +294,14 @@ bool assertBranchLengths(AnnotatedNetwork& ann_network) {
     return true;
 }
 
+bool assertConsecutiveIndices(AnnotatedNetwork& ann_network) {
+    for (size_t i = 0; i < ann_network.network.num_nodes(); ++i) {
+        assert(ann_network.network.nodes_by_index[i]);
+    }
+    for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
+        assert(ann_network.network.edges_by_index[i]);
+    }
+    return true;
+}
+
 }

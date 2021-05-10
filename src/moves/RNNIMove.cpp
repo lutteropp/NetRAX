@@ -7,6 +7,20 @@
 
 namespace netrax {
 
+void checkReticulationProperties(Node *notReticulation, Node *reticulation) {
+    if (notReticulation) {
+        assert(notReticulation->type == NodeType::BASIC_NODE);
+        assert(notReticulation->reticulationData == nullptr);
+    }
+
+    if (reticulation) {
+        assert(reticulation->type == NodeType::RETICULATION_NODE);
+        assert(reticulation->reticulationData->link_to_first_parent);
+        assert(reticulation->reticulationData->link_to_second_parent);
+        assert(reticulation->reticulationData->link_to_child);
+    }
+}
+
 bool checkSanity(AnnotatedNetwork& ann_network, RNNIMove& move) {
     bool good = true;
     good &= (move.moveType == MoveType::RNNIMove);
