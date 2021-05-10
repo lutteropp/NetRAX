@@ -69,6 +69,7 @@ public:
     double greedy_factor = std::numeric_limits<double>::infinity();
     bool reorder_candidates = false;
     bool no_brlenopt_prefiltering = false;
+    double prefilter_fraction = 0.1;
     bool no_prefiltering = false;
     bool no_tail_moves = false;
     bool no_head_moves = false;

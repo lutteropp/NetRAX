@@ -152,7 +152,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
 
     size_t newSize = 0;
 
-    double cutoff_bic = scores[std::ceil(0.1*scores.size())].bicScore; //best_bic;
+    double cutoff_bic = scores[std::ceil(ann_network.options.prefilter_fraction *scores.size())].bicScore; //best_bic;
 
     for (size_t i = 0; i < candidates.size(); ++i) {
         if (ParallelContext::local_proc_id() == 0) {
