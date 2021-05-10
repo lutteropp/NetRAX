@@ -61,10 +61,7 @@ static double brent_target_networks(void *p, double x) {
     }
     double score;
     if (old_x == x) {
-        if (brlenOptMethod == BrlenOptMethod::BRENT_REROOT_SUMTABLE) {
-            throw std::runtime_error("This is currently not supported");
-            //score = -1 * computeLoglikelihoodFromSumtables(*ann_network, *sumtables, *oldTrees, pmatrix_index, 1, 1);
-        } else if (brlenOptMethod == BrlenOptMethod::BRENT_REROOT) {
+        if (brlenOptMethod == BrlenOptMethod::BRENT_REROOT) {
             score = -1 * computeLoglikelihoodBrlenOpt(*ann_network, *oldTrees, pmatrix_index, 1, 1);
         } else { // BRENT_NORMAL
             score = -1 * computeLoglikelihood(*ann_network);
@@ -82,17 +79,6 @@ static double brent_target_networks(void *p, double x) {
             invalidatePmatrixIndex(*ann_network, pmatrix_index);
         }
 
-        if (brlenOptMethod == BrlenOptMethod::BRENT_REROOT_SUMTABLE) {
-            throw std::runtime_error("This is currently not supported");
-            //double sumtable_logl = computeLoglikelihoodFromSumtables(*ann_network, *sumtables, *oldTrees, pmatrix_index, 1, 1);
-            double reroot_logl = computeLoglikelihoodBrlenOpt(*ann_network, *oldTrees, pmatrix_index, 1, 1);
-            //score = -1 * sumtable_logl;
-            /*if (ann_network->network.num_reticulations() == 1) {
-                std::cout << "logl from sumtables: " << sumtable_logl << "\n";
-                std::cout << "logl from reroot: " << reroot_logl << "\n";
-            }*/
-            //assert(fabs(sumtable_logl - reroot_logl) < 1E-3);
-        }
         if (brlenOptMethod == BrlenOptMethod::BRENT_REROOT) {
             score = -1 * computeLoglikelihoodBrlenOpt(*ann_network, *oldTrees, pmatrix_index, 1, 1);
         } else { // BRENT_NORMAL
@@ -104,7 +90,7 @@ static double brent_target_networks(void *p, double x) {
 }
 
 double optimize_branch_brent(AnnotatedNetwork &ann_network, std::vector<DisplayedTreeData>& oldTrees, std::vector<std::vector<SumtableInfo> >& sumtables, size_t pmatrix_index, size_t partition_index, BrlenOptMethod brlenOptMethod) {
-    assert(brlenOptMethod == BrlenOptMethod::BRENT_NORMAL || brlenOptMethod == BrlenOptMethod::BRENT_REROOT || brlenOptMethod == BrlenOptMethod::BRENT_REROOT_SUMTABLE);
+    assert(brlenOptMethod == BrlenOptMethod::BRENT_NORMAL || brlenOptMethod == BrlenOptMethod::BRENT_REROOT);
     double old_brlen;
     if (ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
         old_brlen = ann_network.fake_treeinfo->branch_lengths[partition_index][pmatrix_index];
@@ -163,8 +149,6 @@ static void network_derivative_func_multi (void * parameters, double * proposal,
                                 (NewtonBrlenParams *) parameters;
   AnnotatedNetwork* ann_network = params->ann_network;
 
-  //std::cout << "proposing brlen: " << params->new_brlen << "\n";
-
   if (ann_network->fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
       ann_network->fake_treeinfo->branch_lengths[params->partition_index][params->pmatrix_index] = params->new_brlen;
   } else {
@@ -200,10 +184,6 @@ double optimize_branch_newton_raphson(AnnotatedNetwork &ann_network, std::vector
 
     double tolerance = (ann_network.options.brlen_min > 0) ? ann_network.options.brlen_min /10.0: PLLMOD_OPT_TOL_BRANCH_LEN;
 
-    //double new_brlen = search_newton_raphson(ann_network, sumtables, pmatrix_index, partition_index, max_iters);
-
-    //std::cout << "MAX_ITERS: \n" << max_iters << "\n";
-
     NewtonBrlenParams params;
     params.ann_network = &ann_network;
     params.partition_index = partition_index;
@@ -220,20 +200,11 @@ double optimize_branch_newton_raphson(AnnotatedNetwork &ann_network, std::vector
                                     NULL,
                                     &params,
                                     network_derivative_func_multi);
-    if (pll_errno) {
-        //std::cout << pll_errmsg << "\n";
-    }
     libpll_reset_error();
-    //assert(!pll_errno);
 
     double new_brlen = params.new_brlen;
     assert(new_brlen >= ann_network.options.brlen_min);
     assert(new_brlen <= ann_network.options.brlen_max);
-
-    //std::cout << "old brlen: " << old_brlen << "\n";
-    //std::cout << "new brlen: " << new_brlen << "\n";
-
-    //throw std::runtime_error("I WANT TO QUIT HERE");
 
     return new_brlen;
 }
@@ -278,11 +249,9 @@ double optimize_branch(AnnotatedNetwork &ann_network, std::vector<DisplayedTreeD
         start_logl = computeLoglikelihood(ann_network);
     }
 
-    if (brlenOptMethod == BrlenOptMethod::BRENT_NORMAL || brlenOptMethod == BrlenOptMethod::BRENT_REROOT || brlenOptMethod == BrlenOptMethod::BRENT_REROOT_SUMTABLE) {
+    if (brlenOptMethod == BrlenOptMethod::BRENT_NORMAL || brlenOptMethod == BrlenOptMethod::BRENT_REROOT) {
         optimize_branch_brent(ann_network, oldTrees, sumtables, pmatrix_index, partition_index, brlenOptMethod);
     } else { // BrlenOptMethod::NEWTON_RAPHSON_REROOT
-        //std::cout << "\nStarting with network logl: " << start_logl << "\n";
-
         double old_brlen;
         if (ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
             old_brlen = ann_network.fake_treeinfo->branch_lengths[partition_index][pmatrix_index];
@@ -299,9 +268,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, std::vector<DisplayedTreeD
                 ann_network.fake_treeinfo->linked_branch_lengths[pmatrix_index] = old_brlen;
             }
             invalidPmatrixIndexOnly(ann_network, pmatrix_index);
-        } /*else if (new_logl > start_logl && ann_network.network.num_reticulations() > 0) {
-            std::cout << "actually found a better brlen with NR\n";
-        }*/
+        }
     }
 
     double best_logl;
@@ -310,23 +277,14 @@ double optimize_branch(AnnotatedNetwork &ann_network, std::vector<DisplayedTreeD
     } else {
         best_logl = computeLoglikelihood(ann_network);
     }
-    //std::cout << "start_logl: " << start_logl << "\n";
-    //std::cout << "best_logl: " << best_logl << "\n";
     assert(best_logl >= start_logl);
 
     return best_logl;
 }
 
 double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, BrlenOptMethod brlenOptMethod, unsigned int max_iters) {
-    //std::cout << "thread " << ParallelContext::local_proc_id() << " is now optimizing branch " << pmatrix_index << "\n";
-
     double old_logl = computeLoglikelihood(ann_network);
     assert(old_logl <= 0.0);
-    /*double debug_logl = computeLoglikelihood(ann_network, 0, 1);
-    if (old_logl != debug_logl) {
-        std::cout << "old_logl: " << old_logl << "\n";
-        std::cout << "debug logl: " << debug_logl << "\n";
-    }*/
     assert(computeLoglikelihood(ann_network, 0, 1) == old_logl);
     std::vector<DisplayedTreeData> oldTrees;
     std::vector<std::vector<SumtableInfo> > sumtables;
@@ -342,26 +300,10 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
         }
         ann_network.cached_logl_valid = false;
 
-        /*if (ParallelContext::local_proc_id() == 0) {
-            std::cout << "old trees:\n";
-            for (size_t i = 0; i < oldTrees.size(); ++i) {
-                printReticulationChoices(oldTrees[i].treeLoglData.reticulationChoices);
-                for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-                    std::cout << "  partition_loglh[" << p << "]: " << oldTrees[i].treeLoglData.tree_partition_logl[p] << "\n";
-                }
-            }
-        }*/
-
-        /*if (fabs(old_logl - computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index)) >= 1E-3) {
-            if (ParallelContext::local_proc_id() == 0) {
-                std::cout << exportDebugInfo(ann_network) << "\n";
-                std::cout << "pmatrix_index: " << pmatrix_index << "\n";
-            }
-        }*/
         // Leaving out this assertion is dangerous...
         assert(fabs(old_logl - computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index)) < 1E-3);
 
-        if (brlenOptMethod == BrlenOptMethod::NEWTON_RAPHSON || brlenOptMethod == BrlenOptMethod::BRENT_REROOT_SUMTABLE) {
+        if (brlenOptMethod == BrlenOptMethod::NEWTON_RAPHSON) {
             sumtables = computePartitionSumtables(ann_network, pmatrix_index);
         }
     }
@@ -373,7 +315,6 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
             if (!ann_network.fake_treeinfo->partitions[p]) {
                 continue;
             }
-            // TODO: Set the active partitions in the fake_treeinfo
             optimize_branch(ann_network, oldTrees, sumtables, pmatrix_index, p, brlenOptMethod, max_iters);
         }
     } else {
@@ -386,40 +327,6 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
     }
 
     double final_logl = computeLoglikelihood(ann_network);
-
-    #ifndef NDEBUG
-    // TODO: Kick that one out after fixing it
-    double plan_logl = computeLoglikelihood(ann_network, 0, 1);
-    if (plan_logl != final_logl) {
-        if (ParallelContext::local_proc_id() == 0) {
-            std::cout << "plan logl: " << plan_logl << "\n";
-            std::cout << "final logl: " << final_logl << "\n";
-            std::cout << toExtendedNewick(ann_network) << "\n";
-            std::cout << exportDebugInfo(ann_network) << "\n";
-            std::cout << "pmatrix index: " << pmatrix_index << "\n";
-        }
-        throw std::runtime_error("Incremental loglikelihood computation led to different score than normal one");
-    }
-    assert(plan_logl == final_logl);
-    /*if (final_logl < old_logl) {
-        std::cout << "old_logl: " << old_logl << "\n";
-        std::cout << "final_logl: " << final_logl << "\n";
-
-        std::cout << "Optimizing branch length led to worse loglikelihood. Rerolling old brlen...\n";
-        for (size_t p = 0; p < n_partitions; ++p) {
-            // skip remote partitions
-            if (!ann_network.fake_treeinfo->partitions[p]) {
-                continue;
-            }
-            ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] = old_brlens[p];
-        }
-        invalidatePmatrixIndex(ann_network, pmatrix_index);
-        final_logl = computeLoglikelihood(ann_network);
-    }*/
-
-    assert(final_logl >= old_logl);
-    #endif
-
     return final_logl;
 }
 

@@ -17,8 +17,7 @@ namespace netrax {
 enum class BrlenOptMethod {
     BRENT_NORMAL = 0,
     BRENT_REROOT = 1,
-    BRENT_REROOT_SUMTABLE = 2,
-    NEWTON_RAPHSON = 3
+    NEWTON_RAPHSON = 2
 };
 
 class NetraxOptions {
@@ -74,7 +73,7 @@ public:
     bool no_head_moves = false;
     bool no_arc_insertion_moves = false;
     bool enforce_extra_search = false;
-    unsigned int scrambling = 3;
+    unsigned int scrambling = 10;
     unsigned int scrambling_radius = 2;
 
     bool sim_anneal = false;
