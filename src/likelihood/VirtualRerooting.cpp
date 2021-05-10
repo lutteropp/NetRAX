@@ -46,12 +46,6 @@ std::vector<PathToVirtualRoot> getPathsToVirtualRoot(AnnotatedNetwork& ann_netwo
     std::vector<PathToVirtualRoot> res;
     // naive version here: Go over all displayed trees, compute pathToVirtualRoot for each of them, and then later on kick out duplicate paths...
 
-    /*if (ann_network.network.num_reticulations() == 1) {
-        std::cout << "\nold virtual root: " << old_virtual_root->clv_index << "\n";
-        std::cout << "new virtual root: " << new_virtual_root->clv_index << "\n";
-        std::cout << "new virtual root back: " << new_virtual_root_back->clv_index << "\n";
-    }*/
-
     NodeDisplayedTreeData& oldDisplayedTrees = ann_network.pernode_displayed_tree_data[old_virtual_root->clv_index];
     for (size_t i = 0; i < oldDisplayedTrees.num_active_displayed_trees; ++i) {
         PathToVirtualRoot ptvr(ann_network.options.max_reticulations);
@@ -71,17 +65,6 @@ std::vector<PathToVirtualRoot> getPathsToVirtualRoot(AnnotatedNetwork& ann_netwo
         assert(restrictionsSet.configs.size() == 1);
         ptvr.reticulationChoices = restrictionsSet;
         ptvr.path = path;
-
-        /*std::cout << "parent pointers for reticulation choices:\n";
-        printReticulationChoices(restrictionsSet);
-        for (size_t j = 0; j < path.size(); ++j) {
-            if (parent[path[j]->clv_index]) {
-                std::cout << path[j]->clv_index << " has parent " << parent[path[j]->clv_index]->clv_index << "\n";
-            } else {
-                std::cout << path[j]->clv_index << " has NO parent\n";
-            }
-        }
-        std::cout << "\n";*/
 
         assert(ptvr.path[0] == old_virtual_root);
         for (size_t j = 0; j < path.size() - 1; ++j) {
@@ -116,13 +99,6 @@ std::vector<PathToVirtualRoot> getPathsToVirtualRoot(AnnotatedNetwork& ann_netwo
             }
         }
     }
-
-    /*if (ann_network.network.num_reticulations() == 1 && (new_virtual_root_back->clv_index == 15)) {
-        std::cout << "paths from old virtual root " << old_virtual_root->clv_index << " to virtual root " << new_virtual_root->clv_index << ":\n";
-        for (size_t i = 0; i < res.size(); ++i) {
-            printPathToVirtualRoot(res[i]);
-        }
-    }*/
 
     return res;
 }
