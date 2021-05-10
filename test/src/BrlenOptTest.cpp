@@ -6,7 +6,6 @@
  */
 
 #include "src/likelihood/LikelihoodComputation.hpp"
-#include "src/optimization/BranchLengthOptimization.hpp"
 #include "src/optimization/ModelOptimization.hpp"
 #include "src/helper/NetworkFunctions.hpp"
 #include "src/helper/Helper.hpp"
@@ -16,6 +15,9 @@
 
 #include "src/likelihood/LikelihoodDerivatives.hpp"
 #include "src/likelihood/VirtualRerooting.hpp"
+
+#include "src/optimization/Optimization.hpp"
+#include "src/optimization/BranchLengthOptimization.hpp"
 
 #include <gtest/gtest.h>
 #include <string>

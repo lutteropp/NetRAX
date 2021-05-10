@@ -26,6 +26,16 @@
 
 namespace netrax {
 
+std::vector<DisplayedTreeData> extractOldTrees(AnnotatedNetwork& ann_network, Node* virtual_root) {
+    std::vector<DisplayedTreeData> oldTrees;
+    NodeDisplayedTreeData& nodeTrees = ann_network.pernode_displayed_tree_data[virtual_root->clv_index];
+    for (size_t i = 0; i < nodeTrees.num_active_displayed_trees; ++i) {
+        DisplayedTreeData& tree = nodeTrees.displayed_trees[i];
+        oldTrees.emplace_back(tree);
+    }
+    return oldTrees;
+}
+
 struct BrentBrlenParams {
     AnnotatedNetwork *ann_network;
     size_t pmatrix_index;
@@ -456,40 +466,23 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int max_i
     return optimize_branches(ann_network, max_iters, max_iters_outside, radius, candidates, restricted_total_iters);
 }
 
-/**
- * Re-infers the branch lengths of a given network.
- * 
- * @param ann_network The network.
- */
-void optimizeBranches(AnnotatedNetwork &ann_network, bool silent, bool restricted_total_iters) {
+double optimize_scalers(AnnotatedNetwork& ann_network, bool silent) {
     double old_score = scoreNetwork(ann_network);
-
-    int brlen_smooth_factor = 100;
-    int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
-    int radius = PLLMOD_OPT_BRLEN_OPTIMIZE_ALL;
-    optimize_branches(ann_network, max_iters, max_iters, radius, restricted_total_iters);
-
-    double new_score = scoreNetwork(ann_network);
-    if (!silent) std::cout << "BIC score after branch length optimization: " << new_score << "\n";
-
-    if (new_score > old_score) {
-        std::cout << "old score: " << old_score << "\n";
-        std::cout << "new score: " << new_score << "\n";
-        throw std::runtime_error("Complete brlenopt made BIC worse");
-    }
-
-    assert(new_score <= old_score);
     if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED && ann_network.fake_treeinfo->partition_count > 1) {
-        old_score = scoreNetwork(ann_network);
         pllmod_algo_opt_brlen_scalers_treeinfo(ann_network.fake_treeinfo,
                                                         RAXML_BRLEN_SCALER_MIN,
                                                         RAXML_BRLEN_SCALER_MAX,
                                                         ann_network.options.brlen_min,
                                                         ann_network.options.brlen_max,
                                                         RAXML_PARAM_EPSILON);
-        new_score = scoreNetwork(ann_network);
-        std::cout << "BIC score after branch length scaler optimization: " << new_score << "\n";
+        double new_score = scoreNetwork(ann_network);
+        if (!silent && ParallelContext::local_proc_id() == 0) {
+            std::cout << "BIC score after branch length scaler optimization: " << new_score << "\n";
+        }
         assert(new_score <= old_score);
+        return new_score;
+    } else {
+        return old_score;
     }
 }
 

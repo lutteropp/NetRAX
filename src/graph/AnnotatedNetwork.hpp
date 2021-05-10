@@ -174,5 +174,6 @@ void init_annotated_network(AnnotatedNetwork &ann_network, std::mt19937& rng);
 void init_annotated_network(AnnotatedNetwork &ann_network);
 
 bool reuseOldDisplayedTreesCheck(AnnotatedNetwork& ann_network, int incremental);
+bool hasBadReticulation(AnnotatedNetwork& ann_network);
 
 }

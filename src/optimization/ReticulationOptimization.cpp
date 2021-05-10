@@ -126,22 +126,4 @@ double optimize_reticulations(AnnotatedNetwork &ann_network, int max_iters) {
     return act_logl;
 }
 
-
-/**
- * Re-infers the reticulation probabilities of a given network.
- * 
- * @param ann_network The network.
- */
-void optimizeReticulationProbs(AnnotatedNetwork &ann_network, bool silent) {
-    if (ann_network.network.num_reticulations() == 0) {
-        return;
-    }
-    //assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
-    double old_score = scoreNetwork(ann_network);
-    netrax::optimize_reticulations(ann_network, 100);
-    double new_score = scoreNetwork(ann_network);
-    if (!silent) std::cout << "BIC score after updating reticulation probs: " << new_score << "\n";
-    assert(new_score <= old_score);
-}
-
 }

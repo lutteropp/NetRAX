@@ -11,10 +11,14 @@
 #include <string>
 #include <vector>
 
+#include <raxml-ng/main.hpp>
+
 extern "C" {
 #include <libpll/pll.h>
 #include <libpll/pll_tree.h>
 }
+
+#include "optimization/MoveType.hpp"
 
 namespace netrax {
 
@@ -35,5 +39,22 @@ void printReticulationFirstParents(AnnotatedNetwork &ann_network);
 std::string exportDebugInfoRootedNetwork(const RootedNetwork &rnetwork);
 std::string exportDebugInfo(AnnotatedNetwork &ann_network, bool with_labels = true);
 std::string exportDebugInfoNetwork(Network &network, bool with_labels = true);
+
+void print_partition(AnnotatedNetwork& ann_network, pll_partition_t* partition);
+void print_treeinfo(AnnotatedNetwork& ann_network);
+
+
+void printDisplayedTrees(AnnotatedNetwork& ann_network);
+
+template <typename T>
+void printCandidates(std::vector<T>& candidates) {
+    if (ParallelContext::local_proc_id() == 0) {
+        std::cout << "The candidates are:\n";
+        for (size_t i = 0; i < candidates.size(); ++i) {
+            std::cout << toString(candidates[i]) << "\n";
+        }
+        std::cout << "End of candidates.\n";
+    }
+}
 
 }

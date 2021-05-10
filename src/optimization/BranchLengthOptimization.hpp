@@ -22,6 +22,6 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int max_i
 
 std::vector<DisplayedTreeData> extractOldTrees(AnnotatedNetwork& ann_network, Node* virtual_root);
 
-void optimizeBranches(AnnotatedNetwork &ann_network, bool silent = true, bool restricted_total_iters = false);
+double optimize_scalers(AnnotatedNetwork& ann_network, bool silent = false);
 
 }

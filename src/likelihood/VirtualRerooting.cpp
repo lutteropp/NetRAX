@@ -6,17 +6,6 @@
 #include "ImprovedLoglikelihood.hpp"
 
 namespace netrax {
-
-std::vector<DisplayedTreeData> extractOldTrees(AnnotatedNetwork& ann_network, Node* virtual_root) {
-    std::vector<DisplayedTreeData> oldTrees;
-    NodeDisplayedTreeData& nodeTrees = ann_network.pernode_displayed_tree_data[virtual_root->clv_index];
-    for (size_t i = 0; i < nodeTrees.num_active_displayed_trees; ++i) {
-        DisplayedTreeData& tree = nodeTrees.displayed_trees[i];
-        oldTrees.emplace_back(tree);
-    }
-    return oldTrees;
-}
-
 struct PathToVirtualRoot {
     ReticulationConfigSet reticulationChoices;
     std::vector<Node*> path;

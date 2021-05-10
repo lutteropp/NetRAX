@@ -3,5 +3,5 @@
 #include "../graph/AnnotatedNetwork.hpp"
 
 namespace netrax {
-    void optimizeModel(AnnotatedNetwork &ann_network, bool silent = true);
+    double optimize_params(AnnotatedNetwork& ann_network, double lh_epsilon);
 }

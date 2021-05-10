@@ -6,6 +6,9 @@
 
 #include <CLI11.hpp>
 #include <raxml-ng/main.hpp>
+
+#include "optimization/Optimization.hpp"
+
 #include "likelihood/mpreal.h"
 #include "graph/AnnotatedNetwork.hpp"
 #include "NetraxOptions.hpp"
@@ -27,10 +30,6 @@ void error_exit(std::string msg) {
     mpfr_free_cache();
     ParallelContext::finalize(true);
     throw std::runtime_error(msg);
-}
-
-bool can_write(){
-    return (ParallelContext::master_rank() && ParallelContext::master_thread());
 }
 
 int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
@@ -157,7 +156,7 @@ std::vector<MoveType> getTypesBySpeed(const NetraxOptions& options) {
 void pretty_print(const NetraxOptions &netraxOptions)
 {
     Network network = netrax::readNetworkFromFile(netraxOptions.start_network_file);
-    if (can_write()) {
+    if (ParallelContext::local_proc_id() == 0) {
         std::cout << exportDebugInfoNetwork(network) << "\n";
     }
 }
@@ -168,28 +167,28 @@ void score_only(NetraxOptions &netraxOptions, const RaxmlInstance& instance, std
     init_annotated_network(ann_network, rng);
     optimizeModel(ann_network);
 
-    if (can_write()) {
+    if (ParallelContext::local_proc_id() == 0) {
         std::cout << "Initial, given network:\n";
         std::cout << toExtendedNewick(ann_network) << "\n";
     }
 
     double start_bic = scoreNetwork(ann_network);
     double start_logl = computeLoglikelihood(ann_network, 1, 1);
-    if (can_write()) {
+    if (ParallelContext::local_proc_id() == 0) {
         std::cout << "Initial (before brlen and reticulation opt) BIC Score: " << start_bic << "\n";
         std::cout << "Initial (before brlen and reticulation opt) loglikelihood: " << start_logl << "\n";
     }
 
     optimizeAllNonTopology(ann_network, true);
 
-    if (can_write()) {
+    if (ParallelContext::local_proc_id() == 0) {
         std::cout << "Network after optimization of brlens and reticulation probs:\n";
         std::cout << toExtendedNewick(ann_network) << "\n";
     }
 
     double final_bic = scoreNetwork(ann_network);
     double final_logl = computeLoglikelihood(ann_network, 1, 1);
-    if (can_write()) {
+    if (ParallelContext::local_proc_id() == 0) {
         std::cout << "Number of reticulations: " << ann_network.network.num_reticulations() << "\n";
         std::cout << "BIC Score: " << final_bic << "\n";
         std::cout << "Loglikelihood: " << final_logl << "\n";
@@ -205,7 +204,7 @@ void extract_taxon_names(const NetraxOptions &netraxOptions)
     {
         tip_labels.emplace_back(network.nodes_by_index[i]->getLabel());
     }
-    if (can_write()) {
+    if (ParallelContext::local_proc_id() == 0) {
         std::cout << "Found " << tip_labels.size() << " taxa:\n";
         for (size_t i = 0; i < tip_labels.size(); ++i)
         {
@@ -237,7 +236,7 @@ void extract_displayed_trees(NetraxOptions &netraxOptions, const RaxmlInstance& 
             displayed_trees.emplace_back(std::make_pair(newick, prob));
         }
     }
-    if (can_write()) {
+    if (ParallelContext::local_proc_id() == 0) {
         std::cout << "Number of displayed trees: " << displayed_trees.size() << "\n";
         std::cout << "Displayed trees Newick strings:\n";
         for (const auto &entry : displayed_trees)
@@ -263,7 +262,7 @@ void scale_branches_only(NetraxOptions &netraxOptions, const RaxmlInstance& inst
         ann_network.network.edges_by_index[i]->length *= netraxOptions.scale_branches_only;
         ann_network.fake_treeinfo->linked_branch_lengths[i] *= netraxOptions.scale_branches_only;
     }
-    if (can_write()) {
+    if (ParallelContext::local_proc_id() == 0) {
         writeNetwork(ann_network, netraxOptions.output_file);
         std::cout << "Network with scaled branch lengths written to " << netraxOptions.output_file << "\n";
     }
@@ -285,7 +284,7 @@ void network_distance_only(NetraxOptions &netraxOptions, const RaxmlInstance& in
         label_to_int[ann_network_1.network.nodes_by_index[i]->label] = i;
     }
 
-    if (can_write()) {
+    if (ParallelContext::local_proc_id() == 0) {
         std::cout << "Unrooted softwired network distance: " << get_network_distance(ann_network_1, ann_network_2, label_to_int, NetworkDistanceType::UNROOTED_SOFTWIRED_DISTANCE) << "\n";
         std::cout << "Unrooted hardwired network distance: " << get_network_distance(ann_network_1, ann_network_2, label_to_int, NetworkDistanceType::UNROOTED_HARDWIRED_DISTANCE) << "\n";
         std::cout << "Unrooted displayed trees distance: " << get_network_distance(ann_network_1, ann_network_2, label_to_int, NetworkDistanceType::UNROOTED_DISPLAYED_TREES_DISTANCE) << "\n";
@@ -332,7 +331,7 @@ void check_weird_network(NetraxOptions &netraxOptions, const RaxmlInstance& inst
         pll_utree_destroy(displayed_trees[i], nullptr);
     }
 
-    if (can_write()) {
+    if (ParallelContext::local_proc_id() == 0) {
         std::cout << "Number of pairs: " << n_pairs << "\n";
         std::cout << "Number of equal pairs: " << n_equal << "\n";
     }
@@ -345,7 +344,7 @@ void generate_random_network_only(NetraxOptions &netraxOptions, const RaxmlInsta
     init_annotated_network(ann_network, rng);
     ann_network.fake_treeinfo->brlen_linkage = PLLMOD_COMMON_BRLEN_LINKED;
     add_extra_reticulations(ann_network, netraxOptions.max_reticulations);
-    if (can_write()) {
+    if (ParallelContext::local_proc_id() == 0) {
         writeNetwork(ann_network, netraxOptions.output_file);
         std::cout << "Final network written to " << netraxOptions.output_file << "\n";
     }
@@ -359,7 +358,7 @@ void scale_reticulation_probs_only(NetraxOptions &netraxOptions, const RaxmlInst
     for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
         ann_network.reticulation_probs[i] = netraxOptions.overwritten_reticulation_prob;
     }
-    if (can_write()) {
+    if (ParallelContext::local_proc_id() == 0) {
         writeNetwork(ann_network, netraxOptions.output_file);
         std::cout << "Final network written to " << netraxOptions.output_file << "\n";
     }
@@ -391,7 +390,7 @@ bool quick_function(NetraxOptions& netraxOptions, const RaxmlInstance& instance)
         {
             error_exit("No input network specified to be pretty-printed");
         }
-        if (can_write()) { // only the master rank does the simple work
+        if (ParallelContext::local_proc_id() == 0) { // only the master rank does the simple work
             pretty_print(netraxOptions);
         }
         return true;
@@ -400,7 +399,7 @@ bool quick_function(NetraxOptions& netraxOptions, const RaxmlInstance& instance)
         {
             error_exit("Need network to extract displayed trees");
         }
-        if (can_write()) { // only the master rank does the simple work
+        if (ParallelContext::local_proc_id() == 0) { // only the master rank does the simple work
             extract_displayed_trees(netraxOptions, instance, rng);
         }
         return true;
@@ -409,7 +408,7 @@ bool quick_function(NetraxOptions& netraxOptions, const RaxmlInstance& instance)
         {
             error_exit("Need network to extract displayed trees");
         }
-        if (can_write()) { // only the master rank does the simple work
+        if (ParallelContext::local_proc_id() == 0) { // only the master rank does the simple work
             check_weird_network(netraxOptions, instance, rng);
         }
         return true;
@@ -422,7 +421,7 @@ bool quick_function(NetraxOptions& netraxOptions, const RaxmlInstance& instance)
         {
             error_exit("Need output file to write the generated network");
         }
-        if (can_write()) { // only the master rank does the simple work
+        if (ParallelContext::local_proc_id() == 0) { // only the master rank does the simple work
             generate_random_network_only(netraxOptions, instance, rng);
         }
         return true;
@@ -435,7 +434,7 @@ bool quick_function(NetraxOptions& netraxOptions, const RaxmlInstance& instance)
         {
             error_exit("Need output file to write the scaled network");
         }
-        if (can_write()) { // only the master rank does the simple work
+        if (ParallelContext::local_proc_id() == 0) { // only the master rank does the simple work
             scale_branches_only(netraxOptions, instance, rng);
         }
         return true;
@@ -454,7 +453,7 @@ bool quick_function(NetraxOptions& netraxOptions, const RaxmlInstance& instance)
         if (netraxOptions.overwritten_reticulation_prob < 0.0 || netraxOptions.overwritten_reticulation_prob > 1.0) {
             error_exit("new prob has to be in [0,1]");
         }
-        if (can_write()) { // only the master rank does the simple work
+        if (ParallelContext::local_proc_id() == 0) { // only the master rank does the simple work
             scale_reticulation_probs_only(netraxOptions, instance, rng);
         }
         return true;
@@ -463,7 +462,7 @@ bool quick_function(NetraxOptions& netraxOptions, const RaxmlInstance& instance)
         {
             error_exit("Need networks to compute distance");
         }
-        if (can_write()) { // only the master rank does the simple work
+        if (ParallelContext::local_proc_id() == 0) { // only the master rank does the simple work
             network_distance_only(netraxOptions, instance, rng);
         }
         return true;
@@ -620,7 +619,7 @@ int internal_main_netrax(int argc, char **argv, void* comm)
         {
             error_exit("Need network to extract taxon names");
         }
-        if (can_write()) { // only the master rank does the simple work
+        if (ParallelContext::local_proc_id() == 0) { // only the master rank does the simple work
             extract_taxon_names(netraxOptions);
         }
         mpfr_free_cache();
