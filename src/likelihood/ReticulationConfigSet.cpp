@@ -37,7 +37,6 @@ void printReticulationChoices(const std::vector<ReticulationState>& reticulation
 }
 
 std::vector<ReticulationState> combineReticulationChoices(const std::vector<ReticulationState>& left, const std::vector<ReticulationState>& right) {
-    assert(reticulationChoicesCompatible(left, right));
     assert(left.size() == right.size());
     std::vector<ReticulationState> res = left;
     for (size_t i = 0; i < res.size(); ++i) {
@@ -187,8 +186,9 @@ ReticulationConfigSet combineReticulationChoices(const ReticulationConfigSet& le
     ReticulationConfigSet res(left.max_reticulations);
     for (size_t i = 0; i < left.configs.size(); ++i) {
         for (size_t j = 0; j < right.configs.size(); ++j) {
-            if (reticulationChoicesCompatible(left.configs[i], right.configs[j])) {
-                res.configs.emplace_back(combineReticulationChoices(left.configs[i], right.configs[j]));
+            std::vector<ReticulationState> combined = combineReticulationChoices(left.configs[i], right.configs[j]);
+            if (validReticulationChoices(combined)) {
+                res.configs.emplace_back(combined);
             }
         }
     }
