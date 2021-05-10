@@ -132,6 +132,10 @@ struct ReticulationConfigSet {
         }
         return *this;
     }
+
+    bool empty() const {
+        return configs.empty();
+    }
 };
 
 struct TreeLoglData {

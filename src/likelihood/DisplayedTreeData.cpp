@@ -412,7 +412,6 @@ namespace netrax
         }
     }
 
-    //std::vector<ReticulationState> combineReticulationChoices(const std::vector<ReticulationState>& left, const std::vector<ReticulationState>& right);
     ReticulationConfigSet combineReticulationChoices(const ReticulationConfigSet& left, const ReticulationConfigSet& right) {
         ReticulationConfigSet res(left.max_reticulations);
         for (size_t i = 0; i < left.configs.size(); ++i) {

@@ -143,6 +143,7 @@ unsigned int processNodeImprovedTwoChildren(AnnotatedNetwork& ann_network, Node*
     if (!extraRestrictions.configs.empty()) {
         right_child_dead_settings = combineReticulationChoices(right_child_dead_settings, extraRestrictions);
     }
+    
     for (size_t i = 0; i < displayed_trees_left_child.num_active_displayed_trees; ++i) {
         DisplayedTreeData& leftTree = displayed_trees_left_child.displayed_trees[i];
         ReticulationConfigSet leftOnlyConfigs = getReticulationChoicesThisOnly(ann_network, leftTree.treeLoglData.reticulationChoices, right_child_dead_settings, node, left_child, right_child);
