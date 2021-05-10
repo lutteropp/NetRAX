@@ -80,8 +80,6 @@ std::vector<Node*> getActiveAliveNeighbors(Network &network, const std::vector<b
         const Node *node);
 bool hasNeighbor(Node *node1, Node *node2);
 std::unordered_set<size_t> getNeighborPmatrixIndices(Network &network, Edge *edge);
-ReticulationConfigSet getRestrictionsToDismissNeighbor(AnnotatedNetwork& ann_network, Node* node, Node* neighbor);
-ReticulationConfigSet getRestrictionsToTakeNeighbor(AnnotatedNetwork& ann_network, Node* node, Node* neighbor);
 
 /* helper functions related to clv/pmatrix invalidation */
 void invalidateSingleClv(AnnotatedNetwork& ann_network, unsigned int clv_index);
@@ -93,5 +91,15 @@ void invalidatePmatrixIndex(AnnotatedNetwork &ann_network, size_t pmatrix_index,
         std::vector<bool> &visited);
 void invalidatePmatrixIndex(AnnotatedNetwork &ann_network, size_t pmatrix_index);
 void invalidPmatrixIndexOnly(AnnotatedNetwork& ann_network, size_t pmatrix_index);
+bool allClvsValid(pllmod_treeinfo_t* treeinfo, size_t clv_index);
+
+/* helper functions related to reticulation config set */
+ReticulationConfigSet getRestrictionsToDismissNeighbor(AnnotatedNetwork& ann_network, Node* node, Node* neighbor);
+ReticulationConfigSet getRestrictionsToTakeNeighbor(AnnotatedNetwork& ann_network, Node* node, Node* neighbor);
+ReticulationConfigSet getReticulationChoicesThisOnly(AnnotatedNetwork& ann_network, const ReticulationConfigSet& this_tree_config, const ReticulationConfigSet& other_child_dead_settings, Node* parent, Node* this_child, Node* other_child);
+ReticulationConfigSet deadNodeSettings(AnnotatedNetwork& ann_network, const NodeDisplayedTreeData& displayed_trees, Node* parent, Node* child);
+ReticulationConfigSet getTreeConfig(AnnotatedNetwork& ann_network, size_t tree_idx);
+DisplayedTreeData& findMatchingDisplayedTree(AnnotatedNetwork& ann_network, const ReticulationConfigSet& reticulationChoices, NodeDisplayedTreeData& data);
+Node* findFirstNodeWithTwoActiveChildren(AnnotatedNetwork& ann_network, const ReticulationConfigSet& reticulationChoices, Node* oldRoot);
 
 }

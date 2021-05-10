@@ -3,6 +3,8 @@
 #include "../graph/NetworkTopology.hpp"
 #include "../DebugPrintFunctions.hpp"
 
+#include "ImprovedLoglikelihood.hpp"
+
 namespace netrax {
 
 std::vector<DisplayedTreeData> extractOldTrees(AnnotatedNetwork& ann_network, Node* virtual_root) {
