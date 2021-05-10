@@ -178,6 +178,12 @@ std::string exportDebugInfoExtraNodeNumber(Network &network,
         if (!extra_node_number.empty()) {
             nodeLabel += "|" + std::to_string(extra_node_number[i]);
         }
+
+        if (network.nodes_by_index[i]->getType() == NodeType::RETICULATION_NODE) {
+            size_t firstParentIdx = network.nodes_by_index[i]->getReticulationData()->getLinkToFirstParent()->outer->node_clv_index;
+            nodeLabel += "(r=" + std::to_string((network.nodes_by_index[i]->getReticulationData())->getReticulationIndex()) + ", p0=" + std::to_string(firstParentIdx) + ")";
+        }
+
         ss << "\t\tlabel\t\"" << nodeLabel << "\"\n";
         ss << buildNodeGraphics(network.nodes_by_index[i]);
         ss << "\t]\n";

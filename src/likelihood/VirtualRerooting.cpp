@@ -322,7 +322,7 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
     ann_network.cached_logl = network_logl;
     ann_network.cached_logl_valid = true;
 
-    /*if (ParallelContext::local_proc_id() == 0) {
+    if (ParallelContext::local_proc_id() == 0) {
         std::cout << "combined trees:\n";
         for (size_t i = 0; i < combinedTrees.size(); ++i) {
             printReticulationChoices(combinedTrees[i].reticulationChoices);
@@ -330,7 +330,7 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
                 std::cout << "  partition_loglh[" << p << "]: " << combinedTrees[i].tree_partition_logl[p] << "\n";
             }
         }
-    }*/
+    }
 
     return network_logl;
 }
