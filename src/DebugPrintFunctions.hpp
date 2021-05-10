@@ -25,6 +25,7 @@ namespace netrax {
 struct AnnotatedNetwork;
 struct Network;
 struct RootedNetwork;
+struct Node;
 
 void printClv(const pllmod_treeinfo_t &treeinfo, size_t clv_index, double* clv, size_t partition_index);
 void print_clv_vector(pllmod_treeinfo_t &fake_treeinfo, size_t tree_idx, size_t partition_idx,
@@ -42,9 +43,8 @@ std::string exportDebugInfoNetwork(Network &network, bool with_labels = true);
 
 void print_partition(AnnotatedNetwork& ann_network, pll_partition_t* partition);
 void print_treeinfo(AnnotatedNetwork& ann_network);
-
-
 void printDisplayedTrees(AnnotatedNetwork& ann_network);
+void printDisplayedTreesChoices(AnnotatedNetwork& ann_network, Node* virtualRoot);
 
 template <typename T>
 void printCandidates(std::vector<T>& candidates) {
