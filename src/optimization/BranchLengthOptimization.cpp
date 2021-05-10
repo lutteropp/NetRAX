@@ -341,7 +341,18 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
             updateCLVsVirtualRerootTrees(ann_network, old_virtual_root, new_virtual_root, new_virtual_root_back);
         }
         ann_network.cached_logl_valid = false;
-        // TODO: Leaving out this assertion is dangerous...
+
+        /*if (ParallelContext::local_proc_id() == 0) {
+            std::cout << "old trees:\n";
+            for (size_t i = 0; i < oldTrees.size(); ++i) {
+                printReticulationChoices(oldTrees[i].treeLoglData.reticulationChoices);
+                for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+                    std::cout << "  partition_loglh[" << p << "]: " << oldTrees[i].treeLoglData.tree_partition_logl[p] << "\n";
+                }
+            }
+        }*/
+
+        // Leaving out this assertion is dangerous...
         assert(fabs(old_logl - computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index)) < 1E-3);
 
         if (brlenOptMethod == BrlenOptMethod::NEWTON_RAPHSON || brlenOptMethod == BrlenOptMethod::BRENT_REROOT_SUMTABLE) {
