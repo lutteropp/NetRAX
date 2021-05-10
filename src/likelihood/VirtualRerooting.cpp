@@ -312,6 +312,30 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
         }
     }
 
+    // find trees that are still not present in the combined trees, but may be present in the old trees
+    for (size_t tree_idx = 0; tree_idx < (1 << ann_network.network.num_reticulations()); ++tree_idx) {
+        ReticulationConfigSet treeChoices = getTreeConfig(ann_network, tree_idx);
+        bool seen = false;
+        for (size_t i = 0; i < combinedTrees.size(); ++i) {
+            if (reticulationConfigsCompatible(treeChoices, combinedTrees[i].reticulationChoices)) {
+                seen = true;
+                break;
+            }
+        }
+        if (!seen) {
+            // search the tree in the old trees. If found, add it to the combined trees.
+            for (size_t i = 0; i < oldTrees.size(); ++i) {
+                if (reticulationConfigsCompatible(treeChoices, oldTrees[i].treeLoglData.reticulationChoices)) {
+                    TreeLoglData combinedTreeData(ann_network.fake_treeinfo->partition_count, ann_network.options.max_reticulations);
+                    combinedTreeData.reticulationChoices = treeChoices;
+                    updateTreeData(ann_network, oldTrees, combinedTreeData);
+                    combinedTrees.emplace_back(combinedTreeData);
+                    break;
+                }
+            }
+        }
+    }
+
     for (size_t c = 0; c < combinedTrees.size(); ++c) {
         assert(combinedTrees[c].tree_logl_valid);
     }
@@ -322,7 +346,7 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
     ann_network.cached_logl = network_logl;
     ann_network.cached_logl_valid = true;
 
-    if (ParallelContext::local_proc_id() == 0) {
+    /*if (ParallelContext::local_proc_id() == 0) {
         std::cout << "combined trees:\n";
         for (size_t i = 0; i < combinedTrees.size(); ++i) {
             printReticulationChoices(combinedTrees[i].reticulationChoices);
@@ -330,7 +354,7 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
                 std::cout << "  partition_loglh[" << p << "]: " << combinedTrees[i].tree_partition_logl[p] << "\n";
             }
         }
-    }
+    }*/
 
     return network_logl;
 }

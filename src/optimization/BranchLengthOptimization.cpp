@@ -342,7 +342,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
         }
         ann_network.cached_logl_valid = false;
 
-        if (ParallelContext::local_proc_id() == 0) {
+        /*if (ParallelContext::local_proc_id() == 0) {
             std::cout << "old trees:\n";
             for (size_t i = 0; i < oldTrees.size(); ++i) {
                 printReticulationChoices(oldTrees[i].treeLoglData.reticulationChoices);
@@ -350,15 +350,15 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
                     std::cout << "  partition_loglh[" << p << "]: " << oldTrees[i].treeLoglData.tree_partition_logl[p] << "\n";
                 }
             }
-        }
+        }*/
 
-        // Leaving out this assertion is dangerous...
-        if (fabs(old_logl - computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index)) >= 1E-3) {
+        /*if (fabs(old_logl - computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index)) >= 1E-3) {
             if (ParallelContext::local_proc_id() == 0) {
                 std::cout << exportDebugInfo(ann_network) << "\n";
                 std::cout << "pmatrix_index: " << pmatrix_index << "\n";
             }
-        }
+        }*/
+        // Leaving out this assertion is dangerous...
         assert(fabs(old_logl - computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index)) < 1E-3);
 
         if (brlenOptMethod == BrlenOptMethod::NEWTON_RAPHSON || brlenOptMethod == BrlenOptMethod::BRENT_REROOT_SUMTABLE) {
