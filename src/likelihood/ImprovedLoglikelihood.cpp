@@ -185,15 +185,6 @@ void processNodeImproved(AnnotatedNetwork& ann_network, int incremental, Node* n
         return;
     }
 
-    /*std::cout << "processNodeImproved called for node " << node->clv_index << " with children: ";
-    for (size_t i = 0; i < children.size(); ++i) {
-        std::cout << children[i]->clv_index;
-        if (i + 1 < children.size()) {
-            std::cout << ", ";
-        }
-    }
-    std::cout << "\n";*/
-
     if (!append) {
         ann_network.pernode_displayed_tree_data[node->clv_index].num_active_displayed_trees = 0;
     }
@@ -309,7 +300,6 @@ void processPartitionsImproved(AnnotatedNetwork& ann_network, int incremental) {
 }
 
 double evaluateTreesPartition(AnnotatedNetwork& ann_network, size_t partition_idx, std::vector<TreeLoglData>& treeLoglData) {
-    //ann_network.fake_treeinfo->active_partition = partition_idx;
     size_t n_trees = treeLoglData.size();
 
     assert(ann_network.options.likelihood_variant != LikelihoodVariant::SARAH_PSEUDO);
@@ -352,7 +342,6 @@ double evaluateTreesPartition(AnnotatedNetwork& ann_network, size_t partition_id
 }
 
 double evaluateTreesPartition(AnnotatedNetwork& ann_network, size_t partition_idx, NodeDisplayedTreeData& nodeDisplayedTreeData) {
-    //ann_network.fake_treeinfo->active_partition = partition_idx;
     std::vector<DisplayedTreeData>& displayed_root_trees = nodeDisplayedTreeData.displayed_trees;
     size_t n_trees = nodeDisplayedTreeData.num_active_displayed_trees;
 
@@ -373,7 +362,6 @@ double evaluateTrees(AnnotatedNetwork &ann_network, Node* virtual_root) {
         network_logl += partition_logl;
     }
 
-    //fake_treeinfo.active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
     if (network_logl.toDouble() == -std::numeric_limits<double>::infinity()) {
         throw std::runtime_error("Invalid network likelihood: negative infinity \n");
     }
@@ -400,7 +388,6 @@ double computeLoglikelihoodImproved(AnnotatedNetwork &ann_network, int increment
             }
         }
     } else {
-        //fake_treeinfo.active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
         if (update_pmatrices) {
             pllmod_treeinfo_update_prob_matrices(ann_network.fake_treeinfo, !incremental);
         }
