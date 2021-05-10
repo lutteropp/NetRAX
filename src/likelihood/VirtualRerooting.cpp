@@ -242,7 +242,6 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
     if (ann_network.cached_logl_valid) {
         return ann_network.cached_logl;
     }
-    ann_network.fake_treeinfo->active_partition = PLLMOD_TREEINFO_PARTITION_ALL;
     
     Node* source = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
     Node* target = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
@@ -337,7 +336,6 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
     for (size_t c = 0; c < combinedTrees.size(); ++c) {
         assert(combinedTrees[c].tree_logl_valid);
     }
-
     double network_logl = 0;
     for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
         network_logl += evaluateTreesPartition(ann_network, p, combinedTrees);
