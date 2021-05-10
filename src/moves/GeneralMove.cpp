@@ -69,23 +69,6 @@ Edge* getRandomEdge(AnnotatedNetwork &ann_network) {
     return ann_network.network.edges_by_index[getRandomIndex(ann_network.rng, n)];
 }
 
-bool checkSanity(Network &network) {
-// check edge<->links sanity
-    for (size_t i = 0; i < network.edges.size(); ++i) {
-        if (network.edges_by_index[i]) {
-            assert(network.edges_by_index[i]->link1->edge_pmatrix_index == i);
-            assert(network.edges_by_index[i]->link2->edge_pmatrix_index == i);
-        }
-    }
-// check node<->links sanity
-    for (size_t i = 0; i < network.nodes.size(); ++i) {
-        if (network.nodes_by_index[i]) {
-            assert(network.nodes_by_index[i]->links.size() <= 3);
-        }
-    }
-    return true;
-}
-
 void removeNode(AnnotatedNetwork &ann_network, Node *node) {
     assert(node);
     assert(!node->isTip());
@@ -167,44 +150,6 @@ Node* addInnerNode(Network &network, ReticulationData *retData, size_t wanted_cl
 
     network.nodeCount++;
     return network.nodes_by_index[clv_index];
-}
-
-void invalidate_pmatrices(AnnotatedNetwork &ann_network,
-        std::vector<size_t> &affectedPmatrixIndices) {
-    Network &network = ann_network.network;
-    pllmod_treeinfo_t *fake_treeinfo = ann_network.fake_treeinfo;
-    for (size_t pmatrix_index : affectedPmatrixIndices) {
-        assert(network.edges_by_index[pmatrix_index]);
-        for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-            // skip reote partitions
-            if (!fake_treeinfo->partitions[p]) {
-                continue;
-            }
-            fake_treeinfo->pmatrix_valid[p][pmatrix_index] = 0;
-        }
-    }
-    pllmod_treeinfo_update_prob_matrices(fake_treeinfo, 0);
-}
-
-bool assertBranchLengths(AnnotatedNetwork& ann_network) {
-    if (ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
-        for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-            // skip remote partitions
-            if (!ann_network.fake_treeinfo->partitions[p]) {
-                continue;
-            }
-            for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
-                assert(ann_network.fake_treeinfo->branch_lengths[p][i] >= ann_network.options.brlen_min);
-                assert(ann_network.fake_treeinfo->branch_lengths[p][i] <= ann_network.options.brlen_max);
-            }
-        }
-    } else {
-        for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
-            assert(ann_network.fake_treeinfo->linked_branch_lengths[i] >= ann_network.options.brlen_min);
-            assert(ann_network.fake_treeinfo->linked_branch_lengths[i] <= ann_network.options.brlen_max);
-        }
-    }
-    return true;
 }
 
 void removeEdge(AnnotatedNetwork &ann_network, Edge *edge) {

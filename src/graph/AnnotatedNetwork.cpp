@@ -273,4 +273,25 @@ bool hasBadReticulation(AnnotatedNetwork& ann_network) {
     return false;
 }
 
+bool assertBranchLengths(AnnotatedNetwork& ann_network) {
+    if (ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
+        for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+            // skip remote partitions
+            if (!ann_network.fake_treeinfo->partitions[p]) {
+                continue;
+            }
+            for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
+                assert(ann_network.fake_treeinfo->branch_lengths[p][i] >= ann_network.options.brlen_min);
+                assert(ann_network.fake_treeinfo->branch_lengths[p][i] <= ann_network.options.brlen_max);
+            }
+        }
+    } else {
+        for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
+            assert(ann_network.fake_treeinfo->linked_branch_lengths[i] >= ann_network.options.brlen_min);
+            assert(ann_network.fake_treeinfo->linked_branch_lengths[i] <= ann_network.options.brlen_max);
+        }
+    }
+    return true;
+}
+
 }

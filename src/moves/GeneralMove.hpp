@@ -9,33 +9,29 @@
 namespace netrax {
 
 void changeEdgeDirection(Network &network, Node *u, Node *v);
-
 void setLinkDirections(Network &network, Node *u, Node *v);
-
 void checkReticulationProperties(Node *notReticulation, Node *reticulation);
-
 void checkLinkDirections(Network &network);
-
 size_t getRandomIndex(std::mt19937& rng, size_t n);
-
 Edge* getRandomEdge(AnnotatedNetwork &ann_network);
 
-bool checkSanity(Network &network);
-
 void removeNode(AnnotatedNetwork &ann_network, Node *node);
-
 Node* addInnerNode(Network &network, ReticulationData *retData, size_t wanted_clv_index);
-
-void invalidate_pmatrices(AnnotatedNetwork &ann_network,
-        std::vector<size_t> &affectedPmatrixIndices);
-
-bool assertBranchLengths(AnnotatedNetwork& ann_network);
 
 void removeEdge(AnnotatedNetwork &ann_network, Edge *edge);
 Edge* addEdge(AnnotatedNetwork &ann_network, Link *link1, Link *link2, double length,
         size_t wanted_pmatrix_index);
-
 std::vector<size_t> determineEdgeOrder(AnnotatedNetwork& ann_network, size_t start_edge_idx);
+void resetReticulationLinks(Node *node);
+void addRepairCandidates(Network &network, std::unordered_set<Node*> &repair_candidates,
+        Node *node);
+bool assertConsecutiveIndices(AnnotatedNetwork& ann_network);
+std::vector<double> get_edge_lengths(AnnotatedNetwork &ann_network, size_t pmatrix_index);
+std::vector<double> get_halved_edge_lengths(const std::vector<double>& lengths, double min_br);
+std::vector<double> get_minus_edge_lengths(const std::vector<double>& lengths1, const std::vector<double>& lengths2, double min_br);
+std::vector<double> get_plus_edge_lengths(const std::vector<double>& lengths1, const std::vector<double>& lengths2, double max_br);
+void set_edge_lengths(AnnotatedNetwork &ann_network, size_t pmatrix_index, const std::vector<double> &lengths);
+bool hasPath(Network &network, const Node *from, const Node *to, bool nonelementary = false);
 
 template<typename T>
 void sortByProximity(std::vector<T>& candidates, AnnotatedNetwork& ann_network) {
@@ -51,19 +47,6 @@ void sortByProximity(std::vector<T>& candidates, AnnotatedNetwork& ann_network) 
         return edge_order[a.edge_orig_idx] < edge_order[b.edge_orig_idx];
     });
 }
-
-
-void resetReticulationLinks(Node *node);
-void addRepairCandidates(Network &network, std::unordered_set<Node*> &repair_candidates,
-        Node *node);
-bool assertConsecutiveIndices(AnnotatedNetwork& ann_network);
-
-std::vector<double> get_edge_lengths(AnnotatedNetwork &ann_network, size_t pmatrix_index);
-std::vector<double> get_halved_edge_lengths(const std::vector<double>& lengths, double min_br);
-std::vector<double> get_minus_edge_lengths(const std::vector<double>& lengths1, const std::vector<double>& lengths2, double min_br);
-std::vector<double> get_plus_edge_lengths(const std::vector<double>& lengths1, const std::vector<double>& lengths2, double max_br);
-void set_edge_lengths(AnnotatedNetwork &ann_network, size_t pmatrix_index, const std::vector<double> &lengths);
-bool hasPath(Network &network, const Node *from, const Node *to, bool nonelementary = false);
 
 struct GeneralMove {
     GeneralMove(MoveType type, size_t edge_orig_idx) :

@@ -92,6 +92,8 @@ void invalidatePmatrixIndex(AnnotatedNetwork &ann_network, size_t pmatrix_index,
 void invalidatePmatrixIndex(AnnotatedNetwork &ann_network, size_t pmatrix_index);
 void invalidPmatrixIndexOnly(AnnotatedNetwork& ann_network, size_t pmatrix_index);
 bool allClvsValid(pllmod_treeinfo_t* treeinfo, size_t clv_index);
+void invalidate_pmatrices(AnnotatedNetwork &ann_network,
+        std::vector<size_t> &affectedPmatrixIndices);
 
 /* helper functions related to reticulation config set (ReticulationConfigHelper.cpp) */
 ReticulationConfigSet getRestrictionsToDismissNeighbor(AnnotatedNetwork& ann_network, Node* node, Node* neighbor);

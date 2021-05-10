@@ -103,4 +103,21 @@ bool allClvsValid(pllmod_treeinfo_t* treeinfo, size_t clv_index) {
     return true;
 }
 
+void invalidate_pmatrices(AnnotatedNetwork &ann_network,
+        std::vector<size_t> &affectedPmatrixIndices) {
+    Network &network = ann_network.network;
+    pllmod_treeinfo_t *fake_treeinfo = ann_network.fake_treeinfo;
+    for (size_t pmatrix_index : affectedPmatrixIndices) {
+        assert(network.edges_by_index[pmatrix_index]);
+        for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+            // skip reote partitions
+            if (!fake_treeinfo->partitions[p]) {
+                continue;
+            }
+            fake_treeinfo->pmatrix_valid[p][pmatrix_index] = 0;
+        }
+    }
+    pllmod_treeinfo_update_prob_matrices(fake_treeinfo, 0);
+}
+
 }

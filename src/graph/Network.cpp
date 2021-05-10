@@ -221,4 +221,21 @@ namespace netrax
             network.edges_by_index[i]->length = branchLengths[i];
         }
     }
+
+    bool checkSanity(Network &network) {
+    // check edge<->links sanity
+        for (size_t i = 0; i < network.edges.size(); ++i) {
+            if (network.edges_by_index[i]) {
+                assert(network.edges_by_index[i]->link1->edge_pmatrix_index == i);
+                assert(network.edges_by_index[i]->link2->edge_pmatrix_index == i);
+            }
+        }
+    // check node<->links sanity
+        for (size_t i = 0; i < network.nodes.size(); ++i) {
+            if (network.nodes_by_index[i]) {
+                assert(network.nodes_by_index[i]->links.size() <= 3);
+            }
+        }
+        return true;
+    }
 } // namespace netrax

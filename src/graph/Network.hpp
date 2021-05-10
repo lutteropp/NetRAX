@@ -78,5 +78,6 @@ public:
 
 std::vector<double> collectBranchLengths(const Network &network);
 void applyBranchLengths(Network &network, const std::vector<double> &branchLengths);
+bool checkSanity(Network &network);
 
 }
