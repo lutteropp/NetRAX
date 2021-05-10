@@ -32,9 +32,4 @@ bool reuseOldDisplayedTreesCheck(AnnotatedNetwork& ann_network, int incremental)
 double computePseudoLoglikelihood(AnnotatedNetwork& ann_network, int incremental = 1, int update_pmatrices = 1);
 double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental = 1, int update_pmatrices = 1);
 
-double computeLoglikelihoodNaiveUtree(AnnotatedNetwork &ann_network, int incremental,
-        int update_pmatrices, std::vector<double> *treewise_logl = nullptr);
-
-double displayed_tree_logprob(AnnotatedNetwork &ann_network, size_t tree_index);
-
 }
