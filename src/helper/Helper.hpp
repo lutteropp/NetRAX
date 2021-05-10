@@ -1,5 +1,5 @@
 /*
- * NetworkTopology.hpp
+ * Helper.hpp
  *
  *  Created on: Apr 16, 2020
  *      Author: sarah
@@ -20,7 +20,7 @@
 
 namespace netrax {
 
-/* helper functions related to reticulations */
+/* helper functions related to reticulations (ReticulationHelper.cpp) */
 Node* getReticulationChild(Network &network, const Node *node);
 Node* getReticulationFirstParent(Network &network, const Node *node);
 Node* getReticulationSecondParent(Network &network, const Node *node);
@@ -38,14 +38,14 @@ void setReticulationState(Network &network, size_t reticulation_idx, Reticulatio
 void setReticulationParents(Network &network, const std::vector<ReticulationState>& reticulationChoices);
 void setReticulationParents(Network &network, size_t treeIdx);
 
-/* helper functions related to links */
+/* helper functions related to links (LinkHelper.cpp) */
 Node* getTargetNode(const Network &network, const Link *link);
 Link* make_link(Node *node, Edge *edge, Direction dir);
 std::vector<Link*> getLinksToClvIndex(Network &network, Node *node, size_t target_index);
 Link* getLinkToNode(Network &network, Node *node, Node *target);
 Link* getLinkToNode(Network &network, size_t from_clv_index, size_t to_clv_index);
 
-/* helper functions related to edges */
+/* helper functions related to edges (EdgeHelper.cpp) */
 Edge* getEdgeTo(Network &network, const Node *node, const Node *target);
 Edge* getEdgeTo(Network &network, size_t from_clv_index, size_t to_clv_index);
 std::vector<Edge*> getAdjacentEdges(Network &network, const Node *node);
@@ -55,7 +55,7 @@ Node* getTarget(Network &network, const Edge *edge);
 bool isOutgoing(Network &network, Node *from, Node *to);
 bool isActiveBranch(AnnotatedNetwork& ann_network, const ReticulationConfigSet& reticulationChoices, unsigned int pmatrix_index);
 
-/* helper functions related to children */
+/* helper functions related to children (ChildrenHelper.cpp) */
 std::vector<Node*> getChildren(Network &network, Node *node);
 std::vector<Node*> getActiveChildren(Network &network, Node *node);
 std::vector<Node*> getActiveAliveChildren(Network &network, const std::vector<bool> &dead_nodes,
@@ -66,14 +66,14 @@ Node* getOtherChild(Network &network, Node *parent, Node *aChild);
 bool hasChild(Network &network, Node *parent, Node *candidate);
 std::vector<Node*> getCurrentChildren(AnnotatedNetwork& ann_network, Node* node, Node* parent, const ReticulationConfigSet& restrictions);
 
-/* helper functions related to parents */
+/* helper functions related to parents (ParentHelper.cpp) */
 Node* getActiveParent(Network &network, const Node *node);
 std::vector<Node*> getAllParents(Network &network, const Node *node);
 std::vector<Node*> getParentPointers(AnnotatedNetwork& ann_network, Node* virtual_root);
 std::vector<Node*> getParentPointers(AnnotatedNetwork& ann_network, const std::vector<ReticulationState>& reticulationChoices, Node* virtual_root);
 std::vector<Node*> grab_current_node_parents(Network &network);
 
-/* helper functions related to neighbors */
+/* helper functions related to neighbors (NeighborHelper.cpp) */
 std::vector<Node*> getNeighbors(const Network &network, const Node *node);
 std::vector<Node*> getActiveNeighbors(Network &network, const Node *node);
 std::vector<Node*> getActiveAliveNeighbors(Network &network, const std::vector<bool> &dead_nodes,
@@ -81,7 +81,7 @@ std::vector<Node*> getActiveAliveNeighbors(Network &network, const std::vector<b
 bool hasNeighbor(Node *node1, Node *node2);
 std::unordered_set<size_t> getNeighborPmatrixIndices(Network &network, Edge *edge);
 
-/* helper functions related to clv/pmatrix invalidation */
+/* helper functions related to clv/pmatrix invalidation (InvalidationHelper.cpp) */
 void invalidateSingleClv(AnnotatedNetwork& ann_network, unsigned int clv_index);
 void invalidateHigherCLVs(AnnotatedNetwork &ann_network, Node *node, bool invalidate_myself,
         std::vector<bool> &visited);
@@ -93,7 +93,7 @@ void invalidatePmatrixIndex(AnnotatedNetwork &ann_network, size_t pmatrix_index)
 void invalidPmatrixIndexOnly(AnnotatedNetwork& ann_network, size_t pmatrix_index);
 bool allClvsValid(pllmod_treeinfo_t* treeinfo, size_t clv_index);
 
-/* helper functions related to reticulation config set */
+/* helper functions related to reticulation config set (ReticulationConfigHelper.cpp) */
 ReticulationConfigSet getRestrictionsToDismissNeighbor(AnnotatedNetwork& ann_network, Node* node, Node* neighbor);
 ReticulationConfigSet getRestrictionsToTakeNeighbor(AnnotatedNetwork& ann_network, Node* node, Node* neighbor);
 ReticulationConfigSet getReticulationChoicesThisOnly(AnnotatedNetwork& ann_network, const ReticulationConfigSet& this_tree_config, const ReticulationConfigSet& other_child_dead_settings, Node* parent, Node* this_child, Node* other_child);

@@ -1,6 +1,6 @@
 #include "PseudoLoglikelihood.hpp"
 
-#include "../helper/NetworkTopology.hpp"
+#include "../helper/Helper.hpp"
 #include "Operation.hpp"
 
 namespace netrax {

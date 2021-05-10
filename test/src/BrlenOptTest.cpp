@@ -9,7 +9,7 @@
 #include "src/optimization/BranchLengthOptimization.hpp"
 #include "src/optimization/ModelOptimization.hpp"
 #include "src/helper/NetworkFunctions.hpp"
-#include "src/helper/NetworkTopology.hpp"
+#include "src/helper/Helper.hpp"
 #include "src/io/NetworkIO.hpp"
 #include "src/RaxmlWrapper.hpp"
 #include "src/DebugPrintFunctions.hpp"

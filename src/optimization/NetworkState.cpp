@@ -1,7 +1,7 @@
 #include <algorithm>
 
 #include "NetworkState.hpp"
-#include "../helper/NetworkTopology.hpp"
+#include "../helper/Helper.hpp"
 #include "../helper/NetworkFunctions.hpp"
 #include "../likelihood/LikelihoodComputation.hpp"
 #include "../likelihood/DisplayedTreeData.hpp"

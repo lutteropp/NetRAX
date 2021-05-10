@@ -1,6 +1,6 @@
 #include "Operation.hpp"
 
-#include "../helper/NetworkTopology.hpp"
+#include "../helper/Helper.hpp"
 
 namespace netrax {
 

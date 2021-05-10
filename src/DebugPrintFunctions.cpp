@@ -19,7 +19,7 @@
 #include "graph/Edge.hpp"
 #include "graph/Link.hpp"
 #include "graph/Network.hpp"
-#include "helper/NetworkTopology.hpp"
+#include "helper/Helper.hpp"
 #include "graph/Node.hpp"
 #include "graph/NodeType.hpp"
 #include "io/RootedNetworkParser.hpp"

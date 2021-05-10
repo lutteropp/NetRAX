@@ -10,7 +10,7 @@
 #include <raxml-ng/TreeInfo.hpp>
 #include <raxml-ng/main.hpp>
 #include "Network.hpp"
-#include "../helper/NetworkTopology.hpp"
+#include "../helper/Helper.hpp"
 #include "../helper/NetworkFunctions.hpp"
 #include "../io/NetworkIO.hpp"
 #include "../likelihood/LikelihoodComputation.hpp"

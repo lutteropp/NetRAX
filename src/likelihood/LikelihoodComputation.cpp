@@ -6,7 +6,7 @@
  */
 
 #include "LikelihoodComputation.hpp"
-#include "../helper/NetworkTopology.hpp"
+#include "../helper/Helper.hpp"
 
 #include "../graph/Node.hpp"
 #include "../DebugPrintFunctions.hpp"

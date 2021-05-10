@@ -2,7 +2,7 @@
 #include "mpreal.h"
 #include "Operation.hpp"
 #include "../DebugPrintFunctions.hpp"
-#include "../helper/NetworkTopology.hpp"
+#include "../helper/Helper.hpp"
 
 namespace netrax {
 

@@ -20,7 +20,7 @@
 
 #include "../graph/Edge.hpp"
 #include "../graph/Network.hpp"
-#include "NetworkTopology.hpp"
+#include "Helper.hpp"
 #include "../graph/Node.hpp"
 #include "../graph/NodeType.hpp"
 #include "../graph/ReticulationData.hpp"

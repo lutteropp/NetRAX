@@ -7,7 +7,7 @@
 #include <limits>
 
 #include "../helper/NetworkFunctions.hpp"
-#include "../helper/NetworkTopology.hpp"
+#include "../helper/Helper.hpp"
 #include "../likelihood/LikelihoodComputation.hpp"
 #include "../RaxmlWrapper.hpp"
 #include "../utils.hpp"

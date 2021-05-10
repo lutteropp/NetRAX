@@ -1,6 +1,6 @@
 #include "VirtualRerooting.hpp"
 #include "LikelihoodComputation.hpp"
-#include "../helper/NetworkTopology.hpp"
+#include "../helper/Helper.hpp"
 #include "../DebugPrintFunctions.hpp"
 
 #include "ImprovedLoglikelihood.hpp"

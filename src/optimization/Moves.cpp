@@ -24,7 +24,7 @@
 #include "../graph/Edge.hpp"
 #include "../graph/Link.hpp"
 #include "../graph/Network.hpp"
-#include "../helper/NetworkTopology.hpp"
+#include "../helper/Helper.hpp"
 #include "../helper/NetworkFunctions.hpp"
 
 #include "../graph/Node.hpp"
