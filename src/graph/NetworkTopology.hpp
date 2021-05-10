@@ -88,4 +88,8 @@ ReticulationConfigSet getRestrictionsToDismissNeighbor(AnnotatedNetwork& ann_net
 
 ReticulationConfigSet getRestrictionsToTakeNeighbor(AnnotatedNetwork& ann_network, Node* node, Node* neighbor);
 
+std::vector<Node*> getParentPointers(AnnotatedNetwork& ann_network, Node* virtual_root);
+std::vector<Node*> getParentPointers(AnnotatedNetwork& ann_network, const std::vector<ReticulationState>& reticulationChoices, Node* virtual_root);
+std::vector<Node*> getCurrentChildren(AnnotatedNetwork& ann_network, Node* node, Node* parent, const ReticulationConfigSet& restrictions);
+
 }

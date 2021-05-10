@@ -633,4 +633,74 @@ ReticulationConfigSet getRestrictionsToTakeNeighbor(AnnotatedNetwork& ann_networ
     return res;
 }
 
+std::vector<Node*> getParentPointers(AnnotatedNetwork& ann_network, const std::vector<ReticulationState>& reticulationChoices, Node* virtual_root) {
+    assert(virtual_root);
+    setReticulationParents(ann_network.network, reticulationChoices);
+    std::vector<Node*> parent(ann_network.network.num_nodes(), nullptr);
+    parent[virtual_root->clv_index] = virtual_root;
+    std::queue<Node*> q;
+    
+    q.emplace(virtual_root);
+    while (!q.empty()) {
+        Node* actNode = q.front();
+        q.pop();
+        std::vector<Node*> neighbors = getActiveNeighbors(ann_network.network, actNode);
+        for (size_t i = 0; i < neighbors.size(); ++i) {
+            Node* neigh = neighbors[i];
+            if (!parent[neigh->clv_index]) { // neigh was not already processed
+                q.emplace(neigh);
+                parent[neigh->clv_index] = actNode;
+            }
+        }
+    }
+    parent[virtual_root->clv_index] = nullptr;
+    return parent;
+}
+
+std::vector<Node*> getParentPointers(AnnotatedNetwork& ann_network, Node* virtual_root) {
+    assert(virtual_root);
+    std::vector<Node*> parent(ann_network.network.num_nodes(), nullptr);
+    parent[virtual_root->clv_index] = virtual_root;
+    std::queue<Node*> q;
+    
+    q.emplace(virtual_root);
+    while (!q.empty()) {
+        Node* actNode = q.front();
+        q.pop();
+        std::vector<Node*> neighbors = getActiveNeighbors(ann_network.network, actNode);
+        for (size_t i = 0; i < neighbors.size(); ++i) {
+            Node* neigh = neighbors[i];
+            if (!parent[neigh->clv_index]) { // neigh was not already processed
+                q.emplace(neigh);
+                parent[neigh->clv_index] = actNode;
+            }
+        }
+    }
+    parent[virtual_root->clv_index] = nullptr;
+    return parent;
+}
+
+std::vector<Node*> getCurrentChildren(AnnotatedNetwork& ann_network, Node* node, Node* parent, const ReticulationConfigSet& restrictions) {
+    assert(restrictions.configs.size() == 1);
+    std::vector<Node*> children = getChildrenIgnoreDirections(ann_network.network, node, parent);
+    std::vector<Node*> res;
+    for (size_t i = 0; i < children.size(); ++i) {
+        if (reticulationConfigsCompatible(restrictions, getRestrictionsToTakeNeighbor(ann_network, node, children[i]))) {
+            res.emplace_back(children[i]);
+        }
+    }
+    if (res.size() > 2) {
+        std::cout << "Node: " << node->clv_index << "\n";
+        if (parent) {
+            std::cout << "Parent: " << parent->clv_index << "\n";
+        } else {
+            std::cout << "Parent: NULL" << "\n";
+        }
+
+        std::cout << exportDebugInfo(ann_network) << "\n";
+    }
+    assert(res.size() <= 2);
+    return res;
+}
+
 }

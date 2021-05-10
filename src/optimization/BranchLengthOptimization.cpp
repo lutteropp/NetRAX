@@ -21,6 +21,9 @@
 #include "../DebugPrintFunctions.hpp"
 #include "../io/NetworkIO.hpp"
 
+#include "../likelihood/LikelihoodDerivatives.hpp"
+#include "../likelihood/VirtualRerooting.hpp"
+
 namespace netrax {
 
 struct BrentBrlenParams {
