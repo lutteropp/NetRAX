@@ -2,7 +2,8 @@
 
 #include "../RaxmlWrapper.hpp"
 #include "mpreal.h"
-#include "../graph/NetworkTopology.hpp"
+#include "../helper/NetworkTopology.hpp"
+#include "../helper/NetworkFunctions.hpp"
 
 namespace netrax {
 

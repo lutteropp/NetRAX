@@ -1,6 +1,6 @@
 #include "LikelihoodDerivatives.hpp"
 #include "mpreal.h"
-#include "../graph/NetworkTopology.hpp"
+#include "../helper/NetworkTopology.hpp"
 
 namespace netrax {
 

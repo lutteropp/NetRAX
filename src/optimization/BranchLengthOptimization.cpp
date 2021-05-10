@@ -12,8 +12,7 @@
 #include <iostream>
 #include <limits>
 
-#include "../graph/NetworkFunctions.hpp"
-#include "../graph/NetworkTopology.hpp"
+#include "../helper/NetworkTopology.hpp"
 #include "../likelihood/LikelihoodComputation.hpp"
 #include "../likelihood/ComplexityScoring.hpp"
 #include "../RaxmlWrapper.hpp"

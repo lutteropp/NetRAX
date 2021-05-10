@@ -11,7 +11,6 @@
 #include <vector>
 #include "Link.hpp"
 #include "NodeType.hpp"
-#include "NetworkFunctions.hpp"
 
 namespace netrax {
 

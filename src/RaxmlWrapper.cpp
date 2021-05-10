@@ -11,7 +11,7 @@
 #include "optimization/BranchLengthOptimization.hpp"
 #include "utils.hpp"
 #include "graph/Network.hpp"
-#include "graph/NetworkFunctions.hpp"
+#include "helper/NetworkFunctions.hpp"
 #include "graph/AnnotatedNetwork.hpp"
 
 #include <raxml-ng/log.hpp>

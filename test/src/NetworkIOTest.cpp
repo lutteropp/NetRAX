@@ -12,7 +12,7 @@
 #include <iostream>
 #include <algorithm>
 #include "src/graph/Network.hpp"
-#include "src/graph/NetworkTopology.hpp"
+#include "src/helper/NetworkTopology.hpp"
 
 #include "NetraxTest.hpp"
 

@@ -8,10 +8,11 @@
 #include <iostream>
 
 #include "NetworkTopology.hpp"
-#include "Node.hpp"
-#include "Link.hpp"
-#include "Edge.hpp"
-#include "Network.hpp"
+#include "NetworkFunctions.hpp"
+#include "../graph/Node.hpp"
+#include "../graph/Link.hpp"
+#include "../graph/Edge.hpp"
+#include "../graph/Network.hpp"
 #include "../DebugPrintFunctions.hpp"
 
 namespace netrax {

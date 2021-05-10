@@ -15,6 +15,7 @@
 #include "optimization/ModelOptimization.hpp"
 #include "search/NetworkSearch.hpp"
 #include "NetworkDistances.hpp"
+#include "helper/NetworkFunctions.hpp"
 
 #include "../RaxmlWrapper.hpp"
 

@@ -28,6 +28,8 @@
 
 #include "../likelihood/PseudoLoglikelihood.hpp"
 
+#include "../helper/NetworkFunctions.hpp"
+
 //#define _RAXML_PTHREADS
 
 namespace netrax {

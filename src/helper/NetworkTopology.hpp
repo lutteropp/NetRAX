@@ -7,12 +7,12 @@
 
 #pragma once
 
-#include "Node.hpp"
-#include "Link.hpp"
-#include "Edge.hpp"
-#include "Network.hpp"
-#include "ReticulationData.hpp"
-#include "AnnotatedNetwork.hpp"
+#include "../graph/Node.hpp"
+#include "../graph/Link.hpp"
+#include "../graph/Edge.hpp"
+#include "../graph/Network.hpp"
+#include "../graph/ReticulationData.hpp"
+#include "../graph/AnnotatedNetwork.hpp"
 #include "../likelihood/DisplayedTreeData.hpp"
 
 #include <vector>

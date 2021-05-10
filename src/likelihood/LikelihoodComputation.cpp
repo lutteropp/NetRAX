@@ -6,8 +6,8 @@
  */
 
 #include "LikelihoodComputation.hpp"
-#include "../graph/NetworkFunctions.hpp"
-#include "../graph/NetworkTopology.hpp"
+#include "../helper/NetworkTopology.hpp"
+
 #include "../graph/Node.hpp"
 #include "../DebugPrintFunctions.hpp"
 #include "DisplayedTreeData.hpp"

@@ -11,7 +11,7 @@
 #include "src/optimization/ReticulationOptimization.hpp"
 #include "src/io/NetworkIO.hpp"
 #include "src/RaxmlWrapper.hpp"
-#include "src/graph/NetworkFunctions.hpp"
+#include "src/helper/NetworkFunctions.hpp"
 
 #include <gtest/gtest.h>
 #include <string>

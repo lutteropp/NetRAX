@@ -18,13 +18,13 @@
 #include <stack>
 #include <stdexcept>
 
-#include "Edge.hpp"
-#include "Network.hpp"
+#include "../graph/Edge.hpp"
+#include "../graph/Network.hpp"
 #include "NetworkTopology.hpp"
-#include "Node.hpp"
-#include "NodeType.hpp"
-#include "ReticulationData.hpp"
-#include "AnnotatedNetwork.hpp"
+#include "../graph/Node.hpp"
+#include "../graph/NodeType.hpp"
+#include "../graph/ReticulationData.hpp"
+#include "../graph/AnnotatedNetwork.hpp"
 
 namespace netrax {
 

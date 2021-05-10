@@ -4,7 +4,7 @@
 #include "src/RaxmlWrapper.hpp"
 #include "src/DebugPrintFunctions.hpp"
 
-#include "src/graph/NetworkFunctions.hpp"
+#include "src/helper/NetworkFunctions.hpp"
 
 #include <gtest/gtest.h>
 #include <string>

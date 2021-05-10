@@ -6,6 +6,7 @@ file(GLOB NETRAX_SOURCES ${PROJECT_SOURCE_DIR}/src/*.cpp
                          ${PROJECT_SOURCE_DIR}/src/traversal/*.cpp
                          ${PROJECT_SOURCE_DIR}/src/graph/*.cpp
                          ${PROJECT_SOURCE_DIR}/src/search/*.cpp
+                         ${PROJECT_SOURCE_DIR}/src/helper/*.cpp
                         )
 
 # export to the parent dir to use in GTest makefile

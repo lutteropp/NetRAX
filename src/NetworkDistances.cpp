@@ -1,7 +1,6 @@
 #include "NetworkDistances.hpp"
 
-#include "graph/NetworkFunctions.hpp"
-#include "graph/NetworkTopology.hpp"
+#include "helper/NetworkTopology.hpp"
 
 #include <iostream>
 #include <queue>

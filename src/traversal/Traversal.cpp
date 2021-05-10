@@ -7,8 +7,8 @@
 
 #include "Traversal.hpp"
 
-#include "../graph/NetworkTopology.hpp"
-#include "../graph/NetworkFunctions.hpp"
+#include "../helper/NetworkTopology.hpp"
+#include "../helper/NetworkFunctions.hpp"
 
 namespace netrax {
 
