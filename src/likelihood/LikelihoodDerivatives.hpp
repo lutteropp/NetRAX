@@ -1,6 +1,6 @@
 #pragma once
 
-#include "DisplayedTreeData.hpp"
+#include "../graph/DisplayedTreeData.hpp"
 #include "../graph/AnnotatedNetwork.hpp"
 
 namespace netrax {

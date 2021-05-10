@@ -3,7 +3,7 @@
 #include <raxml-ng/Model.hpp>
 #include <vector>
 #include "../graph/AnnotatedNetwork.hpp"
-#include "../likelihood/DisplayedTreeData.hpp"
+#include "../graph/DisplayedTreeData.hpp"
 
 namespace netrax {
 

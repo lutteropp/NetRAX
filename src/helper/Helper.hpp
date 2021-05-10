@@ -13,7 +13,7 @@
 #include "../graph/Network.hpp"
 #include "../graph/ReticulationData.hpp"
 #include "../graph/AnnotatedNetwork.hpp"
-#include "../likelihood/DisplayedTreeData.hpp"
+#include "../graph/DisplayedTreeData.hpp"
 
 #include <vector>
 #include <unordered_set>

@@ -10,7 +10,7 @@
 
 #include "../graph/Node.hpp"
 #include "../DebugPrintFunctions.hpp"
-#include "DisplayedTreeData.hpp"
+#include "../graph/DisplayedTreeData.hpp"
 
 #include "PseudoLoglikelihood.hpp"
 #include "ImprovedLoglikelihood.hpp"

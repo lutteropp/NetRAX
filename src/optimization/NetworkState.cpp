@@ -4,7 +4,7 @@
 #include "../helper/Helper.hpp"
 #include "../helper/NetworkFunctions.hpp"
 #include "../likelihood/LikelihoodComputation.hpp"
-#include "../likelihood/DisplayedTreeData.hpp"
+#include "../graph/DisplayedTreeData.hpp"
 
 namespace netrax {
 

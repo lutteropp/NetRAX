@@ -20,7 +20,7 @@ extern "C" {
 #include "Network.hpp"
 #include "../NetraxOptions.hpp"
 #include "../moves/MoveType.hpp"
-#include "../likelihood/DisplayedTreeData.hpp"
+#include "../graph/DisplayedTreeData.hpp"
 
 namespace netrax {
 
