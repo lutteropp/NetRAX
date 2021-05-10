@@ -13,26 +13,6 @@
 
 namespace netrax {
 
-DisplayedTreeData& getMatchingDisplayedTreeAtNode(AnnotatedNetwork& ann_network, unsigned int partition_idx, unsigned int node_clv_index, const ReticulationConfigSet& queryChoices) {
-    for (size_t i = 0; i < ann_network.pernode_displayed_tree_data[node_clv_index].num_active_displayed_trees; ++i) {
-        if (reticulationConfigsCompatible(queryChoices, ann_network.pernode_displayed_tree_data[node_clv_index].displayed_trees[i].treeLoglData.reticulationChoices)) {
-            return ann_network.pernode_displayed_tree_data[node_clv_index].displayed_trees[i];
-        }
-    }
-    throw std::runtime_error("No compatible displayed tree data found");
-}
-
-const TreeLoglData& getMatchingOldTree(const std::vector<DisplayedTreeData>& oldTrees, const ReticulationConfigSet& queryChoices) {
-    for (size_t i = 0; i < oldTrees.size(); ++i) {
-        if (reticulationConfigsCompatible(queryChoices, oldTrees[i].treeLoglData.reticulationChoices)) {
-            return oldTrees[i].treeLoglData;
-        }
-    }
-    std::cout << "query was:\n";
-    printReticulationChoices(queryChoices);
-    throw std::runtime_error("No compatible old tree data found");
-}
-
 void printDisplayedTreesChoices(AnnotatedNetwork& ann_network, size_t partition_idx, Node* virtualRoot) {
     NodeDisplayedTreeData& nodeData = ann_network.pernode_displayed_tree_data[virtualRoot->clv_index];
     for (size_t i = 0; i < nodeData.num_active_displayed_trees; ++i) {

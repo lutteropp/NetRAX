@@ -103,5 +103,6 @@ ReticulationConfigSet deadNodeSettings(AnnotatedNetwork& ann_network, const Node
 ReticulationConfigSet getTreeConfig(AnnotatedNetwork& ann_network, size_t tree_idx);
 DisplayedTreeData& findMatchingDisplayedTree(AnnotatedNetwork& ann_network, const ReticulationConfigSet& reticulationChoices, NodeDisplayedTreeData& data);
 Node* findFirstNodeWithTwoActiveChildren(AnnotatedNetwork& ann_network, const ReticulationConfigSet& reticulationChoices, Node* oldRoot);
+const TreeLoglData& getMatchingTreeData(const std::vector<DisplayedTreeData>& trees, const ReticulationConfigSet& queryChoices);
 
 }

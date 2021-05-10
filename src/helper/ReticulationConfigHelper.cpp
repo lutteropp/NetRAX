@@ -197,4 +197,24 @@ Node* findFirstNodeWithTwoActiveChildren(AnnotatedNetwork& ann_network, const Re
     return displayed_tree_root;
 }
 
+DisplayedTreeData& getMatchingDisplayedTreeAtNode(AnnotatedNetwork& ann_network, unsigned int partition_idx, unsigned int node_clv_index, const ReticulationConfigSet& queryChoices) {
+    for (size_t i = 0; i < ann_network.pernode_displayed_tree_data[node_clv_index].num_active_displayed_trees; ++i) {
+        if (reticulationConfigsCompatible(queryChoices, ann_network.pernode_displayed_tree_data[node_clv_index].displayed_trees[i].treeLoglData.reticulationChoices)) {
+            return ann_network.pernode_displayed_tree_data[node_clv_index].displayed_trees[i];
+        }
+    }
+    throw std::runtime_error("No compatible displayed tree data found");
+}
+
+const TreeLoglData& getMatchingTreeData(const std::vector<DisplayedTreeData>& trees, const ReticulationConfigSet& queryChoices) {
+    for (size_t i = 0; i < trees.size(); ++i) {
+        if (reticulationConfigsCompatible(queryChoices, trees[i].treeLoglData.reticulationChoices)) {
+            return trees[i].treeLoglData;
+        }
+    }
+    std::cout << "query was:\n";
+    printReticulationChoices(queryChoices);
+    throw std::runtime_error("No compatible old tree data found");
+}
+
 }
