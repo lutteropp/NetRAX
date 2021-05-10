@@ -43,9 +43,22 @@ std::vector<ReticulationState> combineReticulationChoices(const std::vector<Reti
     for (size_t i = 0; i < res.size(); ++i) {
         if (left[i] == ReticulationState::DONT_CARE) {
             res[i] = right[i];
+        } else if (right[i] == ReticulationState::DONT_CARE) {
+            res[i] = left[i];
+        } else if (left[i] != right[i]) {
+            res[i] = ReticulationState::INVALID;
         }
     }
     return res;
+}
+
+bool validReticulationChoices(const std::vector<ReticulationState>& choices) {
+    for (size_t i = 0; i < choices.size(); ++i) {
+        if (choices[i] == ReticulationState::INVALID) {
+            return false;
+        }
+    }
+    return true;
 }
 
 mpfr::mpreal computeReticulationChoicesLogProb_internal(const std::vector<ReticulationState>& choices, const std::vector<double>& reticulationProbs) {

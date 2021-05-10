@@ -270,19 +270,4 @@ struct DisplayedTreeData {
     }
 };
 
-//double computeReticulationChoicesLogProb(const std::vector<ReticulationState>& choices, const std::vector<double>& reticulationProbs);
-double computeReticulationConfigProb(const ReticulationConfigSet& choices, const std::vector<double>& reticulationProbs);
-double computeReticulationConfigLogProb(const ReticulationConfigSet& choices, const std::vector<double>& reticulationProbs);
-
-//bool reticulationChoicesCompatible(const std::vector<ReticulationState>& left, const std::vector<ReticulationState>& right);
-bool reticulationConfigsCompatible(const ReticulationConfigSet& left, const ReticulationConfigSet& right);
-
-//void printReticulationChoices(const std::vector<ReticulationState>& reticulationChoices);
-void printReticulationChoices(const ReticulationConfigSet& reticulationChoices);
-
-//std::vector<ReticulationState> combineReticulationChoices(const std::vector<ReticulationState>& left, const std::vector<ReticulationState>& right);
-ReticulationConfigSet combineReticulationChoices(const ReticulationConfigSet& left, const ReticulationConfigSet& right);
-
-void simplifyReticulationChoices(ReticulationConfigSet& res);
-
 }
