@@ -8,22 +8,8 @@
 #include "LikelihoodComputation.hpp"
 #include "../helper/Helper.hpp"
 
-#include "../graph/Node.hpp"
-#include "../DebugPrintFunctions.hpp"
-#include "../graph/DisplayedTreeData.hpp"
-
 #include "PseudoLoglikelihood.hpp"
 #include "ImprovedLoglikelihood.hpp"
-
-#include "Operation.hpp"
-
-#include "mpreal.h"
-
-#include "../RaxmlWrapper.hpp"
-#include <raxml-ng/TreeInfo.hpp>
-
-#include <cassert>
-#include <cmath>
 
 namespace netrax {
 
@@ -36,7 +22,7 @@ DisplayedTreeData& getMatchingDisplayedTreeAtNode(AnnotatedNetwork& ann_network,
     throw std::runtime_error("No compatible displayed tree data found");
 }
 
-const TreeLoglData& getMatchingOldTree(AnnotatedNetwork& ann_network, const std::vector<DisplayedTreeData>& oldTrees, const ReticulationConfigSet& queryChoices) {
+const TreeLoglData& getMatchingOldTree(const std::vector<DisplayedTreeData>& oldTrees, const ReticulationConfigSet& queryChoices) {
     for (size_t i = 0; i < oldTrees.size(); ++i) {
         if (reticulationConfigsCompatible(queryChoices, oldTrees[i].treeLoglData.reticulationChoices)) {
             return oldTrees[i].treeLoglData;

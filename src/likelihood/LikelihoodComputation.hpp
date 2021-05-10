@@ -14,7 +14,7 @@
 
 namespace netrax {
 
-const TreeLoglData& getMatchingOldTree(AnnotatedNetwork& ann_network, const std::vector<DisplayedTreeData>& oldTrees, const ReticulationConfigSet& queryChoices);
+const TreeLoglData& getMatchingOldTree(const std::vector<DisplayedTreeData>& oldTrees, const ReticulationConfigSet& queryChoices);
 
 double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental = 1, int update_pmatrices = 1);
 

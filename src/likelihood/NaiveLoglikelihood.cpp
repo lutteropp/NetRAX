@@ -90,7 +90,6 @@ double computeLoglikelihoodNaiveUtree(AnnotatedNetwork &ann_network, int increme
                     partition_logl = std::max(partition_logl, tree_logl_per_partition[partition_idx][i] + tree_logprob[i]);
                 }
             }
-            //std::cout << "partiion " << partition_idx << " logl: " << partition_logl << "\n";
         }
         network_logl += partition_logl;
         ann_network.fake_treeinfo->partition_loglh[partition_idx] = partition_logl;

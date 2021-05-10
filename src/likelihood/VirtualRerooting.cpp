@@ -356,7 +356,7 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
                 //std::cout << "thread " << ParallelContext::local_proc_id() << " ";
                 //std::cout << "inactive active branch case, combining " << source->clv_index << " and " << target->clv_index << " for branch " << pmatrix_index  << "\n";
                 //std::cout << "inactive branch\n";
-                const TreeLoglData& oldTree = getMatchingOldTree(ann_network, oldTrees, combinedTreeData.reticulationChoices);
+                const TreeLoglData& oldTree = getMatchingOldTree(oldTrees, combinedTreeData.reticulationChoices);
                 if (!oldTree.tree_logl_valid) {
                     std::cout << exportDebugInfo(ann_network) << "\n";
                     std::cout << "i: " << i << "\n";
@@ -381,8 +381,7 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
 
     for (size_t i = 0; i < n_trees_source; ++i) {
         if (!source_tree_seen[i]) {
-            //std::cout << "unseen source tree\n";
-            const TreeLoglData& oldTree = getMatchingOldTree(ann_network, oldTrees, sourceTrees[i].treeLoglData.reticulationChoices);
+            const TreeLoglData& oldTree = getMatchingOldTree(oldTrees, sourceTrees[i].treeLoglData.reticulationChoices);
             assert(oldTree.tree_logl_valid);
             sourceTrees[i].treeLoglData.tree_partition_logl = oldTree.tree_partition_logl;
             assert(oldTree.tree_logprob_valid);
@@ -399,8 +398,7 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
 
     for (size_t j = 0; j < n_trees_target; ++j) {
         if (!target_tree_seen[j]) {
-            //std::cout << "unseen target tree\n";
-            const TreeLoglData& oldTree = getMatchingOldTree(ann_network, oldTrees, targetTrees[j].treeLoglData.reticulationChoices);
+            const TreeLoglData& oldTree = getMatchingOldTree(oldTrees, targetTrees[j].treeLoglData.reticulationChoices);
             assert(oldTree.tree_logl_valid);
             targetTrees[j].treeLoglData.tree_partition_logl = oldTree.tree_partition_logl;
             assert(oldTree.tree_logprob_valid);

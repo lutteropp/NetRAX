@@ -185,15 +185,12 @@ void processNodeImproved(AnnotatedNetwork& ann_network, int incremental, Node* n
     if (incremental && allClvsValid(ann_network.fake_treeinfo, node->clv_index)) {
         return;
     }
-
     if (!append) {
         ann_network.pernode_displayed_tree_data[node->clv_index].num_active_displayed_trees = 0;
     }
-
     if (children.size() == 0) {
         return;
     }
-
     if (children.size() == 1) {
         processNodeImprovedSingleChild(ann_network, node, children[0], extraRestrictions);
     } else {
@@ -202,13 +199,11 @@ void processNodeImproved(AnnotatedNetwork& ann_network, int incremental, Node* n
         Node* right_child = children[1];
         processNodeImprovedTwoChildren(ann_network, node, left_child, right_child, extraRestrictions);
     }
-
     for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
         if (ann_network.fake_treeinfo->partitions[p]) {
             ann_network.fake_treeinfo->clv_valid[p][node->clv_index] = 1;
         }
     }
-    
     if (ann_network.pernode_displayed_tree_data[node->clv_index].num_active_displayed_trees > (1 << ann_network.network.num_reticulations())) {
         std::cout << "Too many displayed trees stored at node " << node->clv_index << "\n";
     }
@@ -290,14 +285,6 @@ void processPartitionsImproved(AnnotatedNetwork& ann_network, int incremental) {
         DisplayedTreeData& tree = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].displayed_trees[i];
         computeDisplayedTreeLoglikelihood(ann_network, tree, ann_network.network.root);
     }
-
-    /*std::cout << "\nloglikelihood for trees at each node, for partition " << partition_idx << ":\n";
-    for (size_t i = 0; i < ann_network.network.num_nodes(); ++i) {
-        std::cout << "node " << i << "\n";
-        for (size_t j = 0; j < ann_network.pernode_displayed_tree_data[partition_idx][i].num_active_displayed_trees; ++j) {
-            std::cout << ann_network.pernode_displayed_tree_data[partition_idx][i].displayed_trees[j].tree_logl << "\n";
-        }
-    }*/
 }
 
 double evaluateTreesPartition(AnnotatedNetwork& ann_network, size_t partition_idx, std::vector<TreeLoglData>& treeLoglData) {
