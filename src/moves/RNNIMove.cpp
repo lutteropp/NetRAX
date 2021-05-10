@@ -7,6 +7,13 @@
 
 namespace netrax {
 
+void setLinkDirections(Network &network, Node *u, Node *v) {
+    Link *from_u_link = getLinkToNode(network, u, v);
+    Link *from_v_link = getLinkToNode(network, v, u);
+    from_u_link->direction = Direction::OUTGOING;
+    from_v_link->direction = Direction::INCOMING;
+}
+
 void checkReticulationProperties(Node *notReticulation, Node *reticulation) {
     if (notReticulation) {
         assert(notReticulation->type == NodeType::BASIC_NODE);

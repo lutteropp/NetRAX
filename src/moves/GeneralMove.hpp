@@ -8,9 +8,6 @@
 
 namespace netrax {
 
-void changeEdgeDirection(Network &network, Node *u, Node *v);
-void setLinkDirections(Network &network, Node *u, Node *v);
-
 size_t getRandomIndex(std::mt19937& rng, size_t n);
 Edge* getRandomEdge(AnnotatedNetwork &ann_network);
 

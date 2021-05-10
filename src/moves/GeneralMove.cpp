@@ -4,27 +4,6 @@
 
 namespace netrax {
 
-void changeEdgeDirection(Network &network, Node *u, Node *v) {
-    Link *from_u_link = getLinkToNode(network, u, v);
-    Link *from_v_link = getLinkToNode(network, v, u);
-    if (from_u_link->direction == Direction::INCOMING) {
-        assert(from_v_link->direction == Direction::OUTGOING);
-        from_u_link->direction = Direction::OUTGOING;
-        from_v_link->direction = Direction::INCOMING;
-    } else {
-        assert(from_v_link->direction == Direction::INCOMING);
-        from_u_link->direction = Direction::INCOMING;
-        from_v_link->direction = Direction::OUTGOING;
-    }
-}
-
-void setLinkDirections(Network &network, Node *u, Node *v) {
-    Link *from_u_link = getLinkToNode(network, u, v);
-    Link *from_v_link = getLinkToNode(network, v, u);
-    from_u_link->direction = Direction::OUTGOING;
-    from_v_link->direction = Direction::INCOMING;
-}
-
 size_t getRandomIndex(std::mt19937& rng, size_t n) {
     std::uniform_int_distribution<std::mt19937::result_type> d(0, n-1);
     return d(rng);
