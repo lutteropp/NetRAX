@@ -14,6 +14,9 @@
 #include "src/RaxmlWrapper.hpp"
 #include "src/DebugPrintFunctions.hpp"
 
+#include "src/likelihood/LikelihoodDerivatives.hpp"
+#include "src/likelihood/VirtualRerooting.hpp"
+
 #include <gtest/gtest.h>
 #include <string>
 #include <mutex>

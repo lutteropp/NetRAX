@@ -6,6 +6,7 @@
  */
 
 #include "src/likelihood/LikelihoodComputation.hpp"
+#include "src/likelihood/NaiveLoglikelihood.hpp"
 #include "src/optimization/BranchLengthOptimization.hpp"
 #include "src/optimization/ReticulationOptimization.hpp"
 #include "src/io/NetworkIO.hpp"
