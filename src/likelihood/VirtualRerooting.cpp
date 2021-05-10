@@ -238,6 +238,48 @@ void updateTreeData(AnnotatedNetwork& ann_network, const std::vector<DisplayedTr
     treeData.tree_logprob_valid = true;
 }
 
+void recomputeTreeData(AnnotatedNetwork& ann_network, size_t pmatrix_index, DisplayedTreeData& sourceTree, DisplayedTreeData& targetTree, TreeLoglData& combinedTreeData) {
+    Node* source = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
+    Node* target = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
+    
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        combinedTreeData.tree_partition_logl[p] = 0.0;
+        // skip remote partitions
+        if (!ann_network.fake_treeinfo->partitions[p]) {
+            continue;
+        }
+        pll_partition_t* partition = ann_network.fake_treeinfo->partitions[p];
+        std::vector<double> persite_logl(ann_network.fake_treeinfo->partitions[p]->sites);
+        assert(sourceTree.isTip || !single_clv_is_all_zeros(ann_network.partition_clv_ranges[p], sourceTree.clv_vector[p]));
+        assert(targetTree.isTip || !single_clv_is_all_zeros(ann_network.partition_clv_ranges[p], targetTree.clv_vector[p]));
+        combinedTreeData.tree_partition_logl[p] = pll_compute_edge_loglikelihood(partition, source->clv_index, sourceTree.clv_vector[p], sourceTree.scale_buffer[p], 
+                                                    target->clv_index, targetTree.clv_vector[p], targetTree.scale_buffer[p], 
+                                                    pmatrix_index, ann_network.fake_treeinfo->param_indices[p], persite_logl.data());
+        assert(combinedTreeData.tree_partition_logl[p] != -std::numeric_limits<double>::infinity());
+        assert(combinedTreeData.tree_partition_logl[p] < 0.0);
+    }
+
+    /* sum up likelihood from all threads */
+    if (ann_network.fake_treeinfo->parallel_reduce_cb)
+    {
+        ann_network.fake_treeinfo->parallel_reduce_cb(ann_network.fake_treeinfo->parallel_context,
+                                    combinedTreeData.tree_partition_logl.data(),
+                                    ann_network.fake_treeinfo->partition_count,
+                                    PLLMOD_COMMON_REDUCE_SUM);
+
+        for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+            if (combinedTreeData.tree_partition_logl[p] >= 0.0) {
+                std::cout << "thread " << ParallelContext::local_proc_id() << " combinedTreeData.tree_partition_logl[" << p << "]: " << combinedTreeData.tree_partition_logl[p] << "\n";
+            }
+            if (combinedTreeData.tree_partition_logl[p] == 0.0) {
+                throw std::runtime_error("bad partition logl");
+            }
+            assert(combinedTreeData.tree_partition_logl[p] < 0.0);
+        }
+    }
+    combinedTreeData.tree_logprob = computeReticulationConfigLogProb(combinedTreeData.reticulationChoices, ann_network.reticulation_probs);
+}
+
 double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::vector<DisplayedTreeData>& oldTrees, unsigned int pmatrix_index, int incremental, int update_pmatrices) {
     if (ann_network.cached_logl_valid) {
         return ann_network.cached_logl;
@@ -273,44 +315,7 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
             combinedTreeData.reticulationChoices = combineReticulationChoices(sourceTrees[i].treeLoglData.reticulationChoices, targetTrees[j].treeLoglData.reticulationChoices);
 
             if (isActiveBranch(ann_network, combinedTreeData.reticulationChoices, pmatrix_index)) {
-                for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-                    combinedTreeData.tree_partition_logl[p] = 0.0;
-                    // skip remote partitions
-                    if (!ann_network.fake_treeinfo->partitions[p]) {
-                        continue;
-                    }
-
-                    pll_partition_t* partition = ann_network.fake_treeinfo->partitions[p];
-                    std::vector<double> persite_logl(ann_network.fake_treeinfo->partitions[p]->sites);
-
-                    assert(sourceTrees[i].isTip || !single_clv_is_all_zeros(ann_network.partition_clv_ranges[p], sourceTrees[i].clv_vector[p]));
-                    assert(targetTrees[j].isTip || !single_clv_is_all_zeros(ann_network.partition_clv_ranges[p], targetTrees[j].clv_vector[p]));
-                    combinedTreeData.tree_partition_logl[p] = pll_compute_edge_loglikelihood(partition, source->clv_index, sourceTrees[i].clv_vector[p], sourceTrees[i].scale_buffer[p], 
-                                                                target->clv_index, targetTrees[j].clv_vector[p], targetTrees[j].scale_buffer[p], 
-                                                                pmatrix_index, ann_network.fake_treeinfo->param_indices[p], persite_logl.data());
-                    assert(combinedTreeData.tree_partition_logl[p] != -std::numeric_limits<double>::infinity());
-                    assert(combinedTreeData.tree_partition_logl[p] < 0.0);
-                }
-
-                /* sum up likelihood from all threads */
-                if (ann_network.fake_treeinfo->parallel_reduce_cb)
-                {
-                    ann_network.fake_treeinfo->parallel_reduce_cb(ann_network.fake_treeinfo->parallel_context,
-                                                combinedTreeData.tree_partition_logl.data(),
-                                                ann_network.fake_treeinfo->partition_count,
-                                                PLLMOD_COMMON_REDUCE_SUM);
-
-                    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-                        if (combinedTreeData.tree_partition_logl[p] >= 0.0) {
-                            std::cout << "thread " << ParallelContext::local_proc_id() << " combinedTreeData.tree_partition_logl[" << p << "]: " << combinedTreeData.tree_partition_logl[p] << "\n";
-                        }
-                        if (combinedTreeData.tree_partition_logl[p] == 0.0) {
-                            throw std::runtime_error("bad partition logl");
-                        }
-                        assert(combinedTreeData.tree_partition_logl[p] < 0.0);
-                    }
-                }
-                combinedTreeData.tree_logprob = computeReticulationConfigLogProb(combinedTreeData.reticulationChoices, ann_network.reticulation_probs);
+                recomputeTreeData(ann_network, pmatrix_index, sourceTrees[i], targetTrees[j], combinedTreeData);
             } else {
                 updateTreeData(ann_network, oldTrees, combinedTreeData);
             }
