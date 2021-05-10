@@ -2,7 +2,7 @@
 
 #include <cassert>
 #include <iostream>
-#include "mpreal.h"
+#include "../likelihood/mpreal.h"
 
 namespace netrax {
 
