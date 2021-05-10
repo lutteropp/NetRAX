@@ -6,7 +6,7 @@
  */
 
 #include "src/likelihood/LikelihoodComputation.hpp"
-#include "src/optimization/Moves.hpp"
+#include "src/moves/Moves.hpp"
 #include "src/io/NetworkIO.hpp"
 #include "src/RaxmlWrapper.hpp"
 #include "src/DebugPrintFunctions.hpp"

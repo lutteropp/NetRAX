@@ -16,7 +16,7 @@
 #include "../likelihood/LikelihoodComputation.hpp"
 #include "../NetraxOptions.hpp"
 #include "../RaxmlWrapper.hpp"
-#include "../optimization/Moves.hpp"
+#include "../moves/Moves.hpp"
 #include "../optimization/BranchLengthOptimization.hpp"
 #include "../optimization/ReticulationOptimization.hpp"
 #include "../optimization/ModelOptimization.hpp"

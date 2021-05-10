@@ -9,7 +9,7 @@
 #include "src/io/NetworkIO.hpp"
 #include "src/RaxmlWrapper.hpp"
 #include "src/graph/Network.hpp"
-#include "src/optimization/Moves.hpp"
+#include "src/moves/Moves.hpp"
 
 #include <gtest/gtest.h>
 #include <string>

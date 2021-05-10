@@ -1,6 +1,6 @@
 #include "Scrambling.hpp"
 
-#include "../optimization/Moves.hpp"
+#include "../moves/Moves.hpp"
 #include "../optimization/Optimization.hpp"
 
 namespace netrax {

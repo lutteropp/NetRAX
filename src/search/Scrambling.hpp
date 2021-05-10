@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../graph/AnnotatedNetwork.hpp"
-#include "../optimization/MoveType.hpp"
+#include "../moves/MoveType.hpp"
 
 namespace netrax {
 

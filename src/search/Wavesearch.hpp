@@ -2,7 +2,7 @@
 
 #include "../graph/AnnotatedNetwork.hpp"
 #include "ScoreImprovement.hpp"
-#include "../optimization/MoveType.hpp"
+#include "../moves/MoveType.hpp"
 
 namespace netrax {
 

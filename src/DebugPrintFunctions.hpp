@@ -18,7 +18,7 @@ extern "C" {
 #include <libpll/pll_tree.h>
 }
 
-#include "optimization/MoveType.hpp"
+#include "moves/MoveType.hpp"
 
 namespace netrax {
 

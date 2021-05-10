@@ -19,7 +19,7 @@ extern "C" {
 #include <raxml-ng/main.hpp>
 #include "Network.hpp"
 #include "../NetraxOptions.hpp"
-#include "../optimization/MoveType.hpp"
+#include "../moves/MoveType.hpp"
 #include "../likelihood/DisplayedTreeData.hpp"
 
 namespace netrax {

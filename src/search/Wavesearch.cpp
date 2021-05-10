@@ -3,7 +3,7 @@
 #include "CandidateSelection.hpp"
 #include "../likelihood/ComplexityScoring.hpp"
 #include "../likelihood/PseudoLoglikelihood.hpp"
-#include "../optimization/Moves.hpp"
+#include "../moves/Moves.hpp"
 #include "../optimization/Optimization.hpp"
 #include "Scrambling.hpp"
 
