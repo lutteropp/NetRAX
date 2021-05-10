@@ -149,7 +149,7 @@ struct BestNetworkData {
 
 bool hasBadReticulation(AnnotatedNetwork& ann_network) {
     for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
-        if ((1.0 - ann_network.reticulation_probs[i] < 0.001) || (ann_network.reticulation_probs[i] < 0.001)) {
+        if (fabs(1.0 - ann_network.reticulation_probs[i]) < 0.001) {
             return true;
         }
     }

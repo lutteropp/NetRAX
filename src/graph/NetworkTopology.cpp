@@ -319,6 +319,7 @@ Node* getActiveParent(Network &network, const Node *node) {
     if (node->type == NodeType::RETICULATION_NODE) {
         return getReticulationActiveParent(network, node);
     }
+    Node* parent = nullptr;
     for (const auto &link : node->links) {
         if (link.direction == Direction::INCOMING) {
             return getTargetNode(network, &link);

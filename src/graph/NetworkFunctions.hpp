@@ -30,11 +30,11 @@ std::vector<std::vector<size_t> > getDtBranchToNetworkBranchMapping(const pll_ut
 
 double displayed_tree_prob(AnnotatedNetwork &ann_network, size_t tree_index);
 
-pll_utree_t* displayed_tree_to_utree(Network &network, const std::vector<ReticulationState>& reticulationChoices);
+pll_utree_t* displayed_tree_to_utree(Network &network, const ReticulationConfig& reticulationChoices);
 pll_utree_t* displayed_tree_to_utree(Network &network, size_t tree_index);
 std::vector<double> collectBranchLengths(const Network &network);
 void applyBranchLengths(Network &network, const std::vector<double> &branchLengths);
-void setReticulationParents(Network &network, const std::vector<ReticulationState>& reticulationChoices);
+void setReticulationParents(Network &network, const ReticulationConfig& reticulationChoices);
 void setReticulationParents(Network &network, size_t treeIdx);
 /*
  * Find possible placements for the root node in a semi-rooted network.

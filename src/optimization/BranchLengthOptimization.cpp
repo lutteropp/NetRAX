@@ -305,7 +305,9 @@ double optimize_branch(AnnotatedNetwork &ann_network, std::vector<DisplayedTreeD
 }
 
 double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, BrlenOptMethod brlenOptMethod, unsigned int max_iters) {
-    //std::cout << "thread " << ParallelContext::local_proc_id() << " is now optimizing branch " << pmatrix_index << "\n";
+    if (ann_network.network.num_reticulations() == 2) {
+        std::cout << "thread " << ParallelContext::local_proc_id() << " is now optimizing branch " << pmatrix_index << "\n";
+    }
 
     double old_logl = computeLoglikelihood(ann_network);
     assert(old_logl <= 0.0);
@@ -329,7 +331,18 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
         }
         ann_network.cached_logl_valid = false;
         // TODO: Leaving out this assertion is dangerous...
-        assert(fabs(old_logl - computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index)) < 1E-3);
+        double brlenopt_logl = computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index);
+        if (fabs(old_logl - brlenopt_logl) >= 1E-3) {
+            updateNetwork(ann_network);
+            if (ParallelContext::local_proc_id() == 0) {
+                std::cout << "old_logl: " << old_logl << "\n";
+                std::cout << "brlenopt_logl: " << brlenopt_logl << "\n";
+                //std::cout << toExtendedNewick(ann_network.network) << "\n";
+                //std::cout << exportDebugInfo(ann_network) << "\n";
+            }
+        }
+        ParallelContext::mpi_barrier();
+        assert(fabs(old_logl - brlenopt_logl) < 1E-3);
 
         if (brlenOptMethod == BrlenOptMethod::NEWTON_RAPHSON || brlenOptMethod == BrlenOptMethod::BRENT_REROOT_SUMTABLE) {
             sumtables = computePartitionSumtables(ann_network, pmatrix_index);
@@ -353,6 +366,10 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
     // restore the network root
     if (brlenOptMethod != BrlenOptMethod::BRENT_NORMAL) {
         invalidatePmatrixIndex(ann_network, pmatrix_index);
+        if (getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index])->getType() == NodeType::RETICULATION_NODE) {
+            // also invalidate pmatrix index from edge target, because we changed the reticulation choices there
+            invalidateSingleClv(ann_network, getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index])->clv_index);
+        }
     }
 
     double final_logl = computeLoglikelihood(ann_network);

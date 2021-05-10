@@ -313,7 +313,7 @@ pll_utree_t* displayed_tree_to_utree(Network &network, size_t tree_index) {
     return utree;
 }
 
-pll_utree_t* displayed_tree_to_utree(Network &network, const std::vector<ReticulationState>& reticulationChoices) {
+pll_utree_t* displayed_tree_to_utree(Network &network, const ReticulationConfig& reticulationChoices) {
     for (size_t i = 0; i < reticulationChoices.size(); ++i) { // apply the reticulation choices
         if (reticulationChoices[i] != ReticulationState::DONT_CARE) {
             setReticulationState(network, i, reticulationChoices[i]);
@@ -368,7 +368,7 @@ void setReticulationParents(Network &network, size_t treeIdx) {
     }
 }
 
-void setReticulationParents(Network &network, const std::vector<ReticulationState>& reticulationChoices) {
+void setReticulationParents(Network &network, const ReticulationConfig& reticulationChoices) {
     for (size_t i = 0; i < network.num_reticulations(); ++i) {
         if (reticulationChoices[i] == ReticulationState::TAKE_FIRST_PARENT) {
             network.reticulation_nodes[i]->getReticulationData()->setActiveParentToggle(0);
