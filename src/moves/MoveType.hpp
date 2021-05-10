@@ -40,17 +40,16 @@ namespace netrax {
         }
     }
 
-
-    inline bool isComplexityChangingMove(const MoveType& moveType) {
-        return (moveType == MoveType::ArcRemovalMove || moveType == MoveType::ArcInsertionMove || moveType == MoveType::DeltaMinusMove || moveType == MoveType::DeltaPlusMove);
-    }
-
     inline bool isArcInsertion(const MoveType& type) {
         return (type == MoveType::ArcInsertionMove || type == MoveType::DeltaPlusMove);
     }
 
     inline bool isArcRemoval(const MoveType& type) {
         return (type == MoveType::ArcRemovalMove || type == MoveType::DeltaMinusMove);
+    }
+
+    inline bool isComplexityChangingMove(const MoveType& moveType) {
+        return isArcInsertion(moveType) || isArcRemoval(moveType);
     }
 
 }
