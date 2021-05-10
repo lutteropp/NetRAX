@@ -96,7 +96,6 @@ double computeReticulationConfigProb(const ReticulationConfigSet& choices, const
     return prob.toDouble();
 }
 
-//bool reticulationChoicesCompatible(const std::vector<ReticulationState>& left, const std::vector<ReticulationState>& right);
 bool reticulationConfigsCompatible(const ReticulationConfigSet& left, const ReticulationConfigSet& right) {
     for (size_t i = 0; i < left.configs.size(); ++i) {
         for (size_t j = 0; j < right.configs.size(); ++j) {
@@ -120,7 +119,7 @@ void simplifyReticulationChoices(ReticulationConfigSet& res) {
     while (shrinked) {
         shrinked = false;
 
-        // fist: search for duplicates
+        // first: search for duplicates
         for (size_t i = 0; i < res.configs.size(); ++i) {
             for (size_t j = i+1; j < res.configs.size(); ++j) {
                 if (res.configs[i] == res.configs[j]) {
