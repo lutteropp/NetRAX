@@ -703,4 +703,34 @@ std::vector<Node*> getCurrentChildren(AnnotatedNetwork& ann_network, Node* node,
     return res;
 }
 
+void setReticulationParents(Network &network, size_t treeIdx) {
+    for (size_t i = 0; i < network.num_reticulations(); ++i) {
+        // check if i-th bit is set in treeIdx
+        bool activeParentIdx = treeIdx & (1 << i);
+        network.reticulation_nodes[i]->getReticulationData()->setActiveParentToggle(
+                activeParentIdx);
+    }
+}
+
+void setReticulationParents(Network &network, const std::vector<ReticulationState>& reticulationChoices) {
+    for (size_t i = 0; i < network.num_reticulations(); ++i) {
+        if (reticulationChoices[i] == ReticulationState::TAKE_FIRST_PARENT) {
+            network.reticulation_nodes[i]->getReticulationData()->setActiveParentToggle(0);
+        } else if (reticulationChoices[i] == ReticulationState::TAKE_SECOND_PARENT) {
+            network.reticulation_nodes[i]->getReticulationData()->setActiveParentToggle(1);
+        }
+    }
+}
+
+std::vector<Node*> grab_current_node_parents(Network &network) {
+    std::vector<Node*> parent(network.nodes.size(), nullptr);
+    for (size_t i = 0; i < parent.size(); ++i) {
+        if (network.nodes_by_index[i]) {
+            parent[network.nodes_by_index[i]->clv_index] = getActiveParent(network,
+                    network.nodes_by_index[i]);
+        }
+    }
+    return parent;
+}
+
 }

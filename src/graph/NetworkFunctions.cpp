@@ -284,6 +284,21 @@ double displayed_tree_prob(AnnotatedNetwork &ann_network, size_t tree_index) {
     return exp(logProb);
 }
 
+Node* getPossibleTreeRootNode(Network &network, const std::vector<bool> &dead_nodes) {
+    if (!dead_nodes[network.root->clv_index]
+            && getActiveAliveNeighbors(network, dead_nodes, network.root).size() == 3) {
+        return network.root;
+    }
+    for (size_t i = network.num_tips(); i < network.num_nodes(); ++i) {
+        if (!dead_nodes[i]
+                && network.nodes_by_index[i]->getType() == NodeType::BASIC_NODE
+                && getActiveAliveNeighbors(network, dead_nodes, network.nodes_by_index[i]).size() == 3) {
+            return network.nodes_by_index[i];
+        }
+    }
+    return nullptr;
+}
+
 pll_utree_t* displayed_tree_to_utree(Network &network, size_t tree_index) {
     setReticulationParents(network, tree_index);
 
@@ -346,38 +361,6 @@ pll_utree_t* displayed_tree_to_utree(Network &network, const std::vector<Reticul
     return utree;
 }
 
-std::vector<double> collectBranchLengths(const Network &network) {
-    std::vector<double> brLengths(network.num_branches());
-    for (size_t i = 0; i < network.num_branches(); ++i) {
-        brLengths[i] = network.edges_by_index[i]->length;
-    }
-    return brLengths;
-}
-void applyBranchLengths(Network &network, const std::vector<double> &branchLengths) {
-    assert(branchLengths.size() == network.num_branches());
-    for (size_t i = 0; i < network.num_branches(); ++i) {
-        network.edges_by_index[i]->length = branchLengths[i];
-    }
-}
-void setReticulationParents(Network &network, size_t treeIdx) {
-    for (size_t i = 0; i < network.num_reticulations(); ++i) {
-        // check if i-th bit is set in treeIdx
-        bool activeParentIdx = treeIdx & (1 << i);
-        network.reticulation_nodes[i]->getReticulationData()->setActiveParentToggle(
-                activeParentIdx);
-    }
-}
-
-void setReticulationParents(Network &network, const std::vector<ReticulationState>& reticulationChoices) {
-    for (size_t i = 0; i < network.num_reticulations(); ++i) {
-        if (reticulationChoices[i] == ReticulationState::TAKE_FIRST_PARENT) {
-            network.reticulation_nodes[i]->getReticulationData()->setActiveParentToggle(0);
-        } else if (reticulationChoices[i] == ReticulationState::TAKE_SECOND_PARENT) {
-            network.reticulation_nodes[i]->getReticulationData()->setActiveParentToggle(1);
-        }
-    }
-}
-
 void forbidSubnetwork(Network &network, Node *node, std::vector<bool> &forbidden) {
     if (forbidden[node->clv_index])
         return;
@@ -406,21 +389,6 @@ std::vector<Node*> getPossibleRootNodes(Network &network) {
         }
     }
     return res;
-}
-
-Node* getPossibleTreeRootNode(Network &network, const std::vector<bool> &dead_nodes) {
-    if (!dead_nodes[network.root->clv_index]
-            && getActiveAliveNeighbors(network, dead_nodes, network.root).size() == 3) {
-        return network.root;
-    }
-    for (size_t i = network.num_tips(); i < network.num_nodes(); ++i) {
-        if (!dead_nodes[i]
-                && network.nodes_by_index[i]->getType() == NodeType::BASIC_NODE
-                && getActiveAliveNeighbors(network, dead_nodes, network.nodes_by_index[i]).size() == 3) {
-            return network.nodes_by_index[i];
-        }
-    }
-    return nullptr;
 }
 
 void getTipVectorRecursive(pll_unode_t *actParent, pll_unode_t *actNode, size_t pmatrix_idx,
@@ -523,17 +491,6 @@ std::vector<std::vector<size_t> > getDtBranchToNetworkBranchMapping(const pll_ut
         }
     }
     return res;
-}
-
-std::vector<Node*> grab_current_node_parents(Network &network) {
-    std::vector<Node*> parent(network.nodes.size(), nullptr);
-    for (size_t i = 0; i < parent.size(); ++i) {
-        if (network.nodes_by_index[i]) {
-            parent[network.nodes_by_index[i]->clv_index] = getActiveParent(network,
-                    network.nodes_by_index[i]);
-        }
-    }
-    return parent;
 }
 
 std::vector<Node*> reversed_topological_sort(Network &network) {

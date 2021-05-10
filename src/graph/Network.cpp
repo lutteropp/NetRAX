@@ -206,4 +206,19 @@ namespace netrax
         assert(other.root);
         root = nodes_by_index[other.root->clv_index];
     }
+
+    std::vector<double> collectBranchLengths(const Network &network) {
+        std::vector<double> brLengths(network.num_branches());
+        for (size_t i = 0; i < network.num_branches(); ++i) {
+            brLengths[i] = network.edges_by_index[i]->length;
+        }
+        return brLengths;
+    }
+
+    void applyBranchLengths(Network &network, const std::vector<double> &branchLengths) {
+        assert(branchLengths.size() == network.num_branches());
+        for (size_t i = 0; i < network.num_branches(); ++i) {
+            network.edges_by_index[i]->length = branchLengths[i];
+        }
+    }
 } // namespace netrax
