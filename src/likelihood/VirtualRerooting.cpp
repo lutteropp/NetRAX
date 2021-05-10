@@ -14,7 +14,7 @@ struct PathToVirtualRoot {
     PathToVirtualRoot(size_t max_reticulations) : reticulationChoices(max_reticulations) {};
 };
 
-std::vector<Node*> getPathToVirtualRoot(AnnotatedNetwork& ann_network, Node* from, Node* virtual_root, const std::vector<Node*> parent) {
+std::vector<Node*> getPathToVirtualRoot(Node* from, Node* virtual_root, const std::vector<Node*> parent) {
     assert(from);
     assert(virtual_root);
     std::vector<Node*> res;
@@ -59,7 +59,7 @@ std::vector<PathToVirtualRoot> getPathsToVirtualRoot(AnnotatedNetwork& ann_netwo
             setReticulationParents(ann_network.network, oldDisplayedTrees.displayed_trees[i].treeLoglData.reticulationChoices.configs[0]);
         }
         std::vector<Node*> parent = getParentPointers(ann_network, new_virtual_root);
-        std::vector<Node*> path = getPathToVirtualRoot(ann_network, old_virtual_root, new_virtual_root, parent);
+        std::vector<Node*> path = getPathToVirtualRoot(old_virtual_root, new_virtual_root, parent);
         
         std::vector<ReticulationState> dont_care_vector(ann_network.options.max_reticulations, ReticulationState::DONT_CARE);
         ReticulationConfigSet restrictionsSet(ann_network.options.max_reticulations);
@@ -284,36 +284,31 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
     if (ann_network.cached_logl_valid) {
         return ann_network.cached_logl;
     }
-    
     Node* source = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
     Node* target = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
+    NodeDisplayedTreeData& sourceData =  ann_network.pernode_displayed_tree_data[source->clv_index];
+    NodeDisplayedTreeData& targetData =  ann_network.pernode_displayed_tree_data[target->clv_index];
+    std::vector<DisplayedTreeData>& sourceTrees = sourceData.displayed_trees;
+    std::vector<DisplayedTreeData>& targetTrees = targetData.displayed_trees;
+    size_t n_trees_source = sourceData.num_active_displayed_trees;
+    size_t n_trees_target = targetData.num_active_displayed_trees;
+    std::vector<bool> source_tree_seen(n_trees_source, false);
+    std::vector<bool> target_tree_seen(n_trees_target, false);
+
     assert(reuseOldDisplayedTreesCheck(ann_network, incremental)); // TODO: Doesn't this need the virtual_root pointer, too?
     if (update_pmatrices) {
         pllmod_treeinfo_update_prob_matrices(ann_network.fake_treeinfo, !incremental);
     }
     //Instead of going over the-source-trees-only for final loglh evaluation, we need to go over all pairs of trees, one in source node and one in target node.
-
     std::vector<TreeLoglData> combinedTrees;
-    
-    size_t n_trees_source = ann_network.pernode_displayed_tree_data[source->clv_index].num_active_displayed_trees;
-    size_t n_trees_target = ann_network.pernode_displayed_tree_data[target->clv_index].num_active_displayed_trees;
-    std::vector<DisplayedTreeData>& sourceTrees = ann_network.pernode_displayed_tree_data[source->clv_index].displayed_trees;
-    std::vector<DisplayedTreeData>& targetTrees = ann_network.pernode_displayed_tree_data[target->clv_index].displayed_trees;
-
-    std::vector<bool> source_tree_seen(n_trees_source, false);
-    std::vector<bool> target_tree_seen(n_trees_target, false);
 
     for (size_t i = 0; i < n_trees_source; ++i) {
         for (size_t j = 0; j < n_trees_target; ++j) {
             if (!reticulationConfigsCompatible(sourceTrees[i].treeLoglData.reticulationChoices, targetTrees[j].treeLoglData.reticulationChoices)) {
                 continue;
             }
-            source_tree_seen[i] = true;
-            target_tree_seen[j] = true;
-
             TreeLoglData combinedTreeData(ann_network.fake_treeinfo->partition_count, ann_network.options.max_reticulations);
             combinedTreeData.reticulationChoices = combineReticulationChoices(sourceTrees[i].treeLoglData.reticulationChoices, targetTrees[j].treeLoglData.reticulationChoices);
-
             if (isActiveBranch(ann_network, combinedTreeData.reticulationChoices, pmatrix_index)) {
                 recomputeTreeData(ann_network, pmatrix_index, sourceTrees[i], targetTrees[j], combinedTreeData);
             } else {
@@ -322,6 +317,9 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
             combinedTreeData.tree_logl_valid = true;
             combinedTreeData.tree_logprob_valid = true;
             combinedTrees.emplace_back(combinedTreeData);
+
+            source_tree_seen[i] = true;
+            target_tree_seen[j] = true;
         }
     }
 
