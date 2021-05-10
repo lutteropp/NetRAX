@@ -96,13 +96,15 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
         assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
 
         if (!hasBadReticulation(ann_network) || ((move.moveType != MoveType::DeltaPlusMove) && (move.moveType != MoveType::ArcInsertionMove))) {
-            std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
-            assert(!brlen_opt_candidates.empty());
-            
             //std::cout << "thread " << ParallelContext::local_proc_id() << ", " << "before brlen opt, candidate no. " << i << "\n";
             //LikelihoodVariant old_variant = ann_network.options.likelihood_variant;
             //ann_network.options.likelihood_variant = LikelihoodVariant::SARAH_PSEUDO;
-            optimize_branches(ann_network, max_iters, max_iters_outside, radius, brlen_opt_candidates, true);
+
+            if (!ann_network.options.no_brlenopt_prefiltering) {
+                std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
+                assert(!brlen_opt_candidates.empty());
+                optimize_branches(ann_network, max_iters, max_iters_outside, radius, brlen_opt_candidates, true);
+            }
             //ann_network.options.likelihood_variant = old_variant;
             optimizeReticulationProbs(ann_network);
             //std::cout << "thread " << ParallelContext::local_proc_id() << ", " << "after brlen opt, candidate no. " << i << "\n";
@@ -150,7 +152,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
 
     size_t newSize = 0;
 
-    double cutoff_bic = best_bic;
+    double cutoff_bic = scores[std::ceil(0.1*scores.size())].bicScore; //best_bic;
 
     for (size_t i = 0; i < candidates.size(); ++i) {
         if (ParallelContext::local_proc_id() == 0) {
