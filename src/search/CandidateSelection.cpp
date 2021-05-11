@@ -1,4 +1,5 @@
 #include "CandidateSelection.hpp"
+#include "../helper/Helper.hpp"
 
 namespace netrax {
 
@@ -17,22 +18,8 @@ void switchLikelihoodVariant(AnnotatedNetwork& ann_network, LikelihoodVariant ne
     if (ann_network.options.likelihood_variant == newVariant) {
         return;
     }
-    bool invalidationNeeded = (ann_network.options.likelihood_variant == LikelihoodVariant::SARAH_PSEUDO || newVariant == LikelihoodVariant::SARAH_PSEUDO);
     ann_network.options.likelihood_variant = newVariant;
     ann_network.cached_logl_valid = false;
-
-    if (invalidationNeeded) {
-        for (size_t i = ann_network.network.num_tips(); i < ann_network.network.num_nodes(); ++i) {
-            for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-                // skip remote partitions
-                if (!ann_network.fake_treeinfo->partitions[p]) {
-                    continue;
-                }
-                ann_network.fake_treeinfo->clv_valid[p][i] = 0;
-            }
-            ann_network.pseudo_clv_valid[i] = 0;
-        }
-    }
 }
 
 template <typename T>
@@ -91,6 +78,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
         if (recompute_from_scratch) { // TODO: This is a hotfix that just masks some bugs. Fix the bugs properly.
             computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
         }
+        //optimizeReticulationProbs(ann_network);
 
         double bicScore = scoreNetwork(ann_network);
 

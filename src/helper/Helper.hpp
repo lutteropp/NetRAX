@@ -87,6 +87,7 @@ void invalidateHigherCLVs(AnnotatedNetwork &ann_network, Node *node, bool invali
         std::vector<bool> &visited);
 void invalidateHigherCLVs(AnnotatedNetwork &ann_network, Node *node, bool invalidate_myself, std::vector<bool> &visited);
 void invalidateHigherCLVs(AnnotatedNetwork &ann_network, Node *node, bool invalidate_myself);
+void invalidateHigherPseudoCLVs(AnnotatedNetwork &ann_network, Node *node, bool invalidate_myself);
 void invalidatePmatrixIndex(AnnotatedNetwork &ann_network, size_t pmatrix_index,
         std::vector<bool> &visited);
 void invalidatePmatrixIndex(AnnotatedNetwork &ann_network, size_t pmatrix_index);
