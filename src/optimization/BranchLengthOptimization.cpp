@@ -361,9 +361,9 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters, int max_i
 
         double new_logl = optimize_branch(ann_network, pmatrix_index, brlenOptMethod, max_iters);
 
-        if (new_logl - old_logl > lh_epsilon) { // add all neighbors of the branch to the candidates
+        /*if (new_logl - old_logl > lh_epsilon) { // add all neighbors of the branch to the candidates
             add_neighbors_in_radius(ann_network, candidates, pmatrix_index, 1);
-        }
+        }*/
         old_logl = new_logl;
         //old_virtual_root = new_virtual_root;
     }

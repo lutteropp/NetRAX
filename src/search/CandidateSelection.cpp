@@ -146,7 +146,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
         }
     }
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-        if (!silent) std::cout << "New size after prefiltering: " << newSize << " vs. " << candidates.size() << "\n";
+        if (print_progress) std::cout << "New size after prefiltering: " << newSize << " vs. " << candidates.size() << "\n";
     }
 
     candidates.resize(newSize);
@@ -172,7 +172,7 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T> candidates, Ne
 
     double brlen_smooth_factor = 1.0;
     int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
-    int max_iters_outside = max_iters;
+    int max_iters_outside = 1;//max_iters; // this says how often we will optimize the same branch again
     int radius = 1;
 
     double old_bic = scoreNetwork(ann_network);
