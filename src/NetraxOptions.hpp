@@ -70,7 +70,9 @@ public:
 
     double greedy_factor = std::numeric_limits<double>::infinity();
     bool reorder_candidates = false;
-    double prefilter_fraction = 0.1;
+
+    size_t prefilter_keep = 60;
+
     bool no_prefiltering = false;
     bool no_tail_moves = false;
     bool no_head_moves = false;
