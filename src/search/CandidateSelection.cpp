@@ -43,6 +43,8 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
         if (print_progress) std::cout << "MoveType: " << toString(candidates[0].moveType) << " (" << candidates.size() << ")" << ", we currently have " << ann_network.network.num_reticulations() << " reticulations and BIC " << scoreNetwork(ann_network) << "\n";
     }
 
+    std::vector<double> nodeScore(ann_network.network.num_nodes(), std::numeric_limits<double>::infinity());
+
     LikelihoodVariant old_variant = ann_network.options.likelihood_variant;
     switchLikelihoodVariant(ann_network, LikelihoodVariant::SARAH_PSEUDO);
 
@@ -92,6 +94,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
         optimizeReticulationProbs(ann_network);
 
         double bicScore = scoreNetwork(ann_network);
+        nodeScore[move.node_orig_idx] = std::min(nodeScore[move.node_orig_idx], bicScore);
 
         scores[i] = ScoreItem<T>{candidates[i], bicScore};
 
@@ -155,6 +158,10 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
     }
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         if (print_progress) std::cout << "New size after prefiltering: " << newSize << " vs. " << candidates.size() << "\n";
+        std::cout << "node scores:\n";
+        for (size_t i = 0; i < nodeScore.size(); ++i) {
+            std::cout << " " << i << ": " << nodeScore[i] << "\n"; 
+        }
     }
 
     candidates.resize(newSize);
