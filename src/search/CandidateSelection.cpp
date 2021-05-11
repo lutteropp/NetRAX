@@ -15,7 +15,7 @@ namespace netrax {
 
 template <typename T>
 struct ScoreItem {
-    T move;
+    T item;
     double bicScore;
 };
 
@@ -34,9 +34,11 @@ void switchLikelihoodVariant(AnnotatedNetwork& ann_network, LikelihoodVariant ne
 }
 
 template <typename T>
-void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, bool silent = true, bool print_progress = true) {
+std::vector<Node*> prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, bool silent = true, bool print_progress = true) {
+    std::vector<Node*> promisingNodes;
+    
     if (candidates.empty()) {
-        return;
+        return {};
     }
 
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
@@ -65,7 +67,6 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
 
     NetworkState oldState = extract_network_state(ann_network);
 
-    std::vector<ScoreItem<T> > scores(candidates.size());
 
     for (size_t i = 0; i < candidates.size(); ++i) {        
         // progress bar code taken from https://stackoverflow.com/a/14539953/14557921
@@ -96,8 +97,6 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
         double bicScore = scoreNetwork(ann_network);
         nodeScore[move.node_orig_idx] = std::min(nodeScore[move.node_orig_idx], bicScore);
 
-        scores[i] = ScoreItem<T>{candidates[i], bicScore};
-
         for (size_t j = 0; j < ann_network.network.num_nodes(); ++j) {
             assert(ann_network.network.nodes_by_index[j]->clv_index == j);
         }
@@ -120,7 +119,8 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
                     std::cout << std::endl;
                 }
                 switchLikelihoodVariant(ann_network, old_variant);
-                return;
+                promisingNodes.emplace_back(ann_network.network.nodes_by_index[move.node_orig_idx]);
+                return promisingNodes;
             } else {
                 switchLikelihoodVariant(ann_network, LikelihoodVariant::SARAH_PSEUDO);
             }
@@ -133,7 +133,12 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
         std::cout << std::endl;
     }
 
-    std::sort(scores.begin(), scores.end(), [](const ScoreItem<T>& lhs, const ScoreItem<T>& rhs) {
+    std::vector<ScoreItem<Node*> > scores(ann_network.network.num_nodes());
+    for (size_t i = 0; i < ann_network.network.num_nodes(); ++i) {
+        scores[i] = ScoreItem<Node*>{ann_network.network.nodes_by_index[i], nodeScore[i]};
+    }
+
+    std::sort(scores.begin(), scores.end(), [](const ScoreItem<Node*>& lhs, const ScoreItem<Node*>& rhs) {
         return lhs.bicScore < rhs.bicScore;
     });
 
@@ -143,12 +148,12 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
 
     double cutoff_bic = scores[cutoff_pos].bicScore; //best_bic;
 
-    for (size_t i = 0; i < candidates.size(); ++i) {
+    for (size_t i = 0; i < ann_network.network.num_nodes(); ++i) {
         if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-            if (!silent) std::cout << "prefiltered candidate " << i + 1 << "/" << candidates.size() << " has BIC: " << scores[i].bicScore << "\n";
+            if (!silent) std::cout << "prefiltered node " << i + 1 << "/" << ann_network.network.num_nodes() << " has best BIC: " << scores[i].bicScore << "\n";
         }
         if (scores[i].bicScore <= cutoff_bic) {
-            candidates[newSize] = scores[i].move;
+            promisingNodes.emplace_back(ann_network.network.nodes_by_index[i]);
             newSize++;
         }
 
@@ -157,11 +162,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
         }
     }
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-        if (print_progress) std::cout << "New size after prefiltering: " << newSize << " vs. " << candidates.size() << "\n";
-        std::cout << "node scores:\n";
-        for (size_t i = 0; i < nodeScore.size(); ++i) {
-            std::cout << " " << i << ": " << nodeScore[i] << "\n"; 
-        }
+        if (print_progress) std::cout << "New size promising nodes after prefiltering: " << newSize << " vs. " << ann_network.network.num_nodes() << "\n";
     }
 
     candidates.resize(newSize);
@@ -170,6 +171,8 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
         assert(checkSanity(ann_network, candidates[i]));
     }
     switchLikelihoodVariant(ann_network, old_variant);
+
+    return promisingNodes;
 }
 
 
@@ -276,7 +279,7 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
             if (!silent) std::cout << "ranked candidate " << i + 1 << "/" << candidates.size() << " has BIC: " << scores[i].bicScore << "\n";
         }
         if (scores[i].bicScore <= cutoff_bic) {
-            candidates[newSize] = scores[i].move;
+            candidates[newSize] = scores[i].item;
             newSize++;
         }
 
@@ -396,7 +399,7 @@ bool chooseCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidates, N
             if (!silent) std::cout << "candidate " << i + 1 << "/" << candidates.size() << " has BIC: " << scores[i].bicScore << "\n";
         }
         if (scores[i].bicScore < old_bic) {
-            candidates[newSize] = scores[i].move;
+            candidates[newSize] = scores[i].item;
             newSize++;
         }
     }
