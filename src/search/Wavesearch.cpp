@@ -6,6 +6,7 @@
 #include "../moves/Moves.hpp"
 #include "../optimization/Optimization.hpp"
 #include "Scrambling.hpp"
+#include "../optimization/NetworkState.hpp"
 
 namespace netrax {
 

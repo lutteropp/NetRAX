@@ -1,6 +1,16 @@
 #include "CandidateSelection.hpp"
 #include "../helper/Helper.hpp"
 
+#include "../optimization/NetworkState.hpp"
+#include "../likelihood/LikelihoodComputation.hpp"
+#include "../likelihood/ComplexityScoring.hpp"
+#include "../likelihood/PseudoLoglikelihood.hpp"
+#include "../DebugPrintFunctions.hpp"
+#include "../moves/Moves.hpp"
+#include "../io/NetworkIO.hpp"
+#include "../optimization/BranchLengthOptimization.hpp"
+#include "../optimization/Optimization.hpp"
+
 namespace netrax {
 
 template <typename T>
@@ -93,7 +103,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
             ann_network.last_accepted_move_edge_orig_idx = move.edge_orig_idx;
         }
 
-        if (old_bic/bicScore > ann_network.options.greedy_factor) {
+        if (old_bic/bicScore > ann_network.options.greedy_factor + 0.01) { // +0.01 because we tend to over-estimate with pseudologlikelihood
             switchLikelihoodVariant(ann_network, old_variant);
             optimizeReticulationProbs(ann_network);
             double real_bicScore = scoreNetwork(ann_network);

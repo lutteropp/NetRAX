@@ -32,14 +32,10 @@ static double brent_target_networks_prob(void *p, double x) {
     } else {
         ann_network->reticulation_probs[reticulation_index] = x;
         ann_network->cached_logl_valid = false;
-
         if (ann_network->options.likelihood_variant == LikelihoodVariant::SARAH_PSEUDO) {
             invalidateHigherCLVs(*ann_network, ann_network->network.reticulation_nodes[reticulation_index], false);
         }
-
         score = -1 * computeLoglikelihood(*ann_network, 1, 1);
-        //std::cout << "    score: " << score << ", x: " << x << ", old_x: " << old_x << ", pmatrix index:"
-        //        << pmatrix_index << "\n";
     }
     return score;
 }
@@ -90,8 +86,6 @@ double optimize_reticulation(AnnotatedNetwork &ann_network, size_t reticulation_
     assert(old_brprob >= min_brprob);
     assert(old_brprob <= max_brprob);
 
-    // Do Brent's method to find a better branch length
-    //std::cout << " optimizing branch " << pmatrix_index << ":\n";
     double score = 0;
     double f2x;
     double new_brprob = pllmod_opt_minimize_brent(min_brprob, old_brprob, max_brprob, tolerance, &score,
@@ -102,20 +96,8 @@ double optimize_reticulation(AnnotatedNetwork &ann_network, size_t reticulation_
         invalidateHigherCLVs(ann_network, ann_network.network.reticulation_nodes[reticulation_index], false);
     }
 
-    //std::cout << "old prob for reticulation " << reticulation_index << ": " << old_brprob << "\n";
-    //std::cout << "new prob for reticulation " << reticulation_index << ": " << new_brprob << "\n";
-
     assert(new_brprob >= min_brprob && new_brprob <= max_brprob);
-
-    //std::cout << "  score: " << score << "\n";
-    //std::cout << "  old_brlen: " << old_brlen << ", new_brlen: " << new_brlen << "\n";
     best_logl = computeLoglikelihood(ann_network, 1, 1);
-
-    //std::cout << " start logl for branch " << pmatrix_index << " with length " << start_brlen << ": " << start_logl
-    //        << "\n";
-    //std::cout << "   end logl for branch " << pmatrix_index << " with length " << new_brlen << ": " << best_logl
-    //        << "\n";
-    //std::cout << "\n";
     return best_logl;
 }
 
