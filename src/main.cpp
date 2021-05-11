@@ -71,11 +71,12 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     app.add_flag("--average_displayed_tree_variant", average_displayed_tree_variant, "Use weighted average instead of only best displayed tree in network likelihood formula.");
     app.add_flag("--best_displayed_tree_variant", best_displayed_tree_variant, "Use best displayed tree instead of weighted average in network likelihood formula.");
     app.add_flag("--no_prefiltering", options->no_prefiltering, "Disable prefiltering of highly-promising move candidates.");
-    app.add_flag("--no_brlenopt_prefiltering", options->no_brlenopt_prefiltering, "Don't do brlenopt while prefiltering move candidates.");
     app.add_option("--prefilter_fraction", options->prefilter_fraction, "Fraction of prefiltered candidates to keep at least, chosen by BIC score cutoff (default: 0.1)");
     app.add_option("--greedy_factor", options->greedy_factor, "Instantly accept a move if it improves BIC by more than the given factor (default: infinity). Gives (maybe faster) results with (maybe worse) inference quality. Needs to be greater-equal than 1.");
     app.add_flag("--reorder_candidates", options->reorder_candidates, "Reorder move candidates by proximity to last accepted move.");
     
+    app.add_flag("--full_search_by_type", options->full_search_by_type, "Do a full search for the current move type, before changing the move type in the outer loop.");
+
     app.add_flag("--no_tail_moves", options->no_tail_moves, "Do not use tail moves (rSPR1 moves still used).");
     app.add_flag("--no_head_moves", options->no_head_moves, "Do not use head moves (rSPR1 moves still used).");
     app.add_flag("--no_arc_insertion_moves", options->no_arc_insertion_moves, "Use only DeltaPlus moves instead of full ArcInsertion moves (faster, but worse inference quality).");

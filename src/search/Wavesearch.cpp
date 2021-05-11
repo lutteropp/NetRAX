@@ -36,13 +36,22 @@ double optimizeEverythingRun(AnnotatedNetwork& ann_network, const std::vector<Mo
             break;
         }
         double old_score = scoreNetwork(ann_network);
-        double new_score = applyBestCandidate(ann_network, typesBySpeed[type_idx], typesBySpeed, &best_score, bestNetworkData, false, silent);
+        double new_score;
+        if (ann_network.options.full_search_by_type) {
+            new_score = fullSearch(ann_network, typesBySpeed[type_idx], typesBySpeed, &best_score, bestNetworkData, silent);
+        } else {
+            new_score = applyBestCandidate(ann_network, typesBySpeed[type_idx], typesBySpeed, &best_score, bestNetworkData, false, silent);
+        }
 
         if (new_score < old_score) { // score got better
             new_score = scoreNetwork(ann_network);
             best_score = new_score;
 
-            type_idx = 0; // go back to fastest move type     
+            if (typesBySpeed.size() > 1) {
+                type_idx = 0; // go back to fastest move type
+            } else if (ann_network.options.full_search_by_type) {
+                type_idx++;
+            }
         } else { // try next-slower move type
             type_idx++;
         }
@@ -171,7 +180,19 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
     //std::cout << "Initial network is:\n" << toExtendedNewick(ann_network) << "\n\n";
 
     if (!ann_network.options.start_network_file.empty()) { // don't waste time trying to first horizontally optimize the user-given start network
-        applyBestCandidate(ann_network, MoveType::DeltaPlusMove, typesBySpeed, &best_score, bestNetworkData, false, silent);
+        if (ann_network.options.no_arc_insertion_moves) {
+            if (ann_network.options.full_search_by_type) {
+                fullSearch(ann_network, MoveType::DeltaPlusMove, typesBySpeed, &best_score, bestNetworkData, silent);
+            } else {
+                applyBestCandidate(ann_network, MoveType::DeltaPlusMove, typesBySpeed, &best_score, bestNetworkData, false, silent);
+            }
+        } else {
+            if (ann_network.options.full_search_by_type) {
+                fullSearch(ann_network, MoveType::ArcInsertionMove, typesBySpeed, &best_score, bestNetworkData, silent);
+            } else {
+                applyBestCandidate(ann_network, MoveType::ArcInsertionMove, typesBySpeed, &best_score, bestNetworkData, false, silent);
+            }
+        }
     }
 
     wavesearch_main_internal(ann_network, bestNetworkData, typesBySpeed, start_state_to_reuse, best_state_to_reuse, &best_score, start_time, silent);

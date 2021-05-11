@@ -50,6 +50,8 @@ public:
     bool change_reticulation_probs_only = false;
     double overwritten_reticulation_prob = -1;
 
+    bool full_search_by_type = false;
+
     bool network_distance_only = false;
     std::string first_network_path = "";
     std::string second_network_path = "";
@@ -68,7 +70,6 @@ public:
 
     double greedy_factor = std::numeric_limits<double>::infinity();
     bool reorder_candidates = false;
-    bool no_brlenopt_prefiltering = false;
     double prefilter_fraction = 0.1;
     bool no_prefiltering = false;
     bool no_tail_moves = false;
