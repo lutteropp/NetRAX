@@ -169,11 +169,15 @@ std::vector<Node*> prefilterCandidates(AnnotatedNetwork& ann_network, std::vecto
             break;
         }*/
     }
+
+    size_t oldCandidatesSize = candidates.size();
+
+    candidates = possibleMoves(ann_network, promisingNodes, candidates[0]);
+
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         if (print_progress) std::cout << "New size promising nodes after prefiltering: " << newSize << " vs. " << ann_network.network.num_nodes() << "\n";
+        if (print_progress) std::cout << "New size candidates after prefiltering: " << candidates.size() << " vs. " << oldCandidatesSize << "\n";
     }
-
-    candidates.resize(newSize);
 
     for (size_t i = 0; i < candidates.size(); ++i) {
         assert(checkSanity(ann_network, candidates[i]));

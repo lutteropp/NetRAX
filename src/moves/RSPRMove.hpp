@@ -85,6 +85,7 @@ std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network, const st
 std::vector<RSPRMove> possibleTailMoves(AnnotatedNetwork &ann_network, const std::vector<Node*>& start_nodes, bool noRSPR1Moves = false, size_t min_radius = 0, size_t max_radius = std::numeric_limits<size_t>::max());
 std::vector<RSPRMove> possibleHeadMoves(AnnotatedNetwork &ann_network, const std::vector<Node*>& start_nodes, bool noRSPR1Moves = false, size_t min_radius = 0, size_t max_radius = std::numeric_limits<size_t>::max());
 
+std::vector<RSPRMove> possibleMoves(AnnotatedNetwork& ann_network, const std::vector<Node*>& start_nodes, RSPRMove placeholderMove, size_t min_radius = 0, size_t max_radius = std::numeric_limits<size_t>::max());
 
 void performMove(AnnotatedNetwork &ann_network, RSPRMove &move);
 void undoMove(AnnotatedNetwork &ann_network, RSPRMove &move);

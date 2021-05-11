@@ -443,6 +443,10 @@ std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network) {
     return res;
 }
 
+std::vector<RSPRMove> possibleMoves(AnnotatedNetwork& ann_network, const std::vector<Node*>& start_nodes, RSPRMove placeholderMove, size_t min_radius, size_t max_radius) {
+    return possibleRSPRMoves(ann_network, start_nodes, min_radius, max_radius);
+}
+
 void performMove(AnnotatedNetwork &ann_network, RSPRMove &move) {
     assert(checkSanity(ann_network, move));
     assert(move.moveType == MoveType::RSPRMove || move.moveType == MoveType::RSPR1Move || move.moveType == MoveType::HeadMove || move.moveType == MoveType::TailMove);

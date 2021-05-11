@@ -158,6 +158,19 @@ std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network, const Edg
     return res;
 }
 
+std::vector<RNNIMove> possibleMoves(AnnotatedNetwork& ann_network, const std::vector<Node*>& start_nodes, RNNIMove placeholderMove, size_t min_radius, size_t max_radius) {
+    std::vector<RNNIMove> res;
+    for (Node* node : start_nodes) {
+        std::vector<Node*> parents = getAllParents(ann_network.network, node);
+        for (Node* parent : parents) {
+            Edge* edge = getEdgeTo(ann_network.network, parent, node);
+            std::vector<RNNIMove> res_node = possibleRNNIMoves(ann_network, edge);
+            res.insert(std::end(res), std::begin(res_node), std::end(res_node));
+        }
+    }
+    return res;
+}
+
 void exchangeEdges(Network &network, Node *u, Node *v, Node *s, Node *t) {
     // The edge between {u,s} will now be between {u, t} and the edge between {v,t} will now be between {v,s}. The edge directions stay the same.
     Link *from_u_link = getLinkToNode(network, u, s);

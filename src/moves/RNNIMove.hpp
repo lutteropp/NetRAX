@@ -60,6 +60,9 @@ struct RNNIMove: public GeneralMove {
 bool checkSanity(AnnotatedNetwork& ann_network, RNNIMove& move);
 std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network, const Edge *edge);
 std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network);
+
+std::vector<RNNIMove> possibleMoves(AnnotatedNetwork& ann_network, const std::vector<Node*>& start_nodes, RNNIMove placeholderMove, size_t min_radius = 0, size_t max_radius = std::numeric_limits<size_t>::max());
+
 void performMove(AnnotatedNetwork &ann_network, RNNIMove &move);
 void undoMove(AnnotatedNetwork &ann_network, RNNIMove &move);
 std::string toString(RNNIMove &move);

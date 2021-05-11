@@ -191,6 +191,22 @@ std::vector<ArcRemovalMove> possibleDeltaMinusMoves(AnnotatedNetwork &ann_networ
     return res;
 }
 
+std::vector<ArcRemovalMove> possibleMoves(AnnotatedNetwork& ann_network, const std::vector<Node*>& start_nodes, ArcRemovalMove placeholderMove, size_t min_radius, size_t max_radius) {
+    std::vector<ArcRemovalMove> res;
+    Network &network = ann_network.network;
+    for (Node* node : start_nodes) {
+        if (node->getType() == NodeType::RETICULATION_NODE) {
+            size_t edge_orig_idx = getReticulationFirstParentPmatrixIndex(node);
+            auto moves = possibleArcRemovalMoves(ann_network, node, edge_orig_idx,
+                    MoveType::ArcRemovalMove);
+            res.insert(std::end(res), std::begin(moves), std::end(moves));
+        }
+    }
+    sortByProximity(res, ann_network);
+    assert(checkSanity(ann_network, res));
+    return res;
+}
+
 void updateMoveClvIndex(ArcRemovalMove& move, size_t old_clv_index, size_t new_clv_index) {
     ArcRemovalMove origMove = move;
     // set new to old
