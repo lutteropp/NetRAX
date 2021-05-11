@@ -23,7 +23,7 @@ void optimizeBranches(AnnotatedNetwork &ann_network, bool silent, bool restricte
     optimize_branches(ann_network, max_iters, max_iters, radius, restricted_total_iters);
 
     double new_score = scoreNetwork(ann_network);
-    if (!silent && ParallelContext::local_proc_id() == 0) std::cout << "BIC score after branch length optimization: " << new_score << "\n";
+    if (!silent && ParallelContext::master()) std::cout << "BIC score after branch length optimization: " << new_score << "\n";
 
     if (new_score > old_score) {
         std::cout << "old score: " << old_score << "\n";
@@ -44,13 +44,13 @@ void optimizeBranches(AnnotatedNetwork &ann_network, bool silent, bool restricte
 void optimizeModel(AnnotatedNetwork &ann_network, bool silent) {
     assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
     double old_score = scoreNetwork(ann_network);
-    if (!silent && ParallelContext::local_proc_id() == 0) std::cout << "BIC score before model optimization: " << old_score << "\n";
+    if (!silent && ParallelContext::master()) std::cout << "BIC score before model optimization: " << old_score << "\n";
 
     optimize_params(ann_network);
 
     assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
     double new_score = scoreNetwork(ann_network);
-    if (!silent && ParallelContext::local_proc_id() == 0) std::cout << "BIC score after model optimization: " << new_score << "\n";
+    if (!silent && ParallelContext::master()) std::cout << "BIC score after model optimization: " << new_score << "\n";
     assert(new_score <= old_score);
 }
 
@@ -67,7 +67,7 @@ void optimizeReticulationProbs(AnnotatedNetwork &ann_network, bool silent) {
     double old_score = scoreNetwork(ann_network);
     optimize_reticulations(ann_network, 100);
     double new_score = scoreNetwork(ann_network);
-    if (!silent && ParallelContext::local_proc_id() == 0) std::cout << "BIC score after updating reticulation probs: " << new_score << "\n";
+    if (!silent && ParallelContext::master()) std::cout << "BIC score after updating reticulation probs: " << new_score << "\n";
     assert(new_score <= old_score);
 }
 

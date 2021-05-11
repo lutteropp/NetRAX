@@ -23,7 +23,7 @@ bool simanneal_step(AnnotatedNetwork& ann_network, double t, std::vector<T> neig
     }
 
     if (!silent) std::cout << "MoveType: " << toString(neighbors[0].moveType) << "\n";
-    if (ParallelContext::local_proc_id() == 0) {
+    if (ParallelContext::master()) {
         if (!silent) std::cout << "t: " << t << "\n";
     }
 
@@ -51,7 +51,7 @@ bool simanneal_step(AnnotatedNetwork& ann_network, double t, std::vector<T> neig
         double bicScore = scoreNetwork(ann_network);
 
         if (bicScore < old_bic) {
-            if (ParallelContext::local_proc_id() == 0) {
+            if (ParallelContext::master()) {
                 if (!silent) std::cout << " Took " << toString(move.moveType) << "\n";
                 if (!silent) std::cout << "  Logl: " << computeLoglikelihood(ann_network) << ", BIC: " << scoreNetwork(ann_network) << "\n";
                 if (!silent) std::cout << "  num_reticulations: " << ann_network.network.num_reticulations() << "\n";
@@ -65,7 +65,7 @@ bool simanneal_step(AnnotatedNetwork& ann_network, double t, std::vector<T> neig
             double acceptance_ratio = exp(-((bicScore - old_bic) / t)); // I took this one from: https://de.wikipedia.org/wiki/Simulated_Annealing
             double x = std::uniform_real_distribution<double>(0,1)(ann_network.rng);
             if (x <= acceptance_ratio) {
-                if (ParallelContext::local_proc_id() == 0) {
+                if (ParallelContext::master()) {
                     if (!silent) std::cout << " Took " << toString(move.moveType) << "\n";
                     if (!silent) std::cout << "  Logl: " << computeLoglikelihood(ann_network) << ", BIC: " << scoreNetwork(ann_network) << "\n";
                     if (!silent) std::cout << "  num_reticulations: " << ann_network.network.num_reticulations() << "\n";

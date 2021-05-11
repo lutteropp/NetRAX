@@ -27,7 +27,7 @@ ScoreImprovementResult check_score_improvement(AnnotatedNetwork& ann_network, do
             if (ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
                 collect_average_branches(ann_network);
             }
-            if (ParallelContext::local_proc_id() == 0) {
+            if (ParallelContext::master()) {
                 Color::Modifier green(Color::FG_GREEN);
                 Color::Modifier def(Color::FG_DEFAULT);
                 

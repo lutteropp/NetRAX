@@ -395,7 +395,7 @@ double optimize_scalers(AnnotatedNetwork& ann_network, bool silent) {
                                                         ann_network.options.brlen_max,
                                                         RAXML_PARAM_EPSILON);
         double new_score = scoreNetwork(ann_network);
-        if (!silent && ParallelContext::local_proc_id() == 0) {
+        if (!silent && ParallelContext::master()) {
             std::cout << "BIC score after branch length scaler optimization: " << new_score << "\n";
         }
         assert(new_score <= old_score);

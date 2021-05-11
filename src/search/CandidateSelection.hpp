@@ -40,7 +40,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
         return;
     }
 
-    if (ParallelContext::local_proc_id() == 0) {
+    if (ParallelContext::master()) {
         if (print_progress) std::cout << "MoveType: " << toString(candidates[0].moveType) << " (" << candidates.size() << ")" << ", we currently have " << ann_network.network.num_reticulations() << " reticulations and BIC " << scoreNetwork(ann_network) << "\n";
     }
 
@@ -65,7 +65,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
 
     for (size_t i = 0; i < candidates.size(); ++i) {        
         // progress bar code taken from https://stackoverflow.com/a/14539953/14557921
-        if (print_progress && ParallelContext::local_proc_id() == 0) {
+        if (print_progress && ParallelContext::master()) {
             progress = (float) (i+1) / candidates.size();
             std::cout << "[";
             int pos = barWidth * progress;
@@ -133,7 +133,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
             candidates[0] = candidates[i];
             candidates.resize(1);
             apply_network_state(ann_network, oldState);
-            if (print_progress && ParallelContext::local_proc_id() == 0) {
+            if (print_progress && ParallelContext::master()) {
                 std::cout << std::endl;
             }
             return;
@@ -142,7 +142,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
         apply_network_state(ann_network, oldState);
     }
 
-    if (print_progress && ParallelContext::local_proc_id() == 0) { 
+    if (print_progress && ParallelContext::master()) { 
         std::cout << std::endl;
     }
 
@@ -155,7 +155,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
     double cutoff_bic = scores[std::ceil(ann_network.options.prefilter_fraction *scores.size())].bicScore; //best_bic;
 
     for (size_t i = 0; i < candidates.size(); ++i) {
-        if (ParallelContext::local_proc_id() == 0) {
+        if (ParallelContext::master()) {
             if (!silent) std::cout << "prefiltered candidate " << i + 1 << "/" << candidates.size() << " has BIC: " << scores[i].bicScore << "\n";
         }
         if (scores[i].bicScore <= cutoff_bic) {
@@ -163,7 +163,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
             newSize++;
         }
     }
-    if (ParallelContext::local_proc_id() == 0) {
+    if (ParallelContext::master()) {
         if (!silent) std::cout << "New size after prefiltering: " << newSize << " vs. " << candidates.size() << "\n";
     }
 
@@ -183,7 +183,7 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T> candidates, Ne
         prefilterCandidates(ann_network, candidates, true);
     }
 
-    if (ParallelContext::local_proc_id() == 0) {
+    if (ParallelContext::master()) {
         if (!silent) std::cout << "MoveType: " << toString(candidates[0].moveType) << "\n";
     }
 
@@ -254,7 +254,7 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T> candidates, Ne
     size_t newSize = 0;
 
     for (size_t i = 0; i < candidates.size(); ++i) {
-        if (ParallelContext::local_proc_id() == 0) {
+        if (ParallelContext::master()) {
             if (!silent) std::cout << "candidate " << i + 1 << "/" << candidates.size() << " has BIC: " << scores[i].bicScore << "\n";
         }
         if (scores[i].bicScore < old_bic) {
@@ -287,7 +287,7 @@ double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidat
         if (ann_network.options.computePseudo) {
             pseudo = computePseudoLoglikelihood(ann_network);
         }
-        if (ParallelContext::local_proc_id() == 0) {
+        if (ParallelContext::master()) {
             if (ann_network.options.computePseudo) {
                 std::cout << "pseudo-loglh: " << pseudo << "\n";
                 std::cout << "pseudo-bic: " << bic(ann_network, pseudo) << "\n";

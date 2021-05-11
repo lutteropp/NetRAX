@@ -48,7 +48,7 @@ void printDisplayedTreesChoices(AnnotatedNetwork& ann_network, Node* virtualRoot
 
 template <typename T>
 void printCandidates(std::vector<T>& candidates) {
-    if (ParallelContext::local_proc_id() == 0) {
+    if (ParallelContext::master()) {
         std::cout << "The candidates are:\n";
         for (size_t i = 0; i < candidates.size(); ++i) {
             std::cout << toString(candidates[i]) << "\n";
