@@ -75,6 +75,7 @@ public:
     size_t rank_keep = 20;
 
     bool no_prefiltering = false;
+    bool no_rnni_moves = false;
     bool no_tail_moves = false;
     bool no_head_moves = false;
     bool no_arc_insertion_moves = false;

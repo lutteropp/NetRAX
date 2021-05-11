@@ -41,6 +41,8 @@ std::vector<Node*> prefilterCandidates(AnnotatedNetwork& ann_network, std::vecto
         return {};
     }
 
+    silent = false;
+
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         if (print_progress) std::cout << "MoveType: " << toString(candidates[0].moveType) << " (" << candidates.size() << ")" << ", we currently have " << ann_network.network.num_reticulations() << " reticulations and BIC " << scoreNetwork(ann_network) << "\n";
     }
@@ -126,6 +128,9 @@ std::vector<Node*> prefilterCandidates(AnnotatedNetwork& ann_network, std::vecto
             }
         }
         undoMove(ann_network, move);
+        if (move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::DeltaMinusMove) {
+            apply_network_state(ann_network, oldState);
+        }
     }
     apply_network_state(ann_network, oldState);
 
@@ -149,17 +154,20 @@ std::vector<Node*> prefilterCandidates(AnnotatedNetwork& ann_network, std::vecto
     double cutoff_bic = scores[cutoff_pos].bicScore; //best_bic;
 
     for (size_t i = 0; i < ann_network.network.num_nodes(); ++i) {
-        if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-            if (!silent) std::cout << "prefiltered node " << i + 1 << "/" << ann_network.network.num_nodes() << " has best BIC: " << scores[i].bicScore << "\n";
+        if (scores[i].bicScore == std::numeric_limits<double>::infinity()) {
+            break;
         }
         if (scores[i].bicScore <= cutoff_bic) {
+            if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+                if (!silent) std::cout << "prefiltered node " << i << " has best BIC: " << scores[i].bicScore << "\n";
+            }
             promisingNodes.emplace_back(ann_network.network.nodes_by_index[i]);
             newSize++;
         }
 
-        if (newSize == ann_network.options.prefilter_keep) {
+        /*if (newSize == ann_network.options.prefilter_keep) {
             break;
-        }
+        }*/
     }
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         if (print_progress) std::cout << "New size promising nodes after prefiltering: " << newSize << " vs. " << ann_network.network.num_nodes() << "\n";
@@ -257,6 +265,9 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
             return;
         }
         undoMove(ann_network, move);
+        if (move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::DeltaMinusMove) {
+            apply_network_state(ann_network, oldState);
+        }
     }
     apply_network_state(ann_network, oldState);
 

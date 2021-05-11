@@ -79,6 +79,7 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     
     app.add_flag("--full_search_by_type", options->full_search_by_type, "Do a full search for the current move type, before changing the move type in the outer loop.");
 
+    app.add_flag("--no_rnni_moves", options->no_rnni_moves, "Do not use rNNI moves.");
     app.add_flag("--no_tail_moves", options->no_tail_moves, "Do not use tail moves (rSPR1 moves still used).");
     app.add_flag("--no_head_moves", options->no_head_moves, "Do not use head moves (rSPR1 moves still used).");
     app.add_flag("--no_arc_insertion_moves", options->no_arc_insertion_moves, "Use only DeltaPlus moves instead of full ArcInsertion moves (faster, but worse inference quality).");
@@ -128,37 +129,22 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
 }
 
 std::vector<MoveType> getTypesBySpeed(const NetraxOptions& options) {
-    std::vector<MoveType> typesBySpeed;
-    if (!options.no_tail_moves) {
-        if (!options.no_head_moves) {
-            if (!options.no_arc_insertion_moves) {
-                typesBySpeed = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::TailMove, MoveType::ArcRemovalMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
-            } else {
-                typesBySpeed = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::TailMove, MoveType::ArcRemovalMove,  MoveType::DeltaPlusMove};
-            }
-        } else {
-            if (!options.no_arc_insertion_moves) {
-                typesBySpeed = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::ArcRemovalMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
-            } else {
-                typesBySpeed = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::TailMove, MoveType::ArcRemovalMove, MoveType::DeltaPlusMove};
-            }
-        }
-    } else {
-        if (!options.no_arc_insertion_moves) {
-            if (!options.no_head_moves) {
-                typesBySpeed = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::ArcRemovalMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
-            } else {
-                typesBySpeed = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::ArcRemovalMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
-            }
-        } else {
-            if (!options.no_head_moves) {
-                typesBySpeed = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::ArcRemovalMove, MoveType::DeltaPlusMove};
-            } else {
-                typesBySpeed = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::ArcRemovalMove, MoveType::DeltaPlusMove};
-            }
-        }
-    }
+    //std::vector<MoveType> typesBySpeed = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::TailMove, MoveType::ArcRemovalMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
 
+    std::vector<MoveType> typesBySpeed = {MoveType::RNNIMove, MoveType::RSPRMove, MoveType::ArcRemovalMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
+
+    if (options.no_rnni_moves) {
+        typesBySpeed.erase(std::remove(typesBySpeed.begin(), typesBySpeed.end(), MoveType::RNNIMove), typesBySpeed.end());
+    }
+    if (options.no_tail_moves) {
+        typesBySpeed.erase(std::remove(typesBySpeed.begin(), typesBySpeed.end(), MoveType::TailMove), typesBySpeed.end());
+    }
+    if (options.no_head_moves) {
+        typesBySpeed.erase(std::remove(typesBySpeed.begin(), typesBySpeed.end(), MoveType::HeadMove), typesBySpeed.end());
+    }
+    if (options.no_arc_insertion_moves) {
+        typesBySpeed.erase(std::remove(typesBySpeed.begin(), typesBySpeed.end(), MoveType::ArcInsertionMove), typesBySpeed.end());
+    }
     return typesBySpeed;
 }
 
