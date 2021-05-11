@@ -16,8 +16,6 @@ double optimizeEverythingRun(AnnotatedNetwork& ann_network, const std::vector<Mo
     bool rspr1_present = (std::find(typesBySpeed.begin(), typesBySpeed.end(), MoveType::RSPR1Move) != typesBySpeed.end());
     bool delta_plus_present = (std::find(typesBySpeed.begin(), typesBySpeed.end(), MoveType::DeltaPlusMove) != typesBySpeed.end());
 
-    Edge* act_edge = ann_network.network.edges_by_index[0];
-
     do {
         while (ann_network.network.num_reticulations() == 0 && isArcRemoval(typesBySpeed[type_idx])) {
             type_idx++;
@@ -38,87 +36,15 @@ double optimizeEverythingRun(AnnotatedNetwork& ann_network, const std::vector<Mo
             break;
         }
         double old_score = scoreNetwork(ann_network);
+        double new_score = applyBestCandidate(ann_network, typesBySpeed[type_idx], typesBySpeed, &best_score, bestNetworkData, false, silent);
 
-        switch (typesBySpeed[type_idx]) {
-        case MoveType::RNNIMove:
-            if (ann_network.options.edge_by_edge) {
-                applyBestCandidate(ann_network, possibleRNNIMoves(ann_network, act_edge), &best_score, bestNetworkData, false, silent);
-            } else {
-                applyBestCandidate(ann_network, possibleRNNIMoves(ann_network), &best_score, bestNetworkData, false, silent);
-            }
-            break;
-        case MoveType::RSPRMove:
-            if (ann_network.options.edge_by_edge) {
-                applyBestCandidate(ann_network, possibleRSPRMoves(ann_network, act_edge, rspr1_present), &best_score, bestNetworkData, false, silent);
-            } else {
-                applyBestCandidate(ann_network, possibleRSPRMoves(ann_network, rspr1_present), &best_score, bestNetworkData, false, silent);
-            }
-            break;
-        case MoveType::RSPR1Move:
-            if (ann_network.options.edge_by_edge) {
-                applyBestCandidate(ann_network, possibleRSPR1Moves(ann_network, act_edge), &best_score, bestNetworkData, false, silent);
-            } else {
-                applyBestCandidate(ann_network, possibleRSPR1Moves(ann_network), &best_score, bestNetworkData, false, silent);
-            }
-            break;
-        case MoveType::HeadMove:
-            if (ann_network.options.edge_by_edge) {
-                applyBestCandidate(ann_network, possibleHeadMoves(ann_network, act_edge, rspr1_present), &best_score, bestNetworkData, false, silent);
-            } else {
-                applyBestCandidate(ann_network, possibleHeadMoves(ann_network, rspr1_present), &best_score, bestNetworkData, false, silent);
-            }
-            break;
-        case MoveType::TailMove:
-            if (ann_network.options.edge_by_edge) {
-                applyBestCandidate(ann_network, possibleTailMoves(ann_network, act_edge, rspr1_present), &best_score, bestNetworkData, false, silent);
-            } else {
-                applyBestCandidate(ann_network, possibleTailMoves(ann_network, rspr1_present), &best_score, bestNetworkData, false, silent);
-            }
-            break;
-        case MoveType::ArcInsertionMove:
-            if (ann_network.options.edge_by_edge) {
-                applyBestCandidate(ann_network, possibleArcInsertionMoves(ann_network, act_edge, delta_plus_present), &best_score, bestNetworkData, false, silent);
-            } else {
-                applyBestCandidate(ann_network, possibleArcInsertionMoves(ann_network, delta_plus_present), &best_score, bestNetworkData, false, silent);
-            }
-            break;
-        case MoveType::DeltaPlusMove:
-            if (ann_network.options.edge_by_edge) {
-                applyBestCandidate(ann_network, possibleDeltaPlusMoves(ann_network, act_edge), &best_score, bestNetworkData, false, silent);
-            } else {
-                applyBestCandidate(ann_network, possibleDeltaPlusMoves(ann_network), &best_score, bestNetworkData, false, silent);
-            }
-            break;
-        case MoveType::ArcRemovalMove:
-            applyBestCandidate(ann_network, possibleArcRemovalMoves(ann_network), &best_score, bestNetworkData, false, silent);
-            break;
-        case MoveType::DeltaMinusMove:
-            applyBestCandidate(ann_network, possibleDeltaMinusMoves(ann_network), &best_score, bestNetworkData, false, silent);
-            break;
-        default:
-            throw std::runtime_error("Invalid move type");
-        }
-
-        double new_score = scoreNetwork(ann_network);
         if (new_score < old_score) { // score got better
             new_score = scoreNetwork(ann_network);
             best_score = new_score;
 
-            type_idx = 0; // go back to fastest move type    
-            act_edge = ann_network.network.edges_by_index[0];    
+            type_idx = 0; // go back to fastest move type     
         } else { // try next-slower move type
-            if (ann_network.options.edge_by_edge && act_edge->pmatrix_index + 1 < ann_network.network.num_branches()) {
-                if (act_edge->pmatrix_index+1 >= ann_network.network.edges_by_index.size()) {
-                    throw std::runtime_error("Edge index too large");
-                }
-                act_edge = ann_network.network.edges_by_index[act_edge->pmatrix_index+1];
-                if (!act_edge) {
-                    throw std::runtime_error("act_edge is null");
-                }
-            } else {
-                type_idx++;
-                act_edge = ann_network.network.edges_by_index[0];
-            }
+            type_idx++;
         }
         assert(new_score <= old_score);
 
@@ -153,9 +79,9 @@ void wavesearch_internal(AnnotatedNetwork& ann_network, BestNetworkData* bestNet
                 std::cout << "Enforcing an arc insertion...\n";
             }
             if (!ann_network.options.no_arc_insertion_moves) {
-                applyBestCandidate(ann_network, possibleArcInsertionMoves(ann_network), best_score, bestNetworkData, true, silent);
+                applyBestCandidate(ann_network, MoveType::ArcInsertionMove, typesBySpeed, best_score, bestNetworkData, true, silent);
             } else {
-                applyBestCandidate(ann_network, possibleDeltaPlusMoves(ann_network), best_score, bestNetworkData, true, silent);
+                applyBestCandidate(ann_network, MoveType::DeltaMinusMove, typesBySpeed, best_score, bestNetworkData, true, silent);
             }
             check_score_improvement(ann_network, best_score, bestNetworkData);
             optimizeEverythingRun(ann_network, typesBySpeed, start_state_to_reuse, best_state_to_reuse, start_time, bestNetworkData);
@@ -245,7 +171,7 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
     //std::cout << "Initial network is:\n" << toExtendedNewick(ann_network) << "\n\n";
 
     if (!ann_network.options.start_network_file.empty()) { // don't waste time trying to first horizontally optimize the user-given start network
-        applyBestCandidate(ann_network, possibleDeltaPlusMoves(ann_network), &best_score, bestNetworkData, false, silent);
+        applyBestCandidate(ann_network, MoveType::DeltaPlusMove, typesBySpeed, &best_score, bestNetworkData, false, silent);
     }
 
     wavesearch_main_internal(ann_network, bestNetworkData, typesBySpeed, start_state_to_reuse, best_state_to_reuse, &best_score, start_time, silent);

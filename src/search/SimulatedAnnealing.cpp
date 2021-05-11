@@ -18,10 +18,6 @@ bool simanneal_step(AnnotatedNetwork& ann_network, double t, std::vector<T> neig
         return false;
     }
 
-    if (!ann_network.options.no_prefiltering) {
-        prefilterCandidates(ann_network, neighbors, true);
-    }
-
     if (!silent) std::cout << "MoveType: " << toString(neighbors[0].moveType) << "\n";
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         if (!silent) std::cout << "t: " << t << "\n";

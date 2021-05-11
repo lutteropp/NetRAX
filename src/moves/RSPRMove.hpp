@@ -87,4 +87,8 @@ RSPRMove randomRSPR1Move(AnnotatedNetwork &ann_network);
 RSPRMove randomTailMove(AnnotatedNetwork &ann_network);
 RSPRMove randomHeadMove(AnnotatedNetwork &ann_network);
 
+inline bool needsRecompute(AnnotatedNetwork& ann_network, const RSPRMove& move) {
+    return false;
+}
+
 }

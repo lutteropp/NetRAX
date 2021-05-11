@@ -67,4 +67,8 @@ std::unordered_set<size_t> brlenOptCandidates(AnnotatedNetwork &ann_network, RNN
 std::unordered_set<size_t> brlenOptCandidatesUndo(AnnotatedNetwork &ann_network, RNNIMove &move);
 RNNIMove randomRNNIMove(AnnotatedNetwork &ann_network);
 
+inline bool needsRecompute(AnnotatedNetwork& ann_network, const RNNIMove& move) {
+    return false;
+}
+
 }
