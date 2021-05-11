@@ -284,6 +284,43 @@ std::vector<RSPRMove> possibleHeadMoves(AnnotatedNetwork &ann_network, Node *nod
     return possibleRSPRMoves(ann_network, node, nullptr, nullptr, MoveType::HeadMove, false, true, true, min_radius, max_radius);
 }
 
+std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, const std::vector<Node*>& start_nodes, bool noRSPR1Moves, size_t min_radius, size_t max_radius) {
+    std::vector<RSPRMove> res;
+    for (Node* node : start_nodes) {
+        std::vector<RSPRMove> res_node = possibleRSPRMoves(ann_network, node, noRSPR1Moves, min_radius, max_radius);
+        res.insert(std::end(res), std::begin(res_node), std::end(res_node));
+    }
+    return res;
+}
+
+std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network, const std::vector<Node*>& start_nodes, size_t min_radius, size_t max_radius) {
+    std::vector<RSPRMove> res;
+    for (Node* node : start_nodes) {
+        std::vector<RSPRMove> res_node = possibleRSPR1Moves(ann_network, node, min_radius, max_radius);
+        res.insert(std::end(res), std::begin(res_node), std::end(res_node));
+    }
+    return res;
+}
+
+std::vector<RSPRMove> possibleTailMoves(AnnotatedNetwork &ann_network, const std::vector<Node*>& start_nodes, bool noRSPR1Moves, size_t min_radius, size_t max_radius) {
+    std::vector<RSPRMove> res;
+    for (Node* node : start_nodes) {
+        std::vector<RSPRMove> res_node = possibleTailMoves(ann_network, node, noRSPR1Moves, min_radius, max_radius);
+        res.insert(std::end(res), std::begin(res_node), std::end(res_node));
+    }
+    return res;
+}
+
+std::vector<RSPRMove> possibleHeadMoves(AnnotatedNetwork &ann_network, const std::vector<Node*>& start_nodes, bool noRSPR1Moves, size_t min_radius, size_t max_radius) {
+    std::vector<RSPRMove> res;
+    for (Node* node : start_nodes) {
+        std::vector<RSPRMove> res_node = possibleHeadMoves(ann_network, node, noRSPR1Moves, min_radius, max_radius);
+        res.insert(std::end(res), std::begin(res_node), std::end(res_node));
+    }
+    return res;
+}
+
+
 std::vector<RSPRMove> possibleTailMoves(AnnotatedNetwork &ann_network, bool noRSPR1Moves) {
     std::vector<RSPRMove> res;
     Network &network = ann_network.network;
