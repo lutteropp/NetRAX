@@ -159,14 +159,131 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
     switchLikelihoodVariant(ann_network, old_variant);
 }
 
+
 template <typename T>
-bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T> candidates, NetworkState* state, bool enforce, bool silent = true, bool print_progress = true) {
+void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, bool silent = true, bool print_progress = true) {
     if (candidates.empty()) {
-        return false;
+        return;
     }
     if (!ann_network.options.no_prefiltering) {
         prefilterCandidates(ann_network, candidates, true);
     }
+
+    if (ParallelContext::master_rank() && ParallelContext::master_thread() && ann_network.options.no_prefiltering) {
+        if (print_progress) std::cout << "MoveType: " << toString(candidates[0].moveType) << " (" << candidates.size() << ")" << ", we currently have " << ann_network.network.num_reticulations() << " reticulations and BIC " << scoreNetwork(ann_network) << "\n";
+    }
+
+    float progress = 0.0;
+    int barWidth = 70;
+
+    double brlen_smooth_factor = 0.25;
+    int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
+    int max_iters_outside = 1;
+    int radius = 1;
+    double old_bic = scoreNetwork(ann_network);
+
+    double best_bic = std::numeric_limits<double>::infinity();
+
+    NetworkState oldState = extract_network_state(ann_network);
+
+    std::vector<ScoreItem<T> > scores(candidates.size());
+
+    for (size_t i = 0; i < candidates.size(); ++i) {        
+        // progress bar code taken from https://stackoverflow.com/a/14539953/14557921
+        if (print_progress && ParallelContext::master_rank() && ParallelContext::master_thread()) {
+            progress = (float) (i+1) / candidates.size();
+            std::cout << "[";
+            int pos = barWidth * progress;
+            for (int i = 0; i < barWidth; ++i) {
+                if (i < pos) std::cout << "=";
+                else if (i == pos) std::cout << ">";
+                else std::cout << " ";
+            }
+            std::cout << "] " << int(progress * 100.0) << " %\r";
+            std::cout.flush();
+        }
+
+        T move(candidates[i]);
+        bool recompute_from_scratch = needsRecompute(ann_network, move);
+
+        assert(checkSanity(ann_network, move));
+
+        performMove(ann_network, move);
+        if (recompute_from_scratch) { // TODO: This is a hotfix that just masks some bugs. Fix the bugs properly.
+            computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
+        }
+        std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
+        assert(!brlen_opt_candidates.empty());
+        add_neighbors_in_radius(ann_network, brlen_opt_candidates, 1);
+        optimize_branches(ann_network, max_iters, max_iters_outside, radius, brlen_opt_candidates);
+        optimizeReticulationProbs(ann_network);;
+
+        double bicScore = scoreNetwork(ann_network);
+
+        scores[i] = ScoreItem<T>{candidates[i], bicScore};
+
+        for (size_t j = 0; j < ann_network.network.num_nodes(); ++j) {
+            assert(ann_network.network.nodes_by_index[j]->clv_index == j);
+        }
+
+        if (bicScore < best_bic) {
+            best_bic = bicScore;
+            ann_network.last_accepted_move_edge_orig_idx = move.edge_orig_idx;
+        }
+
+        if (old_bic/bicScore > ann_network.options.greedy_factor + 0.01) { // +0.01 because we tend to over-estimate with pseudologlikelihood
+            candidates[0] = candidates[i];
+            candidates.resize(1);
+            apply_network_state(ann_network, oldState);
+            if (print_progress && ParallelContext::master_rank() && ParallelContext::master_thread()) {
+                std::cout << std::endl;
+            }
+            return;
+        }
+        undoMove(ann_network, move);
+    }
+    apply_network_state(ann_network, oldState);
+
+    if (print_progress && ParallelContext::master_rank() && ParallelContext::master_thread()) { 
+        std::cout << std::endl;
+    }
+
+    std::sort(scores.begin(), scores.end(), [](const ScoreItem<T>& lhs, const ScoreItem<T>& rhs) {
+        return lhs.bicScore < rhs.bicScore;
+    });
+
+    size_t newSize = 0;
+
+    size_t cutoff_pos = std::min(ann_network.options.rank_keep - 1, scores.size() - 1);
+
+    double cutoff_bic = scores[cutoff_pos].bicScore; //best_bic;
+
+    for (size_t i = 0; i < candidates.size(); ++i) {
+        if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+            if (!silent) std::cout << "ranked candidate " << i + 1 << "/" << candidates.size() << " has BIC: " << scores[i].bicScore << "\n";
+        }
+        if (scores[i].bicScore <= cutoff_bic) {
+            candidates[newSize] = scores[i].move;
+            newSize++;
+        }
+    }
+    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+        if (print_progress) std::cout << "New size after ranking: " << newSize << " vs. " << candidates.size() << "\n";
+    }
+
+    candidates.resize(newSize);
+
+    for (size_t i = 0; i < candidates.size(); ++i) {
+        assert(checkSanity(ann_network, candidates[i]));
+    }
+}
+
+template <typename T>
+bool chooseCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidates, NetworkState* state, bool enforce, bool silent = true, bool print_progress = true) {
+    if (candidates.empty()) {
+        return false;
+    }
+    rankCandidates(ann_network, candidates, silent, print_progress);
 
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         if (!silent) std::cout << "MoveType: " << toString(candidates[0].moveType) << "\n";
@@ -175,7 +292,7 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T> candidates, Ne
     float progress = 0.0;
     int barWidth = 70;
 
-    double brlen_smooth_factor = 1.0;
+    double brlen_smooth_factor = 0.25;
     int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
     int max_iters_outside = 1;//max_iters; // this says how often we will optimize the same branch again
     int radius = 1;
@@ -216,10 +333,7 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T> candidates, Ne
         if (recompute_from_scratch) { // TODO: This is a hotfix that just masks some bugs. Fix the bugs properly.
             computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
         }
-        std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
-        assert(!brlen_opt_candidates.empty());
-        add_neighbors_in_radius(ann_network, brlen_opt_candidates, 1);
-        optimize_branches(ann_network, max_iters, max_iters_outside, radius, brlen_opt_candidates);
+        optimize_branches(ann_network, max_iters, max_iters_outside, radius);
         optimizeReticulationProbs(ann_network);
 
         double bicScore = scoreNetwork(ann_network);
@@ -278,7 +392,7 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T> candidates, Ne
 template <typename T>
 double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidates, double* best_score, BestNetworkData* bestNetworkData, bool enforce, bool silent) {
     NetworkState state = extract_network_state(ann_network);
-    bool found_better_state = rankCandidates(ann_network, candidates, &state, enforce, true);
+    bool found_better_state = chooseCandidate(ann_network, candidates, &state, enforce, true);
     double old_score = scoreNetwork(ann_network);
 
     if (found_better_state) {

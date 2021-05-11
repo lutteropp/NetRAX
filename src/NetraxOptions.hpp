@@ -72,6 +72,7 @@ public:
     bool reorder_candidates = false;
 
     size_t prefilter_keep = 60;
+    size_t rank_keep = 20;
 
     bool no_prefiltering = false;
     bool no_tail_moves = false;

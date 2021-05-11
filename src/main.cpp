@@ -72,6 +72,8 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     app.add_flag("--best_displayed_tree_variant", best_displayed_tree_variant, "Use best displayed tree instead of weighted average in network likelihood formula.");
     app.add_flag("--no_prefiltering", options->no_prefiltering, "Disable prefiltering of highly-promising move candidates.");
     app.add_option("--prefilter_keep", options->prefilter_keep, "Number of promising candidates to keep after prefiltering (default: 60)");
+    app.add_option("--rank_keep", options->prefilter_keep, "Number of promising candidates to keep after ranking (default: 20)");
+
     app.add_option("--greedy_factor", options->greedy_factor, "Instantly accept a move if it improves BIC by more than the given factor (default: infinity). Gives (maybe faster) results with (maybe worse) inference quality. Needs to be greater-equal than 1.");
     app.add_flag("--reorder_candidates", options->reorder_candidates, "Reorder move candidates by proximity to last accepted move.");
     
