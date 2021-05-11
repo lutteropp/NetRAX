@@ -189,9 +189,150 @@ std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_ne
 }
 
 std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_network,
+        Node *node, Node *c, Node *d, MoveType moveType, bool noDeltaPlus, size_t min_radius, size_t max_radius) {
+    std::vector<ArcInsertionMove> res;
+    Network &network = ann_network.network;
+    if (node == ann_network.network.root) {
+        return res; // because we need a parent
+    }
+
+    std::vector<Node*> radius_nodes = getNeighborsWithinRadius(network, node, min_radius, max_radius);
+
+    Node *b = node;
+    std::vector<Node*> parents;
+    if (node->getType() == NodeType::BASIC_NODE) {
+        parents.emplace_back(getActiveParent(network, node));
+    } else {
+        parents.emplace_back(getReticulationFirstParent(network, node));
+        parents.emplace_back(getReticulationSecondParent(network, node));
+    }
+    for (Node* a : parents) {
+        Edge* edge = getEdgeTo(network, a, b);
+        size_t edge_orig_idx = edge->pmatrix_index;
+        // choose two distinct arcs ab, cd (with cd not ancestral to ab -> no d-a-path allowed)
+        std::vector<double> a_b_len = get_edge_lengths(ann_network, edge->pmatrix_index);
+
+        double min_br = ann_network.options.brlen_min;
+
+        Node *c_cand = nullptr;
+        Node *d_cand = nullptr;
+        if (c) {
+            c_cand = c;
+            for (size_t i = 0; i < c->links.size(); ++i) {
+                if (c->links[i].direction == Direction::INCOMING) {
+                    continue;
+                }
+                Node *d_cand = network.nodes_by_index[c->links[i].outer->node_clv_index];
+                if (std::find(radius_nodes.begin(), radius_nodes.end(), d_cand) != radius_nodes.end()) {
+                    if (a->clv_index == c_cand->clv_index && b->clv_index == d_cand->clv_index) {
+                        continue;
+                    }
+
+                    if (noDeltaPlus && ((a->clv_index == c_cand->clv_index) || (b->clv_index == c_cand->clv_index) || (b->clv_index == d_cand->clv_index))) {
+                        continue;
+                    }
+
+                    if (!hasPath(network, d_cand, a)) {
+                        std::vector<double> c_d_len, c_v_len, a_u_len, v_d_len, u_b_len, u_v_len;
+
+                        c_d_len = get_edge_lengths(ann_network, c->links[i].edge_pmatrix_index);
+                        c_v_len = get_halved_edge_lengths(c_d_len, min_br);
+                        a_u_len = get_halved_edge_lengths(a_b_len, min_br);
+                        v_d_len = get_minus_edge_lengths(c_d_len, c_v_len, min_br);
+                        u_b_len = get_minus_edge_lengths(a_b_len, a_u_len, min_br);
+                        u_v_len = std::vector<double>(ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED ? ann_network.fake_treeinfo->partition_count : 1, 1.0);
+
+                        ArcInsertionMove move = buildArcInsertionMove(a->clv_index, b->clv_index,
+                                c_cand->clv_index, d_cand->clv_index, u_v_len, c_v_len,
+                                a_u_len, a_b_len, c_d_len, v_d_len, u_b_len, moveType, edge_orig_idx);
+                        move.ab_pmatrix_index = getEdgeTo(network, a, b)->pmatrix_index;
+                        move.cd_pmatrix_index = getEdgeTo(network, c_cand, d_cand)->pmatrix_index;
+                        res.emplace_back(move);
+                    }
+                }
+            }
+        } else if (d) {
+            d_cand = d;
+
+            if (std::find(radius_nodes.begin(), radius_nodes.end(), d_cand) != radius_nodes.end()) {
+                if (!hasPath(network, d_cand, a)) {
+                    for (size_t i = 0; i < d->links.size(); ++i) {
+                        if (d->links[i].direction == Direction::OUTGOING) {
+                            continue;
+                        }
+                        Node *c_cand = network.nodes_by_index[d->links[i].outer->node_clv_index];
+                        if (a->clv_index == c_cand->clv_index && b->clv_index == d_cand->clv_index) {
+                            continue;
+                        }
+
+                        if (noDeltaPlus && ((a->clv_index == c_cand->clv_index) || (b->clv_index == c_cand->clv_index) || (b->clv_index == d_cand->clv_index))) {
+                            continue;
+                        }
+
+                        std::vector<double> c_d_len, c_v_len, a_u_len, v_d_len, u_b_len, u_v_len;
+                        c_d_len = get_edge_lengths(ann_network, d->links[i].edge_pmatrix_index);
+                        c_v_len = get_halved_edge_lengths(c_d_len, min_br);
+                        a_u_len = get_halved_edge_lengths(a_b_len, min_br);
+                        v_d_len = get_minus_edge_lengths(c_d_len, c_v_len, min_br);
+                        u_b_len = get_minus_edge_lengths(a_b_len, a_u_len, min_br);
+                        u_v_len = std::vector<double>(ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED ? ann_network.fake_treeinfo->partition_count : 1, 1.0);
+
+                        ArcInsertionMove move = buildArcInsertionMove(a->clv_index, b->clv_index,
+                                c_cand->clv_index, d_cand->clv_index, u_v_len, c_v_len,
+                                a_u_len, a_b_len, c_d_len, v_d_len, u_b_len, moveType, edge_orig_idx);
+
+                        move.ab_pmatrix_index = getEdgeTo(network, a, b)->pmatrix_index;
+                        move.cd_pmatrix_index = getEdgeTo(network, c_cand, d_cand)->pmatrix_index;
+                        res.emplace_back(move);
+                    }
+                }
+            }
+        } else {
+            std::vector<Node*> d_candidates = radius_nodes;
+            for (Node* d_cand : d_candidates) {
+                std::vector<Node*> c_candidates = getAllParents(network, d_cand);
+                for (Node* c_cand : c_candidates) {
+                    Edge* actEdge = getEdgeTo(network, c_cand, d_cand);
+                    if (actEdge->pmatrix_index == edge->pmatrix_index) {
+                        continue;
+                    }
+                    if (noDeltaPlus && ((a->clv_index == c_cand->clv_index) || (b->clv_index == c_cand->clv_index) || (b->clv_index == d_cand->clv_index))) {
+                        continue;
+                    }
+
+                    if (!hasPath(network, d_cand, a)) {
+                        std::vector<double> c_d_len, c_v_len, a_u_len, v_d_len, u_b_len, u_v_len;
+                        c_d_len = get_edge_lengths(ann_network, actEdge->pmatrix_index);
+                        c_v_len = get_halved_edge_lengths(c_d_len, min_br);
+                        a_u_len = get_halved_edge_lengths(a_b_len, min_br);
+                        v_d_len = get_minus_edge_lengths(c_d_len, c_v_len, min_br);
+                        u_b_len = get_minus_edge_lengths(a_b_len, a_u_len, min_br);
+                        u_v_len = std::vector<double>(ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED ? ann_network.fake_treeinfo->partition_count : 1, 1.0);
+
+                        ArcInsertionMove move = buildArcInsertionMove(a->clv_index, b->clv_index,
+                                c_cand->clv_index, d_cand->clv_index, u_v_len, c_v_len,
+                                a_u_len, a_b_len, c_d_len, v_d_len, u_b_len, moveType, edge_orig_idx);
+
+                        move.ab_pmatrix_index = getEdgeTo(network, a, b)->pmatrix_index;
+                        move.cd_pmatrix_index = getEdgeTo(network, c_cand, d_cand)->pmatrix_index;
+                        res.emplace_back(move);
+                    }
+                }
+            }
+        }
+    }
+    return res;
+}
+
+std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_network,
         const Edge *edge, bool noDeltaPlus) {
     return possibleArcInsertionMoves(ann_network, edge, nullptr, nullptr,
             MoveType::ArcInsertionMove, noDeltaPlus);
+}
+
+std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_network, Node *node, bool noDeltaPlus, size_t min_radius, size_t max_radius) {
+    return possibleArcInsertionMoves(ann_network, node, nullptr, nullptr,
+            MoveType::ArcInsertionMove, noDeltaPlus, min_radius, max_radius);
 }
 
 std::vector<ArcInsertionMove> possibleDeltaPlusMoves(AnnotatedNetwork &ann_network,
@@ -219,6 +360,35 @@ std::vector<ArcInsertionMove> possibleDeltaPlusMoves(AnnotatedNetwork &ann_netwo
     return res;
 }
 
+std::vector<ArcInsertionMove> possibleDeltaPlusMoves(AnnotatedNetwork &ann_network, Node *node, size_t min_radius, size_t max_radius) {
+    Network &network = ann_network.network;
+    std::vector<ArcInsertionMove> res;
+    if (node == ann_network.network.root) {
+        return res; // because we need a parent, and the root has no parent
+    }
+    Node *b = node;
+    std::vector<Node*> parents = getAllParents(network, node);
+    for (Node* a : parents) {
+        // Case 1: a == c
+        std::vector<ArcInsertionMove> case1 = possibleArcInsertionMoves(ann_network, node, a, nullptr,
+                MoveType::DeltaPlusMove, false, min_radius, max_radius);
+        res.insert(std::end(res), std::begin(case1), std::end(case1));
+
+        if (min_radius == 0) {
+            // Case 2: b == d
+            std::vector<ArcInsertionMove> case2 = possibleArcInsertionMoves(ann_network, node, nullptr, b,
+                    MoveType::DeltaPlusMove, false, min_radius, max_radius);
+            res.insert(std::end(res), std::begin(case2), std::end(case2));
+        }
+
+        // Case 3: b == c
+        std::vector<ArcInsertionMove> case3 = possibleArcInsertionMoves(ann_network, node, b, nullptr,
+                MoveType::DeltaPlusMove, false, min_radius, max_radius);
+        res.insert(std::end(res), std::begin(case3), std::end(case3));
+    }
+    return res;
+}
+
 std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_network, bool noDeltaPlus) {
     std::vector<ArcInsertionMove> res;
     Network &network = ann_network.network;
@@ -243,13 +413,6 @@ std::vector<ArcInsertionMove> possibleDeltaPlusMoves(AnnotatedNetwork &ann_netwo
     sortByProximity(res, ann_network);
     assert(checkSanity(ann_network, res));
     return res;
-}
-
-std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_network, const Node *node, bool noDeltaPlus, size_t min_radius, size_t max_radius) {
-    throw std::runtime_error("Not implemented yet");
-}
-std::vector<ArcInsertionMove> possibleDeltaPlusMoves(AnnotatedNetwork &ann_network, const Node *node, size_t min_radius, size_t max_radius) {
-    throw std::runtime_error("Not implemented yet");
 }
 
 void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
