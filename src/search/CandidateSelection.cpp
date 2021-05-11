@@ -160,7 +160,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
 }
 
 template <typename T>
-bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T> candidates, NetworkState* state, bool enforce, bool silent = true) {
+bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T> candidates, NetworkState* state, bool enforce, bool silent = true, bool print_progress = true) {
     if (candidates.empty()) {
         return false;
     }
@@ -171,6 +171,9 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T> candidates, Ne
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         if (!silent) std::cout << "MoveType: " << toString(candidates[0].moveType) << "\n";
     }
+
+    float progress = 0.0;
+    int barWidth = 70;
 
     double brlen_smooth_factor = 1.0;
     int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
@@ -191,6 +194,19 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T> candidates, Ne
     std::vector<ScoreItem<T> > scores(candidates.size());
 
     for (size_t i = 0; i < candidates.size(); ++i) {
+        // progress bar code taken from https://stackoverflow.com/a/14539953/14557921
+        if (print_progress && ParallelContext::master_rank() && ParallelContext::master_thread()) {
+            progress = (float) (i+1) / candidates.size();
+            std::cout << "[";
+            int pos = barWidth * progress;
+            for (int i = 0; i < barWidth; ++i) {
+                if (i < pos) std::cout << "=";
+                else if (i == pos) std::cout << ">";
+                else std::cout << " ";
+            }
+            std::cout << "] " << int(progress * 100.0) << " %\r";
+            std::cout.flush();
+        }
         T move(candidates[i]);
         bool recompute_from_scratch = needsRecompute(ann_network, move);
 
@@ -224,12 +240,18 @@ bool rankCandidates(AnnotatedNetwork& ann_network, std::vector<T> candidates, Ne
             candidates[0] = candidates[i];
             candidates.resize(1);
             apply_network_state(ann_network, oldState);
+            if (print_progress && ParallelContext::master_rank() && ParallelContext::master_thread()) {
+                std::cout << std::endl;
+            }
             return found_better;
         }
 
         scores[i] = ScoreItem<T>{candidates[i], bicScore};
 
         apply_network_state(ann_network, oldState);
+    }
+    if (print_progress && ParallelContext::master_rank() && ParallelContext::master_thread()) {
+        std::cout << std::endl;
     }
 
     std::sort(scores.begin(), scores.end(), [](const ScoreItem<T>& lhs, const ScoreItem<T>& rhs) {
