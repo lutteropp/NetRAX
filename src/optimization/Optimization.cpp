@@ -65,7 +65,7 @@ void optimizeReticulationProbs(AnnotatedNetwork &ann_network, bool silent) {
     }
     assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
     double old_score = scoreNetwork(ann_network);
-    optimize_reticulations(ann_network, 100);
+    optimize_reticulations(ann_network, 10);
     double new_score = scoreNetwork(ann_network);
     if (!silent && ParallelContext::master()) std::cout << "BIC score after updating reticulation probs: " << new_score << "\n";
     if (new_score > old_score) {

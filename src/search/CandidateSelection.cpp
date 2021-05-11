@@ -95,19 +95,8 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
 
         if (old_bic/bicScore > ann_network.options.greedy_factor) {
             switchLikelihoodVariant(ann_network, old_variant);
-            //optimizeReticulationProbs(ann_network);
+            optimizeReticulationProbs(ann_network);
             double real_bicScore = scoreNetwork(ann_network);
-
-            /*if (print_progress && ParallelContext::master_rank() && ParallelContext::master_thread()) {
-                std::cout << "  reticulation prob: " << ann_network.reticulation_probs[0] << "\n";
-                std::cout << "  bicScore: " << bicScore << "\n";
-                std::cout << "  real bic score: " << real_bicScore << "\n";
-                std::cout << "  old_bic: " << old_bic << "\n";
-                std::cout << "  real_old_bic: " << real_old_bic << "\n";
-                std::cout << "  old_bic/bicScore: " << old_bic/bicScore << "\n";
-                std::cout << "  real_old_bic/real_bicScore: " << real_old_bic/real_bicScore << "\n";
-            }*/
-
             if (real_old_bic/real_bicScore > ann_network.options.greedy_factor) {
                 candidates[0] = candidates[i];
                 candidates.resize(1);
