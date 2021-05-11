@@ -104,7 +104,8 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
             ann_network.last_accepted_move_edge_orig_idx = move.edge_orig_idx;
         }
 
-        if (old_bic/bicScore > ann_network.options.greedy_factor + 0.01) { // +0.01 because we tend to over-estimate with pseudologlikelihood
+        double extra_offset = (ann_network.options.likelihood_variant == LikelihoodVariant::SARAH_PSEUDO) ? 0.01 : 0.0; // +0.01 because we tend to over-estimate with pseudologlikelihood
+        if (old_bic/bicScore > ann_network.options.greedy_factor + extra_offset) {
             switchLikelihoodVariant(ann_network, old_variant);
             optimizeReticulationProbs(ann_network);
             double real_bicScore = scoreNetwork(ann_network);
@@ -236,7 +237,7 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
             ann_network.last_accepted_move_edge_orig_idx = move.edge_orig_idx;
         }
 
-        if (old_bic/bicScore > ann_network.options.greedy_factor + 0.01) { // +0.01 because we tend to over-estimate with pseudologlikelihood
+        if (old_bic/bicScore > ann_network.options.greedy_factor) {
             candidates[0] = candidates[i];
             candidates.resize(1);
             apply_network_state(ann_network, oldState);
