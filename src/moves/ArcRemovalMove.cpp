@@ -62,8 +62,8 @@ void fixReticulations(Network &network, ArcRemovalMove &move) {
 
 ArcRemovalMove buildArcRemovalMove(size_t a_clv_index, size_t b_clv_index, size_t c_clv_index,
         size_t d_clv_index, size_t u_clv_index, size_t v_clv_index, std::vector<double> &u_v_len, std::vector<double> &c_v_len,
-         std::vector<double> &a_u_len, std::vector<double> &a_b_len, std::vector<double> &c_d_len, std::vector<double> &v_d_len, std::vector<double> &u_b_len, MoveType moveType, size_t edge_orig_idx) {
-    ArcRemovalMove move = ArcRemovalMove(edge_orig_idx);
+         std::vector<double> &a_u_len, std::vector<double> &a_b_len, std::vector<double> &c_d_len, std::vector<double> &v_d_len, std::vector<double> &u_b_len, MoveType moveType, size_t edge_orig_idx, size_t node_orig_idx) {
+    ArcRemovalMove move = ArcRemovalMove(edge_orig_idx, node_orig_idx);
     move.a_clv_index = a_clv_index;
     move.b_clv_index = b_clv_index;
     move.c_clv_index = c_clv_index;
@@ -131,7 +131,7 @@ std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_networ
 
         ArcRemovalMove move = buildArcRemovalMove(a->clv_index, b->clv_index, c->clv_index,
                 d->clv_index, u->clv_index, v->clv_index, u_v_len,
-                c_v_len, a_u_len, a_b_len, c_d_len, v_d_len, u_b_len, moveType, edge_orig_idx);
+                c_v_len, a_u_len, a_b_len, c_d_len, v_d_len, u_b_len, moveType, edge_orig_idx, v->clv_index);
 
         move.au_pmatrix_index = getEdgeTo(network, a, u)->pmatrix_index;
         move.ub_pmatrix_index = getEdgeTo(network, u, b)->pmatrix_index;
@@ -573,7 +573,7 @@ void undoMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     assert(assertConsecutiveIndices(ann_network));
     assert(assertBranchLengths(ann_network));
     ArcInsertionMove insertion = buildArcInsertionMove(move.a_clv_index, move.b_clv_index,
-            move.c_clv_index, move.d_clv_index, move.u_v_len, move.c_v_len, move.a_u_len, move.a_b_len, move.c_d_len, move.v_d_len, move.u_b_len, MoveType::ArcInsertionMove, move.edge_orig_idx);
+            move.c_clv_index, move.d_clv_index, move.u_v_len, move.c_v_len, move.a_u_len, move.a_b_len, move.c_d_len, move.v_d_len, move.u_b_len, MoveType::ArcInsertionMove, move.edge_orig_idx, move.node_orig_idx);
 
     // TODO: this likely doesn't work this way now that arc removal moves ensure consecutive indices. Those wanted indices might be already in use...
     insertion.wanted_u_clv_index = move.u_clv_index;

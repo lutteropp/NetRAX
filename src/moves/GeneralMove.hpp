@@ -44,15 +44,16 @@ void sortByProximity(std::vector<T>& candidates, AnnotatedNetwork& ann_network) 
 }
 
 struct GeneralMove {
-    GeneralMove(MoveType type, size_t edge_orig_idx) :
-            moveType(type), edge_orig_idx(edge_orig_idx) {
+    GeneralMove(MoveType type, size_t edge_orig_idx, size_t node_orig_idx) :
+            moveType(type), edge_orig_idx(edge_orig_idx), node_orig_idx(node_orig_idx) {
     }
     MoveType moveType;
     size_t edge_orig_idx;
+    size_t node_orig_idx;
 
-    GeneralMove(GeneralMove&& rhs) : moveType{rhs.moveType}, edge_orig_idx(rhs.edge_orig_idx) {}
+    GeneralMove(GeneralMove&& rhs) : moveType{rhs.moveType}, edge_orig_idx(rhs.edge_orig_idx), node_orig_idx(rhs.node_orig_idx) {}
 
-    GeneralMove(const GeneralMove& rhs) : moveType{rhs.moveType}, edge_orig_idx(rhs.edge_orig_idx) {}
+    GeneralMove(const GeneralMove& rhs) : moveType{rhs.moveType}, edge_orig_idx(rhs.edge_orig_idx), node_orig_idx(rhs.node_orig_idx) {}
 
     GeneralMove& operator =(GeneralMove&& rhs)
     {
@@ -60,6 +61,7 @@ struct GeneralMove {
         {
             moveType = rhs.moveType;
             edge_orig_idx = rhs.edge_orig_idx;
+            node_orig_idx = rhs.node_orig_idx;
         }
         return *this;
     }
@@ -70,6 +72,7 @@ struct GeneralMove {
         {
             moveType = rhs.moveType;
             edge_orig_idx = rhs.edge_orig_idx;
+            node_orig_idx = rhs.node_orig_idx;
         }
         return *this;
     }

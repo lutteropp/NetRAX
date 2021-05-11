@@ -54,8 +54,8 @@ void fixReticulations(Network &network, ArcInsertionMove &move) {
 
 ArcInsertionMove buildArcInsertionMove(size_t a_clv_index, size_t b_clv_index, size_t c_clv_index,
         size_t d_clv_index, std::vector<double> &u_v_len, std::vector<double> &c_v_len,
-        std::vector<double> &a_u_len, std::vector<double> &a_b_len, std::vector<double> &c_d_len, std::vector<double> &v_d_len, std::vector<double> &u_b_len, MoveType moveType, size_t edge_orig_idx) {
-    ArcInsertionMove move = ArcInsertionMove(edge_orig_idx);
+        std::vector<double> &a_u_len, std::vector<double> &a_b_len, std::vector<double> &c_d_len, std::vector<double> &v_d_len, std::vector<double> &u_b_len, MoveType moveType, size_t edge_orig_idx, size_t node_orig_idx) {
+    ArcInsertionMove move = ArcInsertionMove(edge_orig_idx, node_orig_idx);
     move.a_clv_index = a_clv_index;
     move.b_clv_index = b_clv_index;
     move.c_clv_index = c_clv_index;
@@ -82,6 +82,7 @@ std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_ne
     // choose two distinct arcs ab, cd (with cd not ancestral to ab -> no d-a-path allowed)
     Node *a = getSource(network, edge);
     Node *b = getTarget(network, edge);
+    size_t node_orig_idx = b->clv_index;
     std::vector<double> a_b_len = get_edge_lengths(ann_network, edge->pmatrix_index);
 
     double min_br = ann_network.options.brlen_min;
@@ -115,7 +116,7 @@ std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_ne
 
                 ArcInsertionMove move = buildArcInsertionMove(a->clv_index, b->clv_index,
                         c_cand->clv_index, d_cand->clv_index, u_v_len, c_v_len,
-                        a_u_len, a_b_len, c_d_len, v_d_len, u_b_len, moveType, edge_orig_idx);
+                        a_u_len, a_b_len, c_d_len, v_d_len, u_b_len, moveType, edge_orig_idx, node_orig_idx);
                 move.ab_pmatrix_index = getEdgeTo(network, a, b)->pmatrix_index;
                 move.cd_pmatrix_index = getEdgeTo(network, c_cand, d_cand)->pmatrix_index;
                 res.emplace_back(move);
@@ -147,7 +148,7 @@ std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_ne
 
                 ArcInsertionMove move = buildArcInsertionMove(a->clv_index, b->clv_index,
                         c_cand->clv_index, d_cand->clv_index, u_v_len, c_v_len,
-                        a_u_len, a_b_len, c_d_len, v_d_len, u_b_len, moveType, edge_orig_idx);
+                        a_u_len, a_b_len, c_d_len, v_d_len, u_b_len, moveType, edge_orig_idx, node_orig_idx);
 
                 move.ab_pmatrix_index = getEdgeTo(network, a, b)->pmatrix_index;
                 move.cd_pmatrix_index = getEdgeTo(network, c_cand, d_cand)->pmatrix_index;
@@ -177,7 +178,7 @@ std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_ne
 
                 ArcInsertionMove move = buildArcInsertionMove(a->clv_index, b->clv_index,
                         c_cand->clv_index, d_cand->clv_index, u_v_len, c_v_len,
-                        a_u_len, a_b_len, c_d_len, v_d_len, u_b_len, moveType, edge_orig_idx);
+                        a_u_len, a_b_len, c_d_len, v_d_len, u_b_len, moveType, edge_orig_idx, node_orig_idx);
 
                 move.ab_pmatrix_index = getEdgeTo(network, a, b)->pmatrix_index;
                 move.cd_pmatrix_index = getEdgeTo(network, c_cand, d_cand)->pmatrix_index;
@@ -195,6 +196,8 @@ std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_ne
     if (node == ann_network.network.root) {
         return res; // because we need a parent
     }
+
+    size_t node_orig_idx = node->clv_index;
 
     std::vector<Node*> radius_nodes = getNeighborsWithinRadius(network, node, min_radius, max_radius);
 
@@ -244,7 +247,7 @@ std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_ne
 
                         ArcInsertionMove move = buildArcInsertionMove(a->clv_index, b->clv_index,
                                 c_cand->clv_index, d_cand->clv_index, u_v_len, c_v_len,
-                                a_u_len, a_b_len, c_d_len, v_d_len, u_b_len, moveType, edge_orig_idx);
+                                a_u_len, a_b_len, c_d_len, v_d_len, u_b_len, moveType, edge_orig_idx, node_orig_idx);
                         move.ab_pmatrix_index = getEdgeTo(network, a, b)->pmatrix_index;
                         move.cd_pmatrix_index = getEdgeTo(network, c_cand, d_cand)->pmatrix_index;
                         res.emplace_back(move);
@@ -279,7 +282,7 @@ std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_ne
 
                         ArcInsertionMove move = buildArcInsertionMove(a->clv_index, b->clv_index,
                                 c_cand->clv_index, d_cand->clv_index, u_v_len, c_v_len,
-                                a_u_len, a_b_len, c_d_len, v_d_len, u_b_len, moveType, edge_orig_idx);
+                                a_u_len, a_b_len, c_d_len, v_d_len, u_b_len, moveType, edge_orig_idx, node_orig_idx);
 
                         move.ab_pmatrix_index = getEdgeTo(network, a, b)->pmatrix_index;
                         move.cd_pmatrix_index = getEdgeTo(network, c_cand, d_cand)->pmatrix_index;
@@ -311,7 +314,7 @@ std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_ne
 
                         ArcInsertionMove move = buildArcInsertionMove(a->clv_index, b->clv_index,
                                 c_cand->clv_index, d_cand->clv_index, u_v_len, c_v_len,
-                                a_u_len, a_b_len, c_d_len, v_d_len, u_b_len, moveType, edge_orig_idx);
+                                a_u_len, a_b_len, c_d_len, v_d_len, u_b_len, moveType, edge_orig_idx, node_orig_idx);
 
                         move.ab_pmatrix_index = getEdgeTo(network, a, b)->pmatrix_index;
                         move.cd_pmatrix_index = getEdgeTo(network, c_cand, d_cand)->pmatrix_index;
@@ -577,7 +580,7 @@ void undoMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     assert(v);
     ArcRemovalMove removal = buildArcRemovalMove(move.a_clv_index, move.b_clv_index,
             move.c_clv_index, move.d_clv_index, u->clv_index, v->clv_index, move.u_v_len, move.c_v_len,
-            move.a_u_len, move.a_b_len, move.c_d_len, move.v_d_len, move.u_b_len, MoveType::ArcRemovalMove, move.edge_orig_idx);
+            move.a_u_len, move.a_b_len, move.c_d_len, move.v_d_len, move.u_b_len, MoveType::ArcRemovalMove, move.edge_orig_idx, move.node_orig_idx);
     removal.wanted_ab_pmatrix_index = move.ab_pmatrix_index;
     removal.wanted_cd_pmatrix_index = move.cd_pmatrix_index;
     removal.au_pmatrix_index = getEdgeTo(network, a, u)->pmatrix_index;

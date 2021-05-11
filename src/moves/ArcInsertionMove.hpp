@@ -6,12 +6,12 @@ struct Edge;
 namespace netrax {
 
 struct ArcInsertionMove: public GeneralMove {
-    ArcInsertionMove(size_t edge_orig_idx) :
-        GeneralMove(MoveType::ArcInsertionMove, edge_orig_idx) {
+    ArcInsertionMove(size_t edge_orig_idx, size_t node_orig_idx) :
+        GeneralMove(MoveType::ArcInsertionMove, edge_orig_idx, node_orig_idx) {
     }
 
     ArcInsertionMove() :
-        GeneralMove(MoveType::ArcInsertionMove, 0) {
+        GeneralMove(MoveType::ArcInsertionMove, 0, 0) {
     }
 
     size_t a_clv_index = 0;
@@ -135,7 +135,7 @@ ArcInsertionMove randomDeltaPlusMove(AnnotatedNetwork &ann_network);
 
 ArcInsertionMove buildArcInsertionMove(size_t a_clv_index, size_t b_clv_index, size_t c_clv_index,
         size_t d_clv_index, std::vector<double> &u_v_len, std::vector<double> &c_v_len,
-        std::vector<double> &a_u_len, std::vector<double> &a_b_len, std::vector<double> &c_d_len, std::vector<double> &v_d_len, std::vector<double> &u_b_len, MoveType moveType, size_t edge_orig_idx);
+        std::vector<double> &a_u_len, std::vector<double> &a_b_len, std::vector<double> &c_d_len, std::vector<double> &v_d_len, std::vector<double> &u_b_len, MoveType moveType, size_t edge_orig_idx, size_t node_orig_idx);
 
 inline bool needsRecompute(AnnotatedNetwork& ann_network, const ArcInsertionMove& move) {
     return false;

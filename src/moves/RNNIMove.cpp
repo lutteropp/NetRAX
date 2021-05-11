@@ -56,8 +56,8 @@ bool checkSanity(AnnotatedNetwork& ann_network, std::vector<RNNIMove>& moves) {
 }
 
 RNNIMove buildRNNIMove(size_t u_clv_index, size_t v_clv_index, size_t s_clv_index,
-        size_t t_clv_index, RNNIMoveType type, size_t edge_orig_idx) {
-    RNNIMove move = RNNIMove(edge_orig_idx);
+        size_t t_clv_index, RNNIMoveType type, size_t edge_orig_idx, size_t node_orig_idx) {
+    RNNIMove move = RNNIMove(edge_orig_idx, node_orig_idx);
     move.u_clv_index = u_clv_index;
     move.v_clv_index = v_clv_index;
     move.s_clv_index = s_clv_index;
@@ -100,6 +100,7 @@ std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network, const Edg
     std::vector<RNNIMove> res;
     Node *u = getSource(network, edge);
     Node *v = getTarget(network, edge);
+    size_t node_orig_idx = v->clv_index;
     auto stChoices = getSTChoices(network, edge);
     for (const auto &st : stChoices) {
         Node *s = st.first;
@@ -111,12 +112,12 @@ std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network, const Edg
                 // add move 1
                 res.emplace_back(
                         buildRNNIMove(u->clv_index, v->clv_index, s->clv_index, t->clv_index,
-                                RNNIMoveType::ONE, edge_orig_idx));
+                                RNNIMoveType::ONE, edge_orig_idx, node_orig_idx));
                 if (v->type == NodeType::RETICULATION_NODE && u != network.root) {
                     // add move 1*
                     res.emplace_back(
                             buildRNNIMove(u->clv_index, v->clv_index, s->clv_index, t->clv_index,
-                                    RNNIMoveType::ONE_STAR, edge_orig_idx));
+                                    RNNIMoveType::ONE_STAR, edge_orig_idx, node_orig_idx));
                 }
             }
         } else if (isOutgoing(network, s, u) && isOutgoing(network, t, v)) {
@@ -124,12 +125,12 @@ std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network, const Edg
                 // add move 2
                 res.emplace_back(
                         buildRNNIMove(u->clv_index, v->clv_index, s->clv_index, t->clv_index,
-                                RNNIMoveType::TWO, edge_orig_idx));
+                                RNNIMoveType::TWO, edge_orig_idx, node_orig_idx));
                 if (u->type != NodeType::RETICULATION_NODE) {
                     // add move 2*
                     res.emplace_back(
                             buildRNNIMove(u->clv_index, v->clv_index, s->clv_index, t->clv_index,
-                                    RNNIMoveType::TWO_STAR, edge_orig_idx));
+                                    RNNIMoveType::TWO_STAR, edge_orig_idx, node_orig_idx));
                 }
             }
         } else if (isOutgoing(network, s, u) && isOutgoing(network, v, t)) {
@@ -137,20 +138,20 @@ std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network, const Edg
                 // add move 3
                 res.emplace_back(
                         buildRNNIMove(u->clv_index, v->clv_index, s->clv_index, t->clv_index,
-                                RNNIMoveType::THREE, edge_orig_idx));
+                                RNNIMoveType::THREE, edge_orig_idx, node_orig_idx));
             }
             if (!hasPath(network, u, v, true)) {
                 // add move 3*
                 res.emplace_back(
                         buildRNNIMove(u->clv_index, v->clv_index, s->clv_index, t->clv_index,
-                                RNNIMoveType::THREE_STAR, edge_orig_idx));
+                                RNNIMoveType::THREE_STAR, edge_orig_idx, node_orig_idx));
             }
         } else if (isOutgoing(network, u, s) && isOutgoing(network, t, v)) {
             if (u != network.root && !hasPath(network, s, t)) {
                 // add move 4
                 res.emplace_back(
                         buildRNNIMove(u->clv_index, v->clv_index, s->clv_index, t->clv_index,
-                                RNNIMoveType::FOUR, edge_orig_idx));
+                                RNNIMoveType::FOUR, edge_orig_idx, node_orig_idx));
             }
         }
     }

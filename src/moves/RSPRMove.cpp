@@ -81,8 +81,8 @@ std::vector<std::pair<Node*, Node*> > getZYChoices(Network &network, Node *x_pri
 }
 
 RSPRMove buildRSPRMove(size_t x_prime_clv_index, size_t y_prime_clv_index, size_t x_clv_index,
-        size_t y_clv_index, size_t z_clv_index, MoveType moveType, size_t edge_orig_idx) {
-    RSPRMove move = RSPRMove(edge_orig_idx);
+        size_t y_clv_index, size_t z_clv_index, MoveType moveType, size_t edge_orig_idx, size_t node_orig_idx) {
+    RSPRMove move = RSPRMove(edge_orig_idx, node_orig_idx);
     move.x_prime_clv_index = x_prime_clv_index;
     move.y_prime_clv_index = y_prime_clv_index;
     move.x_clv_index = x_clv_index;
@@ -119,10 +119,12 @@ void possibleRSPRMovesInternal(std::vector<RSPRMove> &res, AnnotatedNetwork &ann
         }
         assert(w);
 
+        size_t node_orig_idx = z->clv_index;
+
         if (z->type == NodeType::RETICULATION_NODE) { // head-moving rSPR move
             if (!hasPath(network, y_prime, w)) {
                 RSPRMove move = buildRSPRMove(x_prime->clv_index, y_prime->clv_index, x->clv_index,
-                        y->clv_index, z->clv_index, moveType, edge_orig_idx);
+                        y->clv_index, z->clv_index, moveType, edge_orig_idx, node_orig_idx);
                 move.x_z_len = get_edge_lengths(ann_network, getEdgeTo(network, x, z)->pmatrix_index);
                 move.z_y_len = get_edge_lengths(ann_network, getEdgeTo(network, z, y)->pmatrix_index);
                 move.x_prime_y_prime_len = get_edge_lengths(ann_network, getEdgeTo(network, x_prime, y_prime)->pmatrix_index);
@@ -133,7 +135,7 @@ void possibleRSPRMovesInternal(std::vector<RSPRMove> &res, AnnotatedNetwork &ann
         } else { // tail-moving rSPR move
             if (!hasPath(network, w, x_prime)) {
                 RSPRMove move = buildRSPRMove(x_prime->clv_index, y_prime->clv_index, x->clv_index,
-                        y->clv_index, z->clv_index, moveType, edge_orig_idx);
+                        y->clv_index, z->clv_index, moveType, edge_orig_idx, node_orig_idx);
                 move.x_z_len = get_edge_lengths(ann_network, getEdgeTo(network, x, z)->pmatrix_index);
                 move.z_y_len = get_edge_lengths(ann_network, getEdgeTo(network, z, y)->pmatrix_index);
                 move.x_prime_y_prime_len = get_edge_lengths(ann_network, getEdgeTo(network, x_prime, y_prime)->pmatrix_index);
@@ -187,9 +189,11 @@ void possibleRSPRMovesInternalNode(std::vector<RSPRMove> &res, AnnotatedNetwork 
             continue;
         }
 
+        size_t node_orig_idx = z->clv_index;
+
         size_t edge_orig_idx = getEdgeTo(network, x_prime, y_prime)->pmatrix_index;
         RSPRMove move = buildRSPRMove(x_prime->clv_index, y_prime->clv_index, x->clv_index,
-                y->clv_index, z->clv_index, moveType, edge_orig_idx);
+                y->clv_index, z->clv_index, moveType, edge_orig_idx, node_orig_idx);
         move.x_z_len = get_edge_lengths(ann_network, getEdgeTo(network, x, z)->pmatrix_index);
         move.z_y_len = get_edge_lengths(ann_network, getEdgeTo(network, z, y)->pmatrix_index);
         move.x_prime_y_prime_len = get_edge_lengths(ann_network, getEdgeTo(network, x_prime, y_prime)->pmatrix_index);

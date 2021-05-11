@@ -6,12 +6,12 @@ struct Edge;
 namespace netrax {
 
 struct RSPRMove: public GeneralMove {
-    RSPRMove(size_t edge_orig_idx) :
-            GeneralMove(MoveType::RSPRMove, edge_orig_idx) {
+    RSPRMove(size_t edge_orig_idx, size_t node_orig_idx) :
+            GeneralMove(MoveType::RSPRMove, edge_orig_idx, node_orig_idx) {
     }
 
     RSPRMove() :
-            GeneralMove(MoveType::RSPRMove, 0) {
+            GeneralMove(MoveType::RSPRMove, 0, 0) {
     }
     
     size_t x_prime_clv_index = 0;

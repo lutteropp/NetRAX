@@ -10,12 +10,12 @@ enum class RNNIMoveType {
 };
 
 struct RNNIMove: public GeneralMove {
-    RNNIMove(size_t edge_orig_idx) :
-            GeneralMove(MoveType::RNNIMove, edge_orig_idx) {
+    RNNIMove(size_t edge_orig_idx, size_t node_orig_idx) :
+            GeneralMove(MoveType::RNNIMove, edge_orig_idx, node_orig_idx) {
     }
 
     RNNIMove() :
-            GeneralMove(MoveType::RNNIMove, 0) {
+            GeneralMove(MoveType::RNNIMove, 0, 0) {
     }
 
     size_t u_clv_index = 0;
