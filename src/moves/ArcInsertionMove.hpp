@@ -118,6 +118,10 @@ std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_ne
 std::vector<ArcInsertionMove> possibleDeltaPlusMoves(AnnotatedNetwork &ann_network,
         const Node *node, size_t min_radius = 0, size_t max_radius = std::numeric_limits<size_t>::max());
 
+std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_network,
+        const std::vector<Node*>& start_nodes, bool noDeltaPlus = false, size_t min_radius = 0, size_t max_radius = std::numeric_limits<size_t>::max());
+std::vector<ArcInsertionMove> possibleDeltaPlusMoves(AnnotatedNetwork &ann_network,
+        const std::vector<Node*>& start_nodes, size_t min_radius = 0, size_t max_radius = std::numeric_limits<size_t>::max());
 
 void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move);
 
