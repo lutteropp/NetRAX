@@ -149,7 +149,7 @@ void wavesearch_internal(AnnotatedNetwork& ann_network, BestNetworkData* bestNet
         while (got_better) {
             got_better = false;
             
-            if (ParallelContext::master()) {
+            if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
                 std::cout << "Enforcing an arc insertion...\n";
             }
             if (!ann_network.options.no_arc_insertion_moves) {
@@ -169,7 +169,7 @@ void wavesearch_internal(AnnotatedNetwork& ann_network, BestNetworkData* bestNet
 }
 
 void wavesearch_main_internal(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData, const std::vector<MoveType>& typesBySpeed, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, double* best_score, const std::chrono::high_resolution_clock::time_point& start_time, bool silent = false) {
-    if (ParallelContext::master()) {
+    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         std::cout << "Starting wavesearch with move types: ";
         for (size_t j = 0; j < typesBySpeed.size(); ++j) {
             std::cout << toString(typesBySpeed[j]);
@@ -185,13 +185,13 @@ void wavesearch_main_internal(AnnotatedNetwork& ann_network, BestNetworkData* be
     double old_best_score = *best_score;
 
     if (ann_network.options.scrambling > 0) {
-        if (ParallelContext::master()) {
+        if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
             std::cout << " Starting scrambling phase...\n";
         }
         unsigned int tries = 0;
         NetworkState bestState = extract_network_state(ann_network);
         double old_best_score = *best_score;
-        if (ParallelContext::master()) {
+        if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
             if (!silent) std::cout << " Network before scrambling has BIC Score: " << scoreNetwork(ann_network) << "\n";
         }
         while (tries < ann_network.options.scrambling) {
@@ -207,7 +207,7 @@ void wavesearch_main_internal(AnnotatedNetwork& ann_network, BestNetworkData* be
                     improved = true;
                 }
             }
-            if (ParallelContext::master()) {
+            if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
                 if (!silent) std::cout << " scrambling BIC: " << scoreNetwork(ann_network) << "\n";
             }
             if (*best_score < old_best_score) {
@@ -232,7 +232,7 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
 
     if (ann_network.options.computePseudo) {
         double pseudo = computePseudoLoglikelihood(ann_network);
-        if (ParallelContext::master()) {
+        if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
             std::cout << "pseudo-loglh: " << pseudo << "\n";
             std::cout << "pseudo-bic: " << bic(ann_network, pseudo) << "\n";
         }

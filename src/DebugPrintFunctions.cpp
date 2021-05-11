@@ -433,7 +433,7 @@ void print_treeinfo(AnnotatedNetwork& ann_network) {
 
 void printDisplayedTrees(AnnotatedNetwork& ann_network) {
     updateNetwork(ann_network);
-    if (ParallelContext::master()) {
+    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         std::vector<std::pair<std::string, double>> displayed_trees;
         if (ann_network.network.num_reticulations() == 0) {
             std::string newick = netrax::toExtendedNewick(ann_network);

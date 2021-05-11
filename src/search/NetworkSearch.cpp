@@ -28,7 +28,7 @@ void run_single_start_waves(NetraxOptions& netraxOptions, const RaxmlInstance& i
     BestNetworkData bestNetworkData(ann_network.options.max_reticulations);
     wavesearch(ann_network, &bestNetworkData, typesBySpeed);
 
-    if (ParallelContext::master()) {
+    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         std::cout << "Statistics on which moves were taken:\n";
         for (const MoveType& type : typesBySpeed) {
             std::cout << toString(type) << ": " << ann_network.stats.moves_taken[type] << "\n";
@@ -72,7 +72,7 @@ void run_random(NetraxOptions& netraxOptions, const RaxmlInstance& instance, con
         while (true) {
             n_iterations++;
             int seed = dist(rng);
-            if (ParallelContext::master()) {
+            if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
                 std::cout << "Starting with new random network " << n_iterations << " with " << start_reticulations << " reticulations, tree seed = " << seed << ".\n";
             }
             netrax::AnnotatedNetwork ann_network = build_random_annotated_network(netraxOptions, instance, seed);
@@ -80,7 +80,7 @@ void run_random(NetraxOptions& netraxOptions, const RaxmlInstance& instance, con
             add_extra_reticulations(ann_network, start_reticulations);
 
             wavesearch(ann_network, &bestNetworkData, typesBySpeed);
-            if (ParallelContext::master()) {
+            if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
                 std::cout << " Inferred " << ann_network.network.num_reticulations() << " reticulations, logl = " << computeLoglikelihood(ann_network) << ", bic = " << scoreNetwork(ann_network) << "\n";
             }
             for (MoveType type : allTypes) {
@@ -105,14 +105,14 @@ void run_random(NetraxOptions& netraxOptions, const RaxmlInstance& instance, con
         while (true) {
             n_iterations++;
             int seed = dist(rng);
-            if (ParallelContext::master()) {
+            if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
                 std::cout << "Starting with new parsimony tree " << n_iterations << " with " << start_reticulations << " reticulations, tree seed = " << seed << ".\n";
             }
             netrax::AnnotatedNetwork ann_network = build_parsimony_annotated_network(netraxOptions, instance, seed);
             init_annotated_network(ann_network, rng);
             add_extra_reticulations(ann_network, start_reticulations);
             wavesearch(ann_network, &bestNetworkData, typesBySpeed);
-            if (ParallelContext::master()) {
+            if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
                 std::cout << " Inferred " << ann_network.network.num_reticulations() << " reticulations, logl = " << computeLoglikelihood(ann_network) << ", bic = " << scoreNetwork(ann_network) << "\n";
             }
             for (MoveType type : allTypes) {
@@ -130,7 +130,7 @@ void run_random(NetraxOptions& netraxOptions, const RaxmlInstance& instance, con
         }
     }
 
-    if (ParallelContext::master()) {
+    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         std::cout << "\nAggregated statistics on which moves were taken:\n";
         for (const MoveType& type : typesBySpeed) {
             std::cout << toString(type) << ": " << totalStats.moves_taken[type] << "\n";
