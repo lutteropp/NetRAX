@@ -245,6 +245,13 @@ std::vector<ArcInsertionMove> possibleDeltaPlusMoves(AnnotatedNetwork &ann_netwo
     return res;
 }
 
+std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_network, const Node *node, bool noDeltaPlus, size_t min_radius, size_t max_radius) {
+    throw std::runtime_error("Not implemented yet");
+}
+std::vector<ArcInsertionMove> possibleDeltaPlusMoves(AnnotatedNetwork &ann_network, const Node *node, size_t min_radius, size_t max_radius) {
+    throw std::runtime_error("Not implemented yet");
+}
+
 void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     assert(checkSanity(ann_network, move));
     assert(move.moveType == MoveType::ArcInsertionMove || move.moveType == MoveType::DeltaPlusMove);

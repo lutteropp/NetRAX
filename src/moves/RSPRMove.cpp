@@ -233,6 +233,19 @@ std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network, const Ed
     return res;
 }
 
+std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, const Node *node, bool noRSPR1Moves, size_t min_radius, size_t max_radius) {
+    throw std::runtime_error("Not implemented yet");
+}
+std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network, const Node *node, size_t min_radius, size_t max_radius) {
+    throw std::runtime_error("Not implemented yet");
+}
+std::vector<RSPRMove> possibleTailMoves(AnnotatedNetwork &ann_network, const Node *node, bool noRSPR1Moves, size_t min_radius, size_t max_radius) {
+    throw std::runtime_error("Not implemented yet");
+}
+std::vector<RSPRMove> possibleHeadMoves(AnnotatedNetwork &ann_network, const Node *node, bool noRSPR1Moves, size_t min_radius, size_t max_radius) {
+    throw std::runtime_error("Not implemented yet");
+}
+
 std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, bool noRSPR1Moves) {
     std::vector<RSPRMove> res;
     Network &network = ann_network.network;
