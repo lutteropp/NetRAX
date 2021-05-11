@@ -42,6 +42,9 @@ double optimizeEverythingRun(AnnotatedNetwork& ann_network, const std::vector<Mo
             new_score = fullSearch(ann_network, typesBySpeed[type_idx], typesBySpeed, &best_score, bestNetworkData, silent);
         } else {
             new_score = applyBestCandidate(ann_network, typesBySpeed[type_idx], typesBySpeed, &best_score, bestNetworkData, false, silent);
+            if (typesBySpeed[type_idx] != MoveType::RNNIMove) {
+                optimizeAllNonTopology(ann_network);
+            }
         }
 
         if (new_score < old_score) { // score got better

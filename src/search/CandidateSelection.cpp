@@ -284,24 +284,12 @@ double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidat
     if (found_better_state) {
         apply_network_state(ann_network, state);
 
-        if (candidates[0].moveType != MoveType::RNNIMove) {
-            optimizeAllNonTopology(ann_network);
-        }
         double logl = computeLoglikelihood(ann_network);
         double bic_score = bic(ann_network, logl);
         double aic_score = aic(ann_network, logl);
         double aicc_score = aicc(ann_network, logl);
 
-        double pseudo;
-        if (ann_network.options.computePseudo) {
-            pseudo = computePseudoLoglikelihood(ann_network);
-        }
         if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-            if (ann_network.options.computePseudo) {
-                std::cout << "pseudo-loglh: " << pseudo << "\n";
-                std::cout << "pseudo-bic: " << bic(ann_network, pseudo) << "\n";
-            }
-
             if (!silent) std::cout << " Took " << toString(candidates[0].moveType) << "\n";
             if (!silent) std::cout << "  Logl: " << logl << ", BIC: " << bic_score << ", AIC: " << aic_score << ", AICc: " << aicc_score <<  "\n";
             if (!silent) std::cout << "  param_count: " << get_param_count(ann_network) << ", sample_size:" << get_sample_size(ann_network) << "\n";
@@ -361,6 +349,7 @@ double applyBestCandidate(AnnotatedNetwork& ann_network, MoveType type, const st
 
 double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vector<MoveType>& typesBySpeed, double* best_score, BestNetworkData* bestNetworkData, bool silent) {
     double old_score = scoreNetwork(ann_network);
+
     bool got_better = true;
     while (got_better) {
         got_better = false;
@@ -370,6 +359,10 @@ double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vecto
             old_score = score;
         }
     }
+    optimizeAllNonTopology(ann_network);
+    old_score = scoreNetwork(ann_network);
+    check_score_improvement(ann_network, best_score, bestNetworkData);
+
     return old_score;
 }
 
