@@ -1,4 +1,5 @@
 #include "Helper.hpp"
+#include <queue>
 
 namespace netrax {
 
@@ -99,6 +100,35 @@ std::unordered_set<size_t> getNeighborPmatrixIndices(Network &network, Edge *edg
     assert(
             res.size() == 2 || res.size() == 4 || (source == network.root && res.size() == 3)
                     || (source == network.root && target->isTip() && res.size() == 1));
+    return res;
+}
+
+std::vector<Node*> getNeighborsWithinRadius(const Network& network, Node* node, size_t min_radius, size_t max_radius) {
+    assert(min_radius <= max_radius);
+    std::vector<Node*> res;
+    std::vector<bool> seen(network.num_nodes(), false);
+    std::queue<Node*> q;
+    std::queue<Node*> next_q;
+    q.emplace(node);
+    size_t act_radius = 0;
+    while (act_radius <= max_radius && !q.empty()) {
+        while (!q.empty()) {
+            Node* actNode = q.front();
+            q.pop();
+            seen[actNode->clv_index] = true;
+            if (act_radius >= min_radius && act_radius <= max_radius) {
+                res.emplace_back(actNode);
+            }
+            std::vector<Node*> neighs = getNeighbors(network, actNode);
+            for (Node* neigh : neighs) {
+                if (!seen[neigh->clv_index]) {
+                    next_q.emplace(neigh);
+                }
+            }
+        }
+        act_radius++;
+        std::swap(q, next_q);
+    }
     return res;
 }
 

@@ -80,6 +80,7 @@ std::vector<Node*> getActiveAliveNeighbors(Network &network, const std::vector<b
         const Node *node);
 bool hasNeighbor(Node *node1, Node *node2);
 std::unordered_set<size_t> getNeighborPmatrixIndices(Network &network, Edge *edge);
+std::vector<Node*> getNeighborsWithinRadius(const Network& network, Node* node, size_t min_radius, size_t max_radius);
 
 /* helper functions related to clv/pmatrix invalidation (InvalidationHelper.cpp) */
 void invalidateSingleClv(AnnotatedNetwork& ann_network, unsigned int clv_index);

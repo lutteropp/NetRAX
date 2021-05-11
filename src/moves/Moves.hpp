@@ -23,7 +23,6 @@
 #include "ArcInsertionMove.hpp"
 #include "ArcRemovalMove.hpp"
 
-
 namespace netrax {
 // The moves correspond to the moves from this paper: https://doi.org/10.1371/journal.pcbi.1005611
 
