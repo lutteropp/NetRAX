@@ -107,7 +107,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
 
         if (old_bic/bicScore > ann_network.options.greedy_factor) {
             switchLikelihoodVariant(ann_network, old_variant);
-            optimizeReticulationProbs(ann_network);
+            //optimizeReticulationProbs(ann_network);
             double real_bicScore = scoreNetwork(ann_network);
 
             /*if (print_progress && ParallelContext::master_rank() && ParallelContext::master_thread()) {
