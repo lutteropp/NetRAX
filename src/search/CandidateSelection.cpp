@@ -25,6 +25,7 @@ double trim(double x, int digitsAfterComma) {
 }
 
 void switchLikelihoodVariant(AnnotatedNetwork& ann_network, LikelihoodVariant newVariant) {
+    return;
     if (ann_network.options.likelihood_variant == newVariant) {
         return;
     }
@@ -88,7 +89,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
         if (recompute_from_scratch) { // TODO: This is a hotfix that just masks some bugs. Fix the bugs properly.
             computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
         }
-        //optimizeReticulationProbs(ann_network);
+        optimizeReticulationProbs(ann_network);
 
         double bicScore = scoreNetwork(ann_network);
 
@@ -145,6 +146,10 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
         if (scores[i].bicScore <= cutoff_bic) {
             candidates[newSize] = scores[i].move;
             newSize++;
+        }
+
+        if (newSize == ann_network.options.prefilter_keep) {
+            break;
         }
     }
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
@@ -265,6 +270,10 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
         if (scores[i].bicScore <= cutoff_bic) {
             candidates[newSize] = scores[i].move;
             newSize++;
+        }
+
+        if (newSize == ann_network.options.rank_keep) {
+            break;
         }
     }
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
