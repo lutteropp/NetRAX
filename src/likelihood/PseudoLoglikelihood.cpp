@@ -183,6 +183,9 @@ double computePseudoLoglikelihood(AnnotatedNetwork& ann_network, int incremental
     }
 
     double pseudo_logl = std::accumulate(partition_pseudo_logl.begin(), partition_pseudo_logl.end(), 0.0);
+    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+        ann_network.fake_treeinfo->partition_loglh[p] = partition_pseudo_logl[p];
+    }
 
     return pseudo_logl;
 }

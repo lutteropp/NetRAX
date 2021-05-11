@@ -68,6 +68,9 @@ void optimizeReticulationProbs(AnnotatedNetwork &ann_network, bool silent) {
     optimize_reticulations(ann_network, 100);
     double new_score = scoreNetwork(ann_network);
     if (!silent && ParallelContext::master()) std::cout << "BIC score after updating reticulation probs: " << new_score << "\n";
+    if (new_score > old_score) {
+        throw std::runtime_error("BIC got worse after optimizing reticulation probs");
+    }
     assert(new_score <= old_score);
 }
 

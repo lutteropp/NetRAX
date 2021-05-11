@@ -10,5 +10,6 @@ double aic(AnnotatedNetwork &ann_network, double logl);
 double aicc(AnnotatedNetwork &ann_network, double logl);
 double bic(AnnotatedNetwork &ann_network, double logl);
 double scoreNetwork(AnnotatedNetwork &ann_network);
+double scoreNetworkPseudo(AnnotatedNetwork &ann_network);
 
 }

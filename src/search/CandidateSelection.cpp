@@ -8,6 +8,33 @@ struct ScoreItem {
     double bicScore;
 };
 
+double trim(double x, int digitsAfterComma) {
+    double factor = pow(10, digitsAfterComma);
+    return (double)((int)(x*factor))/factor;
+}
+
+void switchLikelihoodVariant(AnnotatedNetwork& ann_network, LikelihoodVariant newVariant) {
+    if (ann_network.options.likelihood_variant == newVariant) {
+        return;
+    }
+    bool invalidationNeeded = (ann_network.options.likelihood_variant == LikelihoodVariant::SARAH_PSEUDO || newVariant == LikelihoodVariant::SARAH_PSEUDO);
+    ann_network.options.likelihood_variant = newVariant;
+    ann_network.cached_logl_valid = false;
+
+    if (invalidationNeeded) {
+        for (size_t i = ann_network.network.num_tips(); i < ann_network.network.num_nodes(); ++i) {
+            for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+                // skip remote partitions
+                if (!ann_network.fake_treeinfo->partitions[p]) {
+                    continue;
+                }
+                ann_network.fake_treeinfo->clv_valid[p][i] = 0;
+            }
+            ann_network.pseudo_clv_valid[i] = 0;
+        }
+    }
+}
+
 template <typename T>
 void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, bool silent = true, bool print_progress = true) {
     if (candidates.empty()) {
@@ -18,6 +45,9 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
         if (print_progress) std::cout << "MoveType: " << toString(candidates[0].moveType) << " (" << candidates.size() << ")" << ", we currently have " << ann_network.network.num_reticulations() << " reticulations and BIC " << scoreNetwork(ann_network) << "\n";
     }
 
+    LikelihoodVariant old_variant = ann_network.options.likelihood_variant;
+    switchLikelihoodVariant(ann_network, LikelihoodVariant::SARAH_PSEUDO);
+
     float progress = 0.0;
     int barWidth = 70;
 
@@ -27,13 +57,13 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
     int radius = 1;
     double old_bic = scoreNetwork(ann_network);
 
+    switchLikelihoodVariant(ann_network, old_variant);
+    double real_old_bic = scoreNetwork(ann_network);
+    switchLikelihoodVariant(ann_network, LikelihoodVariant::SARAH_PSEUDO);
+
     double best_bic = std::numeric_limits<double>::infinity();
 
-    assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
-
     NetworkState oldState = extract_network_state(ann_network);
-
-    assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
 
     std::vector<ScoreItem<T> > scores(candidates.size());
 
@@ -52,9 +82,6 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
             std::cout.flush();
         }
 
-        assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
-
-        assert(network_states_equal(extract_network_state(ann_network), oldState));
         T move(candidates[i]);
         bool recompute_from_scratch = needsRecompute(ann_network, move);
 
@@ -64,17 +91,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
         if (recompute_from_scratch) { // TODO: This is a hotfix that just masks some bugs. Fix the bugs properly.
             computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
         }
-        assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
         optimizeReticulationProbs(ann_network);
-
-        assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
-
-        if (!hasBadReticulation(ann_network) || ((move.moveType != MoveType::DeltaPlusMove) && (move.moveType != MoveType::ArcInsertionMove))) {
-            //LikelihoodVariant old_variant = ann_network.options.likelihood_variant;
-            //ann_network.options.likelihood_variant = LikelihoodVariant::SARAH_PSEUDO;
-            //ann_network.options.likelihood_variant = old_variant;
-            optimizeReticulationProbs(ann_network);
-        }
 
         double bicScore = scoreNetwork(ann_network);
 
@@ -90,17 +107,36 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
         }
 
         if (old_bic/bicScore > ann_network.options.greedy_factor) {
-            candidates[0] = candidates[i];
-            candidates.resize(1);
-            apply_network_state(ann_network, oldState);
-            if (print_progress && ParallelContext::master()) {
-                std::cout << std::endl;
-            }
-            return;
-        }
+            switchLikelihoodVariant(ann_network, old_variant);
+            optimizeReticulationProbs(ann_network);
+            double real_bicScore = scoreNetwork(ann_network);
 
-        apply_network_state(ann_network, oldState);
+            /*if (print_progress && ParallelContext::master_rank() && ParallelContext::master_thread()) {
+                std::cout << "  reticulation prob: " << ann_network.reticulation_probs[0] << "\n";
+                std::cout << "  bicScore: " << bicScore << "\n";
+                std::cout << "  real bic score: " << real_bicScore << "\n";
+                std::cout << "  old_bic: " << old_bic << "\n";
+                std::cout << "  real_old_bic: " << real_old_bic << "\n";
+                std::cout << "  old_bic/bicScore: " << old_bic/bicScore << "\n";
+                std::cout << "  real_old_bic/real_bicScore: " << real_old_bic/real_bicScore << "\n";
+            }*/
+
+            if (real_old_bic/real_bicScore > ann_network.options.greedy_factor) {
+                candidates[0] = candidates[i];
+                candidates.resize(1);
+                apply_network_state(ann_network, oldState);
+                if (print_progress && ParallelContext::master_rank() && ParallelContext::master_thread()) {
+                    std::cout << std::endl;
+                }
+                switchLikelihoodVariant(ann_network, old_variant);
+                return;
+            } else {
+                switchLikelihoodVariant(ann_network, LikelihoodVariant::SARAH_PSEUDO);
+            }
+        }
+        undoMove(ann_network, move);
     }
+    apply_network_state(ann_network, oldState);
 
     if (print_progress && ParallelContext::master_rank() && ParallelContext::master_thread()) { 
         std::cout << std::endl;
@@ -132,6 +168,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
     for (size_t i = 0; i < candidates.size(); ++i) {
         assert(checkSanity(ann_network, candidates[i]));
     }
+    switchLikelihoodVariant(ann_network, old_variant);
 }
 
 template <typename T>

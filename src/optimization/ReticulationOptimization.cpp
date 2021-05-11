@@ -33,6 +33,10 @@ static double brent_target_networks_prob(void *p, double x) {
         ann_network->reticulation_probs[reticulation_index] = x;
         ann_network->cached_logl_valid = false;
 
+        if (ann_network->options.likelihood_variant == LikelihoodVariant::SARAH_PSEUDO) {
+            invalidateHigherCLVs(*ann_network, ann_network->network.reticulation_nodes[reticulation_index], false);
+        }
+
         score = -1 * computeLoglikelihood(*ann_network, 1, 1);
         //std::cout << "    score: " << score << ", x: " << x << ", old_x: " << old_x << ", pmatrix index:"
         //        << pmatrix_index << "\n";
@@ -44,13 +48,16 @@ double optimize_reticulation_linear_search(AnnotatedNetwork &ann_network, size_t
     double best_prob = ann_network.reticulation_probs[reticulation_index];
     double best_logl = computeLoglikelihood(ann_network);
 
-    double step = 1.0/1000;
+    double step = 1.0/100;
 
-    for (int i = 0; i <= 1000; ++i) {
+    for (int i = 0; i <= 1/step; ++i) {
         double mid = i * step;
 
         ann_network.reticulation_probs[reticulation_index] = mid;
         ann_network.cached_logl_valid = false;
+        if (ann_network.options.likelihood_variant == LikelihoodVariant::SARAH_PSEUDO) {
+            invalidateHigherCLVs(ann_network, ann_network.network.reticulation_nodes[reticulation_index], false);
+        }
 
         double act_logl = computeLoglikelihood(ann_network);
 
@@ -90,6 +97,10 @@ double optimize_reticulation(AnnotatedNetwork &ann_network, size_t reticulation_
     double new_brprob = pllmod_opt_minimize_brent(min_brprob, old_brprob, max_brprob, tolerance, &score,
             &f2x, (void*) &params, &brent_target_networks_prob);
     ann_network.reticulation_probs[reticulation_index] = new_brprob;
+    ann_network.cached_logl_valid = false;
+    if (ann_network.options.likelihood_variant == LikelihoodVariant::SARAH_PSEUDO) {
+        invalidateHigherCLVs(ann_network, ann_network.network.reticulation_nodes[reticulation_index], false);
+    }
 
     //std::cout << "old prob for reticulation " << reticulation_index << ": " << old_brprob << "\n";
     //std::cout << "new prob for reticulation " << reticulation_index << ": " << new_brprob << "\n";
