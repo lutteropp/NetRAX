@@ -251,7 +251,7 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
         assert(!brlen_opt_candidates.empty());
         //add_neighbors_in_radius(ann_network, brlen_opt_candidates, 1);
         optimize_branches(ann_network, max_iters, max_iters_outside, radius, brlen_opt_candidates);
-        //optimizeReticulationProbs(ann_network);
+        optimizeReticulationProbs(ann_network);
 
         double bicScore = scoreNetwork(ann_network);
 
