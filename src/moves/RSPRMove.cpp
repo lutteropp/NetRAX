@@ -321,11 +321,11 @@ std::vector<RSPRMove> possibleHeadMoves(AnnotatedNetwork &ann_network, const std
 }
 
 
-std::vector<RSPRMove> possibleTailMoves(AnnotatedNetwork &ann_network, bool noRSPR1Moves) {
+std::vector<RSPRMove> possibleTailMoves(AnnotatedNetwork &ann_network, bool noRSPR1Moves, size_t min_radius, size_t max_radius) {
     std::vector<RSPRMove> res;
     Network &network = ann_network.network;
-    for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::vector<RSPRMove> branch_moves = possibleTailMoves(ann_network, network.edges_by_index[i], noRSPR1Moves);
+    for (size_t i = 0; i < network.num_nodes(); ++i) {
+        std::vector<RSPRMove> branch_moves = possibleTailMoves(ann_network, network.nodes_by_index[i], noRSPR1Moves, min_radius, max_radius);
         res.insert(std::end(res), std::begin(branch_moves), std::end(branch_moves));
     }
     sortByProximity(res, ann_network);
@@ -333,11 +333,11 @@ std::vector<RSPRMove> possibleTailMoves(AnnotatedNetwork &ann_network, bool noRS
     return res;
 }
 
-std::vector<RSPRMove> possibleHeadMoves(AnnotatedNetwork &ann_network, bool noRSPR1Moves) {
+std::vector<RSPRMove> possibleHeadMoves(AnnotatedNetwork &ann_network, bool noRSPR1Moves, size_t min_radius, size_t max_radius) {
     std::vector<RSPRMove> res;
     Network &network = ann_network.network;
-    for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::vector<RSPRMove> branch_moves = possibleHeadMoves(ann_network, network.edges_by_index[i], noRSPR1Moves);
+    for (size_t i = 0; i < network.num_nodes(); ++i) {
+        std::vector<RSPRMove> branch_moves = possibleHeadMoves(ann_network, network.nodes_by_index[i], noRSPR1Moves, min_radius, max_radius);
         res.insert(std::end(res), std::begin(branch_moves), std::end(branch_moves));
     }
     sortByProximity(res, ann_network);
@@ -419,11 +419,11 @@ std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network, Node *no
     return res;
 }
 
-std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, bool noRSPR1Moves) {
+std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, bool noRSPR1Moves, size_t min_radius, size_t max_radius) {
     std::vector<RSPRMove> res;
     Network &network = ann_network.network;
-    for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::vector<RSPRMove> branch_moves = possibleRSPRMoves(ann_network, network.edges_by_index[i], noRSPR1Moves);
+    for (size_t i = 0; i < network.num_nodes(); ++i) {
+        std::vector<RSPRMove> branch_moves = possibleRSPRMoves(ann_network, network.nodes_by_index[i], noRSPR1Moves, min_radius, max_radius);
         res.insert(std::end(res), std::begin(branch_moves), std::end(branch_moves));
     }
     sortByProximity(res, ann_network);
@@ -431,11 +431,11 @@ std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, bool noRS
     return res;
 }
 
-std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network) {
+std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network, size_t min_radius, size_t max_radius) {
     std::vector<RSPRMove> res;
     Network &network = ann_network.network;
-    for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::vector<RSPRMove> branch_moves = possibleRSPR1Moves(ann_network, network.edges_by_index[i]);
+    for (size_t i = 0; i < network.num_nodes(); ++i) {
+        std::vector<RSPRMove> branch_moves = possibleRSPR1Moves(ann_network, network.nodes_by_index[i], min_radius, max_radius);
         res.insert(std::end(res), std::begin(branch_moves), std::end(branch_moves));
     }
     sortByProximity(res, ann_network);

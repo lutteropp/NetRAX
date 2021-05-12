@@ -415,26 +415,26 @@ std::vector<ArcInsertionMove> possibleDeltaPlusMoves(AnnotatedNetwork &ann_netwo
     return res;
 }
 
-std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_network, bool noDeltaPlus) {
+std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_network, bool noDeltaPlus, size_t min_radius, size_t max_radius) {
     std::vector<ArcInsertionMove> res;
     Network &network = ann_network.network;
-    for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::vector<ArcInsertionMove> moves = possibleArcInsertionMoves(ann_network,
-                network.edges_by_index[i], nullptr, nullptr, MoveType::ArcInsertionMove, noDeltaPlus);
-        res.insert(std::end(res), std::begin(moves), std::end(moves));
+    for (size_t i = 0; i < network.num_nodes(); ++i) {
+        std::vector<ArcInsertionMove> node_moves = possibleArcInsertionMoves(ann_network,
+                network.nodes_by_index[i], nullptr, nullptr, MoveType::ArcInsertionMove, noDeltaPlus, min_radius, max_radius);
+        res.insert(std::end(res), std::begin(node_moves), std::end(node_moves));
     }
     sortByProximity(res, ann_network);
     assert(checkSanity(ann_network, res));
     return res;
 }
 
-std::vector<ArcInsertionMove> possibleDeltaPlusMoves(AnnotatedNetwork &ann_network) {
+std::vector<ArcInsertionMove> possibleDeltaPlusMoves(AnnotatedNetwork &ann_network, size_t min_radius, size_t max_radius) {
     std::vector<ArcInsertionMove> res;
     Network &network = ann_network.network;
-    for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::vector<ArcInsertionMove> branch_moves = possibleDeltaPlusMoves(ann_network,
-                network.edges_by_index[i]);
-        res.insert(std::end(res), std::begin(branch_moves), std::end(branch_moves));
+    for (size_t i = 0; i < network.num_nodes(); ++i) {
+        std::vector<ArcInsertionMove> node_moves = possibleDeltaPlusMoves(ann_network,
+                network.nodes_by_index[i], min_radius, max_radius);
+        res.insert(std::end(res), std::begin(node_moves), std::end(node_moves));
     }
     sortByProximity(res, ann_network);
     assert(checkSanity(ann_network, res));

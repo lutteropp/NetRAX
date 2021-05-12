@@ -106,11 +106,11 @@ bool checkSanity(AnnotatedNetwork& ann_network, ArcInsertionMove& move);
 
 std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_network,
         const Edge *edge, bool noDeltaPlus = false);
-std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_network, bool noDeltaPlus = false);
+std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_network, bool noDeltaPlus = false, size_t min_radius = 0, size_t max_radius = std::numeric_limits<size_t>::max());
 
 std::vector<ArcInsertionMove> possibleDeltaPlusMoves(AnnotatedNetwork &ann_network,
         const Edge *edge);
-std::vector<ArcInsertionMove> possibleDeltaPlusMoves(AnnotatedNetwork &ann_network);
+std::vector<ArcInsertionMove> possibleDeltaPlusMoves(AnnotatedNetwork &ann_network, size_t min_radius = 0, size_t max_radius = std::numeric_limits<size_t>::max());
 
 
 std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_network,

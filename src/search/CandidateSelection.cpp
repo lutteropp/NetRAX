@@ -461,7 +461,7 @@ double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidat
     return scoreNetwork(ann_network);
 }
 
-double applyBestCandidate(AnnotatedNetwork& ann_network, MoveType type, const std::vector<MoveType>& typesBySpeed, double* best_score, BestNetworkData* bestNetworkData, bool enforce, bool silent) {
+double applyBestCandidate(AnnotatedNetwork& ann_network, MoveType type, const std::vector<MoveType>& typesBySpeed, double* best_score, BestNetworkData* bestNetworkData, bool enforce, bool silent, size_t min_radius, size_t max_radius) {
     bool rspr1_present = (std::find(typesBySpeed.begin(), typesBySpeed.end(), MoveType::RSPR1Move) != typesBySpeed.end());
     bool delta_plus_present = (std::find(typesBySpeed.begin(), typesBySpeed.end(), MoveType::DeltaPlusMove) != typesBySpeed.end());
     switch (type) {
@@ -469,22 +469,22 @@ double applyBestCandidate(AnnotatedNetwork& ann_network, MoveType type, const st
             applyBestCandidate(ann_network, possibleRNNIMoves(ann_network), best_score, bestNetworkData, false, silent);
             break;
         case MoveType::RSPRMove:
-            applyBestCandidate(ann_network, possibleRSPRMoves(ann_network, rspr1_present), best_score, bestNetworkData, false, silent);
+            applyBestCandidate(ann_network, possibleRSPRMoves(ann_network, rspr1_present, min_radius, max_radius), best_score, bestNetworkData, false, silent);
             break;
         case MoveType::RSPR1Move:
-            applyBestCandidate(ann_network, possibleRSPR1Moves(ann_network), best_score, bestNetworkData, false, silent);
+            applyBestCandidate(ann_network, possibleRSPR1Moves(ann_network, min_radius, max_radius), best_score, bestNetworkData, false, silent);
             break;
         case MoveType::HeadMove:
-            applyBestCandidate(ann_network, possibleHeadMoves(ann_network, rspr1_present), best_score, bestNetworkData, false, silent);
+            applyBestCandidate(ann_network, possibleHeadMoves(ann_network, rspr1_present, min_radius, max_radius), best_score, bestNetworkData, false, silent);
             break;
         case MoveType::TailMove:
-            applyBestCandidate(ann_network, possibleTailMoves(ann_network, rspr1_present), best_score, bestNetworkData, false, silent);
+            applyBestCandidate(ann_network, possibleTailMoves(ann_network, rspr1_present, min_radius, max_radius), best_score, bestNetworkData, false, silent);
             break;
         case MoveType::ArcInsertionMove:
-            applyBestCandidate(ann_network, possibleArcInsertionMoves(ann_network, delta_plus_present), best_score, bestNetworkData, false, silent);
+            applyBestCandidate(ann_network, possibleArcInsertionMoves(ann_network, delta_plus_present, min_radius, max_radius), best_score, bestNetworkData, false, silent);
             break;
         case MoveType::DeltaPlusMove:
-            applyBestCandidate(ann_network, possibleDeltaPlusMoves(ann_network), best_score, bestNetworkData, false, silent);
+            applyBestCandidate(ann_network, possibleDeltaPlusMoves(ann_network, min_radius, max_radius), best_score, bestNetworkData, false, silent);
             break;
         case MoveType::ArcRemovalMove:
             applyBestCandidate(ann_network, possibleArcRemovalMoves(ann_network), best_score, bestNetworkData, false, silent);
@@ -501,10 +501,13 @@ double applyBestCandidate(AnnotatedNetwork& ann_network, MoveType type, const st
 double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vector<MoveType>& typesBySpeed, double* best_score, BestNetworkData* bestNetworkData, bool silent) {
     double old_score = scoreNetwork(ann_network);
 
+    size_t min_radius = 0;
+    size_t max_radius = std::numeric_limits<size_t>::max();
+
     bool got_better = true;
     while (got_better) {
         got_better = false;
-        double score = applyBestCandidate(ann_network, type, typesBySpeed, best_score, bestNetworkData, false, silent);
+        double score = applyBestCandidate(ann_network, type, typesBySpeed, best_score, bestNetworkData, false, silent, min_radius, max_radius);
         if (score < old_score) {
             got_better = true;
             old_score = score;
