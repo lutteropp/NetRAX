@@ -89,7 +89,7 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candid
         assert(checkSanity(ann_network, move));
 
         performMove(ann_network, move);
-        if (recompute_from_scratch) { // TODO: This is a hotfix that just masks some bugs. Fix the bugs properly.
+        if (recompute_from_scratch && ann_network.options.likelihood_variant != LikelihoodVariant::SARAH_PSEUDO) { // TODO: This is a hotfix that just masks some bugs. Fix the bugs properly.
             computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
         }
         //optimizeReticulationProbs(ann_network);
@@ -124,6 +124,7 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candid
                 switchLikelihoodVariant(ann_network, LikelihoodVariant::SARAH_PSEUDO);
             }
         }
+
         undoMove(ann_network, move);
         if (move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::DeltaMinusMove) {
             apply_network_state(ann_network, oldState);
@@ -239,7 +240,7 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
         assert(checkSanity(ann_network, move));
 
         performMove(ann_network, move);
-        if (recompute_from_scratch) { // TODO: This is a hotfix that just masks some bugs. Fix the bugs properly.
+        if (recompute_from_scratch && ann_network.options.likelihood_variant != LikelihoodVariant::SARAH_PSEUDO) { // TODO: This is a hotfix that just masks some bugs. Fix the bugs properly.
             computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
         }
         std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
@@ -367,7 +368,7 @@ bool chooseCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidates, N
         assert(checkSanity(ann_network, move));
 
         performMove(ann_network, move);
-        if (recompute_from_scratch) { // TODO: This is a hotfix that just masks some bugs. Fix the bugs properly.
+        if (recompute_from_scratch && ann_network.options.likelihood_variant != LikelihoodVariant::SARAH_PSEUDO) { // TODO: This is a hotfix that just masks some bugs. Fix the bugs properly.
             computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
         }
         optimize_branches(ann_network, max_iters, max_iters_outside, radius);
