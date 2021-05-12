@@ -35,7 +35,7 @@ void switchLikelihoodVariant(AnnotatedNetwork& ann_network, LikelihoodVariant ne
 }
 
 template <typename T>
-double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, bool silent = true, bool print_progress = true) {
+double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, bool silent = true, bool print_progress = true, bool need_best_bic = false) {
     std::unordered_set<size_t> promisingNodes;
     
     if (candidates.empty()) {
@@ -100,12 +100,17 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candid
 
         if (bicScore < best_bic) {
             best_bic = bicScore;
-            switchLikelihoodVariant(ann_network, old_variant);
-            double actRealBIC = scoreNetwork(ann_network);
-            if (actRealBIC < best_real_bic) {
-                best_real_bic = actRealBIC;
-                ann_network.last_accepted_move_edge_orig_idx = move.edge_orig_idx;
-                switchLikelihoodVariant(ann_network, LikelihoodVariant::SARAH_PSEUDO);
+
+            if (need_best_bic && ann_network.network.num_reticulations() > 0) {
+                switchLikelihoodVariant(ann_network, old_variant);
+                double actRealBIC = scoreNetwork(ann_network);
+                if (actRealBIC < best_real_bic) {
+                    best_real_bic = actRealBIC;
+                    ann_network.last_accepted_move_edge_orig_idx = move.edge_orig_idx;
+                    switchLikelihoodVariant(ann_network, LikelihoodVariant::SARAH_PSEUDO);
+                }
+            } else {
+                best_real_bic = best_bic;
             }
         }
 
@@ -476,22 +481,22 @@ double best_fast_improvement(AnnotatedNetwork& ann_network, MoveType type, const
 
     if (type == MoveType::RSPR1Move) {
         auto candidates2 = possibleRSPRMoves(ann_network, rspr1_present, min_radius, max_radius);
-        score = prefilterCandidates(ann_network, candidates2, silent);
+        score = prefilterCandidates(ann_network, candidates2, silent, true, true);
     } else if (type == MoveType::RSPRMove) {
         auto candidates2 = possibleRSPRMoves(ann_network, rspr1_present, min_radius, max_radius);
-        score = prefilterCandidates(ann_network, candidates2, silent);
+        score = prefilterCandidates(ann_network, candidates2, silent, true, true);
     } else if (type == MoveType::HeadMove) {
         auto candidates4 = possibleHeadMoves(ann_network, rspr1_present, min_radius, max_radius);
-        score = prefilterCandidates(ann_network, candidates4, silent);
+        score = prefilterCandidates(ann_network, candidates4, silent, true, true);
     } else if (type == MoveType::TailMove) {
         auto candidates5 = possibleTailMoves(ann_network, rspr1_present, min_radius, max_radius);
-        score = prefilterCandidates(ann_network, candidates5, silent);    
+        score = prefilterCandidates(ann_network, candidates5, silent, true, true);    
     } else if (type == MoveType::ArcInsertionMove) {
         auto candidates6 = possibleArcInsertionMoves(ann_network, delta_plus_present, min_radius, max_radius);
-        score = prefilterCandidates(ann_network, candidates6, silent);    
+        score = prefilterCandidates(ann_network, candidates6, silent, true, true);    
     } else if (type == MoveType::DeltaPlusMove) {
         auto candidates7 = possibleDeltaPlusMoves(ann_network, min_radius, max_radius);
-        score = prefilterCandidates(ann_network, candidates7, silent);    
+        score = prefilterCandidates(ann_network, candidates7, silent, true, true);    
     }
     
     return score;
