@@ -25,7 +25,7 @@ double trim(double x, int digitsAfterComma) {
 }
 
 void switchLikelihoodVariant(AnnotatedNetwork& ann_network, LikelihoodVariant newVariant) {
-    return;
+    //return;
     if (ann_network.options.likelihood_variant == newVariant) {
         return;
     }
@@ -34,14 +34,12 @@ void switchLikelihoodVariant(AnnotatedNetwork& ann_network, LikelihoodVariant ne
 }
 
 template <typename T>
-std::vector<Node*> prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, bool silent = true, bool print_progress = true) {
-    std::vector<Node*> promisingNodes;
+void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, bool silent = true, bool print_progress = true) {
+    std::unordered_set<size_t> promisingNodes;
     
     if (candidates.empty()) {
-        return {};
+        return;
     }
-
-    silent = false;
 
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         if (print_progress) std::cout << "MoveType: " << toString(candidates[0].moveType) << " (" << candidates.size() << ")" << ", we currently have " << ann_network.network.num_reticulations() << " reticulations and BIC " << scoreNetwork(ann_network) << "\n";
@@ -94,7 +92,7 @@ std::vector<Node*> prefilterCandidates(AnnotatedNetwork& ann_network, std::vecto
         if (recompute_from_scratch) { // TODO: This is a hotfix that just masks some bugs. Fix the bugs properly.
             computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
         }
-        optimizeReticulationProbs(ann_network);
+        //optimizeReticulationProbs(ann_network);
 
         double bicScore = scoreNetwork(ann_network);
         nodeScore[move.node_orig_idx] = std::min(nodeScore[move.node_orig_idx], bicScore);
@@ -121,8 +119,7 @@ std::vector<Node*> prefilterCandidates(AnnotatedNetwork& ann_network, std::vecto
                     std::cout << std::endl;
                 }
                 switchLikelihoodVariant(ann_network, old_variant);
-                promisingNodes.emplace_back(ann_network.network.nodes_by_index[move.node_orig_idx]);
-                return promisingNodes;
+                return;
             } else {
                 switchLikelihoodVariant(ann_network, LikelihoodVariant::SARAH_PSEUDO);
             }
@@ -159,20 +156,25 @@ std::vector<Node*> prefilterCandidates(AnnotatedNetwork& ann_network, std::vecto
         }
         if (scores[i].bicScore <= cutoff_bic) {
             if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-                if (!silent) std::cout << "prefiltered node " << i << " has best BIC: " << scores[i].bicScore << "\n";
+                if (!silent) std::cout << "prefiltered node " << scores[i].item->clv_index << " has best BIC: " << scores[i].bicScore << "\n";
             }
-            promisingNodes.emplace_back(ann_network.network.nodes_by_index[i]);
+            promisingNodes.emplace(scores[i].item->clv_index);
             newSize++;
         }
 
-        /*if (newSize == ann_network.options.prefilter_keep) {
+        if (newSize == ann_network.options.prefilter_keep) {
             break;
-        }*/
+        }
     }
 
     size_t oldCandidatesSize = candidates.size();
-
-    candidates = possibleMoves(ann_network, promisingNodes, candidates[0]);
+    std::vector<T> newCandidates;
+    for (size_t i = 0; i < candidates.size(); ++i) {
+        if (promisingNodes.count(candidates[i].node_orig_idx) > 0) {
+            newCandidates.emplace_back(candidates[i]);
+        }
+    }
+    candidates = newCandidates;
 
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         if (print_progress) std::cout << "New size promising nodes after prefiltering: " << newSize << " vs. " << ann_network.network.num_nodes() << "\n";
@@ -184,7 +186,7 @@ std::vector<Node*> prefilterCandidates(AnnotatedNetwork& ann_network, std::vecto
     }
     switchLikelihoodVariant(ann_network, old_variant);
 
-    return promisingNodes;
+    return;
 }
 
 
