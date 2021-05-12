@@ -107,7 +107,7 @@ bool neighborsSame(const Network& n1, const Network& n2) {
     return same;
 }
 
-void extract_network_state(AnnotatedNetwork &ann_network, NetworkState& state_to_reuse, bool extract_network) {
+void extract_network_state(AnnotatedNetwork &ann_network, NetworkState& state_to_reuse, bool extract_network, bool extract_clvs) {
     assert(assert_tip_links(ann_network.network));
     assert(assert_links_in_range(ann_network.network));
     //assert_branch_lengths(ann_network);
@@ -170,7 +170,9 @@ void extract_network_state(AnnotatedNetwork &ann_network, NetworkState& state_to
         assert(consecutive_indices(state_to_reuse.network));
         assert(assert_tip_links(state_to_reuse.network));
     }
-    extract_displayed_trees_data(ann_network, state_to_reuse);
+    if (extract_clvs) {
+        extract_displayed_trees_data(ann_network, state_to_reuse);
+    }
     state_to_reuse.n_trees = (1 << ann_network.network.num_reticulations());
     state_to_reuse.n_branches = ann_network.network.num_branches();
 
@@ -194,22 +196,24 @@ void extract_network_state(AnnotatedNetwork &ann_network, NetworkState& state_to
                                             sizeof(double) + displacement); 
     }
 
-    if (ann_network.options.computePseudo) {
-        for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-            // skip remote partitions
-            if (!ann_network.fake_treeinfo->partitions[p]) {
-                continue;
-            }
-            for (size_t i = ann_network.network.num_tips(); i < ann_network.network.nodes.size(); ++i) {
-                for (size_t j = 0; j < ann_network.partition_clv_ranges[p].inner_clv_num_entries; ++j) {
-                    state_to_reuse.pseudo_partition_clvs[p][i][j] = ann_network.fake_treeinfo->partitions[p]->clv[i][j];
+    if (extract_clvs) {
+        if (ann_network.options.computePseudo) {
+            for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+                // skip remote partitions
+                if (!ann_network.fake_treeinfo->partitions[p]) {
+                    continue;
+                }
+                for (size_t i = ann_network.network.num_tips(); i < ann_network.network.nodes.size(); ++i) {
+                    for (size_t j = 0; j < ann_network.partition_clv_ranges[p].inner_clv_num_entries; ++j) {
+                        state_to_reuse.pseudo_partition_clvs[p][i][j] = ann_network.fake_treeinfo->partitions[p]->clv[i][j];
+                    }
                 }
             }
         }
     }
 }
 
-NetworkState extract_network_state(AnnotatedNetwork &ann_network, bool extract_network) {
+NetworkState extract_network_state(AnnotatedNetwork &ann_network, bool extract_network, bool extract_clvs) {
     NetworkState state(true);
     
     // branch lengths allocation stuff
@@ -301,7 +305,7 @@ NetworkState extract_network_state(AnnotatedNetwork &ann_network, bool extract_n
         }
     }
 
-    extract_network_state(ann_network, state, extract_network);
+    extract_network_state(ann_network, state, extract_network, extract_clvs);
 
     if (ann_network.options.computePseudo) {
         assert(state.pseudo_partition_clvs.size() == ann_network.fake_treeinfo->partition_count);
@@ -327,7 +331,7 @@ bool assert_rates(AnnotatedNetwork& ann_network) {
     return true;
 }
 
-void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &state, bool copy_network) {
+void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &state, bool copy_network, bool copy_clvs) {
     assert(ann_network.fake_treeinfo);
     assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
     //ann_network.options.brlen_linkage = state.brlen_linkage;
@@ -390,17 +394,19 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
         assert(assert_tip_links(ann_network.network));
         assert(assert_links_in_range(ann_network.network));
     }
-    apply_displayed_trees_data(state, ann_network);
-    // set all clvs to valid
-    for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-        // skip remote partitions
-        if (!ann_network.fake_treeinfo->partitions[p]) {
-            continue;
+    if (copy_clvs) {
+        apply_displayed_trees_data(state, ann_network);
+        // set all clvs to valid
+        for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+            // skip remote partitions
+            if (!ann_network.fake_treeinfo->partitions[p]) {
+                continue;
+            }
+            memset(ann_network.fake_treeinfo->clv_valid[p], 1, ann_network.network.num_nodes());
         }
-        memset(ann_network.fake_treeinfo->clv_valid[p], 1, ann_network.network.num_nodes());
+        ann_network.cached_logl = state.cached_logl;
+        ann_network.cached_logl_valid = state.cached_logl_valid;
     }
-    ann_network.cached_logl = state.cached_logl;
-    ann_network.cached_logl_valid = state.cached_logl_valid;
 
     assert(assert_branch_lengths(ann_network));
     assert(assert_rates(ann_network));
@@ -424,19 +430,21 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
         memset(ann_network.fake_treeinfo->pmatrix_valid[p], 1, ann_network.network.num_branches());
     }
 
-    if (ann_network.options.computePseudo) {
-        assert(state.pseudo_partition_clvs.size() == ann_network.fake_treeinfo->partition_count);
-        for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-            // skip remote partitions
-            if (!ann_network.fake_treeinfo->partitions[p]) {
-                continue;
-            }
-            for (size_t i = ann_network.network.num_tips(); i < ann_network.network.nodes.size(); ++i) {
-                assert(state.pseudo_partition_clvs[p][i]);
-                for (size_t j = 0; j < ann_network.partition_clv_ranges[p].inner_clv_num_entries; ++j) {
-                    ann_network.fake_treeinfo->partitions[p]->clv[i][j] = state.pseudo_partition_clvs[p][i][j];
+    if (copy_clvs) {
+        if (ann_network.options.computePseudo) {
+            assert(state.pseudo_partition_clvs.size() == ann_network.fake_treeinfo->partition_count);
+            for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+                // skip remote partitions
+                if (!ann_network.fake_treeinfo->partitions[p]) {
+                    continue;
                 }
-                ann_network.pseudo_clv_valid[i] = true;
+                for (size_t i = ann_network.network.num_tips(); i < ann_network.network.nodes.size(); ++i) {
+                    assert(state.pseudo_partition_clvs[p][i]);
+                    for (size_t j = 0; j < ann_network.partition_clv_ranges[p].inner_clv_num_entries; ++j) {
+                        ann_network.fake_treeinfo->partitions[p]->clv[i][j] = state.pseudo_partition_clvs[p][i][j];
+                    }
+                    ann_network.pseudo_clv_valid[i] = true;
+                }
             }
         }
     }

@@ -10,6 +10,7 @@
 #include "../io/NetworkIO.hpp"
 #include "../optimization/BranchLengthOptimization.hpp"
 #include "../optimization/Optimization.hpp"
+#include "../colormod.h" // namespace Color
 
 namespace netrax {
 
@@ -25,7 +26,7 @@ double trim(double x, int digitsAfterComma) {
 }
 
 void switchLikelihoodVariant(AnnotatedNetwork& ann_network, LikelihoodVariant newVariant) {
-    //return;
+    return;
     if (ann_network.options.likelihood_variant == newVariant) {
         return;
     }
@@ -117,6 +118,7 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candid
             if (real_old_bic/real_bicScore > ann_network.options.greedy_factor) {
                 candidates[0] = candidates[i];
                 candidates.resize(1);
+                undoMove(ann_network, move);
                 apply_network_state(ann_network, oldState);
                 if (print_progress && ParallelContext::master_rank() && ParallelContext::master_thread()) {
                     std::cout << std::endl;
@@ -268,6 +270,7 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
         if (old_bic/bicScore > ann_network.options.greedy_factor) {
             candidates[0] = candidates[i];
             candidates.resize(1);
+            undoMove(ann_network, move);
             apply_network_state(ann_network, oldState);
             if (print_progress && ParallelContext::master_rank() && ParallelContext::master_thread()) {
                 std::cout << std::endl;
@@ -394,6 +397,7 @@ bool chooseCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidates, N
         if (old_bic/bicScore > ann_network.options.greedy_factor) {
             candidates[0] = candidates[i];
             candidates.resize(1);
+            undoMove(ann_network, move);
             apply_network_state(ann_network, oldState);
             if (print_progress && ParallelContext::master_rank() && ParallelContext::master_thread()) {
                 std::cout << std::endl;
@@ -403,6 +407,7 @@ bool chooseCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidates, N
 
         scores[i] = ScoreItem<T>{candidates[i], bicScore};
 
+        undoMove(ann_network, move);
         apply_network_state(ann_network, oldState);
     }
     if (print_progress && ParallelContext::master_rank() && ParallelContext::master_thread()) {
@@ -532,33 +537,45 @@ double applyBestCandidate(AnnotatedNetwork& ann_network, MoveType type, const st
 
 double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vector<MoveType>& typesBySpeed, double* best_score, BestNetworkData* bestNetworkData, bool silent) {
     double old_score = scoreNetwork(ann_network);
+    
+    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+        Color::Modifier blue(Color::FG_BLUE);
+        Color::Modifier def(Color::FG_DEFAULT);
+        std::cout << blue;
+        std::cout << "\nStarting full search for move type: " << toString(type) << "\n";
+        std::cout << def;
+    }
 
     int best_max_distance = 0;
-    // step 1: find best max distance
-    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-        std::cout << "\nstep1: find best max distance\n";
-    }
-    int act_max_distance = 0;
-    int old_max_distance = 0;
-    double old_greedy_factor = ann_network.options.greedy_factor;
-    ann_network.options.greedy_factor = 1.0;
-    NetworkState oldState = extract_network_state(ann_network);
-    while (act_max_distance < ann_network.options.max_rearrangement_distance) {
-        act_max_distance = std::min(act_max_distance + 5, ann_network.options.max_rearrangement_distance);
-        double score = best_fast_improvement(ann_network, type, typesBySpeed, best_score, bestNetworkData, silent, old_max_distance, act_max_distance);
-        if (score < old_score) {
-            old_max_distance = act_max_distance + 1;
-            best_max_distance = act_max_distance;
-        } else {
-            assert(score == old_score);
-            break;
+    if (type == MoveType::RNNIMove || type == MoveType::ArcRemovalMove || type == MoveType::DeltaMinusMove) {
+        best_max_distance = ann_network.options.max_rearrangement_distance;
+    } else {
+        // step 1: find best max distance
+        if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+            std::cout << "step1: find best max distance\n";
         }
-        apply_network_state(ann_network, oldState);
-    }
-    ann_network.options.greedy_factor = old_greedy_factor;
+        int act_max_distance = 0;
+        int old_max_distance = 0;
+        double old_greedy_factor = ann_network.options.greedy_factor;
+        ann_network.options.greedy_factor = 1.0;
+        NetworkState oldState = extract_network_state(ann_network);
+        while (act_max_distance < ann_network.options.max_rearrangement_distance) {
+            act_max_distance = std::min(act_max_distance + 5, ann_network.options.max_rearrangement_distance);
+            double score = best_fast_improvement(ann_network, type, typesBySpeed, best_score, bestNetworkData, silent, old_max_distance, act_max_distance);
+            if (score < old_score) {
+                old_max_distance = act_max_distance + 1;
+                best_max_distance = act_max_distance;
+            } else {
+                assert(score == old_score);
+                break;
+            }
+            apply_network_state(ann_network, oldState);
+        }
+        ann_network.options.greedy_factor = old_greedy_factor;
 
-    optimizeAllNonTopology(ann_network);
-    check_score_improvement(ann_network, best_score, bestNetworkData);
+        optimizeAllNonTopology(ann_network);
+        check_score_improvement(ann_network, best_score, bestNetworkData);
+    }
 
     // step 2: fast iterations mode, with the best max distance
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
@@ -585,6 +602,9 @@ double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vecto
     }
     int min_dist = 0;
     int max_dist = 5;
+    if (type == MoveType::RNNIMove || type == MoveType::ArcRemovalMove || type == MoveType::DeltaMinusMove) {
+        max_dist = ann_network.options.max_rearrangement_distance;
+    }
     got_better = true;
     while (got_better) {
         got_better = false;
@@ -594,6 +614,9 @@ double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vecto
             old_score = score;
             min_dist = 0;
             max_dist = 5;
+            if (type == MoveType::RNNIMove || type == MoveType::ArcRemovalMove || type == MoveType::DeltaMinusMove) {
+                max_dist = ann_network.options.max_rearrangement_distance;
+            }
         } else if (max_dist < ann_network.options.max_rearrangement_distance) {
             got_better = true;
             min_dist = max_dist + 1;

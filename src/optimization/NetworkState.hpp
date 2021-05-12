@@ -107,9 +107,9 @@ struct NetworkState {
 
 bool neighborsSame(const Network& n1, const Network& n2);
 
-NetworkState extract_network_state(AnnotatedNetwork &ann_network, bool extract_network = true);
-void extract_network_state(AnnotatedNetwork &ann_network, NetworkState& state_to_reuse, bool extract_network = true);
-void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &state, bool copy_network = true);
+NetworkState extract_network_state(AnnotatedNetwork &ann_network, bool extract_network = true, bool extract_clvs = true);
+void extract_network_state(AnnotatedNetwork &ann_network, NetworkState& state_to_reuse, bool extract_network = true, bool extract_clvs = true);
+void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &state, bool copy_network = true, bool copy_clvs = true);
 bool network_states_equal(const NetworkState& old_state, const NetworkState &act_state);
 AnnotatedNetwork build_annotated_network_from_state(NetworkState& state, const NetraxOptions& options);
 
