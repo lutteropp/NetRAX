@@ -126,4 +126,5 @@ def gather_labeled_settings():
     setups['t_15_change_reticulation_count'] = exp_change_reticulation_count(15)
     setups['t_15_unpartitioned'] = exp_unpartitioned(15)
     setups['smoke_test_fixed'] = smoke_test_fixed(40, 4)
+    setups['smoke_test_medium'] = smoke_test_fixed(20, 2)
     return setups
