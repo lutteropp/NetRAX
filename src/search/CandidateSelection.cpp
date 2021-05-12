@@ -63,7 +63,8 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candid
     double real_old_bic = scoreNetwork(ann_network);
     switchLikelihoodVariant(ann_network, LikelihoodVariant::SARAH_PSEUDO);
 
-    double best_bic = std::numeric_limits<double>::infinity();
+    double best_bic = old_bic; //std::numeric_limits<double>::infinity();
+    double best_real_bic = real_old_bic;
 
     NetworkState oldState = extract_network_state(ann_network);
 
@@ -103,7 +104,13 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candid
 
         if (bicScore < best_bic) {
             best_bic = bicScore;
-            ann_network.last_accepted_move_edge_orig_idx = move.edge_orig_idx;
+            switchLikelihoodVariant(ann_network, old_variant);
+            double actRealBIC = scoreNetwork(ann_network);
+            if (actRealBIC < best_real_bic) {
+                best_real_bic = actRealBIC;
+                ann_network.last_accepted_move_edge_orig_idx = move.edge_orig_idx;
+                switchLikelihoodVariant(ann_network, LikelihoodVariant::SARAH_PSEUDO);
+            }
         }
 
         double extra_offset = (ann_network.options.likelihood_variant == LikelihoodVariant::SARAH_PSEUDO) ? 0.01 : 0.0; // +0.01 because we tend to over-estimate with pseudologlikelihood
@@ -119,7 +126,7 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candid
                     std::cout << std::endl;
                 }
                 switchLikelihoodVariant(ann_network, old_variant);
-                return best_bic;
+                return real_bicScore;
             } else {
                 switchLikelihoodVariant(ann_network, LikelihoodVariant::SARAH_PSEUDO);
             }
@@ -187,7 +194,7 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candid
     }
     switchLikelihoodVariant(ann_network, old_variant);
 
-    return best_bic;
+    return best_real_bic;
 }
 
 
@@ -538,7 +545,7 @@ double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vecto
     int act_max_distance = 0;
     int old_max_distance = 0;
     double old_greedy_factor = ann_network.options.greedy_factor;
-    ann_network.options.greedy_factor = std::numeric_limits<double>::infinity();
+    ann_network.options.greedy_factor = 1.0;
     NetworkState oldState = extract_network_state(ann_network);
     while (act_max_distance < ann_network.options.max_rearrangement_distance) {
         act_max_distance = std::min(act_max_distance + 5, ann_network.options.max_rearrangement_distance);
