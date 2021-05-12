@@ -34,11 +34,11 @@ void switchLikelihoodVariant(AnnotatedNetwork& ann_network, LikelihoodVariant ne
 }
 
 template <typename T>
-void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, bool silent = true, bool print_progress = true) {
+double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, bool silent = true, bool print_progress = true) {
     std::unordered_set<size_t> promisingNodes;
     
     if (candidates.empty()) {
-        return;
+        return scoreNetwork(ann_network);
     }
 
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
@@ -119,7 +119,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
                     std::cout << std::endl;
                 }
                 switchLikelihoodVariant(ann_network, old_variant);
-                return;
+                return best_bic;
             } else {
                 switchLikelihoodVariant(ann_network, LikelihoodVariant::SARAH_PSEUDO);
             }
@@ -186,7 +186,7 @@ void prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidat
     }
     switchLikelihoodVariant(ann_network, old_variant);
 
-    return;
+    return best_bic;
 }
 
 
@@ -429,7 +429,7 @@ bool chooseCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidates, N
 template <typename T>
 double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidates, double* best_score, BestNetworkData* bestNetworkData, bool enforce, bool silent) {
     NetworkState state = extract_network_state(ann_network);
-    bool found_better_state = chooseCandidate(ann_network, candidates, &state, enforce, true);
+    bool found_better_state = chooseCandidate(ann_network, candidates, &state, enforce, silent);
     double old_score = scoreNetwork(ann_network);
 
     if (found_better_state) {
@@ -459,6 +459,34 @@ double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidat
     }
 
     return scoreNetwork(ann_network);
+}
+
+double best_fast_improvement(AnnotatedNetwork& ann_network, MoveType type, const std::vector<MoveType>& typesBySpeed, double* best_score, BestNetworkData* bestNetworkData, bool silent, size_t min_radius, size_t max_radius) {
+    bool rspr1_present = (std::find(typesBySpeed.begin(), typesBySpeed.end(), MoveType::RSPR1Move) != typesBySpeed.end());
+    bool delta_plus_present = (std::find(typesBySpeed.begin(), typesBySpeed.end(), MoveType::DeltaPlusMove) != typesBySpeed.end());
+    double score = scoreNetwork(ann_network);
+
+    if (type == MoveType::RSPR1Move) {
+        auto candidates2 = possibleRSPRMoves(ann_network, rspr1_present, min_radius, max_radius);
+        score = prefilterCandidates(ann_network, candidates2, silent);
+    } else if (type == MoveType::RSPRMove) {
+        auto candidates2 = possibleRSPRMoves(ann_network, rspr1_present, min_radius, max_radius);
+        score = prefilterCandidates(ann_network, candidates2, silent);
+    } else if (type == MoveType::HeadMove) {
+        auto candidates4 = possibleHeadMoves(ann_network, rspr1_present, min_radius, max_radius);
+        score = prefilterCandidates(ann_network, candidates4, silent);
+    } else if (type == MoveType::TailMove) {
+        auto candidates5 = possibleTailMoves(ann_network, rspr1_present, min_radius, max_radius);
+        score = prefilterCandidates(ann_network, candidates5, silent);    
+    } else if (type == MoveType::ArcInsertionMove) {
+        auto candidates6 = possibleArcInsertionMoves(ann_network, delta_plus_present, min_radius, max_radius);
+        score = prefilterCandidates(ann_network, candidates6, silent);    
+    } else if (type == MoveType::DeltaPlusMove) {
+        auto candidates7 = possibleDeltaPlusMoves(ann_network, min_radius, max_radius);
+        score = prefilterCandidates(ann_network, candidates7, silent);    
+    }
+    
+    return score;
 }
 
 double applyBestCandidate(AnnotatedNetwork& ann_network, MoveType type, const std::vector<MoveType>& typesBySpeed, double* best_score, BestNetworkData* bestNetworkData, bool enforce, bool silent, size_t min_radius, size_t max_radius) {
@@ -501,18 +529,73 @@ double applyBestCandidate(AnnotatedNetwork& ann_network, MoveType type, const st
 double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vector<MoveType>& typesBySpeed, double* best_score, BestNetworkData* bestNetworkData, bool silent) {
     double old_score = scoreNetwork(ann_network);
 
-    size_t min_radius = 0;
-    size_t max_radius = ann_network.options.max_rearrangement_distance;
+    int best_max_distance = 0;
+    // step 1: find best max distance
+    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+        std::cout << "\nstep1: find best max distance\n";
+    }
+    int act_max_distance = 0;
+    int old_max_distance = 0;
+    double old_greedy_factor = ann_network.options.greedy_factor;
+    ann_network.options.greedy_factor = std::numeric_limits<double>::infinity();
+    NetworkState oldState = extract_network_state(ann_network);
+    while (act_max_distance < ann_network.options.max_rearrangement_distance) {
+        act_max_distance = std::min(act_max_distance + 5, ann_network.options.max_rearrangement_distance);
+        double score = best_fast_improvement(ann_network, type, typesBySpeed, best_score, bestNetworkData, silent, old_max_distance, act_max_distance);
+        if (score < old_score) {
+            old_max_distance = act_max_distance + 1;
+            best_max_distance = act_max_distance;
+        } else {
+            assert(score == old_score);
+            break;
+        }
+        apply_network_state(ann_network, oldState);
+    }
+    ann_network.options.greedy_factor = old_greedy_factor;
 
+    optimizeAllNonTopology(ann_network);
+
+    // step 2: fast iterations mode, with the best max distance
+    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+        std::cout << "\nstep 2: fast iterations mode, with the best max distance " << best_max_distance << "\n";
+    }
     bool got_better = true;
     while (got_better) {
         got_better = false;
-        double score = applyBestCandidate(ann_network, type, typesBySpeed, best_score, bestNetworkData, false, silent, min_radius, max_radius);
+        double score = applyBestCandidate(ann_network, type, typesBySpeed, best_score, bestNetworkData, false, silent, 0, best_max_distance);
         if (score < old_score) {
             got_better = true;
             old_score = score;
         }
     }
+
+    optimizeAllNonTopology(ann_network);
+
+    bool old_no_prefiltering = ann_network.options.no_prefiltering;
+    ann_network.options.no_prefiltering = true;
+    // step 3: slow iterations mode, with increasing max distance
+    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+        std::cout << "\nstep 3: slow iterations mode, with increasing max distance\n";
+    }
+    int min_dist = 0;
+    int max_dist = 5;
+    got_better = true;
+    while (got_better) {
+        got_better = false;
+        double score = applyBestCandidate(ann_network, type, typesBySpeed, best_score, bestNetworkData, false, silent, min_dist, max_dist);
+        if (score < old_score) {
+            got_better = true;
+            old_score = score;
+            min_dist = 0;
+            max_dist = 5;
+        } else if (max_dist < ann_network.options.max_rearrangement_distance) {
+            got_better = true;
+            min_dist = max_dist + 1;
+            max_dist = std::min(max_dist + 5, ann_network.options.max_rearrangement_distance);
+        }
+    }
+    ann_network.options.no_prefiltering = old_no_prefiltering;
+
     optimizeAllNonTopology(ann_network);
     old_score = scoreNetwork(ann_network);
     check_score_improvement(ann_network, best_score, bestNetworkData);
