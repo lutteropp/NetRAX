@@ -53,10 +53,6 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candid
     float progress = 0.0;
     int barWidth = 70;
 
-    double brlen_smooth_factor = 0.25;
-    int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
-    int max_iters_outside = max_iters;
-    int radius = 1;
     double old_bic = scoreNetwork(ann_network);
 
     switchLikelihoodVariant(ann_network, old_variant);
@@ -214,7 +210,7 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
     float progress = 0.0;
     int barWidth = 70;
 
-    double brlen_smooth_factor = 0.25;
+    double brlen_smooth_factor = 1;//0.25;
     int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
     int max_iters_outside = 1;
     int radius = 1;
@@ -252,9 +248,9 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
         }
         std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
         assert(!brlen_opt_candidates.empty());
-        add_neighbors_in_radius(ann_network, brlen_opt_candidates, 1);
+        //add_neighbors_in_radius(ann_network, brlen_opt_candidates, 1);
         optimize_branches(ann_network, max_iters, max_iters_outside, radius, brlen_opt_candidates);
-        optimizeReticulationProbs(ann_network);;
+        //optimizeReticulationProbs(ann_network);
 
         double bicScore = scoreNetwork(ann_network);
 
@@ -337,7 +333,7 @@ bool chooseCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidates, N
     float progress = 0.0;
     int barWidth = 70;
 
-    double brlen_smooth_factor = 0.25;
+    double brlen_smooth_factor = 1;//0.25;
     int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
     int max_iters_outside = 1;//max_iters; // this says how often we will optimize the same branch again
     int radius = 1;
@@ -562,6 +558,7 @@ double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vecto
     ann_network.options.greedy_factor = old_greedy_factor;
 
     optimizeAllNonTopology(ann_network);
+    check_score_improvement(ann_network, best_score, bestNetworkData);
 
     // step 2: fast iterations mode, with the best max distance
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
@@ -578,6 +575,7 @@ double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vecto
     }
 
     optimizeAllNonTopology(ann_network);
+    check_score_improvement(ann_network, best_score, bestNetworkData);
 
     bool old_no_prefiltering = ann_network.options.no_prefiltering;
     ann_network.options.no_prefiltering = true;
