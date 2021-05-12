@@ -83,6 +83,8 @@ public:
     unsigned int scrambling = 5;
     unsigned int scrambling_radius = 2;
 
+    unsigned int max_rearrangement_distance = 25;
+
     bool sim_anneal = false;
     double start_temperature = 100;
 

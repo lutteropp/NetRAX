@@ -502,7 +502,7 @@ double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vecto
     double old_score = scoreNetwork(ann_network);
 
     size_t min_radius = 0;
-    size_t max_radius = std::numeric_limits<size_t>::max();
+    size_t max_radius = ann_network.options.max_rearrangement_distance;
 
     bool got_better = true;
     while (got_better) {
