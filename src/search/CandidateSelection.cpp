@@ -26,7 +26,7 @@ double trim(double x, int digitsAfterComma) {
 }
 
 void switchLikelihoodVariant(AnnotatedNetwork& ann_network, LikelihoodVariant newVariant) {
-    //return;
+    return;
     if (ann_network.options.likelihood_variant == newVariant) {
         return;
     }
@@ -89,7 +89,12 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candid
         if (recompute_from_scratch && ann_network.options.likelihood_variant != LikelihoodVariant::SARAH_PSEUDO) { // TODO: This is a hotfix that just masks some bugs. Fix the bugs properly.
             computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
         }
-        //optimizeReticulationProbs(ann_network);
+        if (move.moveType == MoveType::ArcInsertionMove || move.moveType == MoveType::DeltaPlusMove) {
+            optimizeReticulationProbs(ann_network);
+            std::unordered_set<size_t> brlenopt_candidates;
+            brlenopt_candidates.emplace(((ArcInsertionMove*) &move)->wanted_uv_pmatrix_index);
+            optimizeBranchesCandidates(ann_network, brlenopt_candidates);
+        }
 
         double bicScore = scoreNetwork(ann_network);
         nodeScore[move.node_orig_idx] = std::min(nodeScore[move.node_orig_idx], bicScore);
@@ -632,7 +637,7 @@ double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vecto
     }
     ann_network.options.no_prefiltering = old_no_prefiltering;
 
-    optimizeAllNonTopology(ann_network);
+    optimizeAllNonTopology(ann_network, true);
     old_score = scoreNetwork(ann_network);
     check_score_improvement(ann_network, best_score, bestNetworkData);
 

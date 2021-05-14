@@ -131,20 +131,8 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
 std::vector<MoveType> getTypesBySpeed(const NetraxOptions& options) {
     //std::vector<MoveType> typesBySpeed = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::TailMove, MoveType::ArcRemovalMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
 
-    std::vector<MoveType> typesBySpeed = {MoveType::RNNIMove, MoveType::RSPRMove, MoveType::ArcRemovalMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
+    std::vector<MoveType> typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RSPRMove, MoveType::RNNIMove, MoveType::ArcInsertionMove};
 
-    if (options.no_rnni_moves) {
-        typesBySpeed.erase(std::remove(typesBySpeed.begin(), typesBySpeed.end(), MoveType::RNNIMove), typesBySpeed.end());
-    }
-    if (options.no_tail_moves) {
-        typesBySpeed.erase(std::remove(typesBySpeed.begin(), typesBySpeed.end(), MoveType::TailMove), typesBySpeed.end());
-    }
-    if (options.no_head_moves) {
-        typesBySpeed.erase(std::remove(typesBySpeed.begin(), typesBySpeed.end(), MoveType::HeadMove), typesBySpeed.end());
-    }
-    if (options.no_arc_insertion_moves) {
-        typesBySpeed.erase(std::remove(typesBySpeed.begin(), typesBySpeed.end(), MoveType::ArcInsertionMove), typesBySpeed.end());
-    }
     return typesBySpeed;
 }
 

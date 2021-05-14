@@ -243,7 +243,7 @@ std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_ne
                         a_u_len = get_halved_edge_lengths(a_b_len, min_br);
                         v_d_len = get_minus_edge_lengths(c_d_len, c_v_len, min_br);
                         u_b_len = get_minus_edge_lengths(a_b_len, a_u_len, min_br);
-                        u_v_len = std::vector<double>(ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED ? ann_network.fake_treeinfo->partition_count : 1, 1.0);
+                        u_v_len = std::vector<double>(ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED ? ann_network.fake_treeinfo->partition_count : 1, min_br);
 
                         ArcInsertionMove move = buildArcInsertionMove(a->clv_index, b->clv_index,
                                 c_cand->clv_index, d_cand->clv_index, u_v_len, c_v_len,
@@ -498,6 +498,12 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
             move.wanted_cv_pmatrix_index);
     Edge *u_v_edge = addEdge(ann_network, u_v_link, v_u_link, u_v_edge_length[0],
             move.wanted_uv_pmatrix_index);
+
+    move.wanted_au_pmatrix_index = a_u_edge->pmatrix_index;
+    move.wanted_cv_pmatrix_index = c_v_edge->pmatrix_index;
+    move.wanted_ub_pmatrix_index = u_b_edge->pmatrix_index;
+    move.wanted_vd_pmatrix_index = v_d_edge->pmatrix_index;
+    move.wanted_uv_pmatrix_index = u_v_edge->pmatrix_index;
 
     v->getReticulationData()->link_to_first_parent = v_u_link;
     v->getReticulationData()->link_to_second_parent = v_c_link;

@@ -36,6 +36,28 @@ void optimizeBranches(AnnotatedNetwork &ann_network, bool silent, bool restricte
     optimize_scalers(ann_network, silent);
 }
 
+void optimizeBranchesCandidates(AnnotatedNetwork &ann_network, std::unordered_set<size_t> brlenopt_candidates, bool silent, bool restricted_total_iters) {
+    double old_score = scoreNetwork(ann_network);
+
+    int brlen_smooth_factor = 100;
+    int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
+    int radius = PLLMOD_OPT_BRLEN_OPTIMIZE_ALL;
+    optimize_branches(ann_network, max_iters, max_iters, radius, brlenopt_candidates, restricted_total_iters);
+
+    double new_score = scoreNetwork(ann_network);
+    if (!silent && ParallelContext::master()) std::cout << "BIC score after branch length optimization: " << new_score << "\n";
+
+    if (new_score > old_score) {
+        std::cout << "old score: " << old_score << "\n";
+        std::cout << "new score: " << new_score << "\n";
+        throw std::runtime_error("Complete brlenopt made BIC worse");
+    }
+
+    assert(new_score <= old_score);
+
+    optimize_scalers(ann_network, silent);
+}
+
 /**
  * Re-infers the likelihood model parameters of a given network.
  * 
