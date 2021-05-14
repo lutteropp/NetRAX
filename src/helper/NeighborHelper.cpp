@@ -132,4 +132,22 @@ std::vector<Node*> getNeighborsWithinRadius(const Network& network, Node* node, 
     return res;
 }
 
+bool topology_equal(Network& n1, Network& n2) {
+    if (n1.num_branches() != n2.num_branches()) {
+        std::cout << "topology not equal: different num branches \n";
+        return false;
+    }
+    for (size_t i = 0; i < n1.num_branches(); ++i) {
+        if (getSource(n1, n1.edges_by_index[i])->clv_index != getSource(n2, n2.edges_by_index[i])->clv_index) {
+            std::cout << "topology not equal\n";
+            return false;
+        }
+        if (getTarget(n1, n1.edges_by_index[i])->clv_index != getTarget(n2, n2.edges_by_index[i])->clv_index) {
+            std::cout << "topology not equal\n";
+            return false;
+        }
+    }
+    return true;
+}
+
 }

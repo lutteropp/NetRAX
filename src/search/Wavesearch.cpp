@@ -100,6 +100,7 @@ void wavesearch_internal(AnnotatedNetwork& ann_network, BestNetworkData* bestNet
             } else {
                 applyBestCandidate(ann_network, MoveType::DeltaMinusMove, typesBySpeed, best_score, bestNetworkData, true, silent);
             }
+            start_idx = 0;
             check_score_improvement(ann_network, best_score, bestNetworkData);
             optimizeEverythingRun(ann_network, typesBySpeed, start_state_to_reuse, best_state_to_reuse, start_time, bestNetworkData, start_idx);
             check_score_improvement(ann_network, best_score, bestNetworkData);
@@ -112,6 +113,8 @@ void wavesearch_internal(AnnotatedNetwork& ann_network, BestNetworkData* bestNet
 }
 
 void wavesearch_main_internal(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData, const std::vector<MoveType>& typesBySpeed, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, double* best_score, const std::chrono::high_resolution_clock::time_point& start_time, size_t start_idx, bool silent = false) {
+    bool copyNetwork = false;
+    
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         std::cout << "Starting wavesearch with move types: ";
         for (size_t j = 0; j < typesBySpeed.size(); ++j) {
@@ -128,6 +131,7 @@ void wavesearch_main_internal(AnnotatedNetwork& ann_network, BestNetworkData* be
     double old_best_score = *best_score;
 
     if (ann_network.options.scrambling > 0) {
+        start_idx = 0;
         if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
             Color::Modifier blue(Color::FG_BLUE);
             Color::Modifier def(Color::FG_DEFAULT);
@@ -171,8 +175,10 @@ void wavesearch_main_internal(AnnotatedNetwork& ann_network, BestNetworkData* be
 
 
 void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData, const std::vector<MoveType>& typesBySpeed, bool silent) {
-    NetworkState start_state_to_reuse = extract_network_state(ann_network, false);
-    NetworkState best_state_to_reuse = extract_network_state(ann_network, false);
+    bool copyNetwork = false;
+
+    NetworkState start_state_to_reuse = extract_network_state(ann_network);
+    NetworkState best_state_to_reuse = extract_network_state(ann_network);
     auto start_time = std::chrono::high_resolution_clock::now();
     double best_score = std::numeric_limits<double>::infinity();
     ScoreImprovementResult score_improvement;

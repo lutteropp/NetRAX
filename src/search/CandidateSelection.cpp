@@ -27,6 +27,7 @@ double trim(double x, int digitsAfterComma) {
 
 void switchLikelihoodVariant(AnnotatedNetwork& ann_network, LikelihoodVariant newVariant) {
     return;
+
     if (ann_network.options.likelihood_variant == newVariant) {
         return;
     }
@@ -127,12 +128,8 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candid
         return scoreNetwork(ann_network);
     }
 
-    if (!need_best_bic && ann_network.options.prefilter_keep >= ann_network.network.num_inner()) {
+    if (!need_best_bic && ann_network.options.prefilter_keep >= candidates.size()) {
         return scoreNetwork(ann_network); // we would keep all anyway...
-    }
-
-    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-        if (print_progress) std::cout << "MoveType: " << toString(candidates[0].moveType) << " (" << candidates.size() << ")" << ", we currently have " << ann_network.network.num_reticulations() << " reticulations and BIC " << scoreNetwork(ann_network) << "\n";
     }
 
     std::vector<ScoreItem<T> > scores(candidates.size());
@@ -144,6 +141,7 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candid
 
     int barWidth = 70;
 
+    double old_logl = computeLoglikelihood(ann_network);
     double old_bic = scoreNetwork(ann_network);
 
     switchLikelihoodVariant(ann_network, old_variant);
@@ -169,6 +167,7 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candid
         if (recompute_from_scratch && ann_network.options.likelihood_variant != LikelihoodVariant::SARAH_PSEUDO) { // TODO: This is a hotfix that just masks some bugs. Fix the bugs properly.
             computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
         }
+        assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
         if (move.moveType == MoveType::ArcInsertionMove || move.moveType == MoveType::DeltaPlusMove) {
             optimizeReticulationProbs(ann_network);
             std::unordered_set<size_t> brlenopt_candidates;
@@ -178,6 +177,7 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candid
 
         double bicScore = scoreNetwork(ann_network);
         nodeScore[move.node_orig_idx] = std::min(nodeScore[move.node_orig_idx], bicScore);
+        scores[i] = ScoreItem<T>{candidates[i], bicScore};
 
         for (size_t j = 0; j < ann_network.network.num_nodes(); ++j) {
             assert(ann_network.network.nodes_by_index[j]->clv_index == j);
@@ -219,10 +219,14 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candid
             }
         }
 
+        assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+
         undoMove(ann_network, move);
-        if (move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::DeltaMinusMove || move.moveType == MoveType::RSPRMove) {
-            apply_network_state(ann_network, oldState);
-        }
+        assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+
+        apply_network_state(ann_network, oldState);
+
+        assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
     }
     apply_network_state(ann_network, oldState);
 
@@ -233,6 +237,7 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candid
     size_t oldCandidatesSize = candidates.size();
     std::unordered_set<size_t> promisingNodes = findPromisingNodes(ann_network, nodeScore, silent);
     filterCandidatesByNodes(candidates, promisingNodes);
+    //filterCandidatesByScore(candidates, scores, ann_network.options.prefilter_keep, false, silent);
 
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         if (print_progress) std::cout << "New size candidates after prefiltering: " << candidates.size() << " vs. " << oldCandidatesSize << "\n";
@@ -253,7 +258,7 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
         return;
     }
     if (!ann_network.options.no_prefiltering) {
-        prefilterCandidates(ann_network, candidates, true);
+        prefilterCandidates(ann_network, candidates, silent, print_progress);
     }
 
     if (ann_network.options.rank_keep >= candidates.size()) {
@@ -262,10 +267,6 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
 
     int barWidth = 70;
 
-    double brlen_smooth_factor = 0.25;
-    int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
-    int max_iters_outside = 1;
-    int radius = 1;
     double old_bic = scoreNetwork(ann_network);
 
     double best_bic = std::numeric_limits<double>::infinity();
@@ -288,11 +289,15 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
         if (recompute_from_scratch && ann_network.options.likelihood_variant != LikelihoodVariant::SARAH_PSEUDO) { // TODO: This is a hotfix that just masks some bugs. Fix the bugs properly.
             computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
         }
+        assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+
         std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
         assert(!brlen_opt_candidates.empty());
         //add_neighbors_in_radius(ann_network, brlen_opt_candidates, 1);
-        optimize_branches(ann_network, max_iters, max_iters_outside, radius, brlen_opt_candidates);
+        optimizeBranchesCandidates(ann_network, brlen_opt_candidates);
         optimizeReticulationProbs(ann_network);
+
+        assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
 
         double bicScore = scoreNetwork(ann_network);
 
@@ -317,10 +322,13 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
             }
             return;
         }
+        assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+
         undoMove(ann_network, move);
-        if (move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::DeltaMinusMove || move.moveType == MoveType::RSPRMove) {
-            apply_network_state(ann_network, oldState);
-        }
+        assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+
+        apply_network_state(ann_network, oldState);
+        assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
     }
     apply_network_state(ann_network, oldState);
     if (print_progress && ParallelContext::master_rank() && ParallelContext::master_thread()) { 
@@ -328,7 +336,7 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
     }
 
     size_t oldCandidatesSize = candidates.size();
-    filterCandidatesByScore(candidates, scores, ann_network.options.rank_keep, true, silent);
+    filterCandidatesByScore(candidates, scores, ann_network.options.rank_keep, false, silent);
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         if (print_progress) std::cout << "New size after ranking: " << candidates.size() << " vs. " << oldCandidatesSize << "\n";
     }
@@ -339,35 +347,25 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
 }
 
 template <typename T>
-bool chooseCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidates, NetworkState* state, bool enforce, bool silent = true, bool print_progress = true) {
-    if (candidates.empty()) {
-        return false;
-    }
-    rankCandidates(ann_network, candidates, silent, print_progress);
-
-    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-        if (!silent) std::cout << "MoveType: " << toString(candidates[0].moveType) << "\n";
-    }
-
-    int barWidth = 70;
-
-    double brlen_smooth_factor = 1;//0.25;
-    int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
-    int max_iters_outside = 1;//max_iters; // this says how often we will optimize the same branch again
-    int radius = 1;
-
+double chooseCandidate(AnnotatedNetwork& ann_network, std::vector<T>& candidates, NetworkState* state, bool enforce, bool silent = true, bool print_progress = true) {
     double old_bic = scoreNetwork(ann_network);
     double best_bic = old_bic;
-
     if (enforce) {
         best_bic = std::numeric_limits<double>::infinity();
     }
+    
+    if (candidates.empty()) {
+        return best_bic;
+    }
+    rankCandidates(ann_network, candidates, silent, print_progress);
 
-    bool found_better = false;
+    int barWidth = 70;
 
     NetworkState oldState = extract_network_state(ann_network);
 
     std::vector<ScoreItem<T> > scores(candidates.size());
+
+    assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
 
     for (size_t i = 0; i < candidates.size(); ++i) {
         if (print_progress) {
@@ -378,26 +376,23 @@ bool chooseCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidates, N
 
         assert(checkSanity(ann_network, move));
 
+        assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
         performMove(ann_network, move);
         if (recompute_from_scratch && ann_network.options.likelihood_variant != LikelihoodVariant::SARAH_PSEUDO) { // TODO: This is a hotfix that just masks some bugs. Fix the bugs properly.
             computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
         }
+        assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
         optimizeReticulationProbs(ann_network);
-        optimize_branches(ann_network, max_iters, max_iters_outside, radius);
+        optimizeBranches(ann_network);
+        assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
 
         double bicScore = scoreNetwork(ann_network);
 
         if (bicScore < best_bic) {
             best_bic = bicScore;
             ann_network.last_accepted_move_edge_orig_idx = move.edge_orig_idx;
-            if (found_better) {
-                extract_network_state(ann_network, *state);
-            } else {
-                *state = extract_network_state(ann_network);
-            }
-            found_better = true;
+            extract_network_state(ann_network, *state);
         }
-
 
         if (old_bic/bicScore > ann_network.options.greedy_factor) {
             candidates[0] = candidates[i];
@@ -407,33 +402,51 @@ bool chooseCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidates, N
             if (print_progress && ParallelContext::master_rank() && ParallelContext::master_thread()) {
                 std::cout << std::endl;
             }
-            return found_better;
+            return best_bic;
         }
 
         scores[i] = ScoreItem<T>{candidates[i], bicScore};
 
+        assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+
         undoMove(ann_network, move);
-        if (move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::DeltaMinusMove || move.moveType == MoveType::RSPRMove) {
-            apply_network_state(ann_network, oldState);
-        }
+        assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+        
+        apply_network_state(ann_network, oldState);
+
+        assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
     }
     if (print_progress && ParallelContext::master_rank() && ParallelContext::master_thread()) {
         std::cout << std::endl;
     }
+    apply_network_state(ann_network, oldState);
 
     filterCandidatesByScore(candidates, scores, 1, false, silent);
 
-    return found_better;
+    return best_bic;
 }
 
 template <typename T>
 double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidates, double* best_score, BestNetworkData* bestNetworkData, bool enforce, bool silent) {
-    NetworkState state = extract_network_state(ann_network);
-    bool found_better_state = chooseCandidate(ann_network, candidates, &state, enforce, silent);
     double old_score = scoreNetwork(ann_network);
 
+    NetworkState state = extract_network_state(ann_network);
+    double best_bic = chooseCandidate(ann_network, candidates, &state, enforce, silent);
+
+    bool found_better_state = (enforce ? (best_bic != std::numeric_limits<double>::infinity()) : (best_bic < old_score));
+
     if (found_better_state) {
+        performMove(ann_network, candidates[0]);
         apply_network_state(ann_network, state);
+        if (scoreNetwork(ann_network) != best_bic) {
+            std::cout << scoreNetwork(ann_network) << "\n";
+            std::cout << best_bic << "\n";
+        }
+        assert(scoreNetwork(ann_network) == best_bic);
+
+        if (candidates[0].moveType == MoveType::ArcInsertionMove) {
+            optimizeAllNonTopology(ann_network);
+        }
 
         double logl = computeLoglikelihood(ann_network);
         double bic_score = bic(ann_network, logl);
@@ -453,6 +466,10 @@ double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidat
 
         if (!enforce) {
             if (scoreNetwork(ann_network) > old_score) {
+                if (ParallelContext::master_thread() && ParallelContext::master_rank()) {
+                    std::cout << old_score << "\n";
+                    std::cout << scoreNetwork(ann_network) << "\n";
+                }
                 throw std::runtime_error("Something went wrong in the network search. Suddenly, BIC is worse!");
             }
         }
@@ -526,7 +543,7 @@ double applyBestCandidate(AnnotatedNetwork& ann_network, MoveType type, const st
     return scoreNetwork(ann_network);
 }
 
-int findBestMaxDistance(AnnotatedNetwork& ann_network, MoveType type, const std::vector<MoveType>& typesBySpeed, int step_size, double* best_score, BestNetworkData* bestNetworkData, bool silent) {
+int findBestMaxDistance(AnnotatedNetwork& ann_network, MoveType type, const std::vector<MoveType>& typesBySpeed, int step_size, double* best_score, BestNetworkData* bestNetworkData, bool silent) { 
     int best_max_distance = -1;
     if (type == MoveType::RNNIMove || type == MoveType::ArcRemovalMove || type == MoveType::DeltaMinusMove) {
         best_max_distance = ann_network.options.max_rearrangement_distance;
@@ -607,9 +624,7 @@ double slowIterationsMode(AnnotatedNetwork& ann_network, MoveType type, int step
     return scoreNetwork(ann_network);
 }
 
-double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vector<MoveType>& typesBySpeed, double* best_score, BestNetworkData* bestNetworkData, bool silent) {
-    ann_network.options.prefilter_keep = std::min(ann_network.options.prefilter_keep, (size_t) std::ceil(ann_network.network.num_nodes() * 0.1));
-    
+double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vector<MoveType>& typesBySpeed, double* best_score, BestNetworkData* bestNetworkData, bool silent) {    
     double old_score = scoreNetwork(ann_network);
     
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {

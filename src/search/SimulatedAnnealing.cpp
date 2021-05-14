@@ -14,6 +14,8 @@ namespace netrax {
 
 template <typename T>
 bool simanneal_step(AnnotatedNetwork& ann_network, double t, std::vector<T> neighbors, const NetworkState& oldState, std::unordered_set<double>& seen_bics, bool silent = true) {
+    bool copyNetwork = false;
+    
     if (neighbors.empty() || t <= 0) {
         return false;
     }
