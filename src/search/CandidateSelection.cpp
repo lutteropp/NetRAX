@@ -106,6 +106,21 @@ void filterCandidatesByScore(std::vector<T>& candidates, std::vector<ScoreItem<T
     candidates.resize(newSize);
 }
 
+void advance_progress(float progress, int barWidth) {
+    // progress bar code taken from https://stackoverflow.com/a/14539953/14557921
+    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+        std::cout << "[";
+        int pos = barWidth * progress;
+        for (int i = 0; i < barWidth; ++i) {
+            if (i < pos) std::cout << "=";
+            else if (i == pos) std::cout << ">";
+            else std::cout << " ";
+        }
+        std::cout << "] " << int(progress * 100.0) << " %\r";
+        std::cout.flush();
+    }
+}
+
 template <typename T>
 double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, bool silent = true, bool print_progress = true, bool need_best_bic = false) {    
     if (candidates.empty()) {
@@ -127,7 +142,6 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candid
     LikelihoodVariant old_variant = ann_network.options.likelihood_variant;
     switchLikelihoodVariant(ann_network, LikelihoodVariant::SARAH_PSEUDO);
 
-    float progress = 0.0;
     int barWidth = 70;
 
     double old_bic = scoreNetwork(ann_network);
@@ -142,18 +156,8 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candid
     NetworkState oldState = extract_network_state(ann_network);
 
     for (size_t i = 0; i < candidates.size(); ++i) {        
-        // progress bar code taken from https://stackoverflow.com/a/14539953/14557921
-        if (print_progress && ParallelContext::master_rank() && ParallelContext::master_thread()) {
-            progress = (float) (i+1) / candidates.size();
-            std::cout << "[";
-            int pos = barWidth * progress;
-            for (int i = 0; i < barWidth; ++i) {
-                if (i < pos) std::cout << "=";
-                else if (i == pos) std::cout << ">";
-                else std::cout << " ";
-            }
-            std::cout << "] " << int(progress * 100.0) << " %\r";
-            std::cout.flush();
+        if (print_progress) {
+            advance_progress((float) (i+1) / candidates.size(), barWidth);
         }
 
         T move(candidates[i]);
@@ -256,7 +260,6 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
         return; // we would keep all anyway...
     }
 
-    float progress = 0.0;
     int barWidth = 70;
 
     double brlen_smooth_factor = 0.25;
@@ -272,18 +275,8 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
     std::vector<ScoreItem<T> > scores(candidates.size());
 
     for (size_t i = 0; i < candidates.size(); ++i) {        
-        // progress bar code taken from https://stackoverflow.com/a/14539953/14557921
-        if (print_progress && ParallelContext::master_rank() && ParallelContext::master_thread()) {
-            progress = (float) (i+1) / candidates.size();
-            std::cout << "[";
-            int pos = barWidth * progress;
-            for (int i = 0; i < barWidth; ++i) {
-                if (i < pos) std::cout << "=";
-                else if (i == pos) std::cout << ">";
-                else std::cout << " ";
-            }
-            std::cout << "] " << int(progress * 100.0) << " %\r";
-            std::cout.flush();
+        if (print_progress) {
+            advance_progress((float) (i+1) / candidates.size(), barWidth);
         }
 
         T move(candidates[i]);
@@ -356,7 +349,6 @@ bool chooseCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidates, N
         if (!silent) std::cout << "MoveType: " << toString(candidates[0].moveType) << "\n";
     }
 
-    float progress = 0.0;
     int barWidth = 70;
 
     double brlen_smooth_factor = 1;//0.25;
@@ -378,18 +370,8 @@ bool chooseCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidates, N
     std::vector<ScoreItem<T> > scores(candidates.size());
 
     for (size_t i = 0; i < candidates.size(); ++i) {
-        // progress bar code taken from https://stackoverflow.com/a/14539953/14557921
-        if (print_progress && ParallelContext::master_rank() && ParallelContext::master_thread()) {
-            progress = (float) (i+1) / candidates.size();
-            std::cout << "[";
-            int pos = barWidth * progress;
-            for (int i = 0; i < barWidth; ++i) {
-                if (i < pos) std::cout << "=";
-                else if (i == pos) std::cout << ">";
-                else std::cout << " ";
-            }
-            std::cout << "] " << int(progress * 100.0) << " %\r";
-            std::cout.flush();
+        if (print_progress) {
+            advance_progress((float) (i+1) / candidates.size(), barWidth);
         }
         T move(candidates[i]);
         bool recompute_from_scratch = needsRecompute(ann_network, move);
@@ -400,8 +382,8 @@ bool chooseCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidates, N
         if (recompute_from_scratch && ann_network.options.likelihood_variant != LikelihoodVariant::SARAH_PSEUDO) { // TODO: This is a hotfix that just masks some bugs. Fix the bugs properly.
             computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
         }
+        optimizeReticulationProbs(ann_network);
         optimize_branches(ann_network, max_iters, max_iters_outside, radius);
-        //optimizeReticulationProbs(ann_network);
 
         double bicScore = scoreNetwork(ann_network);
 
