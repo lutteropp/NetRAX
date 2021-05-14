@@ -347,7 +347,10 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
     // branch lengths stuff
     assert(ann_network.fake_treeinfo->tree->edge_count == state.linked_brlens.size());
     for (size_t i = 0; i < state.linked_brlens.size(); ++i) {
-        ann_network.fake_treeinfo->linked_branch_lengths[i] = state.linked_brlens[i];
+        if (ann_network.fake_treeinfo->linked_branch_lengths[i] != state.linked_brlens[i]) {
+            ann_network.fake_treeinfo->linked_branch_lengths[i] = state.linked_brlens[i];
+            invalidatePmatrixIndex(ann_network, i);
+        }
     }
     if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
         for (size_t p = 0; p < state.partition_brlens.size(); ++p) {
@@ -358,6 +361,7 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
             for (size_t pmatrix_index = 0; pmatrix_index < ann_network.network.num_branches(); ++pmatrix_index) {
                 if (ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] != state.partition_brlens[p][pmatrix_index]) {
                     ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] = state.partition_brlens[p][pmatrix_index];
+                    invalidatePmatrixIndex(ann_network, pmatrix_index);
                 }
             }
         }
@@ -508,24 +512,6 @@ bool partition_brlens_equal(const NetworkState& old_state, const NetworkState& a
     return all_fine;
 }
 
-bool topology_equal(const Network& n1, const Network& n2) {
-    if (n1.num_branches() != n2.num_branches()) {
-        std::cout << "topology not equal: different num branches \n";
-        return false;
-    }
-    for (size_t i = 0; i < n1.num_branches(); ++i) {
-        if (n1.edges_by_index[i]->link1->node_clv_index != n2.edges_by_index[i]->link1->node_clv_index) {
-            std::cout << "topology not equal\n";
-            return false;
-        }
-        if (n1.edges_by_index[i]->link2->node_clv_index != n2.edges_by_index[i]->link2->node_clv_index) {
-            std::cout << "topology not equal\n";
-            return false;
-        }
-    }
-    return true;
-}
-
 bool model_equal(const NetworkState& old_state, const NetworkState& act_state) {
     if (old_state.partition_models.size() != act_state.partition_models.size()) {
         return false;
@@ -562,7 +548,7 @@ bool displayed_trees_equal(const NetworkState& old_state, const NetworkState& ac
     return true;
 }
 
-bool network_states_equal(const NetworkState& old_state, const NetworkState& act_state) {
+bool network_states_equal(NetworkState& old_state, NetworkState& act_state) {
     if (old_state.network_valid != act_state.network_valid) {
         std::cout << "different network valid\n";
         if (old_state.network_valid) {
