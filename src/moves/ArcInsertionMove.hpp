@@ -106,24 +106,24 @@ bool checkSanity(AnnotatedNetwork& ann_network, ArcInsertionMove& move);
 
 std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_network,
         const Edge *edge, bool noDeltaPlus = false);
-std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_network, bool noDeltaPlus = false, size_t min_radius = 0, size_t max_radius = std::numeric_limits<size_t>::max());
+std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_network, bool noDeltaPlus = false, int min_radius = 0, int max_radius = std::numeric_limits<int>::max());
 
 std::vector<ArcInsertionMove> possibleDeltaPlusMoves(AnnotatedNetwork &ann_network,
         const Edge *edge);
-std::vector<ArcInsertionMove> possibleDeltaPlusMoves(AnnotatedNetwork &ann_network, size_t min_radius = 0, size_t max_radius = std::numeric_limits<size_t>::max());
+std::vector<ArcInsertionMove> possibleDeltaPlusMoves(AnnotatedNetwork &ann_network, int min_radius = 0, int max_radius = std::numeric_limits<int>::max());
 
 
 std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_network,
-        const Node *node, bool noDeltaPlus = false, size_t min_radius = 0, size_t max_radius = std::numeric_limits<size_t>::max());
+        const Node *node, bool noDeltaPlus = false, int min_radius = 0, int max_radius = std::numeric_limits<int>::max());
 std::vector<ArcInsertionMove> possibleDeltaPlusMoves(AnnotatedNetwork &ann_network,
-        const Node *node, size_t min_radius = 0, size_t max_radius = std::numeric_limits<size_t>::max());
+        const Node *node, int min_radius = 0, int max_radius = std::numeric_limits<int>::max());
 
 std::vector<ArcInsertionMove> possibleArcInsertionMoves(AnnotatedNetwork &ann_network,
-        const std::vector<Node*>& start_nodes, bool noDeltaPlus = false, size_t min_radius = 0, size_t max_radius = std::numeric_limits<size_t>::max());
+        const std::vector<Node*>& start_nodes, bool noDeltaPlus = false, int min_radius = 0, int max_radius = std::numeric_limits<int>::max());
 std::vector<ArcInsertionMove> possibleDeltaPlusMoves(AnnotatedNetwork &ann_network,
-        const std::vector<Node*>& start_nodes, size_t min_radius = 0, size_t max_radius = std::numeric_limits<size_t>::max());
+        const std::vector<Node*>& start_nodes, int min_radius = 0, int max_radius = std::numeric_limits<int>::max());
 
-std::vector<ArcInsertionMove> possibleMoves(AnnotatedNetwork& ann_network, const std::vector<Node*>& start_nodes, ArcInsertionMove placeholderMove, size_t min_radius = 0, size_t max_radius = std::numeric_limits<size_t>::max());
+std::vector<ArcInsertionMove> possibleMoves(AnnotatedNetwork& ann_network, const std::vector<Node*>& start_nodes, ArcInsertionMove placeholderMove, int min_radius = 0, int max_radius = std::numeric_limits<int>::max());
 
 void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move);
 

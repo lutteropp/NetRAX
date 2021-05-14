@@ -8,6 +8,8 @@
 #include "Scrambling.hpp"
 #include "../optimization/NetworkState.hpp"
 
+#include "../colormod.h" // namespace Color
+
 namespace netrax {
 
 double optimizeEverythingRun(AnnotatedNetwork& ann_network, const std::vector<MoveType>& typesBySpeed, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, const std::chrono::high_resolution_clock::time_point& start_time, BestNetworkData* bestNetworkData, size_t start_idx, bool silent = true) {
@@ -127,7 +129,11 @@ void wavesearch_main_internal(AnnotatedNetwork& ann_network, BestNetworkData* be
 
     if (ann_network.options.scrambling > 0) {
         if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-            std::cout << " Starting scrambling phase...\n";
+            Color::Modifier blue(Color::FG_BLUE);
+            Color::Modifier def(Color::FG_DEFAULT);
+            std::cout << blue;
+            std::cout << "\nStarting scrambling phase...\n";
+            std::cout << def;
         }
         unsigned int tries = 0;
         NetworkState bestState = extract_network_state(ann_network);

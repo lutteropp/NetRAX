@@ -42,6 +42,10 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candid
         return scoreNetwork(ann_network);
     }
 
+    if (!need_best_bic && ann_network.options.prefilter_keep >= ann_network.network.num_inner()) {
+        return scoreNetwork(ann_network); // we would keep all anyway...
+    }
+
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         if (print_progress) std::cout << "MoveType: " << toString(candidates[0].moveType) << " (" << candidates.size() << ")" << ", we currently have " << ann_network.network.num_reticulations() << " reticulations and BIC " << scoreNetwork(ann_network) << "\n";
     }
@@ -214,8 +218,8 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
         prefilterCandidates(ann_network, candidates, true);
     }
 
-    if (ParallelContext::master_rank() && ParallelContext::master_thread() && ann_network.options.no_prefiltering) {
-        if (print_progress) std::cout << "MoveType: " << toString(candidates[0].moveType) << " (" << candidates.size() << ")" << ", we currently have " << ann_network.network.num_reticulations() << " reticulations and BIC " << scoreNetwork(ann_network) << "\n";
+    if (ann_network.options.rank_keep >= candidates.size()) {
+        return; // we would keep all anyway...
     }
 
     float progress = 0.0;
@@ -479,7 +483,7 @@ double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidat
     return scoreNetwork(ann_network);
 }
 
-double best_fast_improvement(AnnotatedNetwork& ann_network, MoveType type, const std::vector<MoveType>& typesBySpeed, double* best_score, BestNetworkData* bestNetworkData, bool silent, size_t min_radius, size_t max_radius) {
+double best_fast_improvement(AnnotatedNetwork& ann_network, MoveType type, const std::vector<MoveType>& typesBySpeed, double* best_score, BestNetworkData* bestNetworkData, bool silent, int min_radius, int max_radius) {
     bool rspr1_present = (std::find(typesBySpeed.begin(), typesBySpeed.end(), MoveType::RSPR1Move) != typesBySpeed.end());
     bool delta_plus_present = (std::find(typesBySpeed.begin(), typesBySpeed.end(), MoveType::DeltaPlusMove) != typesBySpeed.end());
     double score = scoreNetwork(ann_network);
@@ -507,7 +511,7 @@ double best_fast_improvement(AnnotatedNetwork& ann_network, MoveType type, const
     return score;
 }
 
-double applyBestCandidate(AnnotatedNetwork& ann_network, MoveType type, const std::vector<MoveType>& typesBySpeed, double* best_score, BestNetworkData* bestNetworkData, bool enforce, bool silent, size_t min_radius, size_t max_radius) {
+double applyBestCandidate(AnnotatedNetwork& ann_network, MoveType type, const std::vector<MoveType>& typesBySpeed, double* best_score, BestNetworkData* bestNetworkData, bool enforce, bool silent, int min_radius, int max_radius) {
     bool rspr1_present = (std::find(typesBySpeed.begin(), typesBySpeed.end(), MoveType::RSPR1Move) != typesBySpeed.end());
     bool delta_plus_present = (std::find(typesBySpeed.begin(), typesBySpeed.end(), MoveType::DeltaPlusMove) != typesBySpeed.end());
     switch (type) {
@@ -544,27 +548,12 @@ double applyBestCandidate(AnnotatedNetwork& ann_network, MoveType type, const st
     return scoreNetwork(ann_network);
 }
 
-double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vector<MoveType>& typesBySpeed, double* best_score, BestNetworkData* bestNetworkData, bool silent) {
-    double old_score = scoreNetwork(ann_network);
-    
-    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-        Color::Modifier blue(Color::FG_BLUE);
-        Color::Modifier def(Color::FG_DEFAULT);
-        std::cout << blue;
-        std::cout << "\nStarting full search for move type: " << toString(type) << "\n";
-        std::cout << def;
-    }
-
-    int step_size = 5;
-
-    int best_max_distance = 0;
+int findBestMaxDistance(AnnotatedNetwork& ann_network, MoveType type, const std::vector<MoveType>& typesBySpeed, int step_size, double* best_score, BestNetworkData* bestNetworkData, bool silent) {
+    int best_max_distance = -1;
     if (type == MoveType::RNNIMove || type == MoveType::ArcRemovalMove || type == MoveType::DeltaMinusMove) {
         best_max_distance = ann_network.options.max_rearrangement_distance;
     } else {
-        // step 1: find best max distance
-        if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-            std::cout << "step1: find best max distance\n";
-        }
+        double old_score = scoreNetwork(ann_network);
         int act_max_distance = 0;
         int old_max_distance = 0;
         double old_greedy_factor = ann_network.options.greedy_factor;
@@ -587,11 +576,12 @@ double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vecto
         optimizeAllNonTopology(ann_network);
         check_score_improvement(ann_network, best_score, bestNetworkData);
     }
+    return best_max_distance;
+}
 
-    // step 2: fast iterations mode, with the best max distance
-    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-        std::cout << "\nstep 2: fast iterations mode, with the best max distance " << best_max_distance << "\n";
-    }
+double fastIterationsMode(AnnotatedNetwork& ann_network, int best_max_distance, MoveType type, const std::vector<MoveType>& typesBySpeed, double* best_score, BestNetworkData* bestNetworkData, bool silent) {
+    assert(best_max_distance >= 0);
+    double old_score = scoreNetwork(ann_network);
     bool got_better = true;
     while (got_better) {
         got_better = false;
@@ -601,42 +591,84 @@ double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vecto
             old_score = score;
         }
     }
+    return scoreNetwork(ann_network);
+}
 
-    if (type != MoveType::ArcInsertionMove && type != MoveType::DeltaPlusMove) {
-        optimizeAllNonTopology(ann_network);
-        check_score_improvement(ann_network, best_score, bestNetworkData);
+double slowIterationsMode(AnnotatedNetwork& ann_network, MoveType type, int step_size, const std::vector<MoveType>& typesBySpeed, double* best_score, BestNetworkData* bestNetworkData, bool silent) {
+    optimizeAllNonTopology(ann_network);
+    double old_score = scoreNetwork(ann_network);
+    check_score_improvement(ann_network, best_score, bestNetworkData);
 
-        bool old_no_prefiltering = ann_network.options.no_prefiltering;
-        ann_network.options.no_prefiltering = true;
+    bool old_no_prefiltering = ann_network.options.no_prefiltering;
+    ann_network.options.no_prefiltering = true;
 
-        // step 3: slow iterations mode, with increasing max distance
+    int min_dist = 0;
+    int max_dist = step_size;
+    if (type == MoveType::RNNIMove || type == MoveType::ArcRemovalMove || type == MoveType::DeltaMinusMove) {
+        max_dist = ann_network.options.max_rearrangement_distance;
+    }
+    bool got_better = true;
+    while (got_better) {
+        got_better = false;
+        double score = applyBestCandidate(ann_network, type, typesBySpeed, best_score, bestNetworkData, false, silent, min_dist, max_dist);
+        if (score < old_score) {
+            got_better = true;
+            old_score = score;
+            min_dist = 0;
+            max_dist = step_size;
+            if (type == MoveType::RNNIMove || type == MoveType::ArcRemovalMove || type == MoveType::DeltaMinusMove) {
+                max_dist = ann_network.options.max_rearrangement_distance;
+            }
+        } else if (max_dist < ann_network.options.max_rearrangement_distance) {
+            got_better = true;
+            min_dist = max_dist + 1;
+            max_dist = std::min(max_dist + step_size, ann_network.options.max_rearrangement_distance);
+        }
+    }
+    ann_network.options.no_prefiltering = old_no_prefiltering;
+    return scoreNetwork(ann_network);
+}
+
+double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vector<MoveType>& typesBySpeed, double* best_score, BestNetworkData* bestNetworkData, bool silent) {
+    ann_network.options.prefilter_keep = std::min(ann_network.options.prefilter_keep, (size_t) std::ceil(ann_network.network.num_nodes() * 0.1));
+    
+    double old_score = scoreNetwork(ann_network);
+    
+    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+        Color::Modifier blue(Color::FG_BLUE);
+        Color::Modifier def(Color::FG_DEFAULT);
+        std::cout << blue;
+        std::cout << "\nStarting full search for move type: " << toString(type) << "\n";
+        std::cout << def;
+    }
+
+    int step_size = 5;
+
+    // step 1: find best max distance
+    int best_max_distance;
+    if (type == MoveType::RNNIMove || type == MoveType::ArcRemovalMove || type == MoveType::DeltaMinusMove) {
+        best_max_distance = ann_network.options.max_rearrangement_distance;
+    } else {
+        if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+            std::cout << "step1: find best max distance\n";
+        }
+        best_max_distance = findBestMaxDistance(ann_network, type, typesBySpeed, step_size, best_score, bestNetworkData, silent);
+    }
+
+    // step 2: fast iterations mode, with the best max distance
+    if (best_max_distance >= 0) {
+        if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+            std::cout << "\nstep 2: fast iterations mode, with the best max distance " << best_max_distance << "\n";
+        }
+        fastIterationsMode(ann_network, best_max_distance, type, typesBySpeed, best_score, bestNetworkData, silent);
+    }
+
+    // step 3: slow iterations mode, with increasing max distance
+    if (!ann_network.options.no_slow_mode && type != MoveType::ArcInsertionMove && type != MoveType::DeltaPlusMove) {
         if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
             std::cout << "\nstep 3: slow iterations mode, with increasing max distance\n";
         }
-        int min_dist = 0;
-        int max_dist = step_size;
-        if (type == MoveType::RNNIMove || type == MoveType::ArcRemovalMove || type == MoveType::DeltaMinusMove) {
-            max_dist = ann_network.options.max_rearrangement_distance;
-        }
-        got_better = true;
-        while (got_better) {
-            got_better = false;
-            double score = applyBestCandidate(ann_network, type, typesBySpeed, best_score, bestNetworkData, false, silent, min_dist, max_dist);
-            if (score < old_score) {
-                got_better = true;
-                old_score = score;
-                min_dist = 0;
-                max_dist = step_size;
-                if (type == MoveType::RNNIMove || type == MoveType::ArcRemovalMove || type == MoveType::DeltaMinusMove) {
-                    max_dist = ann_network.options.max_rearrangement_distance;
-                }
-            } else if (max_dist < ann_network.options.max_rearrangement_distance) {
-                got_better = true;
-                min_dist = max_dist + 1;
-                max_dist = std::min(max_dist + step_size, ann_network.options.max_rearrangement_distance);
-            }
-        }
-        ann_network.options.no_prefiltering = old_no_prefiltering;
+        slowIterationsMode(ann_network, type, step_size, typesBySpeed, best_score, bestNetworkData, silent);
     }
 
     optimizeAllNonTopology(ann_network, true);

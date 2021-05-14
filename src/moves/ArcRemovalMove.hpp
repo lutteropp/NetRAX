@@ -111,7 +111,7 @@ std::vector<ArcRemovalMove> possibleArcRemovalMoves(AnnotatedNetwork &ann_networ
 std::vector<ArcRemovalMove> possibleDeltaMinusMoves(AnnotatedNetwork &ann_network, Node *v, size_t edge_orig_idx);
 std::vector<ArcRemovalMove> possibleDeltaMinusMoves(AnnotatedNetwork &ann_network);
 
-std::vector<ArcRemovalMove> possibleMoves(AnnotatedNetwork& ann_network, const std::vector<Node*>& start_nodes, ArcRemovalMove placeholderMove, size_t min_radius = 0, size_t max_radius = std::numeric_limits<size_t>::max());
+std::vector<ArcRemovalMove> possibleMoves(AnnotatedNetwork& ann_network, const std::vector<Node*>& start_nodes, ArcRemovalMove placeholderMove, int min_radius = 0, int max_radius = std::numeric_limits<int>::max());
 
 void performMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move);
 void undoMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move);

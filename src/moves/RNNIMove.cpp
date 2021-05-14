@@ -158,7 +158,7 @@ std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network, const Edg
     return res;
 }
 
-std::vector<RNNIMove> possibleMoves(AnnotatedNetwork& ann_network, const std::vector<Node*>& start_nodes, RNNIMove placeholderMove, size_t min_radius, size_t max_radius) {
+std::vector<RNNIMove> possibleMoves(AnnotatedNetwork& ann_network, const std::vector<Node*>& start_nodes, RNNIMove placeholderMove, int min_radius, int max_radius) {
     std::vector<RNNIMove> res;
     for (Node* node : start_nodes) {
         std::vector<Node*> parents = getAllParents(ann_network.network, node);

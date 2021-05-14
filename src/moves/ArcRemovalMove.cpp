@@ -191,7 +191,7 @@ std::vector<ArcRemovalMove> possibleDeltaMinusMoves(AnnotatedNetwork &ann_networ
     return res;
 }
 
-std::vector<ArcRemovalMove> possibleMoves(AnnotatedNetwork& ann_network, const std::vector<Node*>& start_nodes, ArcRemovalMove placeholderMove, size_t min_radius, size_t max_radius) {
+std::vector<ArcRemovalMove> possibleMoves(AnnotatedNetwork& ann_network, const std::vector<Node*>& start_nodes, ArcRemovalMove placeholderMove, int min_radius, int max_radius) {
     std::vector<ArcRemovalMove> res;
     Network &network = ann_network.network;
     for (Node* node : start_nodes) {

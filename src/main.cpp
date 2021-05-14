@@ -79,6 +79,8 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     
     app.add_flag("--full_search_by_type", options->full_search_by_type, "Do a full search for the current move type, before changing the move type in the outer loop.");
 
+    app.add_flag("--no_slow_mode", options->no_slow_mode, "No slow mode.");
+
     app.add_flag("--no_rnni_moves", options->no_rnni_moves, "Do not use rNNI moves.");
     app.add_flag("--no_tail_moves", options->no_tail_moves, "Do not use tail moves (rSPR1 moves still used).");
     app.add_flag("--no_head_moves", options->no_head_moves, "Do not use head moves (rSPR1 moves still used).");
@@ -124,6 +126,7 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     if (options->prefilter_keep < 1) {
         error_exit("prefilter keep must be at least 1");
     }
+
     assert(!options->use_repeats);
     return 0;
 }

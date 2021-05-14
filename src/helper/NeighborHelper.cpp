@@ -103,7 +103,7 @@ std::unordered_set<size_t> getNeighborPmatrixIndices(Network &network, Edge *edg
     return res;
 }
 
-std::vector<Node*> getNeighborsWithinRadius(const Network& network, Node* node, size_t min_radius, size_t max_radius) {
+std::vector<Node*> getNeighborsWithinRadius(const Network& network, Node* node, int min_radius, int max_radius) {
     assert(min_radius <= max_radius);
     std::vector<Node*> res;
     std::vector<bool> seen(network.num_nodes(), false);

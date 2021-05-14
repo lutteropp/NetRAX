@@ -61,7 +61,7 @@ bool checkSanity(AnnotatedNetwork& ann_network, RNNIMove& move);
 std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network, const Edge *edge);
 std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network);
 
-std::vector<RNNIMove> possibleMoves(AnnotatedNetwork& ann_network, const std::vector<Node*>& start_nodes, RNNIMove placeholderMove, size_t min_radius = 0, size_t max_radius = std::numeric_limits<size_t>::max());
+std::vector<RNNIMove> possibleMoves(AnnotatedNetwork& ann_network, const std::vector<Node*>& start_nodes, RNNIMove placeholderMove, int min_radius = 0, int max_radius = std::numeric_limits<int>::max());
 
 void performMove(AnnotatedNetwork &ann_network, RNNIMove &move);
 void undoMove(AnnotatedNetwork &ann_network, RNNIMove &move);

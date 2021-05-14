@@ -149,7 +149,7 @@ void possibleRSPRMovesInternal(std::vector<RSPRMove> &res, AnnotatedNetwork &ann
 
 void possibleRSPRMovesInternalNode(std::vector<RSPRMove> &res, AnnotatedNetwork &ann_network, Node *x,
         Node *y, Node* z, Node *x_prime, Node *fixed_y_prime, bool returnHead, bool returnTail,
-        MoveType moveType, bool noRSPR1Moves, size_t min_radius, size_t max_radius) {
+        MoveType moveType, bool noRSPR1Moves, int min_radius, int max_radius) {
     Network &network = ann_network.network;
 
     std::vector<Node*> y_prime_cand;
@@ -205,7 +205,7 @@ void possibleRSPRMovesInternalNode(std::vector<RSPRMove> &res, AnnotatedNetwork 
 
 std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, Node *node,
         Node *fixed_x_prime, Node *fixed_y_prime, MoveType moveType, bool noRSPR1Moves, bool returnHead = true, bool returnTail =
-                true, size_t min_radius = 0, size_t max_radius = std::numeric_limits<size_t>::max()) {
+                true, int min_radius = 0, int max_radius = std::numeric_limits<int>::max()) {
     assert(node);
     if (node == ann_network.network.root || node->isTip()) {
         return {}; // because we need a parent and a child
@@ -266,17 +266,17 @@ std::vector<RSPRMove> possibleHeadMoves(AnnotatedNetwork &ann_network, const Edg
     return possibleRSPRMoves(ann_network, edge, nullptr, nullptr, MoveType::HeadMove, noRSPR1Moves, true, false);
 }
 
-std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, Node *node, bool noRSPR1Moves, size_t min_radius, size_t max_radius) {
+std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, Node *node, bool noRSPR1Moves, int min_radius, int max_radius) {
     return possibleRSPRMoves(ann_network, node, nullptr, nullptr, MoveType::RSPRMove, false, true, true, min_radius, max_radius);
 }
-std::vector<RSPRMove> possibleTailMoves(AnnotatedNetwork &ann_network, Node *node, bool noRSPR1Moves, size_t min_radius, size_t max_radius) {
+std::vector<RSPRMove> possibleTailMoves(AnnotatedNetwork &ann_network, Node *node, bool noRSPR1Moves, int min_radius, int max_radius) {
     assert(node);
     if (node->type == NodeType::RETICULATION_NODE) { // we can only find head moves for z == node
         return {};
     }
     return possibleRSPRMoves(ann_network, node, nullptr, nullptr, MoveType::TailMove, false, true, true, min_radius, max_radius);
 }
-std::vector<RSPRMove> possibleHeadMoves(AnnotatedNetwork &ann_network, Node *node, bool noRSPR1Moves, size_t min_radius, size_t max_radius) {
+std::vector<RSPRMove> possibleHeadMoves(AnnotatedNetwork &ann_network, Node *node, bool noRSPR1Moves, int min_radius, int max_radius) {
     assert(node);
     if (node->type != NodeType::RETICULATION_NODE) { // we can only find tail moves for z == node
         return {};
@@ -284,7 +284,7 @@ std::vector<RSPRMove> possibleHeadMoves(AnnotatedNetwork &ann_network, Node *nod
     return possibleRSPRMoves(ann_network, node, nullptr, nullptr, MoveType::HeadMove, false, true, true, min_radius, max_radius);
 }
 
-std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, const std::vector<Node*>& start_nodes, bool noRSPR1Moves, size_t min_radius, size_t max_radius) {
+std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, const std::vector<Node*>& start_nodes, bool noRSPR1Moves, int min_radius, int max_radius) {
     std::vector<RSPRMove> res;
     for (Node* node : start_nodes) {
         std::vector<RSPRMove> res_node = possibleRSPRMoves(ann_network, node, noRSPR1Moves, min_radius, max_radius);
@@ -293,7 +293,7 @@ std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, const std
     return res;
 }
 
-std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network, const std::vector<Node*>& start_nodes, size_t min_radius, size_t max_radius) {
+std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network, const std::vector<Node*>& start_nodes, int min_radius, int max_radius) {
     std::vector<RSPRMove> res;
     for (Node* node : start_nodes) {
         std::vector<RSPRMove> res_node = possibleRSPR1Moves(ann_network, node, min_radius, max_radius);
@@ -302,7 +302,7 @@ std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network, const st
     return res;
 }
 
-std::vector<RSPRMove> possibleTailMoves(AnnotatedNetwork &ann_network, const std::vector<Node*>& start_nodes, bool noRSPR1Moves, size_t min_radius, size_t max_radius) {
+std::vector<RSPRMove> possibleTailMoves(AnnotatedNetwork &ann_network, const std::vector<Node*>& start_nodes, bool noRSPR1Moves, int min_radius, int max_radius) {
     std::vector<RSPRMove> res;
     for (Node* node : start_nodes) {
         std::vector<RSPRMove> res_node = possibleTailMoves(ann_network, node, noRSPR1Moves, min_radius, max_radius);
@@ -311,7 +311,7 @@ std::vector<RSPRMove> possibleTailMoves(AnnotatedNetwork &ann_network, const std
     return res;
 }
 
-std::vector<RSPRMove> possibleHeadMoves(AnnotatedNetwork &ann_network, const std::vector<Node*>& start_nodes, bool noRSPR1Moves, size_t min_radius, size_t max_radius) {
+std::vector<RSPRMove> possibleHeadMoves(AnnotatedNetwork &ann_network, const std::vector<Node*>& start_nodes, bool noRSPR1Moves, int min_radius, int max_radius) {
     std::vector<RSPRMove> res;
     for (Node* node : start_nodes) {
         std::vector<RSPRMove> res_node = possibleHeadMoves(ann_network, node, noRSPR1Moves, min_radius, max_radius);
@@ -321,7 +321,7 @@ std::vector<RSPRMove> possibleHeadMoves(AnnotatedNetwork &ann_network, const std
 }
 
 
-std::vector<RSPRMove> possibleTailMoves(AnnotatedNetwork &ann_network, bool noRSPR1Moves, size_t min_radius, size_t max_radius) {
+std::vector<RSPRMove> possibleTailMoves(AnnotatedNetwork &ann_network, bool noRSPR1Moves, int min_radius, int max_radius) {
     std::vector<RSPRMove> res;
     Network &network = ann_network.network;
     for (size_t i = 0; i < network.num_nodes(); ++i) {
@@ -333,7 +333,7 @@ std::vector<RSPRMove> possibleTailMoves(AnnotatedNetwork &ann_network, bool noRS
     return res;
 }
 
-std::vector<RSPRMove> possibleHeadMoves(AnnotatedNetwork &ann_network, bool noRSPR1Moves, size_t min_radius, size_t max_radius) {
+std::vector<RSPRMove> possibleHeadMoves(AnnotatedNetwork &ann_network, bool noRSPR1Moves, int min_radius, int max_radius) {
     std::vector<RSPRMove> res;
     Network &network = ann_network.network;
     for (size_t i = 0; i < network.num_nodes(); ++i) {
@@ -375,7 +375,7 @@ std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network, const Ed
     return res;
 }
 
-std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network, Node *node, size_t min_radius, size_t max_radius) {
+std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network, Node *node, int min_radius, int max_radius) {
     assert(node);
     if (node == ann_network.network.root || node->isTip()) {
         return {}; // because we need a parent and a child
@@ -419,7 +419,7 @@ std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network, Node *no
     return res;
 }
 
-std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, bool noRSPR1Moves, size_t min_radius, size_t max_radius) {
+std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, bool noRSPR1Moves, int min_radius, int max_radius) {
     std::vector<RSPRMove> res;
     Network &network = ann_network.network;
     for (size_t i = 0; i < network.num_nodes(); ++i) {
@@ -431,7 +431,7 @@ std::vector<RSPRMove> possibleRSPRMoves(AnnotatedNetwork &ann_network, bool noRS
     return res;
 }
 
-std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network, size_t min_radius, size_t max_radius) {
+std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network, int min_radius, int max_radius) {
     std::vector<RSPRMove> res;
     Network &network = ann_network.network;
     for (size_t i = 0; i < network.num_nodes(); ++i) {
@@ -443,7 +443,7 @@ std::vector<RSPRMove> possibleRSPR1Moves(AnnotatedNetwork &ann_network, size_t m
     return res;
 }
 
-std::vector<RSPRMove> possibleMoves(AnnotatedNetwork& ann_network, const std::vector<Node*>& start_nodes, RSPRMove placeholderMove, size_t min_radius, size_t max_radius) {
+std::vector<RSPRMove> possibleMoves(AnnotatedNetwork& ann_network, const std::vector<Node*>& start_nodes, RSPRMove placeholderMove, int min_radius, int max_radius) {
     return possibleRSPRMoves(ann_network, start_nodes, min_radius, max_radius);
 }
 
