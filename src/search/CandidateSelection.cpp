@@ -132,6 +132,8 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candid
         return scoreNetwork(ann_network); // we would keep all anyway...
     }
 
+    Network oldNetwork = ann_network.network;
+
     std::vector<ScoreItem<T> > scores(candidates.size());
 
     std::vector<double> nodeScore(ann_network.network.num_nodes(), std::numeric_limits<double>::infinity());
@@ -222,7 +224,12 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candid
         assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
 
         undoMove(ann_network, move);
+        if (move.moveType == MoveType::ArcRemovalMove) {
+            computeLoglikelihood(ann_network, 0, 1);
+        }
+        assert(topology_equal(oldNetwork, ann_network.network));
         assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+        assert(old_bic == scoreNetwork(ann_network));
 
         assert(checkSanity(ann_network, candidates[i]));
 
@@ -237,9 +244,9 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candid
     }
 
     size_t oldCandidatesSize = candidates.size();
-    std::unordered_set<size_t> promisingNodes = findPromisingNodes(ann_network, nodeScore, silent);
-    filterCandidatesByNodes(candidates, promisingNodes);
-    //filterCandidatesByScore(candidates, scores, ann_network.options.prefilter_keep, false, silent);
+    //std::unordered_set<size_t> promisingNodes = findPromisingNodes(ann_network, nodeScore, silent);
+    //filterCandidatesByNodes(candidates, promisingNodes);
+    filterCandidatesByScore(candidates, scores, ann_network.options.prefilter_keep, false, silent);
 
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         if (print_progress) std::cout << "New size candidates after prefiltering: " << candidates.size() << " vs. " << oldCandidatesSize << "\n";
@@ -367,6 +374,8 @@ double chooseCandidate(AnnotatedNetwork& ann_network, std::vector<T>& candidates
 
     NetworkState oldState = extract_network_state(ann_network);
 
+    Network oldNetwork = ann_network.network;
+
     std::vector<ScoreItem<T> > scores(candidates.size());
 
     assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
@@ -414,6 +423,10 @@ double chooseCandidate(AnnotatedNetwork& ann_network, std::vector<T>& candidates
         assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
 
         undoMove(ann_network, move);
+        assert(topology_equal(oldNetwork, ann_network.network));
+        if (move.moveType == MoveType::ArcRemovalMove) {
+            computeLoglikelihood(ann_network, 0, 1);
+        }
         assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
 
         assert(checkSanity(ann_network, candidates[i]));
@@ -574,9 +587,6 @@ int findBestMaxDistance(AnnotatedNetwork& ann_network, MoveType type, const std:
             apply_network_state(ann_network, oldState);
         }
         ann_network.options.greedy_factor = old_greedy_factor;
-
-        optimizeAllNonTopology(ann_network);
-        check_score_improvement(ann_network, best_score, bestNetworkData);
     }
     return best_max_distance;
 }
@@ -641,6 +651,9 @@ double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vecto
         std::cout << "\nStarting full search for move type: " << toString(type) << "\n";
         std::cout << def;
     }
+
+    optimizeAllNonTopology(ann_network);
+    check_score_improvement(ann_network, best_score, bestNetworkData);
 
     int step_size = 5;
 

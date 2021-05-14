@@ -145,6 +145,10 @@ Edge* addEdgeInternal(AnnotatedNetwork &ann_network, Link *link1, Link *link2, d
 
 Edge* addEdge(AnnotatedNetwork &ann_network, Link *link1, Link *link2, double length,
         size_t wanted_pmatrix_index) {
+    if (wanted_pmatrix_index < ann_network.network.edges.size() && ann_network.network.edges_by_index[wanted_pmatrix_index] != nullptr)  {
+        throw std::runtime_error("wanted pmatrix index is already taken");
+    }
+
     if (link1->direction == Direction::INCOMING) {
         std::swap(link1, link2);
     }

@@ -444,8 +444,6 @@ std::vector<ArcInsertionMove> possibleDeltaPlusMoves(AnnotatedNetwork &ann_netwo
 void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     assert(checkSanity(ann_network, move));
     assert(move.moveType == MoveType::ArcInsertionMove || move.moveType == MoveType::DeltaPlusMove);
-    assert(assertConsecutiveIndices(ann_network));
-    assert(assertBranchLengths(ann_network));
     Network &network = ann_network.network;
 
     Link *from_a_link = getLinkToNode(network, move.a_clv_index, move.b_clv_index);
@@ -629,6 +627,15 @@ std::string toString(ArcInsertionMove &move) {
     ss << "  b = " << move.b_clv_index << "\n";
     ss << "  c = " << move.c_clv_index << "\n";
     ss << "  d = " << move.d_clv_index << "\n";
+    ss << "  wanted u = " << move.wanted_u_clv_index << "\n";
+    ss << "  wanted v = " << move.wanted_v_clv_index << "\n";
+    ss << "  ab = " << move.ab_pmatrix_index << "\n";
+    ss << "  cd = " << move.cd_pmatrix_index << "\n";
+    ss << "  wanted au = " << move.wanted_au_pmatrix_index << "\n";
+    ss << "  wanted cv = " << move.wanted_cv_pmatrix_index << "\n";
+    ss << "  wanted ub = " << move.wanted_ub_pmatrix_index << "\n";
+    ss << "  wanted vd = " << move.wanted_vd_pmatrix_index << "\n";
+    ss << "  wanted uv = " << move.wanted_uv_pmatrix_index << "\n";
     return ss.str();
 }
 

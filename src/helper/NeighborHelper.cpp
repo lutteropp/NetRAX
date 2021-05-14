@@ -147,6 +147,10 @@ bool topology_equal(Network& n1, Network& n2) {
             return false;
         }
     }
+    if (n1.root->clv_index != n2.root->clv_index) {
+        std::cout << "edges are fine, but root is wrong\n";
+        return false;
+    }
     return true;
 }
 
