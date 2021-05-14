@@ -14,10 +14,9 @@ namespace netrax {
  * 
  * @param ann_network The network.
  */
-void optimizeBranches(AnnotatedNetwork &ann_network, bool silent, bool restricted_total_iters) {
+void optimizeBranches(AnnotatedNetwork &ann_network, double brlen_smooth_factor, bool silent, bool restricted_total_iters) {
     double old_score = scoreNetwork(ann_network);
 
-    int brlen_smooth_factor = 100;
     int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
     int radius = PLLMOD_OPT_BRLEN_OPTIMIZE_ALL;
     optimize_branches(ann_network, max_iters, max_iters, radius, restricted_total_iters);
@@ -36,10 +35,9 @@ void optimizeBranches(AnnotatedNetwork &ann_network, bool silent, bool restricte
     optimize_scalers(ann_network, silent);
 }
 
-void optimizeBranchesCandidates(AnnotatedNetwork &ann_network, std::unordered_set<size_t> brlenopt_candidates, bool silent, bool restricted_total_iters) {
+void optimizeBranchesCandidates(AnnotatedNetwork &ann_network, std::unordered_set<size_t> brlenopt_candidates, double brlen_smooth_factor, bool silent, bool restricted_total_iters) {
     double old_score = scoreNetwork(ann_network);
 
-    int brlen_smooth_factor = 100;
     int max_iters = brlen_smooth_factor * RAXML_BRLEN_SMOOTHINGS;
     int radius = PLLMOD_OPT_BRLEN_OPTIMIZE_ALL;
     optimize_branches(ann_network, max_iters, max_iters, radius, brlenopt_candidates, restricted_total_iters);
@@ -111,7 +109,7 @@ void optimizeAllNonTopology(AnnotatedNetwork &ann_network, bool extremeOpt, bool
         assert(logl_stays_same(ann_network));
         optimizeModel(ann_network, silent);
         assert(logl_stays_same(ann_network));
-        optimizeBranches(ann_network, silent);
+        optimizeBranches(ann_network, 1.0, silent);
         assert(logl_stays_same(ann_network));
         assert(logl_stays_same(ann_network));
         optimizeReticulationProbs(ann_network, silent);
