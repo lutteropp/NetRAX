@@ -239,6 +239,8 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
     assert(assert_rates(ann_network));
 
     pllmod_treeinfo_update_prob_matrices(ann_network.fake_treeinfo, 1); // this (full pmatrix recomputation) is needed if the model parameters changed
+
+    ann_network.cached_logl_valid = false;
 }
 
 bool reticulation_probs_equal(const NetworkState& old_state, const NetworkState& act_state) {

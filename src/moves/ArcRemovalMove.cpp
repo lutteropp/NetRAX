@@ -30,9 +30,13 @@ bool checkSanity(AnnotatedNetwork& ann_network, ArcRemovalMove& move) {
     good &= (move.u_clv_index != move.v_clv_index);
     if (!good) std::cout << "the move indices are wrong\n";
     good &= (hasNeighbor(ann_network.network.nodes_by_index[move.a_clv_index], ann_network.network.nodes_by_index[move.u_clv_index]));
+    if (!good) std::cout << "a is not a neighbor of u\n";
     good &= (hasNeighbor(ann_network.network.nodes_by_index[move.u_clv_index], ann_network.network.nodes_by_index[move.b_clv_index]));
+    if (!good) std::cout << "u is not u neighbor of b\n";
     good &= (hasNeighbor(ann_network.network.nodes_by_index[move.u_clv_index], ann_network.network.nodes_by_index[move.v_clv_index]));
+    if (!good) std::cout << "u is not a neighbor of v\n";
     good &= (hasNeighbor(ann_network.network.nodes_by_index[move.c_clv_index], ann_network.network.nodes_by_index[move.v_clv_index]));
+    if (!good) std::cout << "v is not a neighbor of d\n";
     good &= (hasNeighbor(ann_network.network.nodes_by_index[move.v_clv_index], ann_network.network.nodes_by_index[move.d_clv_index]));
     if (!good) std::cout << "neighbor issue\n";
 

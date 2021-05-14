@@ -224,6 +224,8 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candid
         undoMove(ann_network, move);
         assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
 
+        assert(checkSanity(ann_network, candidates[i]));
+
         apply_network_state(ann_network, oldState);
 
         assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
@@ -327,6 +329,8 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
         undoMove(ann_network, move);
         assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
 
+        assert(checkSanity(ann_network, candidates[i]));
+
         apply_network_state(ann_network, oldState);
         assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
     }
@@ -411,6 +415,8 @@ double chooseCandidate(AnnotatedNetwork& ann_network, std::vector<T>& candidates
 
         undoMove(ann_network, move);
         assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+
+        assert(checkSanity(ann_network, candidates[i]));
         
         apply_network_state(ann_network, oldState);
 
@@ -436,6 +442,7 @@ double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidat
     bool found_better_state = (enforce ? (best_bic != std::numeric_limits<double>::infinity()) : (best_bic < old_score));
 
     if (found_better_state) {
+        assert(checkSanity(ann_network, candidates[0]));
         performMove(ann_network, candidates[0]);
         apply_network_state(ann_network, state);
         if (scoreNetwork(ann_network) != best_bic) {
