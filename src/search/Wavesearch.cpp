@@ -190,12 +190,11 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
     size_t start_idx = 0;
 
     if (!ann_network.options.start_network_file.empty()) { // don't waste time trying to first horizontally optimize the user-given start network
-        optimizeAllNonTopology(ann_network, true);
         start_idx = 3;
     } else {
-        optimizeAllNonTopology(ann_network);
         start_idx = 0;
     }
+    optimizeAllNonTopology(ann_network);
     score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
 
     wavesearch_main_internal(ann_network, bestNetworkData, typesBySpeed, start_state_to_reuse, best_state_to_reuse, &best_score, start_time, start_idx, silent);

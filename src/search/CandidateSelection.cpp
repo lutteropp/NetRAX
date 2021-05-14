@@ -34,10 +34,80 @@ void switchLikelihoodVariant(AnnotatedNetwork& ann_network, LikelihoodVariant ne
     ann_network.cached_logl_valid = false;
 }
 
-template <typename T>
-double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, bool silent = true, bool print_progress = true, bool need_best_bic = false) {
+std::unordered_set<size_t> findPromisingNodes(AnnotatedNetwork& ann_network, std::vector<double>& nodeScore, bool silent) {
     std::unordered_set<size_t> promisingNodes;
-    
+    std::vector<ScoreItem<Node*> > scoresNodes(ann_network.network.num_nodes());
+    for (size_t i = 0; i < ann_network.network.num_nodes(); ++i) {
+        scoresNodes[i] = ScoreItem<Node*>{ann_network.network.nodes_by_index[i], nodeScore[i]};
+    }
+
+    std::sort(scoresNodes.begin(), scoresNodes.end(), [](const ScoreItem<Node*>& lhs, const ScoreItem<Node*>& rhs) {
+        return lhs.bicScore < rhs.bicScore;
+    });
+
+    size_t cutoff_pos = std::min(ann_network.options.prefilter_keep - 1, scoresNodes.size() - 1);
+
+    double cutoff_bic = scoresNodes[cutoff_pos].bicScore; //best_bic;
+
+    for (size_t i = 0; i < ann_network.network.num_nodes(); ++i) {
+        if (scoresNodes[i].bicScore == std::numeric_limits<double>::infinity()) {
+            break;
+        }
+        if (scoresNodes[i].bicScore <= cutoff_bic) {
+            if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+                if (!silent) std::cout << "prefiltered node " << scoresNodes[i].item->clv_index << " has best BIC: " << scoresNodes[i].bicScore << "\n";
+            }
+            promisingNodes.emplace(scoresNodes[i].item->clv_index);
+        }
+
+        if (promisingNodes.size() == ann_network.options.prefilter_keep) {
+            break;
+        }
+    }
+    return promisingNodes;
+}
+
+template <typename T> 
+void filterCandidatesByNodes(std::vector<T>& candidates, const std::unordered_set<size_t>& promisingNodes) {
+    std::vector<T> newCandidates;
+    for (size_t i = 0; i < candidates.size(); ++i) {
+        if (promisingNodes.count(candidates[i].node_orig_idx) > 0) {
+            newCandidates.emplace_back(candidates[i]);
+        }
+    }
+    candidates = newCandidates;
+}
+
+template <typename T> 
+void filterCandidatesByScore(std::vector<T>& candidates, std::vector<ScoreItem<T> >& scores, int n_keep, bool keep_equal, bool silent) {
+    if (n_keep >= candidates.size()) {
+        return;
+    }
+    std::sort(scores.begin(), scores.end(), [](const ScoreItem<T>& lhs, const ScoreItem<T>& rhs) {
+        return lhs.bicScore < rhs.bicScore;
+    });
+
+    size_t newSize = 0;
+    size_t cutoff_pos = std::min(n_keep - 1, (int) scores.size() - 1);
+    double cutoff_bic = scores[cutoff_pos].bicScore;
+
+    for (size_t i = 0; i < candidates.size(); ++i) {
+        if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+            if (!silent) std::cout << "candidate " << i + 1 << "/" << candidates.size() << " has BIC: " << scores[i].bicScore << "\n";
+        }
+        if (scores[i].bicScore <= cutoff_bic) {
+            candidates[newSize] = scores[i].item;
+            newSize++;
+        }
+        if (!keep_equal && newSize == n_keep) {
+            break;
+        }
+    }
+    candidates.resize(newSize);
+}
+
+template <typename T>
+double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, bool silent = true, bool print_progress = true, bool need_best_bic = false) {    
     if (candidates.empty()) {
         return scoreNetwork(ann_network);
     }
@@ -49,6 +119,8 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candid
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         if (print_progress) std::cout << "MoveType: " << toString(candidates[0].moveType) << " (" << candidates.size() << ")" << ", we currently have " << ann_network.network.num_reticulations() << " reticulations and BIC " << scoreNetwork(ann_network) << "\n";
     }
+
+    std::vector<ScoreItem<T> > scores(candidates.size());
 
     std::vector<double> nodeScore(ann_network.network.num_nodes(), std::numeric_limits<double>::infinity());
 
@@ -144,7 +216,7 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candid
         }
 
         undoMove(ann_network, move);
-        if (move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::DeltaMinusMove) {
+        if (move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::DeltaMinusMove || move.moveType == MoveType::RSPRMove) {
             apply_network_state(ann_network, oldState);
         }
     }
@@ -154,49 +226,11 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candid
         std::cout << std::endl;
     }
 
-    std::vector<ScoreItem<Node*> > scores(ann_network.network.num_nodes());
-    for (size_t i = 0; i < ann_network.network.num_nodes(); ++i) {
-        scores[i] = ScoreItem<Node*>{ann_network.network.nodes_by_index[i], nodeScore[i]};
-    }
-
-    std::sort(scores.begin(), scores.end(), [](const ScoreItem<Node*>& lhs, const ScoreItem<Node*>& rhs) {
-        return lhs.bicScore < rhs.bicScore;
-    });
-
-    size_t newSize = 0;
-
-    size_t cutoff_pos = std::min(ann_network.options.prefilter_keep - 1, scores.size() - 1);
-
-    double cutoff_bic = scores[cutoff_pos].bicScore; //best_bic;
-
-    for (size_t i = 0; i < ann_network.network.num_nodes(); ++i) {
-        if (scores[i].bicScore == std::numeric_limits<double>::infinity()) {
-            break;
-        }
-        if (scores[i].bicScore <= cutoff_bic) {
-            if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-                if (!silent) std::cout << "prefiltered node " << scores[i].item->clv_index << " has best BIC: " << scores[i].bicScore << "\n";
-            }
-            promisingNodes.emplace(scores[i].item->clv_index);
-            newSize++;
-        }
-
-        if (newSize == ann_network.options.prefilter_keep) {
-            break;
-        }
-    }
-
     size_t oldCandidatesSize = candidates.size();
-    std::vector<T> newCandidates;
-    for (size_t i = 0; i < candidates.size(); ++i) {
-        if (promisingNodes.count(candidates[i].node_orig_idx) > 0) {
-            newCandidates.emplace_back(candidates[i]);
-        }
-    }
-    candidates = newCandidates;
+    std::unordered_set<size_t> promisingNodes = findPromisingNodes(ann_network, nodeScore, silent);
+    filterCandidatesByNodes(candidates, promisingNodes);
 
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-        if (print_progress) std::cout << "New size promising nodes after prefiltering: " << newSize << " vs. " << ann_network.network.num_nodes() << "\n";
         if (print_progress) std::cout << "New size candidates after prefiltering: " << candidates.size() << " vs. " << oldCandidatesSize << "\n";
     }
 
@@ -291,44 +325,20 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
             return;
         }
         undoMove(ann_network, move);
-        if (move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::DeltaMinusMove) {
+        if (move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::DeltaMinusMove || move.moveType == MoveType::RSPRMove) {
             apply_network_state(ann_network, oldState);
         }
     }
     apply_network_state(ann_network, oldState);
-
     if (print_progress && ParallelContext::master_rank() && ParallelContext::master_thread()) { 
         std::cout << std::endl;
     }
 
-    std::sort(scores.begin(), scores.end(), [](const ScoreItem<T>& lhs, const ScoreItem<T>& rhs) {
-        return lhs.bicScore < rhs.bicScore;
-    });
-
-    size_t newSize = 0;
-
-    size_t cutoff_pos = std::min(ann_network.options.rank_keep - 1, scores.size() - 1);
-
-    double cutoff_bic = scores[cutoff_pos].bicScore; //best_bic;
-
-    for (size_t i = 0; i < candidates.size(); ++i) {
-        if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-            if (!silent) std::cout << "ranked candidate " << i + 1 << "/" << candidates.size() << " has BIC: " << scores[i].bicScore << "\n";
-        }
-        if (scores[i].bicScore <= cutoff_bic) {
-            candidates[newSize] = scores[i].item;
-            newSize++;
-        }
-
-        if (newSize == ann_network.options.rank_keep) {
-            break;
-        }
-    }
+    size_t oldCandidatesSize = candidates.size();
+    filterCandidatesByScore(candidates, scores, ann_network.options.rank_keep, true, silent);
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-        if (print_progress) std::cout << "New size after ranking: " << newSize << " vs. " << candidates.size() << "\n";
+        if (print_progress) std::cout << "New size after ranking: " << candidates.size() << " vs. " << oldCandidatesSize << "\n";
     }
-
-    candidates.resize(newSize);
 
     for (size_t i = 0; i < candidates.size(); ++i) {
         assert(checkSanity(ann_network, candidates[i]));
@@ -421,29 +431,15 @@ bool chooseCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidates, N
         scores[i] = ScoreItem<T>{candidates[i], bicScore};
 
         undoMove(ann_network, move);
-        apply_network_state(ann_network, oldState);
+        if (move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::DeltaMinusMove || move.moveType == MoveType::RSPRMove) {
+            apply_network_state(ann_network, oldState);
+        }
     }
     if (print_progress && ParallelContext::master_rank() && ParallelContext::master_thread()) {
         std::cout << std::endl;
     }
 
-    std::sort(scores.begin(), scores.end(), [](const ScoreItem<T>& lhs, const ScoreItem<T>& rhs) {
-        return lhs.bicScore < rhs.bicScore;
-    });
-
-    size_t newSize = 0;
-
-    for (size_t i = 0; i < candidates.size(); ++i) {
-        if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-            if (!silent) std::cout << "candidate " << i + 1 << "/" << candidates.size() << " has BIC: " << scores[i].bicScore << "\n";
-        }
-        if (scores[i].bicScore < old_bic) {
-            candidates[newSize] = scores[i].item;
-            newSize++;
-        }
-    }
-
-    candidates.resize(newSize);
+    filterCandidatesByScore(candidates, scores, 1, false, silent);
 
     return found_better;
 }
