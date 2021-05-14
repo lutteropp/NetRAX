@@ -147,7 +147,7 @@ void invalidate_pmatrices(AnnotatedNetwork &ann_network,
         std::vector<size_t> &affectedPmatrixIndices) {
     pllmod_treeinfo_t *fake_treeinfo = ann_network.fake_treeinfo;
     for (size_t pmatrix_index : affectedPmatrixIndices) {
-        assert(network.edges_by_index[pmatrix_index]);
+        assert(ann_network.network.edges_by_index[pmatrix_index]);
         for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
             // skip reote partitions
             if (!fake_treeinfo->partitions[p]) {
