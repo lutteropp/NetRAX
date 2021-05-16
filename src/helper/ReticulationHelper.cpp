@@ -61,6 +61,8 @@ double getReticulationActiveProb(AnnotatedNetwork &ann_network, const Node *node
 size_t getReticulationFirstParentPmatrixIndex(const Node *node) {
     assert(node);
     assert(node->type == NodeType::RETICULATION_NODE);
+    assert(node->getReticulationData());
+    assert(node->getReticulationData()->getLinkToFirstParent());
     return node->getReticulationData()->getLinkToFirstParent()->edge_pmatrix_index;
 }
 
