@@ -282,8 +282,7 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candid
     //std::unordered_set<size_t> promisingNodes = findPromisingNodes(ann_network, nodeScore, silent);
     //filterCandidatesByNodes(candidates, promisingNodes);
 
-    int n_keep = ann_network.options.prefilter_keep;
-    n_keep = elbowMethod(scores);//, n_keep);
+    int n_keep = elbowMethod(scores, ann_network.options.prefilter_keep);;
 
     filterCandidatesByScore(candidates, scores, n_keep, false, silent);
 
@@ -386,8 +385,7 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
     }
 
     size_t oldCandidatesSize = candidates.size();
-    int n_keep = ann_network.options.rank_keep;
-    n_keep = elbowMethod(scores);
+    int n_keep = elbowMethod(scores, ann_network.options.rank_keep);
     filterCandidatesByScore(candidates, scores, n_keep, false, silent);
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         if (print_progress) std::cout << "New size after ranking: " << candidates.size() << " vs. " << oldCandidatesSize << "\n";
