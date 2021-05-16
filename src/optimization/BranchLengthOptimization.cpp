@@ -295,8 +295,18 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
         }
         ann_network.cached_logl_valid = false;
 
-        // Leaving out this assertion is dangerous...
-        assert(fabs(old_logl - computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index)) < 1E-3);
+         // Leaving out this check is dangerous...
+        double brlenopt_logl = computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index);
+        if (fabs(old_logl - brlenopt_logl >= 1E-3)) {
+            if (ParallelContext::master_rank() && ParallelContext::master_thread) {
+                std::cout << exportDebugInfo(ann_network) << "\n";
+                std::cout << "old_logl: " << old_logl << "\n";
+                std::cout << "brlenopt_logl: " << brlenopt_logl << "\n";
+                std::cout << "problem occurred while optimizing branch " << pmatrix_index << "\n";
+            }
+            computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index, true);
+            throw std::runtime_error("Something went wrong when rerooting CLVs during brlen optimization");
+        }
 
         if (brlenOptMethod == BrlenOptMethod::NEWTON_RAPHSON) {
             sumtables = computePartitionSumtables(ann_network, pmatrix_index);
