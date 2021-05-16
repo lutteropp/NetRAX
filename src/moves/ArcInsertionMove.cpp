@@ -462,8 +462,8 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
 
     ReticulationData retData;
     retData.init(network.num_reticulations(), "", 0, nullptr, nullptr, nullptr);
-    Node *u = addInnerNode(network, nullptr, move.wanted_u_clv_index);
-    Node *v = addInnerNode(network, &retData, move.wanted_v_clv_index);
+    Node *u = addInnerNode(ann_network, nullptr, move.wanted_u_clv_index);
+    Node *v = addInnerNode(ann_network, &retData, move.wanted_v_clv_index);
 
     move.wanted_u_clv_index = u->clv_index;
     move.wanted_v_clv_index = v->clv_index;

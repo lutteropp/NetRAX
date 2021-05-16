@@ -437,7 +437,7 @@ void revertRemappedClvIndices(AnnotatedNetwork& ann_network, ArcRemovalMove& mov
         invalidateSingleClv(ann_network, old_clv_index);
 
         // update all references to this clv index
-        node->clv_index = new_clv_index; // 19
+        node->clv_index = new_clv_index;
         node->scaler_index = new_clv_index - ann_network.network.num_tips();
         ann_network.network.nodes_by_index[new_clv_index] = node;
         ann_network.network.nodes_by_index[old_clv_index] = nullptr;
@@ -662,7 +662,7 @@ void undoMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     assert(assertConsecutiveIndices(ann_network));
     assert(assertBranchLengths(ann_network));
 
-    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+    /*if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         std::cout << "undo " << toString(move) << "\n";
         std::cout << "remapped clv indices:\n";
         for (size_t i = 0; i < move.remapped_clv_indices.size(); ++i) {
@@ -673,9 +673,12 @@ void undoMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
             std::cout << " " << move.remapped_pmatrix_indices[i].first << " -> " << move.remapped_pmatrix_indices[i].second << "\n";
         }
         //std::cout << exportDebugInfo(ann_network) << "\n";
-    }
+    }*/
 
     revertRemappedIndices(ann_network, move);
+    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+        std::cout << exportDebugInfo(ann_network) << "\n";
+    }
 
     ArcInsertionMove insertion = buildArcInsertionMove(move.a_clv_index, move.b_clv_index,
             move.c_clv_index, move.d_clv_index, move.u_v_len, move.c_v_len, move.a_u_len, move.a_b_len, move.c_d_len, move.v_d_len, move.u_b_len, MoveType::ArcInsertionMove, move.edge_orig_idx, move.node_orig_idx);

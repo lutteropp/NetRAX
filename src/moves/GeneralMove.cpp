@@ -1,6 +1,7 @@
 #include "GeneralMove.hpp"
 
 #include "../helper/Helper.hpp"
+#include "../DebugPrintFunctions.hpp"
 
 namespace netrax {
 
@@ -49,12 +50,16 @@ void removeNode(AnnotatedNetwork &ann_network, Node *node) {
     network.nodeCount--;
 }
 
-Node* addInnerNode(Network &network, ReticulationData *retData, size_t wanted_clv_index) {
+Node* addInnerNode(AnnotatedNetwork &ann_network, ReticulationData *retData, size_t wanted_clv_index) {
+    Network& network = ann_network.network;
     assert(network.num_nodes() < network.nodes.size());
     unsigned int clv_index;
 
     if (wanted_clv_index < network.nodes.size()) {
-        if (network.edges_by_index[wanted_clv_index] != nullptr)  {
+        if (network.nodes_by_index[wanted_clv_index] != nullptr)  {
+            if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+                std::cout << exportDebugInfo(ann_network) << "\n";
+            }
             throw std::runtime_error("wanted clv index " + std::to_string(wanted_clv_index) + " is already taken");
         }
         clv_index = wanted_clv_index;
@@ -155,6 +160,9 @@ Edge* addEdge(AnnotatedNetwork &ann_network, Link *link1, Link *link2, double le
     size_t pmatrix_index = 0;
     if (wanted_pmatrix_index < ann_network.network.edges.size()) {
         if (ann_network.network.edges_by_index[wanted_pmatrix_index] != nullptr)  {
+            if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+                std::cout << exportDebugInfo(ann_network) << "\n";
+            }
             throw std::runtime_error("wanted pmatrix index " + std::to_string(wanted_pmatrix_index) + " is already taken");
         }
         pmatrix_index = wanted_pmatrix_index;

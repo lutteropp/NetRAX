@@ -12,7 +12,7 @@ size_t getRandomIndex(std::mt19937& rng, size_t n);
 Edge* getRandomEdge(AnnotatedNetwork &ann_network);
 
 void removeNode(AnnotatedNetwork &ann_network, Node *node);
-Node* addInnerNode(Network &network, ReticulationData *retData, size_t wanted_clv_index);
+Node* addInnerNode(AnnotatedNetwork &ann_network, ReticulationData *retData, size_t wanted_clv_index);
 
 void removeEdge(AnnotatedNetwork &ann_network, Edge *edge);
 Edge* addEdge(AnnotatedNetwork &ann_network, Link *link1, Link *link2, double length,
