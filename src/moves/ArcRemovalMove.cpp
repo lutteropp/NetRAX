@@ -4,6 +4,8 @@
 #include "../helper/Helper.hpp"
 #include "../helper/NetworkFunctions.hpp"
 
+#include "../DebugPrintFunctions.hpp"
+
 namespace netrax {
 
 bool checkSanity(AnnotatedNetwork& ann_network, ArcRemovalMove& move) {
@@ -670,6 +672,7 @@ void undoMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
         for (size_t i = 0; i < move.remapped_pmatrix_indices.size(); ++i) {
             std::cout << " " << move.remapped_pmatrix_indices[i].first << " -> " << move.remapped_pmatrix_indices[i].second << "\n";
         }
+        //std::cout << exportDebugInfo(ann_network) << "\n";
     }
 
     revertRemappedIndices(ann_network, move);
@@ -688,10 +691,6 @@ void undoMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
 
     insertion.ab_pmatrix_index = move.wanted_ab_pmatrix_index;
     insertion.cd_pmatrix_index = move.wanted_cd_pmatrix_index;
-
-    assert(ann_network.network.nodes_by_index[move.u_clv_index] == nullptr);
-    assert(ann_network.network.nodes_by_index[move.v_clv_index] == nullptr);
-    assert(ann_network.network.edges_by_index[move.uv_pmatrix_index] == nullptr);
 
     performMove(ann_network, insertion);
     assert(assertConsecutiveIndices(ann_network));
