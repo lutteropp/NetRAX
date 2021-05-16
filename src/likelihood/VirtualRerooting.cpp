@@ -286,33 +286,74 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
             TreeLoglData combinedTreeData(ann_network.fake_treeinfo->partition_count, ann_network.options.max_reticulations);
             combinedTreeData.reticulationChoices = combineReticulationChoices(sourceTrees[i].treeLoglData.reticulationChoices, targetTrees[j].treeLoglData.reticulationChoices);
             if (isActiveBranch(ann_network, combinedTreeData.reticulationChoices, pmatrix_index)) {
-                recomputeTreeData(ann_network, pmatrix_index, sourceTrees[i], targetTrees[j], combinedTreeData);
-            } else {
-                updateTreeData(ann_network, oldTrees, combinedTreeData);
-            }
-            combinedTreeData.tree_logl_valid = true;
-            combinedTreeData.tree_logprob_valid = true;
-            combinedTrees.emplace_back(combinedTreeData);
 
-            source_tree_seen[i] = true;
-            target_tree_seen[j] = true;
+                if (print_extra_debug_info) {
+                    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+                        ReticulationConfigSet restrictions = getRestrictionsToTakeNeighbor(ann_network, source, target);
+                        std::cout << "combined tree reticulation choice:\n";
+                        printReticulationChoices(combinedTreeData.reticulationChoices);
+                        std::cout << "active branch restrictions:\n";
+                        printReticulationChoices(restrictions);
+                    }
+                }
+
+                recomputeTreeData(ann_network, pmatrix_index, sourceTrees[i], targetTrees[j], combinedTreeData);
+            
+                combinedTreeData.tree_logl_valid = true;
+                combinedTreeData.tree_logprob_valid = true;
+                combinedTrees.emplace_back(combinedTreeData);
+
+                source_tree_seen[i] = true;
+                target_tree_seen[j] = true;
+            }
         }
     }
 
     for (size_t i = 0; i < n_trees_source; ++i) {
         if (!source_tree_seen[i]) {
-            updateTreeData(ann_network, oldTrees, sourceTrees[i].treeLoglData);
-            combinedTrees.emplace_back(sourceTrees[i].treeLoglData);
+            if (isActiveBranch(ann_network, sourceTrees[i].treeLoglData.reticulationChoices, pmatrix_index)) {
+                updateTreeData(ann_network, oldTrees, sourceTrees[i].treeLoglData);
+                combinedTrees.emplace_back(sourceTrees[i].treeLoglData);
+            }
         }
     }
     for (size_t j = 0; j < n_trees_target; ++j) {
         if (!target_tree_seen[j]) {
-            updateTreeData(ann_network, oldTrees, targetTrees[j].treeLoglData);
-            combinedTrees.emplace_back(targetTrees[j].treeLoglData);
+            if (isActiveBranch(ann_network, targetTrees[j].treeLoglData.reticulationChoices, pmatrix_index)) {
+                updateTreeData(ann_network, oldTrees, targetTrees[j].treeLoglData);
+                combinedTrees.emplace_back(targetTrees[j].treeLoglData);
+            }
         }
     }
 
-    // find trees that are still not present in the combined trees, but may be present in the old trees
+    if (print_extra_debug_info) {
+        if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+            std::cout << "\ncombined trees before adding the rest:\n";
+            for (size_t i = 0; i < combinedTrees.size(); ++i) {
+                printReticulationChoices(combinedTrees[i].reticulationChoices);
+            }
+        }
+    }
+
+    // find trees that are still not present in the combined trees, but are fully present in the old trees
+    for (size_t i = 0; i < oldTrees.size(); ++i) {
+        bool seen = false;
+        for (size_t j = 0; j < combinedTrees.size(); ++j) {
+            if (reticulationConfigsCompatible(oldTrees[i].treeLoglData.reticulationChoices, combinedTrees[j].reticulationChoices)) {
+                seen = true;
+                break;
+            }
+        }
+        if (!seen) {
+            TreeLoglData combinedTreeData(ann_network.fake_treeinfo->partition_count, ann_network.options.max_reticulations);
+            combinedTreeData.reticulationChoices = oldTrees[i].treeLoglData.reticulationChoices;
+            updateTreeData(ann_network, oldTrees, combinedTreeData);
+            combinedTrees.emplace_back(combinedTreeData);
+            break;
+        }
+    }
+
+    // find trees that are still not present in the combined trees, but may be partially present in the old trees
     for (size_t tree_idx = 0; tree_idx < (1 << ann_network.network.num_reticulations()); ++tree_idx) {
         ReticulationConfigSet treeChoices = getTreeConfig(ann_network, tree_idx);
         bool seen = false;
