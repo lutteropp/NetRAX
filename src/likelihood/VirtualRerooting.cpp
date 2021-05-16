@@ -351,7 +351,7 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
             std::cout << "old trees:\n";
             for (size_t i = 0; i < oldTrees.size(); ++i) {
                 printReticulationChoices(oldTrees[i].treeLoglData.reticulationChoices);
-                std::cout << " tree logprob: " << oldTrees[i].treeLoglData.tree_logprob << "\n";
+                std::cout << " tree logprob: " << oldTrees[i].treeLoglData.tree_logprob << ", tree prob: " << exp(oldTrees[i].treeLoglData.tree_logprob) << "\n";
                 for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
                     std::cout << "  partition_loglh[" << p << "]: " << oldTrees[i].treeLoglData.tree_partition_logl[p] << "\n";
                 }
@@ -359,7 +359,7 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
             std::cout << "\ncombined trees:\n";
             for (size_t i = 0; i < combinedTrees.size(); ++i) {
                 printReticulationChoices(combinedTrees[i].reticulationChoices);
-                std::cout << " tree logprob: " << oldTrees[i].treeLoglData.tree_logprob << "\n";
+                std::cout << " tree logprob: " << combinedTrees[i].tree_logprob << ", tree prob: " << exp(combinedTrees[i].tree_logprob) << "\n";
                 for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
                     std::cout << "  partition_loglh[" << p << "]: " << combinedTrees[i].tree_partition_logl[p] << "\n";
                 }
