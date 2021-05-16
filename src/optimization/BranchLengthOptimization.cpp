@@ -304,7 +304,10 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
                 std::cout << "brlenopt_logl: " << brlenopt_logl << "\n";
                 std::cout << "problem occurred while optimizing branch " << pmatrix_index << "\n";
             }
-            computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index, 0, 1, true);
+            double nonincremental_logl = computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index, 0, 1, true);
+            if (ParallelContext::master_rank() && ParallelContext::master_thread) {
+                std::cout << "nonincremental_logl: " << nonincremental_logl << "\n";
+            }
             throw std::runtime_error("Something went wrong when rerooting CLVs during brlen optimization");
         }
 
