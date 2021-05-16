@@ -257,7 +257,7 @@ void recomputeTreeData(AnnotatedNetwork& ann_network, size_t pmatrix_index, Disp
 }
 
 double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::vector<DisplayedTreeData>& oldTrees, unsigned int pmatrix_index, int incremental, int update_pmatrices, bool print_extra_debug_info) {
-    if (ann_network.cached_logl_valid) {
+    if (ann_network.cached_logl_valid && incremental) {
         return ann_network.cached_logl;
     }
     Node* source = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);

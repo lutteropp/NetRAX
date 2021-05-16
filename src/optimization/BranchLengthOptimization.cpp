@@ -310,6 +310,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
                 std::cout << "nonincremental_nonpmatrix_logl: " << nonincremental_nonpmatrix_logl << "\n";
                 std::cout << "nonincremental_logl with updating pmatrices: " << nonincremental_logl << "\n";
             }
+            ParallelContext::mpi_barrier();
             throw std::runtime_error("Something went wrong when rerooting CLVs during brlen optimization");
         }
 
