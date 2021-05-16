@@ -12,6 +12,7 @@ void invalidateSingleClv(AnnotatedNetwork& ann_network, unsigned int clv_index) 
         treeinfo->clv_valid[p][clv_index] = 0;
     }
     ann_network.pseudo_clv_valid[clv_index] = false;
+    ann_network.cached_logl_valid = false;
 }
 
 void invalidateHigherClvs(AnnotatedNetwork &ann_network, pllmod_treeinfo_t *treeinfo, Node *node, bool invalidate_myself, std::vector<bool> &visited) {
@@ -157,6 +158,12 @@ void invalidate_pmatrices(AnnotatedNetwork &ann_network,
         }
     }
     pllmod_treeinfo_update_prob_matrices(fake_treeinfo, 0);
+}
+
+void invalidateAllCLVs(AnnotatedNetwork &ann_network) {
+    for (size_t i = ann_network.network.num_tips(); i < ann_network.network.num_nodes(); ++i) {
+       invalidateSingleClv(ann_network, i);
+    }
 }
 
 }

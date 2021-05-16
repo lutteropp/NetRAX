@@ -660,6 +660,18 @@ void undoMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     assert(assertConsecutiveIndices(ann_network));
     assert(assertBranchLengths(ann_network));
 
+    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+        std::cout << "undo " << toString(move) << "\n";
+        std::cout << "remapped clv indices:\n";
+        for (size_t i = 0; i < move.remapped_clv_indices.size(); ++i) {
+            std::cout << " " << move.remapped_clv_indices[i].first << " -> " << move.remapped_clv_indices[i].second << "\n";
+        }
+        std::cout << "remapped pmatrix indices:\n";
+        for (size_t i = 0; i < move.remapped_pmatrix_indices.size(); ++i) {
+            std::cout << " " << move.remapped_pmatrix_indices[i].first << " -> " << move.remapped_pmatrix_indices[i].second << "\n";
+        }
+    }
+
     revertRemappedIndices(ann_network, move);
 
     ArcInsertionMove insertion = buildArcInsertionMove(move.a_clv_index, move.b_clv_index,

@@ -441,7 +441,38 @@ std::vector<ArcInsertionMove> possibleDeltaPlusMoves(AnnotatedNetwork &ann_netwo
     return res;
 }
 
+bool assertReticulationsLast(AnnotatedNetwork& ann_network) {
+    bool retSeen = false;
+    std::unordered_set<size_t> retPmatrixIndices;
+    for (size_t i = 0; i < ann_network.network.num_nodes(); ++i) {
+        if (ann_network.network.nodes_by_index[i]->getType() == NodeType::RETICULATION_NODE) {
+            retSeen = true;
+            retPmatrixIndices.emplace(getReticulationFirstParentPmatrixIndex(ann_network.network.nodes_by_index[i]));
+            retPmatrixIndices.emplace(getReticulationSecondParentPmatrixIndex(ann_network.network.nodes_by_index[i]));
+            retPmatrixIndices.emplace(getReticulationChildPmatrixIndex(ann_network.network.nodes_by_index[i]));
+        }
+        if (retSeen) {
+            if (ann_network.network.nodes_by_index[i]->getType() != NodeType::RETICULATION_NODE) {
+                return false;
+            }
+        }
+    }
+    retSeen = false;
+    for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
+        if (retPmatrixIndices.count(i) != 0) {
+            retSeen = true;
+        }
+        if (retSeen) {
+            if (retPmatrixIndices.count(i) == 0) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
+    assert(assertReticulationsLast(ann_network));
     assert(checkSanity(ann_network, move));
     assert(move.moveType == MoveType::ArcInsertionMove || move.moveType == MoveType::DeltaPlusMove);
     Network &network = ann_network.network;
@@ -564,6 +595,7 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
     assert(assertReticulationProbs(ann_network));
     assert(assertConsecutiveIndices(ann_network));
     assert(assertBranchLengths(ann_network));
+    assert(assertReticulationsLast(ann_network));
 }
 
 void undoMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {

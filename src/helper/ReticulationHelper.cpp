@@ -76,6 +76,12 @@ size_t getReticulationActiveParentPmatrixIndex(const Node *node) {
     return node->getReticulationData()->getLinkToActiveParent()->edge_pmatrix_index;
 }
 
+size_t getReticulationChildPmatrixIndex(const Node* node) {
+    assert(node);
+    assert(node->type == NodeType::RETICULATION_NODE);
+    return node->getReticulationData()->getLinkToChild()->edge_pmatrix_index;
+}
+
 Node* getReticulationOtherParent(Network &network, const Node *node, const Node *parent) {
     assert(node);
     assert(node->type == NodeType::RETICULATION_NODE);

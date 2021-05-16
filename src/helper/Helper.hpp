@@ -33,6 +33,7 @@ double getReticulationActiveProb(AnnotatedNetwork &ann_network, const Node *node
 size_t getReticulationFirstParentPmatrixIndex(const Node *node);
 size_t getReticulationSecondParentPmatrixIndex(const Node *node);
 size_t getReticulationActiveParentPmatrixIndex(const Node *node);
+size_t getReticulationChildPmatrixIndex(const Node* node);
 bool assertReticulationProbs(AnnotatedNetwork &ann_network);
 void setReticulationState(Network &network, size_t reticulation_idx, ReticulationState state);
 void setReticulationParents(Network &network, const std::vector<ReticulationState>& reticulationChoices);
@@ -97,6 +98,8 @@ void invalidPmatrixIndexOnly(AnnotatedNetwork& ann_network, size_t pmatrix_index
 bool allClvsValid(pllmod_treeinfo_t* treeinfo, size_t clv_index);
 void invalidate_pmatrices(AnnotatedNetwork &ann_network,
         std::vector<size_t> &affectedPmatrixIndices);
+void invalidateAllCLVs(AnnotatedNetwork &ann_network);
+
 
 /* helper functions related to reticulation config set (ReticulationConfigHelper.cpp) */
 ReticulationConfigSet getRestrictionsToDismissNeighbor(AnnotatedNetwork& ann_network, Node* node, Node* neighbor);

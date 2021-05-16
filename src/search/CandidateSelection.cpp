@@ -155,6 +155,8 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candid
 
     NetworkState oldState = extract_network_state(ann_network);
 
+    assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
+
     for (size_t i = 0; i < candidates.size(); ++i) {        
         if (print_progress) {
             advance_progress((float) (i+1) / candidates.size(), barWidth);
@@ -210,6 +212,9 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candid
                 candidates[0] = candidates[i];
                 candidates.resize(1);
                 undoMove(ann_network, move);
+                assert(topology_equal(oldNetwork, ann_network.network));
+
+                assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
                 apply_network_state(ann_network, oldState);
                 if (print_progress && ParallelContext::master_rank() && ParallelContext::master_thread()) {
                     std::cout << std::endl;
@@ -233,10 +238,12 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candid
 
         assert(checkSanity(ann_network, candidates[i]));
 
+        assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
         apply_network_state(ann_network, oldState);
 
         assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
     }
+    assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
     apply_network_state(ann_network, oldState);
 
     if (print_progress && ParallelContext::master_rank() && ParallelContext::master_thread()) { 

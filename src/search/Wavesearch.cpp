@@ -3,10 +3,12 @@
 #include "CandidateSelection.hpp"
 #include "../likelihood/ComplexityScoring.hpp"
 #include "../likelihood/PseudoLoglikelihood.hpp"
+#include "../likelihood/LikelihoodComputation.hpp"
 #include "../moves/Moves.hpp"
 #include "../optimization/Optimization.hpp"
 #include "Scrambling.hpp"
 #include "../optimization/NetworkState.hpp"
+#include "../DebugPrintFunctions.hpp"
 
 #include "../colormod.h" // namespace Color
 
@@ -146,7 +148,7 @@ void wavesearch_main_internal(AnnotatedNetwork& ann_network, BestNetworkData* be
             if (!silent) std::cout << " Network before scrambling has BIC Score: " << scoreNetwork(ann_network) << "\n";
         }
         while (tries < ann_network.options.scrambling) {
-            apply_network_state(ann_network, bestState);
+            apply_network_state(ann_network, bestState, true);
             double old_best_score_scrambling = scoreNetwork(ann_network);
             scrambleNetwork(ann_network, MoveType::RSPRMove, ann_network.options.scrambling_radius);
             bool improved = true;
@@ -163,13 +165,13 @@ void wavesearch_main_internal(AnnotatedNetwork& ann_network, BestNetworkData* be
             }
             if (*best_score < old_best_score) {
                 old_best_score = *best_score;
-                extract_network_state(ann_network, bestState);
+                extract_network_state(ann_network, bestState, true);
                 tries = 0;
             } else {
                 tries++;
             }
         }
-        apply_network_state(ann_network, bestState);
+        apply_network_state(ann_network, bestState, true);
     }
 }
 
@@ -190,7 +192,6 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
             std::cout << "pseudo-bic: " << bic(ann_network, pseudo) << "\n";
         }
     }
-
     //std::cout << "Initial network is:\n" << toExtendedNewick(ann_network) << "\n\n";
 
     size_t start_idx = 0;
