@@ -519,14 +519,14 @@ void performMove(AnnotatedNetwork &ann_network, ArcInsertionMove &move) {
 
     Edge *u_b_edge = addEdge(ann_network, u_b_link, to_b_link, u_b_edge_length[0],
             move.wanted_ub_pmatrix_index);
-    Edge *v_d_edge = addEdge(ann_network, v_d_link, to_d_link, v_d_edge_length[0],
-            move.wanted_vd_pmatrix_index);
     Edge *a_u_edge = addEdge(ann_network, from_a_link, to_u_link, a_u_edge_length[0],
             move.wanted_au_pmatrix_index);
     Edge *c_v_edge = addEdge(ann_network, from_c_link, v_c_link, c_v_edge_length[0],
             move.wanted_cv_pmatrix_index);
     Edge *u_v_edge = addEdge(ann_network, u_v_link, v_u_link, u_v_edge_length[0],
             move.wanted_uv_pmatrix_index);
+    Edge *v_d_edge = addEdge(ann_network, v_d_link, to_d_link, v_d_edge_length[0],
+            move.wanted_vd_pmatrix_index);
 
     move.wanted_au_pmatrix_index = a_u_edge->pmatrix_index;
     move.wanted_cv_pmatrix_index = c_v_edge->pmatrix_index;
