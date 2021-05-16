@@ -676,9 +676,6 @@ void undoMove(AnnotatedNetwork &ann_network, ArcRemovalMove &move) {
     }*/
 
     revertRemappedIndices(ann_network, move);
-    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-        std::cout << exportDebugInfo(ann_network) << "\n";
-    }
 
     ArcInsertionMove insertion = buildArcInsertionMove(move.a_clv_index, move.b_clv_index,
             move.c_clv_index, move.d_clv_index, move.u_v_len, move.c_v_len, move.a_u_len, move.a_b_len, move.c_d_len, move.v_d_len, move.u_b_len, MoveType::ArcInsertionMove, move.edge_orig_idx, move.node_orig_idx);

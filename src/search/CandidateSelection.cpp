@@ -123,6 +123,34 @@ void advance_progress(float progress, int barWidth) {
 }
 
 template <typename T>
+size_t elbowMethod(const std::vector<ScoreItem<T> >& elements, int max_n_keep = std::numeric_limits<int>::max()) {
+// see https://www.linkedin.com/pulse/finding-optimal-number-clusters-k-means-through-elbow-asanka-perera/
+// see https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line
+// we need to find the point with the largest distance to the line from the first to the last point; this point corresponds to our chosen cutoff value.
+	int minIdx = 0;
+
+	int lastIdx = std::min((int) elements.size(), max_n_keep) - 1;
+
+	int maxDist = 0;
+	int maxDistIdx = minIdx;
+
+	int x1 = minIdx;
+	int y1 = elements[minIdx].bicScore;
+	int x2 = lastIdx;
+	int y2 = elements[lastIdx].bicScore;
+	for (int i = minIdx + 1; i <= lastIdx; ++i) { // because the endpoints trivially have distance 0
+		int x0 = i;
+		int y0 = elements[i].bicScore;
+		int d = std::abs((y2 - y1) * x0 - (x2 - x1) * y0 + x2 * y1 - y2 * x1);
+		if (d > maxDist) {
+			maxDist = d;
+			maxDistIdx = i;
+		}
+	}
+	return maxDistIdx + 1;
+}
+
+template <typename T>
 double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, bool silent = true, bool print_progress = true, bool need_best_bic = false) {    
     if (candidates.empty()) {
         return scoreNetwork(ann_network);
@@ -253,7 +281,11 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candid
     size_t oldCandidatesSize = candidates.size();
     //std::unordered_set<size_t> promisingNodes = findPromisingNodes(ann_network, nodeScore, silent);
     //filterCandidatesByNodes(candidates, promisingNodes);
-    filterCandidatesByScore(candidates, scores, ann_network.options.prefilter_keep, false, silent);
+
+    int n_keep = ann_network.options.prefilter_keep;
+    n_keep = elbowMethod(scores);//, n_keep);
+
+    filterCandidatesByScore(candidates, scores, n_keep, false, silent);
 
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         if (print_progress) std::cout << "New size candidates after prefiltering: " << candidates.size() << " vs. " << oldCandidatesSize << "\n";
@@ -354,7 +386,9 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
     }
 
     size_t oldCandidatesSize = candidates.size();
-    filterCandidatesByScore(candidates, scores, ann_network.options.rank_keep, false, silent);
+    int n_keep = ann_network.options.rank_keep;
+    n_keep = elbowMethod(scores);
+    filterCandidatesByScore(candidates, scores, n_keep, false, silent);
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         if (print_progress) std::cout << "New size after ranking: " << candidates.size() << " vs. " << oldCandidatesSize << "\n";
     }
@@ -614,7 +648,6 @@ double fastIterationsMode(AnnotatedNetwork& ann_network, int best_max_distance, 
 }
 
 double slowIterationsMode(AnnotatedNetwork& ann_network, MoveType type, int step_size, const std::vector<MoveType>& typesBySpeed, double* best_score, BestNetworkData* bestNetworkData, bool silent) {
-    optimizeAllNonTopology(ann_network);
     double old_score = scoreNetwork(ann_network);
     check_score_improvement(ann_network, best_score, bestNetworkData);
 
@@ -662,6 +695,9 @@ double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vecto
         std::cout << def;
     }
 
+    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+        std::cout << "optimizing model, reticulation probs, and branch lengths (fast mode)...\n";
+    }
     optimizeAllNonTopology(ann_network);
     check_score_improvement(ann_network, best_score, bestNetworkData);
 
@@ -690,10 +726,15 @@ double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vecto
     if (!ann_network.options.no_slow_mode && type != MoveType::ArcInsertionMove && type != MoveType::DeltaPlusMove) {
         if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
             std::cout << "\n" << toString(type) << " step 3: slow iterations mode, with increasing max distance\n";
+            std::cout << "optimizing model, reticulation probs, and branch lengths (slow mode)...\n";
         }
+        optimizeAllNonTopology(ann_network);
         slowIterationsMode(ann_network, type, step_size, typesBySpeed, best_score, bestNetworkData, silent);
     }
 
+    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+        std::cout << "optimizing model, reticulation probs, and branch lengths (slow mode)...\n";
+    }
     optimizeAllNonTopology(ann_network, true);
     old_score = scoreNetwork(ann_network);
     check_score_improvement(ann_network, best_score, bestNetworkData);
