@@ -55,7 +55,7 @@ Node* addInnerNode(Network &network, ReticulationData *retData, size_t wanted_cl
 
     if (wanted_clv_index < network.nodes.size()) {
         if (network.edges_by_index[wanted_clv_index] != nullptr)  {
-            throw std::runtime_error("wanted clv index is already taken");
+            throw std::runtime_error("wanted clv index " + std::to_string(wanted_clv_index) + " is already taken");
         }
         clv_index = wanted_clv_index;
     } else {
@@ -155,7 +155,7 @@ Edge* addEdge(AnnotatedNetwork &ann_network, Link *link1, Link *link2, double le
     size_t pmatrix_index = 0;
     if (wanted_pmatrix_index < ann_network.network.edges.size()) {
         if (ann_network.network.edges_by_index[wanted_pmatrix_index] != nullptr)  {
-            throw std::runtime_error("wanted pmatrix index is already taken");
+            throw std::runtime_error("wanted pmatrix index " + std::to_string(wanted_pmatrix_index) + " is already taken");
         }
         pmatrix_index = wanted_pmatrix_index;
     } else {
