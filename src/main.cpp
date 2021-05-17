@@ -132,11 +132,15 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     return 0;
 }
 
+std::vector<MoveType> getTypesBySpeedGoodStart(const NetraxOptions& options) {
+    //std::vector<MoveType> typesBySpeed = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::TailMove, MoveType::ArcRemovalMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
+    std::vector<MoveType> typesBySpeed = {MoveType::ArcRemovalMove, MoveType::ArcInsertionMove, MoveType::RSPRMove, MoveType::RNNIMove};
+    return typesBySpeed;
+}
+
 std::vector<MoveType> getTypesBySpeed(const NetraxOptions& options) {
     //std::vector<MoveType> typesBySpeed = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::TailMove, MoveType::ArcRemovalMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
-
-    std::vector<MoveType> typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RSPRMove, MoveType::RNNIMove, MoveType::ArcInsertionMove};
-
+    std::vector<MoveType> typesBySpeed = {MoveType::ArcRemovalMove, MoveType::RSPRMove, MoveType::RNNIMove, MoveType::ArcInsertionMove, MoveType::RSPRMove, MoveType::RNNIMove};
     return typesBySpeed;
 }
 
@@ -481,7 +485,8 @@ void netrax_thread_main(NetraxOptions& netraxOptions, const RaxmlInstance& insta
     else if (!netraxOptions.start_network_file.empty())
     {
         std::vector<MoveType> typesBySpeed = getTypesBySpeed(netraxOptions);
-        run_single_start_waves(netraxOptions, instance, typesBySpeed, rng);
+        std::vector<MoveType> typesBySpeedGoodStart = getTypesBySpeedGoodStart(netraxOptions);
+        run_single_start_waves(netraxOptions, instance, typesBySpeed, typesBySpeedGoodStart, rng);
     } else
     {
         std::vector<MoveType> typesBySpeed = getTypesBySpeed(netraxOptions);

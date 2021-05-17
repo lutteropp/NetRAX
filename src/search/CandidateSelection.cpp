@@ -699,11 +699,13 @@ double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vecto
         std::cout << def;
     }
 
-    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-        std::cout << "optimizing model, reticulation probs, and branch lengths (fast mode)...\n";
+    if (typesBySpeed[0] == type) {
+        if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+            std::cout << "optimizing model, reticulation probs, and branch lengths (fast mode)...\n";
+        }
+        optimizeAllNonTopology(ann_network);
+        check_score_improvement(ann_network, best_score, bestNetworkData);
     }
-    optimizeAllNonTopology(ann_network);
-    check_score_improvement(ann_network, best_score, bestNetworkData);
 
     int step_size = 5;
 

@@ -20,13 +20,13 @@
 
 namespace netrax {
 
-void run_single_start_waves(NetraxOptions& netraxOptions, const RaxmlInstance& instance, const std::vector<MoveType>& typesBySpeed, std::mt19937& rng) {
+void run_single_start_waves(NetraxOptions& netraxOptions, const RaxmlInstance& instance, const std::vector<MoveType>& typesBySpeed, const std::vector<MoveType>& typesBySpeedGoodStart, std::mt19937& rng) {
     /* non-master ranks load starting trees from a file */
     ParallelContext::global_mpi_barrier();
     netrax::AnnotatedNetwork ann_network = build_annotated_network(netraxOptions, instance);
     init_annotated_network(ann_network, rng);
     BestNetworkData bestNetworkData(ann_network.options.max_reticulations);
-    wavesearch(ann_network, &bestNetworkData, typesBySpeed);
+    wavesearch(ann_network, &bestNetworkData, typesBySpeed, typesBySpeedGoodStart);
 
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         std::cout << "Statistics on which moves were taken:\n";
@@ -79,7 +79,7 @@ void run_random(NetraxOptions& netraxOptions, const RaxmlInstance& instance, con
             init_annotated_network(ann_network, rng);
             add_extra_reticulations(ann_network, start_reticulations);
 
-            wavesearch(ann_network, &bestNetworkData, typesBySpeed);
+            wavesearch(ann_network, &bestNetworkData, typesBySpeed, typesBySpeed);
             if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
                 std::cout << " Inferred " << ann_network.network.num_reticulations() << " reticulations, logl = " << computeLoglikelihood(ann_network) << ", bic = " << scoreNetwork(ann_network) << "\n";
             }
@@ -111,7 +111,7 @@ void run_random(NetraxOptions& netraxOptions, const RaxmlInstance& instance, con
             netrax::AnnotatedNetwork ann_network = build_parsimony_annotated_network(netraxOptions, instance, seed);
             init_annotated_network(ann_network, rng);
             add_extra_reticulations(ann_network, start_reticulations);
-            wavesearch(ann_network, &bestNetworkData, typesBySpeed);
+            wavesearch(ann_network, &bestNetworkData, typesBySpeed, typesBySpeed);
             if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
                 std::cout << " Inferred " << ann_network.network.num_reticulations() << " reticulations, logl = " << computeLoglikelihood(ann_network) << ", bic = " << scoreNetwork(ann_network) << "\n";
             }
