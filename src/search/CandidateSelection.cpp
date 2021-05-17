@@ -131,7 +131,7 @@ size_t elbowMethod(const std::vector<ScoreItem<T> >& elements, int max_n_keep = 
 
 	int lastIdx = std::min((int) elements.size(), max_n_keep) - 1;
 
-	int maxDist = 0;
+	double maxDist = 0;
 	int maxDistIdx = minIdx;
 
 	int x1 = minIdx;
@@ -141,8 +141,8 @@ size_t elbowMethod(const std::vector<ScoreItem<T> >& elements, int max_n_keep = 
 	for (int i = minIdx + 1; i <= lastIdx; ++i) { // because the endpoints trivially have distance 0
 		int x0 = i;
 		int y0 = elements[i].bicScore;
-		int d = std::abs((y2 - y1) * x0 - (x2 - x1) * y0 + x2 * y1 - y2 * x1);
-		if (d > maxDist) {
+		double d = std::abs((y2 - y1) * x0 - (x2 - x1) * y0 + x2 * y1 - y2 * x1);
+		if (d >= maxDist) {
 			maxDist = d;
 			maxDistIdx = i;
 		}
@@ -282,7 +282,10 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candid
     //std::unordered_set<size_t> promisingNodes = findPromisingNodes(ann_network, nodeScore, silent);
     //filterCandidatesByNodes(candidates, promisingNodes);
 
-    int n_keep = elbowMethod(scores, ann_network.options.prefilter_keep);;
+    int n_keep = ann_network.options.prefilter_keep;
+    if (!ann_network.options.no_elbow_method) {
+        n_keep = elbowMethod(scores, n_keep);
+    }
 
     filterCandidatesByScore(candidates, scores, n_keep, false, silent);
 
@@ -385,7 +388,10 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candidates, b
     }
 
     size_t oldCandidatesSize = candidates.size();
-    int n_keep = elbowMethod(scores, ann_network.options.rank_keep);
+    int n_keep = ann_network.options.rank_keep;
+    if (!ann_network.options.no_elbow_method) {
+        n_keep = elbowMethod(scores, n_keep);
+    }
     filterCandidatesByScore(candidates, scores, n_keep, false, silent);
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         if (print_progress) std::cout << "New size after ranking: " << candidates.size() << " vs. " << oldCandidatesSize << "\n";

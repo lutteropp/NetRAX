@@ -107,6 +107,8 @@ public:
 
     LoadBalancing load_balance_method = LoadBalancing::benoit; //LoadBalancing::naive;
 
+    bool no_elbow_method = false;
+
     std::string msa_file = "";
     std::string model_file = "DNA";
     std::string start_network_file = "";
