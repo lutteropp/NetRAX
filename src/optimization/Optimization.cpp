@@ -107,12 +107,12 @@ void optimizeAllNonTopology(AnnotatedNetwork &ann_network, bool extremeOpt, bool
         gotBetter = false;
         double score_before = scoreNetwork(ann_network);
         assert(logl_stays_same(ann_network));
-        optimizeModel(ann_network, silent);
+        optimizeReticulationProbs(ann_network, silent);
         assert(logl_stays_same(ann_network));
         optimizeBranches(ann_network, 1.0, silent);
         assert(logl_stays_same(ann_network));
         assert(logl_stays_same(ann_network));
-        optimizeReticulationProbs(ann_network, silent);
+        optimizeModel(ann_network, silent);
         double score_after = scoreNetwork(ann_network);
         assert(logl_stays_same(ann_network));
 
