@@ -140,7 +140,7 @@ size_t elbowMethod(const std::vector<ScoreItem<T> >& elements, int max_n_keep = 
 	int y2 = elements[lastIdx].bicScore;
 	for (int i = minIdx + 1; i <= lastIdx; ++i) { // because the endpoints trivially have distance 0
 		int x0 = i;
-		int y0 = elements[i].bicScore;
+		double y0 = elements[i].bicScore;
 		double d = std::abs((y2 - y1) * x0 - (x2 - x1) * y0 + x2 * y1 - y2 * x1);
 		if (d >= maxDist) {
 			maxDist = d;
