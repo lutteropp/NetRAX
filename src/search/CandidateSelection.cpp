@@ -736,6 +736,7 @@ double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vecto
                 std::cout << "optimizing model, reticulation probs, and branch lengths (slow mode)...\n";
             }
             optimizeAllNonTopology(ann_network, true);
+            check_score_improvement(ann_network, best_score, bestNetworkData);
         }
         double new_score_fast = scoreNetwork(ann_network);
         if (new_score_fast < old_score_fast && !isComplexityChangingMove(type)) {
@@ -751,7 +752,7 @@ double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vecto
     if (!ann_network.options.no_slow_mode && type != MoveType::ArcInsertionMove && type != MoveType::DeltaPlusMove) {
         if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
             std::cout << "\n" << toString(type) << " step 3: slow iterations mode, with increasing max distance\n";
-            std::cout << "optimizing model, reticulation probs, and branch lengths (slow mode)...\n";
+            std::cout << "optimizing model, reticulation probs, and branch lengths (fast mode)...\n";
         }
         optimizeAllNonTopology(ann_network);
         slowIterationsMode(ann_network, type, step_size, typesBySpeed, best_score, bestNetworkData, silent);
