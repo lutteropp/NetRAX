@@ -505,10 +505,6 @@ double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidat
         assert(checkSanity(ann_network, candidates[0]));
         performMove(ann_network, candidates[0]);
         apply_network_state(ann_network, state);
-        if (scoreNetwork(ann_network) != best_bic) {
-            std::cout << scoreNetwork(ann_network) << "\n";
-            std::cout << best_bic << "\n";
-        }
         assert(scoreNetwork(ann_network) == best_bic);
 
         optimizeAllNonTopology(ann_network);
@@ -720,30 +716,25 @@ double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vecto
         best_max_distance = findBestMaxDistance(ann_network, type, typesBySpeed, step_size, best_score, bestNetworkData, silent);
     }
 
-    bool got_better = true;
-    while (got_better) {
-        double old_score_fast = scoreNetwork(ann_network);
-        got_better = false;
-        // step 2: fast iterations mode, with the best max distance
-        if (best_max_distance >= 0) {
-            if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-                std::cout << "\n" << toString(type) << " step 2: fast iterations mode, with the best max distance " << best_max_distance << "\n";
-            }
-            fastIterationsMode(ann_network, best_max_distance, type, typesBySpeed, best_score, bestNetworkData, silent);
-            if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-                std::cout << "optimizing model, reticulation probs, and branch lengths (slow mode)...\n";
-            }
-            optimizeAllNonTopology(ann_network, true);
-            check_score_improvement(ann_network, best_score, bestNetworkData);
+    double old_score_fast = scoreNetwork(ann_network);
+    // step 2: fast iterations mode, with the best max distance
+    if (best_max_distance >= 0) {
+        if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+            std::cout << "\n" << toString(type) << " step 2: fast iterations mode, with the best max distance " << best_max_distance << "\n";
         }
-        double new_score_fast = scoreNetwork(ann_network);
-        if (new_score_fast < old_score_fast && !isComplexityChangingMove(type)) {
-            got_better = true;
-            if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-                std::cout << toString(type) << " step1: find best max distance\n";
-            }
-            best_max_distance = findBestMaxDistance(ann_network, type, typesBySpeed, step_size, best_score, bestNetworkData, silent);
+        fastIterationsMode(ann_network, best_max_distance, type, typesBySpeed, best_score, bestNetworkData, silent);
+        if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+            std::cout << "optimizing model, reticulation probs, and branch lengths (slow mode)...\n";
         }
+        optimizeAllNonTopology(ann_network, true);
+        check_score_improvement(ann_network, best_score, bestNetworkData);
+    }
+    double new_score_fast = scoreNetwork(ann_network);
+    if (new_score_fast < old_score_fast && !isComplexityChangingMove(type)) {
+        if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+            std::cout << toString(type) << " step1: find best max distance\n";
+        }
+        best_max_distance = findBestMaxDistance(ann_network, type, typesBySpeed, step_size, best_score, bestNetworkData, silent);
     }
 
     // step 3: slow iterations mode, with increasing max distance
