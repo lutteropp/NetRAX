@@ -15,16 +15,16 @@
 namespace netrax
 {
 
-    std::vector<bool> edge_split(AnnotatedNetwork &ann_network, Edge *edge, std::unordered_map<std::string, unsigned int> &label_to_int, bool unrooted, bool softwired)
+    std::vector<bool> edge_split(AnnotatedNetwork &ann_network, const Edge *edge, std::unordered_map<std::string, unsigned int> &label_to_int, bool unrooted, bool softwired)
     {
         Network &network = ann_network.network;
         std::vector<bool> split(network.num_tips(), false);
         // activate everything below the edge
-        std::queue<Node *> q;
+        std::queue<const Node *> q;
         q.emplace(getTarget(network, edge));
         while (!q.empty())
         {
-            Node *act_node = q.front();
+            const Node *act_node = q.front();
             q.pop();
             if (act_node->isTip())
             {
@@ -36,7 +36,7 @@ namespace netrax
             }
             else
             {
-                std::vector<netrax::Node *> children;
+                std::vector<Node*> children;
                 if (softwired)
                 {
                     children = getActiveChildren(network, act_node);
@@ -46,7 +46,7 @@ namespace netrax
                     children = getChildren(network, act_node);
                 }
 
-                for (Node *child : children)
+                for (const Node *child : children)
                 {
                     q.emplace(child);
                 }
@@ -68,7 +68,7 @@ namespace netrax
         return split;
     }
 
-    std::vector<int> edge_trip(AnnotatedNetwork &ann_network, Edge *edge, std::unordered_map<std::string, unsigned int> &label_to_int)
+    std::vector<int> edge_trip(AnnotatedNetwork &ann_network, const Edge *edge, std::unordered_map<std::string, unsigned int> &label_to_int)
     {
         Network &network = ann_network.network;
         std::vector<unsigned int> descendant_in_trees_count(network.num_tips(), 0); // first, we count in how many displayed trees a taxon is a descendant
@@ -78,11 +78,11 @@ namespace netrax
         {
             netrax::setReticulationParents(ann_network.network, tree_index);
             // increase everything below the edge
-            std::queue<Node *> q;
+            std::queue<const Node *> q;
             q.emplace(getTarget(network, edge));
             while (!q.empty())
             {
-                Node *act_node = q.front();
+                const Node *act_node = q.front();
                 q.pop();
                 if (act_node->isTip())
                 {
@@ -94,8 +94,8 @@ namespace netrax
                 }
                 else
                 {
-                    std::vector<netrax::Node *> children = getActiveChildren(network, act_node);
-                    for (Node *child : children)
+                    std::vector<Node*> children = getActiveChildren(network, act_node);
+                    for (const Node *child : children)
                     {
                         q.emplace(child);
                     }
@@ -118,7 +118,7 @@ namespace netrax
     }
 
 
-    int count_paths(AnnotatedNetwork &ann_network, Node* source, Node* target) {
+    int count_paths(AnnotatedNetwork &ann_network, const Node* source, const Node* target) {
         if (source == target) {
             return 1;
         }

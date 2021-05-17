@@ -77,12 +77,12 @@ void remove_dead_children(std::vector<Node*> &children, const std::vector<bool> 
 }
 
 struct CumulatedChild {
-    Node *child = nullptr;
-    Node *direct_parent = nullptr;
+    const Node *child = nullptr;
+    const Node *direct_parent = nullptr;
     double cum_brlen = 0.0;
 };
 
-std::vector<Node*> getChildrenNoDir(Network &network, Node *node, const Node *myParent) {
+std::vector<Node*> getChildrenNoDir(Network &network, const Node *node, const Node *myParent) {
     assert(node);
     std::vector<Node*> children;
     if (node->type == NodeType::RETICULATION_NODE) {
@@ -103,7 +103,7 @@ std::vector<Node*> getChildrenNoDir(Network &network, Node *node, const Node *my
     return children;
 }
 
-std::vector<Node*> getActiveChildrenNoDir(Network &network, Node *node, const Node *myParent) {
+std::vector<Node*> getActiveChildrenNoDir(Network &network, const Node *node, const Node *myParent) {
     assert(node);
     std::vector<Node*> activeChildren;
     std::vector<Node*> children = getChildrenNoDir(network, node, myParent);
@@ -122,11 +122,11 @@ std::vector<Node*> getActiveChildrenNoDir(Network &network, Node *node, const No
     return activeChildren;
 }
 
-CumulatedChild getCumulatedChild(Network &network, Node *parent, Node *child,
+CumulatedChild getCumulatedChild(Network &network, const Node *parent, const Node *child,
         const std::vector<bool> &dead_nodes, const std::vector<bool> &skipped_nodes) {
     CumulatedChild res { child, parent, 0.0 };
     res.cum_brlen += getEdgeTo(network, child, parent)->length;
-    Node *act_parent = parent;
+    const Node *act_parent = parent;
     while (skipped_nodes[res.child->clv_index]) {
         std::vector<Node*> activeChildren = getActiveChildrenNoDir(network, res.child, act_parent);
         remove_dead_children(activeChildren, dead_nodes);
@@ -139,7 +139,7 @@ CumulatedChild getCumulatedChild(Network &network, Node *parent, Node *child,
     return res;
 }
 
-std::vector<CumulatedChild> getCumulatedChildren(Network &network, Node *parent, Node *actNode,
+std::vector<CumulatedChild> getCumulatedChildren(Network &network, const Node *parent, const Node *actNode,
         const std::vector<bool> &dead_nodes, const std::vector<bool> &skipped_nodes) {
     assert(actNode);
     std::vector<CumulatedChild> res;
@@ -152,8 +152,8 @@ std::vector<CumulatedChild> getCumulatedChildren(Network &network, Node *parent,
     return res;
 }
 
-pll_unode_t* connect_subtree_recursive(Network &network, Node *networkNode,
-        pll_unode_t *from_parent, Node *networkParentNode, const std::vector<bool> &dead_nodes,
+pll_unode_t* connect_subtree_recursive(Network &network, const Node *networkNode,
+        pll_unode_t *from_parent, const Node *networkParentNode, const std::vector<bool> &dead_nodes,
         const std::vector<bool> &skipped_nodes) {
     assert(networkNode->getType() == NodeType::BASIC_NODE);
 

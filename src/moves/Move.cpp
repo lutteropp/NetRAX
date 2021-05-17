@@ -180,7 +180,7 @@ std::unordered_set<size_t> brlenOptCandidates(AnnotatedNetwork &ann_network, con
 std::vector<Move> possibleMoves(AnnotatedNetwork& ann_network, MoveType type, bool rspr1_present, bool delta_plus_present, int min_radius, int max_radius) {
     switch (type) {
         case MoveType::ArcInsertionMove:
-            return possibleMovesArcInsertion(ann_network, min_radius, max_radius);
+            return possibleMovesArcInsertion(ann_network, delta_plus_present, min_radius, max_radius);
         case MoveType::DeltaPlusMove:
             return possibleMovesDeltaPlus(ann_network, min_radius, max_radius);
         case MoveType::ArcRemovalMove:
@@ -192,11 +192,11 @@ std::vector<Move> possibleMoves(AnnotatedNetwork& ann_network, MoveType type, bo
         case MoveType::RSPR1Move:
             return possibleMovesRSPR1(ann_network, min_radius, max_radius);
         case MoveType::RSPRMove:
-            return possibleMovesRSPR(ann_network, min_radius, max_radius);
+            return possibleMovesRSPR(ann_network, rspr1_present, min_radius, max_radius);
         case MoveType::HeadMove:
-            return possibleMovesHead(ann_network, min_radius, max_radius);
+            return possibleMovesHead(ann_network, rspr1_present, min_radius, max_radius);
         case MoveType::TailMove:
-            return possibleMovesTail(ann_network, min_radius, max_radius);
+            return possibleMovesTail(ann_network, rspr1_present, min_radius, max_radius);
         default:
             throw std::runtime_error("Invalid move type possibleMoves: " + toString(type));
     }
@@ -205,7 +205,7 @@ std::vector<Move> possibleMoves(AnnotatedNetwork& ann_network, MoveType type, bo
 std::vector<Move> possibleMoves(AnnotatedNetwork& ann_network, MoveType type, std::vector<Edge*> start_edges, bool rspr1_present, bool delta_plus_present, int min_radius, int max_radius) {
     switch (type) {
         case MoveType::ArcInsertionMove:
-            return possibleMovesArcInsertion(ann_network, start_edges, min_radius, max_radius);
+            return possibleMovesArcInsertion(ann_network, start_edges, delta_plus_present, min_radius, max_radius);
         case MoveType::DeltaPlusMove:
             return possibleMovesDeltaPlus(ann_network, start_edges, min_radius, max_radius);
         case MoveType::ArcRemovalMove:
@@ -217,11 +217,11 @@ std::vector<Move> possibleMoves(AnnotatedNetwork& ann_network, MoveType type, st
         case MoveType::RSPR1Move:
             return possibleMovesRSPR1(ann_network, start_edges, min_radius, max_radius);
         case MoveType::RSPRMove:
-            return possibleMovesRSPR(ann_network, start_edges, min_radius, max_radius);
+            return possibleMovesRSPR(ann_network, start_edges, rspr1_present, min_radius, max_radius);
         case MoveType::HeadMove:
-            return possibleMovesHead(ann_network, start_edges, min_radius, max_radius);
+            return possibleMovesHead(ann_network, start_edges, rspr1_present, min_radius, max_radius);
         case MoveType::TailMove:
-            return possibleMovesTail(ann_network, start_edges, min_radius, max_radius);
+            return possibleMovesTail(ann_network, start_edges, rspr1_present, min_radius, max_radius);
         default:
             throw std::runtime_error("Invalid move type possibleMoves: " + toString(type));
     }
@@ -230,7 +230,7 @@ std::vector<Move> possibleMoves(AnnotatedNetwork& ann_network, MoveType type, st
 std::vector<Move> possibleMoves(AnnotatedNetwork& ann_network, MoveType type, std::vector<Node*> start_nodes, bool rspr1_present, bool delta_plus_present, int min_radius, int max_radius) {
     switch (type) {
         case MoveType::ArcInsertionMove:
-            return possibleMovesArcInsertion(ann_network, start_nodes, min_radius, max_radius);
+            return possibleMovesArcInsertion(ann_network, start_nodes, delta_plus_present, min_radius, max_radius);
         case MoveType::DeltaPlusMove:
             return possibleMovesDeltaPlus(ann_network, start_nodes, min_radius, max_radius);
         case MoveType::ArcRemovalMove:
@@ -242,11 +242,11 @@ std::vector<Move> possibleMoves(AnnotatedNetwork& ann_network, MoveType type, st
         case MoveType::RSPR1Move:
             return possibleMovesRSPR1(ann_network, start_nodes, min_radius, max_radius);
         case MoveType::RSPRMove:
-            return possibleMovesRSPR(ann_network, start_nodes, min_radius, max_radius);
+            return possibleMovesRSPR(ann_network, start_nodes, rspr1_present, min_radius, max_radius);
         case MoveType::HeadMove:
-            return possibleMovesHead(ann_network, start_nodes, min_radius, max_radius);
+            return possibleMovesHead(ann_network, start_nodes, rspr1_present, min_radius, max_radius);
         case MoveType::TailMove:
-            return possibleMovesTail(ann_network, start_nodes, min_radius, max_radius);
+            return possibleMovesTail(ann_network, start_nodes, rspr1_present, min_radius, max_radius);
         default:
             throw std::runtime_error("Invalid move type possibleMoves: " + toString(type));
     }
@@ -257,9 +257,7 @@ std::vector<Move> possibleMoves(AnnotatedNetwork& ann_network, std::vector<MoveT
     std::vector<Move> moreMoves;
     for (MoveType type : types) {
         moreMoves = possibleMoves(ann_network, type, start_edges);
-        for (size_t i = 0; i < moreMoves.size(); ++i) {
-            res.emplace_back(moreMoves[i]);
-        }
+        res.insert(std::end(res), std::begin(moreMoves), std::end(moreMoves));
     }
     return res;
 }
@@ -269,9 +267,7 @@ std::vector<Move> possibleMoves(AnnotatedNetwork& ann_network, std::vector<MoveT
     std::vector<Move> moreMoves;
     for (MoveType type : types) {
         moreMoves = possibleMoves(ann_network, type, start_nodes);
-        for (size_t i = 0; i < moreMoves.size(); ++i) {
-            res.emplace_back(moreMoves[i]);
-        }
+        res.insert(std::end(res), std::begin(moreMoves), std::end(moreMoves));
     }
     return res;
 }
@@ -281,9 +277,7 @@ std::vector<Move> possibleMoves(AnnotatedNetwork& ann_network, std::vector<MoveT
     std::vector<Move> moreMoves;
     for (MoveType type : types) {
         moreMoves = possibleMoves(ann_network, type);
-        for (size_t i = 0; i < moreMoves.size(); ++i) {
-            res.emplace_back(moreMoves[i]);
-        }
+        res.insert(std::end(res), std::begin(moreMoves), std::end(moreMoves));
     }
     return res;
 }

@@ -13,6 +13,7 @@ std::vector<Move> possibleMovesRNNI(AnnotatedNetwork &ann_network, const Edge *e
 std::vector<Move> possibleMovesRNNI(AnnotatedNetwork &ann_network);
 
 std::vector<Move> possibleMovesRNNI(AnnotatedNetwork& ann_network, const std::vector<Node*>& start_nodes, int min_radius = 0, int max_radius = std::numeric_limits<int>::max());
+std::vector<Move> possibleMovesRNNI(AnnotatedNetwork& ann_network, const std::vector<Edge*>& start_edges, int min_radius = 0, int max_radius = std::numeric_limits<int>::max());
 
 void performMoveRNNI(AnnotatedNetwork &ann_network, Move &move);
 void undoMoveRNNI(AnnotatedNetwork &ann_network, Move &move);

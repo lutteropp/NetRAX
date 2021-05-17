@@ -287,12 +287,56 @@ std::vector<Move> possibleMovesDeltaMinus(AnnotatedNetwork &ann_network) {
 
 std::vector<Move> possibleMovesArcRemoval(AnnotatedNetwork& ann_network, const std::vector<Node*>& start_nodes) {
     std::vector<Move> res;
-    Network &network = ann_network.network;
     for (Node* node : start_nodes) {
         if (node->getType() == NodeType::RETICULATION_NODE) {
             size_t edge_orig_idx = getReticulationFirstParentPmatrixIndex(node);
             auto moves = possibleMovesArcRemoval(ann_network, node, edge_orig_idx,
                     MoveType::ArcRemovalMove);
+            res.insert(std::end(res), std::begin(moves), std::end(moves));
+        }
+    }
+    sortByProximity(res, ann_network);
+    assert(checkSanityArcRemoval(ann_network, res));
+    return res;
+}
+
+std::vector<Move> possibleMovesDeltaMinus(AnnotatedNetwork& ann_network, const std::vector<Node*>& start_nodes) {
+    std::vector<Move> res;
+    for (Node* node : start_nodes) {
+        if (node->getType() == NodeType::RETICULATION_NODE) {
+            size_t edge_orig_idx = getReticulationFirstParentPmatrixIndex(node);
+            auto moves = possibleMovesDeltaMinus(ann_network, node, edge_orig_idx);
+            res.insert(std::end(res), std::begin(moves), std::end(moves));
+        }
+    }
+    sortByProximity(res, ann_network);
+    assert(checkSanityArcRemoval(ann_network, res));
+    return res;
+}
+
+std::vector<Move> possibleMovesArcRemoval(AnnotatedNetwork& ann_network, const std::vector<Edge*>& start_edges) {
+    std::vector<Move> res;
+    for (Edge* edge : start_edges) {
+        Node* node = getTarget(ann_network.network, edge);
+        if (node->getType() == NodeType::RETICULATION_NODE) {
+            size_t edge_orig_idx = edge->pmatrix_index;
+            auto moves = possibleMovesArcRemoval(ann_network, node, edge_orig_idx,
+                    MoveType::ArcRemovalMove);
+            res.insert(std::end(res), std::begin(moves), std::end(moves));
+        }
+    }
+    sortByProximity(res, ann_network);
+    assert(checkSanityArcRemoval(ann_network, res));
+    return res;
+}
+
+std::vector<Move> possibleMovesDeltaMinus(AnnotatedNetwork& ann_network, const std::vector<Edge*>& start_edges) {
+    std::vector<Move> res;
+    for (Edge* edge : start_edges) {
+        Node* node = getTarget(ann_network.network, edge);
+        if (node->getType() == NodeType::RETICULATION_NODE) {
+            size_t edge_orig_idx = edge->pmatrix_index;
+            auto moves = possibleMovesDeltaMinus(ann_network, node, edge_orig_idx);
             res.insert(std::end(res), std::begin(moves), std::end(moves));
         }
     }

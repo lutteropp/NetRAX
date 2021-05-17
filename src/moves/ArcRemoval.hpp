@@ -18,6 +18,10 @@ std::vector<Move> possibleMovesDeltaMinus(AnnotatedNetwork &ann_network, Node *v
 std::vector<Move> possibleMovesDeltaMinus(AnnotatedNetwork &ann_network);
 
 std::vector<Move> possibleMovesArcRemoval(AnnotatedNetwork& ann_network, const std::vector<Node*>& start_nodes);
+std::vector<Move> possibleMovesDeltaMinus(AnnotatedNetwork& ann_network, const std::vector<Node*>& start_nodes);
+
+std::vector<Move> possibleMovesArcRemoval(AnnotatedNetwork& ann_network, const std::vector<Edge*>& start_edges);
+std::vector<Move> possibleMovesDeltaMinus(AnnotatedNetwork& ann_network, const std::vector<Edge*>& start_edges);
 
 void performMoveArcRemoval(AnnotatedNetwork &ann_network, Move &move);
 void undoMoveArcRemoval(AnnotatedNetwork &ann_network, Move &move);

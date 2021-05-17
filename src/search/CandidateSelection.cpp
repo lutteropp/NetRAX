@@ -535,9 +535,11 @@ double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<Move> candi
 }
 
 double best_fast_improvement(AnnotatedNetwork& ann_network, MoveType type, const std::vector<MoveType>& typesBySpeed, double* best_score, BestNetworkData* bestNetworkData, bool silent, int min_radius, int max_radius) {
+    bool rspr1_present = (std::find(typesBySpeed.begin(), typesBySpeed.end(), MoveType::RSPR1Move) != typesBySpeed.end());
+    bool delta_plus_present = (std::find(typesBySpeed.begin(), typesBySpeed.end(), MoveType::DeltaPlusMove) != typesBySpeed.end());
     double score = scoreNetwork(ann_network);
 
-    std::vector<Move> candidates = possibleMoves(ann_network, type, typesBySpeed, min_radius, max_radius);
+    std::vector<Move> candidates = possibleMoves(ann_network, type, rspr1_present, delta_plus_present, min_radius, max_radius);
     score = prefilterCandidates(ann_network, candidates, silent, true, true);
     
     return score;

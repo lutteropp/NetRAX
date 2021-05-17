@@ -73,15 +73,15 @@ Node* getTarget(Network &network, const Edge *edge) {
     return network.nodes_by_index[edge->link2->node_clv_index];
 }
 
-bool isOutgoing(Network &network, Node *from, Node *to) {
+bool isOutgoing(Network &network, const Node *from, const Node *to) {
     assert(!getLinksToClvIndex(network, from, to->clv_index).empty());
     auto children = getChildren(network, from);
     return (std::find(children.begin(), children.end(), to) != children.end());
 }
 
 bool isActiveBranch(AnnotatedNetwork& ann_network, const ReticulationConfigSet& reticulationChoices, unsigned int pmatrix_index) {
-    Node* edge_source = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
-    Node* edge_target = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
+    const Node* edge_source = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
+    const Node* edge_target = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
 
     ReticulationConfigSet restrictions = getRestrictionsToTakeNeighbor(ann_network, edge_source, edge_target);
     return reticulationConfigsCompatible(restrictions, reticulationChoices);

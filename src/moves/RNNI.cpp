@@ -172,6 +172,15 @@ std::vector<Move> possibleMovesRNNI(AnnotatedNetwork& ann_network, const std::ve
     return res;
 }
 
+std::vector<Move> possibleMovesRNNI(AnnotatedNetwork& ann_network, const std::vector<Edge*>& start_edges, int min_radius, int max_radius) {
+    std::vector<Move> res;
+    for (Edge* edge : start_edges) {
+        std::vector<Move> res_node = possibleMovesRNNI(ann_network, edge);
+        res.insert(std::end(res), std::begin(res_node), std::end(res_node));
+    }
+    return res;
+}
+
 void exchangeEdges(Network &network, Node *u, Node *v, Node *s, Node *t) {
     // The edge between {u,s} will now be between {u, t} and the edge between {v,t} will now be between {v,s}. The edge directions stay the same.
     Link *from_u_link = getLinkToNode(network, u, s);

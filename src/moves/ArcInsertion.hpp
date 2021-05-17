@@ -8,11 +8,11 @@ namespace netrax {
 bool checkSanityArcInsertion(AnnotatedNetwork& ann_network, const Move& move);
 
 std::vector<Move> possibleMovesArcInsertion(AnnotatedNetwork &ann_network,
-        const Edge *edge, bool noDeltaPlus = false);
+        const Edge *edge, bool noDeltaPlus = false, int min_radius = 0, int max_radius = std::numeric_limits<int>::max());
 std::vector<Move> possibleMovesArcInsertion(AnnotatedNetwork &ann_network, bool noDeltaPlus = false, int min_radius = 0, int max_radius = std::numeric_limits<int>::max());
 
 std::vector<Move> possibleMovesDeltaPlus(AnnotatedNetwork &ann_network,
-        const Edge *edge);
+        const Edge *edge, int min_radius = 0, int max_radius = std::numeric_limits<int>::max());
 std::vector<Move> possibleMovesDeltaPlus(AnnotatedNetwork &ann_network, int min_radius = 0, int max_radius = std::numeric_limits<int>::max());
 
 
@@ -26,7 +26,10 @@ std::vector<Move> possibleMovesArcInsertion(AnnotatedNetwork &ann_network,
 std::vector<Move> possibleMovesDeltaPlus(AnnotatedNetwork &ann_network,
         const std::vector<Node*>& start_nodes, int min_radius = 0, int max_radius = std::numeric_limits<int>::max());
 
-std::vector<Move> possibleMovesArcInsertion(AnnotatedNetwork& ann_network, const std::vector<Node*>& start_nodes, int min_radius = 0, int max_radius = std::numeric_limits<int>::max());
+std::vector<Move> possibleMovesArcInsertion(AnnotatedNetwork &ann_network,
+        const std::vector<Edge*>& start_edges, bool noDeltaPlus = false, int min_radius = 0, int max_radius = std::numeric_limits<int>::max());
+std::vector<Move> possibleMovesDeltaPlus(AnnotatedNetwork &ann_network,
+        const std::vector<Edge*>& start_edges, int min_radius = 0, int max_radius = std::numeric_limits<int>::max());
 
 void performMoveArcInsertion(AnnotatedNetwork &ann_network, Move &move);
 
