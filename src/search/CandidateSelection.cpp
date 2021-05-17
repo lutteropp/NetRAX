@@ -511,9 +511,7 @@ double applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<T> candidat
         }
         assert(scoreNetwork(ann_network) == best_bic);
 
-        if (candidates[0].moveType == MoveType::ArcInsertionMove) {
-            optimizeAllNonTopology(ann_network);
-        }
+        optimizeAllNonTopology(ann_network);
 
         double logl = computeLoglikelihood(ann_network);
         double bic_score = bic(ann_network, logl);

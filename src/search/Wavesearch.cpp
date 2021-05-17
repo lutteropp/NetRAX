@@ -21,7 +21,9 @@ double optimizeEverythingRun(AnnotatedNetwork& ann_network, const std::vector<Mo
     bool rspr1_present = (std::find(typesBySpeed.begin(), typesBySpeed.end(), MoveType::RSPR1Move) != typesBySpeed.end());
     bool delta_plus_present = (std::find(typesBySpeed.begin(), typesBySpeed.end(), MoveType::DeltaPlusMove) != typesBySpeed.end());
 
+    bool got_better = true;
     do {
+        got_better = false;
         while (ann_network.network.num_reticulations() == 0 && isArcRemoval(typesBySpeed[type_idx])) {
             type_idx++;
             if (type_idx >= typesBySpeed.size()) {
@@ -48,12 +50,19 @@ double optimizeEverythingRun(AnnotatedNetwork& ann_network, const std::vector<Mo
             new_score = applyBestCandidate(ann_network, typesBySpeed[type_idx], typesBySpeed, &best_score, bestNetworkData, false, silent);
             if (typesBySpeed[type_idx] != MoveType::RNNIMove) {
                 optimizeAllNonTopology(ann_network);
+                check_score_improvement(ann_network, &best_score, bestNetworkData);
             }
         }
 
         if (new_score < old_score) { // score got better
             new_score = scoreNetwork(ann_network);
             best_score = new_score;
+            got_better = true;
+            if (!ann_network.options.full_search_by_type) {
+                type_idx = 0;
+                optimizeAllNonTopology(ann_network, true);
+                check_score_improvement(ann_network, &best_score, bestNetworkData);
+            }
         }
         type_idx++;
         assert(new_score <= old_score);
@@ -104,9 +113,7 @@ void wavesearch_internal(AnnotatedNetwork& ann_network, BestNetworkData* bestNet
     }
 }
 
-void wavesearch_main_internal(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData, const std::vector<MoveType>& typesBySpeed, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, double* best_score, const std::chrono::high_resolution_clock::time_point& start_time, bool silent = false) {
-    bool copyNetwork = false;
-    
+void wavesearch_main_internal(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData, const std::vector<MoveType>& typesBySpeed, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, double* best_score, const std::chrono::high_resolution_clock::time_point& start_time, bool silent = false) {    
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         std::cout << "Starting wavesearch with move types: ";
         for (size_t j = 0; j < typesBySpeed.size(); ++j) {
@@ -166,8 +173,6 @@ void wavesearch_main_internal(AnnotatedNetwork& ann_network, BestNetworkData* be
 
 
 void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData, const std::vector<MoveType>& typesBySpeed, const std::vector<MoveType>& typesBySpeedGoodStart, bool silent) {
-    bool copyNetwork = false;
-
     NetworkState start_state_to_reuse = extract_network_state(ann_network);
     NetworkState best_state_to_reuse = extract_network_state(ann_network);
     auto start_time = std::chrono::high_resolution_clock::now();
