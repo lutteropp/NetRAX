@@ -278,6 +278,19 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
     //Instead of going over the-source-trees-only for final loglh evaluation, we need to go over all pairs of trees, one in source node and one in target node.
     std::vector<TreeLoglData> combinedTrees;
 
+    if (print_extra_debug_info) {
+        if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+            std::cout << "\nsource trees:\n";
+            for (size_t i = 0; i < sourceTrees.size(); ++i) {
+                printReticulationChoices(sourceTrees[i].treeLoglData.reticulationChoices);
+            }
+            std::cout << "\target trees:\n";
+            for (size_t j = 0; j < targetTrees.size(); ++j) {
+                printReticulationChoices(targetTrees[j].treeLoglData.reticulationChoices);
+            }
+        }
+    }
+
     for (size_t i = 0; i < n_trees_source; ++i) {
         for (size_t j = 0; j < n_trees_target; ++j) {
             if (!reticulationConfigsCompatible(sourceTrees[i].treeLoglData.reticulationChoices, targetTrees[j].treeLoglData.reticulationChoices)) {
@@ -341,6 +354,15 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
         for (size_t j = 0; j < combinedTrees.size(); ++j) {
             if (reticulationConfigsCompatible(oldTrees[i].treeLoglData.reticulationChoices, combinedTrees[j].reticulationChoices)) {
                 seen = true;
+                if (print_extra_debug_info) {
+                    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+                        std::cout << "\nthis old tree:\n";
+                        printReticulationChoices(oldTrees[i].treeLoglData.reticulationChoices);
+                        std::cout << "\nis compatible with this combined tree:\n";
+                        printReticulationChoices(combinedTrees[j].reticulationChoices);
+                        std::cout << "\n";
+                    }
+                }
                 break;
             }
         }
@@ -350,6 +372,15 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
             updateTreeData(ann_network, oldTrees, combinedTreeData);
             combinedTrees.emplace_back(combinedTreeData);
             break;
+        }
+    }
+
+    if (print_extra_debug_info) {
+        if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+            std::cout << "\ncombined trees after adding the completely new ones:\n";
+            for (size_t i = 0; i < combinedTrees.size(); ++i) {
+                printReticulationChoices(combinedTrees[i].reticulationChoices);
+            }
         }
     }
 
