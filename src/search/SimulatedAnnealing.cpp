@@ -3,7 +3,7 @@
 #include "CandidateSelection.hpp"
 #include "../likelihood/ComplexityScoring.hpp"
 #include "../likelihood/LikelihoodComputation.hpp"
-#include "../moves/Moves.hpp"
+#include "../moves/Move.hpp"
 #include "../optimization/Optimization.hpp"
 #include "../optimization/BranchLengthOptimization.hpp"
 
@@ -82,7 +82,7 @@ double update_temperature(double t) {
     return t*0.95; // TODO: Better temperature update ? I took this one from: https://de.mathworks.com/help/gads/how-simulated-annealing-works.html
 }
 
-double simanneal(AnnotatedNetwork& ann_network, double t_start, bool rspr1_present, MoveType type, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, BestNetworkData* bestNetworkData, bool silent) {
+double simanneal(AnnotatedNetwork& ann_network, double t_start, bool rspr1_present, bool delta_plus_present, MoveType type, NetworkState& start_state_to_reuse, NetworkState& best_state_to_reuse, BestNetworkData* bestNetworkData, bool silent) {
     double start_bic = scoreNetwork(ann_network);
     double best_bic = start_bic;
     extract_network_state(ann_network, best_state_to_reuse);
@@ -95,37 +95,7 @@ double simanneal(AnnotatedNetwork& ann_network, double t_start, bool rspr1_prese
         network_changed = false;
         extract_network_state(ann_network, start_state_to_reuse);
 
-        switch (type) {
-        case MoveType::RNNIMove:
-            network_changed = simanneal_step(ann_network, t, possibleRNNIMoves(ann_network), start_state_to_reuse, seen_bics, silent);
-            break;
-        case MoveType::RSPRMove:
-            network_changed = simanneal_step(ann_network, t, possibleRSPRMoves(ann_network, rspr1_present), start_state_to_reuse, seen_bics, silent);
-            break;
-        case MoveType::RSPR1Move:
-            network_changed = simanneal_step(ann_network, t, possibleRSPR1Moves(ann_network), start_state_to_reuse, seen_bics, silent);
-            break;
-        case MoveType::HeadMove:
-            network_changed = simanneal_step(ann_network, t, possibleHeadMoves(ann_network, rspr1_present), start_state_to_reuse, seen_bics, silent);
-            break;
-        case MoveType::TailMove:
-            network_changed = simanneal_step(ann_network, t, possibleTailMoves(ann_network, rspr1_present), start_state_to_reuse, seen_bics, silent);
-            break;
-        case MoveType::ArcInsertionMove:
-            network_changed = simanneal_step(ann_network, t, possibleArcInsertionMoves(ann_network, true), start_state_to_reuse, seen_bics, silent);
-            break;
-        case MoveType::DeltaPlusMove:
-            network_changed = simanneal_step(ann_network, t, possibleDeltaPlusMoves(ann_network), start_state_to_reuse, seen_bics, silent);
-            break;
-        case MoveType::ArcRemovalMove:
-            network_changed = simanneal_step(ann_network, t, possibleArcRemovalMoves(ann_network), start_state_to_reuse, seen_bics, silent);
-            break;
-        case MoveType::DeltaMinusMove:
-            network_changed = simanneal_step(ann_network, t, possibleDeltaMinusMoves(ann_network), start_state_to_reuse, seen_bics, silent);
-            break;
-        default:
-            throw std::runtime_error("Invalid move type");
-        }
+        network_changed = simanneal_step(ann_network, t, possibleMoves(ann_network, type, rspr1_present, delta_plus_present), start_state_to_reuse, seen_bics, silent);
 
         if (network_changed) {
             double act_bic = scoreNetwork(ann_network);

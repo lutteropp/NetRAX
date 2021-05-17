@@ -43,49 +43,6 @@ void sortByProximity(std::vector<T>& candidates, AnnotatedNetwork& ann_network) 
     });
 }
 
-struct GeneralMove {
-    GeneralMove(MoveType type, size_t edge_orig_idx, size_t node_orig_idx) :
-            moveType(type), edge_orig_idx(edge_orig_idx), node_orig_idx(node_orig_idx) {
-    }
-    MoveType moveType;
-    size_t edge_orig_idx;
-    size_t node_orig_idx;
-
-    GeneralMove(GeneralMove&& rhs) : moveType{rhs.moveType}, edge_orig_idx(rhs.edge_orig_idx), node_orig_idx(rhs.node_orig_idx) {}
-
-    GeneralMove(const GeneralMove& rhs) : moveType{rhs.moveType}, edge_orig_idx(rhs.edge_orig_idx), node_orig_idx(rhs.node_orig_idx) {}
-
-    GeneralMove& operator =(GeneralMove&& rhs)
-    {
-        if (this != &rhs)
-        {
-            moveType = rhs.moveType;
-            edge_orig_idx = rhs.edge_orig_idx;
-            node_orig_idx = rhs.node_orig_idx;
-        }
-        return *this;
-    }
-
-    GeneralMove& operator =(const GeneralMove& rhs)
-    {
-        if (this != &rhs)
-        {
-            moveType = rhs.moveType;
-            edge_orig_idx = rhs.edge_orig_idx;
-            node_orig_idx = rhs.node_orig_idx;
-        }
-        return *this;
-    }
-};
-
 std::vector<double> get_edge_lengths(AnnotatedNetwork &ann_network, size_t pmatrix_index);
-
-bool checkSanity(AnnotatedNetwork& ann_network, GeneralMove* move);
-std::vector<GeneralMove*> possibleMoves(AnnotatedNetwork& ann_network, std::vector<MoveType> types);
-void performMove(AnnotatedNetwork &ann_network, GeneralMove *move);
-void undoMove(AnnotatedNetwork &ann_network, GeneralMove *move);
-std::string toString(GeneralMove *move);
-std::unordered_set<size_t> brlenOptCandidates(AnnotatedNetwork &ann_network, GeneralMove* move);
-GeneralMove* copyMove(GeneralMove* move);
 
 }

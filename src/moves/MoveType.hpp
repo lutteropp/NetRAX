@@ -1,9 +1,11 @@
 #pragma once
+
 #include <stdexcept>
 #include <string>
 
 namespace netrax {
     enum class MoveType {
+        INVALID,
         RNNIMove,
         RSPRMove,
         TailMove,

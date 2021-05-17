@@ -1,7 +1,8 @@
-#include "RNNIMove.hpp"
+#include "Move.hpp"
 
 #include "../helper/Helper.hpp"
 #include "../helper/NetworkFunctions.hpp"
+#include "GeneralMoveFunctions.hpp"
 
 #include <cassert>
 
@@ -28,41 +29,41 @@ void checkReticulationProperties(Node *notReticulation, Node *reticulation) {
     }
 }
 
-bool checkSanity(AnnotatedNetwork& ann_network, RNNIMove& move) {
+bool checkSanityRNNI(AnnotatedNetwork& ann_network, const Move& move) {
     bool good = true;
     good &= (move.moveType == MoveType::RNNIMove);
 
-    good &= (ann_network.network.nodes_by_index[move.u_clv_index] != nullptr);
-    good &= (ann_network.network.nodes_by_index[move.v_clv_index] != nullptr);
-    good &= (ann_network.network.nodes_by_index[move.s_clv_index] != nullptr);
-    good &= (ann_network.network.nodes_by_index[move.t_clv_index] != nullptr);
+    good &= (ann_network.network.nodes_by_index[move.rnniData.u_clv_index] != nullptr);
+    good &= (ann_network.network.nodes_by_index[move.rnniData.v_clv_index] != nullptr);
+    good &= (ann_network.network.nodes_by_index[move.rnniData.s_clv_index] != nullptr);
+    good &= (ann_network.network.nodes_by_index[move.rnniData.t_clv_index] != nullptr);
 
-    good &= (hasNeighbor(ann_network.network.nodes_by_index[move.s_clv_index], ann_network.network.nodes_by_index[move.u_clv_index]));
-    good &= (hasNeighbor(ann_network.network.nodes_by_index[move.u_clv_index], ann_network.network.nodes_by_index[move.v_clv_index]));
-    good &= (hasNeighbor(ann_network.network.nodes_by_index[move.v_clv_index], ann_network.network.nodes_by_index[move.t_clv_index]));
+    good &= (hasNeighbor(ann_network.network.nodes_by_index[move.rnniData.s_clv_index], ann_network.network.nodes_by_index[move.rnniData.u_clv_index]));
+    good &= (hasNeighbor(ann_network.network.nodes_by_index[move.rnniData.u_clv_index], ann_network.network.nodes_by_index[move.rnniData.v_clv_index]));
+    good &= (hasNeighbor(ann_network.network.nodes_by_index[move.rnniData.v_clv_index], ann_network.network.nodes_by_index[move.rnniData.t_clv_index]));
 
-    good &= (!hasNeighbor(ann_network.network.nodes_by_index[move.u_clv_index], ann_network.network.nodes_by_index[move.t_clv_index]));
-    good &= (!hasNeighbor(ann_network.network.nodes_by_index[move.s_clv_index], ann_network.network.nodes_by_index[move.v_clv_index]));
+    good &= (!hasNeighbor(ann_network.network.nodes_by_index[move.rnniData.u_clv_index], ann_network.network.nodes_by_index[move.rnniData.t_clv_index]));
+    good &= (!hasNeighbor(ann_network.network.nodes_by_index[move.rnniData.s_clv_index], ann_network.network.nodes_by_index[move.rnniData.v_clv_index]));
 
     return good;
 }
 
-bool checkSanity(AnnotatedNetwork& ann_network, std::vector<RNNIMove>& moves) {
+bool checkSanityRNNI(AnnotatedNetwork& ann_network, std::vector<Move>& moves) {
     bool sane = true;
     for (size_t i = 0; i < moves.size(); ++i) {
-        sane &= checkSanity(ann_network, moves[i]);
+        sane &= checkSanityRNNI(ann_network, moves[i]);
     }
     return sane;
 }
 
-RNNIMove buildRNNIMove(size_t u_clv_index, size_t v_clv_index, size_t s_clv_index,
+Move buildMoveRNNI(size_t u_clv_index, size_t v_clv_index, size_t s_clv_index,
         size_t t_clv_index, RNNIMoveType type, size_t edge_orig_idx, size_t node_orig_idx) {
-    RNNIMove move = RNNIMove(edge_orig_idx, node_orig_idx);
-    move.u_clv_index = u_clv_index;
-    move.v_clv_index = v_clv_index;
-    move.s_clv_index = s_clv_index;
-    move.t_clv_index = t_clv_index;
-    move.type = type;
+    Move move = Move(MoveType::RNNIMove, edge_orig_idx, node_orig_idx);
+    move.rnniData.u_clv_index = u_clv_index;
+    move.rnniData.v_clv_index = v_clv_index;
+    move.rnniData.s_clv_index = s_clv_index;
+    move.rnniData.t_clv_index = t_clv_index;
+    move.rnniData.type = type;
     return move;
 }
 
@@ -94,10 +95,10 @@ std::vector<std::pair<Node*, Node*> > getSTChoices(Network &network, const Edge 
     return res;
 }
 
-std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network, const Edge *edge) {
+std::vector<Move> possibleMovesRNNI(AnnotatedNetwork &ann_network, const Edge *edge) {
     size_t edge_orig_idx = edge->pmatrix_index;
     Network &network = ann_network.network;
-    std::vector<RNNIMove> res;
+    std::vector<Move> res;
     Node *u = getSource(network, edge);
     Node *v = getTarget(network, edge);
     size_t node_orig_idx = v->clv_index;
@@ -111,12 +112,12 @@ std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network, const Edg
             if (!hasPath(network, s, v)) {
                 // add move 1
                 res.emplace_back(
-                        buildRNNIMove(u->clv_index, v->clv_index, s->clv_index, t->clv_index,
+                        buildMoveRNNI(u->clv_index, v->clv_index, s->clv_index, t->clv_index,
                                 RNNIMoveType::ONE, edge_orig_idx, node_orig_idx));
                 if (v->type == NodeType::RETICULATION_NODE && u != network.root) {
                     // add move 1*
                     res.emplace_back(
-                            buildRNNIMove(u->clv_index, v->clv_index, s->clv_index, t->clv_index,
+                            buildMoveRNNI(u->clv_index, v->clv_index, s->clv_index, t->clv_index,
                                     RNNIMoveType::ONE_STAR, edge_orig_idx, node_orig_idx));
                 }
             }
@@ -124,12 +125,12 @@ std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network, const Edg
             if (!hasPath(network, u, t)) {
                 // add move 2
                 res.emplace_back(
-                        buildRNNIMove(u->clv_index, v->clv_index, s->clv_index, t->clv_index,
+                        buildMoveRNNI(u->clv_index, v->clv_index, s->clv_index, t->clv_index,
                                 RNNIMoveType::TWO, edge_orig_idx, node_orig_idx));
                 if (u->type != NodeType::RETICULATION_NODE) {
                     // add move 2*
                     res.emplace_back(
-                            buildRNNIMove(u->clv_index, v->clv_index, s->clv_index, t->clv_index,
+                            buildMoveRNNI(u->clv_index, v->clv_index, s->clv_index, t->clv_index,
                                     RNNIMoveType::TWO_STAR, edge_orig_idx, node_orig_idx));
                 }
             }
@@ -137,20 +138,20 @@ std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network, const Edg
             if (u->type == NodeType::RETICULATION_NODE && v->type != NodeType::RETICULATION_NODE) {
                 // add move 3
                 res.emplace_back(
-                        buildRNNIMove(u->clv_index, v->clv_index, s->clv_index, t->clv_index,
+                        buildMoveRNNI(u->clv_index, v->clv_index, s->clv_index, t->clv_index,
                                 RNNIMoveType::THREE, edge_orig_idx, node_orig_idx));
             }
             if (!hasPath(network, u, v, true)) {
                 // add move 3*
                 res.emplace_back(
-                        buildRNNIMove(u->clv_index, v->clv_index, s->clv_index, t->clv_index,
+                        buildMoveRNNI(u->clv_index, v->clv_index, s->clv_index, t->clv_index,
                                 RNNIMoveType::THREE_STAR, edge_orig_idx, node_orig_idx));
             }
         } else if (isOutgoing(network, u, s) && isOutgoing(network, t, v)) {
             if (u != network.root && !hasPath(network, s, t)) {
                 // add move 4
                 res.emplace_back(
-                        buildRNNIMove(u->clv_index, v->clv_index, s->clv_index, t->clv_index,
+                        buildMoveRNNI(u->clv_index, v->clv_index, s->clv_index, t->clv_index,
                                 RNNIMoveType::FOUR, edge_orig_idx, node_orig_idx));
             }
         }
@@ -158,13 +159,13 @@ std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network, const Edg
     return res;
 }
 
-std::vector<RNNIMove> possibleMoves(AnnotatedNetwork& ann_network, const std::vector<Node*>& start_nodes, RNNIMove placeholderMove, int min_radius, int max_radius) {
-    std::vector<RNNIMove> res;
+std::vector<Move> possibleMovesRNNI(AnnotatedNetwork& ann_network, const std::vector<Node*>& start_nodes, int min_radius, int max_radius) {
+    std::vector<Move> res;
     for (Node* node : start_nodes) {
         std::vector<Node*> parents = getAllParents(ann_network.network, node);
         for (Node* parent : parents) {
             Edge* edge = getEdgeTo(ann_network.network, parent, node);
-            std::vector<RNNIMove> res_node = possibleRNNIMoves(ann_network, edge);
+            std::vector<Move> res_node = possibleMovesRNNI(ann_network, edge);
             res.insert(std::end(res), std::begin(res_node), std::end(res_node));
         }
     }
@@ -272,25 +273,12 @@ void fixReticulationLinks(Node *u, Node *v, Node *s, Node *t) {
         resetReticulationLinks(t);
 }
 
-void fixReticulations(Network &network, RNNIMove &move) {
-    std::unordered_set<Node*> repair_candidates;
-    addRepairCandidates(network, repair_candidates, network.nodes_by_index[move.s_clv_index]);
-    addRepairCandidates(network, repair_candidates, network.nodes_by_index[move.t_clv_index]);
-    addRepairCandidates(network, repair_candidates, network.nodes_by_index[move.u_clv_index]);
-    addRepairCandidates(network, repair_candidates, network.nodes_by_index[move.v_clv_index]);
-    for (Node *node : repair_candidates) {
-        if (node->type == NodeType::RETICULATION_NODE) {
-            resetReticulationLinks(node);
-        }
-    }
-}
-
-void updateLinkDirections(Network &network, RNNIMove &move) {
-    Node *u = network.nodes_by_index[move.u_clv_index];
-    Node *v = network.nodes_by_index[move.v_clv_index];
-    Node *s = network.nodes_by_index[move.s_clv_index];
-    Node *t = network.nodes_by_index[move.t_clv_index];
-    switch (move.type) {
+void updateLinkDirections(Network &network, const Move &move) {
+    Node *u = network.nodes_by_index[move.rnniData.u_clv_index];
+    Node *v = network.nodes_by_index[move.rnniData.v_clv_index];
+    Node *s = network.nodes_by_index[move.rnniData.s_clv_index];
+    Node *t = network.nodes_by_index[move.rnniData.t_clv_index];
+    switch (move.rnniData.type) {
     case RNNIMoveType::ONE:
         setLinkDirections(network, u, v);
         setLinkDirections(network, u, t);
@@ -342,12 +330,12 @@ void updateLinkDirections(Network &network, RNNIMove &move) {
     }
 }
 
-void updateLinkDirectionsReverse(Network &network, RNNIMove &move) {
-    Node *u = network.nodes_by_index[move.u_clv_index];
-    Node *v = network.nodes_by_index[move.v_clv_index];
-    Node *s = network.nodes_by_index[move.s_clv_index];
-    Node *t = network.nodes_by_index[move.t_clv_index];
-    switch (move.type) {
+void updateLinkDirectionsReverse(Network &network, const Move &move) {
+    Node *u = network.nodes_by_index[move.rnniData.u_clv_index];
+    Node *v = network.nodes_by_index[move.rnniData.v_clv_index];
+    Node *s = network.nodes_by_index[move.rnniData.s_clv_index];
+    Node *t = network.nodes_by_index[move.rnniData.t_clv_index];
+    switch (move.rnniData.type) {
     case RNNIMoveType::ONE:
         setLinkDirections(network, u, s);
         setLinkDirections(network, u, v);
@@ -398,21 +386,21 @@ void updateLinkDirectionsReverse(Network &network, RNNIMove &move) {
     }
 }
 
-bool assertBeforeMove(Network &network, RNNIMove &move) {
-    Node *u = network.nodes_by_index[move.u_clv_index];
-    Node *v = network.nodes_by_index[move.v_clv_index];
+bool assertBeforeMove(Network &network, const Move &move) {
+    Node *u = network.nodes_by_index[move.rnniData.u_clv_index];
+    Node *v = network.nodes_by_index[move.rnniData.v_clv_index];
     Node *notReticulation = nullptr;
     Node *reticulation = nullptr;
-    if (move.type == RNNIMoveType::ONE_STAR) {
+    if (move.rnniData.type == RNNIMoveType::ONE_STAR) {
         notReticulation = u;
         reticulation = v;
-    } else if (move.type == RNNIMoveType::TWO_STAR) {
+    } else if (move.rnniData.type == RNNIMoveType::TWO_STAR) {
         notReticulation = u;
         reticulation = v;
-    } else if (move.type == RNNIMoveType::THREE) {
+    } else if (move.rnniData.type == RNNIMoveType::THREE) {
         notReticulation = v;
         reticulation = u;
-    } else if (move.type == RNNIMoveType::FOUR) {
+    } else if (move.rnniData.type == RNNIMoveType::FOUR) {
         notReticulation = u;
         reticulation = v;
     }
@@ -421,21 +409,21 @@ bool assertBeforeMove(Network &network, RNNIMove &move) {
     return true;
 }
 
-bool assertAfterMove(Network &network, RNNIMove &move) {
-    Node *u = network.nodes_by_index[move.u_clv_index];
-    Node *v = network.nodes_by_index[move.v_clv_index];
+bool assertAfterMove(Network &network, const Move &move) {
+    Node *u = network.nodes_by_index[move.rnniData.u_clv_index];
+    Node *v = network.nodes_by_index[move.rnniData.v_clv_index];
     Node *notReticulation = nullptr;
     Node *reticulation = nullptr;
-    if (move.type == RNNIMoveType::ONE_STAR) {
+    if (move.rnniData.type == RNNIMoveType::ONE_STAR) {
         notReticulation = v;
         reticulation = u;
-    } else if (move.type == RNNIMoveType::TWO_STAR) {
+    } else if (move.rnniData.type == RNNIMoveType::TWO_STAR) {
         notReticulation = v;
         reticulation = u;
-    } else if (move.type == RNNIMoveType::THREE) {
+    } else if (move.rnniData.type == RNNIMoveType::THREE) {
         notReticulation = u;
         reticulation = v;
-    } else if (move.type == RNNIMoveType::FOUR) {
+    } else if (move.rnniData.type == RNNIMoveType::FOUR) {
         notReticulation = v;
         reticulation = u;
     }
@@ -444,20 +432,20 @@ bool assertAfterMove(Network &network, RNNIMove &move) {
     return true;
 }
 
-void performMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
-    assert(checkSanity(ann_network, move));
+void performMoveRNNI(AnnotatedNetwork &ann_network, Move &move) {
+    assert(checkSanityRNNI(ann_network, move));
     assert(move.moveType == MoveType::RNNIMove);
     assert(assertConsecutiveIndices(ann_network));
     Network &network = ann_network.network;
-    Node *u = network.nodes_by_index[move.u_clv_index];
-    Node *v = network.nodes_by_index[move.v_clv_index];
-    Node *s = network.nodes_by_index[move.s_clv_index];
-    Node *t = network.nodes_by_index[move.t_clv_index];
+    Node *u = network.nodes_by_index[move.rnniData.u_clv_index];
+    Node *v = network.nodes_by_index[move.rnniData.v_clv_index];
+    Node *s = network.nodes_by_index[move.rnniData.s_clv_index];
+    Node *t = network.nodes_by_index[move.rnniData.t_clv_index];
     assert(assertBeforeMove(network, move));
     exchangeEdges(network, u, v, s, t);
     updateLinkDirections(network, move);
-    if (move.type == RNNIMoveType::ONE_STAR || move.type == RNNIMoveType::TWO_STAR
-            || move.type == RNNIMoveType::THREE || move.type == RNNIMoveType::FOUR) {
+    if (move.rnniData.type == RNNIMoveType::ONE_STAR || move.rnniData.type == RNNIMoveType::TWO_STAR
+            || move.rnniData.type == RNNIMoveType::THREE || move.rnniData.type == RNNIMoveType::FOUR) {
         switchReticulations(network, u, v);
     }
     fixReticulationLinks(u, v, s, t);
@@ -474,19 +462,19 @@ void performMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
     assertConsecutiveIndices(ann_network);
 }
 
-void undoMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
+void undoMoveRNNI(AnnotatedNetwork &ann_network, Move &move) {
     assert(move.moveType == MoveType::RNNIMove);
     assert(assertConsecutiveIndices(ann_network));
     Network &network = ann_network.network;
-    Node *u = network.nodes_by_index[move.u_clv_index];
-    Node *v = network.nodes_by_index[move.v_clv_index];
-    Node *s = network.nodes_by_index[move.s_clv_index];
-    Node *t = network.nodes_by_index[move.t_clv_index];
+    Node *u = network.nodes_by_index[move.rnniData.u_clv_index];
+    Node *v = network.nodes_by_index[move.rnniData.v_clv_index];
+    Node *s = network.nodes_by_index[move.rnniData.s_clv_index];
+    Node *t = network.nodes_by_index[move.rnniData.t_clv_index];
     assert(assertAfterMove(network, move));
     exchangeEdges(network, u, v, t, s); // note that s and t are exchanged here
     updateLinkDirectionsReverse(network, move);
-    if (move.type == RNNIMoveType::ONE_STAR || move.type == RNNIMoveType::TWO_STAR
-            || move.type == RNNIMoveType::THREE || move.type == RNNIMoveType::FOUR) {
+    if (move.rnniData.type == RNNIMoveType::ONE_STAR || move.rnniData.type == RNNIMoveType::TWO_STAR
+            || move.rnniData.type == RNNIMoveType::THREE || move.rnniData.type == RNNIMoveType::FOUR) {
         switchReticulations(network, u, v);
     }
     fixReticulationLinks(u, v, s, t);
@@ -503,24 +491,26 @@ void undoMove(AnnotatedNetwork &ann_network, RNNIMove &move) {
     assert(assertConsecutiveIndices(ann_network));
 }
 
-bool isomorphicMoves(const RNNIMove& move1, const RNNIMove& move2) {
-    size_t u1 = move1.u_clv_index;
-    size_t v1 = move1.v_clv_index;
-    size_t s1 = move1.s_clv_index;
-    size_t t1 = move1.t_clv_index;
-    size_t u2 = move2.u_clv_index;
-    size_t v2 = move2.v_clv_index;
-    size_t s2 = move2.s_clv_index;
-    size_t t2 = move2.t_clv_index;
+bool isomorphicMoves(const Move& move1, const Move& move2) {
+    assert(move1.moveType == MoveType::RNNIMove);
+    assert(move2.moveType == MoveType::RNNIMove);
+    size_t u1 = move1.rnniData.u_clv_index;
+    size_t v1 = move1.rnniData.v_clv_index;
+    size_t s1 = move1.rnniData.s_clv_index;
+    size_t t1 = move1.rnniData.t_clv_index;
+    size_t u2 = move2.rnniData.u_clv_index;
+    size_t v2 = move2.rnniData.v_clv_index;
+    size_t s2 = move2.rnniData.s_clv_index;
+    size_t t2 = move2.rnniData.t_clv_index;
     return (std::min(u1,v1) == std::min(u2,v2) && std::max(u1,v1) == std::max(u2,v2) && std::min(s1,t1) == std::min(s2,t2) && std::max(s1,t1) == std::max(s2,t2)) 
         || (std::min(u1,v1) == std::min(s2,t2) && std::max(u1,v1) == std::max(s2,t2) && std::min(s1,t1) == std::min(u2,v2) && std::max(s1,t1) == std::max(u2,v2));
 }
 
-std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network) {
-    std::vector<RNNIMove> res;
+std::vector<Move> possibleMovesRNNI(AnnotatedNetwork &ann_network) {
+    std::vector<Move> res;
     Network &network = ann_network.network;
     for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::vector<RNNIMove> branch_moves = possibleRNNIMoves(ann_network, network.edges_by_index[i]);
+        std::vector<Move> branch_moves = possibleMovesRNNI(ann_network, network.edges_by_index[i]);
         res.insert(std::end(res), std::begin(branch_moves), std::end(branch_moves));
     }
 
@@ -541,11 +531,11 @@ std::vector<RNNIMove> possibleRNNIMoves(AnnotatedNetwork &ann_network) {
     }
     res.resize(cnt);
     sortByProximity(res, ann_network);
-    assert(checkSanity(ann_network, res));
+    assert(checkSanityRNNI(ann_network, res));
     return res;
 }
 
-std::string toString(RNNIMove &move) {
+std::string toStringRNNI(const Move &move) {
     std::stringstream ss;
     std::unordered_map<RNNIMoveType, std::string> lookup;
     lookup[RNNIMoveType::ONE] = "ONE";
@@ -555,37 +545,39 @@ std::string toString(RNNIMove &move) {
     lookup[RNNIMoveType::THREE] = "THREE";
     lookup[RNNIMoveType::THREE_STAR] = "THREE_STAR";
     lookup[RNNIMoveType::FOUR] = "FOUR";
-    ss << lookup[move.type] << ":\n";
-    ss << "  u = " << move.u_clv_index << "\n";
-    ss << "  v = " << move.v_clv_index << "\n";
-    ss << "  s = " << move.s_clv_index << "\n";
-    ss << "  t = " << move.t_clv_index << "\n";
+    ss << lookup[move.rnniData.type] << ":\n";
+    ss << "  u = " << move.rnniData.u_clv_index << "\n";
+    ss << "  v = " << move.rnniData.v_clv_index << "\n";
+    ss << "  s = " << move.rnniData.s_clv_index << "\n";
+    ss << "  t = " << move.rnniData.t_clv_index << "\n";
     return ss.str();
 }
 
-std::unordered_set<size_t> brlenOptCandidates(AnnotatedNetwork &ann_network, RNNIMove &move) {
-    Node *u = ann_network.network.nodes_by_index[move.u_clv_index];
-    Node *v = ann_network.network.nodes_by_index[move.v_clv_index];
-    Node *s = ann_network.network.nodes_by_index[move.s_clv_index];
-    Node *t = ann_network.network.nodes_by_index[move.t_clv_index];
+std::unordered_set<size_t> brlenOptCandidatesRNNI(AnnotatedNetwork &ann_network, const Move &move) {
+    assert(move.moveType == MoveType::RNNIMove);
+    Node *u = ann_network.network.nodes_by_index[move.rnniData.u_clv_index];
+    Node *v = ann_network.network.nodes_by_index[move.rnniData.v_clv_index];
+    Node *s = ann_network.network.nodes_by_index[move.rnniData.s_clv_index];
+    Node *t = ann_network.network.nodes_by_index[move.rnniData.t_clv_index];
     Edge *u_v_edge = getEdgeTo(ann_network.network, u, v);
     Edge *v_s_edge = getEdgeTo(ann_network.network, v, s);
     Edge *u_t_edge = getEdgeTo(ann_network.network, u, t);
     return {u_v_edge->pmatrix_index, v_s_edge->pmatrix_index, u_t_edge->pmatrix_index};
 }
 
-std::unordered_set<size_t> brlenOptCandidatesUndo(AnnotatedNetwork &ann_network, RNNIMove &move) {
-    Node *u = ann_network.network.nodes_by_index[move.u_clv_index];
-    Node *v = ann_network.network.nodes_by_index[move.v_clv_index];
-    Node *s = ann_network.network.nodes_by_index[move.s_clv_index];
-    Node *t = ann_network.network.nodes_by_index[move.t_clv_index];
+std::unordered_set<size_t> brlenOptCandidatesUndoRNNI(AnnotatedNetwork &ann_network, const Move &move) {
+    assert(move.moveType == MoveType::RNNIMove);
+    Node *u = ann_network.network.nodes_by_index[move.rnniData.u_clv_index];
+    Node *v = ann_network.network.nodes_by_index[move.rnniData.v_clv_index];
+    Node *s = ann_network.network.nodes_by_index[move.rnniData.s_clv_index];
+    Node *t = ann_network.network.nodes_by_index[move.rnniData.t_clv_index];
     Edge *u_s_edge = getEdgeTo(ann_network.network, u, s);
     Edge *v_t_edge = getEdgeTo(ann_network.network, v, t);
     Edge *u_t_edge = getEdgeTo(ann_network.network, u, t);
     return {u_s_edge->pmatrix_index, v_t_edge->pmatrix_index, u_t_edge->pmatrix_index};
 }
 
-RNNIMove randomRNNIMove(AnnotatedNetwork &ann_network) {
+Move randomMoveRNNI(AnnotatedNetwork &ann_network) {
     // TODO: This can be made faster
     std::unordered_set<Edge*> tried;
     while (tried.size() != ann_network.network.num_branches()) {
@@ -595,7 +587,7 @@ RNNIMove randomRNNIMove(AnnotatedNetwork &ann_network) {
         } else {
             tried.emplace(edge);
         }
-        auto moves = possibleRNNIMoves(ann_network, edge);
+        auto moves = possibleMovesRNNI(ann_network, edge);
         if (!moves.empty()) {
             return moves[getRandomIndex(ann_network.rng, moves.size())];
         }

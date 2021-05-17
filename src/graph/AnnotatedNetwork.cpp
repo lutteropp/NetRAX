@@ -16,7 +16,7 @@
 #include "../likelihood/LikelihoodComputation.hpp"
 #include "../NetraxOptions.hpp"
 #include "../RaxmlWrapper.hpp"
-#include "../moves/Moves.hpp"
+#include "../moves/Move.hpp"
 #include "../optimization/BranchLengthOptimization.hpp"
 #include "../optimization/ReticulationOptimization.hpp"
 #include "../optimization/ModelOptimization.hpp"
@@ -200,10 +200,10 @@ void add_extra_reticulations(AnnotatedNetwork &ann_network, unsigned int targetC
 
     // TODO: This can be implemented more eficiently than by always re-gathering all candidates
     while (targetCount > network.num_reticulations()) {
-        std::vector<ArcInsertionMove> candidates = possibleArcInsertionMoves(ann_network);
+        std::vector<Move> candidates = possibleMoves(ann_network, MoveType::ArcInsertionMove);
         assert(!candidates.empty());
         std::uniform_int_distribution<std::mt19937::result_type> dist(0, candidates.size() - 1);
-        ArcInsertionMove move = candidates[dist(rng)];
+        Move move = candidates[dist(rng)];
         performMove(ann_network, move);
     }
 }

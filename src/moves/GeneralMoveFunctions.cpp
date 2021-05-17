@@ -1,4 +1,4 @@
-#include "GeneralMove.hpp"
+#include "GeneralMoveFunctions.hpp"
 
 #include "../helper/Helper.hpp"
 #include "../DebugPrintFunctions.hpp"

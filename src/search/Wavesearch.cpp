@@ -4,7 +4,7 @@
 #include "../likelihood/ComplexityScoring.hpp"
 #include "../likelihood/PseudoLoglikelihood.hpp"
 #include "../likelihood/LikelihoodComputation.hpp"
-#include "../moves/Moves.hpp"
+#include "../moves/Move.hpp"
 #include "../optimization/Optimization.hpp"
 #include "Scrambling.hpp"
 #include "../optimization/NetworkState.hpp"
