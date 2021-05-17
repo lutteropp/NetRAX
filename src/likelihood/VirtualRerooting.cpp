@@ -371,7 +371,6 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
             combinedTreeData.reticulationChoices = oldTrees[i].treeLoglData.reticulationChoices;
             updateTreeData(ann_network, oldTrees, combinedTreeData);
             combinedTrees.emplace_back(combinedTreeData);
-            break;
         }
     }
 
