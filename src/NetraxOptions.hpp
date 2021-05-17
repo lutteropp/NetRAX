@@ -100,6 +100,8 @@ public:
 
     bool no_slow_mode = false;
 
+    bool save_memory = true;
+
     BrlenOptMethod brlenOptMethod = BrlenOptMethod::NEWTON_RAPHSON;//BrlenOptMethod::BRENT_REROOT;//BrlenOptMethod::NEWTON_RAPHSON_REROOT;// BrlenOptMethod::BRENT_NORMAL;
     //BrlenOptMethod brlenOptMethod = BrlenOptMethod::BRENT_NORMAL;
 
