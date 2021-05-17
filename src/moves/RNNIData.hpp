@@ -43,18 +43,16 @@ struct RNNIData {
         }
         return *this;
     }
+
+    bool operator==(const RNNIData& rhs) const { 
+        return(
+            (this->u_clv_index == rhs.u_clv_index)
+            && (this->v_clv_index == rhs.v_clv_index)
+            && (this->s_clv_index == rhs.s_clv_index)
+            && (this->t_clv_index == rhs.t_clv_index)
+            && (this->type == rhs.type)
+        );
+    }
 };
-
-inline bool operator==(const RNNIData& lhs, const RNNIData& rhs){ 
-    return(
-        (lhs.u_clv_index == rhs.u_clv_index)
-        && (lhs.v_clv_index == rhs.v_clv_index)
-        && (lhs.s_clv_index == rhs.s_clv_index)
-        && (lhs.t_clv_index == rhs.t_clv_index)
-        && (lhs.type == rhs.type)
-    );
-}
-
-inline bool operator!=(const RNNIData& lhs, const RNNIData& rhs){ return !(lhs == rhs); }
 
 }

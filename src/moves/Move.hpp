@@ -74,21 +74,20 @@ struct Move {
         }
         return *this;
     }
+
+    bool operator==(const Move& rhs) const { 
+        return(
+            (this->moveType == rhs.moveType)
+            && (this->edge_orig_idx == rhs.edge_orig_idx)
+            && (this->node_orig_idx == rhs.node_orig_idx)
+            && (this->rnniData == rhs.rnniData)
+            && (this->rsprData == rhs.rsprData)
+            && (this->arcInsertionData == rhs.arcInsertionData)
+            && (this->arcRemovalData == rhs.arcRemovalData)
+        );
+    }
+
 };
-
-inline bool operator==(const Move& lhs, const Move& rhs){ 
-    return(
-        (lhs.moveType == rhs.moveType)
-        && (lhs.edge_orig_idx == rhs.edge_orig_idx)
-        && (lhs.node_orig_idx == rhs.node_orig_idx)
-        && (lhs.rnniData == rhs.rnniData)
-        && (lhs.rsprData == rhs.rsprData)
-        && (lhs.arcInsertionData == rhs.arcInsertionData)
-        && (lhs.arcRemovalData == rhs.arcRemovalData)
-    );
-}
-
-inline bool operator!=(const Move& lhs, const Move& rhs){ return !(lhs == rhs); }
 
 
 Move randomMove(AnnotatedNetwork &ann_network, MoveType type);
@@ -109,4 +108,5 @@ std::vector<Move> possibleMoves(AnnotatedNetwork& ann_network, std::vector<MoveT
 inline bool needsRecompute(AnnotatedNetwork& ann_network, const Move& move) {
     return (move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::DeltaMinusMove) && (ann_network.network.reticulation_nodes[ann_network.network.num_reticulations() - 1]->clv_index != move.arcRemovalData.v_clv_index);
 }
+
 }

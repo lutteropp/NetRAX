@@ -97,35 +97,34 @@ struct ArcRemovalData {
         }
         return *this;
     }
+
+
+    bool operator==(const ArcRemovalData& rhs) const { 
+        return(
+            (this->a_clv_index == rhs.a_clv_index)
+            && (this->b_clv_index == rhs.b_clv_index)
+            && (this->c_clv_index == rhs.c_clv_index)
+            && (this->d_clv_index == rhs.d_clv_index)
+            && (this->u_v_len == rhs.u_v_len)
+            && (this->c_v_len == rhs.c_v_len)
+            && (this->a_u_len == rhs.a_u_len)
+            && (this->u_clv_index == rhs.u_clv_index)
+            && (this->v_clv_index == rhs.v_clv_index)
+            && (this->au_pmatrix_index == rhs.au_pmatrix_index)
+            && (this->ub_pmatrix_index == rhs.ub_pmatrix_index)
+            && (this->cv_pmatrix_index == rhs.cv_pmatrix_index)
+            && (this->vd_pmatrix_index == rhs.vd_pmatrix_index)
+            && (this->uv_pmatrix_index == rhs.uv_pmatrix_index)
+            && (this->wanted_ab_pmatrix_index == rhs.wanted_ab_pmatrix_index)
+            && (this->wanted_cd_pmatrix_index == rhs.wanted_cd_pmatrix_index)
+            && (this->a_b_len == rhs.a_b_len)
+            && (this->c_d_len == rhs.c_d_len)
+            && (this->v_d_len == rhs.v_d_len)
+            && (this->u_b_len == rhs.u_b_len)
+            && (this->remapped_clv_indices == rhs.remapped_clv_indices)
+            && (this->remapped_pmatrix_indices == rhs.remapped_pmatrix_indices)
+        );
+    }
 };
-
-inline bool operator==(const ArcRemovalData& lhs, const ArcRemovalData& rhs){ 
-    return(
-        (lhs.a_clv_index == rhs.a_clv_index)
-        && (lhs.b_clv_index == rhs.b_clv_index)
-        && (lhs.c_clv_index == rhs.c_clv_index)
-        && (lhs.d_clv_index == rhs.d_clv_index)
-        && (lhs.u_v_len == rhs.u_v_len)
-        && (lhs.c_v_len == rhs.c_v_len)
-        && (lhs.a_u_len == rhs.a_u_len)
-        && (lhs.u_clv_index == rhs.u_clv_index)
-        && (lhs.v_clv_index == rhs.v_clv_index)
-        && (lhs.au_pmatrix_index == rhs.au_pmatrix_index)
-        && (lhs.ub_pmatrix_index == rhs.ub_pmatrix_index)
-        && (lhs.cv_pmatrix_index == rhs.cv_pmatrix_index)
-        && (lhs.vd_pmatrix_index == rhs.vd_pmatrix_index)
-        && (lhs.uv_pmatrix_index == rhs.uv_pmatrix_index)
-        && (lhs.wanted_ab_pmatrix_index == rhs.wanted_ab_pmatrix_index)
-        && (lhs.wanted_cd_pmatrix_index == rhs.wanted_cd_pmatrix_index)
-        && (lhs.a_b_len == rhs.a_b_len)
-        && (lhs.c_d_len == rhs.c_d_len)
-        && (lhs.v_d_len == rhs.v_d_len)
-        && (lhs.u_b_len == rhs.u_b_len)
-        && (lhs.remapped_clv_indices == rhs.remapped_clv_indices)
-        && (lhs.remapped_pmatrix_indices == rhs.remapped_pmatrix_indices)
-    );
-}
-
-inline bool operator!=(const ArcRemovalData& lhs, const ArcRemovalData& rhs){ return !(lhs == rhs); }
 
 }

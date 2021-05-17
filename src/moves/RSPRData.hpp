@@ -49,21 +49,20 @@ struct RSPRData {
         }
         return *this;
     }
+
+    bool operator==(const RSPRData& rhs) const { 
+        return(
+            (this->x_prime_clv_index == rhs.x_prime_clv_index)
+            && (this->y_prime_clv_index == rhs.y_prime_clv_index)
+            && (this->x_clv_index == rhs.x_clv_index)
+            && (this->y_clv_index == rhs.y_clv_index)
+            && (this->z_clv_index == rhs.z_clv_index)
+            && (this->x_z_len == rhs.x_z_len)
+            && (this->z_y_len == rhs.z_y_len)
+            && (this->x_prime_y_prime_len == rhs.x_prime_y_prime_len)
+        );
+    }
+
 };
-
-inline bool operator==(const RSPRData& lhs, const RSPRData& rhs){ 
-    return(
-        (lhs.x_prime_clv_index == rhs.x_prime_clv_index)
-        && (lhs.y_prime_clv_index == rhs.y_prime_clv_index)
-        && (lhs.x_clv_index == rhs.x_clv_index)
-        && (lhs.y_clv_index == rhs.y_clv_index)
-        && (lhs.z_clv_index == rhs.z_clv_index)
-        && (lhs.x_z_len == rhs.x_z_len)
-        && (lhs.z_y_len == rhs.z_y_len)
-        && (lhs.x_prime_y_prime_len == rhs.x_prime_y_prime_len)
-    );
-}
-
-inline bool operator!=(const RSPRData& lhs, const RSPRData& rhs){ return !(lhs == rhs); }
 
 }
