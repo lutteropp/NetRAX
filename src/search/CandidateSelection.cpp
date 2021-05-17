@@ -92,7 +92,7 @@ void filterCandidatesByScore(std::vector<T>& candidates, std::vector<ScoreItem<T
     size_t cutoff_pos = std::min(n_keep - 1, (int) scores.size() - 1);
     double cutoff_bic = scores[cutoff_pos].bicScore;
 
-    for (int i = 0; i < std::min(scores.size(), candidates.size()); ++i) {
+    for (size_t i = 0; i < std::min(scores.size(), candidates.size()); ++i) {
         if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
             if (!silent) std::cout << "candidate " << i + 1 << "/" << candidates.size() << " has BIC: " << scores[i].bicScore << "\n";
         }

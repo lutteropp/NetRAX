@@ -26,8 +26,7 @@
 namespace netrax {
 // The moves correspond to the moves from this paper: https://doi.org/10.1371/journal.pcbi.1005611
 
-class Move {
-    public:
+struct Move {
     Move(MoveType type, size_t edge_orig_idx, size_t node_orig_idx) :
             moveType(type), edge_orig_idx(edge_orig_idx), node_orig_idx(node_orig_idx) {
     }
@@ -75,10 +74,22 @@ class Move {
         }
         return *this;
     }
-
-    private:
-    // todo
 };
+
+inline bool operator==(const Move& lhs, const Move& rhs){ 
+    return(
+        (lhs.moveType == rhs.moveType)
+        && (lhs.edge_orig_idx == rhs.edge_orig_idx)
+        && (lhs.node_orig_idx == rhs.node_orig_idx)
+        && (lhs.rnniData == rhs.rnniData)
+        && (lhs.rsprData == rhs.rsprData)
+        && (lhs.arcInsertionData == rhs.arcInsertionData)
+        && (lhs.arcRemovalData == rhs.arcRemovalData)
+    );
+}
+
+inline bool operator!=(const Move& lhs, const Move& rhs){ return !(lhs == rhs); }
+
 
 Move randomMove(AnnotatedNetwork &ann_network, MoveType type);
 void performMove(AnnotatedNetwork &ann_network, Move& move);

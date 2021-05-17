@@ -45,4 +45,16 @@ struct RNNIData {
     }
 };
 
+inline bool operator==(const RNNIData& lhs, const RNNIData& rhs){ 
+    return(
+        (lhs.u_clv_index == rhs.u_clv_index)
+        && (lhs.v_clv_index == rhs.v_clv_index)
+        && (lhs.s_clv_index == rhs.s_clv_index)
+        && (lhs.t_clv_index == rhs.t_clv_index)
+        && (lhs.type == rhs.type)
+    );
+}
+
+inline bool operator!=(const RNNIData& lhs, const RNNIData& rhs){ return !(lhs == rhs); }
+
 }

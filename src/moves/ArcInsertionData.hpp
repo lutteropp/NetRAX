@@ -92,4 +92,31 @@ struct ArcInsertionData {
     }
 };
 
+inline bool operator==(const ArcInsertionData& lhs, const ArcInsertionData& rhs){ 
+    return(
+        (lhs.a_clv_index == rhs.a_clv_index)
+        && (lhs.b_clv_index == rhs.b_clv_index)
+        && (lhs.c_clv_index == rhs.c_clv_index)
+        && (lhs.d_clv_index == rhs.d_clv_index)
+        && (lhs.u_v_len == rhs.u_v_len)
+        && (lhs.c_v_len == rhs.c_v_len)
+        && (lhs.a_u_len == rhs.a_u_len)
+        && (lhs.wanted_u_clv_index == rhs.wanted_u_clv_index)
+        && (lhs.wanted_v_clv_index == rhs.wanted_v_clv_index)
+        && (lhs.wanted_au_pmatrix_index == rhs.wanted_au_pmatrix_index)
+        && (lhs.wanted_ub_pmatrix_index == rhs.wanted_ub_pmatrix_index)
+        && (lhs.wanted_cv_pmatrix_index == rhs.wanted_cv_pmatrix_index)
+        && (lhs.wanted_vd_pmatrix_index == rhs.wanted_vd_pmatrix_index)
+        && (lhs.wanted_uv_pmatrix_index == rhs.wanted_uv_pmatrix_index)
+        && (lhs.ab_pmatrix_index == rhs.ab_pmatrix_index)
+        && (lhs.cd_pmatrix_index == rhs.cd_pmatrix_index)
+        && (lhs.a_b_len == rhs.a_b_len)
+        && (lhs.c_d_len == rhs.c_d_len)
+        && (lhs.v_d_len == rhs.v_d_len)
+        && (lhs.u_b_len == rhs.u_b_len)
+    );
+}
+
+inline bool operator!=(const ArcInsertionData& lhs, const ArcInsertionData& rhs){ return !(lhs == rhs); }
+
 }

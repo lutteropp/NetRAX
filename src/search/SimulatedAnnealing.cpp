@@ -13,15 +13,13 @@
 namespace netrax {
 
 template <typename T>
-bool simanneal_step(AnnotatedNetwork& ann_network, double t, std::vector<T> neighbors, const NetworkState& oldState, std::unordered_set<double>& seen_bics, bool silent = true) {
-    bool copyNetwork = false;
-    
+bool simanneal_step(AnnotatedNetwork& ann_network, double t, std::vector<T> neighbors, const NetworkState& oldState, std::unordered_set<double>& seen_bics, bool silent = true) {    
     if (neighbors.empty() || t <= 0) {
         return false;
     }
 
-    if (!silent) std::cout << "MoveType: " << toString(neighbors[0].moveType) << "\n";
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+        if (!silent) std::cout << "MoveType: " << toString(neighbors[0].moveType) << "\n";
         if (!silent) std::cout << "t: " << t << "\n";
     }
 
