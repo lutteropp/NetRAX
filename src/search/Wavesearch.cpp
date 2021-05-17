@@ -173,14 +173,6 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
     auto start_time = std::chrono::high_resolution_clock::now();
     double best_score = std::numeric_limits<double>::infinity();
     ScoreImprovementResult score_improvement;
-
-    if (ann_network.options.computePseudo) {
-        double pseudo = computePseudoLoglikelihood(ann_network);
-        if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-            std::cout << "pseudo-loglh: " << pseudo << "\n";
-            std::cout << "pseudo-bic: " << bic(ann_network, pseudo) << "\n";
-        }
-    }
     //std::cout << "Initial network is:\n" << toExtendedNewick(ann_network) << "\n\n";
 
     optimizeAllNonTopology(ann_network);

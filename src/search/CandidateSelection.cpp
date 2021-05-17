@@ -201,10 +201,12 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<T>& candid
         }
         assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
         if (move.moveType == MoveType::ArcInsertionMove || move.moveType == MoveType::DeltaPlusMove) {
+            switchLikelihoodVariant(ann_network, old_variant);
             optimizeReticulationProbs(ann_network);
             std::unordered_set<size_t> brlenopt_candidates;
             brlenopt_candidates.emplace(((ArcInsertionMove*) &move)->wanted_uv_pmatrix_index);
             optimizeBranchesCandidates(ann_network, brlenopt_candidates);
+            switchLikelihoodVariant(ann_network, LikelihoodVariant::SARAH_PSEUDO);
         }
 
         double bicScore = scoreNetwork(ann_network);

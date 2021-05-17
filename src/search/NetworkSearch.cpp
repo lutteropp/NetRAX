@@ -30,8 +30,12 @@ void run_single_start_waves(NetraxOptions& netraxOptions, const RaxmlInstance& i
 
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         std::cout << "Statistics on which moves were taken:\n";
+        std::unordered_set<MoveType> seen;
         for (const MoveType& type : typesBySpeed) {
-            std::cout << toString(type) << ": " << ann_network.stats.moves_taken[type] << "\n";
+            if (seen.count(type) == 0) {
+                std::cout << toString(type) << ": " << ann_network.stats.moves_taken[type] << "\n";
+            }
+            seen.emplace(type);
         }
         std::cout << "Best inferred network has " << bestNetworkData.best_n_reticulations << " reticulations, logl = " << bestNetworkData.logl[bestNetworkData.best_n_reticulations] << ", bic = " << bestNetworkData.bic[bestNetworkData.best_n_reticulations] << "\n";
         std::cout << "Best inferred network is: \n";
@@ -132,8 +136,12 @@ void run_random(NetraxOptions& netraxOptions, const RaxmlInstance& instance, con
 
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         std::cout << "\nAggregated statistics on which moves were taken:\n";
+        std::unordered_set<MoveType> seen;
         for (const MoveType& type : typesBySpeed) {
-            std::cout << toString(type) << ": " << totalStats.moves_taken[type] << "\n";
+            if (seen.count(type) == 0) {
+                std::cout << toString(type) << ": " << totalStats.moves_taken[type] << "\n";
+            }
+            seen.emplace(type);
         }
         std::cout << "\n";
 

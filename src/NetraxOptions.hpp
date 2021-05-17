@@ -76,8 +76,8 @@ public:
 
     bool no_prefiltering = false;
     bool no_rnni_moves = false;
-    bool no_tail_moves = false;
-    bool no_head_moves = false;
+    bool no_rspr_moves = false;
+    bool no_arc_removal_moves = false;
     bool no_arc_insertion_moves = false;
     bool enforce_extra_search = false;
     unsigned int scrambling = 5;
@@ -97,8 +97,6 @@ public:
     double lh_epsilon = DEF_LH_EPSILON;
     double tolerance = DEF_LH_EPSILON; //RAXML_BRLEN_TOLERANCE;
     double brlen_smoothings = RAXML_BRLEN_SMOOTHINGS;
-
-    bool computePseudo = false;
 
     bool no_slow_mode = false;
 
