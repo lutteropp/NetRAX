@@ -17,7 +17,7 @@ namespace netrax {
 template <typename T>
 struct ScoreItem {
     T item;
-    double bicScore;
+    double bicScore = std::numeric_limits<double>::infinity();
 };
 
 double trim(double x, int digitsAfterComma) {
@@ -92,7 +92,7 @@ void filterCandidatesByScore(std::vector<T>& candidates, std::vector<ScoreItem<T
     size_t cutoff_pos = std::min(n_keep - 1, (int) scores.size() - 1);
     double cutoff_bic = scores[cutoff_pos].bicScore;
 
-    for (size_t i = 0; i < candidates.size(); ++i) {
+    for (size_t i = 0; i < std::min(scores.size(), candidates.size()); ++i) {
         if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
             if (!silent) std::cout << "candidate " << i + 1 << "/" << candidates.size() << " has BIC: " << scores[i].bicScore << "\n";
         }
@@ -159,6 +159,8 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& can
         return scoreNetwork(ann_network); // we would keep all anyway...
     }
 
+    size_t n_better = 0;
+
     Network oldNetwork = ann_network.network;
 
     std::vector<ScoreItem<Move> > scores(candidates.size());
@@ -216,6 +218,10 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& can
             assert(ann_network.network.nodes_by_index[j]->clv_index == j);
         }
 
+        if (bicScore < old_bic) {
+            n_better++;
+        }
+
         if (bicScore < best_bic) {
             best_bic = bicScore;
 
@@ -226,6 +232,9 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& can
                     best_real_bic = actRealBIC;
                     ann_network.last_accepted_move_edge_orig_idx = move.edge_orig_idx;
                     switchLikelihoodVariant(ann_network, LikelihoodVariant::SARAH_PSEUDO);
+                }
+                if (actRealBIC >= real_old_bic) {
+                    n_better--;
                 }
             } else {
                 best_real_bic = best_bic;
@@ -271,6 +280,11 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& can
         apply_network_state(ann_network, oldState);
 
         assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+
+        if (n_better >= ann_network.options.max_better_candidates) {
+            scores.resize(n_better);
+            break;
+        }
     }
     assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
     apply_network_state(ann_network, oldState);
@@ -313,6 +327,8 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& candidates
     if (ann_network.options.rank_keep >= candidates.size()) {
         return; // we would keep all anyway...
     }
+
+    size_t n_better = 0;
 
     int barWidth = 70;
 
@@ -361,6 +377,10 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& candidates
             ann_network.last_accepted_move_edge_orig_idx = move.edge_orig_idx;
         }
 
+        if (bicScore < old_bic) {
+            n_better++;
+        }
+
         if (old_bic/bicScore > ann_network.options.greedy_factor) {
             candidates[0] = candidates[i];
             candidates.resize(1);
@@ -380,6 +400,11 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& candidates
 
         apply_network_state(ann_network, oldState);
         assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+
+        if (n_better >= ann_network.options.max_better_candidates) {
+            scores.resize(n_better);
+            break;
+        }
     }
     apply_network_state(ann_network, oldState);
     if (print_progress && ParallelContext::master_rank() && ParallelContext::master_thread()) { 
@@ -412,6 +437,8 @@ double chooseCandidate(AnnotatedNetwork& ann_network, std::vector<Move>& candida
         return best_bic;
     }
     rankCandidates(ann_network, candidates, silent, print_progress);
+
+    size_t n_better = 0;
 
     int barWidth = 70;
 
@@ -450,6 +477,10 @@ double chooseCandidate(AnnotatedNetwork& ann_network, std::vector<Move>& candida
             extract_network_state(ann_network, *state);
         }
 
+        if (bicScore < old_bic) {
+            n_better++;
+        }
+
         if (old_bic/bicScore > ann_network.options.greedy_factor) {
             candidates[0] = candidates[i];
             candidates.resize(1);
@@ -477,6 +508,11 @@ double chooseCandidate(AnnotatedNetwork& ann_network, std::vector<Move>& candida
         apply_network_state(ann_network, oldState);
 
         assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+
+        if (n_better >= ann_network.options.max_better_candidates) {
+            scores.resize(n_better);
+            break;
+        }
     }
     if (print_progress && ParallelContext::master_rank() && ParallelContext::master_thread()) {
         std::cout << std::endl;

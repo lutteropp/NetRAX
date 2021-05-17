@@ -109,6 +109,8 @@ public:
 
     bool no_elbow_method = false;
 
+    size_t max_better_candidates = std::numeric_limits<size_t>::infinity();
+
     std::string msa_file = "";
     std::string model_file = "DNA";
     std::string start_network_file = "";
