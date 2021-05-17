@@ -217,4 +217,16 @@ const TreeLoglData& getMatchingTreeData(const std::vector<DisplayedTreeData>& tr
     throw std::runtime_error("No compatible old tree data found");
 }
 
+ReticulationConfigSet getRestrictionsActiveBranch(AnnotatedNetwork& ann_network, size_t pmatrix_index) {
+    ReticulationConfigSet res;
+    for (size_t tree_idx = 0; tree_idx < (1 << ann_network.network.num_reticulations()); ++tree_idx) {
+        ReticulationConfigSet treeChoices = getTreeConfig(ann_network, tree_idx);
+        if (isActiveBranch(ann_network, treeChoices, pmatrix_index)) {
+            res.configs.emplace_back(treeChoices.configs[0]);
+        }
+    }
+    simplifyReticulationChoices(res);
+    return res;
+}
+
 }

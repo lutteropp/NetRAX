@@ -161,7 +161,7 @@ NodeSaveInformation computeNodeSaveInformation(const std::vector<PathToVirtualRo
     return nodeSaveInfo;
 }
 
-void updateCLVsVirtualRerootTrees(AnnotatedNetwork& ann_network, Node* old_virtual_root, Node* new_virtual_root, Node* new_virtual_root_back) {
+void updateCLVsVirtualRerootTrees(AnnotatedNetwork& ann_network, Node* old_virtual_root, Node* new_virtual_root, Node* new_virtual_root_back, ReticulationConfigSet& restrictions) {
     assert(old_virtual_root);
     assert(new_virtual_root);
 
@@ -184,6 +184,10 @@ void updateCLVsVirtualRerootTrees(AnnotatedNetwork& ann_network, Node* old_virtu
         printPathToVirtualRoot(paths[p]);
         std::cout << "The path has the following restrictions: \n";
         printReticulationChoices(paths[p].reticulationChoices);*/
+
+        if (!reticulationConfigsCompatible(paths[p].reticulationChoices, restrictions)) {
+            continue;
+        }
 
         // Restore required old NodeInformations for the path
         for (size_t nodeIndexToRestore : nodeSaveInfo.pathNodesToRestore[p]) {

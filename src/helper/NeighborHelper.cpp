@@ -121,7 +121,7 @@ std::vector<Node*> getNeighborsWithinRadius(const Network& network, const Node* 
     std::queue<Node*> q;
     std::queue<Node*> next_q;
     q.emplace(network.nodes_by_index[node->clv_index]);
-    size_t act_radius = 0;
+    int act_radius = 0;
     while (act_radius <= max_radius && !q.empty()) {
         while (!q.empty()) {
             Node* actNode = q.front();

@@ -88,11 +88,11 @@ void filterCandidatesByScore(std::vector<T>& candidates, std::vector<ScoreItem<T
         return lhs.bicScore < rhs.bicScore;
     });
 
-    size_t newSize = 0;
+    int newSize = 0;
     size_t cutoff_pos = std::min(n_keep - 1, (int) scores.size() - 1);
     double cutoff_bic = scores[cutoff_pos].bicScore;
 
-    for (size_t i = 0; i < std::min(scores.size(), candidates.size()); ++i) {
+    for (int i = 0; i < std::min(scores.size(), candidates.size()); ++i) {
         if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
             if (!silent) std::cout << "candidate " << i + 1 << "/" << candidates.size() << " has BIC: " << scores[i].bicScore << "\n";
         }
@@ -159,7 +159,7 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& can
         return scoreNetwork(ann_network); // we would keep all anyway...
     }
 
-    size_t n_better = 0;
+    int n_better = 0;
 
     Network oldNetwork = ann_network.network;
 
@@ -328,7 +328,7 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& candidates
         return; // we would keep all anyway...
     }
 
-    size_t n_better = 0;
+    int n_better = 0;
 
     int barWidth = 70;
 
@@ -438,7 +438,7 @@ double chooseCandidate(AnnotatedNetwork& ann_network, std::vector<Move>& candida
     }
     rankCandidates(ann_network, candidates, silent, print_progress);
 
-    size_t n_better = 0;
+    int n_better = 0;
 
     int barWidth = 70;
 

@@ -197,16 +197,18 @@ void possibleMovesRSPRInternalNode(std::vector<Move> &res, AnnotatedNetwork &ann
             continue;
         }
 
-        size_t node_orig_idx = z->clv_index;
+        if ((z->type == NodeType::RETICULATION_NODE && returnHead) || (z->type != NodeType::RETICULATION_NODE && returnTail)) {
+            size_t node_orig_idx = z->clv_index;
 
-        size_t edge_orig_idx = getEdgeTo(network, x_prime, y_prime)->pmatrix_index;
-        Move move = buildMoveRSPR(x_prime->clv_index, y_prime->clv_index, x->clv_index,
-                y->clv_index, z->clv_index, moveType, edge_orig_idx, node_orig_idx);
-        move.rsprData.x_z_len = get_edge_lengths(ann_network, getEdgeTo(network, x, z)->pmatrix_index);
-        move.rsprData.z_y_len = get_edge_lengths(ann_network, getEdgeTo(network, z, y)->pmatrix_index);
-        move.rsprData.x_prime_y_prime_len = get_edge_lengths(ann_network, getEdgeTo(network, x_prime, y_prime)->pmatrix_index);
-        if (!noRSPR1Moves || !isRSPR1Move(move)) {
-            res.emplace_back(move);
+            size_t edge_orig_idx = getEdgeTo(network, x_prime, y_prime)->pmatrix_index;
+            Move move = buildMoveRSPR(x_prime->clv_index, y_prime->clv_index, x->clv_index,
+                    y->clv_index, z->clv_index, moveType, edge_orig_idx, node_orig_idx);
+            move.rsprData.x_z_len = get_edge_lengths(ann_network, getEdgeTo(network, x, z)->pmatrix_index);
+            move.rsprData.z_y_len = get_edge_lengths(ann_network, getEdgeTo(network, z, y)->pmatrix_index);
+            move.rsprData.x_prime_y_prime_len = get_edge_lengths(ann_network, getEdgeTo(network, x_prime, y_prime)->pmatrix_index);
+            if (!noRSPR1Moves || !isRSPR1Move(move)) {
+                res.emplace_back(move);
+            }
         }
     }
 }
