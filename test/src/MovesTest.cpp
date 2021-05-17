@@ -6,7 +6,7 @@
  */
 
 #include "src/likelihood/LikelihoodComputation.hpp"
-#include "src/moves/Moves.hpp"
+#include "src/moves/Move.hpp"
 #include "src/io/NetworkIO.hpp"
 #include "src/RaxmlWrapper.hpp"
 #include "src/DebugPrintFunctions.hpp"
@@ -50,8 +50,7 @@ std::vector<std::vector<double> > extract_brlens(AnnotatedNetwork &ann_network) 
     return res;
 }
 
-template<typename T>
-void randomMovesStep(AnnotatedNetwork &ann_network, std::vector<T> candidates) {
+void randomMovesStep(AnnotatedNetwork &ann_network, std::vector<Move> candidates) {
     double initial_logl = computeLoglikelihood(ann_network);
     ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
     std::cout << "initial_logl: " << initial_logl << "\n";
@@ -97,47 +96,13 @@ void randomMoves(const std::string &networkPath, const std::string &msaPath, boo
     init_annotated_network(ann_network);
     Network &network = ann_network.network;
 
-    if (type == MoveType::ArcRemovalMove) {
-        randomMovesStep<ArcRemovalMove>(ann_network, possibleArcRemovalMoves(ann_network));
-        return;
-    } else if (type == MoveType::DeltaMinusMove) {
-        randomMovesStep<ArcRemovalMove>(ann_network, possibleDeltaMinusMoves(ann_network));
+    if (type == MoveType::ArcRemovalMove || type == MoveType::DeltaMinusMove) {
+        randomMovesStep(ann_network, possibleMoves(ann_network, type));
         return;
     }
 
     for (size_t i = 0; i < network.num_branches(); ++i) {
-        switch (type) {
-        case MoveType::RNNIMove:
-            randomMovesStep<RNNIMove>(ann_network,
-                    possibleRNNIMoves(ann_network, &network.edges[i]));
-            break;
-        case MoveType::RSPRMove:
-            randomMovesStep<RSPRMove>(ann_network,
-                    possibleRSPRMoves(ann_network, &network.edges[i]));
-            break;
-        case MoveType::RSPR1Move:
-            randomMovesStep<RSPRMove>(ann_network,
-                    possibleRSPR1Moves(ann_network, &network.edges[i]));
-            break;
-        case MoveType::HeadMove:
-            randomMovesStep<RSPRMove>(ann_network,
-                    possibleHeadMoves(ann_network, &network.edges[i]));
-            break;
-        case MoveType::TailMove:
-            randomMovesStep<RSPRMove>(ann_network,
-                    possibleTailMoves(ann_network, &network.edges[i]));
-            break;
-        case MoveType::ArcInsertionMove:
-            randomMovesStep<ArcInsertionMove>(ann_network,
-                    possibleArcInsertionMoves(ann_network, &network.edges[i]));
-            break;
-        case MoveType::DeltaPlusMove:
-            randomMovesStep<ArcInsertionMove>(ann_network,
-                    possibleDeltaPlusMoves(ann_network, &network.edges[i]));
-            break;
-        default:
-            throw std::runtime_error("Invalid move type");
-        }
+        randomMovesStep(ann_network, possibleMoves(ann_network, type, ann_network.network.edges_by_index[i]));
     }
 }
 
