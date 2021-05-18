@@ -147,6 +147,10 @@ size_t elbowMethod(const std::vector<ScoreItem<T> >& elements, int max_n_keep = 
 	return maxDistIdx + 1;
 }
 
+double enforceRemovalBadReticulations(AnnotatedNetwork& ann_network) {
+    std::vector<Node*> bad_reticulations = getBadR
+}
+
 double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& candidates, bool silent = true, bool print_progress = true, bool need_best_bic = false) {    
     if (candidates.empty()) {
         return scoreNetwork(ann_network);

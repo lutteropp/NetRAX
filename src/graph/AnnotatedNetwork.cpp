@@ -273,6 +273,16 @@ bool hasBadReticulation(AnnotatedNetwork& ann_network) {
     return false;
 }
 
+std::vector<Node*> getBadReticulations(AnnotatedNetwork& ann_network) {
+    std::vector<Node*> res;
+    for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
+        if ((1.0 - ann_network.reticulation_probs[i] < 0.001) || (ann_network.reticulation_probs[i] < 0.001)) {
+            res.emplace_back(ann_network.network.reticulation_nodes[i]);
+        }
+    }
+    return res;
+}
+
 bool assertBranchLengths(AnnotatedNetwork& ann_network) {
     if (ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
         for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
