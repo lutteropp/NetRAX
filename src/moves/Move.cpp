@@ -7,6 +7,8 @@
 #include "RNNI.hpp"
 #include "RSPR.hpp"
 
+#include "GeneralMoveFunctions.hpp"
+
 namespace netrax {
 
 Move randomMove(AnnotatedNetwork &ann_network, MoveType type) {
@@ -300,6 +302,17 @@ std::vector<Node*> gatherStartNodes(AnnotatedNetwork& ann_network, Move move) {
         res.emplace_back(ann_network.network.nodes_by_index[move.rsprData.z_clv_index]);
     }
     return res;
+}
+
+void updateMoveBranchLengths(AnnotatedNetwork& ann_network, Move& move) {
+    if (isArcInsertion(move.moveType)) {
+        move.arcInsertionData.u_b_len = get_edge_lengths(ann_network, move.arcInsertionData.wanted_ub_pmatrix_index);
+        move.arcInsertionData.u_v_len = get_edge_lengths(ann_network, move.arcInsertionData.wanted_uv_pmatrix_index);
+        move.arcInsertionData.v_d_len = get_edge_lengths(ann_network, move.arcInsertionData.wanted_vd_pmatrix_index);
+    } else if (isArcRemoval(move.moveType)) {
+        move.arcRemovalData.a_b_len = get_edge_lengths(ann_network, move.arcRemovalData.wanted_ab_pmatrix_index);
+        move.arcRemovalData.c_d_len = get_edge_lengths(ann_network, move.arcRemovalData.wanted_cd_pmatrix_index);
+    }
 }
 
 }

@@ -111,4 +111,6 @@ inline bool needsRecompute(AnnotatedNetwork& ann_network, const Move& move) {
 void removeBadCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& candidates);
 std::vector<Node*> gatherStartNodes(AnnotatedNetwork& ann_network, Move move);
 
+void updateMoveBranchLengths(AnnotatedNetwork& ann_network, Move& move);
+
 }

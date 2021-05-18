@@ -205,6 +205,7 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& can
             brlenopt_candidates.emplace(move.arcInsertionData.wanted_uv_pmatrix_index);
             optimizeBranchesCandidates(ann_network, brlenopt_candidates);
             switchLikelihoodVariant(ann_network, LikelihoodVariant::SARAH_PSEUDO);
+            updateMoveBranchLengths(ann_network, move);
         }
 
         double bicScore = scoreNetwork(ann_network);
@@ -358,6 +359,7 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& candidates
         //add_neighbors_in_radius(ann_network, brlen_opt_candidates, 1);
         optimizeBranchesCandidates(ann_network, brlen_opt_candidates);
         optimizeReticulationProbs(ann_network);
+        updateMoveBranchLengths(ann_network, move);
 
         assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
 
