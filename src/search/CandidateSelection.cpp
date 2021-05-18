@@ -646,7 +646,7 @@ double fastIterationsMode(AnnotatedNetwork& ann_network, int best_max_distance, 
 
             // add new possible moves to the candidate list
             if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-                std::cout << "We have " << candidates.size() << " candidates before removing old the bad ones.\n";
+                std::cout << "We have " << candidates.size() << " candidates before removing the old bad ones.\n";
             }
             std::vector<Node*> start_nodes = gatherStartNodes(ann_network, chosenMove);
             removeBadCandidates(ann_network, candidates);
