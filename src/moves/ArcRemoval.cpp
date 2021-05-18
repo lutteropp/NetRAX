@@ -621,7 +621,7 @@ void performMoveArcRemoval(AnnotatedNetwork &ann_network, Move &move) {
 
     repairConsecutiveIndices(ann_network, move);
 
-    assert(move.b_clv_index < network.nodes_by_index.size());
+    assert(move.arcRemovalData.b_clv_index < network.nodes_by_index.size());
     Node *b = network.nodes_by_index[move.arcRemovalData.b_clv_index];
     assert(b);
     if (b->type == NodeType::RETICULATION_NODE) {
@@ -639,7 +639,7 @@ void performMoveArcRemoval(AnnotatedNetwork &ann_network, Move &move) {
         badToParentLink->outer->outer = badToParentLink;
     }
 
-    assert(move.d_clv_index < network.nodes_by_index.size());
+    assert(move.arcRemovalData.d_clv_index < network.nodes_by_index.size());
     Node *d = network.nodes_by_index[move.arcRemovalData.d_clv_index];
     assert(d);
     if (d->type == NodeType::RETICULATION_NODE) {
@@ -684,7 +684,7 @@ void performMoveArcRemoval(AnnotatedNetwork &ann_network, Move &move) {
     invalidatePmatrixIndex(ann_network, c_d_edge->pmatrix_index, visited);
 
     ann_network.travbuffer = reversed_topological_sort(ann_network.network);
-    assert(checkSanityArcRemoval(network));
+    assert(checkSanity(network));
     assert(assertReticulationProbs(ann_network));
     assert(assertConsecutiveIndices(ann_network));
 
