@@ -633,10 +633,10 @@ double fastIterationsMode(AnnotatedNetwork& ann_network, int best_max_distance, 
             got_better = true;
             old_score = score;
 
-            if (isArcInsertion(type)) {
+            if (isArcInsertion(type) && hasBadReticulation(ann_network)) {
                 // interleave the arc insertion search with a quick arc removal round, to avoid keeping reticulations with 0/1 prob around
                 if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-                    std::cout << "Interleaving arc insertion with trying some arc removals...\n";
+                    std::cout << "Bad reticulation detected. Interleaving arc insertion with trying some arc removals...\n";
                 }
                 fastIterationsMode(ann_network, best_max_distance, MoveType::ArcRemovalMove, typesBySpeed, best_score, bestNetworkData, silent);
                 if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
