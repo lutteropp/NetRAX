@@ -269,7 +269,12 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& can
             computeLoglikelihood(ann_network, 0, 1);
         }
         assert(topology_equal(oldNetwork, ann_network.network));
+        assert(brlensEqual(oldNetwork, ann_network.network));
         //assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+        if (old_bic != scoreNetwork(ann_network)) {
+            std::cout << "old_bic: " << old_bic << "\n";
+            std::cout << "scoreNetwork: " << scoreNetwork(ann_network) << "\n";
+        }
         assert(old_bic == scoreNetwork(ann_network));
 
         assert(checkSanity(ann_network, candidates[i]));

@@ -80,5 +80,6 @@ std::vector<double> collectBranchLengths(const Network &network);
 void applyBranchLengths(Network &network, const std::vector<double> &branchLengths);
 bool checkSanity(Network &network);
 void checkLinkDirections(Network &network);
+bool brlensEqual(const Network& n1, const Network& n2);
 
 }

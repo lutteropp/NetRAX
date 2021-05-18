@@ -258,4 +258,10 @@ namespace netrax
             assert(n_out == targetOutgoing);
         }
     }
+
+    bool brlensEqual(const Network& n1, const Network& n2) {
+        std::vector<double> b1 = collectBranchLengths(n1);
+        std::vector<double> b2 = collectBranchLengths(n2);
+        return (b1 == b2);
+    }
 } // namespace netrax
