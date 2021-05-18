@@ -103,6 +103,13 @@ bool logl_stays_same(AnnotatedNetwork& ann_network) {
 }
 
 void optimizeAllNonTopology(AnnotatedNetwork &ann_network, bool extremeOpt, bool silent) {
+    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+        if (!extremeOpt) {
+            std::cout << "optimizing model, reticulation probs, and branch lengths (fast mode)...\n";
+        } else {
+            std::cout << "optimizing model, reticulation probs, and branch lengths (slow mode)...\n";
+        }
+    }
     assert(logl_stays_same(ann_network));
     bool gotBetter = true;
     while (gotBetter) {

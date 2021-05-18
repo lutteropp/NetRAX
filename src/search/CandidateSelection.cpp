@@ -717,9 +717,6 @@ double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vecto
     }
 
     if (typesBySpeed[0] == type) {
-        if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-            std::cout << "optimizing model, reticulation probs, and branch lengths (fast mode)...\n";
-        }
         optimizeAllNonTopology(ann_network);
         check_score_improvement(ann_network, best_score, bestNetworkData);
     }
@@ -744,9 +741,6 @@ double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vecto
             std::cout << "\n" << toString(type) << " step 2: fast iterations mode, with the best max distance " << best_max_distance << "\n";
         }
         fastIterationsMode(ann_network, best_max_distance, type, typesBySpeed, best_score, bestNetworkData, silent);
-        if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-            std::cout << "optimizing model, reticulation probs, and branch lengths (slow mode)...\n";
-        }
         optimizeAllNonTopology(ann_network, true);
         check_score_improvement(ann_network, best_score, bestNetworkData);
     }
@@ -762,15 +756,11 @@ double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vecto
     if (ann_network.options.slow_mode && type != MoveType::ArcRemovalMove && type != MoveType::DeltaPlusMove) {
         if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
             std::cout << "\n" << toString(type) << " step 3: slow iterations mode, with increasing max distance\n";
-            std::cout << "optimizing model, reticulation probs, and branch lengths (fast mode)...\n";
         }
         optimizeAllNonTopology(ann_network);
         slowIterationsMode(ann_network, type, step_size, typesBySpeed, best_score, bestNetworkData, silent);
     }
 
-    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-        std::cout << "optimizing model, reticulation probs, and branch lengths (slow mode)...\n";
-    }
     optimizeAllNonTopology(ann_network, true);
     old_score = scoreNetwork(ann_network);
     check_score_improvement(ann_network, best_score, bestNetworkData);
