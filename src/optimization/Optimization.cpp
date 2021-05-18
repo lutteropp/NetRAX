@@ -64,8 +64,6 @@ void optimizeBranchesCandidates(AnnotatedNetwork &ann_network, std::unordered_se
 void optimizeModel(AnnotatedNetwork &ann_network, bool silent) {
     assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
     double old_score = scoreNetwork(ann_network);
-    if (!silent && ParallelContext::master()) std::cout << "BIC score before model optimization: " << old_score << "\n";
-
     optimize_params(ann_network);
 
     assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
@@ -110,6 +108,9 @@ void optimizeAllNonTopology(AnnotatedNetwork &ann_network, bool extremeOpt, bool
             std::cout << "optimizing model, reticulation probs, and branch lengths (slow mode)...\n";
         }
     }
+
+    silent = false;
+
     assert(logl_stays_same(ann_network));
     bool gotBetter = true;
     while (gotBetter) {
@@ -127,6 +128,9 @@ void optimizeAllNonTopology(AnnotatedNetwork &ann_network, bool extremeOpt, bool
 
         if (score_after < score_before && extremeOpt) {
             gotBetter = true;
+            if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+                if (!silent) std::cout << "improved bic: " << score_after << "\n";
+            }
         }
     }
     assert(logl_stays_same(ann_network));
