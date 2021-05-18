@@ -265,15 +265,6 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& can
         if (move.moveType == MoveType::ArcRemovalMove) {
             computeLoglikelihood(ann_network, 0, 1);
         }
-
-        if (old_bic != scoreNetwork(ann_network)) {
-            if (ParallelContext::master_thread() && ParallelContext::master_rank()) {
-                std::cout << "old_bic before apply network state: " << old_bic << "\n";
-                std::cout << "scoreNetwork before apply network state: " << scoreNetwork(ann_network) << "\n";
-            }
-        }
-
-        assert(old_bic == scoreNetwork(ann_network));
         //assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
         assert(checkSanity(ann_network, candidates[i]));
 
