@@ -111,7 +111,8 @@ void optimizeAllNonTopology(AnnotatedNetwork &ann_network, bool extremeOpt, bool
 
     silent = false;
 
-    bool doModelopt = true;
+    bool doModelOpt = true;
+    bool doReticulationOpt = true;
     double score_epsilon = 1E-3;
 
     assert(logl_stays_same(ann_network));
@@ -120,11 +121,19 @@ void optimizeAllNonTopology(AnnotatedNetwork &ann_network, bool extremeOpt, bool
         gotBetter = false;
         double score_before = scoreNetwork(ann_network);
         //assert(logl_stays_same(ann_network));
-        optimizeReticulationProbs(ann_network, silent);
+
+        if (doReticulationOpt) {
+            optimizeReticulationProbs(ann_network, silent);
+            double score_after_probs = scoreNetwork(ann_network);
+            double prob_improv = score_before - score_after_probs;
+            if (prob_improv < score_epsilon) {
+                doReticulationOpt = false;
+            }
+        }
         //assert(logl_stays_same(ann_network));
         optimizeBranches(ann_network, 1.0, silent);
 
-        if (doModelopt) {
+        if (doModelOpt) {
             double score_after_branches = scoreNetwork(ann_network);
             //assert(logl_stays_same(ann_network));
             //assert(logl_stays_same(ann_network));
@@ -132,7 +141,7 @@ void optimizeAllNonTopology(AnnotatedNetwork &ann_network, bool extremeOpt, bool
             double score_after_model = scoreNetwork(ann_network);
             double model_improv = score_after_branches - score_after_model;
             if (model_improv < score_epsilon) {
-                doModelopt = false;
+                doModelOpt = false;
             }
         }
 
