@@ -625,6 +625,8 @@ double fastIterationsMode(AnnotatedNetwork& ann_network, int best_max_distance, 
     bool old_no_prefiltering = ann_network.options.no_prefiltering;
     ann_network.options.no_prefiltering = true;
 
+    std::vector<Move> oldCandidates;
+
     bool got_better = true;
     while (got_better) {
         got_better = false;
@@ -634,6 +636,12 @@ double fastIterationsMode(AnnotatedNetwork& ann_network, int best_max_distance, 
         if (score < old_score) {
             got_better = true;
             old_score = score;
+
+            if (std::find(oldCandidates.begin(), oldCandidates.end(), chosenMove) != oldCandidates.end()) {
+                if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+                    std::cout << " Info: Taken move was in the old candidates.\n";
+                }
+            }
 
             if (isArcInsertion(type) && hasBadReticulation(ann_network)) {
                 // interleave the arc insertion search with a quick arc removal round, to avoid keeping reticulations with 0/1 prob around
@@ -655,7 +663,9 @@ double fastIterationsMode(AnnotatedNetwork& ann_network, int best_max_distance, 
 
             if (candidates.empty()) { // no old candidates to reuse. Thus, completely gather new ones.
                 candidates = possibleMoves(ann_network, type, rspr1_present, delta_plus_present, 0, best_max_distance);
+                oldCandidates.clear();
             } else {
+                oldCandidates = candidates;
                 std::vector<Node*> start_nodes = gatherStartNodes(ann_network, chosenMove);
                 std::vector<Move> moreMoves = possibleMoves(ann_network, type, start_nodes, rspr1_present, delta_plus_present, 0, best_max_distance);
                 if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
