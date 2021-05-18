@@ -98,7 +98,7 @@ public:
     double tolerance = DEF_LH_EPSILON; //RAXML_BRLEN_TOLERANCE;
     double brlen_smoothings = RAXML_BRLEN_SMOOTHINGS;
 
-    bool no_slow_mode = false;
+    bool slow_mode = false;
 
     bool save_memory = true;
 

@@ -579,7 +579,7 @@ double best_fast_improvement(AnnotatedNetwork& ann_network, MoveType type, const
     return score;
 }
 
-int findBestMaxDistance(AnnotatedNetwork& ann_network, MoveType type, const std::vector<MoveType>& typesBySpeed, int step_size, double* best_score, BestNetworkData* bestNetworkData, bool silent) { 
+int findBestMaxDistance(AnnotatedNetwork& ann_network, MoveType type, const std::vector<MoveType>& typesBySpeed, int step_size, bool silent) { 
     int best_max_distance = -1;
     if (type == MoveType::RNNIMove || type == MoveType::ArcRemovalMove || type == MoveType::DeltaMinusMove) {
         best_max_distance = ann_network.options.max_rearrangement_distance;
@@ -718,7 +718,7 @@ double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vecto
         if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
             std::cout << toString(type) << " step1: find best max distance\n";
         }
-        best_max_distance = findBestMaxDistance(ann_network, type, typesBySpeed, step_size, best_score, bestNetworkData, silent);
+        best_max_distance = findBestMaxDistance(ann_network, type, typesBySpeed, step_size, silent);
     }
 
     double old_score_fast = scoreNetwork(ann_network);
@@ -739,11 +739,11 @@ double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vecto
         if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
             std::cout << toString(type) << " step1: find best max distance\n";
         }
-        best_max_distance = findBestMaxDistance(ann_network, type, typesBySpeed, step_size, best_score, bestNetworkData, silent);
+        best_max_distance = findBestMaxDistance(ann_network, type, typesBySpeed, step_size, silent);
     }
 
     // step 3: slow iterations mode, with increasing max distance
-    if (!ann_network.options.no_slow_mode && type != MoveType::ArcRemovalMove && type != MoveType::DeltaPlusMove) {
+    if (ann_network.options.slow_mode && type != MoveType::ArcRemovalMove && type != MoveType::DeltaPlusMove) {
         if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
             std::cout << "\n" << toString(type) << " step 3: slow iterations mode, with increasing max distance\n";
             std::cout << "optimizing model, reticulation probs, and branch lengths (fast mode)...\n";

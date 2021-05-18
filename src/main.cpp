@@ -79,7 +79,7 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     
     app.add_flag("--old_wavesearch", options->old_wavesearch, "Use the old wavesearch algorithm.");
 
-    app.add_flag("--no_slow_mode", options->no_slow_mode, "No slow mode.");
+    app.add_flag("--slow_mode", options->slow_mode, "Enable slow mode.");
     app.add_flag("--no_elbow_method", options->no_elbow_method, "No elbow method.");
 
     app.add_option("--max_better_candidates", options->max_better_candidates, "Stop candidate evaluation early if this many candidates with better BIC have been found already.");
