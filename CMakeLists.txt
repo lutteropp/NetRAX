@@ -150,6 +150,10 @@ if(ENABLE_PTHREADS)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_RAXML_PTHREADS -pthread")
 endif()
 
+if(WITHGPERFTOOLS)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -lprofiler -g")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lprofiler -g")
+endif()
 
 if(BUILD_AS_LIBRARY)
   # building shared library only works with CMake!

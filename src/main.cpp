@@ -24,6 +24,10 @@
 
 #include "likelihood/ComplexityScoring.hpp"
 
+#ifdef WITHGPERFTOOLS
+#include <gperftools/profiler.h>
+#endif
+
 using namespace netrax;
 
 void error_exit(std::string msg) {
@@ -706,7 +710,13 @@ extern "C" int dll_main(int argc, char** argv, void* comm)
 
 int main(int argc, char** argv)
 {
+#ifdef WITHGPERFTOOLS
+    ProfilerStart("profile.log");
+#endif
   auto retval = internal_main_netrax(argc, argv, 0);
+#ifdef WITHGPERFTOOLS
+    ProfilerStop();
+#endif
   return retval;
 }
 
