@@ -536,6 +536,7 @@ Move applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<Move> candida
     bool found_better_state = (enforce ? (best_bic != std::numeric_limits<double>::infinity()) : (best_bic < old_score));
 
     if (found_better_state) {
+        Move move(candidates[0]);
         assert(checkSanity(ann_network, candidates[0]));
         performMove(ann_network, candidates[0]);
         apply_network_state(ann_network, state);
@@ -659,21 +660,20 @@ double fastIterationsMode(AnnotatedNetwork& ann_network, int best_max_distance, 
                 std::cout << "We have " << candidates.size() << " candidates before removing the old bad ones.\n";
             }
             removeBadCandidates(ann_network, candidates);
-            std::vector<Move> moreMoves;
 
+            oldCandidates = candidates;
+            std::vector<Node*> start_nodes = gatherStartNodes(ann_network, chosenMove);
+            std::vector<Move> moreMoves = possibleMoves(ann_network, type, start_nodes, rspr1_present, delta_plus_present, 0, best_max_distance);
+            if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+                std::cout << "Adding " << moreMoves.size() << " candidates to the " << candidates.size() << " previous ones.\n";
+            }
+            candidates.insert(std::end(candidates), std::begin(moreMoves), std::end(moreMoves));
+            prefilterCandidates(ann_network, candidates, silent);
             if (candidates.empty()) { // no old candidates to reuse. Thus, completely gather new ones.
                 candidates = possibleMoves(ann_network, type, rspr1_present, delta_plus_present, 0, best_max_distance);
                 oldCandidates.clear();
-            } else {
-                oldCandidates = candidates;
-                std::vector<Node*> start_nodes = gatherStartNodes(ann_network, chosenMove);
-                std::vector<Move> moreMoves = possibleMoves(ann_network, type, start_nodes, rspr1_present, delta_plus_present, 0, best_max_distance);
-                if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-                    std::cout << "Adding " << moreMoves.size() << " candidates to the " << candidates.size() << " previous ones.\n";
-                }
-                candidates.insert(std::end(candidates), std::begin(moreMoves), std::end(moreMoves));
+                prefilterCandidates(ann_network, candidates, silent);
             }
-            prefilterCandidates(ann_network, candidates, silent);
         }
     }
 

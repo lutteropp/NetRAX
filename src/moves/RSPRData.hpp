@@ -57,8 +57,8 @@ struct RSPRData {
             && (this->x_clv_index == rhs.x_clv_index)
             && (this->y_clv_index == rhs.y_clv_index)
             && (this->z_clv_index == rhs.z_clv_index)
-            && (this->x_z_len == rhs.x_z_len)
-            && (this->z_y_len == rhs.z_y_len)
+            /*&& (this->x_z_len == rhs.x_z_len)
+            && (this->z_y_len == rhs.z_y_len)*/
             && (this->x_prime_y_prime_len == rhs.x_prime_y_prime_len)
         );
     }

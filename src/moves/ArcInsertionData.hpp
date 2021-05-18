@@ -97,9 +97,9 @@ struct ArcInsertionData {
             && (this->b_clv_index == rhs.b_clv_index)
             && (this->c_clv_index == rhs.c_clv_index)
             && (this->d_clv_index == rhs.d_clv_index)
-            && (this->u_v_len == rhs.u_v_len)
+            /*&& (this->u_v_len == rhs.u_v_len)
             && (this->c_v_len == rhs.c_v_len)
-            && (this->a_u_len == rhs.a_u_len)
+            && (this->a_u_len == rhs.a_u_len)*/
             && (this->wanted_u_clv_index == rhs.wanted_u_clv_index)
             && (this->wanted_v_clv_index == rhs.wanted_v_clv_index)
             && (this->wanted_au_pmatrix_index == rhs.wanted_au_pmatrix_index)
@@ -109,10 +109,10 @@ struct ArcInsertionData {
             && (this->wanted_uv_pmatrix_index == rhs.wanted_uv_pmatrix_index)
             && (this->ab_pmatrix_index == rhs.ab_pmatrix_index)
             && (this->cd_pmatrix_index == rhs.cd_pmatrix_index)
-            && (this->a_b_len == rhs.a_b_len)
+            /*&& (this->a_b_len == rhs.a_b_len)
             && (this->c_d_len == rhs.c_d_len)
             && (this->v_d_len == rhs.v_d_len)
-            && (this->u_b_len == rhs.u_b_len)
+            && (this->u_b_len == rhs.u_b_len)*/
         );
     }
 };
