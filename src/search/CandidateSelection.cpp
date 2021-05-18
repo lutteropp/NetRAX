@@ -265,7 +265,14 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& can
         if (move.moveType == MoveType::ArcRemovalMove) {
             computeLoglikelihood(ann_network, 0, 1);
         }
+
+        if (old_bic != scoreNetwork(ann_network)) {
+            if (ParallelContext::master_thread() && ParallelContext::master_rank()) {
+                std::cout << "old_bic before apply network state: " << old_bic << "\n";
+                std::cout << "scoreNetwork before apply network state: " << scoreNetwork(ann_network) << "\n";
+            }
         }
+
         assert(old_bic == scoreNetwork(ann_network));
         //assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
         assert(checkSanity(ann_network, candidates[i]));
@@ -274,8 +281,10 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& can
         apply_network_state(ann_network, oldState);
 
         if (old_bic != scoreNetwork(ann_network)) {
-            std::cout << "old_bic: " << old_bic << "\n";
-            std::cout << "scoreNetwork: " << scoreNetwork(ann_network) << "\n";
+            if (ParallelContext::master_thread() && ParallelContext::master_rank()) {
+                std::cout << "old_bic: " << old_bic << "\n";
+                std::cout << "scoreNetwork: " << scoreNetwork(ann_network) << "\n";
+            }
             throw std::runtime_error("BIC after undoing move is not the same as BIC we had before");
         }
         assert(old_bic == scoreNetwork(ann_network));
