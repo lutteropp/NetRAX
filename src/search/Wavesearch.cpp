@@ -44,7 +44,7 @@ double optimizeEverythingRun(AnnotatedNetwork& ann_network, const std::vector<Mo
         }
         double old_score = scoreNetwork(ann_network);
         double new_score;
-        if (ann_network.options.full_search_by_type) {
+        if (!ann_network.options.old_wavesearch) {
             new_score = fullSearch(ann_network, typesBySpeed[type_idx], typesBySpeed, &best_score, bestNetworkData, silent);
         } else {
             std::vector<Move> candidates = possibleMoves(ann_network, typesBySpeed[type_idx], rspr1_present, delta_plus_present);
@@ -61,7 +61,7 @@ double optimizeEverythingRun(AnnotatedNetwork& ann_network, const std::vector<Mo
             new_score = scoreNetwork(ann_network);
             best_score = new_score;
             got_better = true;
-            if (!ann_network.options.full_search_by_type) {
+            if (ann_network.options.old_wavesearch) {
                 type_idx = 0;
                 optimizeAllNonTopology(ann_network, true);
                 check_score_improvement(ann_network, &best_score, bestNetworkData);

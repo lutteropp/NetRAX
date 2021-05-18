@@ -50,7 +50,7 @@ public:
     bool change_reticulation_probs_only = false;
     double overwritten_reticulation_prob = -1;
 
-    bool full_search_by_type = false;
+    bool old_wavesearch = false;
 
     bool network_distance_only = false;
     std::string first_network_path = "";

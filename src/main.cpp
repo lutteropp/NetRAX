@@ -77,7 +77,7 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     app.add_option("--greedy_factor", options->greedy_factor, "Instantly accept a move if it improves BIC by more than the given factor (default: infinity). Gives (maybe faster) results with (maybe worse) inference quality. Needs to be greater-equal than 1.");
     app.add_flag("--reorder_candidates", options->reorder_candidates, "Reorder move candidates by proximity to last accepted move.");
     
-    app.add_flag("--full_search_by_type", options->full_search_by_type, "Do a full search for the current move type, before changing the move type in the outer loop.");
+    app.add_flag("--old_wavesearch", options->old_wavesearch, "Use the old wavesearch algorithm.");
 
     app.add_flag("--no_slow_mode", options->no_slow_mode, "No slow mode.");
     app.add_flag("--no_elbow_method", options->no_elbow_method, "No elbow method.");
