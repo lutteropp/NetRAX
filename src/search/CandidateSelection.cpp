@@ -272,17 +272,6 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& can
             computeLoglikelihood(ann_network, 0, 1);
         }
         assert(topology_equal(oldNetwork, ann_network.network));
-        if (!brlensEqual(oldNetwork, ann_network.network)) {
-            if (ParallelContext::master_thread() && ParallelContext::master_rank()) {
-                Move cpy(candidates[i]);
-                std::cout << "applying move: " << toString(cpy) << ":\n";
-                performMove(ann_network, cpy);
-                std::cout << "move after applying: " << toString(cpy) << ":\n";
-                undoMove(ann_network, cpy);
-                assert(brlensEqual(oldNetwork, ann_network.network));
-            }
-            assert(false);
-        }
         assert(brlensEqual(oldNetwork, ann_network.network));
         //assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
         if (old_bic != scoreNetwork(ann_network)) {
