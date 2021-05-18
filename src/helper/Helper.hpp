@@ -56,6 +56,8 @@ Node* getSource(Network &network, const Edge *edge);
 Node* getTarget(Network &network, const Edge *edge);
 bool isOutgoing(Network &network, const Node *from, const Node *to);
 bool isActiveBranch(AnnotatedNetwork& ann_network, const ReticulationConfigSet& reticulationChoices, unsigned int pmatrix_index);
+bool isActiveAliveBranch(AnnotatedNetwork& ann_network, const ReticulationConfigSet& reticulationChoices, const std::vector<bool>& dead_nodes, unsigned int pmatrix_index);
+bool isActiveAliveBranch(AnnotatedNetwork& ann_network, const ReticulationConfigSet& reticulationChoices, unsigned int pmatrix_index);
 
 /* helper functions related to children (ChildrenHelper.cpp) */
 std::vector<Node*> getChildren(Network &network, const Node *node);
@@ -112,5 +114,6 @@ DisplayedTreeData& findMatchingDisplayedTree(AnnotatedNetwork& ann_network, cons
 Node* findFirstNodeWithTwoActiveChildren(AnnotatedNetwork& ann_network, const ReticulationConfigSet& reticulationChoices, const Node* oldRoot);
 const TreeLoglData& getMatchingTreeData(const std::vector<DisplayedTreeData>& trees, const ReticulationConfigSet& queryChoices);
 ReticulationConfigSet getRestrictionsActiveBranch(AnnotatedNetwork& ann_network, size_t pmatrix_index);
+ReticulationConfigSet getRestrictionsActiveAliveBranch(AnnotatedNetwork& ann_network, size_t pmatrix_index);
 
 }

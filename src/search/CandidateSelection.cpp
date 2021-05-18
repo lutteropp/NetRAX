@@ -568,7 +568,7 @@ Move applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<Move> candida
     return {};
 }
 
-double best_fast_improvement(AnnotatedNetwork& ann_network, MoveType type, const std::vector<MoveType>& typesBySpeed, double* best_score, BestNetworkData* bestNetworkData, bool silent, int min_radius, int max_radius) {
+double best_fast_improvement(AnnotatedNetwork& ann_network, MoveType type, const std::vector<MoveType>& typesBySpeed, bool silent, int min_radius, int max_radius) {
     bool rspr1_present = (std::find(typesBySpeed.begin(), typesBySpeed.end(), MoveType::RSPR1Move) != typesBySpeed.end());
     bool delta_plus_present = (std::find(typesBySpeed.begin(), typesBySpeed.end(), MoveType::DeltaPlusMove) != typesBySpeed.end());
     double score = scoreNetwork(ann_network);
@@ -592,7 +592,7 @@ int findBestMaxDistance(AnnotatedNetwork& ann_network, MoveType type, const std:
         NetworkState oldState = extract_network_state(ann_network);
         while (act_max_distance < ann_network.options.max_rearrangement_distance) {
             act_max_distance = std::min(act_max_distance + step_size, ann_network.options.max_rearrangement_distance);
-            double score = best_fast_improvement(ann_network, type, typesBySpeed, best_score, bestNetworkData, silent, old_max_distance, act_max_distance);
+            double score = best_fast_improvement(ann_network, type, typesBySpeed, silent, old_max_distance, act_max_distance);
             if (score < old_score) {
                 old_max_distance = act_max_distance + 1;
                 best_max_distance = act_max_distance;

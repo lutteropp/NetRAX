@@ -291,7 +291,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
         Node* new_virtual_root = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
         if (brlenOptMethod != BrlenOptMethod::BRENT_NORMAL) {
             Node* new_virtual_root_back = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
-            ReticulationConfigSet restrictions = getRestrictionsActiveBranch(ann_network, pmatrix_index);
+            ReticulationConfigSet restrictions = getRestrictionsActiveAliveBranch(ann_network, pmatrix_index);
             updateCLVsVirtualRerootTrees(ann_network, old_virtual_root, new_virtual_root, new_virtual_root_back, restrictions);
         }
         ann_network.cached_logl_valid = false;

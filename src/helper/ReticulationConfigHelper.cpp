@@ -229,4 +229,16 @@ ReticulationConfigSet getRestrictionsActiveBranch(AnnotatedNetwork& ann_network,
     return res;
 }
 
+ReticulationConfigSet getRestrictionsActiveAliveBranch(AnnotatedNetwork& ann_network, size_t pmatrix_index) {
+    ReticulationConfigSet res;
+    for (size_t tree_idx = 0; tree_idx < (1 << ann_network.network.num_reticulations()); ++tree_idx) {
+        ReticulationConfigSet treeChoices = getTreeConfig(ann_network, tree_idx);
+        if (isActiveAliveBranch(ann_network, treeChoices, pmatrix_index)) {
+            res.configs.emplace_back(treeChoices.configs[0]);
+        }
+    }
+    simplifyReticulationChoices(res);
+    return res;
+}
+
 }

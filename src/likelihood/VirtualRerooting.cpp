@@ -302,7 +302,7 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
             }
             TreeLoglData combinedTreeData(ann_network.fake_treeinfo->partition_count, ann_network.options.max_reticulations);
             combinedTreeData.reticulationChoices = combineReticulationChoices(sourceTrees[i].treeLoglData.reticulationChoices, targetTrees[j].treeLoglData.reticulationChoices);
-            if (isActiveBranch(ann_network, combinedTreeData.reticulationChoices, pmatrix_index)) {
+            if (isActiveAliveBranch(ann_network, combinedTreeData.reticulationChoices, pmatrix_index)) {
 
                 if (print_extra_debug_info) {
                     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
@@ -328,7 +328,7 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
 
     for (size_t i = 0; i < n_trees_source; ++i) {
         if (!source_tree_seen[i]) {
-            if (isActiveBranch(ann_network, sourceTrees[i].treeLoglData.reticulationChoices, pmatrix_index)) {
+            if (isActiveAliveBranch(ann_network, sourceTrees[i].treeLoglData.reticulationChoices, pmatrix_index)) {
                 updateTreeData(ann_network, oldTrees, sourceTrees[i].treeLoglData);
                 combinedTrees.emplace_back(sourceTrees[i].treeLoglData);
             }
@@ -336,7 +336,7 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
     }
     for (size_t j = 0; j < n_trees_target; ++j) {
         if (!target_tree_seen[j]) {
-            if (isActiveBranch(ann_network, targetTrees[j].treeLoglData.reticulationChoices, pmatrix_index)) {
+            if (isActiveAliveBranch(ann_network, targetTrees[j].treeLoglData.reticulationChoices, pmatrix_index)) {
                 updateTreeData(ann_network, oldTrees, targetTrees[j].treeLoglData);
                 combinedTrees.emplace_back(targetTrees[j].treeLoglData);
             }
