@@ -181,7 +181,7 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& can
 
     NetworkState oldState = extract_network_state(ann_network);
 
-    assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
+    //assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
 
     for (size_t i = 0; i < candidates.size(); ++i) {        
         if (print_progress) {
@@ -197,7 +197,7 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& can
         if (recompute_from_scratch && ann_network.options.likelihood_variant != LikelihoodVariant::SARAH_PSEUDO) { // TODO: This is a hotfix that just masks some bugs. Fix the bugs properly.
             computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
         }
-        assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+        //assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
         if (move.moveType == MoveType::ArcInsertionMove || move.moveType == MoveType::DeltaPlusMove) {
             switchLikelihoodVariant(ann_network, old_variant);
             optimizeReticulationProbs(ann_network);
@@ -262,14 +262,14 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& can
             }
         }
 
-        assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+        //assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
 
         undoMove(ann_network, move);
         if (move.moveType == MoveType::ArcRemovalMove) {
             computeLoglikelihood(ann_network, 0, 1);
         }
         assert(topology_equal(oldNetwork, ann_network.network));
-        assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+        //assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
         assert(old_bic == scoreNetwork(ann_network));
 
         assert(checkSanity(ann_network, candidates[i]));
@@ -277,7 +277,7 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& can
         assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
         apply_network_state(ann_network, oldState);
 
-        assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+        //assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
 
         if (n_better >= ann_network.options.max_better_candidates) {
             scores.resize(n_better);
@@ -352,7 +352,7 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& candidates
         if (recompute_from_scratch && ann_network.options.likelihood_variant != LikelihoodVariant::SARAH_PSEUDO) { // TODO: This is a hotfix that just masks some bugs. Fix the bugs properly.
             computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
         }
-        assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+        //assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
 
         std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
         assert(!brlen_opt_candidates.empty());
@@ -361,7 +361,7 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& candidates
         optimizeReticulationProbs(ann_network);
         updateMoveBranchLengths(ann_network, move);
 
-        assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+        //assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
 
         double bicScore = scoreNetwork(ann_network);
 
@@ -390,15 +390,15 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& candidates
             }
             return;
         }
-        assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+        //assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
 
         undoMove(ann_network, move);
-        assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+        //assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
 
         assert(checkSanity(ann_network, candidates[i]));
 
         apply_network_state(ann_network, oldState);
-        assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+        //assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
 
         if (n_better >= ann_network.options.max_better_candidates) {
             scores.resize(n_better);
@@ -447,7 +447,7 @@ double chooseCandidate(AnnotatedNetwork& ann_network, std::vector<Move>& candida
 
     std::vector<ScoreItem<Move> > scores(candidates.size());
 
-    assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+    //assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
 
     for (size_t i = 0; i < candidates.size(); ++i) {
         if (print_progress) {
@@ -458,15 +458,15 @@ double chooseCandidate(AnnotatedNetwork& ann_network, std::vector<Move>& candida
 
         assert(checkSanity(ann_network, move));
 
-        assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+        ////assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
         performMove(ann_network, move);
         if (recompute_from_scratch && ann_network.options.likelihood_variant != LikelihoodVariant::SARAH_PSEUDO) { // TODO: This is a hotfix that just masks some bugs. Fix the bugs properly.
             computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
         }
-        assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+        ////assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
         optimizeReticulationProbs(ann_network);
         optimizeBranches(ann_network);
-        assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+        ////assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
 
         double bicScore = scoreNetwork(ann_network);
 
@@ -493,20 +493,20 @@ double chooseCandidate(AnnotatedNetwork& ann_network, std::vector<Move>& candida
 
         scores[i] = ScoreItem<Move>{candidates[i], bicScore};
 
-        assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+        ////assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
 
         undoMove(ann_network, move);
         assert(topology_equal(oldNetwork, ann_network.network));
         if (move.moveType == MoveType::ArcRemovalMove) {
             computeLoglikelihood(ann_network, 0, 1);
         }
-        assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+        ////assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
 
         assert(checkSanity(ann_network, candidates[i]));
         
         apply_network_state(ann_network, oldState);
 
-        assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+        ////assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
 
         if (n_better >= ann_network.options.max_better_candidates) {
             scores.resize(n_better);

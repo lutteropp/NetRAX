@@ -280,7 +280,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, std::vector<DisplayedTreeD
 double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, BrlenOptMethod brlenOptMethod, unsigned int max_iters) {
     double old_logl = computeLoglikelihood(ann_network);
     assert(old_logl <= 0.0);
-    assert(computeLoglikelihood(ann_network, 0, 1) == old_logl);
+    //assert(computeLoglikelihood(ann_network, 0, 1) == old_logl);
     std::vector<DisplayedTreeData> oldTrees;
     std::vector<std::vector<SumtableInfo> > sumtables;
 

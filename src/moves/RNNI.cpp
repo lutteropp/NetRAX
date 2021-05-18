@@ -272,6 +272,10 @@ void switchReticulations(Network &network, Node *u, Node *v) {
 }
 
 void fixReticulationLinks(Node *u, Node *v, Node *s, Node *t) {
+    assert(u);
+    assert(v);
+    assert(s);
+    assert(t);
     if (u->type == NodeType::RETICULATION_NODE)
         resetReticulationLinks(u);
     if (v->type == NodeType::RETICULATION_NODE)

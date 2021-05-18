@@ -200,8 +200,10 @@ std::vector<size_t> determineEdgeOrder(AnnotatedNetwork& ann_network, size_t sta
 }
 
 void resetReticulationLinks(Node *node) {
+    assert(node);
     assert(node->type == NodeType::RETICULATION_NODE);
     auto retData = node->getReticulationData().get();
+    assert(retData);
     retData->link_to_first_parent = nullptr;
     retData->link_to_second_parent = nullptr;
     retData->link_to_child = nullptr;
