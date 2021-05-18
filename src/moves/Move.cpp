@@ -309,10 +309,31 @@ void updateMoveBranchLengths(AnnotatedNetwork& ann_network, std::vector<Move>& c
     }
 }
 
+bool keepThisCandidate(AnnotatedNetwork& ann_network, const Move& move) {
+    if (!checkSanity(ann_network, move)) {
+        return false;
+    }
+    if (isArcInsertion(move.moveType)) {
+        if (move.arcInsertionData.a_clv_index >= ann_network.network.num_nodes()) {
+            return false;
+        }
+        if (move.arcInsertionData.b_clv_index >= ann_network.network.num_nodes()) {
+            return false;
+        }
+        if (move.arcInsertionData.c_clv_index >= ann_network.network.num_nodes()) {
+            return false;
+        }
+        if (move.arcInsertionData.d_clv_index >= ann_network.network.num_nodes()) {
+            return false;
+        }
+    }
+    return true;
+}
+
 void removeBadCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& candidates) {
     candidates.erase(
     std::remove_if(candidates.begin(), candidates.end(),
-        [&](const Move &move) { return !checkSanity(ann_network, move); }),
+        [&](const Move &move) { return !keepThisCandidate(ann_network, move); }),
     candidates.end());
     updateMoveBranchLengths(ann_network, candidates);
 }
