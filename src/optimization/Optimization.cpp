@@ -111,8 +111,9 @@ void optimizeAllNonTopology(AnnotatedNetwork &ann_network, bool extremeOpt, bool
 
     silent = false;
 
-    bool doModelOpt = true;
+    bool doBrlenOpt = true;
     bool doReticulationOpt = true;
+    bool doModelOpt = true;
     double score_epsilon = 1E-3;
 
     assert(logl_stays_same(ann_network));
@@ -130,16 +131,25 @@ void optimizeAllNonTopology(AnnotatedNetwork &ann_network, bool extremeOpt, bool
                 doReticulationOpt = false;
             }
         }
-        //assert(logl_stays_same(ann_network));
-        optimizeBranches(ann_network, 1.0, silent);
+
+        if (doBrlenOpt) {
+            //assert(logl_stays_same(ann_network));
+            double score_before_branches = scoreNetwork(ann_network);
+            optimizeBranches(ann_network, 1.0, silent);
+            double score_after_branches = scoreNetwork(ann_network);
+            double brlen_improv = score_before_branches - score_after_branches;
+            if (brlen_improv < score_epsilon) {
+                doBrlenOpt = false;
+            }
+        }
 
         if (doModelOpt) {
-            double score_after_branches = scoreNetwork(ann_network);
+            double score_before_model = scoreNetwork(ann_network);
             //assert(logl_stays_same(ann_network));
             //assert(logl_stays_same(ann_network));
             optimizeModel(ann_network, silent);
             double score_after_model = scoreNetwork(ann_network);
-            double model_improv = score_after_branches - score_after_model;
+            double model_improv = score_before_model - score_after_model;
             if (model_improv < score_epsilon) {
                 doModelOpt = false;
             }
@@ -148,7 +158,7 @@ void optimizeAllNonTopology(AnnotatedNetwork &ann_network, bool extremeOpt, bool
         double score_after = scoreNetwork(ann_network);
         assert(logl_stays_same(ann_network));
 
-        if (score_after < score_before && extremeOpt) {
+        if (score_after < score_before && extremeOpt && (doBrlenOpt || doReticulationOpt || doModelOpt)) {
             gotBetter = true;
             if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
                 if (!silent) std::cout << "improved bic: " << score_after << "\n";
