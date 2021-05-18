@@ -158,6 +158,7 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& can
 
     int n_better = 0;
 
+    updateNetwork(ann_network);
     Network oldNetwork = ann_network.network;
 
     std::vector<ScoreItem<Move> > scores(candidates.size());
