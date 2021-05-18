@@ -167,7 +167,6 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& can
 
     int barWidth = 70;
 
-    double old_logl = computeLoglikelihood(ann_network);
     double old_bic = scoreNetwork(ann_network);
 
     switchLikelihoodVariant(ann_network, old_variant);
@@ -743,7 +742,6 @@ double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vecto
         best_max_distance = findBestMaxDistance(ann_network, type, typesBySpeed, step_size, silent);
     }
 
-    double old_score_fast = scoreNetwork(ann_network);
     // step 2: fast iterations mode, with the best max distance
     if (best_max_distance >= 0) {
         if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
@@ -753,7 +751,6 @@ double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vecto
         optimizeAllNonTopology(ann_network, true);
         check_score_improvement(ann_network, best_score, bestNetworkData);
     }
-    double new_score_fast = scoreNetwork(ann_network);
 
     // step 3: slow iterations mode, with increasing max distance
     if (ann_network.options.slow_mode && type != MoveType::ArcRemovalMove && type != MoveType::DeltaPlusMove) {
