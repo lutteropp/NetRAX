@@ -751,12 +751,6 @@ double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vecto
 
     // step 3: slow iterations mode, with increasing max distance
     if (ann_network.options.slow_mode && type != MoveType::ArcRemovalMove && type != MoveType::DeltaPlusMove) {
-        if (new_score_fast < old_score_fast && !isComplexityChangingMove(type)) {
-            if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-                std::cout << toString(type) << " step1: find best max distance\n";
-            }
-            best_max_distance = findBestMaxDistance(ann_network, type, typesBySpeed, step_size, silent);
-        }
         if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
             std::cout << "\n" << toString(type) << " step 3: slow iterations mode, with increasing max distance\n";
         }
