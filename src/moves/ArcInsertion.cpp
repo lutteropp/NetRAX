@@ -646,12 +646,6 @@ void undoMoveArcInsertion(AnnotatedNetwork &ann_network, Move &move) {
     removal.arcRemovalData.ub_pmatrix_index = getEdgeTo(network, u, b)->pmatrix_index;
     removal.arcRemovalData.vd_pmatrix_index = getEdgeTo(network, v, d)->pmatrix_index;
 
-    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-        // just for debug
-        std::cout << toString(move) << "\n";
-        std::cout << toString(removal) << "\n";
-    }
-
     performMoveArcRemoval(ann_network, removal);
     assert(assertConsecutiveIndices(ann_network));
     assert(assertBranchLengths(ann_network));

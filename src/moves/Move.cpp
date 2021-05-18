@@ -9,6 +9,8 @@
 
 #include "GeneralMoveFunctions.hpp"
 
+#include"../helper/Helper.hpp"
+
 namespace netrax {
 
 Move randomMove(AnnotatedNetwork &ann_network, MoveType type) {
@@ -286,11 +288,33 @@ std::vector<Move> possibleMoves(AnnotatedNetwork& ann_network, std::vector<MoveT
     return res;
 }
 
+void updateMoveBranchLengths(AnnotatedNetwork& ann_network, std::vector<Move>& candidates) {
+    for (size_t i = 0; i < candidates.size(); ++i) {
+        Move& move = candidates[i];
+        if (isArcInsertion(move.moveType)) {
+            move.arcInsertionData.a_b_len = get_edge_lengths(ann_network, move.arcInsertionData.ab_pmatrix_index);
+            move.arcInsertionData.c_d_len = get_edge_lengths(ann_network, move.arcInsertionData.cd_pmatrix_index);
+        } else if (isArcRemoval(move.moveType)) {
+            move.arcRemovalData.a_u_len = get_edge_lengths(ann_network, move.arcRemovalData.au_pmatrix_index);
+            move.arcRemovalData.u_b_len = get_edge_lengths(ann_network, move.arcRemovalData.ub_pmatrix_index);
+            move.arcRemovalData.c_v_len = get_edge_lengths(ann_network, move.arcRemovalData.cv_pmatrix_index);
+            move.arcRemovalData.v_d_len = get_edge_lengths(ann_network, move.arcRemovalData.vd_pmatrix_index);
+            move.arcRemovalData.u_v_len = get_edge_lengths(ann_network, move.arcRemovalData.uv_pmatrix_index);
+        } else if (isRSPR(move.moveType)) {
+            size_t x_z_pmatrix_index = getEdgeTo(ann_network.network, move.rsprData.x_clv_index, move.rsprData.z_clv_index)->pmatrix_index;
+            size_t z_y_pmatrix_index = getEdgeTo(ann_network.network, move.rsprData.z_clv_index, move.rsprData.y_clv_index)->pmatrix_index;
+            move.rsprData.x_z_len = get_edge_lengths(ann_network, x_z_pmatrix_index);
+            move.rsprData.z_y_len = get_edge_lengths(ann_network, z_y_pmatrix_index);
+        }
+    }
+}
+
 void removeBadCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& candidates) {
     candidates.erase(
     std::remove_if(candidates.begin(), candidates.end(),
         [&](const Move &move) { return !checkSanity(ann_network, move); }),
     candidates.end());
+    updateMoveBranchLengths(ann_network, candidates);
 }
 
 std::vector<Node*> gatherStartNodes(AnnotatedNetwork& ann_network, Move move) {
