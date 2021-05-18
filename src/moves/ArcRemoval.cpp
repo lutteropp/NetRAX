@@ -752,17 +752,19 @@ std::string toStringArcRemoval(const Move &move) {
     ss << "  u = " << move.arcRemovalData.u_clv_index << "\n";
     ss << "  v = " << move.arcRemovalData.v_clv_index << "\n";
     ss << "  au = " << move.arcRemovalData.au_pmatrix_index << "\n";
+    ss << "   a_u_len: " << move.arcRemovalData.a_u_len << "\n";
     ss << "  cv = " << move.arcRemovalData.cv_pmatrix_index << "\n";
+    ss << "   c_v_len: " << move.arcRemovalData.c_v_len << "\n";
     ss << "  ub = " << move.arcRemovalData.ub_pmatrix_index << "\n";
+    ss << "   u_b_len: " << move.arcRemovalData.u_b_len << "\n";
     ss << "  vd = " << move.arcRemovalData.vd_pmatrix_index << "\n";
+    ss << "   v_d_len: " << move.arcRemovalData.v_d_len << "\n";
     ss << "  uv = " << move.arcRemovalData.uv_pmatrix_index << "\n";
+    ss << "   u_v_len: " << move.arcRemovalData.u_v_len << "\n";
     ss << "  wanted ab = " << move.arcRemovalData.wanted_ab_pmatrix_index << "\n";
+    ss << "   a_b_len: " << move.arcRemovalData.a_b_len << "\n";
     ss << "  wanted cd = " << move.arcRemovalData.wanted_cd_pmatrix_index << "\n";
-    ss << "  a_b_len: " << move.arcInsertionData.a_b_len << "\n";
-    ss << "  a_u_len: " << move.arcInsertionData.a_u_len << "\n";
-    ss << "  c_d_len: " << move.arcInsertionData.c_d_len << "\n";
-    ss << "  c_v_len: " << move.arcInsertionData.c_v_len << "\n";
-    ss << "  u_v_len: " << move.arcInsertionData.u_v_len << "\n";
+    ss << "   c_d_len: " << move.arcRemovalData.c_d_len << "\n"; 
     return ss.str();
 }
 

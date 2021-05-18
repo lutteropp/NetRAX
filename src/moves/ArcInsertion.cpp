@@ -645,6 +645,13 @@ void undoMoveArcInsertion(AnnotatedNetwork &ann_network, Move &move) {
     removal.arcRemovalData.uv_pmatrix_index = getEdgeTo(network, u, v)->pmatrix_index;
     removal.arcRemovalData.ub_pmatrix_index = getEdgeTo(network, u, b)->pmatrix_index;
     removal.arcRemovalData.vd_pmatrix_index = getEdgeTo(network, v, d)->pmatrix_index;
+
+    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+        // just for debug
+        std::cout << toString(move) << "\n";
+        std::cout << toString(removal) << "\n";
+    }
+
     performMoveArcRemoval(ann_network, removal);
     assert(assertConsecutiveIndices(ann_network));
     assert(assertBranchLengths(ann_network));
@@ -660,17 +667,19 @@ std::string toStringArcInsertion(const Move &move) {
     ss << "  wanted u = " << move.arcInsertionData.wanted_u_clv_index << "\n";
     ss << "  wanted v = " << move.arcInsertionData.wanted_v_clv_index << "\n";
     ss << "  ab = " << move.arcInsertionData.ab_pmatrix_index << "\n";
+    ss << "   a_b_len: " << move.arcInsertionData.a_b_len << "\n";
     ss << "  cd = " << move.arcInsertionData.cd_pmatrix_index << "\n";
+    ss << "   c_d_len: " << move.arcInsertionData.c_d_len << "\n";
     ss << "  wanted au = " << move.arcInsertionData.wanted_au_pmatrix_index << "\n";
+    ss << "   a_u_len: " << move.arcInsertionData.a_u_len << "\n";
     ss << "  wanted cv = " << move.arcInsertionData.wanted_cv_pmatrix_index << "\n";
+    ss << "   c_v_len: " << move.arcInsertionData.c_v_len << "\n";
     ss << "  wanted ub = " << move.arcInsertionData.wanted_ub_pmatrix_index << "\n";
+    ss << "   u_b_len: " << move.arcInsertionData.u_b_len << "\n";
     ss << "  wanted vd = " << move.arcInsertionData.wanted_vd_pmatrix_index << "\n";
+    ss << "   v_d_len: " << move.arcInsertionData.v_d_len << "\n";
     ss << "  wanted uv = " << move.arcInsertionData.wanted_uv_pmatrix_index << "\n";
-    ss << "  a_b_len: " << move.arcInsertionData.a_b_len << "\n";
-    ss << "  a_u_len: " << move.arcInsertionData.a_u_len << "\n";
-    ss << "  c_d_len: " << move.arcInsertionData.c_d_len << "\n";
-    ss << "  c_v_len: " << move.arcInsertionData.c_v_len << "\n";
-    ss << "  u_v_len: " << move.arcInsertionData.u_v_len << "\n";
+    ss << "   u_v_len: " << move.arcInsertionData.u_v_len << "\n";
     return ss.str();
 }
 

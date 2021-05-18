@@ -278,6 +278,7 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& can
                 performMove(ann_network, cpy);
                 std::cout << "move after applying: " << toString(cpy) << ":\n";
                 undoMove(ann_network, cpy);
+                assert(brlensEqual(oldNetwork, ann_network.network));
             }
             assert(false);
         }

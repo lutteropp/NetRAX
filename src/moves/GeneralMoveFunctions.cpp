@@ -290,6 +290,7 @@ void set_edge_lengths(AnnotatedNetwork &ann_network, size_t pmatrix_index, const
         }
     } else {
         ann_network.fake_treeinfo->linked_branch_lengths[pmatrix_index] = lengths[0];
+        ann_network.network.edges_by_index[pmatrix_index]->length = lengths[0];
         assert(lengths[0] >= ann_network.options.brlen_min);
         assert(lengths[0] <= ann_network.options.brlen_max);
     }
