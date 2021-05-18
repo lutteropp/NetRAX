@@ -464,6 +464,10 @@ void writeNetwork(AnnotatedNetwork &ann_network, const std::string &filepath) {
     std::ofstream outfile(filepath);
     outfile << netrax::toExtendedNewick(ann_network) << "\n";
     outfile.close();
+
+    std::ofstream outfileDebug(filepath + ".gml");
+    outfileDebug << netrax::exportDebugInfo(ann_network) << "\n";
+    outfileDebug.close();
 }
 
 }
