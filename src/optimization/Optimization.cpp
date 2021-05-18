@@ -111,18 +111,31 @@ void optimizeAllNonTopology(AnnotatedNetwork &ann_network, bool extremeOpt, bool
 
     silent = false;
 
+    bool doModelopt = true;
+    double score_epsilon = 1E-3;
+
     assert(logl_stays_same(ann_network));
     bool gotBetter = true;
     while (gotBetter) {
         gotBetter = false;
         double score_before = scoreNetwork(ann_network);
-        assert(logl_stays_same(ann_network));
+        //assert(logl_stays_same(ann_network));
         optimizeReticulationProbs(ann_network, silent);
-        assert(logl_stays_same(ann_network));
+        //assert(logl_stays_same(ann_network));
         optimizeBranches(ann_network, 1.0, silent);
-        assert(logl_stays_same(ann_network));
-        assert(logl_stays_same(ann_network));
-        optimizeModel(ann_network, silent);
+
+        if (doModelopt) {
+            double score_after_branches = scoreNetwork(ann_network);
+            //assert(logl_stays_same(ann_network));
+            //assert(logl_stays_same(ann_network));
+            optimizeModel(ann_network, silent);
+            double score_after_model = scoreNetwork(ann_network);
+            double model_improv = score_after_branches - score_after_model;
+            if (model_improv < score_epsilon) {
+                doModelopt = false;
+            }
+        }
+
         double score_after = scoreNetwork(ann_network);
         assert(logl_stays_same(ann_network));
 
