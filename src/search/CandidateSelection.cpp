@@ -193,6 +193,8 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& can
 
         assert(checkSanity(ann_network, move));
 
+        assert(brlensEqual(oldNetwork, ann_network.network));
+
         performMove(ann_network, move);
         if (recompute_from_scratch && ann_network.options.likelihood_variant != LikelihoodVariant::SARAH_PSEUDO) { // TODO: This is a hotfix that just masks some bugs. Fix the bugs properly.
             computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
@@ -269,6 +271,16 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& can
             computeLoglikelihood(ann_network, 0, 1);
         }
         assert(topology_equal(oldNetwork, ann_network.network));
+        if (!brlensEqual(oldNetwork, ann_network.network)) {
+            if (ParallelContext::master_thread() && ParallelContext::master_rank()) {
+                Move cpy(candidates[i]);
+                std::cout << "applying move: " << toString(cpy) << ":\n";
+                performMove(ann_network, cpy);
+                std::cout << "move after applying: " << toString(cpy) << ":\n";
+                undoMove(ann_network, cpy);
+            }
+            assert(false);
+        }
         assert(brlensEqual(oldNetwork, ann_network.network));
         //assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
         if (old_bic != scoreNetwork(ann_network)) {

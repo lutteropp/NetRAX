@@ -666,6 +666,11 @@ std::string toStringArcInsertion(const Move &move) {
     ss << "  wanted ub = " << move.arcInsertionData.wanted_ub_pmatrix_index << "\n";
     ss << "  wanted vd = " << move.arcInsertionData.wanted_vd_pmatrix_index << "\n";
     ss << "  wanted uv = " << move.arcInsertionData.wanted_uv_pmatrix_index << "\n";
+    ss << "  a_b_len: " << move.arcInsertionData.a_b_len << "\n";
+    ss << "  a_u_len: " << move.arcInsertionData.a_u_len << "\n";
+    ss << "  c_d_len: " << move.arcInsertionData.c_d_len << "\n";
+    ss << "  c_v_len: " << move.arcInsertionData.c_v_len << "\n";
+    ss << "  u_v_len: " << move.arcInsertionData.u_v_len << "\n";
     return ss.str();
 }
 

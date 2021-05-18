@@ -1,5 +1,6 @@
 #include "Network.hpp"
 #include <iostream>
+#include <raxml-ng/main.hpp>
 
 namespace netrax
 {
@@ -262,6 +263,13 @@ namespace netrax
     bool brlensEqual(const Network& n1, const Network& n2) {
         std::vector<double> b1 = collectBranchLengths(n1);
         std::vector<double> b2 = collectBranchLengths(n2);
+        for (size_t i = 0; i < b1.size(); ++i) {
+            if (b1[i] != b2[i]) {
+                if (ParallelContext::master_rank() && ParallelContext::master_thread) {
+                    std::cout << "b1[" << i << "]: " << b1[i] << ", but b2[" << i << "]: " << b2[i] << "\n";
+                }
+            }
+        }
         return (b1 == b2);
     }
 } // namespace netrax

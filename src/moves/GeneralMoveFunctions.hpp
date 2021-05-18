@@ -45,4 +45,15 @@ void sortByProximity(std::vector<T>& candidates, AnnotatedNetwork& ann_network) 
 
 std::vector<double> get_edge_lengths(AnnotatedNetwork &ann_network, size_t pmatrix_index);
 
+template <typename T>
+std::ostream& operator<<(std::ostream& os, const std::vector<T>& vec) {
+    for (size_t i = 0; i < vec.size(); ++i) {
+        os << vec[i];
+        if (i+1 < vec.size()) {
+            os << ", ";
+        }
+    }
+    return os;
+}
+
 }
