@@ -247,7 +247,7 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& can
                 candidates.resize(1);
                 undoMove(ann_network, move);
 
-                assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
+                //assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
                 apply_network_state(ann_network, oldState);
                 if (print_progress && ParallelContext::master_rank() && ParallelContext::master_thread()) {
                     std::cout << std::endl;
@@ -274,7 +274,7 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& can
 
         assert(checkSanity(ann_network, candidates[i]));
 
-        assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
+        //assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
         apply_network_state(ann_network, oldState);
 
         //assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
@@ -284,7 +284,7 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& can
             break;
         }
     }
-    assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
+    //assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
     apply_network_state(ann_network, oldState);
 
     if (print_progress && ParallelContext::master_rank() && ParallelContext::master_thread()) { 

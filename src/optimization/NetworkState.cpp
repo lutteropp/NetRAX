@@ -185,7 +185,7 @@ bool assert_rates(AnnotatedNetwork& ann_network) {
 
 void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &state, bool update_model) {
     assert(ann_network.fake_treeinfo);
-    assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
+    //assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
     //ann_network.options.brlen_linkage = state.brlen_linkage;
 
     // branch lengths stuff
