@@ -653,7 +653,7 @@ double fastIterationsMode(AnnotatedNetwork& ann_network, int best_max_distance, 
             removeBadCandidates(ann_network, candidates);
             std::vector<Move> moreMoves;
 
-            if (candidates.empty() && !isArcInsertion(type)) { // no old candidates to reuse. Thus, completely gather new ones.
+            if (candidates.empty()) { // no old candidates to reuse. Thus, completely gather new ones.
                 candidates = possibleMoves(ann_network, type, rspr1_present, delta_plus_present, 0, best_max_distance);
             } else {
                 std::vector<Node*> start_nodes = gatherStartNodes(ann_network, chosenMove);
