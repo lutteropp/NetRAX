@@ -80,7 +80,7 @@ public:
     bool no_arc_removal_moves = false;
     bool no_arc_insertion_moves = false;
     bool enforce_extra_search = false;
-    unsigned int scrambling = 5;
+    unsigned int scrambling = 0;
     unsigned int scrambling_radius = 2;
 
     int max_rearrangement_distance = 25;
