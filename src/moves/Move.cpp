@@ -302,6 +302,7 @@ std::vector<Node*> gatherStartNodes(AnnotatedNetwork& ann_network, Move move) {
         res.emplace_back(ann_network.network.nodes_by_index[move.rsprData.z_clv_index]);
     } else if (move.moveType == MoveType::RNNIMove) {
         res.emplace_back(ann_network.network.nodes_by_index[move.rnniData.v_clv_index]);
+        res.emplace_back(ann_network.network.nodes_by_index[move.rnniData.t_clv_index]);
     }
     return res;
 }
