@@ -47,7 +47,10 @@ double optimizeEverythingRun(AnnotatedNetwork& ann_network, const std::vector<Mo
         if (ann_network.options.full_search_by_type) {
             new_score = fullSearch(ann_network, typesBySpeed[type_idx], typesBySpeed, &best_score, bestNetworkData, silent);
         } else {
-            new_score = applyBestCandidate(ann_network, typesBySpeed[type_idx], typesBySpeed, &best_score, bestNetworkData, false, silent);
+            std::vector<Move> candidates = possibleMoves(ann_network, typesBySpeed[type_idx], rspr1_present, delta_plus_present);
+            applyBestCandidate(ann_network, candidates, &best_score, bestNetworkData, false, silent);
+            new_score = scoreNetwork(ann_network);
+
             if (typesBySpeed[type_idx] != MoveType::RNNIMove) {
                 optimizeAllNonTopology(ann_network);
                 check_score_improvement(ann_network, &best_score, bestNetworkData);
@@ -97,11 +100,13 @@ void wavesearch_internal(AnnotatedNetwork& ann_network, BestNetworkData* bestNet
             if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
                 std::cout << "Enforcing an arc insertion...\n";
             }
+            std::vector<Move> candidates;
             if (!ann_network.options.no_arc_insertion_moves) {
-                applyBestCandidate(ann_network, MoveType::ArcInsertionMove, typesBySpeed, best_score, bestNetworkData, true, silent);
+                candidates = possibleMoves(ann_network, MoveType::ArcInsertionMove, false, false);
             } else {
-                applyBestCandidate(ann_network, MoveType::DeltaMinusMove, typesBySpeed, best_score, bestNetworkData, true, silent);
+                candidates = possibleMoves(ann_network, MoveType::DeltaPlusMove, false, true);
             }
+            applyBestCandidate(ann_network, candidates, best_score, bestNetworkData, true, silent);
             check_score_improvement(ann_network, best_score, bestNetworkData);
             optimizeEverythingRun(ann_network, typesBySpeed, start_state_to_reuse, best_state_to_reuse, start_time, bestNetworkData);
             check_score_improvement(ann_network, best_score, bestNetworkData);

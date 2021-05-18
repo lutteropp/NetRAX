@@ -89,7 +89,6 @@ struct Move {
 
 };
 
-
 Move randomMove(AnnotatedNetwork &ann_network, MoveType type);
 void performMove(AnnotatedNetwork &ann_network, Move& move);
 void undoMove(AnnotatedNetwork &ann_network, Move& move);
@@ -108,5 +107,8 @@ std::vector<Move> possibleMoves(AnnotatedNetwork& ann_network, std::vector<MoveT
 inline bool needsRecompute(AnnotatedNetwork& ann_network, const Move& move) {
     return (move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::DeltaMinusMove) && (ann_network.network.reticulation_nodes[ann_network.network.num_reticulations() - 1]->clv_index != move.arcRemovalData.v_clv_index);
 }
+
+void removeBadCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& candidates);
+std::vector<Node*> gatherStartNodes(AnnotatedNetwork& ann_network, Move move);
 
 }

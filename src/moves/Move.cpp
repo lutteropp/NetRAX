@@ -1,5 +1,7 @@
 #include "Move.hpp"
 
+#include <algorithm>
+
 #include "ArcRemoval.hpp"
 #include "ArcInsertion.hpp"
 #include "RNNI.hpp"
@@ -278,6 +280,24 @@ std::vector<Move> possibleMoves(AnnotatedNetwork& ann_network, std::vector<MoveT
     for (MoveType type : types) {
         moreMoves = possibleMoves(ann_network, type);
         res.insert(std::end(res), std::begin(moreMoves), std::end(moreMoves));
+    }
+    return res;
+}
+
+void removeBadCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& candidates) {
+    candidates.erase(
+    std::remove_if(candidates.begin(), candidates.end(),
+        [&](const Move &move) { return !checkSanity(ann_network, move); }),
+    candidates.end());
+}
+
+std::vector<Node*> gatherStartNodes(AnnotatedNetwork& ann_network, Move move) {
+    std::vector<Node*> res;
+    if (isArcInsertion(move.moveType)) {
+        res.emplace_back(ann_network.network.nodes_by_index[move.arcInsertionData.wanted_u_clv_index]);
+        res.emplace_back(ann_network.network.nodes_by_index[move.arcInsertionData.wanted_u_clv_index]);
+    } else if (isRSPR(move.moveType)) {
+        res.emplace_back(ann_network.network.nodes_by_index[move.rsprData.z_clv_index]);
     }
     return res;
 }

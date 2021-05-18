@@ -50,6 +50,10 @@ namespace netrax {
         return (type == MoveType::ArcRemovalMove || type == MoveType::DeltaMinusMove);
     }
 
+    inline bool isRSPR(const MoveType& type) {
+        return (type == MoveType::RSPRMove || type == MoveType::RSPR1Move || type == MoveType::HeadMove || type == MoveType::TailMove);
+    }
+
     inline bool isComplexityChangingMove(const MoveType& moveType) {
         return isArcInsertion(moveType) || isArcRemoval(moveType);
     }
