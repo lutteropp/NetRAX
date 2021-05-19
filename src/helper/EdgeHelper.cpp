@@ -1,5 +1,5 @@
 #include "Helper.hpp"
-
+#include "NetworkFunctions.hpp"
 namespace netrax {
 
 Edge* getEdgeTo(Network &network, const Node *node, const Node *target) {
@@ -73,18 +73,32 @@ Node* getTarget(Network &network, const Edge *edge) {
     return network.nodes_by_index[edge->link2->node_clv_index];
 }
 
-bool isOutgoing(Network &network, Node *from, Node *to) {
+bool isOutgoing(Network &network, const Node *from, const Node *to) {
     assert(!getLinksToClvIndex(network, from, to->clv_index).empty());
     auto children = getChildren(network, from);
     return (std::find(children.begin(), children.end(), to) != children.end());
 }
 
 bool isActiveBranch(AnnotatedNetwork& ann_network, const ReticulationConfigSet& reticulationChoices, unsigned int pmatrix_index) {
-    Node* edge_source = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
-    Node* edge_target = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
+    const Node* edge_source = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
+    const Node* edge_target = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
 
     ReticulationConfigSet restrictions = getRestrictionsToTakeNeighbor(ann_network, edge_source, edge_target);
     return reticulationConfigsCompatible(restrictions, reticulationChoices);
+}
+
+bool isActiveAliveBranch(AnnotatedNetwork& ann_network, const ReticulationConfigSet& reticulationChoices, const std::vector<bool>& dead_nodes, unsigned int pmatrix_index) {
+    const Node* edge_source = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
+    const Node* edge_target = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
+
+    ReticulationConfigSet restrictions = getRestrictionsToTakeNeighbor(ann_network, edge_source, edge_target);
+    return reticulationConfigsCompatible(restrictions, reticulationChoices) && !dead_nodes[edge_source->clv_index] && !dead_nodes[edge_target->clv_index];
+}
+
+bool isActiveAliveBranch(AnnotatedNetwork& ann_network, const ReticulationConfigSet& reticulationChoices, unsigned int pmatrix_index) {
+    setReticulationParents(ann_network.network, reticulationChoices.configs[0]);
+    std::vector<bool> dead_nodes = collect_dead_nodes(ann_network.network, ann_network.network.root->clv_index);
+    return isActiveAliveBranch(ann_network, reticulationChoices, dead_nodes, pmatrix_index);
 }
 
 }

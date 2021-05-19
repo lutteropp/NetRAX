@@ -24,6 +24,10 @@
 
 #include "likelihood/ComplexityScoring.hpp"
 
+#ifdef WITHGPERFTOOLS
+#include <gperftools/profiler.h>
+#endif
+
 using namespace netrax;
 
 void error_exit(std::string msg) {
@@ -77,16 +81,21 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     app.add_option("--greedy_factor", options->greedy_factor, "Instantly accept a move if it improves BIC by more than the given factor (default: infinity). Gives (maybe faster) results with (maybe worse) inference quality. Needs to be greater-equal than 1.");
     app.add_flag("--reorder_candidates", options->reorder_candidates, "Reorder move candidates by proximity to last accepted move.");
     
-    app.add_flag("--full_search_by_type", options->full_search_by_type, "Do a full search for the current move type, before changing the move type in the outer loop.");
+    app.add_flag("--old_wavesearch", options->old_wavesearch, "Use the old wavesearch algorithm.");
+
+    app.add_flag("--slow_mode", options->slow_mode, "Enable slow mode.");
+    app.add_flag("--save_memory", options->save_memory, "Save some memory.");
+    app.add_flag("--no_elbow_method", options->no_elbow_method, "No elbow method.");
+
+    app.add_option("--max_better_candidates", options->max_better_candidates, "Stop candidate evaluation early if this many candidates with better BIC have been found already.");
 
     app.add_flag("--no_rnni_moves", options->no_rnni_moves, "Do not use rNNI moves.");
-    app.add_flag("--no_tail_moves", options->no_tail_moves, "Do not use tail moves (rSPR1 moves still used).");
-    app.add_flag("--no_head_moves", options->no_head_moves, "Do not use head moves (rSPR1 moves still used).");
+    app.add_flag("--no_rspr_moves", options->no_rspr_moves, "Do not use rSPR moves.");
     app.add_flag("--no_arc_insertion_moves", options->no_arc_insertion_moves, "Use only DeltaPlus moves instead of full ArcInsertion moves (faster, but worse inference quality).");
 
     app.add_flag("--enforce_extra_search", options->enforce_extra_search, "After finishing the normal search, keep searching by enforcing an extra reticulation.");
 
-    app.add_option("--scrambling", options->scrambling, "Maximum failed consecutive scrambling retries for escaping out of local maxima (default: 5).");
+    app.add_option("--scrambling", options->scrambling, "Maximum failed consecutive scrambling retries for escaping out of local maxima (default: 0).");
     app.add_option("--scrambling_radius", options->scrambling_radius, "Number of random rSPR moves to apply when scrambling a network (default: 2).");
 
     app.add_flag("--sim_anneal", options->sim_anneal, "Use simulated annealing instead of hill climbing during network topology search.");
@@ -124,33 +133,66 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     if (options->prefilter_keep < 1) {
         error_exit("prefilter keep must be at least 1");
     }
+
     assert(!options->use_repeats);
     return 0;
 }
 
+std::vector<MoveType> getTypesBySpeedGoodStart(const NetraxOptions& options) {
+    //std::vector<MoveType> typesBySpeed = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::TailMove, MoveType::ArcRemovalMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
+    std::vector<MoveType> typesBySpeed;
+    if (!options.no_arc_removal_moves) {
+        typesBySpeed.emplace_back(MoveType::ArcRemovalMove);
+    }
+    if (!options.no_arc_insertion_moves) {
+        typesBySpeed.emplace_back(MoveType::ArcInsertionMove);
+    } else {
+        typesBySpeed.emplace_back(MoveType::DeltaPlusMove);
+    }
+    if (!options.no_rspr_moves) {
+        typesBySpeed.emplace_back(MoveType::RSPRMove);
+    }
+    if (!options.no_rnni_moves) {
+        typesBySpeed.emplace_back(MoveType::RNNIMove);
+    }
+    if (!options.no_arc_removal_moves) {
+        typesBySpeed.emplace_back(MoveType::ArcRemovalMove);
+    }
+    return typesBySpeed;
+}
+
 std::vector<MoveType> getTypesBySpeed(const NetraxOptions& options) {
     //std::vector<MoveType> typesBySpeed = {MoveType::RNNIMove, MoveType::RSPR1Move, MoveType::HeadMove, MoveType::TailMove, MoveType::ArcRemovalMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
-
-    std::vector<MoveType> typesBySpeed = {MoveType::RNNIMove, MoveType::RSPRMove, MoveType::ArcRemovalMove, MoveType::DeltaPlusMove, MoveType::ArcInsertionMove};
-
-    if (options.no_rnni_moves) {
-        typesBySpeed.erase(std::remove(typesBySpeed.begin(), typesBySpeed.end(), MoveType::RNNIMove), typesBySpeed.end());
+    std::vector<MoveType> typesBySpeed;
+    if (!options.no_arc_removal_moves) {
+        typesBySpeed.emplace_back(MoveType::ArcRemovalMove);
     }
-    if (options.no_tail_moves) {
-        typesBySpeed.erase(std::remove(typesBySpeed.begin(), typesBySpeed.end(), MoveType::TailMove), typesBySpeed.end());
+    if (!options.no_rspr_moves) {
+        typesBySpeed.emplace_back(MoveType::RSPRMove);
     }
-    if (options.no_head_moves) {
-        typesBySpeed.erase(std::remove(typesBySpeed.begin(), typesBySpeed.end(), MoveType::HeadMove), typesBySpeed.end());
+    if (!options.no_rnni_moves) {
+        typesBySpeed.emplace_back(MoveType::RNNIMove);
     }
-    if (options.no_arc_insertion_moves) {
-        typesBySpeed.erase(std::remove(typesBySpeed.begin(), typesBySpeed.end(), MoveType::ArcInsertionMove), typesBySpeed.end());
+    if (!options.no_arc_insertion_moves) {
+        typesBySpeed.emplace_back(MoveType::ArcInsertionMove);
+    } else {
+        typesBySpeed.emplace_back(MoveType::DeltaPlusMove);
+    }
+    if (!options.no_rspr_moves) {
+        typesBySpeed.emplace_back(MoveType::RSPRMove);
+    }
+    if (!options.no_rnni_moves) {
+        typesBySpeed.emplace_back(MoveType::RNNIMove);
+    }
+    if (!options.no_arc_removal_moves) {
+        typesBySpeed.emplace_back(MoveType::ArcRemovalMove);
     }
     return typesBySpeed;
 }
 
 void pretty_print(const NetraxOptions &netraxOptions)
 {
-    Network network = netrax::readNetworkFromFile(netraxOptions.start_network_file);
+    Network network = netrax::readNetworkFromFile(netraxOptions.start_network_file, netraxOptions);
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         std::cout << exportDebugInfoNetwork(network) << "\n";
     }
@@ -192,7 +234,7 @@ void score_only(NetraxOptions &netraxOptions, const RaxmlInstance& instance, std
 
 void extract_taxon_names(const NetraxOptions &netraxOptions)
 {
-    netrax::Network network = netrax::readNetworkFromFile(netraxOptions.start_network_file,
+    netrax::Network network = netrax::readNetworkFromFile(netraxOptions.start_network_file, netraxOptions,
                                                           netraxOptions.max_reticulations);
     std::vector<std::string> tip_labels;
     for (size_t i = 0; i < network.num_tips(); ++i)
@@ -225,7 +267,7 @@ void extract_displayed_trees(NetraxOptions &netraxOptions, const RaxmlInstance& 
         {
             pll_utree_t *utree = netrax::displayed_tree_to_utree(ann_network.network, tree_index);
             double prob = netrax::displayed_tree_prob(ann_network, tree_index);
-            Network displayedNetwork = netrax::convertUtreeToNetwork(*utree, 0);
+            Network displayedNetwork = netrax::convertUtreeToNetwork(*utree, netraxOptions, 0);
             std::string newick = netrax::toExtendedNewick(displayedNetwork);
             pll_utree_destroy(utree, nullptr);
             displayed_trees.emplace_back(std::make_pair(newick, prob));
@@ -489,7 +531,8 @@ void netrax_thread_main(NetraxOptions& netraxOptions, const RaxmlInstance& insta
     else if (!netraxOptions.start_network_file.empty())
     {
         std::vector<MoveType> typesBySpeed = getTypesBySpeed(netraxOptions);
-        run_single_start_waves(netraxOptions, instance, typesBySpeed, rng);
+        std::vector<MoveType> typesBySpeedGoodStart = getTypesBySpeedGoodStart(netraxOptions);
+        run_single_start_waves(netraxOptions, instance, typesBySpeed, typesBySpeedGoodStart, rng);
     } else
     {
         std::vector<MoveType> typesBySpeed = getTypesBySpeed(netraxOptions);
@@ -668,7 +711,13 @@ extern "C" int dll_main(int argc, char** argv, void* comm)
 
 int main(int argc, char** argv)
 {
+#ifdef WITHGPERFTOOLS
+    ProfilerStart("profile.log");
+#endif
   auto retval = internal_main_netrax(argc, argv, 0);
+#ifdef WITHGPERFTOOLS
+    ProfilerStop();
+#endif
   return retval;
 }
 

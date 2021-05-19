@@ -67,7 +67,7 @@ std::vector<Node*> getActiveAliveNeighbors(Network &network, const std::vector<b
     return activeNeighbors;
 }
 
-bool hasNeighbor(Node *node1, Node *node2) {
+bool hasNeighbor(const Node *node1, const Node *node2) {
     if (!node1 || !node2) {
         return false;
     }
@@ -85,11 +85,11 @@ bool hasNeighbor(Node *node1, Node *node2) {
     return false;
 }
 
-std::unordered_set<size_t> getNeighborPmatrixIndices(Network &network, Edge *edge) {
+std::unordered_set<size_t> getNeighborPmatrixIndices(Network &network, const Edge *edge) {
     assert(edge);
     std::unordered_set<size_t> res;
-    Node *source = getSource(network, edge);
-    Node *target = getTarget(network, edge);
+    const Node *source = getSource(network, edge);
+    const Node *target = getTarget(network, edge);
     for (size_t i = 0; i < source->links.size(); ++i) {
         res.emplace(source->links[i].edge_pmatrix_index);
     }
@@ -103,14 +103,25 @@ std::unordered_set<size_t> getNeighborPmatrixIndices(Network &network, Edge *edg
     return res;
 }
 
-std::vector<Node*> getNeighborsWithinRadius(const Network& network, Node* node, size_t min_radius, size_t max_radius) {
+std::vector<Node*> getNeighborsWithinRadius(const Network& network, const Node* node, int min_radius, int max_radius) {
     assert(min_radius <= max_radius);
+    if (min_radius == 0 && max_radius == std::numeric_limits<int>::max()) {
+        std::vector<Node*> quick_res;
+        for (size_t i = 0; i < network.num_nodes(); ++i) {
+            Node* act_node = network.nodes_by_index[i];
+            if (act_node != node) {
+                quick_res.emplace_back(act_node);
+            }
+        }
+        return quick_res;
+    }
+
     std::vector<Node*> res;
     std::vector<bool> seen(network.num_nodes(), false);
     std::queue<Node*> q;
     std::queue<Node*> next_q;
-    q.emplace(node);
-    size_t act_radius = 0;
+    q.emplace(network.nodes_by_index[node->clv_index]);
+    int act_radius = 0;
     while (act_radius <= max_radius && !q.empty()) {
         while (!q.empty()) {
             Node* actNode = q.front();
@@ -130,6 +141,28 @@ std::vector<Node*> getNeighborsWithinRadius(const Network& network, Node* node, 
         std::swap(q, next_q);
     }
     return res;
+}
+
+bool topology_equal(Network& n1, Network& n2) {
+    if (n1.num_branches() != n2.num_branches()) {
+        std::cout << "topology not equal: different num branches \n";
+        return false;
+    }
+    for (size_t i = 0; i < n1.num_branches(); ++i) {
+        if (getSource(n1, n1.edges_by_index[i])->clv_index != getSource(n2, n2.edges_by_index[i])->clv_index) {
+            std::cout << "topology not equal\n";
+            return false;
+        }
+        if (getTarget(n1, n1.edges_by_index[i])->clv_index != getTarget(n2, n2.edges_by_index[i])->clv_index) {
+            std::cout << "topology not equal\n";
+            return false;
+        }
+    }
+    if (n1.root->clv_index != n2.root->clv_index) {
+        std::cout << "edges are fine, but root is wrong\n";
+        return false;
+    }
+    return true;
 }
 
 }

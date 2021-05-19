@@ -1,6 +1,7 @@
-#include "GeneralMove.hpp"
+#include "GeneralMoveFunctions.hpp"
 
 #include "../helper/Helper.hpp"
+#include "../DebugPrintFunctions.hpp"
 
 namespace netrax {
 
@@ -49,11 +50,18 @@ void removeNode(AnnotatedNetwork &ann_network, Node *node) {
     network.nodeCount--;
 }
 
-Node* addInnerNode(Network &network, ReticulationData *retData, size_t wanted_clv_index) {
+Node* addInnerNode(AnnotatedNetwork &ann_network, ReticulationData *retData, size_t wanted_clv_index) {
+    Network& network = ann_network.network;
     assert(network.num_nodes() < network.nodes.size());
     unsigned int clv_index;
 
-    if (wanted_clv_index < network.nodes.size() && network.nodes_by_index[wanted_clv_index] == nullptr) {
+    if (wanted_clv_index < network.nodes.size()) {
+        if (network.nodes_by_index[wanted_clv_index] != nullptr)  {
+            if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+                std::cout << exportDebugInfo(ann_network) << "\n";
+            }
+            throw std::runtime_error("wanted clv index " + std::to_string(wanted_clv_index) + " is already taken");
+        }
         clv_index = wanted_clv_index;
     } else {
         clv_index = network.nodes.size() - 1;
@@ -148,8 +156,15 @@ Edge* addEdge(AnnotatedNetwork &ann_network, Link *link1, Link *link2, double le
     if (link1->direction == Direction::INCOMING) {
         std::swap(link1, link2);
     }
+
     size_t pmatrix_index = 0;
-    if (wanted_pmatrix_index < ann_network.network.edges.size() && ann_network.network.edges_by_index[wanted_pmatrix_index] == nullptr) {
+    if (wanted_pmatrix_index < ann_network.network.edges.size()) {
+        if (ann_network.network.edges_by_index[wanted_pmatrix_index] != nullptr)  {
+            if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+                std::cout << exportDebugInfo(ann_network) << "\n";
+            }
+            throw std::runtime_error("wanted pmatrix index " + std::to_string(wanted_pmatrix_index) + " is already taken");
+        }
         pmatrix_index = wanted_pmatrix_index;
     } else {
         // find smallest free non-tip pmatrix index
@@ -185,8 +200,10 @@ std::vector<size_t> determineEdgeOrder(AnnotatedNetwork& ann_network, size_t sta
 }
 
 void resetReticulationLinks(Node *node) {
+    assert(node);
     assert(node->type == NodeType::RETICULATION_NODE);
     auto retData = node->getReticulationData().get();
+    assert(retData);
     retData->link_to_first_parent = nullptr;
     retData->link_to_second_parent = nullptr;
     retData->link_to_child = nullptr;
@@ -273,6 +290,7 @@ void set_edge_lengths(AnnotatedNetwork &ann_network, size_t pmatrix_index, const
         }
     } else {
         ann_network.fake_treeinfo->linked_branch_lengths[pmatrix_index] = lengths[0];
+        ann_network.network.edges_by_index[pmatrix_index]->length = lengths[0];
         assert(lengths[0] >= ann_network.options.brlen_min);
         assert(lengths[0] <= ann_network.options.brlen_max);
     }

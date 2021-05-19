@@ -16,7 +16,7 @@
 #include "../likelihood/LikelihoodComputation.hpp"
 #include "../NetraxOptions.hpp"
 #include "../RaxmlWrapper.hpp"
-#include "../moves/Moves.hpp"
+#include "../moves/Move.hpp"
 #include "../optimization/BranchLengthOptimization.hpp"
 #include "../optimization/ReticulationOptimization.hpp"
 #include "../optimization/ModelOptimization.hpp"
@@ -135,7 +135,7 @@ void init_annotated_network(AnnotatedNetwork &ann_network) {
  */
 AnnotatedNetwork build_annotated_network(NetraxOptions &options, const RaxmlInstance& instance) {
     AnnotatedNetwork ann_network(options, instance);
-    ann_network.network = std::move(netrax::readNetworkFromFile(options.start_network_file,
+    ann_network.network = std::move(netrax::readNetworkFromFile(options.start_network_file, options,
             options.max_reticulations));
     return ann_network;
 }
@@ -149,7 +149,7 @@ AnnotatedNetwork build_annotated_network(NetraxOptions &options, const RaxmlInst
 AnnotatedNetwork build_annotated_network_from_string(NetraxOptions &options, const RaxmlInstance& instance,
         const std::string &newickString) {
     AnnotatedNetwork ann_network(options, instance);
-    ann_network.network = netrax::readNetworkFromString(newickString, options.max_reticulations);
+    ann_network.network = netrax::readNetworkFromString(newickString, options, options.max_reticulations);
     return ann_network;
 }
 
@@ -162,7 +162,7 @@ AnnotatedNetwork build_annotated_network_from_string(NetraxOptions &options, con
 AnnotatedNetwork build_annotated_network_from_file(NetraxOptions &options, const RaxmlInstance& instance,
         const std::string &networkPath) {
     AnnotatedNetwork ann_network(options, instance);
-    ann_network.network = std::move(netrax::readNetworkFromFile(networkPath,
+    ann_network.network = std::move(netrax::readNetworkFromFile(networkPath, options,
             options.max_reticulations));
     return ann_network;
 }
@@ -176,7 +176,7 @@ AnnotatedNetwork build_annotated_network_from_file(NetraxOptions &options, const
 AnnotatedNetwork build_annotated_network_from_utree(NetraxOptions &options, const RaxmlInstance& instance,
         const pll_utree_t &utree) {
     AnnotatedNetwork ann_network(options, instance);
-    ann_network.network = netrax::convertUtreeToNetwork(utree, options.max_reticulations);
+    ann_network.network = netrax::convertUtreeToNetwork(utree, options, options.max_reticulations);
     return ann_network;
 }
 
@@ -200,10 +200,10 @@ void add_extra_reticulations(AnnotatedNetwork &ann_network, unsigned int targetC
 
     // TODO: This can be implemented more eficiently than by always re-gathering all candidates
     while (targetCount > network.num_reticulations()) {
-        std::vector<ArcInsertionMove> candidates = possibleArcInsertionMoves(ann_network);
+        std::vector<Move> candidates = possibleMoves(ann_network, MoveType::ArcInsertionMove);
         assert(!candidates.empty());
         std::uniform_int_distribution<std::mt19937::result_type> dist(0, candidates.size() - 1);
-        ArcInsertionMove move = candidates[dist(rng)];
+        Move move = candidates[dist(rng)];
         performMove(ann_network, move);
     }
 }
@@ -271,6 +271,16 @@ bool hasBadReticulation(AnnotatedNetwork& ann_network) {
         }
     }
     return false;
+}
+
+std::vector<Node*> getBadReticulations(AnnotatedNetwork& ann_network) {
+    std::vector<Node*> res;
+    for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
+        if ((1.0 - ann_network.reticulation_probs[i] < 0.001) || (ann_network.reticulation_probs[i] < 0.001)) {
+            res.emplace_back(ann_network.network.reticulation_nodes[i]);
+        }
+    }
+    return res;
 }
 
 bool assertBranchLengths(AnnotatedNetwork& ann_network) {

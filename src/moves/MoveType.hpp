@@ -1,9 +1,11 @@
 #pragma once
+
 #include <stdexcept>
 #include <string>
 
 namespace netrax {
     enum class MoveType {
+        INVALID,
         RNNIMove,
         RSPRMove,
         TailMove,
@@ -46,6 +48,10 @@ namespace netrax {
 
     inline bool isArcRemoval(const MoveType& type) {
         return (type == MoveType::ArcRemovalMove || type == MoveType::DeltaMinusMove);
+    }
+
+    inline bool isRSPR(const MoveType& type) {
+        return (type == MoveType::RSPRMove || type == MoveType::RSPR1Move || type == MoveType::HeadMove || type == MoveType::TailMove);
     }
 
     inline bool isComplexityChangingMove(const MoveType& moveType) {

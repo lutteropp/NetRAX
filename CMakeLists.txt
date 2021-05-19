@@ -73,9 +73,9 @@ endif()
 #set(CMAKE_CXX_EXTENSIONS OFF)
 
 # set these flags globally for all subprojects (libpll etc.)
-set (CMAKE_CXX_FLAGS_DEBUG    "-O1 -g" CACHE INTERNAL "")
+set (CMAKE_CXX_FLAGS_DEBUG    "-O3 -g" CACHE INTERNAL "")
 set (CMAKE_CXX_FLAGS_RELEASE  "-O3 -DNDEBUG"    CACHE INTERNAL "")
-set (CMAKE_C_FLAGS_DEBUG    "-O1 -g" CACHE INTERNAL "")
+set (CMAKE_C_FLAGS_DEBUG    "-O3 -g" CACHE INTERNAL "")
 set (CMAKE_C_FLAGS_RELEASE  "-O3 -DNDEBUG"    CACHE INTERNAL "")
 
 project (netrax C CXX)
@@ -150,6 +150,10 @@ if(ENABLE_PTHREADS)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_RAXML_PTHREADS -pthread")
 endif()
 
+if(WITHGPERFTOOLS)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -lprofiler -g")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lprofiler -g")
+endif()
 
 if(BUILD_AS_LIBRARY)
   # building shared library only works with CMake!

@@ -30,14 +30,14 @@ std::vector<Node*> getAllParents(Network &network, const Node *node) {
     return res;
 }
 
-std::vector<Node*> getParentPointers(AnnotatedNetwork& ann_network, const std::vector<ReticulationState>& reticulationChoices, Node* virtual_root) {
+std::vector<Node*> getParentPointers(AnnotatedNetwork& ann_network, const std::vector<ReticulationState>& reticulationChoices, const Node* virtual_root) {
     assert(virtual_root);
     setReticulationParents(ann_network.network, reticulationChoices);
     std::vector<Node*> parent(ann_network.network.num_nodes(), nullptr);
-    parent[virtual_root->clv_index] = virtual_root;
+    parent[virtual_root->clv_index] = ann_network.network.nodes_by_index[virtual_root->clv_index];
     std::queue<Node*> q;
     
-    q.emplace(virtual_root);
+    q.emplace(ann_network.network.nodes_by_index[virtual_root->clv_index]);
     while (!q.empty()) {
         Node* actNode = q.front();
         q.pop();
@@ -54,17 +54,17 @@ std::vector<Node*> getParentPointers(AnnotatedNetwork& ann_network, const std::v
     return parent;
 }
 
-std::vector<Node*> getParentPointers(AnnotatedNetwork& ann_network, Node* virtual_root) {
+std::vector<Node*> getParentPointers(AnnotatedNetwork& ann_network, const Node* virtual_root) {
     assert(virtual_root);
     std::vector<Node*> parent(ann_network.network.num_nodes(), nullptr);
-    parent[virtual_root->clv_index] = virtual_root;
+    parent[virtual_root->clv_index] = ann_network.network.nodes_by_index[virtual_root->clv_index];
     std::queue<Node*> q;
     
-    q.emplace(virtual_root);
+    q.emplace(ann_network.network.nodes_by_index[virtual_root->clv_index]);
     while (!q.empty()) {
         Node* actNode = q.front();
         q.pop();
-        std::vector<Node*> neighbors = getActiveNeighbors(ann_network.network, actNode);
+        std::vector <Node*> neighbors = getActiveNeighbors(ann_network.network, actNode);
         for (size_t i = 0; i < neighbors.size(); ++i) {
             Node* neigh = neighbors[i];
             if (!parent[neigh->clv_index]) { // neigh was not already processed

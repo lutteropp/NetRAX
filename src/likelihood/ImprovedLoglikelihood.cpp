@@ -184,6 +184,11 @@ void processNodeImproved(AnnotatedNetwork& ann_network, int incremental, Node* n
     }
     if (!append) {
         ann_network.pernode_displayed_tree_data[node->clv_index].num_active_displayed_trees = 0;
+        if (ann_network.options.save_memory) {
+            while (ann_network.pernode_displayed_tree_data[node->clv_index].displayed_trees.size() > 1) {
+                ann_network.pernode_displayed_tree_data[node->clv_index].displayed_trees.pop_back();
+            }
+        }
     }
     if (children.size() == 0) {
         return;

@@ -127,4 +127,6 @@ def gather_labeled_settings():
     setups['t_15_unpartitioned'] = exp_unpartitioned(15)
     setups['smoke_test_fixed'] = smoke_test_fixed(40, 4)
     setups['smoke_test_medium'] = smoke_test_fixed(20, 2)
+    setups['smoke_test_small'] = smoke_test_fixed(10, 1)
+    setups['smoke_test_tiny'] = smoke_test_fixed(4, 1)
     return setups

@@ -19,11 +19,11 @@ extern "C" {
 
 namespace netrax {
 
-Network readNetworkFromString(const std::string &newick, int maxReticulations = -1);
-Network readNetworkFromFile(const std::string &filename, int maxReticulations = -1);
+Network readNetworkFromString(const std::string &newick, const NetraxOptions& options, int maxReticulations = -1);
+Network readNetworkFromFile(const std::string &filename,const NetraxOptions& options,  int maxReticulations = -1);
 std::string toExtendedNewick(AnnotatedNetwork &ann_network);
 std::string toExtendedNewick(Network &network);
-Network convertUtreeToNetwork(const pll_utree_t &utree, unsigned int maxReticulations);
+Network convertUtreeToNetwork(const pll_utree_t &utree, NetraxOptions& options, unsigned int maxReticulations);
 void collect_average_branches(AnnotatedNetwork &ann_network);
 void updateNetwork(AnnotatedNetwork &ann_network);
 

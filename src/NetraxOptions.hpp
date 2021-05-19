@@ -50,7 +50,7 @@ public:
     bool change_reticulation_probs_only = false;
     double overwritten_reticulation_prob = -1;
 
-    bool full_search_by_type = false;
+    bool old_wavesearch = false;
 
     bool network_distance_only = false;
     std::string first_network_path = "";
@@ -76,11 +76,11 @@ public:
 
     bool no_prefiltering = false;
     bool no_rnni_moves = false;
-    bool no_tail_moves = false;
-    bool no_head_moves = false;
+    bool no_rspr_moves = false;
+    bool no_arc_removal_moves = false;
     bool no_arc_insertion_moves = false;
     bool enforce_extra_search = false;
-    unsigned int scrambling = 5;
+    unsigned int scrambling = 0;
     unsigned int scrambling_radius = 2;
 
     int max_rearrangement_distance = 25;
@@ -92,18 +92,24 @@ public:
     int brlen_opt_method = PLLMOD_OPT_BLO_NEWTON_FAST;
     double brlen_min = RAXML_BRLEN_MIN;
     double brlen_max = RAXML_BRLEN_MAX;
-    double brprob_min = 0.0;
-    double brprob_max = 1.0;
+    double brprob_min = 1E-3;
+    double brprob_max = 1.0 - 1E-3;
     double lh_epsilon = DEF_LH_EPSILON;
     double tolerance = DEF_LH_EPSILON; //RAXML_BRLEN_TOLERANCE;
     double brlen_smoothings = RAXML_BRLEN_SMOOTHINGS;
 
-    bool computePseudo = false;
+    bool slow_mode = false;
+
+    bool save_memory = false;
 
     BrlenOptMethod brlenOptMethod = BrlenOptMethod::NEWTON_RAPHSON;//BrlenOptMethod::BRENT_REROOT;//BrlenOptMethod::NEWTON_RAPHSON_REROOT;// BrlenOptMethod::BRENT_NORMAL;
     //BrlenOptMethod brlenOptMethod = BrlenOptMethod::BRENT_NORMAL;
 
     LoadBalancing load_balance_method = LoadBalancing::benoit; //LoadBalancing::naive;
+
+    bool no_elbow_method = false;
+
+    int max_better_candidates = std::numeric_limits<int>::max();
 
     std::string msa_file = "";
     std::string model_file = "DNA";

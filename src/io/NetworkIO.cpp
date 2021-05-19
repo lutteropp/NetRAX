@@ -217,14 +217,14 @@ Network convertNetworkToplevel(RootedNetwork &rnetwork, size_t node_count,
             Link *linkToFirstParent = nullptr;
             Link *linkToSecondParent = nullptr;
             if (rnode->firstParent->clv_index == rnode->secondParent->clv_index) {
-                std::vector<Link*> links = getLinksToClvIndex(network, &network.nodes[rnode->clv_index],
+                std::vector<Link*> links = getLinksToClvIndexMutable(network, &network.nodes[rnode->clv_index],
                     rnode->firstParent->clv_index);
                 linkToFirstParent = links[0];
                 linkToSecondParent = links[1];
             } else {
-                linkToFirstParent = getLinksToClvIndex(network, &network.nodes[rnode->clv_index],
+                linkToFirstParent = getLinksToClvIndexMutable(network, &network.nodes[rnode->clv_index],
                     rnode->firstParent->clv_index)[0];
-                linkToSecondParent = getLinksToClvIndex(network, &network.nodes[rnode->clv_index],
+                linkToSecondParent = getLinksToClvIndexMutable(network, &network.nodes[rnode->clv_index],
                     rnode->secondParent->clv_index)[0];
             }
 
@@ -246,7 +246,7 @@ Network convertNetworkToplevel(RootedNetwork &rnetwork, size_t node_count,
             size_t pmatrix_index = rnode->clv_index;
             Link *linkFromParent = network.edges[pmatrix_index].link2;
 
-            Link *linkToParent = getLinksToClvIndex(network, &network.nodes[rnode->clv_index],
+            Link *linkToParent = getLinksToClvIndexMutable(network, &network.nodes[rnode->clv_index],
                     rnode->parent->clv_index)[0];
             linkFromParent->outer = linkToParent;
             linkToParent->outer = linkFromParent;
@@ -325,19 +325,19 @@ Network convertNetwork(RootedNetwork &rnetwork, int maxReticulations) {
     return network;
 }
 
-Network readNetworkFromString(const std::string &newick, int maxReticulations) {
-    RootedNetwork *rnetwork = parseRootedNetworkFromNewickString(newick);
+Network readNetworkFromString(const std::string &newick, const NetraxOptions& options, int maxReticulations) {
+    RootedNetwork *rnetwork = parseRootedNetworkFromNewickString(newick, options);
     Network network = convertNetwork(*rnetwork, maxReticulations);
     delete rnetwork;
     return network;
 }
 
-Network readNetworkFromFile(const std::string &filename, int maxReticulations) {
+Network readNetworkFromFile(const std::string &filename, const NetraxOptions& options, int maxReticulations) {
     std::ifstream t(filename);
     std::stringstream buffer;
     buffer << t.rdbuf();
     std::string newick = buffer.str();
-    return readNetworkFromString(newick, maxReticulations);
+    return readNetworkFromString(newick, options, maxReticulations);
 }
 
 std::string newickNodeName(Network &network, const Node *node, const Node *parent) {
@@ -449,9 +449,9 @@ std::string toExtendedNewick(AnnotatedNetwork &ann_network) {
     return toExtendedNewick(ann_network.network);
 }
 
-Network convertUtreeToNetwork(const pll_utree_t &utree, unsigned int maxReticulations) {
+Network convertUtreeToNetwork(const pll_utree_t &utree, NetraxOptions& options, unsigned int maxReticulations) {
     std::string newick(pll_utree_export_newick(utree.vroot, nullptr));
-    return readNetworkFromString(newick, maxReticulations);
+    return readNetworkFromString(newick, options, maxReticulations);
 }
 
 /**
@@ -464,6 +464,10 @@ void writeNetwork(AnnotatedNetwork &ann_network, const std::string &filepath) {
     std::ofstream outfile(filepath);
     outfile << netrax::toExtendedNewick(ann_network) << "\n";
     outfile.close();
+
+    /*std::ofstream outfileDebug(filepath + ".gml");
+    outfileDebug << netrax::exportDebugInfo(ann_network) << "\n";
+    outfileDebug.close();*/
 }
 
 }

@@ -280,7 +280,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, std::vector<DisplayedTreeD
 double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, BrlenOptMethod brlenOptMethod, unsigned int max_iters) {
     double old_logl = computeLoglikelihood(ann_network);
     assert(old_logl <= 0.0);
-    assert(computeLoglikelihood(ann_network, 0, 1) == old_logl);
+    //assert(computeLoglikelihood(ann_network, 0, 1) == old_logl);
     std::vector<DisplayedTreeData> oldTrees;
     std::vector<std::vector<SumtableInfo> > sumtables;
 
@@ -291,12 +291,29 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index, Brle
         Node* new_virtual_root = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
         if (brlenOptMethod != BrlenOptMethod::BRENT_NORMAL) {
             Node* new_virtual_root_back = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
-            updateCLVsVirtualRerootTrees(ann_network, old_virtual_root, new_virtual_root, new_virtual_root_back);
+            ReticulationConfigSet restrictions = getRestrictionsActiveAliveBranch(ann_network, pmatrix_index);
+            updateCLVsVirtualRerootTrees(ann_network, old_virtual_root, new_virtual_root, new_virtual_root_back, restrictions);
         }
         ann_network.cached_logl_valid = false;
 
-        // Leaving out this assertion is dangerous...
-        assert(fabs(old_logl - computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index)) < 1E-3);
+         // Leaving out this check is dangerous...
+        double brlenopt_logl = computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index);
+        if (fabs(old_logl - brlenopt_logl >= 1E-3)) {
+            if (ParallelContext::master_rank() && ParallelContext::master_thread) {
+                std::cout << exportDebugInfo(ann_network) << "\n";
+                std::cout << "old_logl: " << old_logl << "\n";
+                std::cout << "brlenopt_logl: " << brlenopt_logl << "\n";
+                std::cout << "problem occurred while optimizing branch " << pmatrix_index << "\n";
+            }
+            double nonincremental_nonpmatrix_logl = computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index, 0, 0, true);
+            double nonincremental_logl = computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index, 0, 1);
+            if (ParallelContext::master_rank() && ParallelContext::master_thread) {
+                std::cout << "nonincremental_nonpmatrix_logl: " << nonincremental_nonpmatrix_logl << "\n";
+                std::cout << "nonincremental_logl with updating pmatrices: " << nonincremental_logl << "\n";
+            }
+            ParallelContext::mpi_barrier();
+            throw std::runtime_error("Something went wrong when rerooting CLVs during brlen optimization");
+        }
 
         if (brlenOptMethod == BrlenOptMethod::NEWTON_RAPHSON) {
             sumtables = computePartitionSumtables(ann_network, pmatrix_index);

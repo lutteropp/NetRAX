@@ -3,7 +3,7 @@
 
 namespace netrax {
 
-std::vector<Node*> getChildren(Network &network, Node *node) {
+std::vector<Node*> getChildren(Network &network, const Node *node) {
     assert(node);
     std::vector<Node*> children;
     if (node->type == NodeType::RETICULATION_NODE) {
@@ -20,7 +20,7 @@ std::vector<Node*> getChildren(Network &network, Node *node) {
     return children;
 }
 
-std::vector<Node*> getChildrenIgnoreDirections(Network &network, Node *node, const Node *myParent) {
+std::vector<Node*> getChildrenIgnoreDirections(Network &network, const Node *node, const Node *myParent) {
     assert(node);
     std::vector<Node*> children;
     
@@ -33,7 +33,7 @@ std::vector<Node*> getChildrenIgnoreDirections(Network &network, Node *node, con
     return children;
 }
 
-std::vector<Node*> getActiveChildren(Network &network, Node *node) {
+std::vector<Node*> getActiveChildren(Network &network, const Node *node) {
     assert(node);
     std::vector<Node*> activeChildren;
     std::vector<Node*> children = getChildren(network, node);
@@ -51,7 +51,7 @@ std::vector<Node*> getActiveChildren(Network &network, Node *node) {
 }
 
 std::vector<Node*> getActiveAliveChildren(Network &network, const std::vector<bool> &dead_nodes,
-        Node *node) {
+        const Node *node) {
     assert(node);
     std::vector<Node*> activeChildren;
     std::vector<Node*> children = getChildren(network, node);
@@ -71,7 +71,7 @@ std::vector<Node*> getActiveAliveChildren(Network &network, const std::vector<bo
     return activeChildren;
 }
 
-std::vector<Node*> getActiveChildrenUndirected(Network &network, Node *node, const Node *myParent) {
+std::vector<Node*> getActiveChildrenUndirected(Network &network, const Node *node, const Node *myParent) {
     assert(node);
     std::vector<Node*> activeChildren;
     std::vector<Node*> children = getChildrenIgnoreDirections(network, node, myParent);
@@ -90,7 +90,7 @@ std::vector<Node*> getActiveChildrenUndirected(Network &network, Node *node, con
     return activeChildren;
 }
 
-Node* getOtherChild(Network &network, Node *parent, Node *aChild) {
+Node* getOtherChild(Network &network, const Node *parent, const Node *aChild) {
     assert(parent && parent->type != NodeType::RETICULATION_NODE);
     assert(aChild);
     std::vector<Node*> children = getChildren(network, parent);
@@ -103,14 +103,14 @@ Node* getOtherChild(Network &network, Node *parent, Node *aChild) {
     return nullptr;
 }
 
-bool hasChild(Network &network, Node *parent, Node *candidate) {
+bool hasChild(Network &network, const Node *parent, const Node *candidate) {
     assert(parent);
     assert(candidate);
     std::vector<Node*> children = getChildren(network, parent);
     return (std::find(children.begin(), children.end(), candidate) != children.end());
 }
 
-std::vector<Node*> getCurrentChildren(AnnotatedNetwork& ann_network, Node* node, Node* parent, const ReticulationConfigSet& restrictions) {
+std::vector<Node*> getCurrentChildren(AnnotatedNetwork& ann_network, const Node* node, const Node* parent, const ReticulationConfigSet& restrictions) {
     assert(restrictions.configs.size() == 1);
     std::vector<Node*> children = getChildrenIgnoreDirections(ann_network.network, node, parent);
     std::vector<Node*> res;

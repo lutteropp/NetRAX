@@ -18,7 +18,18 @@ Link* make_link(Node *node, Edge *edge, Direction dir) {
     return node->addLink(link);
 }
 
-std::vector<Link*> getLinksToClvIndex(Network &network, Node *node, size_t target_index) {
+std::vector<const Link*> getLinksToClvIndex(Network &network, const Node *node, size_t target_index) {
+    assert(node);
+    std::vector<const Link*> res;
+    for (size_t i = 0; i < node->links.size(); ++i) {
+        if (getTargetNode(network, &(node->links[i]))->clv_index == target_index) {
+            res.emplace_back(&(node->links[i]));
+        }
+    }
+    return res;
+}
+
+std::vector<Link*> getLinksToClvIndexMutable(Network &network, Node *node, size_t target_index) {
     assert(node);
     std::vector<Link*> res;
     for (size_t i = 0; i < node->links.size(); ++i) {

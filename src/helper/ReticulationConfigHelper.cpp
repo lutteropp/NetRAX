@@ -16,7 +16,7 @@ void setReticulationState(Network &network, size_t reticulation_idx, Reticulatio
     }
 }
 
-ReticulationConfigSet getRestrictionsToDismissNeighbor(AnnotatedNetwork& ann_network, Node* node, Node* neighbor) {
+ReticulationConfigSet getRestrictionsToDismissNeighbor(AnnotatedNetwork& ann_network, const Node* node, const Node* neighbor) {
     ReticulationConfigSet res(ann_network.options.max_reticulations);
     std::vector<ReticulationState> restrictions(ann_network.options.max_reticulations, ReticulationState::DONT_CARE);
     assert(node);
@@ -46,7 +46,7 @@ ReticulationConfigSet getRestrictionsToDismissNeighbor(AnnotatedNetwork& ann_net
     return res;
 }
 
-ReticulationConfigSet getRestrictionsToTakeNeighbor(AnnotatedNetwork& ann_network, Node* node, Node* neighbor) {
+ReticulationConfigSet getRestrictionsToTakeNeighbor(AnnotatedNetwork& ann_network, const Node* node, const Node* neighbor) {
     ReticulationConfigSet res(ann_network.options.max_reticulations);
     std::vector<ReticulationState> restrictions(ann_network.options.max_reticulations, ReticulationState::DONT_CARE);
     assert(node);
@@ -69,7 +69,7 @@ ReticulationConfigSet getRestrictionsToTakeNeighbor(AnnotatedNetwork& ann_networ
     return res;
 }
 
-ReticulationConfigSet getReticulationChoicesThisOnly(AnnotatedNetwork& ann_network, const ReticulationConfigSet& this_tree_config, const ReticulationConfigSet& other_child_dead_settings, Node* parent, Node* this_child, Node* other_child) {
+ReticulationConfigSet getReticulationChoicesThisOnly(AnnotatedNetwork& ann_network, const ReticulationConfigSet& this_tree_config, const ReticulationConfigSet& other_child_dead_settings, const Node* parent, const Node* this_child, const Node* other_child) {
     // covers both dead children and reticulation children
     ReticulationConfigSet res(ann_network.options.max_reticulations);
 
@@ -102,7 +102,7 @@ ReticulationConfigSet getReticulationChoicesThisOnly(AnnotatedNetwork& ann_netwo
     return res;
 }
 
-ReticulationConfigSet deadNodeSettings(AnnotatedNetwork& ann_network, const NodeDisplayedTreeData& displayed_trees, Node* parent, Node* child) {
+ReticulationConfigSet deadNodeSettings(AnnotatedNetwork& ann_network, const NodeDisplayedTreeData& displayed_trees, const Node* parent, const Node* child) {
     // Return all configurations in which the node which the displayed trees belong to would have no displayed tree, and thus be a dead node
     ReticulationConfigSet res(ann_network.options.max_reticulations);
 
@@ -181,7 +181,7 @@ DisplayedTreeData& findMatchingDisplayedTree(AnnotatedNetwork& ann_network, cons
     }
 }
 
-Node* findFirstNodeWithTwoActiveChildren(AnnotatedNetwork& ann_network, const ReticulationConfigSet& reticulationChoices, Node* oldRoot) {
+Node* findFirstNodeWithTwoActiveChildren(AnnotatedNetwork& ann_network, const ReticulationConfigSet& reticulationChoices, const Node* oldRoot) {
     // TODO: Make this work with direction-agnistic stuff (virtual rerooting)
     //throw std::runtime_error("TODO: Make this work with direction-agnistic stuff (virtual rerooting)");
 
@@ -215,6 +215,30 @@ const TreeLoglData& getMatchingTreeData(const std::vector<DisplayedTreeData>& tr
     std::cout << "query was:\n";
     printReticulationChoices(queryChoices);
     throw std::runtime_error("No compatible old tree data found");
+}
+
+ReticulationConfigSet getRestrictionsActiveBranch(AnnotatedNetwork& ann_network, size_t pmatrix_index) {
+    ReticulationConfigSet res;
+    for (size_t tree_idx = 0; tree_idx < (1 << ann_network.network.num_reticulations()); ++tree_idx) {
+        ReticulationConfigSet treeChoices = getTreeConfig(ann_network, tree_idx);
+        if (isActiveBranch(ann_network, treeChoices, pmatrix_index)) {
+            res.configs.emplace_back(treeChoices.configs[0]);
+        }
+    }
+    simplifyReticulationChoices(res);
+    return res;
+}
+
+ReticulationConfigSet getRestrictionsActiveAliveBranch(AnnotatedNetwork& ann_network, size_t pmatrix_index) {
+    ReticulationConfigSet res;
+    for (size_t tree_idx = 0; tree_idx < (1 << ann_network.network.num_reticulations()); ++tree_idx) {
+        ReticulationConfigSet treeChoices = getTreeConfig(ann_network, tree_idx);
+        if (isActiveAliveBranch(ann_network, treeChoices, pmatrix_index)) {
+            res.configs.emplace_back(treeChoices.configs[0]);
+        }
+    }
+    simplifyReticulationChoices(res);
+    return res;
 }
 
 }
