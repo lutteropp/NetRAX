@@ -510,6 +510,8 @@ Move applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<Move> candida
 
     bool found_better_state = (enforce ? (best_bic != std::numeric_limits<double>::infinity()) : (best_bic < old_score));
 
+    assert(scoreNetwork(ann_network) == old_score);
+
     if (found_better_state) {
         Move move(candidates[0]);
         assert(checkSanity(ann_network, candidates[0]));
