@@ -185,12 +185,13 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
     ScoreImprovementResult score_improvement;
     //std::cout << "Initial network is:\n" << toExtendedNewick(ann_network) << "\n\n";
 
-    optimizeAllNonTopology(ann_network);
-    score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
-
     if (!ann_network.options.start_network_file.empty()) { // don't waste time trying to first horizontally optimize the user-given start network
+        optimizeAllNonTopology(ann_network, true);
+        score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
         wavesearch_main_internal(ann_network, bestNetworkData, typesBySpeedGoodStart, start_state_to_reuse, best_state_to_reuse, &best_score, start_time, silent);
     } else {
+        optimizeAllNonTopology(ann_network);
+        score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
         wavesearch_main_internal(ann_network, bestNetworkData, typesBySpeed, start_state_to_reuse, best_state_to_reuse, &best_score, start_time, silent);
     }
 }
