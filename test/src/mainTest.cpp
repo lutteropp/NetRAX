@@ -1,7 +1,6 @@
 #include <cstddef>
 #include <iostream>
 #include <string>
-#include <filesystem>
 
 #include "NetraxTest.hpp"
 
@@ -11,8 +10,6 @@ int main(int argc, char **argv) {
     env = new NetraxTest();
     //std::ios_base::sync_with_stdio(0);
     //std::cin.tie(0);
-
-    std::cout << "Current path is " << std::filesystem::current_path() << '\n';
 
     // Set data dir using the program path.
     std::string call = argv[0];
