@@ -22,7 +22,7 @@
 
 using namespace netrax;
 
-const std::string DATA_PATH = "/home/sarah/code-workspace/NetRAX/test/sample_networks/";
+const std::string DATA_PATH = "sample_networks/";
 
 TEST (SystemTest, testTheTest) {
     ASSERT_TRUE(true);

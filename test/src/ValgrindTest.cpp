@@ -15,7 +15,7 @@
 
 #include "NetraxTest.hpp"
 
-const std::string DATA_PATH = "/home/sarah/code-workspace/NetRAX/test/sample_networks/";
+const std::string DATA_PATH = "sample_networks/";
 
 using namespace netrax;
 
