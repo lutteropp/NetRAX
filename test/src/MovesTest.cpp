@@ -59,6 +59,7 @@ void randomMovesStep(AnnotatedNetwork &ann_network, std::vector<Move> candidates
     std::vector<std::vector<double> > old_brlens = extract_brlens(ann_network);
 
     for (size_t j = 0; j < candidates.size(); ++j) {
+        std::cout << "Testing moves for candidate " << j << "/" << candidates.size() << "...\n";
         std::string newickBeforeMove = toExtendedNewick(ann_network);
         //std::cout << "perform " << toString(candidates[j]);
         performMove(ann_network, candidates[j]);
@@ -103,6 +104,7 @@ void randomMoves(const std::string &networkPath, const std::string &msaPath, boo
     }
 
     for (size_t i = 0; i < network.num_branches(); ++i) {
+        std::cout << "Testing moves for branch " << i << "/" << network.num_branches() << "...\n";
         randomMovesStep(ann_network, possibleMoves(ann_network, type, ann_network.network.edges_by_index[i]));
     }
 }
