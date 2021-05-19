@@ -190,17 +190,18 @@ def parse_command_line_arguments_experiment():
     CLI.add_argument("--max_reticulations", type=int, default=2)
     CLI.add_argument("--min_reticulation_prob", type=float, default=0.1)
     CLI.add_argument("--max_reticulation_prob", type=float, default=0.9)
-    CLI.add_argument("--folder_path", type=str, default="data/")
+    CLI.add_argument("--folder_path", type=str, default="data")
 
     CLI.add_argument("--labeled_settings", type=str, default="")
 
     args = CLI.parse_args()
 
+
     known_setups = gather_labeled_settings()
     if len(args.labeled_settings) > 0:
         if args.labeled_settings in known_setups:
             _, settings = known_setups[args.labeled_settings]
-            settings.folder_path = args.folder_path
+            settings.folder_path = args.folder_path + "/"
             return args.prefix, settings
         else:
             raise Exception("Unknown experiment name: " + args.labeled_settings)
@@ -219,7 +220,7 @@ def parse_command_line_arguments_experiment():
         settings.max_reticulations = args.max_reticulations
         settings.min_reticulation_prob = args.min_reticulation_prob
         settings.max_reticulation_prob = args.max_reticulation_prob
-        settings.folder_path = args.folder_path
+        settings.folder_path = args.folder_path + "/"
         return args.prefix, settings
 
 
