@@ -118,4 +118,24 @@ public:
     std::string start_network_file = "";
     std::string output_file = "";
 };
+
+inline bool no_parallelization_needed(const NetraxOptions& netraxOptions) {
+    if (netraxOptions.pretty_print_only) {
+        return true;
+    } else if (netraxOptions.extract_displayed_trees) {
+        return true;
+    } else if (netraxOptions.check_weird_network) {
+        return true;
+    } else if (netraxOptions.generate_random_network_only) {
+        return true;
+    } else if (netraxOptions.scale_branches_only != 0.0) {
+        return true;
+    } else if (netraxOptions.change_reticulation_probs_only) {
+        return true;
+    } else if (netraxOptions.network_distance_only) {
+        return true;
+    } 
+    return false;
+}
+
 }

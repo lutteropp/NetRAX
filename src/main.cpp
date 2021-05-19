@@ -403,25 +403,6 @@ void scale_reticulation_probs_only(NetraxOptions &netraxOptions, const RaxmlInst
     }
 }
 
-bool no_parallelization_needed(const NetraxOptions& netraxOptions) {
-    if (netraxOptions.pretty_print_only) {
-        return true;
-    } else if (netraxOptions.extract_displayed_trees) {
-        return true;
-    } else if (netraxOptions.check_weird_network) {
-        return true;
-    } else if (netraxOptions.generate_random_network_only) {
-        return true;
-    } else if (netraxOptions.scale_branches_only != 0.0) {
-        return true;
-    } else if (netraxOptions.change_reticulation_probs_only) {
-        return true;
-    } else if (netraxOptions.network_distance_only) {
-        return true;
-    } 
-    return false;
-}
-
 bool quick_function(NetraxOptions& netraxOptions, const RaxmlInstance& instance) {
     std::mt19937 rng(netraxOptions.seed);
     if (netraxOptions.pretty_print_only) {
@@ -545,20 +526,6 @@ void netrax_thread_main(NetraxOptions& netraxOptions, const RaxmlInstance& insta
 
 void setup_parallel_stuff(NetraxOptions& netraxOptions, RaxmlInstance& instance) {
     if (no_parallelization_needed(netraxOptions)) {
-        instance.opts.num_threads = 1;
-        instance.opts.num_ranks = 1;
-        instance.opts.num_workers = 1;
-        //init_parallel_buffers(instance);
-
-        PartitionAssignment part_sizes;
-        /* init list of partition sizes */
-        size_t i = 0;
-        for (auto const& pinfo: instance.parted_msa->part_list())
-        {
-            part_sizes.assign_sites(i, 0, pinfo.length(), pinfo.model().clv_entry_size());
-            ++i;
-        }
-        instance.proc_part_assign = instance.load_balancer->get_all_assignments(part_sizes, 1);
         return;
     }
     autotune_threads(instance);

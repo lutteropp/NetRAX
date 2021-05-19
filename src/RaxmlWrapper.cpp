@@ -355,6 +355,24 @@ Options createDefaultOptions() {
     return opts;
 }
 
+void setupRaxmlInstanceSingleThreaded(RaxmlInstance& instance) {
+    instance.opts.num_threads = 1;
+    instance.opts.num_ranks = 1;
+    instance.opts.num_workers = 1;
+    //init_parallel_buffers(instance);
+
+    PartitionAssignment part_sizes;
+    /* init list of partition sizes */
+    size_t i = 0;
+    for (auto const& pinfo: instance.parted_msa->part_list())
+    {
+        part_sizes.assign_sites(i, 0, pinfo.length(), pinfo.model().clv_entry_size());
+        ++i;
+    }
+    instance.proc_part_assign = instance.load_balancer->get_all_assignments(part_sizes, 1);
+    return;
+}
+
 RaxmlInstance createRaxmlInstance(const NetraxOptions &options) {
     assert(!options.use_repeats);
     RaxmlInstance instance;
@@ -398,6 +416,10 @@ RaxmlInstance createRaxmlInstance(const NetraxOptions &options) {
             throw std::runtime_error("Only one partition given, but brlen linkage is not set to linked");
         }
         instance.opts.brlen_linkage = PLLMOD_COMMON_BRLEN_LINKED;
+    }
+
+    if (no_parallelization_needed(options)) {
+        setupRaxmlInstanceSingleThreaded(instance);
     }
 
     return instance;
