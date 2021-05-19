@@ -13,13 +13,10 @@ import argparse
 from experiment_settings import ExperimentSettings, gather_labeled_settings
 
 
-def build_dataset(prefix, n_taxa, n_reticulations, msa_size, simulator_type, brlen_scaler, sampling_type, likelihood_types, brlen_linkage_types, start_types, part_msa_types, folder_path, my_id, reticulation_prob=None):
+def build_dataset(prefix, n_taxa, n_reticulations, msa_size, simulator_type, brlen_scaler, sampling_type, likelihood_types, brlen_linkage_types, start_types, part_msa_types, folder_path, my_id, my_inner_id, reticulation_prob=None):
     if not os.path.exists(folder_path + 'datasets_' + prefix):
         os.makedirs(folder_path + 'datasets_' + prefix)
-    name = folder_path + "datasets_" + prefix + "/" + str(my_id) + '_' + str(n_taxa) + '_taxa_' + str(
-        n_reticulations) + '_reticulations_' + str(simulator_type) + "_" + str(sampling_type) + "_" + str(msa_size) + "_msasize" + "_" + str(brlen_scaler).replace(".","_") + "_brlenScaler"
-    if reticulation_prob:
-        name += '_' + str(reticulation_prob).replace('.','_') + "_reticulation_prob"
+    name = folder_path + "datasets_" + prefix + "/" + str(my_id) + '_' + str(my_inner_id)
     return create_dataset_container(n_taxa, n_reticulations, msa_size, sampling_type, simulator_type, brlen_scaler, likelihood_types, brlen_linkage_types, start_types, part_msa_types, my_id, name, reticulation_prob)
 
 
@@ -61,12 +58,14 @@ def simulate_network_celine_fixed_nonweird(settings, wanted_n_taxa, wanted_n_ret
 def simulate_datasets_range(prefix, settings, iterations):
     datasets = []
     for my_id in range(iterations):
+        my_inner_id = 0
         n_taxa, n_reticulations, newick, param_info = simulate_network_celine_minmax_nonweird(settings)
         n_trees = 2 ** param_info["no_of_hybrids"]
         for partition_size in settings.partition_sizes:
             for sampling_type in settings.sampling_types:
+                my_inner_id += 1
                 ds = build_dataset(prefix, n_taxa, n_reticulations, n_trees * partition_size, SimulatorType.CELINE, 1,
-                                sampling_type, settings.likelihood_types, settings.brlen_linkage_types, settings.start_types, settings.use_partitioned_msa_types, settings.folder_path, my_id)
+                                sampling_type, settings.likelihood_types, settings.brlen_linkage_types, settings.start_types, settings.use_partitioned_msa_types, settings.folder_path, my_id, my_inner_id)
                 ds.sites_per_tree = partition_size
                 ds.celine_params = param_info
                 ds.n_trees = 2 ** ds.celine_params["no_of_hybrids"]
@@ -91,6 +90,7 @@ def simulate_datasets_range(prefix, settings, iterations):
 def simulate_datasets_fixed(prefix, settings, iterations):
     datasets = []
     for my_id in range(iterations):
+        my_inner_id = 0
         for simulator_type in settings.simulator_types:   
             for n_taxa in settings.fixed_n_taxa:
                 for n_reticulations in settings.fixed_n_reticulations:
@@ -100,8 +100,9 @@ def simulate_datasets_fixed(prefix, settings, iterations):
                         for reticulation_prob in settings.fixed_reticulation_probs:
                             for partition_size in settings.partition_sizes:
                                 for sampling_type in settings.sampling_types:
+                                    my_inner_id += 1
                                     ds = build_dataset(prefix, n_taxa, n_reticulations, n_trees * partition_size, simulator_type, brlen_scaler,
-                                                    sampling_type, settings.likelihood_types, settings.brlen_linkage_types, settings.start_types, settings.use_partitioned_msa_types, settings.folder_path, my_id, reticulation_prob)
+                                                    sampling_type, settings.likelihood_types, settings.brlen_linkage_types, settings.start_types, settings.use_partitioned_msa_types, settings.folder_path, my_id, my_inner_id, reticulation_prob)
                                     ds.sites_per_tree = partition_size
                                     ds.celine_params = param_info
                                     ds.n_trees = 2 ** ds.celine_params["no_of_hybrids"]
