@@ -444,7 +444,7 @@ void printDisplayedTrees(AnnotatedNetwork& ann_network) {
                 DisplayedTreeData& tree = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].displayed_trees[j];
                 pll_utree_t* utree = netrax::displayed_tree_to_utree(ann_network.network, tree.treeLoglData.reticulationChoices.configs[0]);
                 double prob = std::exp(tree.treeLoglData.tree_logprob);
-                Network displayedNetwork = netrax::convertUtreeToNetwork(*utree, 0);
+                Network displayedNetwork = netrax::convertUtreeToNetwork(*utree, ann_network.options, 0);
                 std::string newick = netrax::toExtendedNewick(displayedNetwork);
                 pll_utree_destroy(utree, nullptr);
                 displayed_trees.emplace_back(std::make_pair(newick, prob));

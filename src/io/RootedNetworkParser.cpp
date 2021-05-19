@@ -19,6 +19,8 @@
 
 #include <raxml-ng/constants.hpp>
 
+#include "../NetraxOptions.hpp"
+
 namespace netrax {
 
 // returns a substring from beginIndex to endIndex - 1
@@ -271,7 +273,7 @@ void enforceToplevelBifurcation(RootedNetwork* rnetwork) {
     rnetwork->innerCount++;
 }
 
-RootedNetwork* parseRootedNetworkFromNewickString(const std::string &newick) {
+RootedNetwork* parseRootedNetworkFromNewickString(const std::string &newick, const NetraxOptions& options) {
     RootedNetwork *rnetwork = new RootedNetwork();
     // TODO: special case: ignore faulty extra Céline parantheses which lead to top-level monofurcation
     std::unordered_map<std::string, RootedNetworkNode*> reticulations_lookup;
@@ -303,9 +305,11 @@ RootedNetwork* parseRootedNetworkFromNewickString(const std::string &newick) {
                 rnetwork->nodes[i]->firstParentProb = 0.5;
                 rnetwork->nodes[i]->secondParentProb = 0.5;
             } else {
-                assert(
-                        rnetwork->nodes[i]->firstParentProb + rnetwork->nodes[i]->secondParentProb
-                                == 1);
+                rnetwork->nodes[i]->firstParentProb = std::max(rnetwork->nodes[i]->firstParentProb, options.brprob_min);
+                rnetwork->nodes[i]->firstParentProb = std::min(rnetwork->nodes[i]->firstParentProb, options.brprob_max);
+                rnetwork->nodes[i]->secondParentProb = std::max(rnetwork->nodes[i]->firstParentProb, options.brprob_min);
+                rnetwork->nodes[i]->secondParentProb = std::min(rnetwork->nodes[i]->firstParentProb, options.brprob_max);
+                assert(rnetwork->nodes[i]->firstParentProb + rnetwork->nodes[i]->secondParentProb == 1);
             }
         }
     }
@@ -313,7 +317,7 @@ RootedNetwork* parseRootedNetworkFromNewickString(const std::string &newick) {
     enforceToplevelBifurcation(rnetwork);
 
     // further post-processing: Set too-short branches to minimum branch length
-    double min_branch_length = RAXML_BRLEN_MIN;
+    double min_branch_length = options.brlen_min;
     for (size_t i = 0; i < rnetwork->nodes.size(); ++i) {
         rnetwork->nodes[i]->length = std::max(rnetwork->nodes[i]->length, min_branch_length);
         if (rnetwork->nodes[i]->isReticulation) {

@@ -135,7 +135,7 @@ void init_annotated_network(AnnotatedNetwork &ann_network) {
  */
 AnnotatedNetwork build_annotated_network(NetraxOptions &options, const RaxmlInstance& instance) {
     AnnotatedNetwork ann_network(options, instance);
-    ann_network.network = std::move(netrax::readNetworkFromFile(options.start_network_file,
+    ann_network.network = std::move(netrax::readNetworkFromFile(options.start_network_file, options,
             options.max_reticulations));
     return ann_network;
 }
@@ -149,7 +149,7 @@ AnnotatedNetwork build_annotated_network(NetraxOptions &options, const RaxmlInst
 AnnotatedNetwork build_annotated_network_from_string(NetraxOptions &options, const RaxmlInstance& instance,
         const std::string &newickString) {
     AnnotatedNetwork ann_network(options, instance);
-    ann_network.network = netrax::readNetworkFromString(newickString, options.max_reticulations);
+    ann_network.network = netrax::readNetworkFromString(newickString, options, options.max_reticulations);
     return ann_network;
 }
 
@@ -162,7 +162,7 @@ AnnotatedNetwork build_annotated_network_from_string(NetraxOptions &options, con
 AnnotatedNetwork build_annotated_network_from_file(NetraxOptions &options, const RaxmlInstance& instance,
         const std::string &networkPath) {
     AnnotatedNetwork ann_network(options, instance);
-    ann_network.network = std::move(netrax::readNetworkFromFile(networkPath,
+    ann_network.network = std::move(netrax::readNetworkFromFile(networkPath, options,
             options.max_reticulations));
     return ann_network;
 }
@@ -176,7 +176,7 @@ AnnotatedNetwork build_annotated_network_from_file(NetraxOptions &options, const
 AnnotatedNetwork build_annotated_network_from_utree(NetraxOptions &options, const RaxmlInstance& instance,
         const pll_utree_t &utree) {
     AnnotatedNetwork ann_network(options, instance);
-    ann_network.network = netrax::convertUtreeToNetwork(utree, options.max_reticulations);
+    ann_network.network = netrax::convertUtreeToNetwork(utree, options, options.max_reticulations);
     return ann_network;
 }
 

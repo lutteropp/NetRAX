@@ -147,10 +147,6 @@ size_t elbowMethod(const std::vector<ScoreItem<T> >& elements, int max_n_keep = 
 	return maxDistIdx + 1;
 }
 
-double enforceRemovalBadReticulations(AnnotatedNetwork& ann_network) {
-    std::vector<Node*> bad_reticulations = getBadR
-}
-
 double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& candidates, bool silent = true, bool print_progress = true, bool need_best_bic = false) {    
     if (candidates.empty()) {
         return scoreNetwork(ann_network);
@@ -202,70 +198,64 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& can
         if (move.moveType == MoveType::ArcInsertionMove || move.moveType == MoveType::DeltaPlusMove) {
             switchLikelihoodVariant(ann_network, old_variant);
             optimizeReticulationProbs(ann_network);
-            if (!hasBadReticulation(ann_network)) {
-                std::unordered_set<size_t> brlenopt_candidates;
-                brlenopt_candidates.emplace(move.arcInsertionData.wanted_uv_pmatrix_index);
-                optimizeBranchesCandidates(ann_network, brlenopt_candidates);
-                updateMoveBranchLengths(ann_network, move);
-            }
+            std::unordered_set<size_t> brlenopt_candidates;
+            brlenopt_candidates.emplace(move.arcInsertionData.wanted_uv_pmatrix_index);
+            optimizeBranchesCandidates(ann_network, brlenopt_candidates);
+            updateMoveBranchLengths(ann_network, move);
             switchLikelihoodVariant(ann_network, LikelihoodVariant::SARAH_PSEUDO);
         }
 
-        if (!hasBadReticulation(ann_network)) {
-            double bicScore = scoreNetwork(ann_network);
-            nodeScore[move.node_orig_idx] = std::min(nodeScore[move.node_orig_idx], bicScore);
-            scores[i] = ScoreItem<Move>{candidates[i], bicScore};
+        double bicScore = scoreNetwork(ann_network);
+        nodeScore[move.node_orig_idx] = std::min(nodeScore[move.node_orig_idx], bicScore);
+        scores[i] = ScoreItem<Move>{candidates[i], bicScore};
 
-            for (size_t j = 0; j < ann_network.network.num_nodes(); ++j) {
-                assert(ann_network.network.nodes_by_index[j]->clv_index == j);
-            }
+        for (size_t j = 0; j < ann_network.network.num_nodes(); ++j) {
+            assert(ann_network.network.nodes_by_index[j]->clv_index == j);
+        }
 
-            if (bicScore < old_bic) {
-                n_better++;
-            }
+        if (bicScore < old_bic) {
+            n_better++;
+        }
 
-            if (bicScore < best_bic) {
-                best_bic = bicScore;
+        if (bicScore < best_bic) {
+            best_bic = bicScore;
 
-                if (need_best_bic && ann_network.network.num_reticulations() > 0) {
-                    switchLikelihoodVariant(ann_network, old_variant);
-                    double actRealBIC = scoreNetwork(ann_network);
-                    if (actRealBIC < best_real_bic) {
-                        best_real_bic = actRealBIC;
-                        ann_network.last_accepted_move_edge_orig_idx = move.edge_orig_idx;
-                        switchLikelihoodVariant(ann_network, LikelihoodVariant::SARAH_PSEUDO);
-                    }
-                    if (actRealBIC >= real_old_bic) {
-                        n_better--;
-                    }
-                } else {
-                    best_real_bic = best_bic;
-                }
-            }
-
-            double extra_offset = (ann_network.options.likelihood_variant == LikelihoodVariant::SARAH_PSEUDO) ? 0.01 : 0.0; // +0.01 because we tend to over-estimate with pseudologlikelihood
-            if (old_bic/bicScore > ann_network.options.greedy_factor + extra_offset) {
+            if (need_best_bic && ann_network.network.num_reticulations() > 0) {
                 switchLikelihoodVariant(ann_network, old_variant);
-                optimizeReticulationProbs(ann_network);
-                double real_bicScore = scoreNetwork(ann_network);
-                if (real_old_bic/real_bicScore > ann_network.options.greedy_factor) {
-                    candidates[0] = candidates[i];
-                    candidates.resize(1);
-                    undoMove(ann_network, move);
-
-                    //assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
-                    apply_network_state(ann_network, oldState);
-                    if (print_progress && ParallelContext::master_rank() && ParallelContext::master_thread()) {
-                        std::cout << std::endl;
-                    }
-                    switchLikelihoodVariant(ann_network, old_variant);
-                    return real_bicScore;
-                } else {
+                double actRealBIC = scoreNetwork(ann_network);
+                if (actRealBIC < best_real_bic) {
+                    best_real_bic = actRealBIC;
+                    ann_network.last_accepted_move_edge_orig_idx = move.edge_orig_idx;
                     switchLikelihoodVariant(ann_network, LikelihoodVariant::SARAH_PSEUDO);
                 }
+                if (actRealBIC >= real_old_bic) {
+                    n_better--;
+                }
+            } else {
+                best_real_bic = best_bic;
             }
-        } else {
-            scores[i] = ScoreItem<Move>{candidates[i], std::numeric_limits<double>::infinity()};
+        }
+
+        double extra_offset = (ann_network.options.likelihood_variant == LikelihoodVariant::SARAH_PSEUDO) ? 0.01 : 0.0; // +0.01 because we tend to over-estimate with pseudologlikelihood
+        if (old_bic/bicScore > ann_network.options.greedy_factor + extra_offset) {
+            switchLikelihoodVariant(ann_network, old_variant);
+            optimizeReticulationProbs(ann_network);
+            double real_bicScore = scoreNetwork(ann_network);
+            if (real_old_bic/real_bicScore > ann_network.options.greedy_factor) {
+                candidates[0] = candidates[i];
+                candidates.resize(1);
+                undoMove(ann_network, move);
+
+                //assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
+                apply_network_state(ann_network, oldState);
+                if (print_progress && ParallelContext::master_rank() && ParallelContext::master_thread()) {
+                    std::cout << std::endl;
+                }
+                switchLikelihoodVariant(ann_network, old_variant);
+                return real_bicScore;
+            } else {
+                switchLikelihoodVariant(ann_network, LikelihoodVariant::SARAH_PSEUDO);
+            }
         }
 
         //assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
@@ -378,37 +368,33 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& candidates
         optimizeReticulationProbs(ann_network);
         updateMoveBranchLengths(ann_network, move);
 
-        if (!hasBadReticulation(ann_network)) {
-            //assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
-            double bicScore = scoreNetwork(ann_network);
+        //assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+        double bicScore = scoreNetwork(ann_network);
 
-            scores[i] = ScoreItem<Move>{candidates[i], bicScore};
+        scores[i] = ScoreItem<Move>{candidates[i], bicScore};
 
-            for (size_t j = 0; j < ann_network.network.num_nodes(); ++j) {
-                assert(ann_network.network.nodes_by_index[j]->clv_index == j);
+        for (size_t j = 0; j < ann_network.network.num_nodes(); ++j) {
+            assert(ann_network.network.nodes_by_index[j]->clv_index == j);
+        }
+
+        if (bicScore < best_bic) {
+            best_bic = bicScore;
+            ann_network.last_accepted_move_edge_orig_idx = move.edge_orig_idx;
+        }
+
+        if (bicScore < old_bic) {
+            n_better++;
+        }
+
+        if (old_bic/bicScore > ann_network.options.greedy_factor) {
+            candidates[0] = candidates[i];
+            candidates.resize(1);
+            undoMove(ann_network, move);
+            apply_network_state(ann_network, oldState);
+            if (print_progress && ParallelContext::master_rank() && ParallelContext::master_thread()) {
+                std::cout << std::endl;
             }
-
-            if (bicScore < best_bic) {
-                best_bic = bicScore;
-                ann_network.last_accepted_move_edge_orig_idx = move.edge_orig_idx;
-            }
-
-            if (bicScore < old_bic) {
-                n_better++;
-            }
-
-            if (old_bic/bicScore > ann_network.options.greedy_factor) {
-                candidates[0] = candidates[i];
-                candidates.resize(1);
-                undoMove(ann_network, move);
-                apply_network_state(ann_network, oldState);
-                if (print_progress && ParallelContext::master_rank() && ParallelContext::master_thread()) {
-                    std::cout << std::endl;
-                }
-                return;
-            }
-        } else {
-            scores[i] = ScoreItem<Move>{candidates[i], std::numeric_limits<double>::infinity()};
+            return;
         }
 
         //assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
@@ -660,17 +646,6 @@ double fastIterationsMode(AnnotatedNetwork& ann_network, int best_max_distance, 
             if (std::find(oldCandidates.begin(), oldCandidates.end(), chosenMove) != oldCandidates.end()) {
                 if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
                     std::cout << " Info: Taken move was in the old candidates.\n";
-                }
-            }
-
-            if (isArcInsertion(type) && hasBadReticulation(ann_network)) {
-                // interleave the arc insertion search with a quick arc removal round, to avoid keeping reticulations with 0/1 prob around
-                if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-                    std::cout << "Bad reticulation detected. Interleaving arc insertion with trying some arc removals...\n";
-                }
-                fastIterationsMode(ann_network, best_max_distance, MoveType::ArcRemovalMove, typesBySpeed, best_score, bestNetworkData, silent);
-                if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-                    std::cout << "Back to arc insertion...\n";
                 }
             }
 

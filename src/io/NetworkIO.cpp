@@ -325,19 +325,19 @@ Network convertNetwork(RootedNetwork &rnetwork, int maxReticulations) {
     return network;
 }
 
-Network readNetworkFromString(const std::string &newick, int maxReticulations) {
-    RootedNetwork *rnetwork = parseRootedNetworkFromNewickString(newick);
+Network readNetworkFromString(const std::string &newick, const NetraxOptions& options, int maxReticulations) {
+    RootedNetwork *rnetwork = parseRootedNetworkFromNewickString(newick, options);
     Network network = convertNetwork(*rnetwork, maxReticulations);
     delete rnetwork;
     return network;
 }
 
-Network readNetworkFromFile(const std::string &filename, int maxReticulations) {
+Network readNetworkFromFile(const std::string &filename, const NetraxOptions& options, int maxReticulations) {
     std::ifstream t(filename);
     std::stringstream buffer;
     buffer << t.rdbuf();
     std::string newick = buffer.str();
-    return readNetworkFromString(newick, maxReticulations);
+    return readNetworkFromString(newick, options, maxReticulations);
 }
 
 std::string newickNodeName(Network &network, const Node *node, const Node *parent) {
@@ -449,9 +449,9 @@ std::string toExtendedNewick(AnnotatedNetwork &ann_network) {
     return toExtendedNewick(ann_network.network);
 }
 
-Network convertUtreeToNetwork(const pll_utree_t &utree, unsigned int maxReticulations) {
+Network convertUtreeToNetwork(const pll_utree_t &utree, NetraxOptions& options, unsigned int maxReticulations) {
     std::string newick(pll_utree_export_newick(utree.vroot, nullptr));
-    return readNetworkFromString(newick, maxReticulations);
+    return readNetworkFromString(newick, options, maxReticulations);
 }
 
 /**

@@ -192,7 +192,7 @@ std::vector<MoveType> getTypesBySpeed(const NetraxOptions& options) {
 
 void pretty_print(const NetraxOptions &netraxOptions)
 {
-    Network network = netrax::readNetworkFromFile(netraxOptions.start_network_file);
+    Network network = netrax::readNetworkFromFile(netraxOptions.start_network_file, netraxOptions);
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         std::cout << exportDebugInfoNetwork(network) << "\n";
     }
@@ -234,7 +234,7 @@ void score_only(NetraxOptions &netraxOptions, const RaxmlInstance& instance, std
 
 void extract_taxon_names(const NetraxOptions &netraxOptions)
 {
-    netrax::Network network = netrax::readNetworkFromFile(netraxOptions.start_network_file,
+    netrax::Network network = netrax::readNetworkFromFile(netraxOptions.start_network_file, netraxOptions,
                                                           netraxOptions.max_reticulations);
     std::vector<std::string> tip_labels;
     for (size_t i = 0; i < network.num_tips(); ++i)
@@ -267,7 +267,7 @@ void extract_displayed_trees(NetraxOptions &netraxOptions, const RaxmlInstance& 
         {
             pll_utree_t *utree = netrax::displayed_tree_to_utree(ann_network.network, tree_index);
             double prob = netrax::displayed_tree_prob(ann_network, tree_index);
-            Network displayedNetwork = netrax::convertUtreeToNetwork(*utree, 0);
+            Network displayedNetwork = netrax::convertUtreeToNetwork(*utree, netraxOptions, 0);
             std::string newick = netrax::toExtendedNewick(displayedNetwork);
             pll_utree_destroy(utree, nullptr);
             displayed_trees.emplace_back(std::make_pair(newick, prob));

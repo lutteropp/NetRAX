@@ -15,6 +15,8 @@
 #include <algorithm>
 #include <memory>
 
+#include "../NetraxOptions.hpp"
+
 namespace netrax {
 
 struct RootedNetworkNode {
@@ -55,7 +57,7 @@ struct RootedNetwork {
 };
 
 std::string toNewickString(const RootedNetwork &network);
-RootedNetwork* parseRootedNetworkFromNewickString(const std::string &newick);
+RootedNetwork* parseRootedNetworkFromNewickString(const std::string &newick, const NetraxOptions& options);
 std::string exportDebugInfoRootedNetwork(const RootedNetwork &network);
 
 }
