@@ -147,6 +147,29 @@ size_t elbowMethod(const std::vector<ScoreItem<T> >& elements, int max_n_keep = 
 	return maxDistIdx + 1;
 }
 
+double performMovePrefilter(AnnotatedNetwork& ann_network, Move& move, LikelihoodVariant old_variant) {
+    bool recompute_from_scratch = needsRecompute(ann_network, move);
+    assert(checkSanity(ann_network, move));
+    performMove(ann_network, move);
+    if (recompute_from_scratch && ann_network.options.likelihood_variant != LikelihoodVariant::SARAH_PSEUDO) { // TODO: This is a hotfix that just masks some bugs. Fix the bugs properly.
+        computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
+    }
+    //assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+    if (move.moveType == MoveType::ArcInsertionMove || move.moveType == MoveType::DeltaPlusMove) {
+        switchLikelihoodVariant(ann_network, old_variant);
+        optimizeReticulationProbs(ann_network);
+        std::unordered_set<size_t> brlenopt_candidates;
+        brlenopt_candidates.emplace(move.arcInsertionData.wanted_uv_pmatrix_index);
+        optimizeBranchesCandidates(ann_network, brlenopt_candidates);
+        updateMoveBranchLengths(ann_network, move);
+        switchLikelihoodVariant(ann_network, LikelihoodVariant::SARAH_PSEUDO);
+    }
+    for (size_t j = 0; j < ann_network.network.num_nodes(); ++j) {
+        assert(ann_network.network.nodes_by_index[j]->clv_index == j);
+    }
+    return scoreNetwork(ann_network);
+}
+
 double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& candidates, bool silent = true, bool print_progress = true, bool need_best_bic = false) {    
     if (candidates.empty()) {
         return scoreNetwork(ann_network);
@@ -157,22 +180,15 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& can
     }
 
     int n_better = 0;
-
     std::vector<ScoreItem<Move> > scores(candidates.size());
-
     std::vector<double> nodeScore(ann_network.network.num_nodes(), std::numeric_limits<double>::infinity());
-
     LikelihoodVariant old_variant = ann_network.options.likelihood_variant;
     switchLikelihoodVariant(ann_network, LikelihoodVariant::SARAH_PSEUDO);
-
     int barWidth = 70;
-
     double old_bic = scoreNetwork(ann_network);
-
     switchLikelihoodVariant(ann_network, old_variant);
     double real_old_bic = scoreNetwork(ann_network);
     switchLikelihoodVariant(ann_network, LikelihoodVariant::SARAH_PSEUDO);
-
     double best_bic = old_bic; //std::numeric_limits<double>::infinity();
     double best_real_bic = real_old_bic;
 
@@ -184,43 +200,17 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& can
         if (print_progress) {
             advance_progress((float) (i+1) / candidates.size(), barWidth);
         }
-
         Move move(candidates[i]);
-        bool recompute_from_scratch = needsRecompute(ann_network, move);
-
-        assert(checkSanity(ann_network, move));
-
-        performMove(ann_network, move);
-        if (recompute_from_scratch && ann_network.options.likelihood_variant != LikelihoodVariant::SARAH_PSEUDO) { // TODO: This is a hotfix that just masks some bugs. Fix the bugs properly.
-            computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
-        }
-        //assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
-        if (move.moveType == MoveType::ArcInsertionMove || move.moveType == MoveType::DeltaPlusMove) {
-            switchLikelihoodVariant(ann_network, old_variant);
-            optimizeReticulationProbs(ann_network);
-            std::unordered_set<size_t> brlenopt_candidates;
-            brlenopt_candidates.emplace(move.arcInsertionData.wanted_uv_pmatrix_index);
-            optimizeBranchesCandidates(ann_network, brlenopt_candidates);
-            updateMoveBranchLengths(ann_network, move);
-            switchLikelihoodVariant(ann_network, LikelihoodVariant::SARAH_PSEUDO);
-        }
-
-        double bicScore = scoreNetwork(ann_network);
+        double bicScore = performMovePrefilter(ann_network, move, old_variant);
         nodeScore[move.node_orig_idx] = std::min(nodeScore[move.node_orig_idx], bicScore);
         scores[i] = ScoreItem<Move>{candidates[i], bicScore};
-
-        for (size_t j = 0; j < ann_network.network.num_nodes(); ++j) {
-            assert(ann_network.network.nodes_by_index[j]->clv_index == j);
-        }
 
         if (bicScore < old_bic) {
             n_better++;
         }
-
         if (bicScore < best_bic) {
             best_bic = bicScore;
-
-            if (need_best_bic && ann_network.network.num_reticulations() > 0) {
+            if (need_best_bic && ann_network.network.num_reticulations() > 0 && ann_network.options.likelihood_variant == LikelihoodVariant::SARAH_PSEUDO) {
                 switchLikelihoodVariant(ann_network, old_variant);
                 double actRealBIC = scoreNetwork(ann_network);
                 if (actRealBIC < best_real_bic) {
@@ -245,7 +235,6 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& can
                 candidates[0] = candidates[i];
                 candidates.resize(1);
                 undoMove(ann_network, move);
-
                 //assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
                 apply_network_state(ann_network, oldState);
                 if (print_progress && ParallelContext::master_rank() && ParallelContext::master_thread()) {
@@ -257,16 +246,13 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& can
                 switchLikelihoodVariant(ann_network, LikelihoodVariant::SARAH_PSEUDO);
             }
         }
-
         //assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
-
         undoMove(ann_network, move);
         if (move.moveType == MoveType::ArcRemovalMove) {
             computeLoglikelihood(ann_network, 0, 1);
         }
         //assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
         assert(checkSanity(ann_network, candidates[i]));
-
         //assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
         apply_network_state(ann_network, oldState);
 
@@ -329,15 +315,10 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& candidates
     }
 
     int n_better = 0;
-
     int barWidth = 70;
-
     double old_bic = scoreNetwork(ann_network);
-
     double best_bic = std::numeric_limits<double>::infinity();
-
     NetworkState oldState = extract_network_state(ann_network);
-
     std::vector<ScoreItem<Move> > scores(candidates.size());
 
     for (size_t i = 0; i < candidates.size(); ++i) {        
@@ -398,12 +379,9 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& candidates
         }
 
         //assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
-
         undoMove(ann_network, move);
         //assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
-
         assert(checkSanity(ann_network, candidates[i]));
-
         apply_network_state(ann_network, oldState);
         //assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
 
@@ -445,13 +423,9 @@ double chooseCandidate(AnnotatedNetwork& ann_network, std::vector<Move>& candida
     rankCandidates(ann_network, candidates, silent, print_progress);
 
     int n_better = 0;
-
     int barWidth = 70;
-
     NetworkState oldState = extract_network_state(ann_network);
-
     std::vector<ScoreItem<Move> > scores(candidates.size());
-
     //assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
 
     for (size_t i = 0; i < candidates.size(); ++i) {
@@ -522,9 +496,7 @@ double chooseCandidate(AnnotatedNetwork& ann_network, std::vector<Move>& candida
         std::cout << std::endl;
     }
     apply_network_state(ann_network, oldState);
-
     assert(scoreNetwork(ann_network) == old_bic);
-
     filterCandidatesByScore(candidates, scores, candidates.size(), false, silent);
 
     return best_bic;
