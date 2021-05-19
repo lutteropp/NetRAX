@@ -307,8 +307,8 @@ RootedNetwork* parseRootedNetworkFromNewickString(const std::string &newick, con
             } else {
                 rnetwork->nodes[i]->firstParentProb = std::max(rnetwork->nodes[i]->firstParentProb, options.brprob_min);
                 rnetwork->nodes[i]->firstParentProb = std::min(rnetwork->nodes[i]->firstParentProb, options.brprob_max);
-                rnetwork->nodes[i]->secondParentProb = std::max(rnetwork->nodes[i]->firstParentProb, options.brprob_min);
-                rnetwork->nodes[i]->secondParentProb = std::min(rnetwork->nodes[i]->firstParentProb, options.brprob_max);
+                rnetwork->nodes[i]->secondParentProb = std::max(rnetwork->nodes[i]->secondParentProb, options.brprob_min);
+                rnetwork->nodes[i]->secondParentProb = std::min(rnetwork->nodes[i]->secondParentProb, options.brprob_max);
                 if (fabs(1.0 - (rnetwork->nodes[i]->firstParentProb + rnetwork->nodes[i]->secondParentProb)) >= 1E-3) {
                     std::cout << "reticulation name: " << rnetwork->nodes[i]->reticulationName << "\n";
                     std::cout << "reticulation index: " << rnetwork->nodes[i]->reticulation_index << "\n";
