@@ -24,7 +24,7 @@
 
 using namespace netrax;
 
-const std::string DATA_PATH = "examples/sample_networks/";
+const std::string DATA_PATH = "sample_networks/";
 
 std::vector<std::vector<double> > extract_brlens(AnnotatedNetwork &ann_network) {
     std::vector<std::vector<double> > res;
