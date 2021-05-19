@@ -58,7 +58,7 @@ def simulate_network_celine_fixed_nonweird(settings, wanted_n_taxa, wanted_n_ret
 def simulate_datasets_range(prefix, settings, iterations):
     datasets = []
     for my_id in range(iterations):
-        my_inner_id = 0
+        my_inner_id = -1
         n_taxa, n_reticulations, newick, param_info = simulate_network_celine_minmax_nonweird(settings)
         n_trees = 2 ** param_info["no_of_hybrids"]
         for partition_size in settings.partition_sizes:
@@ -90,7 +90,7 @@ def simulate_datasets_range(prefix, settings, iterations):
 def simulate_datasets_fixed(prefix, settings, iterations):
     datasets = []
     for my_id in range(iterations):
-        my_inner_id = 0
+        my_inner_id = -1
         for simulator_type in settings.simulator_types:   
             for n_taxa in settings.fixed_n_taxa:
                 for n_reticulations in settings.fixed_n_reticulations:
