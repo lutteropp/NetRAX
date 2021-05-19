@@ -267,6 +267,9 @@ void remapReticulationConfigs(AnnotatedNetwork& ann_network, const std::vector<s
         size_t old_idx = remapped_reticulation_indices[j].first;
         size_t new_idx = remapped_reticulation_indices[j].second;
         std::swap(ann_network.reticulation_probs[old_idx], ann_network.reticulation_probs[new_idx]);
+        ann_network.network.reticulation_nodes[new_idx]->getReticulationData()->reticulation_index = old_idx;
+        ann_network.network.reticulation_nodes[old_idx]->getReticulationData()->reticulation_index = new_idx;
+        std::swap(ann_network.network.reticulation_nodes[old_idx], ann_network.network.reticulation_nodes[new_idx]);
     }
 }
 
