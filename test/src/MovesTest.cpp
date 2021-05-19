@@ -17,6 +17,7 @@
 #include <string>
 #include <mutex>
 #include <iostream>
+#include <algorithm>
 
 #include <raxml-ng/main.hpp>
 
@@ -69,7 +70,6 @@ void randomMovesStep(AnnotatedNetwork &ann_network, std::vector<Move> candidates
         //std::cout << "logl after move: " << moved_logl << "\n";
         //std::cout << "undo " << toString(candidates[j]) << "\n";
         undoMove(ann_network, candidates[j]);
-        computeLoglikelihood(ann_network);
         std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
         for (size_t i = 0; i < act_brlens.size(); ++i) {
             for (size_t j = 0; j < act_brlens[i].size(); ++j) {
@@ -96,17 +96,14 @@ void randomMoves(const std::string &networkPath, const std::string &msaPath, boo
     const RaxmlInstance instance = createRaxmlInstance(options);
     AnnotatedNetwork ann_network = build_annotated_network(options, instance);
     init_annotated_network(ann_network);
-    Network &network = ann_network.network;
 
-    if (type == MoveType::ArcRemovalMove || type == MoveType::DeltaMinusMove) {
-        randomMovesStep(ann_network, possibleMoves(ann_network, type));
-        return;
-    }
+    size_t max_candidates = 200;
 
-    for (size_t i = 0; i < network.num_branches(); ++i) {
-        std::cout << "Testing moves for branch " << i << "/" << network.num_branches() << "...\n";
-        randomMovesStep(ann_network, possibleMoves(ann_network, type, ann_network.network.edges_by_index[i]));
-    }
+    std::vector<Move> candidates = possibleMoves(ann_network, type);
+    std::random_shuffle(candidates.begin(), candidates.end());
+    candidates.resize(std::min(candidates.size(), max_candidates));
+
+    randomMovesStep(ann_network, candidates);
 }
 
 void printBranchLengths(AnnotatedNetwork &ann_network) {
