@@ -550,9 +550,9 @@ Move applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<Move> candida
         performMove(ann_network, candidates[0]);
         apply_network_state(ann_network, state);
         
-        if (recompute_from_scratch && ann_network.options.likelihood_variant != LikelihoodVariant::SARAH_PSEUDO) { // TODO: This is a hotfix that just masks some bugs. Fix the bugs properly.
+        //if (recompute_from_scratch && ann_network.options.likelihood_variant != LikelihoodVariant::SARAH_PSEUDO) { // TODO: This is a hotfix that just masks some bugs. Fix the bugs properly.
             computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
-        }
+        //}
         double newScore = scoreNetwork(ann_network);
         if (newScore != best_bic) {
             if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
