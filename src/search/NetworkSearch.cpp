@@ -26,6 +26,11 @@ void run_single_start_waves(NetraxOptions& netraxOptions, const RaxmlInstance& i
     netrax::AnnotatedNetwork ann_network = build_annotated_network(netraxOptions, instance);
     init_annotated_network(ann_network, rng);
     BestNetworkData bestNetworkData(ann_network.options.max_reticulations);
+
+    if (hasBadReticulation(ann_network)) {
+        throw std::runtime_error("The user-specified start network has a reticulation with 0/1 prob");
+    }
+
     wavesearch(ann_network, &bestNetworkData, typesBySpeed, typesBySpeedGoodStart);
 
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {

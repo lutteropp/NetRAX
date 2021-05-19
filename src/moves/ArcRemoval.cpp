@@ -12,37 +12,26 @@ namespace netrax {
 bool checkSanityArcRemoval(AnnotatedNetwork& ann_network, const Move& move) {
     bool good = true;
     good &= (move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::DeltaMinusMove);
-    if (!good) std::cout << "wrong move type\n";
     good &= (ann_network.network.nodes_by_index[move.arcRemovalData.a_clv_index] != nullptr);
     good &= (ann_network.network.nodes_by_index[move.arcRemovalData.b_clv_index] != nullptr);
     good &= (ann_network.network.nodes_by_index[move.arcRemovalData.c_clv_index] != nullptr);
     good &= (ann_network.network.nodes_by_index[move.arcRemovalData.d_clv_index] != nullptr);
     good &= (ann_network.network.nodes_by_index[move.arcRemovalData.u_clv_index] != nullptr);
     good &= (ann_network.network.nodes_by_index[move.arcRemovalData.v_clv_index] != nullptr);
-    if (!good) std::cout << "some nodes do not exist\n";
     good &= (ann_network.network.edges_by_index[move.arcRemovalData.au_pmatrix_index] != nullptr);
     good &= (ann_network.network.edges_by_index[move.arcRemovalData.ub_pmatrix_index] != nullptr);
     good &= (ann_network.network.edges_by_index[move.arcRemovalData.uv_pmatrix_index] != nullptr);
     good &= (ann_network.network.edges_by_index[move.arcRemovalData.cv_pmatrix_index] != nullptr);
     good &= (ann_network.network.edges_by_index[move.arcRemovalData.vd_pmatrix_index] != nullptr);
-    if (!good) std::cout << "some edges do not exist\n";
     good &= (move.arcRemovalData.a_clv_index != move.arcRemovalData.u_clv_index);
     good &= (move.arcRemovalData.u_clv_index != move.arcRemovalData.b_clv_index);
     good &= (move.arcRemovalData.c_clv_index != move.arcRemovalData.v_clv_index);
     good &= (move.arcRemovalData.v_clv_index != move.arcRemovalData.d_clv_index);
     good &= (move.arcRemovalData.u_clv_index != move.arcRemovalData.v_clv_index);
-    if (!good) std::cout << "the move indices are wrong\n";
     good &= (hasNeighbor(ann_network.network.nodes_by_index[move.arcRemovalData.a_clv_index], ann_network.network.nodes_by_index[move.arcRemovalData.u_clv_index]));
-    if (!good) std::cout << "a is not a neighbor of u\n";
     good &= (hasNeighbor(ann_network.network.nodes_by_index[move.arcRemovalData.u_clv_index], ann_network.network.nodes_by_index[move.arcRemovalData.b_clv_index]));
-    if (!good) std::cout << "u is not u neighbor of b\n";
     good &= (hasNeighbor(ann_network.network.nodes_by_index[move.arcRemovalData.u_clv_index], ann_network.network.nodes_by_index[move.arcRemovalData.v_clv_index]));
-    if (!good) std::cout << "u is not a neighbor of v\n";
-    good &= (hasNeighbor(ann_network.network.nodes_by_index[move.arcRemovalData.c_clv_index], ann_network.network.nodes_by_index[move.arcRemovalData.v_clv_index]));
-    if (!good) std::cout << "v is not a neighbor of d\n";
     good &= (hasNeighbor(ann_network.network.nodes_by_index[move.arcRemovalData.v_clv_index], ann_network.network.nodes_by_index[move.arcRemovalData.d_clv_index]));
-    if (!good) std::cout << "neighbor issue\n";
-
     return good;
 }
 

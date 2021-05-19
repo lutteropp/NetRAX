@@ -742,7 +742,7 @@ double slowIterationsMode(AnnotatedNetwork& ann_network, MoveType type, int step
     return scoreNetwork(ann_network);
 }
 
-double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vector<MoveType>& typesBySpeed, double* best_score, BestNetworkData* bestNetworkData, bool silent) {    
+double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vector<MoveType>& typesBySpeed, double* best_score, BestNetworkData* bestNetworkData, bool silent) {   
     double old_score = scoreNetwork(ann_network);
     
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
