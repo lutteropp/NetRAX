@@ -309,6 +309,12 @@ RootedNetwork* parseRootedNetworkFromNewickString(const std::string &newick, con
                 rnetwork->nodes[i]->firstParentProb = std::min(rnetwork->nodes[i]->firstParentProb, options.brprob_max);
                 rnetwork->nodes[i]->secondParentProb = std::max(rnetwork->nodes[i]->firstParentProb, options.brprob_min);
                 rnetwork->nodes[i]->secondParentProb = std::min(rnetwork->nodes[i]->firstParentProb, options.brprob_max);
+                if (fabs(1.0 - (rnetwork->nodes[i]->firstParentProb + rnetwork->nodes[i]->secondParentProb)) >= 1E-3) {
+                    std::cout << "first parent prob:" << rnetwork->nodes[i]->firstParentProb << "\n";
+                    std::cout << "second parent prob: " << rnetwork->nodes[i]->secondParentProb << "\n";
+                    std::cout << "sum: " << rnetwork->nodes[i]->firstParentProb + rnetwork->nodes[i]->secondParentProb << "\n";
+                    std::cout << "diff: " << 1.0 - (rnetwork->nodes[i]->firstParentProb + rnetwork->nodes[i]->secondParentProb) << "\n";
+                }
                 assert(fabs(1.0 - (rnetwork->nodes[i]->firstParentProb + rnetwork->nodes[i]->secondParentProb)) < 1E-3);
             }
         }
