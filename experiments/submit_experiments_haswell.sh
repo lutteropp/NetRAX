@@ -38,7 +38,7 @@ rm -f ${LOGS_PATH}/${PREFIX}.log
 
 i=0
 while [ $i -lt ${ITERATIONS} ]; do
-    python3 ${SCRIPTS}/run_experiments.py --folder_path ${FOLDER_PATH} --labeled_settings ${SETTINGS} --prefix ${PREFIX}_${i} | tee ${LOGS_PATH}/${PREFIX}_${i}.log
+    python3 ${SCRIPTS}/run_experiments.py --folder_path ${FOLDER_PATH}/ --labeled_settings ${SETTINGS} --prefix ${PREFIX}_${i} | tee ${LOGS_PATH}/${PREFIX}_${i}.log
     i=$((i + 1))
 done
 
