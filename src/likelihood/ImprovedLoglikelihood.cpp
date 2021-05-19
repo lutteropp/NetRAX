@@ -304,6 +304,9 @@ double evaluateTreesPartition(AnnotatedNetwork& ann_network, size_t partition_id
             assert(tree.tree_partition_logl[partition_idx] != -std::numeric_limits<double>::infinity());
             assert(tree.tree_partition_logl[partition_idx] < 0.0);
             if (tree.tree_logprob != std::numeric_limits<double>::infinity()) {
+                if (mpfr::exp(tree.tree_logprob) < 1E-6) {
+                    throw std::runtime_error("The tree probability is too small, leading to numerical trouble!");
+                }
                 partition_lh += mpfr::exp(tree.tree_logprob) * mpfr::exp(tree.tree_partition_logl[partition_idx]);
             }
         }
@@ -323,6 +326,9 @@ double evaluateTreesPartition(AnnotatedNetwork& ann_network, size_t partition_id
             assert(tree.tree_partition_logl[partition_idx] != -std::numeric_limits<double>::infinity());
             assert(tree.tree_partition_logl[partition_idx] < 0.0);
             if (tree.tree_logprob != std::numeric_limits<double>::infinity()) {
+                if (mpfr::exp(tree.tree_logprob) < 1E-6) {
+                    throw std::runtime_error("The tree probability is too small, leading to numerical trouble!");
+                }
                 partition_logl = std::max(partition_logl, tree.tree_logprob + tree.tree_partition_logl[partition_idx]);
             }
         }
