@@ -88,6 +88,7 @@ void randomMovesStep(AnnotatedNetwork &ann_network, std::vector<Move> candidates
 void randomMoves(const std::string &networkPath, const std::string &msaPath, bool useRepeats,
         MoveType type) {
     NetraxOptions options;
+    options.run_single_threaded = true;
     options.start_network_file = networkPath;
     options.msa_file = msaPath;
     options.use_repeats = useRepeats;

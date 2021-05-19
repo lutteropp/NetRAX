@@ -100,6 +100,8 @@ public:
     double tolerance = DEF_LH_EPSILON; //RAXML_BRLEN_TOLERANCE;
     double brlen_smoothings = RAXML_BRLEN_SMOOTHINGS;
 
+    bool run_single_threaded = false;
+
     bool slow_mode = false;
 
     bool save_memory = false;
@@ -134,7 +136,9 @@ inline bool no_parallelization_needed(const NetraxOptions& netraxOptions) {
         return true;
     } else if (netraxOptions.network_distance_only) {
         return true;
-    } 
+    } else if (netraxOptions.run_single_threaded) {
+        return true;
+    }
     return false;
 }
 

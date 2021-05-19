@@ -42,14 +42,15 @@ TEST (BrlenOptTest, treeVirtualRootProblem) {
     std::string treePath = DATA_PATH + "0_4_taxa_1_reticulations_CELINE_PERFECT_SAMPLING_200_msasize_1_0_brlenScaler_0_5_reticulation_prob.raxml.bestTree";
     std::string msaPath = DATA_PATH + "0_4_taxa_1_reticulations_CELINE_PERFECT_SAMPLING_200_msasize_1_0_brlenScaler_0_5_reticulation_prob_msa.txt";
     std::string partitionsPath = DATA_PATH + "0_4_taxa_1_reticulations_CELINE_PERFECT_SAMPLING_200_msasize_1_0_brlenScaler_0_5_reticulation_prob_partitions.txt";
-    NetraxOptions treeOptions;
-    treeOptions.start_network_file = treePath;
-    treeOptions.msa_file = msaPath;
-    treeOptions.model_file = partitionsPath;
-    treeOptions.use_repeats = false;
-    treeOptions.seed = 42;
-    const RaxmlInstance instance = createRaxmlInstance(treeOptions);
-    AnnotatedNetwork ann_network = build_annotated_network(treeOptions, instance);
+    NetraxOptions options;
+    options.run_single_threaded = true;
+    options.start_network_file = treePath;
+    options.msa_file = msaPath;
+    options.model_file = partitionsPath;
+    options.use_repeats = false;
+    options.seed = 42;
+    const RaxmlInstance instance = createRaxmlInstance(options);
+    AnnotatedNetwork ann_network = build_annotated_network(options, instance);
     init_annotated_network(ann_network);
 
     std::cout << exportDebugInfo(ann_network) << "\n";
@@ -136,14 +137,15 @@ TEST (BrlenOptTest, treeVirtualRoots) {
     std::string treePath = DATA_PATH + "0_4_taxa_1_reticulations_CELINE_PERFECT_SAMPLING_200_msasize_1_0_brlenScaler_0_5_reticulation_prob.raxml.bestTree";
     std::string msaPath = DATA_PATH + "0_4_taxa_1_reticulations_CELINE_PERFECT_SAMPLING_200_msasize_1_0_brlenScaler_0_5_reticulation_prob_msa.txt";
     //std::string partitionsPath = DATA_PATH + "0_4_taxa_1_reticulations_CELINE_PERFECT_SAMPLING_200_msasize_1_0_brlenScaler_0_5_reticulation_prob_partitions.txt";
-    NetraxOptions treeOptions;
-    treeOptions.start_network_file = treePath;
-    treeOptions.msa_file = msaPath;
-    //treeOptions.model_file = partitionsPath;
-    treeOptions.use_repeats = false;
-    treeOptions.seed = 42;
-    const RaxmlInstance instance = createRaxmlInstance(treeOptions);
-    AnnotatedNetwork annTreeNetwork = build_annotated_network(treeOptions, instance);
+    NetraxOptions options;
+    options.run_single_threaded = true;
+    options.start_network_file = treePath;
+    options.msa_file = msaPath;
+    //options.model_file = partitionsPath;
+    options.use_repeats = false;
+    options.seed = 42;
+    const RaxmlInstance instance = createRaxmlInstance(options);
+    AnnotatedNetwork annTreeNetwork = build_annotated_network(options, instance);
     init_annotated_network(annTreeNetwork);
     annTreeNetwork.cached_logl_valid = false;
     double old_logl = computeLoglikelihood(annTreeNetwork, 1, 1);
@@ -207,13 +209,14 @@ TEST (BrlenOptTest, small) {
     // initial setup
     std::string smallPath = DATA_PATH + "small.nw";
     std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
-    NetraxOptions smallOptions;
-    smallOptions.start_network_file = smallPath;
-    smallOptions.msa_file = msaPath;
-    smallOptions.use_repeats = true;
+    NetraxOptions options;
+    options.run_single_threaded = true;
+    options.start_network_file = smallPath;
+    options.msa_file = msaPath;
+    options.use_repeats = true;
     //smallWrapper.enableRaxmlDebugOutput();
-    const RaxmlInstance instance = createRaxmlInstance(smallOptions);
-    AnnotatedNetwork annTreeNetwork = build_annotated_network(smallOptions, instance);
+    const RaxmlInstance instance = createRaxmlInstance(options);
+    AnnotatedNetwork annTreeNetwork = build_annotated_network(options, instance);
     init_annotated_network(annTreeNetwork);
 
     // initial logl computation
@@ -231,14 +234,15 @@ TEST (BrlenOptTest, smallVirtualRoots) {
     // initial setup
     std::string smallPath = DATA_PATH + "small.nw";
     std::string msaPath = DATA_PATH + "small_fake_alignment.txt";
-    NetraxOptions smallOptions;
-    smallOptions.start_network_file = smallPath;
-    smallOptions.msa_file = msaPath;
-    smallOptions.use_repeats = false;
-    smallOptions.seed = 42;
-    const RaxmlInstance instance = createRaxmlInstance(smallOptions);
+    NetraxOptions options;
+    options.run_single_threaded = true;
+    options.start_network_file = smallPath;
+    options.msa_file = msaPath;
+    options.use_repeats = false;
+    options.seed = 42;
+    const RaxmlInstance instance = createRaxmlInstance(options);
     
-    AnnotatedNetwork annTreeNetwork = build_annotated_network(smallOptions, instance);
+    AnnotatedNetwork annTreeNetwork = build_annotated_network(options, instance);
     init_annotated_network(annTreeNetwork);
     double old_logl = computeLoglikelihood(annTreeNetwork, 1, 1);
 
@@ -287,14 +291,15 @@ TEST (BrlenOptTest, celineFake) {
     // initial setup
     std::string celinePath = DATA_PATH + "celine.nw";
     std::string msaPath = DATA_PATH + "celine_fake_alignment.txt";
-    NetraxOptions celineOptions;
-    celineOptions.start_network_file = celinePath;
-    celineOptions.msa_file = msaPath;
-    celineOptions.use_repeats = true;
-    const RaxmlInstance instance = createRaxmlInstance(celineOptions);
+    NetraxOptions options;
+    options.run_single_threaded = true;
+    options.start_network_file = celinePath;
+    options.msa_file = msaPath;
+    options.use_repeats = true;
+    const RaxmlInstance instance = createRaxmlInstance(options);
     //smallWrapper.enableRaxmlDebugOutput();
 
-    AnnotatedNetwork annTreeNetwork = build_annotated_network(celineOptions, instance);
+    AnnotatedNetwork annTreeNetwork = build_annotated_network(options, instance);
     init_annotated_network(annTreeNetwork);
 
     // initial logl computation
@@ -312,13 +317,14 @@ TEST (BrlenOptTest, celineFakeWithModelopt) {
     // initial setup
     std::string celinePath = DATA_PATH + "celine.nw";
     std::string msaPath = DATA_PATH + "celine_fake_alignment.txt";
-    NetraxOptions celineOptions;
-    celineOptions.start_network_file = celinePath;
-    celineOptions.msa_file = msaPath;
-    celineOptions.use_repeats = true;
-    const RaxmlInstance instance = createRaxmlInstance(celineOptions);
+    NetraxOptions options;
+    options.run_single_threaded = true;
+    options.start_network_file = celinePath;
+    options.msa_file = msaPath;
+    options.use_repeats = true;
+    const RaxmlInstance instance = createRaxmlInstance(options);
     //smallWrapper.enableRaxmlDebugOutput();
-    AnnotatedNetwork annTreeNetwork = build_annotated_network(celineOptions, instance);
+    AnnotatedNetwork annTreeNetwork = build_annotated_network(options, instance);
     init_annotated_network(annTreeNetwork);
 
     // initial logl computation
