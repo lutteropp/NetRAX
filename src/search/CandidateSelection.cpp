@@ -553,8 +553,10 @@ Move applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<Move> candida
         }
         double newScore = scoreNetwork(ann_network);
         if (newScore != best_bic) {
-            std::cout << "best_bic: " << best_bic << "\n";
-            std::cout << "newScore: " << newScore << "\n";
+            if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+                std::cout << "best_bic: " << best_bic << "\n";
+                std::cout << "newScore: " << newScore << "\n";
+            }
             throw std::runtime_error("These scores should be the same");
         }
         assert(newScore == best_bic);
