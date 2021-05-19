@@ -17,6 +17,7 @@
 
 #include <vector>
 #include <unordered_set>
+#include <utility>
 
 namespace netrax {
 
@@ -115,5 +116,6 @@ Node* findFirstNodeWithTwoActiveChildren(AnnotatedNetwork& ann_network, const Re
 const TreeLoglData& getMatchingTreeData(const std::vector<DisplayedTreeData>& trees, const ReticulationConfigSet& queryChoices);
 ReticulationConfigSet getRestrictionsActiveBranch(AnnotatedNetwork& ann_network, size_t pmatrix_index);
 ReticulationConfigSet getRestrictionsActiveAliveBranch(AnnotatedNetwork& ann_network, size_t pmatrix_index);
+void remapReticulationConfigs(AnnotatedNetwork& ann_network, const std::vector<std::pair<size_t, size_t> >& remapped_reticulation_indices);
 
 }

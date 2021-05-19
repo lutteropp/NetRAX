@@ -15,41 +15,6 @@ Edge* getRandomEdge(AnnotatedNetwork &ann_network) {
     return ann_network.network.edges_by_index[getRandomIndex(ann_network.rng, n)];
 }
 
-void removeNode(AnnotatedNetwork &ann_network, Node *node) {
-    assert(node);
-    assert(!node->isTip());
-    Network& network = ann_network.network;
-
-    NodeType nodeType = node->type;
-    size_t index = node->clv_index;
-    size_t index_in_nodes_array = network.nodes_by_index[index] - &network.nodes[0];
-    assert(network.nodes[index_in_nodes_array].clv_index == index);
-
-    if (nodeType == NodeType::RETICULATION_NODE) {
-        if (network.num_reticulations() > 1) {
-            unsigned int node_reticulation_index = node->getReticulationData()->reticulation_index;
-            if (node_reticulation_index < network.num_reticulations() - 1) {
-                size_t last_reticulation_index = ann_network.network.num_reticulations() - 1;
-                // update reticulation indices
-                std::swap(ann_network.reticulation_probs[node_reticulation_index], ann_network.reticulation_probs[last_reticulation_index]);
-                std::swap(network.reticulation_nodes[node_reticulation_index],
-                        network.reticulation_nodes[last_reticulation_index]);
-                network.reticulation_nodes[node_reticulation_index]->getReticulationData()->reticulation_index =
-                        node_reticulation_index;
-            }
-        }
-        network.reticulation_nodes.resize(network.reticulation_nodes.size() - 1);
-
-        for (size_t i = 0; i < network.reticulation_nodes.size(); ++i) {
-            assert(network.reticulation_nodes[i]->type == NodeType::RETICULATION_NODE);
-        }
-    }
-
-    network.nodes_by_index[index] = nullptr;
-    node->clear();
-    network.nodeCount--;
-}
-
 Node* addInnerNode(AnnotatedNetwork &ann_network, ReticulationData *retData, size_t wanted_clv_index) {
     Network& network = ann_network.network;
     assert(network.num_nodes() < network.nodes.size());

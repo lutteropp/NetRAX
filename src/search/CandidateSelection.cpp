@@ -148,12 +148,8 @@ size_t elbowMethod(const std::vector<ScoreItem<T> >& elements, int max_n_keep = 
 }
 
 double performMovePrefilter(AnnotatedNetwork& ann_network, Move& move, LikelihoodVariant old_variant) {
-    bool recompute_from_scratch = needsRecompute(ann_network, move);
     assert(checkSanity(ann_network, move));
     performMove(ann_network, move);
-    if (recompute_from_scratch && ann_network.options.likelihood_variant != LikelihoodVariant::SARAH_PSEUDO) { // TODO: This is a hotfix that just masks some bugs. Fix the bugs properly.
-        computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
-    }
     //assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
     if (move.moveType == MoveType::ArcInsertionMove || move.moveType == MoveType::DeltaPlusMove) {
         switchLikelihoodVariant(ann_network, old_variant);
@@ -327,7 +323,6 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& candidates
         }
 
         Move move(candidates[i]);
-        bool recompute_from_scratch = needsRecompute(ann_network, move);
 
         if (!checkSanity(ann_network, move)) {
             if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
@@ -337,9 +332,6 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& candidates
         assert(checkSanity(ann_network, move));
 
         performMove(ann_network, move);
-        if (recompute_from_scratch && ann_network.options.likelihood_variant != LikelihoodVariant::SARAH_PSEUDO) { // TODO: This is a hotfix that just masks some bugs. Fix the bugs properly.
-            computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
-        }
         //assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
 
         std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
@@ -433,15 +425,11 @@ double chooseCandidate(AnnotatedNetwork& ann_network, std::vector<Move>& candida
             advance_progress((float) (i+1) / candidates.size(), barWidth);
         }
         Move move(candidates[i]);
-        bool recompute_from_scratch = needsRecompute(ann_network, move);
 
         assert(checkSanity(ann_network, move));
 
         ////assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
         performMove(ann_network, move);
-        if (recompute_from_scratch && ann_network.options.likelihood_variant != LikelihoodVariant::SARAH_PSEUDO) { // TODO: This is a hotfix that just masks some bugs. Fix the bugs properly.
-            computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
-        }
         ////assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
         optimizeReticulationProbs(ann_network);
 
@@ -505,13 +493,9 @@ double chooseCandidate(AnnotatedNetwork& ann_network, std::vector<Move>& candida
 double acceptMove(AnnotatedNetwork& ann_network, Move& move, double expected_bic, const NetworkState &state, double* best_score, BestNetworkData* bestNetworkData, bool silent = true) {
     assert(checkSanity(ann_network, move));
 
-    bool recompute_from_scratch = needsRecompute(ann_network, move);
     performMove(ann_network, move);
     apply_network_state(ann_network, state);
     
-    if (recompute_from_scratch && ann_network.options.likelihood_variant != LikelihoodVariant::SARAH_PSEUDO) { // TODO: This is a hotfix that just masks some bugs. Fix the bugs properly.
-        computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
-    }
     double newScore = scoreNetwork(ann_network);
     if (newScore != expected_bic) {
         if (ParallelContext::master_rank() && ParallelContext::master_thread()) {

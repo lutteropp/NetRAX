@@ -104,10 +104,6 @@ std::vector<Move> possibleMoves(AnnotatedNetwork& ann_network, std::vector<MoveT
 std::vector<Move> possibleMoves(AnnotatedNetwork& ann_network, std::vector<MoveType> types, std::vector<Node*> start_nodes, bool rspr1_present = false, bool delta_plus_present = false, int min_radius = 0, int max_radius = std::numeric_limits<int>::max());
 std::vector<Move> possibleMoves(AnnotatedNetwork& ann_network, std::vector<MoveType> types, bool rspr1_present = false, bool delta_plus_present = false, int min_radius = 0, int max_radius = std::numeric_limits<int>::max());
 
-inline bool needsRecompute(AnnotatedNetwork& ann_network, const Move& move) {
-    return (move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::DeltaMinusMove) && (ann_network.network.reticulation_nodes[ann_network.network.num_reticulations() - 1]->clv_index != move.arcRemovalData.v_clv_index);
-}
-
 void removeBadCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& candidates);
 std::vector<Node*> gatherStartNodes(AnnotatedNetwork& ann_network, Move move);
 

@@ -241,4 +241,33 @@ ReticulationConfigSet getRestrictionsActiveAliveBranch(AnnotatedNetwork& ann_net
     return res;
 }
 
+void remapReticulationConfigs(ReticulationConfigSet& rcs, const std::vector<std::pair<size_t, size_t> >& remapped_reticulation_indices) {
+    for (size_t i = 0; i < rcs.configs.size(); ++i) {
+        for (size_t j = 0; j < remapped_reticulation_indices.size(); ++j) {
+            size_t old_idx = remapped_reticulation_indices[j].first;
+            size_t new_idx = remapped_reticulation_indices[j].second;
+            std::swap(rcs.configs[i][old_idx], rcs.configs[i][new_idx]);
+        }
+    }
+}
+
+void remapReticulationConfigs(AnnotatedNetwork& ann_network, const std::vector<std::pair<size_t, size_t> >& remapped_reticulation_indices) {
+    if (remapped_reticulation_indices.empty()) {
+        return;
+    }
+    for (size_t i = 0; i < ann_network.network.num_nodes(); ++i) {
+        for (size_t j = 0; j < ann_network.pernode_displayed_tree_data.size(); ++j) {
+            for (size_t k = 0; k < ann_network.pernode_displayed_tree_data[j].num_active_displayed_trees; ++k) {
+                remapReticulationConfigs(ann_network.pernode_displayed_tree_data[j].displayed_trees[k].treeLoglData.reticulationChoices, remapped_reticulation_indices);
+            }
+        }
+    }
+
+    for (size_t j = 0; j < remapped_reticulation_indices.size(); ++j) {
+        size_t old_idx = remapped_reticulation_indices[j].first;
+        size_t new_idx = remapped_reticulation_indices[j].second;
+        std::swap(ann_network.reticulation_probs[old_idx], ann_network.reticulation_probs[new_idx]);
+    }
+}
+
 }
