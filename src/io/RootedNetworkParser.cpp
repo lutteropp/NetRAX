@@ -310,10 +310,16 @@ RootedNetwork* parseRootedNetworkFromNewickString(const std::string &newick, con
                 rnetwork->nodes[i]->secondParentProb = std::max(rnetwork->nodes[i]->firstParentProb, options.brprob_min);
                 rnetwork->nodes[i]->secondParentProb = std::min(rnetwork->nodes[i]->firstParentProb, options.brprob_max);
                 if (fabs(1.0 - (rnetwork->nodes[i]->firstParentProb + rnetwork->nodes[i]->secondParentProb)) >= 1E-3) {
-                    std::cout << "first parent prob:" << rnetwork->nodes[i]->firstParentProb << "\n";
+                    std::cout << "reticulation name: " << rnetwork->nodes[i]->reticulationName << "\n";
+                    std::cout << "reticulation index: " << rnetwork->nodes[i]->reticulation_index << "\n";
+                    std::cout << "first parent prob: " << rnetwork->nodes[i]->firstParentProb << "\n";
                     std::cout << "second parent prob: " << rnetwork->nodes[i]->secondParentProb << "\n";
                     std::cout << "sum: " << rnetwork->nodes[i]->firstParentProb + rnetwork->nodes[i]->secondParentProb << "\n";
                     std::cout << "diff: " << 1.0 - (rnetwork->nodes[i]->firstParentProb + rnetwork->nodes[i]->secondParentProb) << "\n";
+                    std::cout << newick << "\n";
+                    //enforceToplevelBifurcation(rnetwork);
+                    //std::cout << exportDebugInfoRootedNetwork(*rnetwork) << "\n";
+                    throw std::runtime_error("invalid sum of reticulation probs in input network");
                 }
                 assert(fabs(1.0 - (rnetwork->nodes[i]->firstParentProb + rnetwork->nodes[i]->secondParentProb)) < 1E-3);
             }
