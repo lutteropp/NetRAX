@@ -471,37 +471,33 @@ double chooseCandidate(AnnotatedNetwork& ann_network, std::vector<Move>& candida
         ////assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
         optimizeReticulationProbs(ann_network);
 
-        if (!hasBadReticulation(ann_network)) {
-            optimizeBranches(ann_network);
+        optimizeBranches(ann_network);
             ////assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
 
-            double bicScore = scoreNetwork(ann_network);
+        double bicScore = scoreNetwork(ann_network);
 
-            if (bicScore < best_bic) {
-                best_bic = bicScore;
-                ann_network.last_accepted_move_edge_orig_idx = move.edge_orig_idx;
-                extract_network_state(ann_network, *state);
-            }
-
-            if (bicScore < old_bic) {
-                n_better++;
-            }
-
-            if (old_bic/bicScore > ann_network.options.greedy_factor) {
-                candidates[0] = candidates[i];
-                candidates.resize(1);
-                undoMove(ann_network, move);
-                apply_network_state(ann_network, oldState);
-                if (print_progress && ParallelContext::master_rank() && ParallelContext::master_thread()) {
-                    std::cout << std::endl;
-                }
-                return best_bic;
-            }
-
-            scores[i] = ScoreItem<Move>{candidates[i], bicScore};
-        } else {
-            scores[i] = ScoreItem<Move>{candidates[i], std::numeric_limits<double>::infinity()};
+        if (bicScore < best_bic) {
+            best_bic = bicScore;
+            ann_network.last_accepted_move_edge_orig_idx = move.edge_orig_idx;
+            extract_network_state(ann_network, *state);
         }
+
+        if (bicScore < old_bic) {
+            n_better++;
+        }
+
+        if (old_bic/bicScore > ann_network.options.greedy_factor) {
+            candidates[0] = candidates[i];
+            candidates.resize(1);
+            undoMove(ann_network, move);
+            apply_network_state(ann_network, oldState);
+            if (print_progress && ParallelContext::master_rank() && ParallelContext::master_thread()) {
+                std::cout << std::endl;
+            }
+            return best_bic;
+        }
+
+        scores[i] = ScoreItem<Move>{candidates[i], bicScore};
 
         ////assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
 
