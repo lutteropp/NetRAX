@@ -551,8 +551,13 @@ Move applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<Move> candida
         if (recompute_from_scratch && ann_network.options.likelihood_variant != LikelihoodVariant::SARAH_PSEUDO) { // TODO: This is a hotfix that just masks some bugs. Fix the bugs properly.
             computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
         }
-        
-        assert(scoreNetwork(ann_network) == best_bic);
+        double newScore = scoreNetwork(ann_network);
+        if (newScore != best_bic) {
+            std::cout << "best_bic: " << best_bic << "\n";
+            std::cout << "newScore: " << newScore << "\n";
+            throw std::runtime_error("These scores should be the same");
+        }
+        assert(newScore == best_bic);
 
         optimizeAllNonTopology(ann_network);
 
