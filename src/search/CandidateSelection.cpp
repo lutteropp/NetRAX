@@ -502,6 +502,46 @@ double chooseCandidate(AnnotatedNetwork& ann_network, std::vector<Move>& candida
     return best_bic;
 }
 
+double acceptMove(AnnotatedNetwork& ann_network, Move& move, double expected_bic, const NetworkState &state, double* best_score, BestNetworkData* bestNetworkData, bool silent = true) {
+    assert(checkSanity(ann_network, move));
+
+    bool recompute_from_scratch = needsRecompute(ann_network, move);
+    performMove(ann_network, move);
+    apply_network_state(ann_network, state);
+    
+    if (recompute_from_scratch && ann_network.options.likelihood_variant != LikelihoodVariant::SARAH_PSEUDO) { // TODO: This is a hotfix that just masks some bugs. Fix the bugs properly.
+        computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
+    }
+    double newScore = scoreNetwork(ann_network);
+    if (newScore != expected_bic) {
+        if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+            std::cout << "expected_bic: " << expected_bic << "\n";
+            std::cout << "newScore: " << newScore << "\n";
+        }
+        throw std::runtime_error("These scores should be the same");
+    }
+    assert(newScore == expected_bic);
+
+    optimizeAllNonTopology(ann_network);
+
+    double logl = computeLoglikelihood(ann_network);
+    double bic_score = bic(ann_network, logl);
+    double aic_score = aic(ann_network, logl);
+    double aicc_score = aicc(ann_network, logl);
+
+    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+        /*if (!silent) */std::cout << " Took " << toString(move.moveType) << "\n";
+        if (!silent) std::cout << "  Logl: " << logl << ", BIC: " << bic_score << ", AIC: " << aic_score << ", AICc: " << aicc_score <<  "\n";
+        if (!silent) std::cout << "  param_count: " << get_param_count(ann_network) << ", sample_size:" << get_sample_size(ann_network) << "\n";
+        if (!silent) std::cout << "  num_reticulations: " << ann_network.network.num_reticulations() << "\n";
+        if (!silent) std::cout << toExtendedNewick(ann_network) << "\n";
+    }
+    ann_network.stats.moves_taken[move.moveType]++;
+
+    check_score_improvement(ann_network, best_score, bestNetworkData);
+    return scoreNetwork(ann_network);
+}
+
 Move applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<Move> candidates, double* best_score, BestNetworkData* bestNetworkData, bool enforce, bool silent) {
     double old_score = scoreNetwork(ann_network);
 
@@ -514,42 +554,7 @@ Move applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<Move> candida
 
     if (found_better_state) {
         Move move(candidates[0]);
-        assert(checkSanity(ann_network, candidates[0]));
-
-        bool recompute_from_scratch = needsRecompute(ann_network, candidates[0]);
-        performMove(ann_network, candidates[0]);
-        apply_network_state(ann_network, state);
-        
-        if (recompute_from_scratch && ann_network.options.likelihood_variant != LikelihoodVariant::SARAH_PSEUDO) { // TODO: This is a hotfix that just masks some bugs. Fix the bugs properly.
-            computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
-        }
-        double newScore = scoreNetwork(ann_network);
-        if (newScore != best_bic) {
-            if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-                std::cout << "best_bic: " << best_bic << "\n";
-                std::cout << "newScore: " << newScore << "\n";
-            }
-            throw std::runtime_error("These scores should be the same");
-        }
-        assert(newScore == best_bic);
-
-        optimizeAllNonTopology(ann_network);
-
-        double logl = computeLoglikelihood(ann_network);
-        double bic_score = bic(ann_network, logl);
-        double aic_score = aic(ann_network, logl);
-        double aicc_score = aicc(ann_network, logl);
-
-        if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-            /*if (!silent) */std::cout << " Took " << toString(candidates[0].moveType) << "\n";
-            if (!silent) std::cout << "  Logl: " << logl << ", BIC: " << bic_score << ", AIC: " << aic_score << ", AICc: " << aicc_score <<  "\n";
-            if (!silent) std::cout << "  param_count: " << get_param_count(ann_network) << ", sample_size:" << get_sample_size(ann_network) << "\n";
-            if (!silent) std::cout << "  num_reticulations: " << ann_network.network.num_reticulations() << "\n";
-            if (!silent) std::cout << toExtendedNewick(ann_network) << "\n";
-        }
-        ann_network.stats.moves_taken[candidates[0].moveType]++;
-
-        check_score_improvement(ann_network, best_score, bestNetworkData);
+        acceptMove(ann_network, move, best_bic, state, best_score, bestNetworkData, silent);
 
         if (!enforce) {
             if (scoreNetwork(ann_network) > old_score) {
@@ -573,7 +578,7 @@ double best_fast_improvement(AnnotatedNetwork& ann_network, MoveType type, const
 
     std::vector<Move> candidates = possibleMoves(ann_network, type, rspr1_present, delta_plus_present, min_radius, max_radius);
     score = prefilterCandidates(ann_network, candidates, silent, true, true);
-    
+
     return score;
 }
 
@@ -712,11 +717,6 @@ double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vecto
         std::cout << blue;
         std::cout << "\nStarting full search for move type: " << toString(type) << "\n";
         std::cout << def;
-    }
-
-    if (typesBySpeed[0] == type) {
-        optimizeAllNonTopology(ann_network);
-        check_score_improvement(ann_network, best_score, bestNetworkData);
     }
 
     int step_size = 5;

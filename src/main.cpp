@@ -101,6 +101,8 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     app.add_flag("--sim_anneal", options->sim_anneal, "Use simulated annealing instead of hill climbing during network topology search.");
     app.add_option("--start_temperature", options->start_temperature, "Start temperature to be used for simulated annealing (default: 100).");
 
+    //app.add_flag("--extreme_greedy_prefiltering", options->extreme_greedy_prefiltering, "Enable extreme greedy prefiltering mode.");
+
     CLI11_PARSE(app, argc, argv);
 
     if (average_displayed_tree_variant && best_displayed_tree_variant) {
