@@ -527,6 +527,8 @@ double chooseCandidate(AnnotatedNetwork& ann_network, std::vector<Move>& candida
     }
     apply_network_state(ann_network, oldState);
 
+    assert(scoreNetwork(ann_network) == old_bic);
+
     filterCandidatesByScore(candidates, scores, candidates.size(), false, silent);
 
     return best_bic;
