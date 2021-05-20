@@ -589,7 +589,11 @@ std::vector<std::pair<size_t, size_t> > getRemappedReticulationIndices(Annotated
 }
 
 void remapReticulationConfigs(AnnotatedNetwork& ann_network, const ArcRemovalData& removalData, bool undo) {
-    assert(removalData.old_reticulation_clv_indices.size() == ann_network.network.num_reticulations());
+    if (undo) {
+        assert(removalData.old_reticulation_clv_indices.size() == ann_network.network.num_reticulations());
+    } else {
+        assert(removalData.old_reticulation_clv_indices.size() == ann_network.network.num_reticulations() + 1);
+    }
     std::vector<std::pair<size_t, size_t> > remapped_indices;
     std::vector<Node*> tmp_ret_nodes = ann_network.network.reticulation_nodes;
     for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
