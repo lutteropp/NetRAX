@@ -798,8 +798,8 @@ void remapReticulationConfigs(AnnotatedNetwork& ann_network, const ArcRemovalDat
             for (size_t k = 0; k < ann_network.pernode_displayed_tree_data[j].num_active_displayed_trees; ++k) {
                 ReticulationConfigSet& rcs = ann_network.pernode_displayed_tree_data[j].displayed_trees[k].treeLoglData.reticulationChoices;
 
-                for (size_t l = 0; l < rcs.configs.size(); ++i) {
-                    std::vector<ReticulationState> tmp_config = rcs.configs[i];
+                for (size_t l = 0; l < rcs.configs.size(); ++l) {
+                    std::vector<ReticulationState> tmp_config = rcs.configs[l];
                     ///... TODO
                     for (const std::pair<size_t, size_t>& remap_pair : remapped_indices) {
                         size_t curr_ret_idx = remap_pair.first;
