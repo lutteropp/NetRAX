@@ -784,6 +784,7 @@ void remapReticulationConfigs(AnnotatedNetwork& ann_network, const ArcRemovalDat
                 if (curr_ret_idx != old_ret_idx) {
                     remapped_indices.emplace_back(std::make_pair(curr_ret_idx, old_ret_idx));
 
+                    assert(old_ret_idx < ann_network.network.num_reticulations());
                     ann_network.network.reticulation_nodes[old_ret_idx] = tmp_ret_nodes[curr_ret_idx];
                     ann_network.network.reticulation_nodes[old_ret_idx]->getReticulationData()->reticulation_index = old_ret_idx;
                     ann_network.reticulation_probs[old_ret_idx] = removalData.old_reticulation_probs[old_ret_idx];
