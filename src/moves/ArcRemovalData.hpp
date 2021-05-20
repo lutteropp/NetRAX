@@ -34,12 +34,13 @@ struct ArcRemovalData {
     std::vector<std::pair<size_t, size_t> > remapped_clv_indices;
     std::vector<std::pair<size_t, size_t> > remapped_pmatrix_indices;
     std::vector<size_t> old_reticulation_clv_indices;
+    std::vector<double> old_reticulation_probs;
 
     ArcRemovalData() = default;
 
-    ArcRemovalData(ArcRemovalData&& rhs) : a_clv_index{rhs.a_clv_index}, b_clv_index{rhs.b_clv_index}, c_clv_index{rhs.c_clv_index}, d_clv_index{rhs.d_clv_index}, u_clv_index{rhs.u_clv_index}, v_clv_index{rhs.v_clv_index}, u_v_len{rhs.u_v_len}, c_v_len{rhs.c_v_len}, a_u_len{rhs.a_u_len}, au_pmatrix_index{rhs.au_pmatrix_index}, ub_pmatrix_index{rhs.ub_pmatrix_index}, cv_pmatrix_index{rhs.cv_pmatrix_index}, vd_pmatrix_index{rhs.vd_pmatrix_index}, uv_pmatrix_index{rhs.uv_pmatrix_index}, wanted_ab_pmatrix_index{rhs.wanted_ab_pmatrix_index}, wanted_cd_pmatrix_index{rhs.wanted_cd_pmatrix_index}, a_b_len{rhs.a_b_len}, c_d_len{rhs.c_d_len}, v_d_len{rhs.v_d_len}, u_b_len{rhs.u_b_len}, remapped_clv_indices{rhs.remapped_clv_indices}, remapped_pmatrix_indices{rhs.remapped_pmatrix_indices}, old_reticulation_clv_indices{rhs.old_reticulation_clv_indices} {}
+    ArcRemovalData(ArcRemovalData&& rhs) : a_clv_index{rhs.a_clv_index}, b_clv_index{rhs.b_clv_index}, c_clv_index{rhs.c_clv_index}, d_clv_index{rhs.d_clv_index}, u_clv_index{rhs.u_clv_index}, v_clv_index{rhs.v_clv_index}, u_v_len{rhs.u_v_len}, c_v_len{rhs.c_v_len}, a_u_len{rhs.a_u_len}, au_pmatrix_index{rhs.au_pmatrix_index}, ub_pmatrix_index{rhs.ub_pmatrix_index}, cv_pmatrix_index{rhs.cv_pmatrix_index}, vd_pmatrix_index{rhs.vd_pmatrix_index}, uv_pmatrix_index{rhs.uv_pmatrix_index}, wanted_ab_pmatrix_index{rhs.wanted_ab_pmatrix_index}, wanted_cd_pmatrix_index{rhs.wanted_cd_pmatrix_index}, a_b_len{rhs.a_b_len}, c_d_len{rhs.c_d_len}, v_d_len{rhs.v_d_len}, u_b_len{rhs.u_b_len}, remapped_clv_indices{rhs.remapped_clv_indices}, remapped_pmatrix_indices{rhs.remapped_pmatrix_indices}, old_reticulation_clv_indices{rhs.old_reticulation_clv_indices}, old_reticulation_probs{rhs.old_reticulation_probs} {}
 
-    ArcRemovalData(const ArcRemovalData& rhs) : a_clv_index{rhs.a_clv_index}, b_clv_index{rhs.b_clv_index}, c_clv_index{rhs.c_clv_index}, d_clv_index{rhs.d_clv_index}, u_clv_index{rhs.u_clv_index}, v_clv_index{rhs.v_clv_index}, u_v_len{rhs.u_v_len}, c_v_len{rhs.c_v_len}, a_u_len{rhs.a_u_len}, au_pmatrix_index{rhs.au_pmatrix_index}, ub_pmatrix_index{rhs.ub_pmatrix_index}, cv_pmatrix_index{rhs.cv_pmatrix_index}, vd_pmatrix_index{rhs.vd_pmatrix_index}, uv_pmatrix_index{rhs.uv_pmatrix_index}, wanted_ab_pmatrix_index{rhs.wanted_ab_pmatrix_index}, wanted_cd_pmatrix_index{rhs.wanted_cd_pmatrix_index}, a_b_len{rhs.a_b_len}, c_d_len{rhs.c_d_len}, v_d_len{rhs.v_d_len}, u_b_len{rhs.u_b_len}, remapped_clv_indices{rhs.remapped_clv_indices}, remapped_pmatrix_indices{rhs.remapped_pmatrix_indices}, old_reticulation_clv_indices{rhs.old_reticulation_clv_indices} {}
+    ArcRemovalData(const ArcRemovalData& rhs) : a_clv_index{rhs.a_clv_index}, b_clv_index{rhs.b_clv_index}, c_clv_index{rhs.c_clv_index}, d_clv_index{rhs.d_clv_index}, u_clv_index{rhs.u_clv_index}, v_clv_index{rhs.v_clv_index}, u_v_len{rhs.u_v_len}, c_v_len{rhs.c_v_len}, a_u_len{rhs.a_u_len}, au_pmatrix_index{rhs.au_pmatrix_index}, ub_pmatrix_index{rhs.ub_pmatrix_index}, cv_pmatrix_index{rhs.cv_pmatrix_index}, vd_pmatrix_index{rhs.vd_pmatrix_index}, uv_pmatrix_index{rhs.uv_pmatrix_index}, wanted_ab_pmatrix_index{rhs.wanted_ab_pmatrix_index}, wanted_cd_pmatrix_index{rhs.wanted_cd_pmatrix_index}, a_b_len{rhs.a_b_len}, c_d_len{rhs.c_d_len}, v_d_len{rhs.v_d_len}, u_b_len{rhs.u_b_len}, remapped_clv_indices{rhs.remapped_clv_indices}, remapped_pmatrix_indices{rhs.remapped_pmatrix_indices}, old_reticulation_clv_indices{rhs.old_reticulation_clv_indices}, old_reticulation_probs{rhs.old_reticulation_probs} {}
 
     ArcRemovalData& operator =(ArcRemovalData&& rhs) {
         if (this != &rhs) {
@@ -67,6 +68,7 @@ struct ArcRemovalData {
             remapped_clv_indices = rhs.remapped_clv_indices;
             remapped_pmatrix_indices = rhs.remapped_pmatrix_indices;
             old_reticulation_clv_indices = rhs.old_reticulation_clv_indices;
+            old_reticulation_probs = rhs.old_reticulation_probs;
         }
         return *this;
     }
@@ -97,6 +99,7 @@ struct ArcRemovalData {
             remapped_clv_indices = rhs.remapped_clv_indices;
             remapped_pmatrix_indices = rhs.remapped_pmatrix_indices;
             old_reticulation_clv_indices = rhs.old_reticulation_clv_indices;
+            old_reticulation_probs = rhs.old_reticulation_probs;
         }
         return *this;
     }
@@ -127,6 +130,7 @@ struct ArcRemovalData {
             && (this->remapped_clv_indices == rhs.remapped_clv_indices)
             && (this->remapped_pmatrix_indices == rhs.remapped_pmatrix_indices)
             && (this->old_reticulation_clv_indices == rhs.old_reticulation_clv_indices)
+            && (this->old_reticulation_probs == rhs.old_reticulation_probs)
         );
     }
 };

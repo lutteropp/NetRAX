@@ -1,6 +1,8 @@
 #include "ArcRemoval.hpp"
 #include "ArcInsertion.hpp"
 
+#include <utility>
+
 #include "../helper/Helper.hpp"
 #include "../helper/NetworkFunctions.hpp"
 
@@ -586,10 +588,30 @@ std::vector<std::pair<size_t, size_t> > getRemappedReticulationIndices(Annotated
     return remapped_reticulation_indices;
 }
 
+void updateReticulationProbs(AnnotatedNetwork& ann_network, const ArcRemovalData& removalData) {
+    for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
+        size_t curr_ret_idx = i;
+        Node* retNode = ann_network.network.reticulation_nodes[i];
+        for (size_t j = 0; j < removalData.old_reticulation_clv_indices.size(); ++j) {
+            if (removalData.old_reticulation_clv_indices[j] == retNode->clv_index) {
+                size_t old_ret_idx = j;
+                ann_network.reticulation_probs[curr_ret_idx] = removalData.old_reticulation_probs[old_ret_idx];
+                break;
+            }
+        }
+    }
+}
+
 void performMoveArcRemoval(AnnotatedNetwork &ann_network, Move &move) {
     assert(checkSanityArcRemoval(ann_network, move));
     assert(assert_links_in_range2(ann_network.network));
     assert(assertBranchLengths(ann_network));
+
+    move.arcRemovalData.old_reticulation_probs = ann_network.reticulation_probs;
+    move.arcRemovalData.old_reticulation_clv_indices.resize(ann_network.network.num_reticulations());
+    for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
+        move.arcRemovalData.old_reticulation_clv_indices[i] = ann_network.network.reticulation_nodes[i]->clv_index;
+    }
 
     size_t old_num_nodes = ann_network.network.num_nodes();
 
@@ -620,11 +642,6 @@ void performMoveArcRemoval(AnnotatedNetwork &ann_network, Move &move) {
     size_t u_v_edge_index = getEdgeTo(network, move.arcRemovalData.u_clv_index, move.arcRemovalData.v_clv_index)->pmatrix_index;
 
     assert(network.num_reticulations() <= network.reticulation_nodes.size());
-
-    move.arcRemovalData.old_reticulation_clv_indices.resize(ann_network.network.num_reticulations());
-    for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
-        move.arcRemovalData.old_reticulation_clv_indices[i] = ann_network.network.reticulation_nodes[i]->clv_index;
-    }
 
     for (size_t i = 0; i < network.num_reticulations(); ++i) {
         assert(network.reticulation_nodes[i]->type == NodeType::RETICULATION_NODE);
@@ -752,10 +769,49 @@ void performMoveArcRemoval(AnnotatedNetwork &ann_network, Move &move) {
     assert(assert_links_in_range2(ann_network.network));
     assert(assertBranchLengths(ann_network));
 
-    std::vector<std::pair<size_t, size_t> > remapped_reticulation_indices = getRemappedReticulationIndices(ann_network, move.arcRemovalData.old_reticulation_clv_indices);
-    std::cout << "remap reticulation configs perform start\n";
-    remapReticulationConfigs(ann_network, remapped_reticulation_indices);
-    std::cout << "remap reticulation configs perform end\n";
+    updateReticulationProbs(ann_network, move.arcRemovalData);
+}
+
+void remapReticulationConfigs(AnnotatedNetwork& ann_network, const ArcRemovalData& removalData) {
+    std::vector<std::pair<size_t, size_t> > remapped_indices;
+    std::vector<Node*> tmp_ret_nodes = ann_network.network.reticulation_nodes;
+    for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
+        size_t curr_ret_idx = i;
+        Node* retNode = tmp_ret_nodes[i];
+        for (size_t j = 0; j < removalData.old_reticulation_clv_indices.size(); ++j) {
+            if (removalData.old_reticulation_clv_indices[j] == retNode->clv_index) {
+                size_t old_ret_idx = j;
+                if (curr_ret_idx != old_ret_idx) {
+                    remapped_indices.emplace_back(std::make_pair(curr_ret_idx, old_ret_idx));
+
+                    ann_network.network.reticulation_nodes[old_ret_idx] = tmp_ret_nodes[curr_ret_idx];
+                    ann_network.network.reticulation_nodes[old_ret_idx]->getReticulationData()->reticulation_index = old_ret_idx;
+                    ann_network.reticulation_probs[old_ret_idx] = removalData.old_reticulation_probs[old_ret_idx];
+                }
+                break;
+            }
+        }
+    }
+
+    for (size_t i = 0; i < ann_network.network.num_nodes(); ++i) {
+        for (size_t j = 0; j < ann_network.pernode_displayed_tree_data.size(); ++j) {
+            for (size_t k = 0; k < ann_network.pernode_displayed_tree_data[j].num_active_displayed_trees; ++k) {
+                ReticulationConfigSet& rcs = ann_network.pernode_displayed_tree_data[j].displayed_trees[k].treeLoglData.reticulationChoices;
+
+                for (size_t l = 0; l < rcs.configs.size(); ++i) {
+                    std::vector<ReticulationState> tmp_config = rcs.configs[i];
+                    ///... TODO
+                    for (const std::pair<size_t, size_t>& remap_pair : remapped_indices) {
+                        size_t curr_ret_idx = remap_pair.first;
+                        size_t old_ret_idx = remap_pair.second;
+
+                        rcs.configs[i][old_ret_idx] = tmp_config[curr_ret_idx];
+                    }
+
+                }
+            }
+        }
+    }
 }
 
 void undoMoveArcRemoval(AnnotatedNetwork &ann_network, Move &move) {
@@ -798,9 +854,8 @@ void undoMoveArcRemoval(AnnotatedNetwork &ann_network, Move &move) {
     assert(assertBranchLengths(ann_network));
 
     std::vector<std::pair<size_t, size_t> > remapped_reticulation_indices = getRemappedReticulationIndices(ann_network, move.arcRemovalData.old_reticulation_clv_indices);
-    std::cout << "remap reticulation configs undo start\n";
-    remapReticulationConfigs(ann_network, remapped_reticulation_indices);
-    std::cout << "remap reticulation configs undo end\n";
+    remapReticulationConfigs(ann_network, move.arcRemovalData);
+    ann_network.reticulation_probs = move.arcRemovalData.old_reticulation_probs;
 }
 
 std::string toStringArcRemoval(const Move &move) {

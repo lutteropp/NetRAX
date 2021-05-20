@@ -97,9 +97,10 @@ void randomMoves(const std::string &networkPath, const std::string &msaPath, boo
     AnnotatedNetwork ann_network = build_annotated_network(options, instance);
     init_annotated_network(ann_network);
 
+    std::vector<Move> candidates = possibleMoves(ann_network, type);
+
     size_t max_candidates = 200;
 
-    std::vector<Move> candidates = possibleMoves(ann_network, type);
     std::random_shuffle(candidates.begin(), candidates.end());
     candidates.resize(std::min(candidates.size(), max_candidates));
 
