@@ -532,7 +532,7 @@ void revertRemappedIndices(AnnotatedNetwork& ann_network, Move& move) {
     revertRemappedPmatrixIndices(ann_network, move);
 }
 
-void removeNode(AnnotatedNetwork &ann_network, Node *node, Move &move) {
+void removeNode(AnnotatedNetwork &ann_network, Node *node) {
     assert(node);
     assert(!node->isTip());
     Network& network = ann_network.network;
@@ -646,11 +646,11 @@ void performMoveArcRemoval(AnnotatedNetwork &ann_network, Move &move) {
     for (size_t i = 0; i < network.num_reticulations(); ++i) {
         assert(network.reticulation_nodes[i]->type == NodeType::RETICULATION_NODE);
     }
-    removeNode(ann_network, network.nodes_by_index[move.arcRemovalData.u_clv_index], move);
+    removeNode(ann_network, network.nodes_by_index[move.arcRemovalData.u_clv_index]);
     for (size_t i = 0; i < network.num_reticulations(); ++i) {
         assert(network.reticulation_nodes[i]->type == NodeType::RETICULATION_NODE);
     }
-    removeNode(ann_network, network.nodes_by_index[move.arcRemovalData.v_clv_index], move);
+    removeNode(ann_network, network.nodes_by_index[move.arcRemovalData.v_clv_index]);
     for (size_t i = 0; i < network.num_reticulations(); ++i) {
         assert(network.reticulation_nodes[i]->type == NodeType::RETICULATION_NODE);
     }
