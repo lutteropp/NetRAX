@@ -589,6 +589,30 @@ std::vector<std::pair<size_t, size_t> > getRemappedReticulationIndices(Annotated
 }
 
 void remapReticulationConfigs(AnnotatedNetwork& ann_network, const ArcRemovalData& removalData, bool undo) {
+    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+        if (undo) {
+            std::cout << "\nremap reticulation configs undo...\n";
+        } else {
+            std::cout << "\nremap reticulation configs perform...\n";
+        }
+    }
+
+    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+        std::cout << "reticulation clv indices before:\n";
+        for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
+            std::cout << ann_network.network.reticulation_nodes[i]->clv_index << "\n";
+        }
+        std::cout << "reticulation probs before:\n";
+        for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
+            std::cout << ann_network.reticulation_probs[i] << "\n";
+        }
+        std::cout << "displayed tree at root configs before:\n";
+        for (size_t k = 0; k < ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].num_active_displayed_trees; ++k) {
+            ReticulationConfigSet& rcs = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].displayed_trees[k].treeLoglData.reticulationChoices;
+            printReticulationChoices(rcs);
+        }
+    }
+
     if (undo) {
         assert(removalData.old_reticulation_clv_indices.size() == ann_network.network.num_reticulations());
     } else {
@@ -612,7 +636,7 @@ void remapReticulationConfigs(AnnotatedNetwork& ann_network, const ArcRemovalDat
                     } else {
                         ann_network.network.reticulation_nodes[curr_ret_idx] = tmp_ret_nodes[old_ret_idx];
                         ann_network.network.reticulation_nodes[curr_ret_idx]->getReticulationData()->reticulation_index = curr_ret_idx;
-                        ann_network.reticulation_probs[curr_ret_idx] = removalData.old_reticulation_probs[curr_ret_idx];
+                        ann_network.reticulation_probs[curr_ret_idx] = removalData.old_reticulation_probs[old_ret_idx];
                     }
                 }
                 break;
@@ -620,27 +644,41 @@ void remapReticulationConfigs(AnnotatedNetwork& ann_network, const ArcRemovalDat
         }
     }
 
-    for (size_t i = 0; i < ann_network.network.num_nodes(); ++i) {
-        for (size_t j = 0; j < ann_network.pernode_displayed_tree_data.size(); ++j) {
-            for (size_t k = 0; k < ann_network.pernode_displayed_tree_data[j].num_active_displayed_trees; ++k) {
-                ReticulationConfigSet& rcs = ann_network.pernode_displayed_tree_data[j].displayed_trees[k].treeLoglData.reticulationChoices;
+    for (size_t j = 0; j < ann_network.pernode_displayed_tree_data.size(); ++j) {
+        for (size_t k = 0; k < ann_network.pernode_displayed_tree_data[j].num_active_displayed_trees; ++k) {
+            ReticulationConfigSet& rcs = ann_network.pernode_displayed_tree_data[j].displayed_trees[k].treeLoglData.reticulationChoices;
 
-                for (size_t l = 0; l < rcs.configs.size(); ++l) {
-                    std::vector<ReticulationState> tmp_config = rcs.configs[l];
-                    ///... TODO
-                    for (const std::pair<size_t, size_t>& remap_pair : remapped_indices) {
-                        size_t curr_ret_idx = remap_pair.first;
-                        size_t old_ret_idx = remap_pair.second;
+            for (size_t l = 0; l < rcs.configs.size(); ++l) {
+                std::vector<ReticulationState> tmp_config = rcs.configs[l];
+                ///... TODO
+                for (const std::pair<size_t, size_t>& remap_pair : remapped_indices) {
+                    size_t curr_ret_idx = remap_pair.first;
+                    size_t old_ret_idx = remap_pair.second;
 
-                        if (undo) {
-                            rcs.configs[l][old_ret_idx] = tmp_config[curr_ret_idx];
-                        } else {
-                            rcs.configs[l][curr_ret_idx] = tmp_config[old_ret_idx];
-                        }
+                    if (undo) {
+                        rcs.configs[l][old_ret_idx] = tmp_config[curr_ret_idx];
+                    } else {
+                        rcs.configs[l][curr_ret_idx] = tmp_config[old_ret_idx];
                     }
-
                 }
+
             }
+        }
+    }
+
+    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+        std::cout << "reticulation clv indices after:\n";
+        for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
+            std::cout << ann_network.network.reticulation_nodes[i]->clv_index << "\n";
+        }
+        std::cout << "reticulation probs after:\n";
+        for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
+            std::cout << ann_network.reticulation_probs[i] << "\n";
+        }
+        std::cout << "displayed tree at root configs after:\n";
+        for (size_t k = 0; k < ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].num_active_displayed_trees; ++k) {
+            ReticulationConfigSet& rcs = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].displayed_trees[k].treeLoglData.reticulationChoices;
+            printReticulationChoices(rcs);
         }
     }
 }
