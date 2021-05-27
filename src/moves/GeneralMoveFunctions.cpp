@@ -70,26 +70,6 @@ Node* addInnerNode(AnnotatedNetwork &ann_network, ReticulationData *retData, siz
     return network.nodes_by_index[clv_index];
 }
 
-void removeEdge(AnnotatedNetwork &ann_network, Edge *edge) {
-    assert(edge);
-    size_t index = edge->pmatrix_index;
-    edge->clear();
-    ann_network.network.edges_by_index[index] = nullptr;
-
-    if (ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
-        for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-            // skip remote partitions
-            if (!ann_network.fake_treeinfo->partitions[p]) {
-                continue;
-            }
-            ann_network.fake_treeinfo->branch_lengths[p][index] = 0.0;
-        }
-    } else {
-        ann_network.fake_treeinfo->linked_branch_lengths[index] = 0.0;
-    }
-    ann_network.network.branchCount--;
-}
-
 Edge* addEdgeInternal(AnnotatedNetwork &ann_network, Link *link1, Link *link2, double length,
         size_t pmatrix_index) {
     assert(ann_network.network.num_branches() < ann_network.network.edges.size());
@@ -162,40 +142,6 @@ std::vector<size_t> determineEdgeOrder(AnnotatedNetwork& ann_network, size_t sta
         }
     }
     return res;
-}
-
-void resetReticulationLinks(Node *node) {
-    assert(node);
-    assert(node->type == NodeType::RETICULATION_NODE);
-    auto retData = node->getReticulationData().get();
-    assert(retData);
-    retData->link_to_first_parent = nullptr;
-    retData->link_to_second_parent = nullptr;
-    retData->link_to_child = nullptr;
-    for (Link &link : node->links) {
-        if (link.direction == Direction::OUTGOING) {
-            retData->link_to_child = &link;
-        } else if (retData->link_to_first_parent == nullptr) {
-            retData->link_to_first_parent = &link;
-        } else {
-            retData->link_to_second_parent = &link;
-        }
-    }
-    assert(retData->link_to_first_parent);
-    assert(retData->link_to_second_parent);
-    assert(retData->link_to_child);
-    if (retData->link_to_first_parent->edge_pmatrix_index
-            > retData->link_to_second_parent->edge_pmatrix_index) {
-        std::swap(retData->link_to_first_parent, retData->link_to_second_parent);
-    }
-}
-
-void addRepairCandidates(Network &network, std::unordered_set<Node*> &repair_candidates,
-        Node *node) {
-    repair_candidates.emplace(node);
-    for (Node *neigh : getNeighbors(network, node)) {
-        repair_candidates.emplace(neigh);
-    }
 }
 
 std::vector<double> get_edge_lengths(AnnotatedNetwork &ann_network, size_t pmatrix_index) {

@@ -13,7 +13,6 @@ Edge* getRandomEdge(AnnotatedNetwork &ann_network);
 
 Node* addInnerNode(AnnotatedNetwork &ann_network, ReticulationData *retData, size_t wanted_clv_index);
 
-void removeEdge(AnnotatedNetwork &ann_network, Edge *edge);
 Edge* addEdge(AnnotatedNetwork &ann_network, Link *link1, Link *link2, double length,
         size_t wanted_pmatrix_index);
 std::vector<size_t> determineEdgeOrder(AnnotatedNetwork& ann_network, size_t start_edge_idx);
