@@ -333,7 +333,7 @@ void updateMoveClvIndex(Move& move, size_t old_clv_index, size_t new_clv_index, 
         return;
     }
     if (!undo) {
-        move.arcRemovalData.remapped_clv_indices.emplace_back(std::make_pair(old_clv_index, new_clv_index));
+        move.remapped_clv_indices.emplace_back(std::make_pair(old_clv_index, new_clv_index));
     }
     if (move.arcRemovalData.a_clv_index == old_clv_index) {
         move.arcRemovalData.a_clv_index = new_clv_index;
@@ -360,7 +360,7 @@ void updateMovePmatrixIndex(Move& move, size_t old_pmatrix_index, size_t new_pma
         return;
     }
     if (!undo) {
-        move.arcRemovalData.remapped_pmatrix_indices.emplace_back(std::make_pair(old_pmatrix_index, new_pmatrix_index));
+        move.remapped_pmatrix_indices.emplace_back(std::make_pair(old_pmatrix_index, new_pmatrix_index));
     }
     if (move.arcRemovalData.au_pmatrix_index == old_pmatrix_index) {
         move.arcRemovalData.au_pmatrix_index = new_pmatrix_index;
@@ -493,7 +493,7 @@ void swapReticulationIndex(AnnotatedNetwork& ann_network, Move& move, size_t old
 
     // update move data
     if (!undo) {
-        move.arcRemovalData.remapped_reticulation_indices.emplace_back(std::make_pair(old_reticulation_index, new_reticulation_index));
+        move.remapped_reticulation_indices.emplace_back(std::make_pair(old_reticulation_index, new_reticulation_index));
     }
 }
 

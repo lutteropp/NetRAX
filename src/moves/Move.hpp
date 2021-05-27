@@ -13,6 +13,7 @@
 #include <unordered_set>
 #include <vector>
 #include <memory>
+#include <utility>
 
 #include "MoveType.hpp"
 
@@ -34,6 +35,10 @@ struct Move {
     size_t edge_orig_idx;
     size_t node_orig_idx;
 
+    std::vector<std::pair<size_t, size_t> > remapped_clv_indices;
+    std::vector<std::pair<size_t, size_t> > remapped_pmatrix_indices;
+    std::vector<std::pair<size_t, size_t> > remapped_reticulation_indices;
+
     RNNIData rnniData;
     RSPRData rsprData;
     ArcInsertionData arcInsertionData;
@@ -41,9 +46,9 @@ struct Move {
 
     Move() = default;
 
-    Move(Move&& rhs) : moveType{rhs.moveType}, edge_orig_idx(rhs.edge_orig_idx), node_orig_idx(rhs.node_orig_idx), rnniData{rhs.rnniData}, rsprData{rhs.rsprData}, arcInsertionData{rhs.arcInsertionData}, arcRemovalData{rhs.arcRemovalData} {}
+    Move(Move&& rhs) : moveType{rhs.moveType}, edge_orig_idx(rhs.edge_orig_idx), node_orig_idx(rhs.node_orig_idx), remapped_clv_indices{rhs.remapped_clv_indices}, remapped_pmatrix_indices{rhs.remapped_pmatrix_indices}, remapped_reticulation_indices{rhs.remapped_reticulation_indices}, rnniData{rhs.rnniData}, rsprData{rhs.rsprData}, arcInsertionData{rhs.arcInsertionData}, arcRemovalData{rhs.arcRemovalData} {}
 
-    Move(const Move& rhs) : moveType{rhs.moveType}, edge_orig_idx(rhs.edge_orig_idx), node_orig_idx(rhs.node_orig_idx), rnniData{rhs.rnniData}, rsprData{rhs.rsprData}, arcInsertionData{rhs.arcInsertionData}, arcRemovalData{rhs.arcRemovalData} {}
+    Move(const Move& rhs) : moveType{rhs.moveType}, edge_orig_idx(rhs.edge_orig_idx), node_orig_idx(rhs.node_orig_idx), remapped_clv_indices{rhs.remapped_clv_indices}, remapped_pmatrix_indices{rhs.remapped_pmatrix_indices}, remapped_reticulation_indices{rhs.remapped_reticulation_indices}, rnniData{rhs.rnniData}, rsprData{rhs.rsprData}, arcInsertionData{rhs.arcInsertionData}, arcRemovalData{rhs.arcRemovalData} {}
 
     Move& operator =(Move&& rhs)
     {
@@ -52,6 +57,9 @@ struct Move {
             moveType = rhs.moveType;
             edge_orig_idx = rhs.edge_orig_idx;
             node_orig_idx = rhs.node_orig_idx;
+            remapped_clv_indices = rhs.remapped_clv_indices;
+            remapped_pmatrix_indices = rhs.remapped_pmatrix_indices;
+            remapped_reticulation_indices = rhs.remapped_reticulation_indices;
             rnniData = rhs.rnniData;
             rsprData = rhs.rsprData;
             arcInsertionData = rhs.arcInsertionData;
@@ -67,6 +75,9 @@ struct Move {
             moveType = rhs.moveType;
             edge_orig_idx = rhs.edge_orig_idx;
             node_orig_idx = rhs.node_orig_idx;
+            remapped_clv_indices = rhs.remapped_clv_indices;
+            remapped_pmatrix_indices = rhs.remapped_pmatrix_indices;
+            remapped_reticulation_indices = rhs.remapped_reticulation_indices;
             rnniData = rhs.rnniData;
             rsprData = rhs.rsprData;
             arcInsertionData = rhs.arcInsertionData;
@@ -80,6 +91,9 @@ struct Move {
             (this->moveType == rhs.moveType)
             && (this->edge_orig_idx == rhs.edge_orig_idx)
             && (this->node_orig_idx == rhs.node_orig_idx)
+            && (this->remapped_clv_indices == rhs.remapped_clv_indices)
+            && (this->remapped_pmatrix_indices == rhs.remapped_pmatrix_indices)
+            && (this->remapped_reticulation_indices == rhs.remapped_reticulation_indices)
             && (this->rnniData == rhs.rnniData)
             && (this->rsprData == rhs.rsprData)
             && (this->arcInsertionData == rhs.arcInsertionData)
