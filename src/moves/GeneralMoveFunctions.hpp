@@ -3,6 +3,7 @@
 #include "MoveType.hpp"
 #include <vector>
 #include <unordered_set>
+#include "Move.hpp"
 
 #include "../graph/AnnotatedNetwork.hpp"
 
