@@ -60,19 +60,39 @@ void randomMovesStep(AnnotatedNetwork &ann_network, std::vector<Move> candidates
     std::vector<std::vector<double> > old_brlens = extract_brlens(ann_network);
 
     for (size_t j = 0; j < candidates.size(); ++j) {
-        std::cout << "Testing moves for candidate " << j << "/" << candidates.size() << "...\n";
+        std::cout << "Testing moves for candidate " << j+1 << "/" << candidates.size() << "...\n";
         std::string newickBeforeMove = toExtendedNewick(ann_network);
-        //std::cout << "perform " << toString(candidates[j]);
+
+        Move origMove(candidates[j]);
+
+        std::cout << "perform " << toString(candidates[j]);
         performMove(ann_network, candidates[j]);
         //std::cout << toExtendedNewick(network) << "\n";
         double moved_logl = computeLoglikelihood(ann_network);
         ASSERT_NE(moved_logl, -std::numeric_limits<double>::infinity());
         //std::cout << "logl after move: " << moved_logl << "\n";
-        //std::cout << "undo " << toString(candidates[j]) << "\n";
+        std::cout << "undo " << toString(candidates[j]) << "\n";
         undoMove(ann_network, candidates[j]);
+
+        ASSERT_EQ(origMove.arcRemovalData.a_clv_index, candidates[j].arcRemovalData.a_clv_index);
+        ASSERT_EQ(origMove.arcRemovalData.b_clv_index, candidates[j].arcRemovalData.b_clv_index);
+        ASSERT_EQ(origMove.arcRemovalData.c_clv_index, candidates[j].arcRemovalData.c_clv_index);
+        ASSERT_EQ(origMove.arcRemovalData.d_clv_index, candidates[j].arcRemovalData.d_clv_index);
+        ASSERT_EQ(origMove.arcRemovalData.u_clv_index, candidates[j].arcRemovalData.u_clv_index);
+        ASSERT_EQ(origMove.arcRemovalData.v_clv_index, candidates[j].arcRemovalData.v_clv_index);
+
+        ASSERT_EQ(origMove.arcRemovalData.au_pmatrix_index, candidates[j].arcRemovalData.au_pmatrix_index);
+        ASSERT_EQ(origMove.arcRemovalData.cv_pmatrix_index, candidates[j].arcRemovalData.cv_pmatrix_index);
+        ASSERT_EQ(origMove.arcRemovalData.ub_pmatrix_index, candidates[j].arcRemovalData.ub_pmatrix_index);
+        ASSERT_EQ(origMove.arcRemovalData.uv_pmatrix_index, candidates[j].arcRemovalData.uv_pmatrix_index);
+        ASSERT_EQ(origMove.arcRemovalData.vd_pmatrix_index, candidates[j].arcRemovalData.vd_pmatrix_index);
+
         std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
         for (size_t i = 0; i < act_brlens.size(); ++i) {
             for (size_t j = 0; j < act_brlens[i].size(); ++j) {
+                if (act_brlens[i][j] != old_brlens[i][j]) {
+                    std::cout << "problem at pmatrix index " << j << "\n";
+                }
                 ASSERT_DOUBLE_EQ(act_brlens[i][j], old_brlens[i][j]);
             }
         }
@@ -99,7 +119,7 @@ void randomMoves(const std::string &networkPath, const std::string &msaPath, boo
 
     std::vector<Move> candidates = possibleMoves(ann_network, type);
 
-    size_t max_candidates = 200;
+    size_t max_candidates = candidates.size();// 200;
 
     std::random_shuffle(candidates.begin(), candidates.end());
     candidates.resize(std::min(candidates.size(), max_candidates));
