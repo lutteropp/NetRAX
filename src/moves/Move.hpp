@@ -122,5 +122,7 @@ void removeBadCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& candi
 std::vector<Node*> gatherStartNodes(AnnotatedNetwork& ann_network, Move move);
 
 void updateMoveBranchLengths(AnnotatedNetwork& ann_network, Move& move);
+void updateMovePmatrixIndex(Move& move, size_t old_pmatrix_index, size_t new_pmatrix_index, bool undo);
+void updateMoveClvIndex(Move& move, size_t old_clv_index, size_t new_clv_index, bool undo);
 
 }

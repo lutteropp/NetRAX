@@ -467,6 +467,42 @@ std::vector<Move> possibleMovesDeltaPlus(AnnotatedNetwork &ann_network, int min_
     return res;
 }
 
+void updateMoveClvIndexArcInsertion(Move& move, size_t old_clv_index, size_t new_clv_index, bool undo) {
+    if (old_clv_index == new_clv_index) {
+        return;
+    }
+    if (!undo) {
+        move.remapped_clv_indices.emplace_back(std::make_pair(old_clv_index, new_clv_index));
+    }
+    if (move.arcInsertionData.a_clv_index == old_clv_index) {
+        move.arcInsertionData.a_clv_index = new_clv_index;
+    }
+    if (move.arcInsertionData.b_clv_index == old_clv_index) {
+        move.arcInsertionData.b_clv_index = new_clv_index;
+    }
+    if (move.arcInsertionData.c_clv_index == old_clv_index) {
+        move.arcInsertionData.c_clv_index = new_clv_index;
+    }
+    if (move.arcInsertionData.d_clv_index == old_clv_index) {
+        move.arcInsertionData.d_clv_index = new_clv_index;
+    }
+}
+
+void updateMovePmatrixIndexArcInsertion(Move& move, size_t old_pmatrix_index, size_t new_pmatrix_index, bool undo) {
+    if (old_pmatrix_index == new_pmatrix_index) {
+        return;
+    }
+    if (!undo) {
+        move.remapped_pmatrix_indices.emplace_back(std::make_pair(old_pmatrix_index, new_pmatrix_index));
+    }
+    if (move.arcInsertionData.ab_pmatrix_index == old_pmatrix_index) {
+        move.arcInsertionData.ab_pmatrix_index = new_pmatrix_index;
+    }
+    if (move.arcInsertionData.cd_pmatrix_index == old_pmatrix_index) {
+        move.arcInsertionData.cd_pmatrix_index = new_pmatrix_index;
+    }
+}
+
 void performMoveArcInsertion(AnnotatedNetwork &ann_network, Move &move) {
     assert(checkSanityArcInsertion(ann_network, move));
     assert(move.moveType == MoveType::ArcInsertionMove || move.moveType == MoveType::DeltaPlusMove);
@@ -507,9 +543,9 @@ void performMoveArcInsertion(AnnotatedNetwork &ann_network, Move &move) {
     std::vector<double> a_u_edge_length = move.arcInsertionData.a_u_len;
     std::vector<double> u_b_edge_length = move.arcInsertionData.u_b_len;
 
-    removeEdge(ann_network, network.edges_by_index[a_b_edge_index]);
+    removeEdge(ann_network, move, network.edges_by_index[a_b_edge_index], false);
     if (c_d_edge_index != a_b_edge_index) {
-        removeEdge(ann_network, network.edges_by_index[c_d_edge_index]);
+        removeEdge(ann_network, move, network.edges_by_index[c_d_edge_index], false);
     }
 
     Edge *u_b_edge = addEdge(ann_network, u_b_link, to_b_link, u_b_edge_length[0],

@@ -328,7 +328,7 @@ std::vector<Move> possibleMovesDeltaMinus(AnnotatedNetwork& ann_network, const s
     return res;
 }
 
-void updateMoveClvIndex(Move& move, size_t old_clv_index, size_t new_clv_index, bool undo = false) {
+void updateMoveClvIndexArcRemoval(Move& move, size_t old_clv_index, size_t new_clv_index, bool undo) {
     if (old_clv_index == new_clv_index) {
         return;
     }
@@ -355,7 +355,7 @@ void updateMoveClvIndex(Move& move, size_t old_clv_index, size_t new_clv_index, 
     }
 }
 
-void updateMovePmatrixIndex(Move& move, size_t old_pmatrix_index, size_t new_pmatrix_index, bool undo = false) {
+void updateMovePmatrixIndexArcRemoval(Move& move, size_t old_pmatrix_index, size_t new_pmatrix_index, bool undo) {
     if (old_pmatrix_index == new_pmatrix_index) {
         return;
     }
@@ -376,124 +376,6 @@ void updateMovePmatrixIndex(Move& move, size_t old_pmatrix_index, size_t new_pma
     }
     if (move.arcRemovalData.vd_pmatrix_index == old_pmatrix_index) {
         move.arcRemovalData.vd_pmatrix_index = new_pmatrix_index;
-    }
-
-    if (undo) {
-        if (move.arcRemovalData.wanted_ab_pmatrix_index == old_pmatrix_index) {
-            move.arcRemovalData.wanted_ab_pmatrix_index = new_pmatrix_index;
-        }
-        if (move.arcRemovalData.wanted_cd_pmatrix_index == old_pmatrix_index) {
-            move.arcRemovalData.wanted_cd_pmatrix_index = new_pmatrix_index;
-        }
-    } else {
-        if (move.arcRemovalData.wanted_ab_pmatrix_index == old_pmatrix_index || move.arcRemovalData.wanted_cd_pmatrix_index == old_pmatrix_index) {
-            throw std::runtime_error("This should not happen");
-        }
-    }
-}
-
-void swapPmatrixIndex(AnnotatedNetwork& ann_network, Move& move, size_t old_pmatrix_index, size_t new_pmatrix_index, bool undo = false) {
-    if (old_pmatrix_index == new_pmatrix_index) {
-        return;
-    }
-    // update pmatrix valid and the pmatrices
-    for (unsigned int p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-        if (!ann_network.fake_treeinfo->partitions[p]) { // skip remote partitions
-            continue;
-        }
-        std::swap(ann_network.fake_treeinfo->pmatrix_valid[p][old_pmatrix_index], ann_network.fake_treeinfo->pmatrix_valid[p][new_pmatrix_index]);
-        std::swap(ann_network.fake_treeinfo->partitions[p]->pmatrix[old_pmatrix_index], ann_network.fake_treeinfo->partitions[p]->pmatrix[new_pmatrix_index]);
-    }
-    // update branch lengths array
-    std::swap(ann_network.fake_treeinfo->linked_branch_lengths[old_pmatrix_index], ann_network.fake_treeinfo->linked_branch_lengths[new_pmatrix_index]);
-    if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
-        for (unsigned int p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-            if (!ann_network.fake_treeinfo->partitions[p]) { // skip remote partitions
-                continue;
-            }
-            std::swap(ann_network.fake_treeinfo->branch_lengths[p][old_pmatrix_index], ann_network.fake_treeinfo->branch_lengths[p][new_pmatrix_index]);
-        }
-    }
-    // update pmatrix index stored in the edge
-    Edge* edge = ann_network.network.edges_by_index[old_pmatrix_index];
-    edge->pmatrix_index = new_pmatrix_index;
-    // update pmatrix index stored in the links belonging to the edge
-    edge->link1->edge_pmatrix_index = new_pmatrix_index;
-    edge->link1->outer->edge_pmatrix_index = new_pmatrix_index;
-    edge->link2->edge_pmatrix_index = new_pmatrix_index;
-    edge->link2->outer->edge_pmatrix_index = new_pmatrix_index;
-    // update edges_by_index array
-    std::swap(ann_network.network.edges_by_index[old_pmatrix_index], ann_network.network.edges_by_index[new_pmatrix_index]);
-    // update pmatrix indices in the move
-    updateMovePmatrixIndex(move, old_pmatrix_index, new_pmatrix_index, undo);
-}
-
-void swapClvIndex(AnnotatedNetwork& ann_network, Move& move, size_t old_clv_index, size_t new_clv_index, bool undo = false) {
-    if (old_clv_index == new_clv_index) {
-        return;
-    }
-    Node* node = ann_network.network.nodes_by_index[old_clv_index];
-    assert(node);
-
-    int old_scaler_index = node->isTip() ? -1 : (old_clv_index - ann_network.network.num_tips());
-    int new_scaler_index = node->isTip() ? -1 : (new_clv_index - ann_network.network.num_tips());
-
-    // update clv valid and the clvs
-    for (unsigned int p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
-        if (!ann_network.fake_treeinfo->partitions[p]) { // skip remote partitions
-            continue;
-        }
-        std::swap(ann_network.fake_treeinfo->clv_valid[p][old_clv_index], ann_network.fake_treeinfo->clv_valid[p][new_clv_index]);
-        std::swap(ann_network.fake_treeinfo->partitions[p]->clv[old_clv_index], ann_network.fake_treeinfo->partitions[p]->clv[new_clv_index]);
-    }
-
-    // update brlen scalers
-    if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_SCALED && !node->isTip()) {
-        std::swap(ann_network.fake_treeinfo->brlen_scalers[old_scaler_index], ann_network.fake_treeinfo->brlen_scalers[new_scaler_index]);
-    }
-
-    // update displayed tree data
-    std::swap(ann_network.pernode_displayed_tree_data[old_clv_index], ann_network.pernode_displayed_tree_data[new_clv_index]);
-    // update clv index stored in the node
-    node->clv_index = new_clv_index;
-    // update scaler index stored in the node
-    node->scaler_index = new_clv_index - ann_network.network.num_tips();
-    // update clv index in the links belonging to the node
-    for (Link& link : node->links) {
-        link.node_clv_index = new_clv_index;
-    }
-    // update nodes_by_index array
-    std::swap(ann_network.network.nodes_by_index[old_clv_index], ann_network.network.nodes_by_index[new_clv_index]);
-
-    // update clv indices in the move
-    updateMoveClvIndex(move, old_clv_index, new_clv_index, undo);
-}
-
-void swapReticulationIndex(AnnotatedNetwork& ann_network, Move& move, size_t old_reticulation_index, size_t new_reticulation_index, bool undo = false) {
-    if (old_reticulation_index == new_reticulation_index) {
-        return;
-    }
-    // update reticulation states in the displayed trees data
-    for (size_t i = 0; i < ann_network.pernode_displayed_tree_data.size(); ++i) {
-        for (size_t j = 0; j < ann_network.pernode_displayed_tree_data[i].num_active_displayed_trees; ++j) {
-            ReticulationConfigSet& rcs = ann_network.pernode_displayed_tree_data[i].displayed_trees[j].treeLoglData.reticulationChoices;
-            for (size_t k = 0; k < rcs.configs.size(); ++k) {
-                std::swap(rcs.configs[k][old_reticulation_index], rcs.configs[k][new_reticulation_index]);
-            }
-        }
-    }
-    Node* node = ann_network.network.reticulation_nodes[old_reticulation_index];
-    assert(node->getType() == NodeType::RETICULATION_NODE);
-    // update reticulation index stored in the node
-    node->getReticulationData()->reticulation_index = new_reticulation_index;
-    // update reticulation nodes array
-    std::swap(ann_network.network.reticulation_nodes[old_reticulation_index], ann_network.network.reticulation_nodes[new_reticulation_index]);
-    // update reticulation probs array
-    std::swap(ann_network.reticulation_probs[old_reticulation_index], ann_network.reticulation_probs[new_reticulation_index]);
-
-    // update move data
-    if (!undo) {
-        move.remapped_reticulation_indices.emplace_back(std::make_pair(old_reticulation_index, new_reticulation_index));
     }
 }
 

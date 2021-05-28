@@ -40,4 +40,7 @@ Move buildMoveArcRemoval(size_t a_clv_index, size_t b_clv_index, size_t c_clv_in
         size_t d_clv_index, size_t u_clv_index, size_t v_clv_index, std::vector<double> &u_v_len, std::vector<double> &c_v_len,
          std::vector<double> &a_u_len, std::vector<double> &a_b_len, std::vector<double> &c_d_len, std::vector<double> &v_d_len, std::vector<double> &u_b_len, MoveType moveType, size_t edge_orig_idx, size_t node_orig_idx);
 
+void updateMoveClvIndexArcRemoval(Move& move, size_t old_clv_index, size_t new_clv_index, bool undo = false);
+void updateMovePmatrixIndexArcRemoval(Move& move, size_t old_pmatrix_index, size_t new_pmatrix_index, bool undo = false);
+
 }
