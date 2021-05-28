@@ -375,9 +375,9 @@ void updateMovePmatrixIndex(Move& move, size_t old_pmatrix_index, size_t new_pma
 
 void updateMoveClvIndex(Move& move, size_t old_clv_index, size_t new_clv_index, bool undo) {
     if (isArcInsertion(move.moveType)) {
-        updateMovePmatrixIndexArcInsertion(move, old_clv_index, new_clv_index, undo);
+        updateMoveClvIndexArcInsertion(move, old_clv_index, new_clv_index, undo);
     } else if (isArcRemoval(move.moveType)) {
-        updateMovePmatrixIndexArcRemoval(move, old_clv_index, new_clv_index, undo);
+        updateMoveClvIndexArcRemoval(move, old_clv_index, new_clv_index, undo);
     } else {
         throw std::runtime_error("unexpected move type");
     }
