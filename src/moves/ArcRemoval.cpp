@@ -643,23 +643,6 @@ void undoMoveArcRemoval(AnnotatedNetwork &ann_network, Move &move) {
     assert(assertConsecutiveIndices(ann_network));
     assert(assertBranchLengths(ann_network));
 
-    /*if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-        std::cout << "undoing " << toString(move) << "\n";
-        std::cout << "reticulation clv indices before undo arc removal:\n";
-        for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
-            std::cout << ann_network.network.reticulation_nodes[i]->clv_index << "\n";
-        }
-        std::cout << "reticulation probs before undo arc removal:\n";
-        for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
-            std::cout << ann_network.reticulation_probs[i] << "\n";
-        }
-        std::cout << "displayed tree at root configs before undo arc removal:\n";
-        for (size_t k = 0; k < ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].num_active_displayed_trees; ++k) {
-            ReticulationConfigSet& rcs = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].displayed_trees[k].treeLoglData.reticulationChoices;
-            printReticulationChoices(rcs);
-        }
-    }*/
-
     Move insertion = buildMoveArcInsertion(move.arcRemovalData.a_clv_index, move.arcRemovalData.b_clv_index,
             move.arcRemovalData.c_clv_index, move.arcRemovalData.d_clv_index, move.arcRemovalData.u_v_len, move.arcRemovalData.c_v_len, move.arcRemovalData.a_u_len, move.arcRemovalData.a_b_len, move.arcRemovalData.c_d_len, move.arcRemovalData.v_d_len, move.arcRemovalData.u_b_len, MoveType::ArcInsertionMove, move.edge_orig_idx, move.node_orig_idx);
 
@@ -678,22 +661,6 @@ void undoMoveArcRemoval(AnnotatedNetwork &ann_network, Move &move) {
     performMoveArcInsertion(ann_network, insertion);
     assert(assertConsecutiveIndices(ann_network));
     assert(assertBranchLengths(ann_network));
-
-    /*if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-        std::cout << "reticulation clv indices after undo arc removal:\n";
-        for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
-            std::cout << ann_network.network.reticulation_nodes[i]->clv_index << "\n";
-        }
-        std::cout << "reticulation probs after undo arc removal:\n";
-        for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
-            std::cout << ann_network.reticulation_probs[i] << "\n";
-        }
-        std::cout << "displayed tree at root configs after undo arc removal:\n";
-        for (size_t k = 0; k < ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].num_active_displayed_trees; ++k) {
-            ReticulationConfigSet& rcs = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].displayed_trees[k].treeLoglData.reticulationChoices;
-            printReticulationChoices(rcs);
-        }
-    }*/
 
     // undo all index swaps that have taken place
     for (int i = move.remapped_reticulation_indices.size() - 1; i >= 0; i--) {
