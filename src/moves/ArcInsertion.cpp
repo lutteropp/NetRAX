@@ -512,8 +512,6 @@ void performMoveArcInsertion(AnnotatedNetwork &ann_network, Move &move) {
     Edge *c_d_edge = getEdgeTo(network, move.arcInsertionData.c_clv_index, move.arcInsertionData.d_clv_index);
     assert(c_d_edge->link1);
     assert(c_d_edge->link2);
-    size_t a_b_edge_index = a_b_edge->pmatrix_index;
-    size_t c_d_edge_index = c_d_edge->pmatrix_index;
 
     ReticulationData retData;
     retData.init(network.num_reticulations(), "", 0, nullptr, nullptr, nullptr);
@@ -537,9 +535,9 @@ void performMoveArcInsertion(AnnotatedNetwork &ann_network, Move &move) {
     std::vector<double> a_u_edge_length = move.arcInsertionData.a_u_len;
     std::vector<double> u_b_edge_length = move.arcInsertionData.u_b_len;
 
-    removeEdge(ann_network, move, network.edges_by_index[a_b_edge_index], false);
-    if (c_d_edge_index != a_b_edge_index) {
-        removeEdge(ann_network, move, network.edges_by_index[c_d_edge_index], false);
+    removeEdge(ann_network, move, network.edges_by_index[move.arcInsertionData.ab_pmatrix_index], false);
+    if (move.arcInsertionData.cd_pmatrix_index != move.arcInsertionData.ab_pmatrix_index) {
+        removeEdge(ann_network, move, network.edges_by_index[move.arcInsertionData.cd_pmatrix_index], false);
     }
 
     Edge *u_b_edge = addEdge(ann_network, u_b_link, to_b_link, u_b_edge_length[0],
