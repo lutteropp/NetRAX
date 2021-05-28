@@ -47,6 +47,9 @@ void swapPmatrixIndex(AnnotatedNetwork& ann_network, Move& move, size_t old_pmat
 void swapClvIndex(AnnotatedNetwork& ann_network, Move& move, size_t old_clv_index, size_t new_clv_index, bool undo = false);
 void swapReticulationIndex(AnnotatedNetwork& ann_network, Move& move, size_t old_reticulation_index, size_t new_reticulation_index, bool undo = false);
 
+void removeNode(AnnotatedNetwork &ann_network, Move& move, Node *node, bool undo);
+void removeEdge(AnnotatedNetwork &ann_network, Move& move, Edge *edge, bool undo);
+
 template <typename T>
 std::ostream& operator<<(std::ostream& os, const std::vector<T>& vec) {
     for (size_t i = 0; i < vec.size(); ++i) {

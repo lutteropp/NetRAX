@@ -439,33 +439,6 @@ bool assert_links_in_range2(const Network& network) {
     repairConsecutivePmatrixIndices(ann_network, move);
 }*/
 
-void removeNode(AnnotatedNetwork &ann_network, Move& move, Node *node, bool undo) {
-    assert(node);
-    assert(!node->isTip());
-    Network& network = ann_network.network;
-
-    // move the node the the last index, the remove the node.
-    if (node->type == NodeType::RETICULATION_NODE) {
-        swapReticulationIndex(ann_network, move, node->getReticulationData()->reticulation_index, ann_network.network.num_reticulations() - 1, undo);
-        network.reticulation_nodes.resize(network.reticulation_nodes.size() - 1);
-    }
-    swapClvIndex(ann_network, move, node->clv_index, ann_network.network.num_nodes() - 1);
-    network.nodes_by_index[node->clv_index] = nullptr;
-    node->clear();
-    network.nodeCount--;
-}
-
-void removeEdge(AnnotatedNetwork &ann_network, Move& move, Edge *edge, bool undo) {
-    assert(edge);
-    Network& network = ann_network.network;
-
-    // move the node the the last index, the remove the node.
-    swapPmatrixIndex(ann_network, move, edge->pmatrix_index, ann_network.network.num_branches() - 1, undo);
-    ann_network.network.edges_by_index[edge->pmatrix_index] = nullptr;
-    edge->clear();
-    ann_network.network.branchCount--;
-}
-
 std::vector<std::pair<size_t, size_t> > getRemappedReticulationIndices(AnnotatedNetwork& ann_network, const std::vector<size_t>& old_reticulation_clv_indices) {
     std::vector<std::pair<size_t, size_t> > remapped_reticulation_indices;
     for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
