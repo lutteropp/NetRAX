@@ -671,6 +671,18 @@ void undoMoveArcInsertion(AnnotatedNetwork &ann_network, Move &move) {
     removal.arcRemovalData.vd_pmatrix_index = getEdgeTo(network, v, d)->pmatrix_index;
 
     performMoveArcRemoval(ann_network, removal);
+
+    // undo all index swaps that have taken place
+    for (int i = move.remapped_reticulation_indices.size() - 1; i >= 0; i--) {
+        swapReticulationIndex(ann_network, move, move.remapped_reticulation_indices[i].first, move.remapped_reticulation_indices[i].second, true);
+    }
+    for (int i = move.remapped_clv_indices.size() - 1; i >= 0; i--) {
+        swapClvIndex(ann_network, move, move.remapped_clv_indices[i].first, move.remapped_clv_indices[i].second, true);
+    }
+    for (int i = move.remapped_pmatrix_indices.size() - 1; i >= 0; i--) {
+        swapPmatrixIndex(ann_network, move, move.remapped_pmatrix_indices[i].first, move.remapped_pmatrix_indices[i].second, true);
+    }
+
     fixReticulationLinks(ann_network);
     assert(assertConsecutiveIndices(ann_network));
     assert(assertBranchLengths(ann_network));
