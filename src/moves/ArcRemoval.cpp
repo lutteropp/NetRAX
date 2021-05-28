@@ -327,21 +327,33 @@ void updateMoveClvIndexArcRemoval(Move& move, size_t old_clv_index, size_t new_c
     }
     if (move.arcRemovalData.a_clv_index == old_clv_index) {
         move.arcRemovalData.a_clv_index = new_clv_index;
+    } else if (move.arcRemovalData.a_clv_index == new_clv_index) {
+        move.arcRemovalData.a_clv_index = old_clv_index;
     }
     if (move.arcRemovalData.b_clv_index == old_clv_index) {
         move.arcRemovalData.b_clv_index = new_clv_index;
+    } else if (move.arcRemovalData.b_clv_index == new_clv_index) {
+        move.arcRemovalData.b_clv_index = old_clv_index;
     }
     if (move.arcRemovalData.c_clv_index == old_clv_index) {
         move.arcRemovalData.c_clv_index = new_clv_index;
+    } else if (move.arcRemovalData.c_clv_index == new_clv_index) {
+        move.arcRemovalData.c_clv_index = old_clv_index;
     }
     if (move.arcRemovalData.d_clv_index == old_clv_index) {
         move.arcRemovalData.d_clv_index = new_clv_index;
+    } else if (move.arcRemovalData.d_clv_index == new_clv_index) {
+        move.arcRemovalData.d_clv_index = old_clv_index;
     }
     if (move.arcRemovalData.u_clv_index == old_clv_index) {
         move.arcRemovalData.u_clv_index = new_clv_index;
+    } else if (move.arcRemovalData.u_clv_index == new_clv_index) {
+        move.arcRemovalData.u_clv_index = old_clv_index;
     }
     if (move.arcRemovalData.v_clv_index == old_clv_index) {
         move.arcRemovalData.v_clv_index = new_clv_index;
+    } else if (move.arcRemovalData.v_clv_index == new_clv_index) {
+        move.arcRemovalData.v_clv_index = old_clv_index;
     }
 }
 
@@ -354,18 +366,28 @@ void updateMovePmatrixIndexArcRemoval(Move& move, size_t old_pmatrix_index, size
     }
     if (move.arcRemovalData.au_pmatrix_index == old_pmatrix_index) {
         move.arcRemovalData.au_pmatrix_index = new_pmatrix_index;
+    } else if (move.arcRemovalData.au_pmatrix_index == new_pmatrix_index) {
+        move.arcRemovalData.au_pmatrix_index = old_pmatrix_index;
     }
     if (move.arcRemovalData.cv_pmatrix_index == old_pmatrix_index) {
         move.arcRemovalData.cv_pmatrix_index = new_pmatrix_index;
+    } else if (move.arcRemovalData.cv_pmatrix_index == new_pmatrix_index) {
+        move.arcRemovalData.cv_pmatrix_index = old_pmatrix_index;
     }
     if (move.arcRemovalData.ub_pmatrix_index == old_pmatrix_index) {
         move.arcRemovalData.ub_pmatrix_index = new_pmatrix_index;
+    } else if (move.arcRemovalData.ub_pmatrix_index == new_pmatrix_index) {
+        move.arcRemovalData.ub_pmatrix_index = old_pmatrix_index;
     }
     if (move.arcRemovalData.uv_pmatrix_index == old_pmatrix_index) {
         move.arcRemovalData.uv_pmatrix_index = new_pmatrix_index;
+    } else if (move.arcRemovalData.uv_pmatrix_index == new_pmatrix_index) {
+        move.arcRemovalData.uv_pmatrix_index = old_pmatrix_index;
     }
     if (move.arcRemovalData.vd_pmatrix_index == old_pmatrix_index) {
         move.arcRemovalData.vd_pmatrix_index = new_pmatrix_index;
+    } else if (move.arcRemovalData.vd_pmatrix_index == new_pmatrix_index) {
+        move.arcRemovalData.vd_pmatrix_index = old_pmatrix_index;
     }
 }
 
@@ -428,49 +450,6 @@ bool assert_links_in_range2(const Network& network) {
     repairConsecutiveClvIndices(ann_network, move);
     repairConsecutivePmatrixIndices(ann_network, move);
 }*/
-
-std::vector<std::pair<size_t, size_t> > getRemappedReticulationIndices(AnnotatedNetwork& ann_network, const std::vector<size_t>& old_reticulation_clv_indices) {
-    std::vector<std::pair<size_t, size_t> > remapped_reticulation_indices;
-    for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
-        if (ann_network.network.reticulation_nodes[i]->clv_index != old_reticulation_clv_indices[i]) { // a reticulation clv index has been MPI_T_category_changed
-            size_t old_ret_index = std::numeric_limits<size_t>::max();
-            for (size_t j = 0; j < old_reticulation_clv_indices.size(); ++j) {
-                if (old_reticulation_clv_indices[j] == ann_network.network.reticulation_nodes[i]->clv_index) {
-                    old_ret_index = j;
-                    break;
-                }
-            }
-            if (old_ret_index == std::numeric_limits<size_t>::max()) {
-                continue; // this reticulation has been deleted
-            }
-            size_t new_ret_index = i;
-            remapped_reticulation_indices.emplace_back(std::make_pair(old_ret_index, new_ret_index));
-        }
-    }
-    return remapped_reticulation_indices;
-}
-
-std::vector<size_t> invertPermutation(const std::vector<size_t>& perm) {
-    // https://www.geeksforgeeks.org/inverse-permutation/
-    std::vector<size_t> res(perm.size());
-    for (size_t i = 0; i < perm.size(); i++) {
-        res[perm[i] - 1] = i + 1;
-    }
-    return res;
-}
-
-std::vector<size_t> permutationToMoveThisReticulationToEnd(AnnotatedNetwork& ann_network, size_t retNodeClvIndex) {
-    std::vector<size_t> res(ann_network.network.num_reticulations());
-    std::iota(res.begin(), res.end(), 1);
-    auto it = std::find_if(ann_network.network.reticulation_nodes.begin(), ann_network.network.reticulation_nodes.end(), 
-        [&retNodeClvIndex] (Node* node) { 
-            return node->clv_index == retNodeClvIndex; 
-        } 
-    );
-    size_t retPos = std::distance(ann_network.network.reticulation_nodes.begin(), it);
-    std::swap(res[res.size() - 1], retPos);
-    return res;
-}
 
 bool isReticulation(AnnotatedNetwork& ann_network, size_t clvIdx) {
     auto it = std::find_if(ann_network.network.reticulation_nodes.begin(), ann_network.network.reticulation_nodes.end(), 

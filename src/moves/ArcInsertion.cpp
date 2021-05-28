@@ -458,15 +458,23 @@ void updateMoveClvIndexArcInsertion(Move& move, size_t old_clv_index, size_t new
     }
     if (move.arcInsertionData.a_clv_index == old_clv_index) {
         move.arcInsertionData.a_clv_index = new_clv_index;
+    } else if (move.arcInsertionData.a_clv_index == new_clv_index) {
+        move.arcInsertionData.a_clv_index = old_clv_index;
     }
     if (move.arcInsertionData.b_clv_index == old_clv_index) {
         move.arcInsertionData.b_clv_index = new_clv_index;
+    } else if (move.arcInsertionData.b_clv_index == new_clv_index) {
+        move.arcInsertionData.b_clv_index = old_clv_index;
     }
     if (move.arcInsertionData.c_clv_index == old_clv_index) {
         move.arcInsertionData.c_clv_index = new_clv_index;
+    } else if (move.arcInsertionData.c_clv_index == new_clv_index) {
+        move.arcInsertionData.c_clv_index = old_clv_index;
     }
     if (move.arcInsertionData.d_clv_index == old_clv_index) {
         move.arcInsertionData.d_clv_index = new_clv_index;
+    } else if (move.arcInsertionData.d_clv_index == new_clv_index) {
+        move.arcInsertionData.d_clv_index = old_clv_index;
     }
 }
 
@@ -479,9 +487,13 @@ void updateMovePmatrixIndexArcInsertion(Move& move, size_t old_pmatrix_index, si
     }
     if (move.arcInsertionData.ab_pmatrix_index == old_pmatrix_index) {
         move.arcInsertionData.ab_pmatrix_index = new_pmatrix_index;
+    } else if (move.arcInsertionData.ab_pmatrix_index == new_pmatrix_index) {
+        move.arcInsertionData.ab_pmatrix_index = old_pmatrix_index;
     }
     if (move.arcInsertionData.cd_pmatrix_index == old_pmatrix_index) {
         move.arcInsertionData.cd_pmatrix_index = new_pmatrix_index;
+    } else if (move.arcInsertionData.cd_pmatrix_index == new_pmatrix_index) {
+        move.arcInsertionData.cd_pmatrix_index = old_pmatrix_index;
     }
 }
 
