@@ -65,13 +65,13 @@ void randomMovesStep(AnnotatedNetwork &ann_network, std::vector<Move> candidates
 
         Move origMove(candidates[j]);
 
-        std::cout << "perform " << toString(candidates[j]);
+        //std::cout << "perform " << toString(candidates[j]);
         performMove(ann_network, candidates[j]);
         //std::cout << toExtendedNewick(network) << "\n";
         double moved_logl = computeLoglikelihood(ann_network);
         ASSERT_NE(moved_logl, -std::numeric_limits<double>::infinity());
         //std::cout << "logl after move: " << moved_logl << "\n";
-        std::cout << "undo " << toString(candidates[j]) << "\n";
+        //std::cout << "undo " << toString(candidates[j]) << "\n";
         undoMove(ann_network, candidates[j]);
 
         ASSERT_EQ(origMove.arcRemovalData.a_clv_index, candidates[j].arcRemovalData.a_clv_index);
