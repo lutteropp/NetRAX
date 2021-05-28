@@ -80,12 +80,29 @@ void randomMovesStep(AnnotatedNetwork &ann_network, std::vector<Move> candidates
         ASSERT_EQ(origMove.arcRemovalData.d_clv_index, candidates[j].arcRemovalData.d_clv_index);
         ASSERT_EQ(origMove.arcRemovalData.u_clv_index, candidates[j].arcRemovalData.u_clv_index);
         ASSERT_EQ(origMove.arcRemovalData.v_clv_index, candidates[j].arcRemovalData.v_clv_index);
-
         ASSERT_EQ(origMove.arcRemovalData.au_pmatrix_index, candidates[j].arcRemovalData.au_pmatrix_index);
         ASSERT_EQ(origMove.arcRemovalData.cv_pmatrix_index, candidates[j].arcRemovalData.cv_pmatrix_index);
         ASSERT_EQ(origMove.arcRemovalData.ub_pmatrix_index, candidates[j].arcRemovalData.ub_pmatrix_index);
         ASSERT_EQ(origMove.arcRemovalData.uv_pmatrix_index, candidates[j].arcRemovalData.uv_pmatrix_index);
         ASSERT_EQ(origMove.arcRemovalData.vd_pmatrix_index, candidates[j].arcRemovalData.vd_pmatrix_index);
+
+        ASSERT_EQ(origMove.arcInsertionData.a_clv_index, candidates[j].arcInsertionData.a_clv_index);
+        ASSERT_EQ(origMove.arcInsertionData.b_clv_index, candidates[j].arcInsertionData.b_clv_index);
+        ASSERT_EQ(origMove.arcInsertionData.c_clv_index, candidates[j].arcInsertionData.c_clv_index);
+        ASSERT_EQ(origMove.arcInsertionData.d_clv_index, candidates[j].arcInsertionData.d_clv_index);
+        ASSERT_EQ(origMove.arcInsertionData.ab_pmatrix_index, candidates[j].arcInsertionData.ab_pmatrix_index);
+        ASSERT_EQ(origMove.arcInsertionData.cd_pmatrix_index, candidates[j].arcInsertionData.cd_pmatrix_index);
+
+        ASSERT_EQ(origMove.rsprData.x_clv_index, candidates[j].rsprData.x_clv_index);
+        ASSERT_EQ(origMove.rsprData.y_clv_index, candidates[j].rsprData.y_clv_index);
+        ASSERT_EQ(origMove.rsprData.z_clv_index, candidates[j].rsprData.z_clv_index);
+        ASSERT_EQ(origMove.rsprData.x_prime_clv_index, candidates[j].rsprData.x_prime_clv_index);
+        ASSERT_EQ(origMove.rsprData.y_prime_clv_index, candidates[j].rsprData.y_prime_clv_index);
+
+        ASSERT_EQ(origMove.rnniData.u_clv_index, candidates[j].rnniData.u_clv_index);
+        ASSERT_EQ(origMove.rnniData.v_clv_index, candidates[j].rnniData.v_clv_index);
+        ASSERT_EQ(origMove.rnniData.s_clv_index, candidates[j].rnniData.s_clv_index);
+        ASSERT_EQ(origMove.rnniData.t_clv_index, candidates[j].rnniData.t_clv_index);
 
         std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
         for (size_t i = 0; i < act_brlens.size(); ++i) {
