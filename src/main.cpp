@@ -98,6 +98,8 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options)
     app.add_option("--scrambling", options->scrambling, "Maximum failed consecutive scrambling retries for escaping out of local maxima (default: 0).");
     app.add_option("--scrambling_radius", options->scrambling_radius, "Number of random rSPR moves to apply when scrambling a network (default: 2).");
 
+    app.add_option("--judge", options->true_network_path, "Path to true network for checking the inference quality.");
+
     app.add_flag("--sim_anneal", options->sim_anneal, "Use simulated annealing instead of hill climbing during network topology search.");
     app.add_option("--start_temperature", options->start_temperature, "Start temperature to be used for simulated annealing (default: 100).");
 

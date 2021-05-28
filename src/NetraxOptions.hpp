@@ -106,6 +106,8 @@ public:
 
     bool save_memory = false;
 
+    std::string true_network_path;
+
     BrlenOptMethod brlenOptMethod = BrlenOptMethod::NEWTON_RAPHSON;//BrlenOptMethod::BRENT_REROOT;//BrlenOptMethod::NEWTON_RAPHSON_REROOT;// BrlenOptMethod::BRENT_NORMAL;
     //BrlenOptMethod brlenOptMethod = BrlenOptMethod::BRENT_NORMAL;
 

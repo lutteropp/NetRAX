@@ -17,8 +17,71 @@
 
 #include "../likelihood/ComplexityScoring.hpp"
 #include "../likelihood/LikelihoodComputation.hpp"
+#include "../optimization/Optimization.hpp"
+#include "../NetworkDistances.hpp"
 
 namespace netrax {
+
+void judgeNetwork(BestNetworkData& best_network_data, NetraxOptions& netraxOptions, const RaxmlInstance& instance, std::mt19937& rng) {
+    AnnotatedNetwork inferredNetwork = build_annotated_network_from_string(netraxOptions, instance, best_network_data.newick[best_network_data.best_n_reticulations]);
+    init_annotated_network(inferredNetwork, rng);
+    AnnotatedNetwork trueNetwork = build_annotated_network_from_file(netraxOptions, instance, netraxOptions.true_network_path);
+    init_annotated_network(trueNetwork, rng);
+
+    if (inferredNetwork.network.num_tips() != trueNetwork.network.num_tips())
+    {
+        throw std::runtime_error("Unequal number of taxa");
+    }
+
+    optimizeAllNonTopology(inferredNetwork, true);
+    optimizeAllNonTopology(trueNetwork, true);
+
+    double bic_inferred = scoreNetwork(inferredNetwork);
+    double bic_true = scoreNetwork(trueNetwork);
+
+    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+        std::cout << "\nEvaluation of inference results:\n";
+        std::cout << "bic_inferred: " << bic_inferred << "\n";
+        std::cout << "bic_true: " << bic_true << "\n";
+        if (bic_inferred < bic_true) {
+            std::cout << "Inferred a better BIC.\n";
+        } else if (bic_inferred > bic_true) {
+            std::cout << "Inferred a worse BIC.\n";
+        } else {
+            std::cout << "Inferred an equal BIC.\n";
+        }
+
+        std::cout << "n_reticulations inferred: " << inferredNetwork.network.num_reticulations() << "\n";
+        std::cout << "n_reticulations true: " << trueNetwork.network.num_reticulations() << "\n";
+        if (inferredNetwork.network.num_reticulations() < trueNetwork.network.num_reticulations()) {
+            std::cout << "Inferred less reticulations.\n";
+        } else if (inferredNetwork.network.num_reticulations() > trueNetwork.network.num_reticulations()) {
+            std::cout << "Inferred more reticulations.\n";
+        } else {
+            std::cout << "Inferred equal number of reticulations.\n";
+        }
+    }
+
+    std::unordered_map<std::string, unsigned int> label_to_int;
+    for (size_t i = 0; i < inferredNetwork.network.num_tips(); ++i)
+    {
+        label_to_int[inferredNetwork.network.nodes_by_index[i]->label] = i;
+    }
+
+    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+        std::cout << "Unrooted softwired network distance: " << get_network_distance(inferredNetwork, trueNetwork, label_to_int, NetworkDistanceType::UNROOTED_SOFTWIRED_DISTANCE) << "\n";
+        std::cout << "Unrooted hardwired network distance: " << get_network_distance(inferredNetwork, trueNetwork, label_to_int, NetworkDistanceType::UNROOTED_HARDWIRED_DISTANCE) << "\n";
+        std::cout << "Unrooted displayed trees distance: " << get_network_distance(inferredNetwork, trueNetwork, label_to_int, NetworkDistanceType::UNROOTED_DISPLAYED_TREES_DISTANCE) << "\n";
+
+        std::cout << "Rooted softwired network distance: " << get_network_distance(inferredNetwork, trueNetwork, label_to_int, NetworkDistanceType::ROOTED_SOFTWIRED_DISTANCE) << "\n";
+        std::cout << "Rooted hardwired network distance: " << get_network_distance(inferredNetwork, trueNetwork, label_to_int, NetworkDistanceType::ROOTED_HARDWIRED_DISTANCE) << "\n";
+        std::cout << "Rooted displayed trees distance: " << get_network_distance(inferredNetwork, trueNetwork, label_to_int, NetworkDistanceType::ROOTED_DISPLAYED_TREES_DISTANCE) << "\n";
+        std::cout << "Rooted tripartition distance: " << get_network_distance(inferredNetwork, trueNetwork, label_to_int, NetworkDistanceType::ROOTED_TRIPARTITION_DISTANCE) << "\n";
+        std::cout << "Rooted path multiplicity distance: " << get_network_distance(inferredNetwork, trueNetwork, label_to_int, NetworkDistanceType::ROOTED_PATH_MULTIPLICITY_DISTANCE) << "\n";
+        std::cout << "Rooted nested labels distance: " << get_network_distance(inferredNetwork, trueNetwork, label_to_int, NetworkDistanceType::ROOTED_NESTED_LABELS_DISTANCE) << "\n";
+    }
+    
+}
 
 void run_single_start_waves(NetraxOptions& netraxOptions, const RaxmlInstance& instance, const std::vector<MoveType>& typesBySpeed, const std::vector<MoveType>& typesBySpeedGoodStart, std::mt19937& rng) {
     /* non-master ranks load starting trees from a file */
@@ -60,6 +123,10 @@ void run_single_start_waves(NetraxOptions& netraxOptions, const RaxmlInstance& i
         std::ofstream outfile(ann_network.options.output_file);
         outfile << bestNetworkData.newick[bestNetworkData.best_n_reticulations] << "\n";
         outfile.close();
+    }
+
+    if (!netraxOptions.true_network_path.empty()) {
+        judgeNetwork(bestNetworkData, netraxOptions, instance, rng);
     }
 }
 
@@ -168,6 +235,10 @@ void run_random(NetraxOptions& netraxOptions, const RaxmlInstance& instance, con
         std::ofstream outfile(netraxOptions.output_file);
         outfile << bestNetworkData.newick[bestNetworkData.best_n_reticulations] << "\n";
         outfile.close();
+    }
+
+    if (!netraxOptions.true_network_path.empty()) {
+        judgeNetwork(bestNetworkData, netraxOptions, instance, rng);
     }
 }
 
