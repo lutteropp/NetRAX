@@ -55,7 +55,7 @@ void randomMovesStep(AnnotatedNetwork &ann_network, std::vector<Move> candidates
     double initial_logl = computeLoglikelihood(ann_network);
     ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
     std::cout << "initial_logl: " << initial_logl << "\n";
-    //std::string initialDebugInfo = exportDebugInfo(network);
+    std::string initialDebugInfo = exportDebugInfo(ann_network);
     //std::cout << initialDebugInfo << "\n";
     std::vector<std::vector<double> > old_brlens = extract_brlens(ann_network);
 
@@ -115,8 +115,8 @@ void randomMovesStep(AnnotatedNetwork &ann_network, std::vector<Move> candidates
         }
         //std::string newickAfterUndoMove = toExtendedNewick(network);
         //std::cout << toExtendedNewick(network) << "\n";
-        //std::string debugInfoAfterUndo = exportDebugInfo(network);
-        //EXPECT_EQ(initialDebugInfo, debugInfoAfterUndo);
+        std::string debugInfoAfterUndo = exportDebugInfo(ann_network);
+        EXPECT_EQ(initialDebugInfo, debugInfoAfterUndo);
         double back_logl = computeLoglikelihood(ann_network);
         //ASSERT_EQ(newickBeforeMove, newickAfterUndoMove);
         ASSERT_DOUBLE_EQ(initial_logl, back_logl);
