@@ -506,12 +506,6 @@ void performMoveArcRemoval(AnnotatedNetwork &ann_network, Move &move) {
     assert(getEdgeTo(network, move.arcRemovalData.v_clv_index, move.arcRemovalData.d_clv_index));
     assert(getEdgeTo(network, move.arcRemovalData.u_clv_index, move.arcRemovalData.v_clv_index));
     assert(network.num_reticulations() <= network.reticulation_nodes.size());
-
-    size_t a_u_edge_index = getEdgeTo(network, move.arcRemovalData.a_clv_index, move.arcRemovalData.u_clv_index)->pmatrix_index;
-    size_t u_b_edge_index = getEdgeTo(network, move.arcRemovalData.u_clv_index, move.arcRemovalData.b_clv_index)->pmatrix_index;
-    size_t c_v_edge_index = getEdgeTo(network, move.arcRemovalData.c_clv_index, move.arcRemovalData.v_clv_index)->pmatrix_index;
-    size_t v_d_edge_index = getEdgeTo(network, move.arcRemovalData.v_clv_index, move.arcRemovalData.d_clv_index)->pmatrix_index;
-    size_t u_v_edge_index = getEdgeTo(network, move.arcRemovalData.u_clv_index, move.arcRemovalData.v_clv_index)->pmatrix_index;
     
     for (size_t i = 0; i < network.num_reticulations(); ++i) {
         assert(network.reticulation_nodes[i]->type == NodeType::RETICULATION_NODE);
@@ -522,16 +516,11 @@ void performMoveArcRemoval(AnnotatedNetwork &ann_network, Move &move) {
         assert(network.reticulation_nodes[i]->type == NodeType::RETICULATION_NODE);
     }
 
-    assert(a_u_edge_index < network.edges_by_index.size());
-    assert(u_b_edge_index < network.edges_by_index.size());
-    assert(c_v_edge_index < network.edges_by_index.size());
-    assert(v_d_edge_index < network.edges_by_index.size());
-    assert(u_v_edge_index < network.edges_by_index.size());
-    removeEdge(ann_network, move, network.edges_by_index[a_u_edge_index], false);
-    removeEdge(ann_network, move, network.edges_by_index[u_b_edge_index], false);
-    removeEdge(ann_network, move, network.edges_by_index[c_v_edge_index], false);
-    removeEdge(ann_network, move, network.edges_by_index[v_d_edge_index], false);
-    removeEdge(ann_network, move, network.edges_by_index[u_v_edge_index], false);
+    removeEdge(ann_network, move, network.edges_by_index[move.arcRemovalData.au_pmatrix_index], false);
+    removeEdge(ann_network, move, network.edges_by_index[move.arcRemovalData.ub_pmatrix_index], false);
+    removeEdge(ann_network, move, network.edges_by_index[move.arcRemovalData.cv_pmatrix_index], false);
+    removeEdge(ann_network, move, network.edges_by_index[move.arcRemovalData.vd_pmatrix_index], false);
+    removeEdge(ann_network, move, network.edges_by_index[move.arcRemovalData.uv_pmatrix_index], false);
 
     for (size_t i = 0; i < network.num_reticulations(); ++i) {
         assert(network.reticulation_nodes[i]->type == NodeType::RETICULATION_NODE);
@@ -559,10 +548,10 @@ void performMoveArcRemoval(AnnotatedNetwork &ann_network, Move &move) {
         // u is no longer parent of b, but a is now the parent
         Link *badToParentLink = nullptr;
         assert(b->getReticulationData());
-        if (getReticulationFirstParentPmatrixIndex(b) == u_b_edge_index) {
+        if (getReticulationFirstParentPmatrixIndex(b) == move.arcRemovalData.ub_pmatrix_index) {
             badToParentLink = b->getReticulationData()->link_to_first_parent;
         } else {
-            assert(getReticulationSecondParentPmatrixIndex(b) == u_b_edge_index);
+            assert(getReticulationSecondParentPmatrixIndex(b) == move.arcRemovalData.ub_pmatrix_index);
             badToParentLink = b->getReticulationData()->link_to_second_parent;
         }
         assert(badToParentLink);
@@ -577,10 +566,10 @@ void performMoveArcRemoval(AnnotatedNetwork &ann_network, Move &move) {
         // v is no longer parent of d, but c is now the parent
         Link *badToParentLink = nullptr;
         assert(d->getReticulationData());
-        if (getReticulationFirstParentPmatrixIndex(d) == v_d_edge_index) {
+        if (getReticulationFirstParentPmatrixIndex(d) == move.arcRemovalData.vd_pmatrix_index) {
             badToParentLink = d->getReticulationData()->link_to_first_parent;
         } else {
-            assert(getReticulationSecondParentPmatrixIndex(d) == v_d_edge_index);
+            assert(getReticulationSecondParentPmatrixIndex(d) == move.arcRemovalData.vd_pmatrix_index);
             badToParentLink = d->getReticulationData()->link_to_second_parent;
         }
         assert(badToParentLink);
