@@ -51,6 +51,8 @@ void swapReticulationIndex(AnnotatedNetwork& ann_network, Move& move, size_t old
 void removeNode(AnnotatedNetwork &ann_network, Move& move, Node *node, bool undo);
 void removeEdge(AnnotatedNetwork &ann_network, Move& move, Edge *edge, bool undo);
 
+void fixReticulationLinks(AnnotatedNetwork& ann_network);
+
 template <typename T>
 std::ostream& operator<<(std::ostream& os, const std::vector<T>& vec) {
     for (size_t i = 0; i < vec.size(); ++i) {

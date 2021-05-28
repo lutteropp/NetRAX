@@ -363,4 +363,14 @@ void removeEdge(AnnotatedNetwork &ann_network, Move& move, Edge *edge, bool undo
     ann_network.network.branchCount--;
 }
 
+void fixReticulationLinks(AnnotatedNetwork& ann_network) {
+    for (size_t i = 0; i < ann_network.network.reticulation_nodes.size(); ++i) {
+        ReticulationData* retData = ann_network.network.reticulation_nodes[i]->getReticulationData().get();
+        if (retData->link_to_first_parent->edge_pmatrix_index
+            > retData->link_to_second_parent->edge_pmatrix_index) {
+            std::swap(retData->link_to_first_parent, retData->link_to_second_parent);
+        }
+    }
+}
+
 }

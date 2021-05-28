@@ -32,20 +32,6 @@ bool checkSanityRSPR(AnnotatedNetwork& ann_network, std::vector<Move>& moves) {
     return sane;
 }
 
-void fixReticulationsRSPR(Network &network, const Move& move) {
-    std::unordered_set<Node*> repair_candidates;
-    addRepairCandidates(network, repair_candidates, network.nodes_by_index[move.rsprData.x_clv_index]);
-    addRepairCandidates(network, repair_candidates, network.nodes_by_index[move.rsprData.x_prime_clv_index]);
-    addRepairCandidates(network, repair_candidates, network.nodes_by_index[move.rsprData.y_clv_index]);
-    addRepairCandidates(network, repair_candidates, network.nodes_by_index[move.rsprData.y_prime_clv_index]);
-    addRepairCandidates(network, repair_candidates, network.nodes_by_index[move.rsprData.z_clv_index]);
-    for (Node *node : repair_candidates) {
-        if (node->type == NodeType::RETICULATION_NODE) {
-            resetReticulationLinks(node);
-        }
-    }
-}
-
 std::vector<std::pair<const Node*, const Node*> > getZYChoices(Network &network, const Node *x_prime, const Node *y_prime,
         const Node *x, const Node *fixed_y = nullptr, bool returnHead = true, bool returnTail = true) {
     std::vector<std::pair<const Node*, const Node*> > res;
@@ -549,7 +535,7 @@ void performMoveRSPR(AnnotatedNetwork &ann_network, Move& move) {
     set_edge_lengths(ann_network, x_prime_z_edge->pmatrix_index, x_prime_z_len);
     set_edge_lengths(ann_network, z_y_prime_edge->pmatrix_index, z_y_prime_len);
 
-    fixReticulationsRSPR(network, move);
+    fixReticulationLinks(ann_network);
 
     std::vector<bool> visited(network.nodes.size(), false);
     invalidateHigherCLVs(ann_network, z, false, visited);
@@ -629,7 +615,7 @@ void undoMoveRSPR(AnnotatedNetwork &ann_network, Move& move) {
     set_edge_lengths(ann_network, x_z_edge->pmatrix_index, x_z_len);
     set_edge_lengths(ann_network, z_y_edge->pmatrix_index, z_y_len);
 
-    fixReticulationsRSPR(network, move);
+    fixReticulationLinks(ann_network);
 
     std::vector<bool> visited(network.nodes.size(), false);
     invalidateHigherCLVs(ann_network, z, false, visited);

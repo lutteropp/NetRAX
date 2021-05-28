@@ -33,24 +33,6 @@ bool checkSanityArcInsertion(AnnotatedNetwork& ann_network, const std::vector<Mo
     return sane;
 }
 
-void fixReticulationsArcInsertion(Network &network, Move &move) {
-    // change parent links from reticulation nodes such that link_to_first_parent points to the smaller pmatrix index
-    std::unordered_set<Node*> repair_candidates;
-    addRepairCandidates(network, repair_candidates, network.nodes_by_index[move.arcInsertionData.a_clv_index]);
-    addRepairCandidates(network, repair_candidates, network.nodes_by_index[move.arcInsertionData.b_clv_index]);
-    addRepairCandidates(network, repair_candidates, network.nodes_by_index[move.arcInsertionData.c_clv_index]);
-    addRepairCandidates(network, repair_candidates, network.nodes_by_index[move.arcInsertionData.d_clv_index]);
-    addRepairCandidates(network, repair_candidates,
-            network.nodes_by_index[move.arcInsertionData.wanted_u_clv_index]);
-    addRepairCandidates(network, repair_candidates,
-            network.nodes_by_index[move.arcInsertionData.wanted_v_clv_index]);
-    for (Node *node : repair_candidates) {
-        if (node->type == NodeType::RETICULATION_NODE) {
-            resetReticulationLinks(node);
-        }
-    }
-}
-
 Move buildMoveArcInsertion(size_t a_clv_index, size_t b_clv_index, size_t c_clv_index,
         size_t d_clv_index, std::vector<double> &u_v_len, std::vector<double> &c_v_len,
         std::vector<double> &a_u_len, std::vector<double> &a_b_len, std::vector<double> &c_d_len, std::vector<double> &v_d_len, std::vector<double> &u_b_len, MoveType moveType, size_t edge_orig_idx, size_t node_orig_idx) {
@@ -606,8 +588,6 @@ void performMoveArcInsertion(AnnotatedNetwork &ann_network, Move &move) {
             v_d_edge->pmatrix_index, a_u_edge->pmatrix_index, u_b_edge->pmatrix_index };
     invalidate_pmatrices(ann_network, updateMe);
 
-    fixReticulationsArcInsertion(network, move);
-
     std::vector<bool> visited(network.nodes.size(), false);
     invalidateHigherCLVs(ann_network, network.nodes_by_index[move.arcInsertionData.a_clv_index], false, visited);
     invalidateHigherCLVs(ann_network, network.nodes_by_index[move.arcInsertionData.b_clv_index], false, visited);
@@ -620,6 +600,8 @@ void performMoveArcInsertion(AnnotatedNetwork &ann_network, Move &move) {
     invalidatePmatrixIndex(ann_network, a_u_edge->pmatrix_index, visited);
     invalidatePmatrixIndex(ann_network, c_v_edge->pmatrix_index, visited);
     invalidatePmatrixIndex(ann_network, u_v_edge->pmatrix_index, visited);
+
+    fixReticulationLinks(ann_network);
 
     ann_network.travbuffer = reversed_topological_sort(ann_network.network);
     checkSanity(network);
@@ -679,6 +661,7 @@ void undoMoveArcInsertion(AnnotatedNetwork &ann_network, Move &move) {
     removal.arcRemovalData.vd_pmatrix_index = getEdgeTo(network, v, d)->pmatrix_index;
 
     performMoveArcRemoval(ann_network, removal);
+    fixReticulationLinks(ann_network);
     assert(assertConsecutiveIndices(ann_network));
     assert(assertBranchLengths(ann_network));
 }

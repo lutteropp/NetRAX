@@ -127,16 +127,6 @@ void updateMovePmatrixIndex(Move& move, size_t old_pmatrix_index, size_t new_pma
     }
 }
 
-void fixReticulationLinks(AnnotatedNetwork& ann_network) {
-    for (size_t i = 0; i < ann_network.network.reticulation_nodes.size(); ++i) {
-        ReticulationData* retData = ann_network.network.reticulation_nodes[i]->getReticulationData().get();
-        if (retData->link_to_first_parent->edge_pmatrix_index
-            > retData->link_to_second_parent->edge_pmatrix_index) {
-            std::swap(retData->link_to_first_parent, retData->link_to_second_parent);
-        }
-    }
-}
-
 Move buildMoveArcRemoval(size_t a_clv_index, size_t b_clv_index, size_t c_clv_index,
         size_t d_clv_index, size_t u_clv_index, size_t v_clv_index, std::vector<double> &u_v_len, std::vector<double> &c_v_len,
          std::vector<double> &a_u_len, std::vector<double> &a_b_len, std::vector<double> &c_d_len, std::vector<double> &v_d_len, std::vector<double> &u_b_len, MoveType moveType, size_t edge_orig_idx, size_t node_orig_idx) {
