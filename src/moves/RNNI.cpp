@@ -279,7 +279,7 @@ void switchReticulations(Network &network, Node *u, Node *v) {
     assert(link_to_second_parent);
     assert(link_to_child);
 
-    if (link_to_first_parent->edge_pmatrix_index > link_to_second_parent->edge_pmatrix_index) {
+    if (link_to_first_parent->outer->node_clv_index > link_to_second_parent->outer->node_clv_index) {
         std::swap(link_to_first_parent, link_to_second_parent);
     }
 

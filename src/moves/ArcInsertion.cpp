@@ -569,8 +569,8 @@ void performMoveArcInsertion(AnnotatedNetwork &ann_network, Move &move) {
     v->getReticulationData()->link_to_first_parent = v_u_link;
     v->getReticulationData()->link_to_second_parent = v_c_link;
     v->getReticulationData()->link_to_child = v_d_link;
-    if (v->getReticulationData()->link_to_first_parent->edge_pmatrix_index
-            > v->getReticulationData()->link_to_second_parent->edge_pmatrix_index) {
+    if (v->getReticulationData()->link_to_first_parent->outer->node_clv_index
+            > v->getReticulationData()->link_to_second_parent->outer->node_clv_index) {
         std::swap(v->getReticulationData()->link_to_first_parent,
                 v->getReticulationData()->link_to_second_parent);
     }
