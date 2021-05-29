@@ -160,21 +160,7 @@ void randomMoves(const std::string &networkPath, const std::string &msaPath, boo
     randomMovesStep(ann_network, candidates);
 }
 
-void twoMovesStepSimple(AnnotatedNetwork& ann_network, MoveType type) {
-    ASSERT_DOUBLE_EQ(netrax::computeLoglikelihood(ann_network, 1, 1), netrax::computeLoglikelihood(ann_network, 0, 1));
-    std::vector<Move> candidates = possibleMoves(ann_network, type);
-    if (!candidates.empty()) {
-        performMove(ann_network, candidates[0]);
-        ASSERT_DOUBLE_EQ(netrax::computeLoglikelihood(ann_network, 1, 1), netrax::computeLoglikelihood(ann_network, 0, 1));
-        std::vector<Move> candidates2 = possibleMoves(ann_network, type);
-        if (!candidates2.empty()) {
-            performMove(ann_network, candidates2[0]);
-            ASSERT_DOUBLE_EQ(netrax::computeLoglikelihood(ann_network, 1, 1), netrax::computeLoglikelihood(ann_network, 0, 1));
-        }
-    }
-}
-
-void twoMovesStepComplex(AnnotatedNetwork& ann_network, MoveType type) {
+void twoMovesStep(AnnotatedNetwork& ann_network, MoveType type) {
     ASSERT_DOUBLE_EQ(netrax::computeLoglikelihood(ann_network, 1, 1), netrax::computeLoglikelihood(ann_network, 0, 1));
     std::vector<Move> candidates = possibleMoves(ann_network, type);
     if (!candidates.empty()) {
@@ -206,8 +192,7 @@ void twoMoves(const std::string &networkPath, const std::string &msaPath, bool u
     AnnotatedNetwork ann_network = build_annotated_network(options, instance);
     init_annotated_network(ann_network);
 
-    twoMovesStepSimple(ann_network, type);
-    twoMovesStepComplex(ann_network, type);
+    twoMovesStep(ann_network, type);
 }
 
 void printBranchLengths(AnnotatedNetwork &ann_network) {
