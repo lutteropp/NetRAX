@@ -656,7 +656,9 @@ double fastIterationsMode(AnnotatedNetwork& ann_network, int best_max_distance, 
             if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
                 std::cout << "We have " << candidates.size() << " candidates before removing the old bad ones.\n";
             }
-            updateOldCandidates(ann_network, chosenMove, candidates);
+            if (!hadBadReticulationAfterInsertingArc) {
+                updateOldCandidates(ann_network, chosenMove, candidates);
+            }
             removeBadCandidates(ann_network, candidates);
 
             oldCandidates = candidates;
