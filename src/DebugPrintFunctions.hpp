@@ -46,6 +46,8 @@ void print_treeinfo(AnnotatedNetwork& ann_network);
 void printDisplayedTrees(AnnotatedNetwork& ann_network);
 void printDisplayedTreesChoices(AnnotatedNetwork& ann_network, Node* virtualRoot);
 
+void printAllDisplayedTreeConfigs(AnnotatedNetwork& ann_network);
+
 template <typename T>
 void printCandidates(std::vector<T>& candidates) {
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
