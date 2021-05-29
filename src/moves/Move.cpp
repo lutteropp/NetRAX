@@ -351,14 +351,19 @@ std::vector<Node*> gatherStartNodes(AnnotatedNetwork& ann_network, Move move) {
     if (isArcInsertion(move.moveType)) {
         assert(ann_network.network.nodes_by_index[move.arcInsertionData.wanted_u_clv_index]);
         assert(ann_network.network.nodes_by_index[move.arcInsertionData.wanted_v_clv_index]);
+        assert(move.arcInsertionData.wanted_u_clv_index < ann_network.network.num_nodes());
+        assert(move.arcInsertionData.wanted_v_clv_index < ann_network.network.num_nodes());
         res.emplace_back(ann_network.network.nodes_by_index[move.arcInsertionData.wanted_u_clv_index]);
         res.emplace_back(ann_network.network.nodes_by_index[move.arcInsertionData.wanted_v_clv_index]);
     } else if (isRSPR(move.moveType)) {
         assert(ann_network.network.nodes_by_index[move.rsprData.z_clv_index]);
+        assert(move.rsprData.z_clv_index < ann_network.network.num_nodes());
         res.emplace_back(ann_network.network.nodes_by_index[move.rsprData.z_clv_index]);
     } else if (move.moveType == MoveType::RNNIMove) {
         assert(ann_network.network.nodes_by_index[move.rnniData.v_clv_index]);
         assert(ann_network.network.nodes_by_index[move.rnniData.t_clv_index]);
+        assert(move.rnniData.v_clv_index < ann_network.network.num_nodes());
+        assert(move.rnniData.t_clv_index < ann_network.network.num_nodes());
         res.emplace_back(ann_network.network.nodes_by_index[move.rnniData.v_clv_index]);
         res.emplace_back(ann_network.network.nodes_by_index[move.rnniData.t_clv_index]);
     }
