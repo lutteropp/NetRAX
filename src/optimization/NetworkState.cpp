@@ -190,7 +190,7 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
 
     // branch lengths stuff
     assert(ann_network.fake_treeinfo->tree->edge_count == state.linked_brlens.size());
-    for (size_t i = 0; i < state.linked_brlens.size(); ++i) {
+    for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
         if (ann_network.fake_treeinfo->linked_branch_lengths[i] != state.linked_brlens[i]) {
             ann_network.fake_treeinfo->linked_branch_lengths[i] = state.linked_brlens[i];
             invalidatePmatrixIndex(ann_network, i);
