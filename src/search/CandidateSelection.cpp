@@ -506,7 +506,7 @@ double acceptMove(AnnotatedNetwork& ann_network, Move& move, double expected_bic
     }
     assert(newScore == expected_bic);
 
-    optimizeAllNonTopology(ann_network);
+    optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::QUICK);
 
     double logl = computeLoglikelihood(ann_network);
     double bic_score = bic(ann_network, logl);
@@ -735,7 +735,7 @@ double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vecto
             std::cout << "\n" << toString(type) << " step 2: fast iterations mode, with the best max distance " << best_max_distance << "\n";
         }
         fastIterationsMode(ann_network, best_max_distance, type, typesBySpeed, best_score, bestNetworkData, silent);
-        optimizeAllNonTopology(ann_network, true);
+        optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::NORMAL);
         check_score_improvement(ann_network, best_score, bestNetworkData);
     }
 
@@ -744,11 +744,11 @@ double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vecto
         if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
             std::cout << "\n" << toString(type) << " step 3: slow iterations mode, with increasing max distance\n";
         }
-        optimizeAllNonTopology(ann_network);
+        optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::QUICK);
         slowIterationsMode(ann_network, type, step_size, typesBySpeed, best_score, bestNetworkData, silent);
     }
 
-    optimizeAllNonTopology(ann_network, true);
+    optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::SLOW);
     old_score = scoreNetwork(ann_network);
     check_score_improvement(ann_network, best_score, bestNetworkData);
 

@@ -33,8 +33,8 @@ void judgeNetwork(BestNetworkData& best_network_data, NetraxOptions& netraxOptio
         throw std::runtime_error("Unequal number of taxa");
     }
 
-    optimizeAllNonTopology(inferredNetwork, true);
-    optimizeAllNonTopology(trueNetwork, true);
+    optimizeAllNonTopology(inferredNetwork, OptimizeAllNonTopologyType::SLOW);
+    optimizeAllNonTopology(trueNetwork, OptimizeAllNonTopologyType::SLOW);
 
     double bic_inferred = scoreNetwork(inferredNetwork);
     double bic_true = scoreNetwork(trueNetwork);

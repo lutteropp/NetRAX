@@ -52,7 +52,7 @@ double optimizeEverythingRun(AnnotatedNetwork& ann_network, const std::vector<Mo
             new_score = scoreNetwork(ann_network);
 
             if (typesBySpeed[type_idx] != MoveType::RNNIMove) {
-                optimizeAllNonTopology(ann_network);
+                optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::QUICK);
                 check_score_improvement(ann_network, &best_score, bestNetworkData);
             }
         }
@@ -63,7 +63,7 @@ double optimizeEverythingRun(AnnotatedNetwork& ann_network, const std::vector<Mo
             got_better = true;
             if (ann_network.options.old_wavesearch) {
                 type_idx = 0;
-                optimizeAllNonTopology(ann_network, true);
+                optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::NORMAL);
                 check_score_improvement(ann_network, &best_score, bestNetworkData);
             }
         }
@@ -186,11 +186,11 @@ void wavesearch(AnnotatedNetwork& ann_network, BestNetworkData* bestNetworkData,
     //std::cout << "Initial network is:\n" << toExtendedNewick(ann_network) << "\n\n";
 
     if (!ann_network.options.start_network_file.empty()) { // don't waste time trying to first horizontally optimize the user-given start network
-        optimizeAllNonTopology(ann_network, true);
+        optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::NORMAL);
         score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
         wavesearch_main_internal(ann_network, bestNetworkData, typesBySpeedGoodStart, start_state_to_reuse, best_state_to_reuse, &best_score, start_time, silent);
     } else {
-        optimizeAllNonTopology(ann_network);
+        optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::QUICK);
         score_improvement = check_score_improvement(ann_network, &best_score, bestNetworkData);
         wavesearch_main_internal(ann_network, bestNetworkData, typesBySpeed, start_state_to_reuse, best_state_to_reuse, &best_score, start_time, silent);
     }

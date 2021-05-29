@@ -100,10 +100,12 @@ bool logl_stays_same(AnnotatedNetwork& ann_network) {
     return (incremental == normal);
 }
 
-void optimizeAllNonTopology(AnnotatedNetwork &ann_network, bool extremeOpt, bool silent) {
+void optimizeAllNonTopology(AnnotatedNetwork &ann_network, OptimizeAllNonTopologyType type, bool silent) {
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-        if (!extremeOpt) {
-            std::cout << "optimizing model, reticulation probs, and branch lengths (fast mode)...\n";
+        if (type == OptimizeAllNonTopologyType::QUICK) {
+            std::cout << "optimizing model, reticulation probs, and branch lengths (quick mode)...\n";
+        } else if (type == OptimizeAllNonTopologyType::NORMAL) {
+            std::cout << "optimizing model, reticulation probs, and branch lengths (normal mode)...\n";
         } else {
             std::cout << "optimizing model, reticulation probs, and branch lengths (slow mode)...\n";
         }
@@ -111,60 +113,71 @@ void optimizeAllNonTopology(AnnotatedNetwork &ann_network, bool extremeOpt, bool
 
     silent = false;
 
-    bool doBrlenOpt = true;
-    bool doReticulationOpt = true;
-    bool doModelOpt = true;
-    double score_epsilon = 1E-3;
+    bool gotBetterSlow = true;
 
-    assert(logl_stays_same(ann_network));
-    bool gotBetter = true;
-    while (gotBetter) {
-        gotBetter = false;
-        double score_before = scoreNetwork(ann_network);
-        //assert(logl_stays_same(ann_network));
+    while (gotBetterSlow) {
+        gotBetterSlow = false;
 
-        if (doModelOpt) {
-            double score_before_model = scoreNetwork(ann_network);
-            //assert(logl_stays_same(ann_network));
-            //assert(logl_stays_same(ann_network));
-            optimizeModel(ann_network, silent);
-            double score_after_model = scoreNetwork(ann_network);
-            double model_improv = score_before_model - score_after_model;
-            if (model_improv < score_epsilon) {
-                doModelOpt = false;
-            }
-        }
+        bool doBrlenOpt = true;
+        bool doReticulationOpt = true;
+        bool doModelOpt = true;
+        double score_epsilon = 1E-3;
 
-        if (doReticulationOpt) {
-            double score_before_probs = scoreNetwork(ann_network);
-            optimizeReticulationProbs(ann_network, silent);
-            double score_after_probs = scoreNetwork(ann_network);
-            double prob_improv = score_before_probs - score_after_probs;
-            if (prob_improv < score_epsilon) {
-                doReticulationOpt = false;
-            }
-        }
-
-        if (doBrlenOpt) {
-            //assert(logl_stays_same(ann_network));
-            double score_before_branches = scoreNetwork(ann_network);
-            optimizeBranches(ann_network, 1.0, silent);
-            double score_after_branches = scoreNetwork(ann_network);
-            double brlen_improv = score_before_branches - score_after_branches;
-            if (brlen_improv < score_epsilon) {
-                doBrlenOpt = false;
-            }
-        }
-
-        double score_after = scoreNetwork(ann_network);
         assert(logl_stays_same(ann_network));
+        bool gotBetter = true;
+        while (gotBetter) {
+            gotBetter = false;
+            double score_before = scoreNetwork(ann_network);
+            //assert(logl_stays_same(ann_network));
 
-        if (score_after < score_before && extremeOpt && (doBrlenOpt || doReticulationOpt || doModelOpt)) {
-            gotBetter = true;
-            if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-                if (!silent) std::cout << "improved bic: " << score_after << "\n";
+            if (doModelOpt) {
+                double score_before_model = scoreNetwork(ann_network);
+                //assert(logl_stays_same(ann_network));
+                //assert(logl_stays_same(ann_network));
+                optimizeModel(ann_network, silent);
+                double score_after_model = scoreNetwork(ann_network);
+                double model_improv = score_before_model - score_after_model;
+                if (model_improv < score_epsilon) {
+                    doModelOpt = false;
+                }
+            }
+
+            if (doReticulationOpt) {
+                double score_before_probs = scoreNetwork(ann_network);
+                optimizeReticulationProbs(ann_network, silent);
+                double score_after_probs = scoreNetwork(ann_network);
+                double prob_improv = score_before_probs - score_after_probs;
+                if (prob_improv < score_epsilon) {
+                    doReticulationOpt = false;
+                }
+            }
+
+            if (doBrlenOpt) {
+                //assert(logl_stays_same(ann_network));
+                double score_before_branches = scoreNetwork(ann_network);
+                optimizeBranches(ann_network, 1.0, silent);
+                double score_after_branches = scoreNetwork(ann_network);
+                double brlen_improv = score_before_branches - score_after_branches;
+                if (brlen_improv < score_epsilon) {
+                    doBrlenOpt = false;
+                }
+            }
+
+            double score_after = scoreNetwork(ann_network);
+            assert(logl_stays_same(ann_network));
+
+            if (score_after < score_before && type != OptimizeAllNonTopologyType::QUICK && (doBrlenOpt || doReticulationOpt || doModelOpt)) {
+                gotBetter = true;
+                if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+                    if (!silent) std::cout << "improved bic: " << score_after << "\n";
+                }
+            }
+
+            if (score_after < score_before && type == OptimizeAllNonTopologyType::SLOW) {
+                gotBetterSlow = true;
             }
         }
+
     }
     assert(logl_stays_same(ann_network));
 }

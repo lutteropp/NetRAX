@@ -220,7 +220,7 @@ void score_only(NetraxOptions &netraxOptions, const RaxmlInstance& instance, std
         std::cout << "Initial (before brlen and reticulation opt) loglikelihood: " << start_logl << "\n";
     }
 
-    optimizeAllNonTopology(ann_network, true);
+    optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::SLOW, true);
 
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         std::cout << "Network after optimization of brlens and reticulation probs:\n";
