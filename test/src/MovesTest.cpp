@@ -139,6 +139,27 @@ void randomMovesStep(AnnotatedNetwork &ann_network, std::vector<Move> candidates
     }
 }
 
+void randomMoves(const std::string &networkPath, const std::string &msaPath, bool useRepeats,
+        MoveType type) {
+    NetraxOptions options;
+    options.run_single_threaded = true;
+    options.start_network_file = networkPath;
+    options.msa_file = msaPath;
+    options.use_repeats = useRepeats;
+    const RaxmlInstance instance = createRaxmlInstance(options);
+    AnnotatedNetwork ann_network = build_annotated_network(options, instance);
+    init_annotated_network(ann_network);
+
+    std::vector<Move> candidates = possibleMoves(ann_network, type);
+
+    size_t max_candidates = candidates.size();// 200;
+
+    std::random_shuffle(candidates.begin(), candidates.end());
+    candidates.resize(std::min(candidates.size(), max_candidates));
+
+    randomMovesStep(ann_network, candidates);
+}
+
 void twoMovesStepSimple(AnnotatedNetwork& ann_network, MoveType type) {
     ASSERT_DOUBLE_EQ(netrax::computeLoglikelihood(ann_network, 1, 1), netrax::computeLoglikelihood(ann_network, 0, 1));
     std::vector<Move> candidates = possibleMoves(ann_network, type);
@@ -163,32 +184,15 @@ void twoMovesStepComplex(AnnotatedNetwork& ann_network, MoveType type) {
         updateOldCandidates(ann_network, candidates[0], candidates);
         removeBadCandidates(ann_network, candidates);
 
+        if (candidates.empty()) {
+            candidates = possibleMoves(ann_network, type);
+        }
+
         if (!candidates.empty()) {
             performMove(ann_network, candidates[0]);
             ASSERT_DOUBLE_EQ(netrax::computeLoglikelihood(ann_network, 1, 1), netrax::computeLoglikelihood(ann_network, 0, 1));
         }
     }
-}
-
-void randomMoves(const std::string &networkPath, const std::string &msaPath, bool useRepeats,
-        MoveType type) {
-    NetraxOptions options;
-    options.run_single_threaded = true;
-    options.start_network_file = networkPath;
-    options.msa_file = msaPath;
-    options.use_repeats = useRepeats;
-    const RaxmlInstance instance = createRaxmlInstance(options);
-    AnnotatedNetwork ann_network = build_annotated_network(options, instance);
-    init_annotated_network(ann_network);
-
-    std::vector<Move> candidates = possibleMoves(ann_network, type);
-
-    size_t max_candidates = candidates.size();// 200;
-
-    std::random_shuffle(candidates.begin(), candidates.end());
-    candidates.resize(std::min(candidates.size(), max_candidates));
-
-    randomMovesStep(ann_network, candidates);
 }
 
 void twoMoves(const std::string &networkPath, const std::string &msaPath, bool useRepeats,
