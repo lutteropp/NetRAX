@@ -153,9 +153,6 @@ std::vector<MoveType> getTypesBySpeedGoodStart(const NetraxOptions& options) {
     } else {
         typesBySpeed.emplace_back(MoveType::DeltaPlusMove);
     }
-    if (!options.no_arc_removal_moves) {
-        typesBySpeed.emplace_back(MoveType::ArcRemovalMove);
-    }
     if (!options.no_rspr_moves) {
         typesBySpeed.emplace_back(MoveType::RSPRMove);
     }
@@ -184,9 +181,6 @@ std::vector<MoveType> getTypesBySpeed(const NetraxOptions& options) {
         typesBySpeed.emplace_back(MoveType::ArcInsertionMove);
     } else {
         typesBySpeed.emplace_back(MoveType::DeltaPlusMove);
-    }
-    if (!options.no_arc_removal_moves) {
-        typesBySpeed.emplace_back(MoveType::ArcRemovalMove);
     }
     if (!options.no_rspr_moves) {
         typesBySpeed.emplace_back(MoveType::RSPRMove);
