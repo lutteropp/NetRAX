@@ -11,4 +11,7 @@ Move applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<Move> candida
 
 double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vector<MoveType>& typesBySpeed, double* best_score, BestNetworkData* bestNetworkData, bool silent);
 
+void updateOldCandidates(AnnotatedNetwork& ann_network, const Move& chosenMove, std::vector<Move>& candidates);
+
+
 }

@@ -397,8 +397,8 @@ void resetReticulationLinks(Node *node) {
     assert(retData->link_to_first_parent);
     assert(retData->link_to_second_parent);
     assert(retData->link_to_child);
-    if (retData->link_to_first_parent->edge_pmatrix_index
-            > retData->link_to_second_parent->edge_pmatrix_index) {
+    if (retData->link_to_first_parent->outer->node_clv_index
+            > retData->link_to_second_parent->outer->node_clv_index) {
         std::swap(retData->link_to_first_parent, retData->link_to_second_parent);
     }
 }

@@ -80,26 +80,29 @@ void filterCandidatesByNodes(std::vector<T>& candidates, const std::unordered_se
 }
 
 template <typename T> 
-void filterCandidatesByScore(std::vector<T>& candidates, std::vector<ScoreItem<T> >& scores, int n_keep, bool keep_equal, bool silent) {
+void filterCandidatesByScore(std::vector<T>& candidates, std::vector<ScoreItem<T> >& scores, double old_score, int n_keep, bool keep_equal, bool keep_all_better, bool silent) {
     std::sort(scores.begin(), scores.end(), [](const ScoreItem<T>& lhs, const ScoreItem<T>& rhs) {
         return lhs.bicScore < rhs.bicScore;
     });
 
     int newSize = 0;
-    size_t cutoff_pos = std::min(n_keep - 1, (int) scores.size() - 1);
+    size_t cutoff_pos = std::min(n_keep, (int) scores.size() - 1);
     double cutoff_bic = scores[cutoff_pos].bicScore;
+    if (keep_all_better && cutoff_bic < old_score) {
+        cutoff_bic = old_score;
+    }
 
     for (size_t i = 0; i < std::min(scores.size(), candidates.size()); ++i) {
         if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
             if (!silent) std::cout << "candidate " << i + 1 << "/" << candidates.size() << " has BIC: " << scores[i].bicScore << "\n";
         }
-        if (scores[i].bicScore <= cutoff_bic) {
+        if (scores[i].bicScore < cutoff_bic) {
             candidates[newSize] = scores[i].item;
             newSize++;
         }
-        if (!keep_equal && newSize == n_keep) {
+        /*if (!keep_equal && newSize == n_keep) {
             break;
-        }
+        }*/
     }
     candidates.resize(newSize);
 }
@@ -284,7 +287,7 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& can
         n_keep = elbowMethod(scores, n_keep);
     }
 
-    filterCandidatesByScore(candidates, scores, n_keep, false, silent);
+    filterCandidatesByScore(candidates, scores, old_bic, n_keep, false, true, silent);
 
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         if (print_progress) std::cout << "New size candidates after prefiltering: " << candidates.size() << " vs. " << oldCandidatesSize << "\n";
@@ -392,7 +395,7 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& candidates
     if (!ann_network.options.no_elbow_method) {
         n_keep = elbowMethod(scores, n_keep);
     }
-    filterCandidatesByScore(candidates, scores, n_keep, false, silent);
+    filterCandidatesByScore(candidates, scores, old_bic, n_keep, false, false, silent);
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         if (print_progress) std::cout << "New size after ranking: " << candidates.size() << " vs. " << oldCandidatesSize << "\n";
     }
@@ -485,7 +488,7 @@ double chooseCandidate(AnnotatedNetwork& ann_network, std::vector<Move>& candida
     }
     apply_network_state(ann_network, oldState);
     assert(scoreNetwork(ann_network) == old_bic);
-    filterCandidatesByScore(candidates, scores, candidates.size(), false, silent);
+    filterCandidatesByScore(candidates, scores, old_bic, candidates.size(), false, false, silent);
 
     return best_bic;
 }
@@ -506,7 +509,7 @@ double acceptMove(AnnotatedNetwork& ann_network, Move& move, double expected_bic
     }
     assert(newScore == expected_bic);
 
-    optimizeAllNonTopology(ann_network);
+    optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::QUICK);
 
     double logl = computeLoglikelihood(ann_network);
     double bic_score = bic(ann_network, logl);
@@ -549,7 +552,7 @@ Move applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<Move> candida
                 throw std::runtime_error("Something went wrong in the network search. Suddenly, BIC is worse!");
             }
         }
-        return candidates[0];
+        return move;
     }
 
     return {};
@@ -594,6 +597,18 @@ int findBestMaxDistance(AnnotatedNetwork& ann_network, MoveType type, const std:
     return best_max_distance;
 }
 
+void updateOldCandidates(AnnotatedNetwork& ann_network, const Move& chosenMove, std::vector<Move>& candidates) {
+    for (size_t i = 0; i < candidates.size(); ++i) {
+        assert(chosenMove.moveType == candidates[i].moveType);
+        for (size_t j = 0; j < chosenMove.remapped_clv_indices.size(); ++j) {
+            updateMoveClvIndex(candidates[i], chosenMove.remapped_clv_indices[j].first, chosenMove.remapped_clv_indices[j].second, true);
+        }
+        for (size_t j = 0; j < chosenMove.remapped_pmatrix_indices.size(); ++j) {
+            updateMovePmatrixIndex(candidates[i], chosenMove.remapped_pmatrix_indices[j].first, chosenMove.remapped_pmatrix_indices[j].second, true);
+        }
+    }
+}
+
 double fastIterationsMode(AnnotatedNetwork& ann_network, int best_max_distance, MoveType type, const std::vector<MoveType>& typesBySpeed, double* best_score, BestNetworkData* bestNetworkData, bool silent) {
     assert(best_max_distance >= 0);
     double old_score = scoreNetwork(ann_network);
@@ -628,21 +643,26 @@ double fastIterationsMode(AnnotatedNetwork& ann_network, int best_max_distance, 
             if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
                 std::cout << "We have " << candidates.size() << " candidates before removing the old bad ones.\n";
             }
+            updateOldCandidates(ann_network, chosenMove, candidates);
             removeBadCandidates(ann_network, candidates);
 
             oldCandidates = candidates;
-            std::vector<Node*> start_nodes = gatherStartNodes(ann_network, chosenMove);
-            std::vector<Move> moreMoves = possibleMoves(ann_network, type, start_nodes, rspr1_present, delta_plus_present, 0, best_max_distance);
-            if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-                std::cout << "Adding " << moreMoves.size() << " candidates to the " << candidates.size() << " previous ones.\n";
-            }
-            candidates.insert(std::end(candidates), std::begin(moreMoves), std::end(moreMoves));
-            prefilterCandidates(ann_network, candidates, silent);
+
             if (candidates.empty()) { // no old candidates to reuse. Thus, completely gather new ones.
+                if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+                    std::cout << "no old candidates to reuse. Thus, completely gather new ones.\n";
+                }
                 candidates = possibleMoves(ann_network, type, rspr1_present, delta_plus_present, 0, best_max_distance);
                 oldCandidates.clear();
-                prefilterCandidates(ann_network, candidates, silent);
+            } else {
+                std::vector<Node*> start_nodes = gatherStartNodes(ann_network, chosenMove);
+                std::vector<Move> moreMoves = possibleMoves(ann_network, type, start_nodes, rspr1_present, delta_plus_present, 0, best_max_distance);
+                if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+                    std::cout << "Adding " << moreMoves.size() << " candidates to the " << candidates.size() << " previous ones.\n";
+                }
+                candidates.insert(std::end(candidates), std::begin(moreMoves), std::end(moreMoves));
             }
+            prefilterCandidates(ann_network, candidates, silent);
         }
     }
 
@@ -722,7 +742,7 @@ double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vecto
             std::cout << "\n" << toString(type) << " step 2: fast iterations mode, with the best max distance " << best_max_distance << "\n";
         }
         fastIterationsMode(ann_network, best_max_distance, type, typesBySpeed, best_score, bestNetworkData, silent);
-        optimizeAllNonTopology(ann_network, true);
+        optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::NORMAL);
         check_score_improvement(ann_network, best_score, bestNetworkData);
     }
 
@@ -731,11 +751,11 @@ double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vecto
         if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
             std::cout << "\n" << toString(type) << " step 3: slow iterations mode, with increasing max distance\n";
         }
-        optimizeAllNonTopology(ann_network);
+        optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::QUICK);
         slowIterationsMode(ann_network, type, step_size, typesBySpeed, best_score, bestNetworkData, silent);
     }
 
-    optimizeAllNonTopology(ann_network, true);
+    optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::SLOW);
     old_score = scoreNetwork(ann_network);
     check_score_improvement(ann_network, best_score, bestNetworkData);
 

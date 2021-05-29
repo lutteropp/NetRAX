@@ -209,6 +209,10 @@ std::vector<Move> possibleMoves(AnnotatedNetwork& ann_network, MoveType type, bo
 }
 
 std::vector<Move> possibleMoves(AnnotatedNetwork& ann_network, MoveType type, std::vector<Edge*> start_edges, bool rspr1_present, bool delta_plus_present, int min_radius, int max_radius) {
+    for (size_t i = 0; i < start_edges.size(); ++i) {
+        assert(start_edges[i]);
+    }
+    
     switch (type) {
         case MoveType::ArcInsertionMove:
             return possibleMovesArcInsertion(ann_network, start_edges, delta_plus_present, min_radius, max_radius);
@@ -234,6 +238,10 @@ std::vector<Move> possibleMoves(AnnotatedNetwork& ann_network, MoveType type, st
 }
 
 std::vector<Move> possibleMoves(AnnotatedNetwork& ann_network, MoveType type, std::vector<Node*> start_nodes, bool rspr1_present, bool delta_plus_present, int min_radius, int max_radius) {
+    for (size_t i = 0; i < start_nodes.size(); ++i) {
+        assert(start_nodes[i]);
+    }
+    
     switch (type) {
         case MoveType::ArcInsertionMove:
             return possibleMovesArcInsertion(ann_network, start_nodes, delta_plus_present, min_radius, max_radius);
@@ -338,14 +346,24 @@ void removeBadCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& candi
     updateMoveBranchLengths(ann_network, candidates);
 }
 
-std::vector<Node*> gatherStartNodes(AnnotatedNetwork& ann_network, Move move) {
+std::vector<Node*> gatherStartNodes(AnnotatedNetwork& ann_network, const Move& move) {
     std::vector<Node*> res;
     if (isArcInsertion(move.moveType)) {
+        assert(ann_network.network.nodes_by_index[move.arcInsertionData.wanted_u_clv_index]);
+        assert(ann_network.network.nodes_by_index[move.arcInsertionData.wanted_v_clv_index]);
+        assert(move.arcInsertionData.wanted_u_clv_index < ann_network.network.num_nodes());
+        assert(move.arcInsertionData.wanted_v_clv_index < ann_network.network.num_nodes());
         res.emplace_back(ann_network.network.nodes_by_index[move.arcInsertionData.wanted_u_clv_index]);
-        res.emplace_back(ann_network.network.nodes_by_index[move.arcInsertionData.wanted_u_clv_index]);
+        res.emplace_back(ann_network.network.nodes_by_index[move.arcInsertionData.wanted_v_clv_index]);
     } else if (isRSPR(move.moveType)) {
+        assert(ann_network.network.nodes_by_index[move.rsprData.z_clv_index]);
+        assert(move.rsprData.z_clv_index < ann_network.network.num_nodes());
         res.emplace_back(ann_network.network.nodes_by_index[move.rsprData.z_clv_index]);
     } else if (move.moveType == MoveType::RNNIMove) {
+        assert(ann_network.network.nodes_by_index[move.rnniData.v_clv_index]);
+        assert(ann_network.network.nodes_by_index[move.rnniData.t_clv_index]);
+        assert(move.rnniData.v_clv_index < ann_network.network.num_nodes());
+        assert(move.rnniData.t_clv_index < ann_network.network.num_nodes());
         res.emplace_back(ann_network.network.nodes_by_index[move.rnniData.v_clv_index]);
         res.emplace_back(ann_network.network.nodes_by_index[move.rnniData.t_clv_index]);
     }

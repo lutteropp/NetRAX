@@ -38,12 +38,33 @@ bool checkSanityRNNI(AnnotatedNetwork& ann_network, const Move& move) {
     good &= (ann_network.network.nodes_by_index[move.rnniData.s_clv_index] != nullptr);
     good &= (ann_network.network.nodes_by_index[move.rnniData.t_clv_index] != nullptr);
 
-    good &= (hasNeighbor(ann_network.network.nodes_by_index[move.rnniData.s_clv_index], ann_network.network.nodes_by_index[move.rnniData.u_clv_index]));
-    good &= (hasNeighbor(ann_network.network.nodes_by_index[move.rnniData.u_clv_index], ann_network.network.nodes_by_index[move.rnniData.v_clv_index]));
-    good &= (hasNeighbor(ann_network.network.nodes_by_index[move.rnniData.v_clv_index], ann_network.network.nodes_by_index[move.rnniData.t_clv_index]));
+    if (good) good &= (hasNeighbor(ann_network.network.nodes_by_index[move.rnniData.s_clv_index], ann_network.network.nodes_by_index[move.rnniData.u_clv_index]));
+    if (good) good &= (hasNeighbor(ann_network.network.nodes_by_index[move.rnniData.u_clv_index], ann_network.network.nodes_by_index[move.rnniData.v_clv_index]));
+    if (good) good &= (hasNeighbor(ann_network.network.nodes_by_index[move.rnniData.v_clv_index], ann_network.network.nodes_by_index[move.rnniData.t_clv_index]));
 
-    good &= (!hasNeighbor(ann_network.network.nodes_by_index[move.rnniData.u_clv_index], ann_network.network.nodes_by_index[move.rnniData.t_clv_index]));
-    good &= (!hasNeighbor(ann_network.network.nodes_by_index[move.rnniData.s_clv_index], ann_network.network.nodes_by_index[move.rnniData.v_clv_index]));
+    if (good) good &= (!hasNeighbor(ann_network.network.nodes_by_index[move.rnniData.u_clv_index], ann_network.network.nodes_by_index[move.rnniData.t_clv_index]));
+    if (good) good &= (!hasNeighbor(ann_network.network.nodes_by_index[move.rnniData.s_clv_index], ann_network.network.nodes_by_index[move.rnniData.v_clv_index]));
+
+    if (move.rnniData.type == RNNIMoveType::ONE) {
+        if (good) good &= (!hasPath(ann_network.network, ann_network.network.nodes_by_index[move.rnniData.s_clv_index], ann_network.network.nodes_by_index[move.rnniData.v_clv_index]));
+    } else if (move.rnniData.type == RNNIMoveType::ONE_STAR) {
+        if (good) good &= (!hasPath(ann_network.network, ann_network.network.nodes_by_index[move.rnniData.s_clv_index], ann_network.network.nodes_by_index[move.rnniData.v_clv_index]));
+        if (good) good &= (ann_network.network.nodes_by_index[move.rnniData.v_clv_index]->getType() == NodeType::RETICULATION_NODE);
+        if (good) good &= (ann_network.network.nodes_by_index[move.rnniData.u_clv_index] != ann_network.network.root);
+    } else if (move.rnniData.type == RNNIMoveType::TWO) {
+        if (good) good &= (!hasPath(ann_network.network, ann_network.network.nodes_by_index[move.rnniData.u_clv_index], ann_network.network.nodes_by_index[move.rnniData.t_clv_index]));
+    } else if (move.rnniData.type == RNNIMoveType::TWO_STAR) {
+        if (good) good &= (!hasPath(ann_network.network, ann_network.network.nodes_by_index[move.rnniData.u_clv_index], ann_network.network.nodes_by_index[move.rnniData.t_clv_index]));
+        if (good) good &= (ann_network.network.nodes_by_index[move.rnniData.u_clv_index]->getType() != NodeType::RETICULATION_NODE);
+    } else if (move.rnniData.type == RNNIMoveType::THREE) {
+        if (good) good &= (ann_network.network.nodes_by_index[move.rnniData.u_clv_index]->getType() == NodeType::RETICULATION_NODE);
+        if (good) good &= (ann_network.network.nodes_by_index[move.rnniData.v_clv_index]->getType() != NodeType::RETICULATION_NODE);
+    } else if (move.rnniData.type == RNNIMoveType::THREE_STAR) {
+        if (good) good &= (!hasPath(ann_network.network, ann_network.network.nodes_by_index[move.rnniData.u_clv_index], ann_network.network.nodes_by_index[move.rnniData.v_clv_index], true));
+    } else if (move.rnniData.type == RNNIMoveType::FOUR) {
+        if (good) good &= (!hasPath(ann_network.network, ann_network.network.nodes_by_index[move.rnniData.s_clv_index], ann_network.network.nodes_by_index[move.rnniData.t_clv_index]));
+        if (good) good &= (ann_network.network.nodes_by_index[move.rnniData.u_clv_index] != ann_network.network.root);
+    }
 
     return good;
 }
@@ -258,7 +279,7 @@ void switchReticulations(Network &network, Node *u, Node *v) {
     assert(link_to_second_parent);
     assert(link_to_child);
 
-    if (link_to_first_parent->edge_pmatrix_index > link_to_second_parent->edge_pmatrix_index) {
+    if (link_to_first_parent->outer->node_clv_index > link_to_second_parent->outer->node_clv_index) {
         std::swap(link_to_first_parent, link_to_second_parent);
     }
 

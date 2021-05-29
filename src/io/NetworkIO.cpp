@@ -260,10 +260,10 @@ Network convertNetworkToplevel(RootedNetwork &rnetwork, size_t node_count,
         }
     }
 
-    // change parent links from reticulation nodes such that link_to_first_parent points to the smaller pmatrix index
+    // change parent links from reticulation nodes such that link_to_first_parent points to the smaller clv index
     for (size_t i = 0; i < network.num_reticulations(); ++i) {
-        if (network.reticulation_nodes[i]->getReticulationData()->link_to_first_parent->edge_pmatrix_index
-                > network.reticulation_nodes[i]->getReticulationData()->link_to_second_parent->edge_pmatrix_index) {
+        if (network.reticulation_nodes[i]->getReticulationData()->link_to_first_parent->outer->node_clv_index
+                > network.reticulation_nodes[i]->getReticulationData()->link_to_second_parent->outer->node_clv_index) {
             std::swap(network.reticulation_nodes[i]->getReticulationData()->link_to_first_parent,
                     network.reticulation_nodes[i]->getReticulationData()->link_to_second_parent);
         }

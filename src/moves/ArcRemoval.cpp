@@ -32,10 +32,14 @@ bool checkSanityArcRemoval(AnnotatedNetwork& ann_network, const Move& move) {
     good &= (move.arcRemovalData.c_clv_index != move.arcRemovalData.v_clv_index);
     good &= (move.arcRemovalData.v_clv_index != move.arcRemovalData.d_clv_index);
     good &= (move.arcRemovalData.u_clv_index != move.arcRemovalData.v_clv_index);
-    good &= (hasNeighbor(ann_network.network.nodes_by_index[move.arcRemovalData.a_clv_index], ann_network.network.nodes_by_index[move.arcRemovalData.u_clv_index]));
-    good &= (hasNeighbor(ann_network.network.nodes_by_index[move.arcRemovalData.u_clv_index], ann_network.network.nodes_by_index[move.arcRemovalData.b_clv_index]));
-    good &= (hasNeighbor(ann_network.network.nodes_by_index[move.arcRemovalData.u_clv_index], ann_network.network.nodes_by_index[move.arcRemovalData.v_clv_index]));
-    good &= (hasNeighbor(ann_network.network.nodes_by_index[move.arcRemovalData.v_clv_index], ann_network.network.nodes_by_index[move.arcRemovalData.d_clv_index]));
+    if (good) good &= (hasNeighbor(ann_network.network.nodes_by_index[move.arcRemovalData.a_clv_index], ann_network.network.nodes_by_index[move.arcRemovalData.u_clv_index]));
+    if (good) good &= (hasNeighbor(ann_network.network.nodes_by_index[move.arcRemovalData.u_clv_index], ann_network.network.nodes_by_index[move.arcRemovalData.b_clv_index]));
+    if (good) good &= (hasNeighbor(ann_network.network.nodes_by_index[move.arcRemovalData.u_clv_index], ann_network.network.nodes_by_index[move.arcRemovalData.v_clv_index]));
+    if (good) good &= (hasNeighbor(ann_network.network.nodes_by_index[move.arcRemovalData.v_clv_index], ann_network.network.nodes_by_index[move.arcRemovalData.d_clv_index]));
+
+    if (good) good &= (ann_network.network.nodes_by_index[move.arcRemovalData.u_clv_index]->getType() != NodeType::RETICULATION_NODE);
+    if (good) good &= (!hasChild(ann_network.network, ann_network.network.nodes_by_index[move.arcRemovalData.a_clv_index], ann_network.network.nodes_by_index[move.arcRemovalData.b_clv_index]));
+    if (good) good &= (!hasChild(ann_network.network, ann_network.network.nodes_by_index[move.arcRemovalData.c_clv_index], ann_network.network.nodes_by_index[move.arcRemovalData.d_clv_index]));
     return good;
 }
 

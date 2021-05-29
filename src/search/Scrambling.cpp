@@ -12,7 +12,7 @@ void scrambleNetwork(AnnotatedNetwork& ann_network, MoveType type, size_t scramb
         performMove(ann_network, move);
         ann_network.last_accepted_move_edge_orig_idx = move.edge_orig_idx;
     }
-    optimizeAllNonTopology(ann_network);
+    optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::QUICK);
 }
 
 }

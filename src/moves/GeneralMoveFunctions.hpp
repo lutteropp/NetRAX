@@ -53,15 +53,4 @@ void removeEdge(AnnotatedNetwork &ann_network, Move& move, Edge *edge, bool undo
 
 void fixReticulationLinks(AnnotatedNetwork& ann_network);
 
-template <typename T>
-std::ostream& operator<<(std::ostream& os, const std::vector<T>& vec) {
-    for (size_t i = 0; i < vec.size(); ++i) {
-        os << vec[i];
-        if (i+1 < vec.size()) {
-            os << ", ";
-        }
-    }
-    return os;
-}
-
 }

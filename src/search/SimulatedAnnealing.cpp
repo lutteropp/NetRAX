@@ -94,7 +94,7 @@ double simanneal(AnnotatedNetwork& ann_network, double t_start, bool rspr1_prese
         if (network_changed) {
             double act_bic = scoreNetwork(ann_network);
             if (act_bic < best_bic) {
-                optimizeAllNonTopology(ann_network, true);
+                optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::NORMAL);
                 check_score_improvement(ann_network, &best_bic, bestNetworkData);
                 extract_network_state(ann_network, best_state_to_reuse);
             }
