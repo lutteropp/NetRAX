@@ -305,6 +305,9 @@ double evaluateTreesPartition(AnnotatedNetwork& ann_network, size_t partition_id
             assert(tree.tree_partition_logl[partition_idx] < 0.0);
             if (tree.tree_logprob != std::numeric_limits<double>::infinity()) {
                 if (mpfr::exp(tree.tree_logprob) < 1E-6) {
+                    printReticulationChoices(tree.reticulationChoices);
+                    std::cout << "reticulation probs: " << ann_network.reticulation_probs << "\n";
+                    std::cout << "tree probability: " << mpfr::exp(tree.tree_logprob) << "\n";
                     throw std::runtime_error("The tree probability is too small, leading to numerical trouble!");
                 }
                 partition_lh += mpfr::exp(tree.tree_logprob) * mpfr::exp(tree.tree_partition_logl[partition_idx]);
@@ -327,6 +330,9 @@ double evaluateTreesPartition(AnnotatedNetwork& ann_network, size_t partition_id
             assert(tree.tree_partition_logl[partition_idx] < 0.0);
             if (tree.tree_logprob != std::numeric_limits<double>::infinity()) {
                 if (mpfr::exp(tree.tree_logprob) < 1E-6) {
+                    printReticulationChoices(tree.reticulationChoices);
+                    std::cout << "reticulation probs: " << ann_network.reticulation_probs << "\n";
+                    std::cout << "tree probability: " << mpfr::exp(tree.tree_logprob) << "\n";
                     throw std::runtime_error("The tree probability is too small, leading to numerical trouble!");
                 }
                 partition_logl = std::max(partition_logl, tree.tree_logprob + tree.tree_partition_logl[partition_idx]);
