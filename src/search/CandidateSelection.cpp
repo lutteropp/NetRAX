@@ -100,9 +100,9 @@ void filterCandidatesByScore(std::vector<T>& candidates, std::vector<ScoreItem<T
             candidates[newSize] = scores[i].item;
             newSize++;
         }
-        if (!keep_equal && newSize == n_keep) {
+        /*if (!keep_equal && newSize == n_keep) {
             break;
-        }
+        }*/
     }
     candidates.resize(newSize);
 }
