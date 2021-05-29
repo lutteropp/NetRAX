@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <limits>
+#include <string>
 
 namespace netrax {
 
