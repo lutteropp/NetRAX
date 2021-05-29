@@ -594,6 +594,18 @@ int findBestMaxDistance(AnnotatedNetwork& ann_network, MoveType type, const std:
     return best_max_distance;
 }
 
+void updateOldCandidates(AnnotatedNetwork& ann_network, const Move& chosenMove, std::vector<Move>& candidates) {
+    for (size_t i = 0; i < candidates.size(); ++i) {
+        assert(chosenMove.moveType == candidates[i].moveType);
+        for (size_t j = 0; j < chosenMove.remapped_clv_indices.size(); ++j) {
+            updateMoveClvIndex(candidates[i], chosenMove.remapped_clv_indices[j].first, chosenMove.remapped_clv_indices[j].second, true);
+        }
+        for (size_t j = 0; j < chosenMove.remapped_pmatrix_indices.size(); ++j) {
+            updateMovePmatrixIndex(candidates[i], chosenMove.remapped_pmatrix_indices[j].first, chosenMove.remapped_pmatrix_indices[j].second, true);
+        }
+    }
+}
+
 double fastIterationsMode(AnnotatedNetwork& ann_network, int best_max_distance, MoveType type, const std::vector<MoveType>& typesBySpeed, double* best_score, BestNetworkData* bestNetworkData, bool silent) {
     assert(best_max_distance >= 0);
     double old_score = scoreNetwork(ann_network);
@@ -628,6 +640,7 @@ double fastIterationsMode(AnnotatedNetwork& ann_network, int best_max_distance, 
             if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
                 std::cout << "We have " << candidates.size() << " candidates before removing the old bad ones.\n";
             }
+            updateOldCandidates(ann_network, chosenMove, candidates);
             removeBadCandidates(ann_network, candidates);
 
             oldCandidates = candidates;
