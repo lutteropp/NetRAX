@@ -644,18 +644,22 @@ double fastIterationsMode(AnnotatedNetwork& ann_network, int best_max_distance, 
             removeBadCandidates(ann_network, candidates);
 
             oldCandidates = candidates;
-            std::vector<Node*> start_nodes = gatherStartNodes(ann_network, chosenMove);
-            std::vector<Move> moreMoves = possibleMoves(ann_network, type, start_nodes, rspr1_present, delta_plus_present, 0, best_max_distance);
-            if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-                std::cout << "Adding " << moreMoves.size() << " candidates to the " << candidates.size() << " previous ones.\n";
-            }
-            candidates.insert(std::end(candidates), std::begin(moreMoves), std::end(moreMoves));
-            prefilterCandidates(ann_network, candidates, silent);
+
             if (candidates.empty()) { // no old candidates to reuse. Thus, completely gather new ones.
+                if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+                    std::cout << "no old candidates to reuse. Thus, completely gather new ones.\n";
+                }
                 candidates = possibleMoves(ann_network, type, rspr1_present, delta_plus_present, 0, best_max_distance);
                 oldCandidates.clear();
-                prefilterCandidates(ann_network, candidates, silent);
+            } else {
+                std::vector<Node*> start_nodes = gatherStartNodes(ann_network, chosenMove);
+                std::vector<Move> moreMoves = possibleMoves(ann_network, type, start_nodes, rspr1_present, delta_plus_present, 0, best_max_distance);
+                if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+                    std::cout << "Adding " << moreMoves.size() << " candidates to the " << candidates.size() << " previous ones.\n";
+                }
+                candidates.insert(std::end(candidates), std::begin(moreMoves), std::end(moreMoves));
             }
+            prefilterCandidates(ann_network, candidates, silent);
         }
     }
 
