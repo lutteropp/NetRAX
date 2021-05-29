@@ -38,32 +38,32 @@ bool checkSanityRNNI(AnnotatedNetwork& ann_network, const Move& move) {
     good &= (ann_network.network.nodes_by_index[move.rnniData.s_clv_index] != nullptr);
     good &= (ann_network.network.nodes_by_index[move.rnniData.t_clv_index] != nullptr);
 
-    good &= (hasNeighbor(ann_network.network.nodes_by_index[move.rnniData.s_clv_index], ann_network.network.nodes_by_index[move.rnniData.u_clv_index]));
-    good &= (hasNeighbor(ann_network.network.nodes_by_index[move.rnniData.u_clv_index], ann_network.network.nodes_by_index[move.rnniData.v_clv_index]));
-    good &= (hasNeighbor(ann_network.network.nodes_by_index[move.rnniData.v_clv_index], ann_network.network.nodes_by_index[move.rnniData.t_clv_index]));
+    if (good) good &= (hasNeighbor(ann_network.network.nodes_by_index[move.rnniData.s_clv_index], ann_network.network.nodes_by_index[move.rnniData.u_clv_index]));
+    if (good) good &= (hasNeighbor(ann_network.network.nodes_by_index[move.rnniData.u_clv_index], ann_network.network.nodes_by_index[move.rnniData.v_clv_index]));
+    if (good) good &= (hasNeighbor(ann_network.network.nodes_by_index[move.rnniData.v_clv_index], ann_network.network.nodes_by_index[move.rnniData.t_clv_index]));
 
-    good &= (!hasNeighbor(ann_network.network.nodes_by_index[move.rnniData.u_clv_index], ann_network.network.nodes_by_index[move.rnniData.t_clv_index]));
-    good &= (!hasNeighbor(ann_network.network.nodes_by_index[move.rnniData.s_clv_index], ann_network.network.nodes_by_index[move.rnniData.v_clv_index]));
+    if (good) good &= (!hasNeighbor(ann_network.network.nodes_by_index[move.rnniData.u_clv_index], ann_network.network.nodes_by_index[move.rnniData.t_clv_index]));
+    if (good) good &= (!hasNeighbor(ann_network.network.nodes_by_index[move.rnniData.s_clv_index], ann_network.network.nodes_by_index[move.rnniData.v_clv_index]));
 
     if (move.rnniData.type == RNNIMoveType::ONE) {
-        good &= (!hasPath(ann_network.network, ann_network.network.nodes_by_index[move.rnniData.s_clv_index], ann_network.network.nodes_by_index[move.rnniData.v_clv_index]));
+        if (good) good &= (!hasPath(ann_network.network, ann_network.network.nodes_by_index[move.rnniData.s_clv_index], ann_network.network.nodes_by_index[move.rnniData.v_clv_index]));
     } else if (move.rnniData.type == RNNIMoveType::ONE_STAR) {
-        good &= (!hasPath(ann_network.network, ann_network.network.nodes_by_index[move.rnniData.s_clv_index], ann_network.network.nodes_by_index[move.rnniData.v_clv_index]));
-        good &= (ann_network.network.nodes_by_index[move.rnniData.v_clv_index]->getType() == NodeType::RETICULATION_NODE);
-        good &= (ann_network.network.nodes_by_index[move.rnniData.u_clv_index] != ann_network.network.root);
+        if (good) good &= (!hasPath(ann_network.network, ann_network.network.nodes_by_index[move.rnniData.s_clv_index], ann_network.network.nodes_by_index[move.rnniData.v_clv_index]));
+        if (good) good &= (ann_network.network.nodes_by_index[move.rnniData.v_clv_index]->getType() == NodeType::RETICULATION_NODE);
+        if (good) good &= (ann_network.network.nodes_by_index[move.rnniData.u_clv_index] != ann_network.network.root);
     } else if (move.rnniData.type == RNNIMoveType::TWO) {
-        good &= (!hasPath(ann_network.network, ann_network.network.nodes_by_index[move.rnniData.u_clv_index], ann_network.network.nodes_by_index[move.rnniData.t_clv_index]));
+        if (good) good &= (!hasPath(ann_network.network, ann_network.network.nodes_by_index[move.rnniData.u_clv_index], ann_network.network.nodes_by_index[move.rnniData.t_clv_index]));
     } else if (move.rnniData.type == RNNIMoveType::TWO_STAR) {
-        good &= (!hasPath(ann_network.network, ann_network.network.nodes_by_index[move.rnniData.u_clv_index], ann_network.network.nodes_by_index[move.rnniData.t_clv_index]));
-        good &= (ann_network.network.nodes_by_index[move.rnniData.u_clv_index]->getType() != NodeType::RETICULATION_NODE);
+        if (good) good &= (!hasPath(ann_network.network, ann_network.network.nodes_by_index[move.rnniData.u_clv_index], ann_network.network.nodes_by_index[move.rnniData.t_clv_index]));
+        if (good) good &= (ann_network.network.nodes_by_index[move.rnniData.u_clv_index]->getType() != NodeType::RETICULATION_NODE);
     } else if (move.rnniData.type == RNNIMoveType::THREE) {
-        good &= (ann_network.network.nodes_by_index[move.rnniData.u_clv_index]->getType() == NodeType::RETICULATION_NODE);
-        good &= (ann_network.network.nodes_by_index[move.rnniData.v_clv_index]->getType() != NodeType::RETICULATION_NODE);
+        if (good) good &= (ann_network.network.nodes_by_index[move.rnniData.u_clv_index]->getType() == NodeType::RETICULATION_NODE);
+        if (good) good &= (ann_network.network.nodes_by_index[move.rnniData.v_clv_index]->getType() != NodeType::RETICULATION_NODE);
     } else if (move.rnniData.type == RNNIMoveType::THREE_STAR) {
-        good &= (!hasPath(ann_network.network, ann_network.network.nodes_by_index[move.rnniData.u_clv_index], ann_network.network.nodes_by_index[move.rnniData.v_clv_index], true));
+        if (good) good &= (!hasPath(ann_network.network, ann_network.network.nodes_by_index[move.rnniData.u_clv_index], ann_network.network.nodes_by_index[move.rnniData.v_clv_index], true));
     } else if (move.rnniData.type == RNNIMoveType::FOUR) {
-        good &= (!hasPath(ann_network.network, ann_network.network.nodes_by_index[move.rnniData.s_clv_index], ann_network.network.nodes_by_index[move.rnniData.t_clv_index]));
-        good &= (ann_network.network.nodes_by_index[move.rnniData.u_clv_index] != ann_network.network.root);
+        if (good) good &= (!hasPath(ann_network.network, ann_network.network.nodes_by_index[move.rnniData.s_clv_index], ann_network.network.nodes_by_index[move.rnniData.t_clv_index]));
+        if (good) good &= (ann_network.network.nodes_by_index[move.rnniData.u_clv_index] != ann_network.network.root);
     }
 
     return good;
