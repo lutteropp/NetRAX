@@ -21,6 +21,23 @@ bool checkSanityRSPR(AnnotatedNetwork& ann_network, const Move& move) {
     good &= (hasNeighbor(ann_network.network.nodes_by_index[move.rsprData.z_clv_index], ann_network.network.nodes_by_index[move.rsprData.y_clv_index]));
     good &= (hasNeighbor(ann_network.network.nodes_by_index[move.rsprData.x_prime_clv_index], ann_network.network.nodes_by_index[move.rsprData.y_prime_clv_index]));
 
+
+    const Node *w = nullptr;
+    auto zNeighbors = getNeighbors(ann_network.network, ann_network.network.nodes_by_index[move.rsprData.z_clv_index]);
+    assert(zNeighbors.size() == 3);
+    for (size_t j = 0; j < zNeighbors.size(); ++j) {
+        if (zNeighbors[j] != ann_network.network.nodes_by_index[move.rsprData.x_clv_index] && zNeighbors[j] != ann_network.network.nodes_by_index[move.rsprData.y_clv_index]) {
+            w = zNeighbors[j];
+            break;
+        }
+    }
+    assert(w);
+    if (ann_network.network.nodes_by_index[move.rsprData.z_clv_index]->getType() == NodeType::RETICULATION_NODE) { // head-moving rSPR move
+        good &= (!hasPath(ann_network.network, ann_network.network.nodes_by_index[move.rsprData.y_prime_clv_index], w));
+    } else { // tail-moving rSPR move
+        good &= (!hasPath(ann_network.network, w, ann_network.network.nodes_by_index[move.rsprData.x_prime_clv_index]));
+    }
+
     return good;
 }
 

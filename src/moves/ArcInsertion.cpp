@@ -22,6 +22,7 @@ bool checkSanityArcInsertion(AnnotatedNetwork& ann_network, const Move& move) {
     good &= (move.arcInsertionData.c_clv_index != move.arcInsertionData.d_clv_index);
     good &= (hasNeighbor(ann_network.network.nodes_by_index[move.arcInsertionData.a_clv_index], ann_network.network.nodes_by_index[move.arcInsertionData.b_clv_index]));
     good &= (hasNeighbor(ann_network.network.nodes_by_index[move.arcInsertionData.c_clv_index], ann_network.network.nodes_by_index[move.arcInsertionData.d_clv_index]));
+    good &= (!hasPath(ann_network.network, ann_network.network.nodes_by_index[move.arcInsertionData.d_clv_index], ann_network.network.nodes_by_index[move.arcInsertionData.a_clv_index]));
     return good;
 }
 
