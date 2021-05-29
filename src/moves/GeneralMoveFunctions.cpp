@@ -377,13 +377,35 @@ void removeEdge(AnnotatedNetwork &ann_network, Move& move, Edge *edge, bool undo
     ann_network.network.branchCount--;
 }
 
+void resetReticulationLinks(Node *node) {
+    assert(node);
+    assert(node->type == NodeType::RETICULATION_NODE);
+    auto retData = node->getReticulationData().get();
+    assert(retData);
+    retData->link_to_first_parent = nullptr;
+    retData->link_to_second_parent = nullptr;
+    retData->link_to_child = nullptr;
+    for (Link &link : node->links) {
+        if (link.direction == Direction::OUTGOING) {
+            retData->link_to_child = &link;
+        } else if (retData->link_to_first_parent == nullptr) {
+            retData->link_to_first_parent = &link;
+        } else {
+            retData->link_to_second_parent = &link;
+        }
+    }
+    assert(retData->link_to_first_parent);
+    assert(retData->link_to_second_parent);
+    assert(retData->link_to_child);
+    if (retData->link_to_first_parent->edge_pmatrix_index
+            > retData->link_to_second_parent->edge_pmatrix_index) {
+        std::swap(retData->link_to_first_parent, retData->link_to_second_parent);
+    }
+}
+
 void fixReticulationLinks(AnnotatedNetwork& ann_network) {
     for (size_t i = 0; i < ann_network.network.reticulation_nodes.size(); ++i) {
-        ReticulationData* retData = ann_network.network.reticulation_nodes[i]->getReticulationData().get();
-        if (retData->link_to_first_parent->edge_pmatrix_index
-            > retData->link_to_second_parent->edge_pmatrix_index) {
-            std::swap(retData->link_to_first_parent, retData->link_to_second_parent);
-        }
+        resetReticulationLinks(ann_network.network.reticulation_nodes[i]);
     }
 }
 
