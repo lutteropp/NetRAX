@@ -54,13 +54,13 @@ std::vector<std::vector<double> > extract_brlens(AnnotatedNetwork &ann_network) 
 void randomMovesStep(AnnotatedNetwork &ann_network, std::vector<Move> candidates) {
     double initial_logl = computeLoglikelihood(ann_network);
     ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
-    std::cout << "initial_logl: " << initial_logl << "\n";
+    //std::cout << "initial_logl: " << initial_logl << "\n";
     //std::string initialDebugInfo = exportDebugInfo(ann_network);
     //std::cout << initialDebugInfo << "\n";
     std::vector<std::vector<double> > old_brlens = extract_brlens(ann_network);
 
     for (size_t j = 0; j < candidates.size(); ++j) {
-        std::cout << "Testing moves for candidate " << j+1 << "/" << candidates.size() << "...\n";
+        //std::cout << "Testing moves for candidate " << j+1 << "/" << candidates.size() << "...\n";
         std::string newickBeforeMove = toExtendedNewick(ann_network);
 
         Move origMove(candidates[j]);
