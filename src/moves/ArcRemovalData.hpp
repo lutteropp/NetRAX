@@ -31,11 +31,17 @@ struct ArcRemovalData {
     std::vector<double> v_d_len = {0};
     std::vector<double> u_b_len = {0};
 
+
+    std::string u_label;
+    std::string v_label;
+    std::string u_reticulation_label;
+    std::string v_reticulation_label;
+
     ArcRemovalData() = default;
 
-    ArcRemovalData(ArcRemovalData&& rhs) : a_clv_index{rhs.a_clv_index}, b_clv_index{rhs.b_clv_index}, c_clv_index{rhs.c_clv_index}, d_clv_index{rhs.d_clv_index}, u_clv_index{rhs.u_clv_index}, v_clv_index{rhs.v_clv_index}, u_v_len{rhs.u_v_len}, c_v_len{rhs.c_v_len}, a_u_len{rhs.a_u_len}, au_pmatrix_index{rhs.au_pmatrix_index}, ub_pmatrix_index{rhs.ub_pmatrix_index}, cv_pmatrix_index{rhs.cv_pmatrix_index}, vd_pmatrix_index{rhs.vd_pmatrix_index}, uv_pmatrix_index{rhs.uv_pmatrix_index}, wanted_ab_pmatrix_index{rhs.wanted_ab_pmatrix_index}, wanted_cd_pmatrix_index{rhs.wanted_cd_pmatrix_index}, a_b_len{rhs.a_b_len}, c_d_len{rhs.c_d_len}, v_d_len{rhs.v_d_len}, u_b_len{rhs.u_b_len} {}
+    ArcRemovalData(ArcRemovalData&& rhs) : a_clv_index{rhs.a_clv_index}, b_clv_index{rhs.b_clv_index}, c_clv_index{rhs.c_clv_index}, d_clv_index{rhs.d_clv_index}, u_clv_index{rhs.u_clv_index}, v_clv_index{rhs.v_clv_index}, u_v_len{rhs.u_v_len}, c_v_len{rhs.c_v_len}, a_u_len{rhs.a_u_len}, au_pmatrix_index{rhs.au_pmatrix_index}, ub_pmatrix_index{rhs.ub_pmatrix_index}, cv_pmatrix_index{rhs.cv_pmatrix_index}, vd_pmatrix_index{rhs.vd_pmatrix_index}, uv_pmatrix_index{rhs.uv_pmatrix_index}, wanted_ab_pmatrix_index{rhs.wanted_ab_pmatrix_index}, wanted_cd_pmatrix_index{rhs.wanted_cd_pmatrix_index}, a_b_len{rhs.a_b_len}, c_d_len{rhs.c_d_len}, v_d_len{rhs.v_d_len}, u_b_len{rhs.u_b_len}, u_label{rhs.u_label}, v_label{rhs.v_label}, u_reticulation_label{rhs.u_reticulation_label}, v_reticulation_label{rhs.v_reticulation_label} {}
 
-    ArcRemovalData(const ArcRemovalData& rhs) : a_clv_index{rhs.a_clv_index}, b_clv_index{rhs.b_clv_index}, c_clv_index{rhs.c_clv_index}, d_clv_index{rhs.d_clv_index}, u_clv_index{rhs.u_clv_index}, v_clv_index{rhs.v_clv_index}, u_v_len{rhs.u_v_len}, c_v_len{rhs.c_v_len}, a_u_len{rhs.a_u_len}, au_pmatrix_index{rhs.au_pmatrix_index}, ub_pmatrix_index{rhs.ub_pmatrix_index}, cv_pmatrix_index{rhs.cv_pmatrix_index}, vd_pmatrix_index{rhs.vd_pmatrix_index}, uv_pmatrix_index{rhs.uv_pmatrix_index}, wanted_ab_pmatrix_index{rhs.wanted_ab_pmatrix_index}, wanted_cd_pmatrix_index{rhs.wanted_cd_pmatrix_index}, a_b_len{rhs.a_b_len}, c_d_len{rhs.c_d_len}, v_d_len{rhs.v_d_len}, u_b_len{rhs.u_b_len} {}
+    ArcRemovalData(const ArcRemovalData& rhs) : a_clv_index{rhs.a_clv_index}, b_clv_index{rhs.b_clv_index}, c_clv_index{rhs.c_clv_index}, d_clv_index{rhs.d_clv_index}, u_clv_index{rhs.u_clv_index}, v_clv_index{rhs.v_clv_index}, u_v_len{rhs.u_v_len}, c_v_len{rhs.c_v_len}, a_u_len{rhs.a_u_len}, au_pmatrix_index{rhs.au_pmatrix_index}, ub_pmatrix_index{rhs.ub_pmatrix_index}, cv_pmatrix_index{rhs.cv_pmatrix_index}, vd_pmatrix_index{rhs.vd_pmatrix_index}, uv_pmatrix_index{rhs.uv_pmatrix_index}, wanted_ab_pmatrix_index{rhs.wanted_ab_pmatrix_index}, wanted_cd_pmatrix_index{rhs.wanted_cd_pmatrix_index}, a_b_len{rhs.a_b_len}, c_d_len{rhs.c_d_len}, v_d_len{rhs.v_d_len}, u_b_len{rhs.u_b_len}, u_label{rhs.u_label}, v_label{rhs.v_label}, u_reticulation_label{rhs.u_reticulation_label}, v_reticulation_label{rhs.v_reticulation_label} {}
 
     ArcRemovalData& operator =(ArcRemovalData&& rhs) {
         if (this != &rhs) {
@@ -59,6 +65,10 @@ struct ArcRemovalData {
             c_d_len = rhs.c_d_len;
             v_d_len = rhs.v_d_len;
             u_b_len = rhs.u_b_len;
+            u_label = rhs.u_label;
+            v_label = rhs.v_label;
+            u_reticulation_label = rhs.u_reticulation_label;
+            v_reticulation_label = rhs.v_reticulation_label;
         }
         return *this;
     }
@@ -85,6 +95,10 @@ struct ArcRemovalData {
             c_d_len = rhs.c_d_len;
             v_d_len = rhs.v_d_len;
             u_b_len = rhs.u_b_len;
+            u_label = rhs.u_label;
+            v_label = rhs.v_label;
+            u_reticulation_label = rhs.u_reticulation_label;
+            v_reticulation_label = rhs.v_reticulation_label;
         }
         return *this;
     }
@@ -108,6 +122,10 @@ struct ArcRemovalData {
             && (this->uv_pmatrix_index == rhs.uv_pmatrix_index)
             && (this->wanted_ab_pmatrix_index == rhs.wanted_ab_pmatrix_index)
             && (this->wanted_cd_pmatrix_index == rhs.wanted_cd_pmatrix_index)
+            && (this->u_label == rhs.u_label)
+            && (this->v_label == rhs.v_label)
+            && (this->u_reticulation_label == rhs.u_reticulation_label)
+            && (this->v_reticulation_label == rhs.v_reticulation_label)
             /*&& (this->a_b_len == rhs.a_b_len)
             && (this->c_d_len == rhs.c_d_len)
             && (this->v_d_len == rhs.v_d_len)

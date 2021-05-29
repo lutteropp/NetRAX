@@ -659,7 +659,7 @@ void undoMoveArcInsertion(AnnotatedNetwork &ann_network, Move &move) {
     }
     assert(u);
     assert(v);
-    Move removal = buildMoveArcRemoval(move.arcInsertionData.a_clv_index, move.arcInsertionData.b_clv_index,
+    Move removal = buildMoveArcRemoval(ann_network, move.arcInsertionData.a_clv_index, move.arcInsertionData.b_clv_index,
             move.arcInsertionData.c_clv_index, move.arcInsertionData.d_clv_index, u->clv_index, v->clv_index, move.arcInsertionData.u_v_len, move.arcInsertionData.c_v_len,
             move.arcInsertionData.a_u_len, move.arcInsertionData.a_b_len, move.arcInsertionData.c_d_len, move.arcInsertionData.v_d_len, move.arcInsertionData.u_b_len, MoveType::ArcRemovalMove, move.edge_orig_idx, move.node_orig_idx);
     removal.arcRemovalData.wanted_ab_pmatrix_index = move.arcInsertionData.ab_pmatrix_index;
