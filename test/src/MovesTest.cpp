@@ -55,12 +55,12 @@ void randomMovesStep(AnnotatedNetwork &ann_network, std::vector<Move> candidates
     double initial_logl = computeLoglikelihood(ann_network);
     ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
     //std::cout << "initial_logl: " << initial_logl << "\n";
-    //std::string initialDebugInfo = exportDebugInfo(ann_network);
+    std::string initialDebugInfo = exportDebugInfo(ann_network);
     //std::cout << initialDebugInfo << "\n";
     std::vector<std::vector<double> > old_brlens = extract_brlens(ann_network);
 
     for (size_t j = 0; j < candidates.size(); ++j) {
-        //std::cout << "Testing moves for candidate " << j+1 << "/" << candidates.size() << "...\n";
+        std::cout << "Testing moves for candidate " << j+1 << "/" << candidates.size() << "...\n";
         std::string newickBeforeMove = toExtendedNewick(ann_network);
 
         Move origMove(candidates[j]);
@@ -115,7 +115,16 @@ void randomMovesStep(AnnotatedNetwork &ann_network, std::vector<Move> candidates
         }
         //std::string newickAfterUndoMove = toExtendedNewick(network);
         //std::cout << toExtendedNewick(network) << "\n";
-        //std::string debugInfoAfterUndo = exportDebugInfo(ann_network);
+        std::string debugInfoAfterUndo = exportDebugInfo(ann_network);
+
+        if (initialDebugInfo != debugInfoAfterUndo) {
+            if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+                std::cout << "inequal debug infos:\n\n";
+                std::cout << initialDebugInfo << "\n\n";
+                std::cout << debugInfoAfterUndo << "\n";
+            }
+        }
+
         //EXPECT_EQ(initialDebugInfo, debugInfoAfterUndo);
         double back_logl = computeLoglikelihood(ann_network);
         //ASSERT_EQ(newickBeforeMove, newickAfterUndoMove);
