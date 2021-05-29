@@ -549,7 +549,7 @@ Move applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<Move> candida
                 throw std::runtime_error("Something went wrong in the network search. Suddenly, BIC is worse!");
             }
         }
-        return candidates[0];
+        return move;
     }
 
     return {};

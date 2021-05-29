@@ -119,7 +119,7 @@ std::vector<Move> possibleMoves(AnnotatedNetwork& ann_network, std::vector<MoveT
 std::vector<Move> possibleMoves(AnnotatedNetwork& ann_network, std::vector<MoveType> types, bool rspr1_present = false, bool delta_plus_present = false, int min_radius = 0, int max_radius = std::numeric_limits<int>::max());
 
 void removeBadCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& candidates);
-std::vector<Node*> gatherStartNodes(AnnotatedNetwork& ann_network, Move move);
+std::vector<Node*> gatherStartNodes(AnnotatedNetwork& ann_network, const Move& move);
 
 void updateMoveBranchLengths(AnnotatedNetwork& ann_network, Move& move);
 void updateMovePmatrixIndex(Move& move, size_t old_pmatrix_index, size_t new_pmatrix_index, bool undo);

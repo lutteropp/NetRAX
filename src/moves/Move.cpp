@@ -346,7 +346,7 @@ void removeBadCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& candi
     updateMoveBranchLengths(ann_network, candidates);
 }
 
-std::vector<Node*> gatherStartNodes(AnnotatedNetwork& ann_network, Move move) {
+std::vector<Node*> gatherStartNodes(AnnotatedNetwork& ann_network, const Move& move) {
     std::vector<Node*> res;
     if (isArcInsertion(move.moveType)) {
         assert(ann_network.network.nodes_by_index[move.arcInsertionData.wanted_u_clv_index]);
