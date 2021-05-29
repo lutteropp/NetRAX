@@ -26,7 +26,7 @@
 
 using namespace netrax;
 
-const std::string DATA_PATH = "examples/sample_networks/";
+const std::string DATA_PATH = "sample_networks/";
 
 std::mutex g_singleThread;
 
@@ -81,6 +81,7 @@ void compareNodes(pll_unode_t *node1, pll_unode_t *node2) {
 
 TEST_F (LikelihoodTest, DISABLED_displayedTreeOfTreeToUtree) {
     NetraxOptions options;
+    options.run_single_threaded = true;
     Network treeNetwork = netrax::readNetworkFromFile(treePath, options);
     pll_utree_t *network_utree = displayed_tree_to_utree(treeNetwork, 0);
     pll_utree_t *raxml_utree = Tree::loadFromFile(treePath).pll_utree_copy();
@@ -201,6 +202,7 @@ bool isLeafNode(const pll_unode_t *node) {
 void compareLikelihoodFunctions(const std::string &networkPath, const std::string &msaPath,
         bool useRepeats) {
     NetraxOptions options;
+    options.run_single_threaded = true;
     options.start_network_file = networkPath;
     options.msa_file = msaPath;
     options.use_repeats = useRepeats;
@@ -250,6 +252,7 @@ void compareLikelihoodFunctions(const std::string &networkPath, const std::strin
 
 void incrementalTest(const std::string &networkPath, const std::string &msaPath) {
     NetraxOptions options;
+    options.run_single_threaded = true;
     options.start_network_file = networkPath;
     options.msa_file = msaPath;
     options.use_repeats = true;
@@ -375,6 +378,7 @@ TEST_F (LikelihoodTest, simpleTreeWithRepeats) {
 
 TEST_F (LikelihoodTest, DISABLED_displayedTreeOfNetworkToUtree) {
     NetraxOptions options;
+    options.run_single_threaded = true;
     Network smallNetwork = netrax::readNetworkFromFile(networkPath, options);
     pll_utree_t *utree = displayed_tree_to_utree(smallNetwork, 0);
     EXPECT_NE(utree, nullptr);
@@ -406,6 +410,7 @@ TEST_F (LikelihoodTest, DISABLED_displayedTreeOfNetworkToUtree) {
 
 TEST_F (LikelihoodTest, buildAnnotatedNetworkTest) {
     NetraxOptions options;
+    options.run_single_threaded = true;
     options.start_network_file = treePath;
     options.msa_file = msaPath;
     options.use_repeats = true;
@@ -417,6 +422,7 @@ TEST_F (LikelihoodTest, buildAnnotatedNetworkTest) {
 
 TEST_F (LikelihoodTest, simpleTreeNaiveVersusNormalRaxml) {
     NetraxOptions options;
+    options.run_single_threaded = true;
     options.start_network_file = treePath;
     options.msa_file = msaPath;
     options.use_repeats = true;
@@ -443,6 +449,7 @@ TEST_F (LikelihoodTest, simpleTreeNaiveVersusNormalRaxml) {
 
 TEST_F (LikelihoodTest, convertUtreeToNetwork) {
     NetraxOptions options;
+    options.run_single_threaded = true;
     options.start_network_file = treePath;
     options.msa_file = msaPath;
     options.use_repeats = true;

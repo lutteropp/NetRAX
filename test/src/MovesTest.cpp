@@ -17,6 +17,7 @@
 #include <string>
 #include <mutex>
 #include <iostream>
+#include <algorithm>
 
 #include <raxml-ng/main.hpp>
 
@@ -24,7 +25,7 @@
 
 using namespace netrax;
 
-const std::string DATA_PATH = "examples/sample_networks/";
+const std::string DATA_PATH = "sample_networks/";
 
 std::vector<std::vector<double> > extract_brlens(AnnotatedNetwork &ann_network) {
     std::vector<std::vector<double> > res;
@@ -54,12 +55,16 @@ void randomMovesStep(AnnotatedNetwork &ann_network, std::vector<Move> candidates
     double initial_logl = computeLoglikelihood(ann_network);
     ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
     std::cout << "initial_logl: " << initial_logl << "\n";
-    //std::string initialDebugInfo = exportDebugInfo(network);
+    std::string initialDebugInfo = exportDebugInfo(ann_network);
     //std::cout << initialDebugInfo << "\n";
     std::vector<std::vector<double> > old_brlens = extract_brlens(ann_network);
 
     for (size_t j = 0; j < candidates.size(); ++j) {
+        std::cout << "Testing moves for candidate " << j+1 << "/" << candidates.size() << "...\n";
         std::string newickBeforeMove = toExtendedNewick(ann_network);
+
+        Move origMove(candidates[j]);
+
         //std::cout << "perform " << toString(candidates[j]);
         performMove(ann_network, candidates[j]);
         //std::cout << toExtendedNewick(network) << "\n";
@@ -68,17 +73,50 @@ void randomMovesStep(AnnotatedNetwork &ann_network, std::vector<Move> candidates
         //std::cout << "logl after move: " << moved_logl << "\n";
         //std::cout << "undo " << toString(candidates[j]) << "\n";
         undoMove(ann_network, candidates[j]);
-        computeLoglikelihood(ann_network);
+
+        ASSERT_EQ(origMove.arcRemovalData.a_clv_index, candidates[j].arcRemovalData.a_clv_index);
+        ASSERT_EQ(origMove.arcRemovalData.b_clv_index, candidates[j].arcRemovalData.b_clv_index);
+        ASSERT_EQ(origMove.arcRemovalData.c_clv_index, candidates[j].arcRemovalData.c_clv_index);
+        ASSERT_EQ(origMove.arcRemovalData.d_clv_index, candidates[j].arcRemovalData.d_clv_index);
+        ASSERT_EQ(origMove.arcRemovalData.u_clv_index, candidates[j].arcRemovalData.u_clv_index);
+        ASSERT_EQ(origMove.arcRemovalData.v_clv_index, candidates[j].arcRemovalData.v_clv_index);
+        ASSERT_EQ(origMove.arcRemovalData.au_pmatrix_index, candidates[j].arcRemovalData.au_pmatrix_index);
+        ASSERT_EQ(origMove.arcRemovalData.cv_pmatrix_index, candidates[j].arcRemovalData.cv_pmatrix_index);
+        ASSERT_EQ(origMove.arcRemovalData.ub_pmatrix_index, candidates[j].arcRemovalData.ub_pmatrix_index);
+        ASSERT_EQ(origMove.arcRemovalData.uv_pmatrix_index, candidates[j].arcRemovalData.uv_pmatrix_index);
+        ASSERT_EQ(origMove.arcRemovalData.vd_pmatrix_index, candidates[j].arcRemovalData.vd_pmatrix_index);
+
+        ASSERT_EQ(origMove.arcInsertionData.a_clv_index, candidates[j].arcInsertionData.a_clv_index);
+        ASSERT_EQ(origMove.arcInsertionData.b_clv_index, candidates[j].arcInsertionData.b_clv_index);
+        ASSERT_EQ(origMove.arcInsertionData.c_clv_index, candidates[j].arcInsertionData.c_clv_index);
+        ASSERT_EQ(origMove.arcInsertionData.d_clv_index, candidates[j].arcInsertionData.d_clv_index);
+        ASSERT_EQ(origMove.arcInsertionData.ab_pmatrix_index, candidates[j].arcInsertionData.ab_pmatrix_index);
+        ASSERT_EQ(origMove.arcInsertionData.cd_pmatrix_index, candidates[j].arcInsertionData.cd_pmatrix_index);
+
+        ASSERT_EQ(origMove.rsprData.x_clv_index, candidates[j].rsprData.x_clv_index);
+        ASSERT_EQ(origMove.rsprData.y_clv_index, candidates[j].rsprData.y_clv_index);
+        ASSERT_EQ(origMove.rsprData.z_clv_index, candidates[j].rsprData.z_clv_index);
+        ASSERT_EQ(origMove.rsprData.x_prime_clv_index, candidates[j].rsprData.x_prime_clv_index);
+        ASSERT_EQ(origMove.rsprData.y_prime_clv_index, candidates[j].rsprData.y_prime_clv_index);
+
+        ASSERT_EQ(origMove.rnniData.u_clv_index, candidates[j].rnniData.u_clv_index);
+        ASSERT_EQ(origMove.rnniData.v_clv_index, candidates[j].rnniData.v_clv_index);
+        ASSERT_EQ(origMove.rnniData.s_clv_index, candidates[j].rnniData.s_clv_index);
+        ASSERT_EQ(origMove.rnniData.t_clv_index, candidates[j].rnniData.t_clv_index);
+
         std::vector<std::vector<double> > act_brlens = extract_brlens(ann_network);
         for (size_t i = 0; i < act_brlens.size(); ++i) {
             for (size_t j = 0; j < act_brlens[i].size(); ++j) {
+                if (act_brlens[i][j] != old_brlens[i][j]) {
+                    std::cout << "problem at pmatrix index " << j << "\n";
+                }
                 ASSERT_DOUBLE_EQ(act_brlens[i][j], old_brlens[i][j]);
             }
         }
         //std::string newickAfterUndoMove = toExtendedNewick(network);
         //std::cout << toExtendedNewick(network) << "\n";
-        //std::string debugInfoAfterUndo = exportDebugInfo(network);
-        //EXPECT_EQ(initialDebugInfo, debugInfoAfterUndo);
+        std::string debugInfoAfterUndo = exportDebugInfo(ann_network);
+        EXPECT_EQ(initialDebugInfo, debugInfoAfterUndo);
         double back_logl = computeLoglikelihood(ann_network);
         //ASSERT_EQ(newickBeforeMove, newickAfterUndoMove);
         ASSERT_DOUBLE_EQ(initial_logl, back_logl);
@@ -88,22 +126,22 @@ void randomMovesStep(AnnotatedNetwork &ann_network, std::vector<Move> candidates
 void randomMoves(const std::string &networkPath, const std::string &msaPath, bool useRepeats,
         MoveType type) {
     NetraxOptions options;
+    options.run_single_threaded = true;
     options.start_network_file = networkPath;
     options.msa_file = msaPath;
     options.use_repeats = useRepeats;
     const RaxmlInstance instance = createRaxmlInstance(options);
     AnnotatedNetwork ann_network = build_annotated_network(options, instance);
     init_annotated_network(ann_network);
-    Network &network = ann_network.network;
 
-    if (type == MoveType::ArcRemovalMove || type == MoveType::DeltaMinusMove) {
-        randomMovesStep(ann_network, possibleMoves(ann_network, type));
-        return;
-    }
+    std::vector<Move> candidates = possibleMoves(ann_network, type);
 
-    for (size_t i = 0; i < network.num_branches(); ++i) {
-        randomMovesStep(ann_network, possibleMoves(ann_network, type, ann_network.network.edges_by_index[i]));
-    }
+    size_t max_candidates = candidates.size();// 200;
+
+    std::random_shuffle(candidates.begin(), candidates.end());
+    candidates.resize(std::min(candidates.size(), max_candidates));
+
+    randomMovesStep(ann_network, candidates);
 }
 
 void printBranchLengths(AnnotatedNetwork &ann_network) {

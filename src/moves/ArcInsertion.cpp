@@ -33,24 +33,6 @@ bool checkSanityArcInsertion(AnnotatedNetwork& ann_network, const std::vector<Mo
     return sane;
 }
 
-void fixReticulationsArcInsertion(Network &network, Move &move) {
-    // change parent links from reticulation nodes such that link_to_first_parent points to the smaller pmatrix index
-    std::unordered_set<Node*> repair_candidates;
-    addRepairCandidates(network, repair_candidates, network.nodes_by_index[move.arcInsertionData.a_clv_index]);
-    addRepairCandidates(network, repair_candidates, network.nodes_by_index[move.arcInsertionData.b_clv_index]);
-    addRepairCandidates(network, repair_candidates, network.nodes_by_index[move.arcInsertionData.c_clv_index]);
-    addRepairCandidates(network, repair_candidates, network.nodes_by_index[move.arcInsertionData.d_clv_index]);
-    addRepairCandidates(network, repair_candidates,
-            network.nodes_by_index[move.arcInsertionData.wanted_u_clv_index]);
-    addRepairCandidates(network, repair_candidates,
-            network.nodes_by_index[move.arcInsertionData.wanted_v_clv_index]);
-    for (Node *node : repair_candidates) {
-        if (node->type == NodeType::RETICULATION_NODE) {
-            resetReticulationLinks(node);
-        }
-    }
-}
-
 Move buildMoveArcInsertion(size_t a_clv_index, size_t b_clv_index, size_t c_clv_index,
         size_t d_clv_index, std::vector<double> &u_v_len, std::vector<double> &c_v_len,
         std::vector<double> &a_u_len, std::vector<double> &a_b_len, std::vector<double> &c_d_len, std::vector<double> &v_d_len, std::vector<double> &u_b_len, MoveType moveType, size_t edge_orig_idx, size_t node_orig_idx) {
@@ -467,6 +449,54 @@ std::vector<Move> possibleMovesDeltaPlus(AnnotatedNetwork &ann_network, int min_
     return res;
 }
 
+void updateMoveClvIndexArcInsertion(Move& move, size_t old_clv_index, size_t new_clv_index, bool undo) {
+    if (old_clv_index == new_clv_index) {
+        return;
+    }
+    if (!undo) {
+        move.remapped_clv_indices.emplace_back(std::make_pair(old_clv_index, new_clv_index));
+    }
+    if (move.arcInsertionData.a_clv_index == old_clv_index) {
+        move.arcInsertionData.a_clv_index = new_clv_index;
+    } else if (move.arcInsertionData.a_clv_index == new_clv_index) {
+        move.arcInsertionData.a_clv_index = old_clv_index;
+    }
+    if (move.arcInsertionData.b_clv_index == old_clv_index) {
+        move.arcInsertionData.b_clv_index = new_clv_index;
+    } else if (move.arcInsertionData.b_clv_index == new_clv_index) {
+        move.arcInsertionData.b_clv_index = old_clv_index;
+    }
+    if (move.arcInsertionData.c_clv_index == old_clv_index) {
+        move.arcInsertionData.c_clv_index = new_clv_index;
+    } else if (move.arcInsertionData.c_clv_index == new_clv_index) {
+        move.arcInsertionData.c_clv_index = old_clv_index;
+    }
+    if (move.arcInsertionData.d_clv_index == old_clv_index) {
+        move.arcInsertionData.d_clv_index = new_clv_index;
+    } else if (move.arcInsertionData.d_clv_index == new_clv_index) {
+        move.arcInsertionData.d_clv_index = old_clv_index;
+    }
+}
+
+void updateMovePmatrixIndexArcInsertion(Move& move, size_t old_pmatrix_index, size_t new_pmatrix_index, bool undo) {
+    if (old_pmatrix_index == new_pmatrix_index) {
+        return;
+    }
+    if (!undo) {
+        move.remapped_pmatrix_indices.emplace_back(std::make_pair(old_pmatrix_index, new_pmatrix_index));
+    }
+    if (move.arcInsertionData.ab_pmatrix_index == old_pmatrix_index) {
+        move.arcInsertionData.ab_pmatrix_index = new_pmatrix_index;
+    } else if (move.arcInsertionData.ab_pmatrix_index == new_pmatrix_index) {
+        move.arcInsertionData.ab_pmatrix_index = old_pmatrix_index;
+    }
+    if (move.arcInsertionData.cd_pmatrix_index == old_pmatrix_index) {
+        move.arcInsertionData.cd_pmatrix_index = new_pmatrix_index;
+    } else if (move.arcInsertionData.cd_pmatrix_index == new_pmatrix_index) {
+        move.arcInsertionData.cd_pmatrix_index = old_pmatrix_index;
+    }
+}
+
 void performMoveArcInsertion(AnnotatedNetwork &ann_network, Move &move) {
     assert(checkSanityArcInsertion(ann_network, move));
     assert(move.moveType == MoveType::ArcInsertionMove || move.moveType == MoveType::DeltaPlusMove);
@@ -482,8 +512,6 @@ void performMoveArcInsertion(AnnotatedNetwork &ann_network, Move &move) {
     Edge *c_d_edge = getEdgeTo(network, move.arcInsertionData.c_clv_index, move.arcInsertionData.d_clv_index);
     assert(c_d_edge->link1);
     assert(c_d_edge->link2);
-    size_t a_b_edge_index = a_b_edge->pmatrix_index;
-    size_t c_d_edge_index = c_d_edge->pmatrix_index;
 
     ReticulationData retData;
     retData.init(network.num_reticulations(), "", 0, nullptr, nullptr, nullptr);
@@ -507,9 +535,9 @@ void performMoveArcInsertion(AnnotatedNetwork &ann_network, Move &move) {
     std::vector<double> a_u_edge_length = move.arcInsertionData.a_u_len;
     std::vector<double> u_b_edge_length = move.arcInsertionData.u_b_len;
 
-    removeEdge(ann_network, network.edges_by_index[a_b_edge_index]);
-    if (c_d_edge_index != a_b_edge_index) {
-        removeEdge(ann_network, network.edges_by_index[c_d_edge_index]);
+    removeEdge(ann_network, move, network.edges_by_index[move.arcInsertionData.ab_pmatrix_index], false);
+    if (move.arcInsertionData.cd_pmatrix_index != move.arcInsertionData.ab_pmatrix_index) {
+        removeEdge(ann_network, move, network.edges_by_index[move.arcInsertionData.cd_pmatrix_index], false);
     }
 
     Edge *u_b_edge = addEdge(ann_network, u_b_link, to_b_link, u_b_edge_length[0],
@@ -570,8 +598,6 @@ void performMoveArcInsertion(AnnotatedNetwork &ann_network, Move &move) {
             v_d_edge->pmatrix_index, a_u_edge->pmatrix_index, u_b_edge->pmatrix_index };
     invalidate_pmatrices(ann_network, updateMe);
 
-    fixReticulationsArcInsertion(network, move);
-
     std::vector<bool> visited(network.nodes.size(), false);
     invalidateHigherCLVs(ann_network, network.nodes_by_index[move.arcInsertionData.a_clv_index], false, visited);
     invalidateHigherCLVs(ann_network, network.nodes_by_index[move.arcInsertionData.b_clv_index], false, visited);
@@ -584,6 +610,8 @@ void performMoveArcInsertion(AnnotatedNetwork &ann_network, Move &move) {
     invalidatePmatrixIndex(ann_network, a_u_edge->pmatrix_index, visited);
     invalidatePmatrixIndex(ann_network, c_v_edge->pmatrix_index, visited);
     invalidatePmatrixIndex(ann_network, u_v_edge->pmatrix_index, visited);
+
+    fixReticulationLinks(ann_network);
 
     ann_network.travbuffer = reversed_topological_sort(ann_network.network);
     checkSanity(network);
@@ -643,6 +671,19 @@ void undoMoveArcInsertion(AnnotatedNetwork &ann_network, Move &move) {
     removal.arcRemovalData.vd_pmatrix_index = getEdgeTo(network, v, d)->pmatrix_index;
 
     performMoveArcRemoval(ann_network, removal);
+
+    // undo all index swaps that have taken place
+    for (int i = move.remapped_reticulation_indices.size() - 1; i >= 0; i--) {
+        swapReticulationIndex(ann_network, move, move.remapped_reticulation_indices[i].first, move.remapped_reticulation_indices[i].second, true);
+    }
+    for (int i = move.remapped_clv_indices.size() - 1; i >= 0; i--) {
+        swapClvIndex(ann_network, move, move.remapped_clv_indices[i].first, move.remapped_clv_indices[i].second, true);
+    }
+    for (int i = move.remapped_pmatrix_indices.size() - 1; i >= 0; i--) {
+        swapPmatrixIndex(ann_network, move, move.remapped_pmatrix_indices[i].first, move.remapped_pmatrix_indices[i].second, true);
+    }
+
+    fixReticulationLinks(ann_network);
     assert(assertConsecutiveIndices(ann_network));
     assert(assertBranchLengths(ann_network));
 }

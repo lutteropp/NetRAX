@@ -31,6 +31,7 @@ void invalidateHigherClvs(AnnotatedNetwork &ann_network, pllmod_treeinfo_t *tree
             }
             treeinfo->clv_valid[p][node->clv_index] = 0;
         }
+        //ann_network.pernode_displayed_tree_data[node->clv_index].num_active_displayed_trees = 0;
         ann_network.pseudo_clv_valid[node->clv_index] = false;
         if (!visited.empty()) {
             visited[node->clv_index] = true;

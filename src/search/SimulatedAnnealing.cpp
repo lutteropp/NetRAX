@@ -33,11 +33,7 @@ bool simanneal_step(AnnotatedNetwork& ann_network, double t, std::vector<T> neig
     for (size_t i = 0; i < neighbors.size(); ++i) {
         T move(neighbors[i]);
         assert(checkSanity(ann_network, move));
-        bool recompute_from_scratch = needsRecompute(ann_network, move);
         performMove(ann_network, move);
-        if (recompute_from_scratch) {
-            computeLoglikelihood(ann_network, 0, 1); // this is needed because arc removal changes the reticulation indices
-        }
         std::unordered_set<size_t> brlen_opt_candidates = brlenOptCandidates(ann_network, move);
         assert(!brlen_opt_candidates.empty());
         add_neighbors_in_radius(ann_network, brlen_opt_candidates, 1);

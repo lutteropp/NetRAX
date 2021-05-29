@@ -1,0 +1,8 @@
+django
+django-crispy-forms
+numpy
+networkx
+matplotlib
+pygraphviz
+pandas
+argparse

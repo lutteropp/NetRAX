@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1>Benchmark Dataset Overview</h1>
+{% for instance in object_list %}
+	<p>name: {{ instance.output_base }} - n_taxa: {{ instance.n_taxa }} - n_reticulations: {{ instance.n_reticulations }} - <a href='{{ instance.get_absolute_url }}'>detail</a> - <a href='{{ instance.get_absolute_url }}/delete'>delete</a></p>
+{% endfor %}
+<a href='./create'>Add another network</a>
+
+{% endblock %}

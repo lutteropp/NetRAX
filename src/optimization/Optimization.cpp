@@ -123,10 +123,23 @@ void optimizeAllNonTopology(AnnotatedNetwork &ann_network, bool extremeOpt, bool
         double score_before = scoreNetwork(ann_network);
         //assert(logl_stays_same(ann_network));
 
+        if (doModelOpt) {
+            double score_before_model = scoreNetwork(ann_network);
+            //assert(logl_stays_same(ann_network));
+            //assert(logl_stays_same(ann_network));
+            optimizeModel(ann_network, silent);
+            double score_after_model = scoreNetwork(ann_network);
+            double model_improv = score_before_model - score_after_model;
+            if (model_improv < score_epsilon) {
+                doModelOpt = false;
+            }
+        }
+
         if (doReticulationOpt) {
+            double score_before_probs = scoreNetwork(ann_network);
             optimizeReticulationProbs(ann_network, silent);
             double score_after_probs = scoreNetwork(ann_network);
-            double prob_improv = score_before - score_after_probs;
+            double prob_improv = score_before_probs - score_after_probs;
             if (prob_improv < score_epsilon) {
                 doReticulationOpt = false;
             }
@@ -140,18 +153,6 @@ void optimizeAllNonTopology(AnnotatedNetwork &ann_network, bool extremeOpt, bool
             double brlen_improv = score_before_branches - score_after_branches;
             if (brlen_improv < score_epsilon) {
                 doBrlenOpt = false;
-            }
-        }
-
-        if (doModelOpt) {
-            double score_before_model = scoreNetwork(ann_network);
-            //assert(logl_stays_same(ann_network));
-            //assert(logl_stays_same(ann_network));
-            optimizeModel(ann_network, silent);
-            double score_after_model = scoreNetwork(ann_network);
-            double model_improv = score_before_model - score_after_model;
-            if (model_improv < score_epsilon) {
-                doModelOpt = false;
             }
         }
 

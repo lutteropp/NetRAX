@@ -83,6 +83,8 @@ public:
     unsigned int scrambling = 0;
     unsigned int scrambling_radius = 2;
 
+    //bool extreme_greedy_prefiltering = false;
+
     int max_rearrangement_distance = 25;
 
     bool sim_anneal = false;
@@ -98,9 +100,13 @@ public:
     double tolerance = DEF_LH_EPSILON; //RAXML_BRLEN_TOLERANCE;
     double brlen_smoothings = RAXML_BRLEN_SMOOTHINGS;
 
+    bool run_single_threaded = false;
+
     bool slow_mode = false;
 
     bool save_memory = false;
+
+    std::string true_network_path;
 
     BrlenOptMethod brlenOptMethod = BrlenOptMethod::NEWTON_RAPHSON;//BrlenOptMethod::BRENT_REROOT;//BrlenOptMethod::NEWTON_RAPHSON_REROOT;// BrlenOptMethod::BRENT_NORMAL;
     //BrlenOptMethod brlenOptMethod = BrlenOptMethod::BRENT_NORMAL;
@@ -116,4 +122,26 @@ public:
     std::string start_network_file = "";
     std::string output_file = "";
 };
+
+inline bool no_parallelization_needed(const NetraxOptions& netraxOptions) {
+    if (netraxOptions.pretty_print_only) {
+        return true;
+    } else if (netraxOptions.extract_displayed_trees) {
+        return true;
+    } else if (netraxOptions.check_weird_network) {
+        return true;
+    } else if (netraxOptions.generate_random_network_only) {
+        return true;
+    } else if (netraxOptions.scale_branches_only != 0.0) {
+        return true;
+    } else if (netraxOptions.change_reticulation_probs_only) {
+        return true;
+    } else if (netraxOptions.network_distance_only) {
+        return true;
+    } else if (netraxOptions.run_single_threaded) {
+        return true;
+    }
+    return false;
+}
+
 }

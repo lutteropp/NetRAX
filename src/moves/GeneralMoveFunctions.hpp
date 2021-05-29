@@ -3,6 +3,7 @@
 #include "MoveType.hpp"
 #include <vector>
 #include <unordered_set>
+#include "Move.hpp"
 
 #include "../graph/AnnotatedNetwork.hpp"
 
@@ -11,10 +12,8 @@ namespace netrax {
 size_t getRandomIndex(std::mt19937& rng, size_t n);
 Edge* getRandomEdge(AnnotatedNetwork &ann_network);
 
-void removeNode(AnnotatedNetwork &ann_network, Node *node);
 Node* addInnerNode(AnnotatedNetwork &ann_network, ReticulationData *retData, size_t wanted_clv_index);
 
-void removeEdge(AnnotatedNetwork &ann_network, Edge *edge);
 Edge* addEdge(AnnotatedNetwork &ann_network, Link *link1, Link *link2, double length,
         size_t wanted_pmatrix_index);
 std::vector<size_t> determineEdgeOrder(AnnotatedNetwork& ann_network, size_t start_edge_idx);
@@ -44,6 +43,15 @@ void sortByProximity(std::vector<T>& candidates, AnnotatedNetwork& ann_network) 
 }
 
 std::vector<double> get_edge_lengths(AnnotatedNetwork &ann_network, size_t pmatrix_index);
+
+void swapPmatrixIndex(AnnotatedNetwork& ann_network, Move& move, size_t old_pmatrix_index, size_t new_pmatrix_index, bool undo = false);
+void swapClvIndex(AnnotatedNetwork& ann_network, Move& move, size_t old_clv_index, size_t new_clv_index, bool undo = false);
+void swapReticulationIndex(AnnotatedNetwork& ann_network, Move& move, size_t old_reticulation_index, size_t new_reticulation_index, bool undo = false);
+
+void removeNode(AnnotatedNetwork &ann_network, Move& move, Node *node, bool undo);
+void removeEdge(AnnotatedNetwork &ann_network, Move& move, Edge *edge, bool undo);
+
+void fixReticulationLinks(AnnotatedNetwork& ann_network);
 
 template <typename T>
 std::ostream& operator<<(std::ostream& os, const std::vector<T>& vec) {

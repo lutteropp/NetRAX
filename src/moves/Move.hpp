@@ -13,6 +13,7 @@
 #include <unordered_set>
 #include <vector>
 #include <memory>
+#include <utility>
 
 #include "MoveType.hpp"
 
@@ -34,6 +35,10 @@ struct Move {
     size_t edge_orig_idx;
     size_t node_orig_idx;
 
+    std::vector<std::pair<size_t, size_t> > remapped_clv_indices;
+    std::vector<std::pair<size_t, size_t> > remapped_pmatrix_indices;
+    std::vector<std::pair<size_t, size_t> > remapped_reticulation_indices;
+
     RNNIData rnniData;
     RSPRData rsprData;
     ArcInsertionData arcInsertionData;
@@ -41,9 +46,9 @@ struct Move {
 
     Move() = default;
 
-    Move(Move&& rhs) : moveType{rhs.moveType}, edge_orig_idx(rhs.edge_orig_idx), node_orig_idx(rhs.node_orig_idx), rnniData{rhs.rnniData}, rsprData{rhs.rsprData}, arcInsertionData{rhs.arcInsertionData}, arcRemovalData{rhs.arcRemovalData} {}
+    Move(Move&& rhs) : moveType{rhs.moveType}, edge_orig_idx(rhs.edge_orig_idx), node_orig_idx(rhs.node_orig_idx), remapped_clv_indices{rhs.remapped_clv_indices}, remapped_pmatrix_indices{rhs.remapped_pmatrix_indices}, remapped_reticulation_indices{rhs.remapped_reticulation_indices}, rnniData{rhs.rnniData}, rsprData{rhs.rsprData}, arcInsertionData{rhs.arcInsertionData}, arcRemovalData{rhs.arcRemovalData} {}
 
-    Move(const Move& rhs) : moveType{rhs.moveType}, edge_orig_idx(rhs.edge_orig_idx), node_orig_idx(rhs.node_orig_idx), rnniData{rhs.rnniData}, rsprData{rhs.rsprData}, arcInsertionData{rhs.arcInsertionData}, arcRemovalData{rhs.arcRemovalData} {}
+    Move(const Move& rhs) : moveType{rhs.moveType}, edge_orig_idx(rhs.edge_orig_idx), node_orig_idx(rhs.node_orig_idx), remapped_clv_indices{rhs.remapped_clv_indices}, remapped_pmatrix_indices{rhs.remapped_pmatrix_indices}, remapped_reticulation_indices{rhs.remapped_reticulation_indices}, rnniData{rhs.rnniData}, rsprData{rhs.rsprData}, arcInsertionData{rhs.arcInsertionData}, arcRemovalData{rhs.arcRemovalData} {}
 
     Move& operator =(Move&& rhs)
     {
@@ -52,6 +57,9 @@ struct Move {
             moveType = rhs.moveType;
             edge_orig_idx = rhs.edge_orig_idx;
             node_orig_idx = rhs.node_orig_idx;
+            remapped_clv_indices = rhs.remapped_clv_indices;
+            remapped_pmatrix_indices = rhs.remapped_pmatrix_indices;
+            remapped_reticulation_indices = rhs.remapped_reticulation_indices;
             rnniData = rhs.rnniData;
             rsprData = rhs.rsprData;
             arcInsertionData = rhs.arcInsertionData;
@@ -67,6 +75,9 @@ struct Move {
             moveType = rhs.moveType;
             edge_orig_idx = rhs.edge_orig_idx;
             node_orig_idx = rhs.node_orig_idx;
+            remapped_clv_indices = rhs.remapped_clv_indices;
+            remapped_pmatrix_indices = rhs.remapped_pmatrix_indices;
+            remapped_reticulation_indices = rhs.remapped_reticulation_indices;
             rnniData = rhs.rnniData;
             rsprData = rhs.rsprData;
             arcInsertionData = rhs.arcInsertionData;
@@ -80,6 +91,9 @@ struct Move {
             (this->moveType == rhs.moveType)
             && (this->edge_orig_idx == rhs.edge_orig_idx)
             && (this->node_orig_idx == rhs.node_orig_idx)
+            && (this->remapped_clv_indices == rhs.remapped_clv_indices)
+            && (this->remapped_pmatrix_indices == rhs.remapped_pmatrix_indices)
+            && (this->remapped_reticulation_indices == rhs.remapped_reticulation_indices)
             && (this->rnniData == rhs.rnniData)
             && (this->rsprData == rhs.rsprData)
             && (this->arcInsertionData == rhs.arcInsertionData)
@@ -104,13 +118,11 @@ std::vector<Move> possibleMoves(AnnotatedNetwork& ann_network, std::vector<MoveT
 std::vector<Move> possibleMoves(AnnotatedNetwork& ann_network, std::vector<MoveType> types, std::vector<Node*> start_nodes, bool rspr1_present = false, bool delta_plus_present = false, int min_radius = 0, int max_radius = std::numeric_limits<int>::max());
 std::vector<Move> possibleMoves(AnnotatedNetwork& ann_network, std::vector<MoveType> types, bool rspr1_present = false, bool delta_plus_present = false, int min_radius = 0, int max_radius = std::numeric_limits<int>::max());
 
-inline bool needsRecompute(AnnotatedNetwork& ann_network, const Move& move) {
-    return (move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::DeltaMinusMove) && (ann_network.network.reticulation_nodes[ann_network.network.num_reticulations() - 1]->clv_index != move.arcRemovalData.v_clv_index);
-}
-
 void removeBadCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& candidates);
 std::vector<Node*> gatherStartNodes(AnnotatedNetwork& ann_network, Move move);
 
 void updateMoveBranchLengths(AnnotatedNetwork& ann_network, Move& move);
+void updateMovePmatrixIndex(Move& move, size_t old_pmatrix_index, size_t new_pmatrix_index, bool undo);
+void updateMoveClvIndex(Move& move, size_t old_clv_index, size_t new_clv_index, bool undo);
 
 }

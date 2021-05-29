@@ -97,6 +97,7 @@ double optimize_reticulation(AnnotatedNetwork &ann_network, size_t reticulation_
     }
 
     assert(new_brprob >= min_brprob && new_brprob <= max_brprob);
+    ann_network.cached_logl_valid = false;
     best_logl = computeLoglikelihood(ann_network, 1, 1);
     return best_logl;
 }

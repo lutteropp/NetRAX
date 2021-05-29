@@ -246,6 +246,7 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
         invalidateAllCLVs(ann_network);
     }
 
+    ann_network.cached_logl_valid = false;
     assert(assert_branch_lengths(ann_network));
     assert(assert_rates(ann_network));
 }
