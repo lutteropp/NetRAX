@@ -349,11 +349,16 @@ void removeBadCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& candi
 std::vector<Node*> gatherStartNodes(AnnotatedNetwork& ann_network, Move move) {
     std::vector<Node*> res;
     if (isArcInsertion(move.moveType)) {
+        assert(ann_network.network.nodes_by_index[move.arcInsertionData.wanted_u_clv_index]);
+        assert(ann_network.network.nodes_by_index[move.arcInsertionData.wanted_v_clv_index]);
         res.emplace_back(ann_network.network.nodes_by_index[move.arcInsertionData.wanted_u_clv_index]);
         res.emplace_back(ann_network.network.nodes_by_index[move.arcInsertionData.wanted_v_clv_index]);
     } else if (isRSPR(move.moveType)) {
+        assert(ann_network.network.nodes_by_index[move.rsprData.z_clv_index]);
         res.emplace_back(ann_network.network.nodes_by_index[move.rsprData.z_clv_index]);
     } else if (move.moveType == MoveType::RNNIMove) {
+        assert(ann_network.network.nodes_by_index[move.rnniData.v_clv_index]);
+        assert(ann_network.network.nodes_by_index[move.rnniData.t_clv_index]);
         res.emplace_back(ann_network.network.nodes_by_index[move.rnniData.v_clv_index]);
         res.emplace_back(ann_network.network.nodes_by_index[move.rnniData.t_clv_index]);
     }
