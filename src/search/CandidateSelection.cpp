@@ -633,7 +633,10 @@ double fastIterationsMode(AnnotatedNetwork& ann_network, int best_max_distance, 
             got_better = true;
             old_score = score;
 
+            bool hadBadReticulationAfterInsertingArc = false;
+
             if (hasBadReticulation(ann_network) && isArcInsertion(type)) { // try doing arc removal moves
+                hadBadReticulationAfterInsertingArc = true;
                 if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
                     std::cout << "Bad reticulation detected. Trying arc removal moves.\n";
                 }
@@ -664,7 +667,7 @@ double fastIterationsMode(AnnotatedNetwork& ann_network, int best_max_distance, 
                 }
                 candidates = possibleMoves(ann_network, type, rspr1_present, delta_plus_present, 0, best_max_distance);
                 oldCandidates.clear();
-            } else {
+            } else if (!hadBadReticulationAfterInsertingArc){
                 std::vector<Node*> start_nodes = gatherStartNodes(ann_network, chosenMove);
                 std::vector<Move> moreMoves = possibleMoves(ann_network, type, start_nodes, rspr1_present, delta_plus_present, 0, best_max_distance);
                 if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
