@@ -52,6 +52,7 @@ std::vector<std::vector<double> > extract_brlens(AnnotatedNetwork &ann_network) 
 }
 
 void randomMovesStep(AnnotatedNetwork &ann_network, std::vector<Move> candidates) {
+    ASSERT_FLOAT_EQ(netrax::computeLoglikelihood(ann_network, 1, 1), netrax::computeLoglikelihood(ann_network, 0, 1));
     double initial_logl = computeLoglikelihood(ann_network);
     ASSERT_NE(initial_logl, -std::numeric_limits<double>::infinity());
     //std::cout << "initial_logl: " << initial_logl << "\n";
@@ -67,6 +68,9 @@ void randomMovesStep(AnnotatedNetwork &ann_network, std::vector<Move> candidates
 
         //std::cout << "perform " << toString(candidates[j]);
         performMove(ann_network, candidates[j]);
+
+        ASSERT_DOUBLE_EQ(netrax::computeLoglikelihood(ann_network, 1, 1), netrax::computeLoglikelihood(ann_network, 0, 1));
+
         //std::cout << toExtendedNewick(network) << "\n";
         double moved_logl = computeLoglikelihood(ann_network);
         ASSERT_NE(moved_logl, -std::numeric_limits<double>::infinity());
@@ -126,6 +130,7 @@ void randomMovesStep(AnnotatedNetwork &ann_network, std::vector<Move> candidates
         }
 
         EXPECT_EQ(initialDebugInfo, debugInfoAfterUndo);
+        ASSERT_DOUBLE_EQ(netrax::computeLoglikelihood(ann_network, 1, 1), netrax::computeLoglikelihood(ann_network, 0, 1));
         double back_logl = computeLoglikelihood(ann_network);
         //ASSERT_EQ(newickBeforeMove, newickAfterUndoMove);
         ASSERT_DOUBLE_EQ(initial_logl, back_logl);
