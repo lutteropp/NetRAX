@@ -80,20 +80,23 @@ void filterCandidatesByNodes(std::vector<T>& candidates, const std::unordered_se
 }
 
 template <typename T> 
-void filterCandidatesByScore(std::vector<T>& candidates, std::vector<ScoreItem<T> >& scores, int n_keep, bool keep_equal, bool silent) {
+void filterCandidatesByScore(std::vector<T>& candidates, std::vector<ScoreItem<T> >& scores, double old_score, int n_keep, bool keep_equal, bool silent) {
     std::sort(scores.begin(), scores.end(), [](const ScoreItem<T>& lhs, const ScoreItem<T>& rhs) {
         return lhs.bicScore < rhs.bicScore;
     });
 
     int newSize = 0;
-    size_t cutoff_pos = std::min(n_keep - 1, (int) scores.size() - 1);
+    size_t cutoff_pos = std::min(n_keep, (int) scores.size() - 1);
     double cutoff_bic = scores[cutoff_pos].bicScore;
+    if (cutoff_bic < old_score) {
+        cutoff_bic = old_score;
+    }
 
     for (size_t i = 0; i < std::min(scores.size(), candidates.size()); ++i) {
         if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
             if (!silent) std::cout << "candidate " << i + 1 << "/" << candidates.size() << " has BIC: " << scores[i].bicScore << "\n";
         }
-        if (scores[i].bicScore <= cutoff_bic) {
+        if (scores[i].bicScore < cutoff_bic) {
             candidates[newSize] = scores[i].item;
             newSize++;
         }
@@ -284,7 +287,7 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& can
         n_keep = elbowMethod(scores, n_keep);
     }
 
-    filterCandidatesByScore(candidates, scores, n_keep, false, silent);
+    filterCandidatesByScore(candidates, scores, old_bic, n_keep, false, silent);
 
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         if (print_progress) std::cout << "New size candidates after prefiltering: " << candidates.size() << " vs. " << oldCandidatesSize << "\n";
@@ -392,7 +395,7 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& candidates
     if (!ann_network.options.no_elbow_method) {
         n_keep = elbowMethod(scores, n_keep);
     }
-    filterCandidatesByScore(candidates, scores, n_keep, false, silent);
+    filterCandidatesByScore(candidates, scores, old_bic, n_keep, false, silent);
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         if (print_progress) std::cout << "New size after ranking: " << candidates.size() << " vs. " << oldCandidatesSize << "\n";
     }
@@ -485,7 +488,7 @@ double chooseCandidate(AnnotatedNetwork& ann_network, std::vector<Move>& candida
     }
     apply_network_state(ann_network, oldState);
     assert(scoreNetwork(ann_network) == old_bic);
-    filterCandidatesByScore(candidates, scores, candidates.size(), false, silent);
+    filterCandidatesByScore(candidates, scores, old_bic, candidates.size(), false, silent);
 
     return best_bic;
 }
