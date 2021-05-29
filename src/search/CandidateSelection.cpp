@@ -633,6 +633,16 @@ double fastIterationsMode(AnnotatedNetwork& ann_network, int best_max_distance, 
             got_better = true;
             old_score = score;
 
+            if (hasBadReticulation(ann_network)) { // try doing arc removal moves
+                if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+                    std::cout << "Bad reticulation detected. Trying arc removal moves.\n";
+                }
+                fastIterationsMode(ann_network, ann_network.options.max_rearrangement_distance, MoveType::ArcRemovalMove, typesBySpeed, best_score, bestNetworkData, silent);
+                optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::NORMAL);
+                check_score_improvement(ann_network, best_score, bestNetworkData);
+                old_score = scoreNetwork(ann_network);
+            }
+
             if (std::find(oldCandidates.begin(), oldCandidates.end(), chosenMove) != oldCandidates.end()) {
                 if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
                     std::cout << " Info: Taken move was in the old candidates.\n";
