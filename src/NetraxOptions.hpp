@@ -94,8 +94,8 @@ public:
     int brlen_opt_method = PLLMOD_OPT_BLO_NEWTON_FAST;
     double brlen_min = RAXML_BRLEN_MIN;
     double brlen_max = RAXML_BRLEN_MAX;
-    double brprob_min = 1E-3;
-    double brprob_max = 1.0 - 1E-3;
+    double brprob_min = 1E-6;
+    double brprob_max = 1.0 - 1E-6;
     double lh_epsilon = DEF_LH_EPSILON;
     double tolerance = DEF_LH_EPSILON; //RAXML_BRLEN_TOLERANCE;
     double brlen_smoothings = RAXML_BRLEN_SMOOTHINGS;
