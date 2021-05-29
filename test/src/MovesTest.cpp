@@ -13,6 +13,8 @@
 
 #include "src/helper/NetworkFunctions.hpp"
 
+#include "src/search/CandidateSelection.hpp"
+
 #include <gtest/gtest.h>
 #include <string>
 #include <mutex>
@@ -137,7 +139,7 @@ void randomMovesStep(AnnotatedNetwork &ann_network, std::vector<Move> candidates
     }
 }
 
-void twoMovesStep(AnnotatedNetwork& ann_network, MoveType type) {
+void twoMovesStepSimple(AnnotatedNetwork& ann_network, MoveType type) {
     ASSERT_DOUBLE_EQ(netrax::computeLoglikelihood(ann_network, 1, 1), netrax::computeLoglikelihood(ann_network, 0, 1));
     std::vector<Move> candidates = possibleMoves(ann_network, type);
     if (!candidates.empty()) {
@@ -146,6 +148,23 @@ void twoMovesStep(AnnotatedNetwork& ann_network, MoveType type) {
         std::vector<Move> candidates2 = possibleMoves(ann_network, type);
         if (!candidates2.empty()) {
             performMove(ann_network, candidates2[0]);
+            ASSERT_DOUBLE_EQ(netrax::computeLoglikelihood(ann_network, 1, 1), netrax::computeLoglikelihood(ann_network, 0, 1));
+        }
+    }
+}
+
+void twoMovesStepComplex(AnnotatedNetwork& ann_network, MoveType type) {
+    ASSERT_DOUBLE_EQ(netrax::computeLoglikelihood(ann_network, 1, 1), netrax::computeLoglikelihood(ann_network, 0, 1));
+    std::vector<Move> candidates = possibleMoves(ann_network, type);
+    if (!candidates.empty()) {
+        performMove(ann_network, candidates[0]);
+        ASSERT_DOUBLE_EQ(netrax::computeLoglikelihood(ann_network, 1, 1), netrax::computeLoglikelihood(ann_network, 0, 1));
+
+        updateOldCandidates(ann_network, candidates[0], candidates);
+        removeBadCandidates(ann_network, candidates);
+
+        if (!candidates.empty()) {
+            performMove(ann_network, candidates[0]);
             ASSERT_DOUBLE_EQ(netrax::computeLoglikelihood(ann_network, 1, 1), netrax::computeLoglikelihood(ann_network, 0, 1));
         }
     }
@@ -170,7 +189,21 @@ void randomMoves(const std::string &networkPath, const std::string &msaPath, boo
     candidates.resize(std::min(candidates.size(), max_candidates));
 
     randomMovesStep(ann_network, candidates);
-    twoMovesStep(ann_network, type);
+}
+
+void twoMoves(const std::string &networkPath, const std::string &msaPath, bool useRepeats,
+        MoveType type) {
+    NetraxOptions options;
+    options.run_single_threaded = true;
+    options.start_network_file = networkPath;
+    options.msa_file = msaPath;
+    options.use_repeats = useRepeats;
+    const RaxmlInstance instance = createRaxmlInstance(options);
+    AnnotatedNetwork ann_network = build_annotated_network(options, instance);
+    init_annotated_network(ann_network);
+
+    twoMovesStepSimple(ann_network, type);
+    twoMovesStepComplex(ann_network, type);
 }
 
 void printBranchLengths(AnnotatedNetwork &ann_network) {
@@ -190,10 +223,24 @@ TEST (MovesTest, tail) {
             MoveType::TailMove);
 }
 
+TEST (MovesTest, twomoves_tail) {
+    twoMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false,
+            MoveType::TailMove);
+    twoMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false,
+            MoveType::TailMove);
+}
+
 TEST (MovesTest, head) {
     randomMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false,
             MoveType::HeadMove);
     randomMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false,
+            MoveType::HeadMove);
+}
+
+TEST (MovesTest, twomoves_head) {
+    twoMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false,
+            MoveType::HeadMove);
+    twoMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false,
             MoveType::HeadMove);
 }
 
@@ -204,10 +251,24 @@ TEST (MovesTest, arcInsertion) {
             MoveType::ArcInsertionMove);
 }
 
+TEST (MovesTest, twomoves_arcInsertion) {
+    twoMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false,
+            MoveType::ArcInsertionMove);
+    twoMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false,
+            MoveType::ArcInsertionMove);
+}
+
 TEST (MovesTest, deltaPlus) {
     randomMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false,
             MoveType::DeltaPlusMove);
     randomMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false,
+            MoveType::DeltaPlusMove);
+}
+
+TEST (MovesTest, twomoves_deltaPlus) {
+    twoMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false,
+            MoveType::DeltaPlusMove);
+    twoMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false,
             MoveType::DeltaPlusMove);
 }
 
@@ -218,10 +279,24 @@ TEST (MovesTest, arcRemoval) {
             MoveType::ArcRemovalMove);
 }
 
+TEST (MovesTest, twomoves_arcRemoval) {
+    twoMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false,
+            MoveType::ArcRemovalMove);
+    twoMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false,
+            MoveType::ArcRemovalMove);
+}
+
 TEST (MovesTest, deltaMinus) {
     randomMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false,
             MoveType::DeltaMinusMove);
     randomMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false,
+            MoveType::DeltaMinusMove);
+}
+
+TEST (MovesTest, twomoves_deltaMinus) {
+    twoMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false,
+            MoveType::DeltaMinusMove);
+    twoMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false,
             MoveType::DeltaMinusMove);
 }
 
@@ -232,6 +307,13 @@ TEST (MovesTest, rnni) {
             MoveType::RNNIMove);
 }
 
+TEST (MovesTest, twomoves_rnni) {
+    twoMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false,
+            MoveType::RNNIMove);
+    twoMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false,
+            MoveType::RNNIMove);
+}
+
 TEST (MovesTest, rspr) {
     randomMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false,
             MoveType::RSPRMove);
@@ -239,9 +321,23 @@ TEST (MovesTest, rspr) {
             MoveType::RSPRMove);
 }
 
+TEST (MovesTest, twomoves_rspr) {
+    twoMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false,
+            MoveType::RSPRMove);
+    twoMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false,
+            MoveType::RSPRMove);
+}
+
 TEST (MovesTest, rspr1) {
     randomMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false,
             MoveType::RSPR1Move);
     randomMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false,
+            MoveType::RSPR1Move);
+}
+
+TEST (MovesTest, twomoves_rspr1) {
+    twoMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false,
+            MoveType::RSPR1Move);
+    twoMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false,
             MoveType::RSPR1Move);
 }
