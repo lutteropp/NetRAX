@@ -125,7 +125,7 @@ void randomMovesStep(AnnotatedNetwork &ann_network, std::vector<Move> candidates
             }
         }
 
-        //EXPECT_EQ(initialDebugInfo, debugInfoAfterUndo);
+        EXPECT_EQ(initialDebugInfo, debugInfoAfterUndo);
         double back_logl = computeLoglikelihood(ann_network);
         //ASSERT_EQ(newickBeforeMove, newickAfterUndoMove);
         ASSERT_DOUBLE_EQ(initial_logl, back_logl);
