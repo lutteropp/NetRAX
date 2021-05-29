@@ -209,6 +209,10 @@ std::vector<Move> possibleMoves(AnnotatedNetwork& ann_network, MoveType type, bo
 }
 
 std::vector<Move> possibleMoves(AnnotatedNetwork& ann_network, MoveType type, std::vector<Edge*> start_edges, bool rspr1_present, bool delta_plus_present, int min_radius, int max_radius) {
+    for (size_t i = 0; i < start_edges.size(); ++i) {
+        assert(start_edges[i]);
+    }
+    
     switch (type) {
         case MoveType::ArcInsertionMove:
             return possibleMovesArcInsertion(ann_network, start_edges, delta_plus_present, min_radius, max_radius);
@@ -234,6 +238,10 @@ std::vector<Move> possibleMoves(AnnotatedNetwork& ann_network, MoveType type, st
 }
 
 std::vector<Move> possibleMoves(AnnotatedNetwork& ann_network, MoveType type, std::vector<Node*> start_nodes, bool rspr1_present, bool delta_plus_present, int min_radius, int max_radius) {
+    for (size_t i = 0; i < start_nodes.size(); ++i) {
+        assert(start_nodes[i]);
+    }
+    
     switch (type) {
         case MoveType::ArcInsertionMove:
             return possibleMovesArcInsertion(ann_network, start_nodes, delta_plus_present, min_radius, max_radius);

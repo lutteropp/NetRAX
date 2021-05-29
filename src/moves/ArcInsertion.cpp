@@ -322,17 +322,20 @@ std::vector<Move> possibleMovesArcInsertion(AnnotatedNetwork &ann_network,
 
 std::vector<Move> possibleMovesArcInsertion(AnnotatedNetwork &ann_network,
         const Edge *edge, bool noDeltaPlus, int min_radius, int max_radius) {
+    assert(edge);
     return possibleMovesArcInsertion(ann_network, edge, nullptr, nullptr,
             MoveType::ArcInsertionMove, noDeltaPlus, min_radius, max_radius);
 }
 
 std::vector<Move> possibleMovesArcInsertion(AnnotatedNetwork &ann_network, const Node *node, bool noDeltaPlus, int min_radius, int max_radius) {
+    assert(node);
     return possibleMovesArcInsertion(ann_network, node, nullptr, nullptr,
             MoveType::ArcInsertionMove, noDeltaPlus, min_radius, max_radius);
 }
 
 std::vector<Move> possibleMovesDeltaPlus(AnnotatedNetwork &ann_network,
         const Edge *edge, int min_radius, int max_radius) {
+    assert(edge);
     Network &network = ann_network.network;
     std::vector<Move> res;
     Node *a = getSource(network, edge);
@@ -357,6 +360,7 @@ std::vector<Move> possibleMovesDeltaPlus(AnnotatedNetwork &ann_network,
 }
 
 std::vector<Move> possibleMovesDeltaPlus(AnnotatedNetwork &ann_network, const Node *node, int min_radius, int max_radius) {
+    assert(node);
     Network &network = ann_network.network;
     std::vector<Move> res;
     if (node == ann_network.network.root) {
@@ -389,6 +393,7 @@ std::vector<Move> possibleMovesDeltaPlus(AnnotatedNetwork &ann_network, const No
 std::vector<Move> possibleMovesArcInsertion(AnnotatedNetwork &ann_network, const std::vector<Node*>& start_nodes, bool noDeltaPlus, int min_radius, int max_radius) {
     std::vector<Move> res;
     for (const Node* node : start_nodes) {
+        assert(node);
         std::vector<Move> res_node = possibleMovesArcInsertion(ann_network, node, noDeltaPlus, min_radius, max_radius);
         res.insert(std::end(res), std::begin(res_node), std::end(res_node));
     }
@@ -398,6 +403,7 @@ std::vector<Move> possibleMovesArcInsertion(AnnotatedNetwork &ann_network, const
 std::vector<Move> possibleMovesArcInsertion(AnnotatedNetwork &ann_network, const std::vector<Edge*>& start_edges, bool noDeltaPlus, int min_radius, int max_radius) {
     std::vector<Move> res;
     for (const Edge* edge : start_edges) {
+        assert(edge);
         std::vector<Move> res_edge = possibleMovesArcInsertion(ann_network, edge, noDeltaPlus, min_radius, max_radius);
         res.insert(std::end(res), std::begin(res_edge), std::end(res_edge));
     }
@@ -407,6 +413,7 @@ std::vector<Move> possibleMovesArcInsertion(AnnotatedNetwork &ann_network, const
 std::vector<Move> possibleMovesDeltaPlus(AnnotatedNetwork &ann_network, const std::vector<Node*>& start_nodes, int min_radius, int max_radius) {
     std::vector<Move> res;
     for (Node* node : start_nodes) {
+        assert(node);
         std::vector<Move> res_node = possibleMovesDeltaPlus(ann_network, node, min_radius, max_radius);
         res.insert(std::end(res), std::begin(res_node), std::end(res_node));
     }
@@ -416,6 +423,7 @@ std::vector<Move> possibleMovesDeltaPlus(AnnotatedNetwork &ann_network, const st
 std::vector<Move> possibleMovesDeltaPlus(AnnotatedNetwork &ann_network, const std::vector<Edge*>& start_edges, int min_radius, int max_radius) {
     std::vector<Move> res;
     for (Edge* edge : start_edges) {
+        assert(edge);
         std::vector<Move> res_edge = possibleMovesDeltaPlus(ann_network, edge, min_radius, max_radius);
         res.insert(std::end(res), std::begin(res_edge), std::end(res_edge));
     }
