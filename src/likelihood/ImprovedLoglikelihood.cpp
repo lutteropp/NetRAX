@@ -306,6 +306,8 @@ double evaluateTreesPartition(AnnotatedNetwork& ann_network, size_t partition_id
             if (tree.tree_logprob != std::numeric_limits<double>::infinity()) {
                 if (mpfr::exp(tree.tree_logprob) < 1E-6) {
                     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+                        std::cout << exportDebugInfo(ann_network) << "\n";
+
                         printReticulationChoices(tree.reticulationChoices);
                         std::cout << "reticulation probs: " << ann_network.reticulation_probs << "\n";
                         std::cout << "tree probability: " << mpfr::exp(tree.tree_logprob) << "\n";
@@ -333,6 +335,8 @@ double evaluateTreesPartition(AnnotatedNetwork& ann_network, size_t partition_id
             if (tree.tree_logprob != std::numeric_limits<double>::infinity()) {
                 if (mpfr::exp(tree.tree_logprob) < 1E-6) {
                     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+                        std::cout << exportDebugInfo(ann_network) << "\n";
+
                         printReticulationChoices(tree.reticulationChoices);
                         std::cout << "reticulation probs: " << ann_network.reticulation_probs << "\n";
                         std::cout << "tree probability: " << mpfr::exp(tree.tree_logprob) << "\n";
