@@ -475,6 +475,11 @@ void printAllDisplayedTreeConfigs(AnnotatedNetwork& ann_network) {
         NodeDisplayedTreeData& nodeData = ann_network.pernode_displayed_tree_data[i];
         for (size_t j = 0; j < nodeData.num_active_displayed_trees; ++j) {
             printReticulationChoices(nodeData.displayed_trees[j].treeLoglData.reticulationChoices);
+            if (!nodeData.displayed_trees[j].treeLoglData.tree_logprob_valid) {
+                nodeData.displayed_trees[j].treeLoglData.tree_logprob = computeReticulationConfigLogProb(nodeData.displayed_trees[j].treeLoglData.reticulationChoices, ann_network.reticulation_probs);
+                nodeData.displayed_trees[j].treeLoglData.tree_logprob_valid = true;
+            }
+            std::cout << " tree prob: " << exp(nodeData.displayed_trees[j].treeLoglData.tree_logprob) << "\n";
         }
     }
 }
