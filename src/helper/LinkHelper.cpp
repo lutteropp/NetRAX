@@ -6,7 +6,6 @@ namespace netrax {
 
 Node* getTargetNode(const Network &network, const Link *link) {
     assert(link);
-    assert(link->direction == Direction::OUTGOING);
     if (network.edges_by_index[link->edge_pmatrix_index]->link1 == link) {
         return network.nodes_by_index[network.edges_by_index[link->edge_pmatrix_index]->link2->node_clv_index];
     } else if (network.edges_by_index[link->edge_pmatrix_index]->link2 == link) {
