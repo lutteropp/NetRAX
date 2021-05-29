@@ -566,15 +566,6 @@ void performMoveArcInsertion(AnnotatedNetwork &ann_network, Move &move) {
     move.arcInsertionData.wanted_vd_pmatrix_index = v_d_edge->pmatrix_index;
     move.arcInsertionData.wanted_uv_pmatrix_index = u_v_edge->pmatrix_index;
 
-    v->getReticulationData()->link_to_first_parent = v_u_link;
-    v->getReticulationData()->link_to_second_parent = v_c_link;
-    v->getReticulationData()->link_to_child = v_d_link;
-    if (v->getReticulationData()->link_to_first_parent->outer->node_clv_index
-            > v->getReticulationData()->link_to_second_parent->outer->node_clv_index) {
-        std::swap(v->getReticulationData()->link_to_first_parent,
-                v->getReticulationData()->link_to_second_parent);
-    }
-
     from_a_link->edge_pmatrix_index = a_u_edge->pmatrix_index;
     to_u_link->edge_pmatrix_index = a_u_edge->pmatrix_index;
     u_b_link->edge_pmatrix_index = u_b_edge->pmatrix_index;
@@ -596,6 +587,15 @@ void performMoveArcInsertion(AnnotatedNetwork &ann_network, Move &move) {
     from_c_link->outer = v_c_link;
     v_d_link->outer = to_d_link;
     to_d_link->outer = v_d_link;
+
+    v->getReticulationData()->link_to_first_parent = v_u_link;
+    v->getReticulationData()->link_to_second_parent = v_c_link;
+    v->getReticulationData()->link_to_child = v_d_link;
+    if (v->getReticulationData()->link_to_first_parent->outer->node_clv_index
+            > v->getReticulationData()->link_to_second_parent->outer->node_clv_index) {
+        std::swap(v->getReticulationData()->link_to_first_parent,
+                v->getReticulationData()->link_to_second_parent);
+    }
 
     set_edge_lengths(ann_network, u_b_edge->pmatrix_index, u_b_edge_length);
     set_edge_lengths(ann_network, v_d_edge->pmatrix_index, v_d_edge_length);
