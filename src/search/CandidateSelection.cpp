@@ -633,7 +633,7 @@ double fastIterationsMode(AnnotatedNetwork& ann_network, int best_max_distance, 
             got_better = true;
             old_score = score;
 
-            if (hasBadReticulation(ann_network)) { // try doing arc removal moves
+            if (hasBadReticulation(ann_network) && isArcInsertion(type)) { // try doing arc removal moves
                 if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
                     std::cout << "Bad reticulation detected. Trying arc removal moves.\n";
                 }
