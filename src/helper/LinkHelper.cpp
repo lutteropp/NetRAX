@@ -1,14 +1,17 @@
 #include "Helper.hpp"
 
+#include <stdexcept>
+
 namespace netrax {
 
 Node* getTargetNode(const Network &network, const Link *link) {
     assert(link);
     if (network.edges_by_index[link->edge_pmatrix_index]->link1 == link) {
         return network.nodes_by_index[network.edges_by_index[link->edge_pmatrix_index]->link2->node_clv_index];
-    } else {
-        assert(network.edges_by_index[link->edge_pmatrix_index]->link2 == link);
+    } else if (network.edges_by_index[link->edge_pmatrix_index]->link2 == link) {
         return network.nodes_by_index[network.edges_by_index[link->edge_pmatrix_index]->link1->node_clv_index];
+    } else {
+        throw std::runtime_error("Something is wrong with the edge links. The link believes it belongs to an edge, but the edge believes otherwise.");
     }
 }
 
