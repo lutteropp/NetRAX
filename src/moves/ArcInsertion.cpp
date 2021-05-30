@@ -34,7 +34,7 @@ bool checkSanityArcInsertion(AnnotatedNetwork& ann_network, const std::vector<Mo
     return sane;
 }
 
-Move buildMoveArcInsertion(size_t a_clv_index, size_t b_clv_index, size_t c_clv_index,
+Move buildMoveArcInsertion(AnnotatedNetwork& ann_network, size_t a_clv_index, size_t b_clv_index, size_t c_clv_index,
         size_t d_clv_index, std::vector<double> &u_v_len, std::vector<double> &c_v_len,
         std::vector<double> &a_u_len, std::vector<double> &a_b_len, std::vector<double> &c_d_len, std::vector<double> &v_d_len, std::vector<double> &u_b_len, MoveType moveType, size_t edge_orig_idx, size_t node_orig_idx) {
     Move move = Move(moveType, edge_orig_idx, node_orig_idx);
@@ -44,13 +44,34 @@ Move buildMoveArcInsertion(size_t a_clv_index, size_t b_clv_index, size_t c_clv_
     move.arcInsertionData.d_clv_index = d_clv_index;
 
     move.arcInsertionData.u_v_len = u_v_len;
+    for (size_t i = 0; i < u_v_len.size(); ++i) {
+        assert(u_v_len[i] >= ann_network.options.brlen_min && u_v_len[i] <= ann_network.options.brlen_max);
+    }
     move.arcInsertionData.c_v_len = c_v_len;
+    for (size_t i = 0; i < c_v_len.size(); ++i) {
+        assert(c_v_len[i] >= ann_network.options.brlen_min && c_v_len[i] <= ann_network.options.brlen_max);
+    }
     move.arcInsertionData.a_u_len = a_u_len;
+    for (size_t i = 0; i < a_u_len.size(); ++i) {
+        assert(a_u_len[i] >= ann_network.options.brlen_min && a_u_len[i] <= ann_network.options.brlen_max);
+    }
 
     move.arcInsertionData.a_b_len = a_b_len;
+    for (size_t i = 0; i < a_b_len.size(); ++i) {
+        assert(a_b_len[i] >= ann_network.options.brlen_min && a_b_len[i] <= ann_network.options.brlen_max);
+    }
     move.arcInsertionData.c_d_len = c_d_len;
+    for (size_t i = 0; i < c_d_len.size(); ++i) {
+        assert(c_d_len[i] >= ann_network.options.brlen_min && c_d_len[i] <= ann_network.options.brlen_max);
+    }
     move.arcInsertionData.v_d_len = v_d_len;
+    for (size_t i = 0; i < v_d_len.size(); ++i) {
+        assert(v_d_len[i] >= ann_network.options.brlen_min && v_d_len[i] <= ann_network.options.brlen_max);
+    }
     move.arcInsertionData.u_b_len = u_b_len;
+    for (size_t i = 0; i < u_b_len.size(); ++i) {
+        assert(u_b_len[i] >= ann_network.options.brlen_min && u_b_len[i] <= ann_network.options.brlen_max);
+    }
 
     move.moveType = moveType;
     return move;
@@ -96,13 +117,13 @@ std::vector<Move> possibleMovesArcInsertion(AnnotatedNetwork &ann_network,
                 std::vector<double> c_d_len, c_v_len, a_u_len, v_d_len, u_b_len, u_v_len;
 
                 c_d_len = get_edge_lengths(ann_network, c->links[i].edge_pmatrix_index);
-                c_v_len = get_halved_edge_lengths(c_d_len, min_br);
-                a_u_len = get_halved_edge_lengths(a_b_len, min_br);
-                v_d_len = get_minus_edge_lengths(c_d_len, c_v_len, min_br);
-                u_b_len = get_minus_edge_lengths(a_b_len, a_u_len, min_br);
+                c_v_len = get_halved_edge_lengths(ann_network, c_d_len, min_br);
+                a_u_len = get_halved_edge_lengths(ann_network, a_b_len, min_br);
+                v_d_len = get_minus_edge_lengths(ann_network, c_d_len, c_v_len, min_br);
+                u_b_len = get_minus_edge_lengths(ann_network, a_b_len, a_u_len, min_br);
                 u_v_len = std::vector<double>(ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED ? ann_network.fake_treeinfo->partition_count : 1, 1.0);
 
-                Move move = buildMoveArcInsertion(a->clv_index, b->clv_index,
+                Move move = buildMoveArcInsertion(ann_network, a->clv_index, b->clv_index,
                         c_cand->clv_index, d_cand->clv_index, u_v_len, c_v_len,
                         a_u_len, a_b_len, c_d_len, v_d_len, u_b_len, moveType, edge_orig_idx, node_orig_idx);
                 move.arcInsertionData.ab_pmatrix_index = getEdgeTo(network, a, b)->pmatrix_index;
@@ -129,13 +150,13 @@ std::vector<Move> possibleMovesArcInsertion(AnnotatedNetwork &ann_network,
 
                     std::vector<double> c_d_len, c_v_len, a_u_len, v_d_len, u_b_len, u_v_len;
                     c_d_len = get_edge_lengths(ann_network, d->links[i].edge_pmatrix_index);
-                    c_v_len = get_halved_edge_lengths(c_d_len, min_br);
-                    a_u_len = get_halved_edge_lengths(a_b_len, min_br);
-                    v_d_len = get_minus_edge_lengths(c_d_len, c_v_len, min_br);
-                    u_b_len = get_minus_edge_lengths(a_b_len, a_u_len, min_br);
+                    c_v_len = get_halved_edge_lengths(ann_network, c_d_len, min_br);
+                    a_u_len = get_halved_edge_lengths(ann_network, a_b_len, min_br);
+                    v_d_len = get_minus_edge_lengths(ann_network, c_d_len, c_v_len, min_br);
+                    u_b_len = get_minus_edge_lengths(ann_network, a_b_len, a_u_len, min_br);
                     u_v_len = std::vector<double>(ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED ? ann_network.fake_treeinfo->partition_count : 1, 1.0);
 
-                    Move move = buildMoveArcInsertion(a->clv_index, b->clv_index,
+                    Move move = buildMoveArcInsertion(ann_network, a->clv_index, b->clv_index,
                             c_cand->clv_index, d_cand->clv_index, u_v_len, c_v_len,
                             a_u_len, a_b_len, c_d_len, v_d_len, u_b_len, moveType, edge_orig_idx, node_orig_idx);
 
@@ -164,13 +185,13 @@ std::vector<Move> possibleMovesArcInsertion(AnnotatedNetwork &ann_network,
             if (!hasPath(network, d_cand, a)) {
                 std::vector<double> c_d_len, c_v_len, a_u_len, v_d_len, u_b_len, u_v_len;
                 c_d_len = get_edge_lengths(ann_network, i);
-                c_v_len = get_halved_edge_lengths(c_d_len, min_br);
-                a_u_len = get_halved_edge_lengths(a_b_len, min_br);
-                v_d_len = get_minus_edge_lengths(c_d_len, c_v_len, min_br);
-                u_b_len = get_minus_edge_lengths(a_b_len, a_u_len, min_br);
+                c_v_len = get_halved_edge_lengths(ann_network, c_d_len, min_br);
+                a_u_len = get_halved_edge_lengths(ann_network, a_b_len, min_br);
+                v_d_len = get_minus_edge_lengths(ann_network, c_d_len, c_v_len, min_br);
+                u_b_len = get_minus_edge_lengths(ann_network, a_b_len, a_u_len, min_br);
                 u_v_len = std::vector<double>(ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED ? ann_network.fake_treeinfo->partition_count : 1, 1.0);
 
-                Move move = buildMoveArcInsertion(a->clv_index, b->clv_index,
+                Move move = buildMoveArcInsertion(ann_network, a->clv_index, b->clv_index,
                         c_cand->clv_index, d_cand->clv_index, u_v_len, c_v_len,
                         a_u_len, a_b_len, c_d_len, v_d_len, u_b_len, moveType, edge_orig_idx, node_orig_idx);
 
@@ -233,13 +254,13 @@ std::vector<Move> possibleMovesArcInsertion(AnnotatedNetwork &ann_network,
                         std::vector<double> c_d_len, c_v_len, a_u_len, v_d_len, u_b_len, u_v_len;
 
                         c_d_len = get_edge_lengths(ann_network, c->links[i].edge_pmatrix_index);
-                        c_v_len = get_halved_edge_lengths(c_d_len, min_br);
-                        a_u_len = get_halved_edge_lengths(a_b_len, min_br);
-                        v_d_len = get_minus_edge_lengths(c_d_len, c_v_len, min_br);
-                        u_b_len = get_minus_edge_lengths(a_b_len, a_u_len, min_br);
+                        c_v_len = get_halved_edge_lengths(ann_network, c_d_len, min_br);
+                        a_u_len = get_halved_edge_lengths(ann_network, a_b_len, min_br);
+                        v_d_len = get_minus_edge_lengths(ann_network, c_d_len, c_v_len, min_br);
+                        u_b_len = get_minus_edge_lengths(ann_network, a_b_len, a_u_len, min_br);
                         u_v_len = std::vector<double>(ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED ? ann_network.fake_treeinfo->partition_count : 1, min_br);
 
-                        Move move = buildMoveArcInsertion(a->clv_index, b->clv_index,
+                        Move move = buildMoveArcInsertion(ann_network, a->clv_index, b->clv_index,
                                 c_cand->clv_index, d_cand->clv_index, u_v_len, c_v_len,
                                 a_u_len, a_b_len, c_d_len, v_d_len, u_b_len, moveType, edge_orig_idx, node_orig_idx);
                         move.arcInsertionData.ab_pmatrix_index = getEdgeTo(network, a, b)->pmatrix_index;
@@ -268,13 +289,13 @@ std::vector<Move> possibleMovesArcInsertion(AnnotatedNetwork &ann_network,
 
                         std::vector<double> c_d_len, c_v_len, a_u_len, v_d_len, u_b_len, u_v_len;
                         c_d_len = get_edge_lengths(ann_network, d->links[i].edge_pmatrix_index);
-                        c_v_len = get_halved_edge_lengths(c_d_len, min_br);
-                        a_u_len = get_halved_edge_lengths(a_b_len, min_br);
-                        v_d_len = get_minus_edge_lengths(c_d_len, c_v_len, min_br);
-                        u_b_len = get_minus_edge_lengths(a_b_len, a_u_len, min_br);
+                        c_v_len = get_halved_edge_lengths(ann_network, c_d_len, min_br);
+                        a_u_len = get_halved_edge_lengths(ann_network, a_b_len, min_br);
+                        v_d_len = get_minus_edge_lengths(ann_network, c_d_len, c_v_len, min_br);
+                        u_b_len = get_minus_edge_lengths(ann_network, a_b_len, a_u_len, min_br);
                         u_v_len = std::vector<double>(ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED ? ann_network.fake_treeinfo->partition_count : 1, 1.0);
 
-                        Move move = buildMoveArcInsertion(a->clv_index, b->clv_index,
+                        Move move = buildMoveArcInsertion(ann_network, a->clv_index, b->clv_index,
                                 c_cand->clv_index, d_cand->clv_index, u_v_len, c_v_len,
                                 a_u_len, a_b_len, c_d_len, v_d_len, u_b_len, moveType, edge_orig_idx, node_orig_idx);
 
@@ -300,13 +321,13 @@ std::vector<Move> possibleMovesArcInsertion(AnnotatedNetwork &ann_network,
                     if (!hasPath(network, d_cand, a)) {
                         std::vector<double> c_d_len, c_v_len, a_u_len, v_d_len, u_b_len, u_v_len;
                         c_d_len = get_edge_lengths(ann_network, actEdge->pmatrix_index);
-                        c_v_len = get_halved_edge_lengths(c_d_len, min_br);
-                        a_u_len = get_halved_edge_lengths(a_b_len, min_br);
-                        v_d_len = get_minus_edge_lengths(c_d_len, c_v_len, min_br);
-                        u_b_len = get_minus_edge_lengths(a_b_len, a_u_len, min_br);
+                        c_v_len = get_halved_edge_lengths(ann_network, c_d_len, min_br);
+                        a_u_len = get_halved_edge_lengths(ann_network, a_b_len, min_br);
+                        v_d_len = get_minus_edge_lengths(ann_network, c_d_len, c_v_len, min_br);
+                        u_b_len = get_minus_edge_lengths(ann_network, a_b_len, a_u_len, min_br);
                         u_v_len = std::vector<double>(ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED ? ann_network.fake_treeinfo->partition_count : 1, 1.0);
 
-                        Move move = buildMoveArcInsertion(a->clv_index, b->clv_index,
+                        Move move = buildMoveArcInsertion(ann_network, a->clv_index, b->clv_index,
                                 c_cand->clv_index, d_cand->clv_index, u_v_len, c_v_len,
                                 a_u_len, a_b_len, c_d_len, v_d_len, u_b_len, moveType, edge_orig_idx, node_orig_idx);
 
@@ -539,10 +560,25 @@ void performMoveArcInsertion(AnnotatedNetwork &ann_network, Move &move) {
     Link *v_d_link = make_link(v, nullptr, Direction::OUTGOING);
 
     std::vector<double> u_v_edge_length = move.arcInsertionData.u_v_len;
+    for (size_t i = 0; i < u_v_edge_length.size(); ++i) {
+        assert(u_v_edge_length[i] >= ann_network.options.brlen_min && u_v_edge_length[i] <= ann_network.options.brlen_max);
+    }
     std::vector<double> c_v_edge_length = move.arcInsertionData.c_v_len;
+    for (size_t i = 0; i < c_v_edge_length.size(); ++i) {
+        assert(c_v_edge_length[i] >= ann_network.options.brlen_min && c_v_edge_length[i] <= ann_network.options.brlen_max);
+    }
     std::vector<double> v_d_edge_length = move.arcInsertionData.v_d_len;
+    for (size_t i = 0; i < v_d_edge_length.size(); ++i) {
+        assert(v_d_edge_length[i] >= ann_network.options.brlen_min && v_d_edge_length[i] <= ann_network.options.brlen_max);
+    }
     std::vector<double> a_u_edge_length = move.arcInsertionData.a_u_len;
+    for (size_t i = 0; i < a_u_edge_length.size(); ++i) {
+        assert(a_u_edge_length[i] >= ann_network.options.brlen_min && a_u_edge_length[i] <= ann_network.options.brlen_max);
+    }
     std::vector<double> u_b_edge_length = move.arcInsertionData.u_b_len;
+    for (size_t i = 0; i < u_b_edge_length.size(); ++i) {
+        assert(u_b_edge_length[i] >= ann_network.options.brlen_min && u_b_edge_length[i] <= ann_network.options.brlen_max);
+    }
 
     removeEdge(ann_network, move, network.edges_by_index[move.arcInsertionData.ab_pmatrix_index], false);
     if (move.arcInsertionData.cd_pmatrix_index != move.arcInsertionData.ab_pmatrix_index) {

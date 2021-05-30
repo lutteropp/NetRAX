@@ -21,9 +21,9 @@ void resetReticulationLinks(Node *node);
 void addRepairCandidates(Network &network, std::unordered_set<Node*> &repair_candidates,
         Node *node);
 std::vector<double> get_edge_lengths(AnnotatedNetwork &ann_network, size_t pmatrix_index);
-std::vector<double> get_halved_edge_lengths(const std::vector<double>& lengths, double min_br);
-std::vector<double> get_minus_edge_lengths(const std::vector<double>& lengths1, const std::vector<double>& lengths2, double min_br);
-std::vector<double> get_plus_edge_lengths(const std::vector<double>& lengths1, const std::vector<double>& lengths2, double max_br);
+std::vector<double> get_halved_edge_lengths(AnnotatedNetwork &ann_network, const std::vector<double>& lengths, double min_br);
+std::vector<double> get_minus_edge_lengths(AnnotatedNetwork &ann_network, const std::vector<double>& lengths1, const std::vector<double>& lengths2, double min_br);
+std::vector<double> get_plus_edge_lengths(AnnotatedNetwork &ann_network, const std::vector<double>& lengths1, const std::vector<double>& lengths2, double max_br);
 void set_edge_lengths(AnnotatedNetwork &ann_network, size_t pmatrix_index, const std::vector<double> &lengths);
 bool hasPath(Network &network, const Node *from, const Node *to, bool nonelementary = false);
 

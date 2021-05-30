@@ -154,6 +154,8 @@ std::vector<double> get_edge_lengths(AnnotatedNetwork &ann_network, size_t pmatr
                 continue;
             }
             res[p] = ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index];
+            assert(res[p] >= ann_network.options.brlen_min);
+            assert(res[p] <= ann_network.options.brlen_max);
         }
     } else {
         res[0] = ann_network.fake_treeinfo->linked_branch_lengths[pmatrix_index];
@@ -163,34 +165,79 @@ std::vector<double> get_edge_lengths(AnnotatedNetwork &ann_network, size_t pmatr
     return res;
 }
 
-std::vector<double> get_halved_edge_lengths(const std::vector<double>& lengths, double min_br) {
+std::vector<double> get_halved_edge_lengths(AnnotatedNetwork& ann_network, const std::vector<double>& lengths, double min_br) {
     std::vector<double> res(lengths.size());
-    for (size_t p = 0; p < lengths.size(); ++p) {
-        res[p] = std::max(lengths[p] / 2, min_br);
+    if (ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
+        assert(lengths.size() == ann_network.fake_treeinfo->partition_count);
+        for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+            // skip remote partitions
+            if (!ann_network.fake_treeinfo->partitions[p]) {
+                continue;
+            }
+            res[p] = std::max(lengths[p] / 2, min_br);
+            assert(res[p] >= ann_network.options.brlen_min);
+            assert(res[p] <= ann_network.options.brlen_max);
+        }
+    } else {
+        assert(!lengths.empty());
+        res[0] = std::max(lengths[0] / 2, min_br);
+        assert(res[0] >= ann_network.options.brlen_min);
+        assert(res[0] <= ann_network.options.brlen_max);
     }
     return res;
 }
 
-std::vector<double> get_minus_edge_lengths(const std::vector<double>& lengths1, const std::vector<double>& lengths2, double min_br) {
+std::vector<double> get_minus_edge_lengths(AnnotatedNetwork& ann_network, const std::vector<double>& lengths1, const std::vector<double>& lengths2, double min_br) {
     assert(lengths1.size() == lengths2.size());
     std::vector<double> res(lengths1.size());
-    for (size_t p = 0; p < lengths1.size(); ++p) {
-        res[p] = std::max(lengths1[p] - lengths2[p], min_br);
+
+    if (ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
+        assert(lengths1.size() == ann_network.fake_treeinfo->partition_count);
+        for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+            // skip remote partitions
+            if (!ann_network.fake_treeinfo->partitions[p]) {
+                continue;
+            }
+            res[p] = std::max(lengths1[p] - lengths2[p], min_br);
+            assert(res[p] >= ann_network.options.brlen_min);
+            assert(res[p] <= ann_network.options.brlen_max);
+        }
+    } else {
+        assert(!lengths1.empty());
+        res[0] = std::max(lengths1[0] - lengths2[0], min_br);
+        assert(res[0] >= ann_network.options.brlen_min);
+        assert(res[0] <= ann_network.options.brlen_max);
     }
     return res;
 }
 
-std::vector<double> get_plus_edge_lengths(const std::vector<double>& lengths1, const std::vector<double>& lengths2, double max_br) {
+std::vector<double> get_plus_edge_lengths(AnnotatedNetwork& ann_network, const std::vector<double>& lengths1, const std::vector<double>& lengths2, double max_br) {
     assert(lengths1.size() == lengths2.size());
     std::vector<double> res(lengths1.size());
-    for (size_t p = 0; p < lengths1.size(); ++p) {
-        res[p] = std::min(lengths1[p] + lengths2[p], max_br);
+
+    if (ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
+        assert(lengths1.size() == ann_network.fake_treeinfo->partition_count);
+        for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+            // skip remote partitions
+            if (!ann_network.fake_treeinfo->partitions[p]) {
+                continue;
+            }
+            res[p] = std::min(lengths1[p] + lengths2[p], max_br);
+            assert(res[p] >= ann_network.options.brlen_min);
+            assert(res[p] <= ann_network.options.brlen_max);
+        }
+    } else {
+        assert(!lengths1.empty());
+        res[0] = std::min(lengths1[0] + lengths2[0], max_br);
+        assert(res[0] >= ann_network.options.brlen_min);
+        assert(res[0] <= ann_network.options.brlen_max);
     }
     return res;
 }
 
 void set_edge_lengths(AnnotatedNetwork &ann_network, size_t pmatrix_index, const std::vector<double> &lengths) {
     if (ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
+        assert(lengths.size() == ann_network.fake_treeinfo->partition_count);
         for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
             // skip remote partitions
             if (!ann_network.fake_treeinfo->partitions[p]) {

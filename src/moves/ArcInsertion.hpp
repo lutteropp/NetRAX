@@ -45,7 +45,7 @@ std::unordered_set<size_t> brlenOptCandidatesUndoArcInsertion(AnnotatedNetwork &
 Move randomMoveArcInsertion(AnnotatedNetwork &ann_network);
 Move randomMoveDeltaPlus(AnnotatedNetwork &ann_network);
 
-Move buildMoveArcInsertion(size_t a_clv_index, size_t b_clv_index, size_t c_clv_index,
+Move buildMoveArcInsertion(AnnotatedNetwork& ann_network, size_t a_clv_index, size_t b_clv_index, size_t c_clv_index,
         size_t d_clv_index, std::vector<double> &u_v_len, std::vector<double> &c_v_len,
         std::vector<double> &a_u_len, std::vector<double> &a_b_len, std::vector<double> &c_d_len, std::vector<double> &v_d_len, std::vector<double> &u_b_len, MoveType moveType, size_t edge_orig_idx, size_t node_orig_idx);
 

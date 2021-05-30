@@ -144,13 +144,34 @@ Move buildMoveArcRemoval(AnnotatedNetwork& ann_network, size_t a_clv_index, size
     move.arcRemovalData.v_clv_index = v_clv_index;
 
     move.arcRemovalData.u_v_len = u_v_len;
+    for (size_t i = 0; i < u_v_len.size(); ++i) {
+        assert(u_v_len[i] >= ann_network.options.brlen_min && u_v_len[i] <= ann_network.options.brlen_max);
+    }
     move.arcRemovalData.c_v_len = c_v_len;
+    for (size_t i = 0; i < c_v_len.size(); ++i) {
+        assert(c_v_len[i] >= ann_network.options.brlen_min && c_v_len[i] <= ann_network.options.brlen_max);
+    }
     move.arcRemovalData.a_u_len = a_u_len;
+    for (size_t i = 0; i < a_u_len.size(); ++i) {
+        assert(a_u_len[i] >= ann_network.options.brlen_min && a_u_len[i] <= ann_network.options.brlen_max);
+    }
     
     move.arcRemovalData.a_b_len = a_b_len;
+    for (size_t i = 0; i < a_b_len.size(); ++i) {
+        assert(a_b_len[i] >= ann_network.options.brlen_min && a_b_len[i] <= ann_network.options.brlen_max);
+    }
     move.arcRemovalData.c_d_len = c_d_len;
+    for (size_t i = 0; i < c_d_len.size(); ++i) {
+        assert(c_d_len[i] >= ann_network.options.brlen_min && c_d_len[i] <= ann_network.options.brlen_max);
+    }
     move.arcRemovalData.v_d_len = v_d_len;
+    for (size_t i = 0; i < v_d_len.size(); ++i) {
+        assert(v_d_len[i] >= ann_network.options.brlen_min && v_d_len[i] <= ann_network.options.brlen_max);
+    }
     move.arcRemovalData.u_b_len = u_b_len;
+    for (size_t i = 0; i < u_b_len.size(); ++i) {
+        assert(u_b_len[i] >= ann_network.options.brlen_min && u_b_len[i] <= ann_network.options.brlen_max);
+    }
 
     std::string u_label = ann_network.network.nodes_by_index[u_clv_index]->getLabel();
     std::string v_label = ann_network.network.nodes_by_index[v_clv_index]->getLabel();
@@ -212,10 +233,10 @@ std::vector<Move> possibleMovesArcRemoval(AnnotatedNetwork &ann_network, Node *v
         std::vector<double> a_u_len, u_b_len, a_b_len, c_v_len, v_d_len, c_d_len, u_v_len;
         a_u_len = get_edge_lengths(ann_network, getEdgeTo(network, a, u)->pmatrix_index);
         u_b_len = get_edge_lengths(ann_network, getEdgeTo(network, u, b)->pmatrix_index);
-        a_b_len = get_plus_edge_lengths(a_u_len, u_b_len, max_br);
+        a_b_len = get_plus_edge_lengths(ann_network, a_u_len, u_b_len, max_br);
         c_v_len = get_edge_lengths(ann_network, getEdgeTo(network, c, v)->pmatrix_index);
         v_d_len = get_edge_lengths(ann_network, getEdgeTo(network, v, d)->pmatrix_index);
-        c_d_len = get_plus_edge_lengths(c_v_len, v_d_len, max_br);
+        c_d_len = get_plus_edge_lengths(ann_network, c_v_len, v_d_len, max_br);
         u_v_len = get_edge_lengths(ann_network, getEdgeTo(network, u, v)->pmatrix_index);
 
         Move move = buildMoveArcRemoval(ann_network, a->clv_index, b->clv_index, c->clv_index,
@@ -665,7 +686,7 @@ void undoMoveArcRemoval(AnnotatedNetwork &ann_network, Move &move) {
     assert(assertConsecutiveIndices(ann_network));
     assert(assertBranchLengths(ann_network));
 
-    Move insertion = buildMoveArcInsertion(move.arcRemovalData.a_clv_index, move.arcRemovalData.b_clv_index,
+    Move insertion = buildMoveArcInsertion(ann_network, move.arcRemovalData.a_clv_index, move.arcRemovalData.b_clv_index,
             move.arcRemovalData.c_clv_index, move.arcRemovalData.d_clv_index, move.arcRemovalData.u_v_len, move.arcRemovalData.c_v_len, move.arcRemovalData.a_u_len, move.arcRemovalData.a_b_len, move.arcRemovalData.c_d_len, move.arcRemovalData.v_d_len, move.arcRemovalData.u_b_len, MoveType::ArcInsertionMove, move.edge_orig_idx, move.node_orig_idx);
 
     insertion.arcInsertionData.wanted_u_clv_index = move.arcRemovalData.u_clv_index;

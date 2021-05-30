@@ -90,7 +90,8 @@ void extract_network_state(AnnotatedNetwork &ann_network, NetworkState& state_to
     
     // branch lengths stuff
     state_to_reuse.linked_brlens.resize(ann_network.fake_treeinfo->tree->edge_count);
-    for (size_t i = 0; i < ann_network.fake_treeinfo->tree->edge_count; ++i) {
+    for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
+        assert(ann_network.fake_treeinfo->linked_branch_lengths[i] >= ann_network.options.brlen_min && ann_network.fake_treeinfo->linked_branch_lengths[i] <= ann_network.options.brlen_max);
         state_to_reuse.linked_brlens[i] = ann_network.fake_treeinfo->linked_branch_lengths[i];
     }
     if (ann_network.options.brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
@@ -100,6 +101,7 @@ void extract_network_state(AnnotatedNetwork &ann_network, NetworkState& state_to
                 continue;
             }
             for (size_t pmatrix_index = 0; pmatrix_index < ann_network.network.num_branches(); ++pmatrix_index) {
+                assert(ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] >= ann_network.options.brlen_min && ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] <= ann_network.options.brlen_max);
                 state_to_reuse.partition_brlens[p][pmatrix_index] = ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index];
             }
         }
@@ -192,6 +194,7 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
     assert(ann_network.fake_treeinfo->tree->edge_count == state.linked_brlens.size());
     for (size_t i = 0; i < ann_network.network.num_branches(); ++i) {
         if (ann_network.fake_treeinfo->linked_branch_lengths[i] != state.linked_brlens[i]) {
+            assert(state.linked_brlens[i] >= ann_network.options.brlen_min && state.linked_brlens[i] <= ann_network.options.brlen_max);
             ann_network.fake_treeinfo->linked_branch_lengths[i] = state.linked_brlens[i];
             invalidatePmatrixIndex(ann_network, i);
         }
@@ -204,6 +207,7 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
             }
             for (size_t pmatrix_index = 0; pmatrix_index < ann_network.network.num_branches(); ++pmatrix_index) {
                 if (ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] != state.partition_brlens[p][pmatrix_index]) {
+                    assert(state.partition_brlens[p][pmatrix_index] >= ann_network.options.brlen_min && state.partition_brlens[p][pmatrix_index] <= ann_network.options.brlen_max);
                     ann_network.fake_treeinfo->branch_lengths[p][pmatrix_index] = state.partition_brlens[p][pmatrix_index];
                     invalidatePmatrixIndex(ann_network, pmatrix_index);
                 }
@@ -221,6 +225,7 @@ void apply_network_state(AnnotatedNetwork &ann_network, const NetworkState &stat
     }
     for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
         if (ann_network.reticulation_probs[i] != state.reticulation_probs[i]) {
+            assert(state.reticulation_probs[i] >= ann_network.options.brprob_min && state.reticulation_probs[i] <= ann_network.options.brprob_max);
             ann_network.reticulation_probs[i] = state.reticulation_probs[i];
             ann_network.cached_logl_valid = false;
         }

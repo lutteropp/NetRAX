@@ -62,11 +62,11 @@ void optimizeBranchesCandidates(AnnotatedNetwork &ann_network, std::unordered_se
  * @param ann_network The network.
  */
 void optimizeModel(AnnotatedNetwork &ann_network, bool silent) {
-    assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
+    //assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
     double old_score = scoreNetwork(ann_network);
     optimize_params(ann_network);
 
-    assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
+    //assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
     double new_score = scoreNetwork(ann_network);
     if (!silent && ParallelContext::master()) std::cout << "BIC score after model optimization: " << new_score << "\n";
     assert(new_score <= old_score);
@@ -81,7 +81,7 @@ void optimizeReticulationProbs(AnnotatedNetwork &ann_network, bool silent) {
     if (ann_network.network.num_reticulations() == 0) {
         return;
     }
-    assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
+    //assert(netrax::computeLoglikelihood(ann_network, 1, 1) == netrax::computeLoglikelihood(ann_network, 0, 1));
     double old_score = scoreNetwork(ann_network);
     optimize_reticulations(ann_network, 10);
     double new_score = scoreNetwork(ann_network);
@@ -123,7 +123,7 @@ void optimizeAllNonTopology(AnnotatedNetwork &ann_network, OptimizeAllNonTopolog
         bool doModelOpt = true;
         double score_epsilon = 1E-3;
 
-        assert(logl_stays_same(ann_network));
+        //assert(logl_stays_same(ann_network));
         bool gotBetter = true;
         while (gotBetter) {
             gotBetter = false;
@@ -164,7 +164,7 @@ void optimizeAllNonTopology(AnnotatedNetwork &ann_network, OptimizeAllNonTopolog
             }
 
             double score_after = scoreNetwork(ann_network);
-            assert(logl_stays_same(ann_network));
+            //assert(logl_stays_same(ann_network));
 
             if (score_after < score_before && type != OptimizeAllNonTopologyType::QUICK && (doBrlenOpt || doReticulationOpt || doModelOpt)) {
                 gotBetter = true;
@@ -179,7 +179,7 @@ void optimizeAllNonTopology(AnnotatedNetwork &ann_network, OptimizeAllNonTopolog
         }
 
     }
-    assert(logl_stays_same(ann_network));
+    //assert(logl_stays_same(ann_network));
 }
 
 }
