@@ -599,7 +599,6 @@ int findBestMaxDistance(AnnotatedNetwork& ann_network, MoveType type, const std:
 
 void updateOldCandidates(AnnotatedNetwork& ann_network, const Move& chosenMove, std::vector<Move>& candidates) {
     for (size_t i = 0; i < candidates.size(); ++i) {
-        assert(chosenMove.moveType == candidates[i].moveType);
         for (size_t j = 0; j < chosenMove.remapped_clv_indices.size(); ++j) {
             updateMoveClvIndex(candidates[i], chosenMove.remapped_clv_indices[j].first, chosenMove.remapped_clv_indices[j].second, true);
         }
