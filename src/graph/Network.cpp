@@ -225,16 +225,16 @@ namespace netrax
 
     bool checkSanity(Network &network) {
     // check edge<->links sanity
-        for (size_t i = 0; i < network.edges.size(); ++i) {
-            if (network.edges_by_index[i]) {
-                assert(network.edges_by_index[i]->link1->edge_pmatrix_index == i);
-                assert(network.edges_by_index[i]->link2->edge_pmatrix_index == i);
-            }
+        for (size_t i = 0; i < network.num_branches(); ++i) {
+            assert(network.edges_by_index[i]->link1->edge_pmatrix_index == i);
+            assert(network.edges_by_index[i]->link2->edge_pmatrix_index == i);
         }
     // check node<->links sanity
-        for (size_t i = 0; i < network.nodes.size(); ++i) {
-            if (network.nodes_by_index[i]) {
-                assert(network.nodes_by_index[i]->links.size() <= 3);
+        for (size_t i = 0; i < network.num_nodes(); ++i) {
+            assert(network.nodes_by_index[i]->links.size() <= 3);
+            for (Link& link : network.nodes_by_index[i]->links) {
+                assert(network.edges_by_index[link.edge_pmatrix_index]->link1 == &link || network.edges_by_index[link.edge_pmatrix_index]->link2 == &link);
+                assert(link.node_clv_index == i);
             }
         }
         return true;
