@@ -609,7 +609,9 @@ void updateOldCandidates(AnnotatedNetwork& ann_network, const Move& chosenMove, 
     }
 }
 
-double fastIterationsMode(AnnotatedNetwork& ann_network, int best_max_distance, MoveType type, const std::vector<MoveType>& typesBySpeed, double* best_score, BestNetworkData* bestNetworkData, bool silent) {
+std::vector<Move> fastIterationsMode(AnnotatedNetwork& ann_network, int best_max_distance, MoveType type, const std::vector<MoveType>& typesBySpeed, double* best_score, BestNetworkData* bestNetworkData, bool silent) {
+    std::vector<Move> acceptedMoves;
+    
     assert(best_max_distance >= 0);
     double old_score = scoreNetwork(ann_network);
 
@@ -627,6 +629,7 @@ double fastIterationsMode(AnnotatedNetwork& ann_network, int best_max_distance, 
     while (got_better) {
         got_better = false;
         Move chosenMove = applyBestCandidate(ann_network, candidates, best_score, bestNetworkData, false, silent);
+        acceptedMoves.emplace_back(chosenMove);
         double score = scoreNetwork(ann_network);
         check_score_improvement(ann_network, best_score, bestNetworkData);
         if (score < old_score) {
@@ -634,13 +637,15 @@ double fastIterationsMode(AnnotatedNetwork& ann_network, int best_max_distance, 
             old_score = score;
 
             bool hadBadReticulationAfterInsertingArc = false;
+            std::vector<Move> takenRemovals;
 
             if (hasBadReticulation(ann_network) && isArcInsertion(type)) { // try doing arc removal moves
                 hadBadReticulationAfterInsertingArc = true;
                 if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
                     std::cout << "Bad reticulation detected. Trying arc removal moves.\n";
                 }
-                fastIterationsMode(ann_network, ann_network.options.max_rearrangement_distance, MoveType::ArcRemovalMove, typesBySpeed, best_score, bestNetworkData, silent);
+                takenRemovals = fastIterationsMode(ann_network, ann_network.options.max_rearrangement_distance, MoveType::ArcRemovalMove, typesBySpeed, best_score, bestNetworkData, silent);
+                acceptedMoves.insert(acceptedMoves.end(), takenRemovals.begin(), takenRemovals.end());
                 optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::NORMAL);
                 check_score_improvement(ann_network, best_score, bestNetworkData);
                 old_score = scoreNetwork(ann_network);
@@ -658,6 +663,10 @@ double fastIterationsMode(AnnotatedNetwork& ann_network, int best_max_distance, 
             }
             if (!hadBadReticulationAfterInsertingArc) {
                 updateOldCandidates(ann_network, chosenMove, candidates);
+            } else {
+                for (size_t i = 0; i < takenRemovals.size(); ++i) {
+                    updateOldCandidates(ann_network, takenRemovals[i], candidates);
+                }
             }
             removeBadCandidates(ann_network, candidates);
 
@@ -682,7 +691,7 @@ double fastIterationsMode(AnnotatedNetwork& ann_network, int best_max_distance, 
     }
 
     ann_network.options.no_prefiltering = old_no_prefiltering;
-    return scoreNetwork(ann_network);
+    return acceptedMoves;
 }
 
 double slowIterationsMode(AnnotatedNetwork& ann_network, MoveType type, int step_size, const std::vector<MoveType>& typesBySpeed, double* best_score, BestNetworkData* bestNetworkData, bool silent) {
