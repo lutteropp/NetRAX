@@ -80,7 +80,7 @@ std::vector<Node*> getParentPointers(AnnotatedNetwork& ann_network, const Node* 
 std::vector<Node*> grab_current_node_parents(Network &network) {
     std::vector<Node*> parent(network.num_nodes(), nullptr);
     for (size_t i = 0; i < network.num_nodes(); ++i) {
-        parent[network.nodes_by_index[i]->clv_index] = getActiveParent(network,
+        parent[i] = getActiveParent(network,
                 network.nodes_by_index[i]);
     }
     return parent;
