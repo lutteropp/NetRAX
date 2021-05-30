@@ -497,7 +497,7 @@ std::vector<Node*> reversed_topological_sort(Network &network) {
     std::vector<Node*> res;
     res.reserve(network.num_nodes());
     std::vector<Node*> parent = grab_current_node_parents(network);
-    std::vector<unsigned int> outdeg(network.nodes.size(), 0);
+    std::vector<unsigned int> outdeg(network.num_nodes(), 0);
 
     std::queue<Node*> q;
 
@@ -507,6 +507,7 @@ std::vector<Node*> reversed_topological_sort(Network &network) {
     for (size_t i = 0; i < network.num_nodes(); ++i) {
         Node *actNode = network.nodes_by_index[i];
         size_t act_clv_idx = actNode->clv_index;
+        assert(act_clv_idx == i);
         outdeg[act_clv_idx] = getChildren(network, actNode).size();
         if (outdeg[act_clv_idx] == 0) {
             q.emplace(actNode);
