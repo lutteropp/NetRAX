@@ -679,9 +679,8 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork& ann_network, int best_max
                 oldCandidates.clear();
                 prefilterCandidates(ann_network, candidates, silent);
             } else if (!hadBadReticulationAfterInsertingArc){
-                double act_bic = scoreNetwork(ann_network);
                 double cand_bic = prefilterCandidates(ann_network, candidates, silent);
-                if (cand_bic >= act_bic) { // only consider more possible moves if the old candidates don't bring it anymore...
+                if (cand_bic >= old_score) { // only consider more possible moves if the old candidates don't bring it anymore...
                     std::vector<Node*> start_nodes = gatherStartNodes(ann_network, chosenMove);
                     std::vector<Move> moreMoves = possibleMoves(ann_network, type, start_nodes, rspr1_present, delta_plus_present, 0, best_max_distance);
                     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
