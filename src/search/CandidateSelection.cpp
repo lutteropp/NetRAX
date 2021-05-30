@@ -174,10 +174,6 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& can
         return scoreNetwork(ann_network);
     }
 
-    if (!need_best_bic && ann_network.options.prefilter_keep >= candidates.size()) {
-        return scoreNetwork(ann_network); // we would keep all anyway...
-    }
-
     int n_better = 0;
     std::vector<ScoreItem<Move> > scores(candidates.size());
     std::vector<double> nodeScore(ann_network.network.num_nodes(), std::numeric_limits<double>::infinity());
