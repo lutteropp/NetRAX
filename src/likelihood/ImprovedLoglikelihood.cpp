@@ -387,7 +387,7 @@ double evaluateTrees(AnnotatedNetwork &ann_network, Node* virtual_root) {
 double computeLoglikelihoodImproved(AnnotatedNetwork &ann_network, int incremental, int update_pmatrices) {
     const Network &network = ann_network.network;
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
-    bool reuse_old_displayed_trees = reuseOldDisplayedTreesCheck(ann_network, incremental);
+    bool reuse_old_displayed_trees = reuseOldDisplayedTreesCheck(ann_network, incremental, ann_network.network.root->clv_index);
     if (reuse_old_displayed_trees) {
         if (ann_network.cached_logl_valid) {
             return ann_network.cached_logl;
@@ -406,6 +406,9 @@ double computeLoglikelihoodImproved(AnnotatedNetwork &ann_network, int increment
             pllmod_treeinfo_update_prob_matrices(ann_network.fake_treeinfo, !incremental);
         }
         processPartitionsImproved(ann_network, incremental);
+        if (!reuseOldDisplayedTreesCheck(ann_network, incremental, ann_network.network.root->clv_index)) {
+            throw std::runtime_error("Invalid displayed trees after loglikelihood computation");
+        }
     }
     return evaluateTrees(ann_network, ann_network.network.root);
 }

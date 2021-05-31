@@ -27,6 +27,12 @@
 namespace netrax {
 
 std::vector<DisplayedTreeData> extractOldTrees(AnnotatedNetwork& ann_network, Node* virtual_root) {
+    if (!reuseOldDisplayedTreesCheck(ann_network, true, virtual_root->clv_index)) {
+        if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+            std::cout << exportDebugInfo(ann_network) << "\n";
+        }
+        throw std::runtime_error("Cannot reuse old displayed trees before the extractOldTrees step. For some reason, they are invalidated at the root node " + std::to_string(virtual_root->clv_index));
+    }
     std::vector<DisplayedTreeData> oldTrees;
     NodeDisplayedTreeData& nodeTrees = ann_network.pernode_displayed_tree_data[virtual_root->clv_index];
     for (size_t i = 0; i < nodeTrees.num_active_displayed_trees; ++i) {

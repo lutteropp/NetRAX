@@ -275,7 +275,7 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
     std::vector<bool> source_tree_seen(n_trees_source, false);
     std::vector<bool> target_tree_seen(n_trees_target, false);
 
-    if (!reuseOldDisplayedTreesCheck(ann_network, incremental)) {
+    if (!reuseOldDisplayedTreesCheck(ann_network, incremental, ann_network.network.root->clv_index)) {
         // TODO: Doesn't this need the virtual_root pointer, too?
         if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
             std::cout << exportDebugInfo(ann_network) << "\n";

@@ -248,18 +248,18 @@ AnnotatedNetwork::AnnotatedNetwork(const AnnotatedNetwork& orig_network) : optio
     init_annotated_network(*this);
 }
 
-bool reuseOldDisplayedTreesCheck(AnnotatedNetwork& ann_network, int incremental) {
+bool reuseOldDisplayedTreesCheck(AnnotatedNetwork& ann_network, int incremental, size_t virtual_root_clv_index) {
     if (!incremental) {
         return false;
     }
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
     bool all_clvs_valid = true;
-    for (size_t i = 0; i < fake_treeinfo.partition_count; ++i) {
+    for (size_t p = 0; p < fake_treeinfo.partition_count; ++p) {
         // skip remote partitions
-        if (!ann_network.fake_treeinfo->partitions[i]) {
+        if (!ann_network.fake_treeinfo->partitions[p]) {
             continue;
         }
-        all_clvs_valid &= fake_treeinfo.clv_valid[i][ann_network.network.root->clv_index];
+        all_clvs_valid &= fake_treeinfo.clv_valid[p][virtual_root_clv_index];
     }
     return all_clvs_valid;
 }

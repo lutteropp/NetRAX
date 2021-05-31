@@ -173,7 +173,7 @@ void add_extra_reticulations(AnnotatedNetwork &ann_network, unsigned int targetC
 void init_annotated_network(AnnotatedNetwork &ann_network, std::mt19937& rng);
 void init_annotated_network(AnnotatedNetwork &ann_network);
 
-bool reuseOldDisplayedTreesCheck(AnnotatedNetwork& ann_network, int incremental);
+bool reuseOldDisplayedTreesCheck(AnnotatedNetwork& ann_network, int incremental, size_t virtual_root_clv_index);
 bool hasBadReticulation(AnnotatedNetwork& ann_network);
 std::vector<Node*> getBadReticulations(AnnotatedNetwork& ann_network);
 bool assertBranchLengths(AnnotatedNetwork& ann_network);
