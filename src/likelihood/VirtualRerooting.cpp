@@ -266,8 +266,8 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
     }
     Node* source = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
     Node* target = getTarget(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
-    NodeDisplayedTreeData& sourceData =  ann_network.pernode_displayed_tree_data[source->clv_index];
-    NodeDisplayedTreeData& targetData =  ann_network.pernode_displayed_tree_data[target->clv_index];
+    NodeDisplayedTreeData& sourceData = ann_network.pernode_displayed_tree_data[source->clv_index];
+    NodeDisplayedTreeData& targetData = ann_network.pernode_displayed_tree_data[target->clv_index];
     std::vector<DisplayedTreeData>& sourceTrees = sourceData.displayed_trees;
     std::vector<DisplayedTreeData>& targetTrees = targetData.displayed_trees;
     size_t n_trees_source = sourceData.num_active_displayed_trees;
