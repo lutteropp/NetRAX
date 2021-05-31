@@ -149,14 +149,14 @@ struct DisplayedTreeData {
     }
 
     DisplayedTreeData(DisplayedTreeData&& rhs)
-      : treeLoglData{rhs.treeLoglData}, clv_vector{rhs.clv_vector}, scale_buffer{rhs.scale_buffer}, clvInfo{rhs.clvInfo}, scaleBufferInfo{rhs.scaleBufferInfo}, isTip{rhs.isTip}
+      : treeLoglData{rhs.treeLoglData}, clv_vector{rhs.clv_vector}, scale_buffer{rhs.scale_buffer}, clvInfo{rhs.clvInfo}, scaleBufferInfo{rhs.scaleBufferInfo}, isTip{rhs.isTip}, clv_valid{rhs.clv_valid}
     {
         rhs.clv_vector.clear();
         rhs.scale_buffer.clear();
     }
 
     DisplayedTreeData(const DisplayedTreeData& rhs)
-      : treeLoglData{rhs.treeLoglData}, clvInfo{rhs.clvInfo}, scaleBufferInfo{rhs.scaleBufferInfo}, isTip{rhs.isTip}
+      : treeLoglData{rhs.treeLoglData}, clvInfo{rhs.clvInfo}, scaleBufferInfo{rhs.scaleBufferInfo}, isTip{rhs.isTip}, clv_valid{rhs.clv_valid}
     {
         if (isTip) {
             clv_vector = rhs.clv_vector;
@@ -194,6 +194,7 @@ struct DisplayedTreeData {
             rhs.clv_vector.clear();
             rhs.scale_buffer.clear();
             isTip = rhs.isTip;
+            clv_valid = rhs.clv_valid;
         }
         return *this;
     }
@@ -254,6 +255,7 @@ struct DisplayedTreeData {
                 }
             }
             isTip = rhs.isTip;
+            clv_valid = rhs.clv_valid;
         }
         return *this;
     }
