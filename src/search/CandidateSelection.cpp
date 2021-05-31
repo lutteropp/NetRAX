@@ -645,14 +645,14 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork& ann_network, int best_max
                 check_score_improvement(ann_network, best_score, bestNetworkData);
                 old_score = scoreNetwork(ann_network);
 
-                // ugly patch around the bug
+                /*// ugly patch around the bug
                 if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
                     std::cout << "Completely gathering new candidates.\n";
                 }
                 candidates = possibleMoves(ann_network, type, rspr1_present, delta_plus_present, 0, best_max_distance);
                 oldCandidates.clear();
                 prefilterCandidates(ann_network, candidates, silent);
-                continue;
+                continue;*/
             }
 
             if (std::find(oldCandidates.begin(), oldCandidates.end(), chosenMove) != oldCandidates.end()) {
