@@ -275,7 +275,13 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
     std::vector<bool> source_tree_seen(n_trees_source, false);
     std::vector<bool> target_tree_seen(n_trees_target, false);
 
-    assert(reuseOldDisplayedTreesCheck(ann_network, incremental)); // TODO: Doesn't this need the virtual_root pointer, too?
+    if (!reuseOldDisplayedTreesCheck(ann_network, incremental)) {
+        // TODO: Doesn't this need the virtual_root pointer, too?
+        if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+            std::cout << exportDebugInfo(ann_network) << "\n";
+        }
+        throw std::runtime_error("Cannot reuse old displayed trees. For some reason, they are invalidated at the root node " + std::to_string(ann_network.network.root->clv_index));
+    }
     if (update_pmatrices) {
         pllmod_treeinfo_update_prob_matrices(ann_network.fake_treeinfo, !incremental);
     }
