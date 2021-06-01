@@ -19,6 +19,18 @@ void invalidateSingleClv(AnnotatedNetwork& ann_network, unsigned int clv_index) 
     ann_network.cached_logl_valid = false;
 }
 
+void validateSingleClv(AnnotatedNetwork& ann_network, unsigned int clv_index) {
+    assert(ann_network.pernode_displayed_tree_data[clv_index].num_active_displayed_trees > 0);
+    pllmod_treeinfo_t* treeinfo = ann_network.fake_treeinfo;
+    for (size_t p = 0; p < treeinfo->partition_count; ++p) {
+        // skip remote partitions
+        if (!treeinfo->partitions[p]) {
+            continue;
+        }
+        treeinfo->clv_valid[p][clv_index] = 1;
+    }
+}
+
 void invalidateHigherClvs(AnnotatedNetwork &ann_network, pllmod_treeinfo_t *treeinfo, const Node *node, bool invalidate_myself, std::vector<bool> &visited) {
     Network &network = ann_network.network;
     if (!node) {

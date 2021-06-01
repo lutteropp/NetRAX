@@ -191,6 +191,7 @@ void processNodeImproved(AnnotatedNetwork& ann_network, int incremental, Node* n
         }
     }
     if (children.size() == 0) {
+        validateSingleClv(ann_network, node->clv_index);
         return;
     }
     if (children.size() == 1) {
@@ -210,6 +211,8 @@ void processNodeImproved(AnnotatedNetwork& ann_network, int incremental, Node* n
         std::cout << "Too many displayed trees stored at node " << node->clv_index << "\n";
     }
     assert(ann_network.pernode_displayed_tree_data[node->clv_index].num_active_displayed_trees <= (1 << ann_network.network.num_reticulations()));
+
+    validateSingleClv(ann_network, node->clv_index);
 
     /*std::cout << "Node " << node->clv_index << " has been processed, displayed trees at the node are:\n";
     for (size_t i = 0; i < displayed_trees.num_active_displayed_trees; ++i) {

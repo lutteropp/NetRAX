@@ -90,6 +90,7 @@ bool topology_equal(Network& n1, Network& n2);
 
 /* helper functions related to clv/pmatrix invalidation (InvalidationHelper.cpp) */
 void invalidateSingleClv(AnnotatedNetwork& ann_network, unsigned int clv_index);
+void validateSingleClv(AnnotatedNetwork& ann_network, unsigned int clv_index);
 void invalidateHigherCLVs(AnnotatedNetwork &ann_network, const Node *node, bool invalidate_myself,
         std::vector<bool> &visited);
 void invalidateHigherCLVs(AnnotatedNetwork &ann_network, const Node *node, bool invalidate_myself, std::vector<bool> &visited);
