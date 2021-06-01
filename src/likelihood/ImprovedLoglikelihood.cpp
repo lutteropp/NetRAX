@@ -26,6 +26,7 @@ void add_displayed_tree(AnnotatedNetwork& ann_network, size_t clv_index) {
             }
         }
     }
+    data.displayed_trees[data.num_active_displayed_trees-1].clv_valid = false;
 }
 
 void add_tree_single(AnnotatedNetwork& ann_network, size_t clv_index, pll_operation_t& op, DisplayedTreeData& childTree, const ReticulationConfigSet& reticulationChoices) {
@@ -51,6 +52,7 @@ void add_tree_single(AnnotatedNetwork& ann_network, size_t clv_index, pll_operat
         assert(!single_clv_is_all_zeros(ann_network.partition_clv_ranges[partition_idx], parent_clv));
     }
     tree.treeLoglData.reticulationChoices = reticulationChoices;
+    tree.clv_valid = true;
 }
 
 void add_tree_both(AnnotatedNetwork& ann_network, size_t clv_index, pll_operation_t& op, DisplayedTreeData& leftTree, DisplayedTreeData& rightTree, const ReticulationConfigSet& reticulationChoices) {
@@ -75,6 +77,7 @@ void add_tree_both(AnnotatedNetwork& ann_network, size_t clv_index, pll_operatio
         assert(!single_clv_is_all_zeros(ann_network.partition_clv_ranges[partition_idx], parent_clv));
     }
     tree.treeLoglData.reticulationChoices = reticulationChoices;
+    tree.clv_valid = true;
 }
 
 unsigned int processNodeImprovedSingleChild(AnnotatedNetwork& ann_network, Node* node, Node* child, const ReticulationConfigSet& extraRestrictions) {

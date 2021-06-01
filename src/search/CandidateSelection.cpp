@@ -634,16 +634,16 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork& ann_network, int best_max
             bool hadBadReticulationAfterInsertingArc = false;
             std::vector<Move> takenRemovals;
 
-            if (hasBadReticulation(ann_network) && isArcInsertion(type)) { // try doing arc removal moves
-                hadBadReticulationAfterInsertingArc = true;
+            if (/*hasBadReticulation(ann_network) && */isArcInsertion(type)) { // try doing arc removal moves
                 if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-                    std::cout << "Bad reticulation detected. Trying arc removal moves.\n";
+                    std::cout << /*"Bad reticulation detected. */"Trying arc removal moves.\n";
                 }
                 takenRemovals = fastIterationsMode(ann_network, ann_network.options.max_rearrangement_distance, MoveType::ArcRemovalMove, typesBySpeed, best_score, bestNetworkData, silent);
                 acceptedMoves.insert(acceptedMoves.end(), takenRemovals.begin(), takenRemovals.end());
                 optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::NORMAL);
                 check_score_improvement(ann_network, best_score, bestNetworkData);
                 old_score = scoreNetwork(ann_network);
+                hadBadReticulationAfterInsertingArc = (!takenRemovals.empty());
             }
 
             if (std::find(oldCandidates.begin(), oldCandidates.end(), chosenMove) != oldCandidates.end()) {
