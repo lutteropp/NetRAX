@@ -12,6 +12,8 @@
 #include <algorithm>
 #include <functional>
 
+#include "graph/NodeDisplayedTreeData.hpp"
+
 namespace netrax
 {
 

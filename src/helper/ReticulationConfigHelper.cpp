@@ -2,6 +2,8 @@
 
 #include "NetworkFunctions.hpp"
 #include "../DebugPrintFunctions.hpp"
+#include "../NetraxOptions.hpp"
+#include "../graph/NodeDisplayedTreeData.hpp"
 
 namespace netrax {
 

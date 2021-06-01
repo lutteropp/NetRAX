@@ -23,6 +23,7 @@
 #include "../RaxmlWrapper.hpp"
 
 #include "likelihood/ComplexityScoring.hpp"
+#include "../graph/NodeDisplayedTreeData.hpp"
 
 #ifdef WITHGPERFTOOLS
 #include <gperftools/profiler.h>

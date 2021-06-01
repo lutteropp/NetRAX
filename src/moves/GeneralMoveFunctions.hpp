@@ -6,6 +6,7 @@
 #include "Move.hpp"
 
 #include "../graph/AnnotatedNetwork.hpp"
+#include "../NetraxOptions.hpp"
 
 namespace netrax {
 

@@ -4,6 +4,8 @@
 #include "../DebugPrintFunctions.hpp"
 #include "../io/NetworkIO.hpp"
 #include "../colormod.h" // namespace Color
+#include "../NetraxOptions.hpp"
+
 
 namespace netrax {
 

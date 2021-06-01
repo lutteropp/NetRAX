@@ -9,6 +9,8 @@
 #include "Scrambling.hpp"
 #include "../optimization/NetworkState.hpp"
 #include "../DebugPrintFunctions.hpp"
+#include "../NetraxOptions.hpp"
+
 
 #include "../colormod.h" // namespace Color
 

@@ -23,6 +23,7 @@
 
 #include "../likelihood/LikelihoodDerivatives.hpp"
 #include "../likelihood/VirtualRerooting.hpp"
+#include "../graph/NodeDisplayedTreeData.hpp"
 
 namespace netrax {
 

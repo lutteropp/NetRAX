@@ -3,6 +3,8 @@
 #include "../helper/Helper.hpp"
 #include "../DebugPrintFunctions.hpp"
 #include "Move.hpp"
+#include "../NetraxOptions.hpp"
+#include "../graph/NodeDisplayedTreeData.hpp"
 
 namespace netrax {
 

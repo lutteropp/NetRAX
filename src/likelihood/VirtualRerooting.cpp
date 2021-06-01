@@ -2,8 +2,9 @@
 #include "LikelihoodComputation.hpp"
 #include "../helper/Helper.hpp"
 #include "../DebugPrintFunctions.hpp"
-
+#include "../NetraxOptions.hpp"
 #include "ImprovedLoglikelihood.hpp"
+#include "../graph/NodeDisplayedTreeData.hpp"
 
 namespace netrax {
 struct PathToVirtualRoot {

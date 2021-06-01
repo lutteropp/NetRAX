@@ -1,4 +1,5 @@
 #include "Helper.hpp"
+#include "../NetraxOptions.hpp"
 
 namespace netrax {
 

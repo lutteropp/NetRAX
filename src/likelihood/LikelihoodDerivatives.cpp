@@ -1,6 +1,7 @@
 #include "LikelihoodDerivatives.hpp"
 #include "mpreal.h"
 #include "../helper/Helper.hpp"
+#include "../graph/NodeDisplayedTreeData.hpp"
 
 namespace netrax {
 

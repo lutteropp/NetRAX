@@ -19,6 +19,7 @@
 #include "../likelihood/LikelihoodComputation.hpp"
 #include "../optimization/Optimization.hpp"
 #include "../NetworkDistances.hpp"
+#include "../graph/NodeDisplayedTreeData.hpp"
 
 namespace netrax {
 

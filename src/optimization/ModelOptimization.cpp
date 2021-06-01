@@ -3,6 +3,8 @@
 #include "../graph/AnnotatedNetwork.hpp"
 #include "../likelihood/LikelihoodComputation.hpp"
 #include "../likelihood/ComplexityScoring.hpp"
+#include "../NetraxOptions.hpp"
+
 
 namespace netrax {
 

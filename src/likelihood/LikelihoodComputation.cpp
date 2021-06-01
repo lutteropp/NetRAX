@@ -10,6 +10,9 @@
 
 #include "PseudoLoglikelihood.hpp"
 #include "ImprovedLoglikelihood.hpp"
+#include "LikelihoodVariant.hpp"
+#include "../NetraxOptions.hpp"
+
 
 namespace netrax {
 

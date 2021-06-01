@@ -2,6 +2,7 @@
 
 #include "../graph/DisplayedTreeData.hpp"
 #include "../graph/AnnotatedNetwork.hpp"
+#include "../NetraxOptions.hpp"
 
 namespace netrax {
 

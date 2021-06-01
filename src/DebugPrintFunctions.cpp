@@ -27,6 +27,8 @@
 #include "io/NetworkIO.hpp"
 #include "NetraxOptions.hpp"
 
+#include "graph/NodeDisplayedTreeData.hpp"
+
 namespace netrax {
 
 void printClv(const pllmod_treeinfo_t &treeinfo, size_t clv_index, double* clv, size_t partition_index) {

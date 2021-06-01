@@ -3,6 +3,9 @@
 #include "Operation.hpp"
 #include "../DebugPrintFunctions.hpp"
 #include "../helper/Helper.hpp"
+#include "../likelihood/LikelihoodVariant.hpp"
+#include "../NetraxOptions.hpp"
+#include "../graph/NodeDisplayedTreeData.hpp"
 
 namespace netrax {
 

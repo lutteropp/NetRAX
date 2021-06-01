@@ -11,6 +11,8 @@
 #include "../optimization/BranchLengthOptimization.hpp"
 #include "../optimization/Optimization.hpp"
 #include "../colormod.h" // namespace Color
+#include "../NetraxOptions.hpp"
+
 
 namespace netrax {
 

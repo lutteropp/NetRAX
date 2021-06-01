@@ -5,6 +5,8 @@
 #include "../helper/NetworkFunctions.hpp"
 #include "../likelihood/LikelihoodComputation.hpp"
 #include "../graph/DisplayedTreeData.hpp"
+#include "../NetraxOptions.hpp"
+
 
 namespace netrax {
 

@@ -23,7 +23,22 @@
 #include "../DebugPrintFunctions.hpp"
 #include "../utils.hpp"
 
+#include "NodeDisplayedTreeData.hpp"
+
 namespace netrax {
+
+AnnotatedNetwork::AnnotatedNetwork(NetraxOptions& options, const RaxmlInstance& instance) : options{options}, instance{instance} {}
+
+AnnotatedNetwork::~AnnotatedNetwork() {
+    if (fake_treeinfo) {
+        destroy_network_treeinfo(fake_treeinfo);
+    }
+for (size_t p = 0; p < tmp_clv_1.size(); ++p) {
+        pll_aligned_free(tmp_clv_1[p]);
+        pll_aligned_free(tmp_clv_2[p]);
+        pll_aligned_free(tmp_clv_3[p]);
+    }
+}
 
 void destroy_network_treeinfo(pllmod_treeinfo_t *treeinfo) {
     if (!treeinfo)
