@@ -624,8 +624,9 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork& ann_network, int best_max
     while (got_better) {
         got_better = false;
         Move chosenMove = applyBestCandidate(ann_network, candidates, best_score, bestNetworkData, false, silent);
-        assert(chosenMove.moveType != MoveType::INVALID);
-        acceptedMoves.emplace_back(chosenMove);
+        if (chosenMove.moveType != MoveType::INVALID) {
+            acceptedMoves.emplace_back(chosenMove);
+        }
         double score = scoreNetwork(ann_network);
         check_score_improvement(ann_network, best_score, bestNetworkData);
         if (score < old_score) {
@@ -647,9 +648,11 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork& ann_network, int best_max
                 hadBadReticulationAfterInsertingArc = (!takenRemovals.empty());
             }
 
-            if (std::find(oldCandidates.begin(), oldCandidates.end(), chosenMove) != oldCandidates.end()) {
-                if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-                    std::cout << " Info: Taken move was in the old candidates.\n";
+            if (chosenMove.moveType != MoveType::INVALID) {
+                if (std::find(oldCandidates.begin(), oldCandidates.end(), chosenMove) != oldCandidates.end()) {
+                    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+                        std::cout << " Info: Taken move was in the old candidates.\n";
+                    }
                 }
             }
 
@@ -658,7 +661,9 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork& ann_network, int best_max
                 std::cout << "We have " << candidates.size() << " candidates before removing the old bad ones.\n";
             }
             if (!hadBadReticulationAfterInsertingArc) {
-                updateOldCandidates(ann_network, chosenMove, candidates);
+                if (chosenMove.moveType != MoveType::INVALID) {
+                    updateOldCandidates(ann_network, chosenMove, candidates);
+                }
             } else {
                 for (size_t i = 0; i < takenRemovals.size(); ++i) {
                     updateOldCandidates(ann_network, takenRemovals[i], candidates);
