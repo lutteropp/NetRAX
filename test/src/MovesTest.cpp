@@ -195,6 +195,26 @@ void twoMoves(const std::string &networkPath, const std::string &msaPath, bool u
     twoMovesStep(ann_network, type);
 }
 
+void insertAndRemove(const std::string &networkPath, const std::string& msaPath, bool useRepeats) {
+    NetraxOptions options;
+    options.run_single_threaded = true;
+    options.start_network_file = networkPath;
+    options.msa_file = msaPath;
+    options.use_repeats = useRepeats;
+    const RaxmlInstance instance = createRaxmlInstance(options);
+    AnnotatedNetwork ann_network = build_annotated_network(options, instance);
+    init_annotated_network(ann_network);
+
+    std::vector<Move> insertionCandidates = possibleMoves(ann_network, MoveType::ArcInsertionMove);
+    for (size_t i = 0; i < 10; ++i) {
+        performMove(ann_network, insertionCandidates[0]);
+        std::vector<Move> removalCandidates = possibleMoves(ann_network, MoveType::ArcRemovalMove);
+        performMove(ann_network, removalCandidates[0]);
+        updateOldCandidates(ann_network, removalCandidates[0], insertionCandidates);
+        removeBadCandidates(ann_network, insertionCandidates);
+    }
+}
+
 void printBranchLengths(AnnotatedNetwork &ann_network) {
     Network &network = ann_network.network;
     std::cout << "branch lengths:\n";
@@ -203,6 +223,11 @@ void printBranchLengths(AnnotatedNetwork &ann_network) {
                 << network.edges[i].link2->node_clv_index << " has branch length: "
                 << network.edges[i].length << "\n";
     }
+}
+
+TEST (MovesTest, interleavedRemoval) {
+    insertAndRemove(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt", false);
+    insertAndRemove(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt", false);
 }
 
 TEST (MovesTest, tail) {

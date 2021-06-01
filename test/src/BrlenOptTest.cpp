@@ -88,7 +88,7 @@ TEST (BrlenOptTest, treeVirtualRootProblem) {
 
     double old_brlen = ann_network.fake_treeinfo->linked_branch_lengths[pmatrix_index];
     std::cout << "old brlen: " << old_brlen << "\n";
-    double old_logl_reroot = computeLoglikelihoodBrlenOpt(ann_network, oldTrees, edge->pmatrix_index, 1, 1);
+    double old_logl_reroot = computeLoglikelihoodBrlenOpt(ann_network, oldTrees, edge->pmatrix_index, 1);
 
     std::cout << "reroot logl old brlen: " << old_logl_reroot << "\n";
     std::cout << "  reroot logl old brlen, partition 0: " << ann_network.fake_treeinfo->partition_loglh[0] << "\n";
@@ -172,7 +172,7 @@ TEST (BrlenOptTest, treeVirtualRoots) {
             annTreeNetwork.fake_treeinfo->pmatrix_valid[p][pmatrix_index] = 0;
         }
         annTreeNetwork.cached_logl_valid = false;
-        double new_logl = computeLoglikelihoodBrlenOpt(annTreeNetwork, oldTrees, edge->pmatrix_index, 1, 1);
+        double new_logl = computeLoglikelihoodBrlenOpt(annTreeNetwork, oldTrees, edge->pmatrix_index, 1);
 
         ASSERT_DOUBLE_EQ(old_logl, new_logl);
 
@@ -183,7 +183,7 @@ TEST (BrlenOptTest, treeVirtualRoots) {
             annTreeNetwork.fake_treeinfo->pmatrix_valid[p][pmatrix_index] = 0;
         }
         annTreeNetwork.cached_logl_valid = false;
-        double mid_logl = computeLoglikelihoodBrlenOpt(annTreeNetwork, oldTrees, edge->pmatrix_index, 1, 1);
+        double mid_logl = computeLoglikelihoodBrlenOpt(annTreeNetwork, oldTrees, edge->pmatrix_index, 1);
         ASSERT_TRUE(mid_logl != new_logl);
 
         // take back the changed brlen
@@ -192,7 +192,7 @@ TEST (BrlenOptTest, treeVirtualRoots) {
             annTreeNetwork.fake_treeinfo->pmatrix_valid[p][pmatrix_index] = 0;
         }
         annTreeNetwork.cached_logl_valid = false;
-        double recomputed_logl = computeLoglikelihoodBrlenOpt(annTreeNetwork, oldTrees, edge->pmatrix_index, 1, 1);
+        double recomputed_logl = computeLoglikelihoodBrlenOpt(annTreeNetwork, oldTrees, edge->pmatrix_index, 1);
 
         ASSERT_DOUBLE_EQ(old_logl, recomputed_logl);
 
@@ -271,7 +271,7 @@ TEST (BrlenOptTest, smallVirtualRoots) {
         std::cout << "new_virtual_root_back: " << new_virtual_root_back->clv_index << "\n";
         ReticulationConfigSet restrictions = getRestrictionsActiveBranch(annTreeNetwork, pmatrix_index);
         updateCLVsVirtualRerootTrees(annTreeNetwork, old_virtual_root, new_virtual_root, new_virtual_root_back, restrictions);
-        double new_logl = computeLoglikelihoodBrlenOpt(annTreeNetwork, oldTrees, edge->pmatrix_index, 1, 1);
+        double new_logl = computeLoglikelihoodBrlenOpt(annTreeNetwork, oldTrees, edge->pmatrix_index, 1);
 
         ASSERT_DOUBLE_EQ(old_logl, new_logl);
 
