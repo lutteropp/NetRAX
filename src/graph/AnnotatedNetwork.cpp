@@ -248,10 +248,7 @@ AnnotatedNetwork::AnnotatedNetwork(const AnnotatedNetwork& orig_network) : optio
     init_annotated_network(*this);
 }
 
-bool reuseOldDisplayedTreesCheck(AnnotatedNetwork& ann_network, int incremental, size_t virtual_root_clv_index) {
-    if (!incremental) {
-        return false;
-    }
+bool clvValidCheck(AnnotatedNetwork& ann_network, size_t virtual_root_clv_index) {
     pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
     bool all_clvs_valid = true;
     for (size_t p = 0; p < fake_treeinfo.partition_count; ++p) {
@@ -262,6 +259,13 @@ bool reuseOldDisplayedTreesCheck(AnnotatedNetwork& ann_network, int incremental,
         all_clvs_valid &= fake_treeinfo.clv_valid[p][virtual_root_clv_index];
     }
     return all_clvs_valid;
+}
+
+bool reuseOldDisplayedTreesCheck(AnnotatedNetwork& ann_network, int incremental, size_t virtual_root_clv_index) {
+    if (!incremental) {
+        return false;
+    }
+    return clvValidCheck(ann_network, virtual_root_clv_index);
 }
 
 bool hasBadReticulation(AnnotatedNetwork& ann_network) {

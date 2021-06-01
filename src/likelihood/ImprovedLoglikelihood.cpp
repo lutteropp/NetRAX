@@ -272,6 +272,7 @@ void computeDisplayedTreeLoglikelihood(AnnotatedNetwork& ann_network, DisplayedT
 void processPartitionsImproved(AnnotatedNetwork& ann_network, int incremental) {
     std::vector<bool> seen(ann_network.network.num_nodes(), false);
     
+    assert(ann_network.travbuffer.size() == ann_network.network.num_nodes());
     for (size_t i = 0; i < ann_network.travbuffer.size(); ++i) {
         Node* actNode = ann_network.travbuffer[i];
         std::vector<Node*> children = getChildren(ann_network.network, actNode);
@@ -409,7 +410,7 @@ double computeLoglikelihoodImproved(AnnotatedNetwork &ann_network, int increment
             pllmod_treeinfo_update_prob_matrices(ann_network.fake_treeinfo, !incremental);
         }
         processPartitionsImproved(ann_network, incremental);
-        if (!reuseOldDisplayedTreesCheck(ann_network, incremental, ann_network.network.root->clv_index)) {
+        if (!clvValidCheck(ann_network, ann_network.network.root->clv_index)) {
             throw std::runtime_error("Invalid displayed trees after loglikelihood computation");
         }
     }

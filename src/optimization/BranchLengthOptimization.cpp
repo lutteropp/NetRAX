@@ -27,7 +27,7 @@
 namespace netrax {
 
 std::vector<DisplayedTreeData> extractOldTrees(AnnotatedNetwork& ann_network, Node* virtual_root) {
-    if (!reuseOldDisplayedTreesCheck(ann_network, true, virtual_root->clv_index)) {
+    if (!clvValidCheck(ann_network, virtual_root->clv_index)) {
         if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
             std::cout << exportDebugInfo(ann_network) << "\n";
         }
