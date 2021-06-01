@@ -776,7 +776,7 @@ double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vecto
         slowIterationsMode(ann_network, type, step_size, typesBySpeed, best_score, bestNetworkData, silent);
     }
 
-    optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::SLOW);
+    optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::NORMAL);
     old_score = scoreNetwork(ann_network);
     check_score_improvement(ann_network, best_score, bestNetworkData);
 
