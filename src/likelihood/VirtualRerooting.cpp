@@ -205,7 +205,6 @@ void updateCLVsVirtualRerootTrees(AnnotatedNetwork& ann_network, Node* old_virtu
                     std::cout << exportDebugInfo(ann_network) << "\n";
                 } 
             }
-            assert(paths[p].children[i].size() > 0 || paths[p].path[i]->isTip());
             processNodeImproved(ann_network, 0, paths[p].path[i], paths[p].children[i], paths[p].reticulationChoices, appendMode);
         }
     }
