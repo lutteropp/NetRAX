@@ -624,6 +624,7 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork& ann_network, int best_max
     while (got_better) {
         got_better = false;
         Move chosenMove = applyBestCandidate(ann_network, candidates, best_score, bestNetworkData, false, silent);
+        assert(chosenMove.moveType != MoveType::INVALID);
         acceptedMoves.emplace_back(chosenMove);
         double score = scoreNetwork(ann_network);
         check_score_improvement(ann_network, best_score, bestNetworkData);
