@@ -212,6 +212,9 @@ void insertAndRemove(const std::string &networkPath, const std::string& msaPath,
         performMove(ann_network, removalCandidates[0]);
         updateOldCandidates(ann_network, removalCandidates[0], insertionCandidates);
         removeBadCandidates(ann_network, insertionCandidates);
+        if (insertionCandidates.empty()) {
+            insertionCandidates = possibleMoves(ann_network, MoveType::ArcInsertionMove);
+        }
     }
 }
 
