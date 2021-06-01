@@ -538,9 +538,11 @@ void performMoveArcInsertion(AnnotatedNetwork &ann_network, Move &move) {
     Link *from_c_link = getLinkToNode(network, move.arcInsertionData.c_clv_index, move.arcInsertionData.d_clv_index);
     Link *to_d_link = getLinkToNode(network, move.arcInsertionData.d_clv_index, move.arcInsertionData.c_clv_index);
     Edge *a_b_edge = getEdgeTo(network, move.arcInsertionData.a_clv_index, move.arcInsertionData.b_clv_index);
+    assert(move.arcInsertionData.ab_pmatrix_index == a_b_edge->pmatrix_index);
     assert(a_b_edge->link1);
     assert(a_b_edge->link2);
     Edge *c_d_edge = getEdgeTo(network, move.arcInsertionData.c_clv_index, move.arcInsertionData.d_clv_index);
+    assert(move.arcInsertionData.cd_pmatrix_index == c_d_edge->pmatrix_index);
     assert(c_d_edge->link1);
     assert(c_d_edge->link2);
 
