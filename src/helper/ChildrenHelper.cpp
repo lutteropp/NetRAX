@@ -113,6 +113,7 @@ bool hasChild(Network &network, const Node *parent, const Node *candidate) {
 std::vector<Node*> getCurrentChildren(AnnotatedNetwork& ann_network, const Node* node, const Node* parent, const ReticulationConfigSet& restrictions) {
     assert(restrictions.configs.size() == 1);
     std::vector<Node*> children = getChildrenIgnoreDirections(ann_network.network, node, parent);
+    assert(node->isTip() || !children.empty());
     std::vector<Node*> res;
     for (size_t i = 0; i < children.size(); ++i) {
         if (reticulationConfigsCompatible(restrictions, getRestrictionsToTakeNeighbor(ann_network, node, children[i]))) {
@@ -130,7 +131,6 @@ std::vector<Node*> getCurrentChildren(AnnotatedNetwork& ann_network, const Node*
         std::cout << exportDebugInfo(ann_network) << "\n";
     }
     assert(res.size() <= 2);
-    assert(node->isTip() || !res.empty());
     return res;
 }
 
