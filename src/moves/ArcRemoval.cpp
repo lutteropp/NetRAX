@@ -685,6 +685,7 @@ void undoMoveArcRemoval(AnnotatedNetwork &ann_network, Move &move) {
     assert(move.moveType == MoveType::ArcRemovalMove || move.moveType == MoveType::DeltaMinusMove);
     assert(assertConsecutiveIndices(ann_network));
     assert(assertBranchLengths(ann_network));
+    checkSanity(ann_network.network);
 
     Move insertion = buildMoveArcInsertion(ann_network, move.arcRemovalData.a_clv_index, move.arcRemovalData.b_clv_index,
             move.arcRemovalData.c_clv_index, move.arcRemovalData.d_clv_index, move.arcRemovalData.u_v_len, move.arcRemovalData.c_v_len, move.arcRemovalData.a_u_len, move.arcRemovalData.a_b_len, move.arcRemovalData.c_d_len, move.arcRemovalData.v_d_len, move.arcRemovalData.u_b_len, MoveType::ArcInsertionMove, move.edge_orig_idx, move.node_orig_idx);
@@ -727,6 +728,7 @@ void undoMoveArcRemoval(AnnotatedNetwork &ann_network, Move &move) {
     }
 
     fixReticulationLinks(ann_network);
+    checkSanity(ann_network.network);
 }
 
 std::string toStringArcRemoval(const Move &move) {
