@@ -339,7 +339,7 @@ bool alphas_equal(const NetworkState& old_state, const NetworkState& act_state) 
     return true;
 }
 
-bool network_states_equal(NetworkState& old_state, NetworkState& act_state) {
+bool network_states_equal(const NetworkState& old_state, const NetworkState& act_state) {
     return model_equal(old_state, act_state) &&
            reticulation_probs_equal(old_state, act_state) && 
            partition_brlens_equal(old_state, act_state) && 

@@ -531,7 +531,7 @@ void performMoveArcInsertion(AnnotatedNetwork &ann_network, Move &move) {
     assert(checkSanityArcInsertion(ann_network, move));
     assert(move.moveType == MoveType::ArcInsertionMove || move.moveType == MoveType::DeltaPlusMove);
     Network &network = ann_network.network;
-    checkSanity(network);
+    checkSanity(ann_network);
 
     Link *from_a_link = getLinkToNode(network, move.arcInsertionData.a_clv_index, move.arcInsertionData.b_clv_index);
     Link *to_b_link = getLinkToNode(network, move.arcInsertionData.b_clv_index, move.arcInsertionData.a_clv_index);
@@ -662,7 +662,7 @@ void performMoveArcInsertion(AnnotatedNetwork &ann_network, Move &move) {
     fixReticulationLinks(ann_network);
 
     ann_network.travbuffer = reversed_topological_sort(ann_network.network);
-    checkSanity(network);
+    checkSanity(ann_network);
     assert(assertReticulationProbs(ann_network));
     assert(assertConsecutiveIndices(ann_network));
     assert(assertBranchLengths(ann_network));
@@ -673,7 +673,7 @@ void undoMoveArcInsertion(AnnotatedNetwork &ann_network, Move &move) {
     assert(assertConsecutiveIndices(ann_network));
     assert(assertBranchLengths(ann_network));
     Network &network = ann_network.network;
-    checkSanity(network);
+    checkSanity(ann_network);
     const Node *a = network.nodes_by_index[move.arcInsertionData.a_clv_index];
     const Node *b = network.nodes_by_index[move.arcInsertionData.b_clv_index];
     const Node *c = network.nodes_by_index[move.arcInsertionData.c_clv_index];

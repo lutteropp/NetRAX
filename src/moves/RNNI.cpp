@@ -456,7 +456,7 @@ void performMoveRNNI(AnnotatedNetwork &ann_network, Move &move) {
     assert(move.moveType == MoveType::RNNIMove);
     assert(assertConsecutiveIndices(ann_network));
     Network &network = ann_network.network;
-    checkSanity(network);
+    checkSanity(ann_network);
     Node *u = network.nodes_by_index[move.rnniData.u_clv_index];
     Node *v = network.nodes_by_index[move.rnniData.v_clv_index];
     Node *s = network.nodes_by_index[move.rnniData.s_clv_index];
@@ -480,14 +480,14 @@ void performMoveRNNI(AnnotatedNetwork &ann_network, Move &move) {
     ann_network.travbuffer = reversed_topological_sort(ann_network.network);
     assert(assertReticulationProbs(ann_network));
     assertConsecutiveIndices(ann_network);
-    checkSanity(network);
+    checkSanity(ann_network);
 }
 
 void undoMoveRNNI(AnnotatedNetwork &ann_network, Move &move) {
     assert(move.moveType == MoveType::RNNIMove);
     assert(assertConsecutiveIndices(ann_network));
     Network &network = ann_network.network;
-    checkSanity(network);
+    checkSanity(ann_network);
     Node *u = network.nodes_by_index[move.rnniData.u_clv_index];
     Node *v = network.nodes_by_index[move.rnniData.v_clv_index];
     Node *s = network.nodes_by_index[move.rnniData.s_clv_index];
@@ -511,7 +511,7 @@ void undoMoveRNNI(AnnotatedNetwork &ann_network, Move &move) {
     ann_network.travbuffer = reversed_topological_sort(ann_network.network);
     assert(assertReticulationProbs(ann_network));
     assert(assertConsecutiveIndices(ann_network));
-    checkSanity(network);
+    checkSanity(ann_network);
 }
 
 bool isomorphicMoves(const Move& move1, const Move& move2) {

@@ -179,5 +179,6 @@ bool hasBadReticulation(AnnotatedNetwork& ann_network);
 std::vector<Node*> getBadReticulations(AnnotatedNetwork& ann_network);
 bool assertBranchLengths(AnnotatedNetwork& ann_network);
 bool assertConsecutiveIndices(AnnotatedNetwork& ann_network);
+bool checkSanity(AnnotatedNetwork& ann_network);
 
 }

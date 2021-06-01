@@ -507,6 +507,7 @@ void performMoveArcRemoval(AnnotatedNetwork &ann_network, Move &move) {
     assert(checkSanityArcRemoval(ann_network, move));
     assert(assert_links_in_range2(ann_network.network));
     assert(assertBranchLengths(ann_network));
+    assert(checkSanity(ann_network));
 
     /*if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         std::cout << "performing " << toString(move) << "\n";
@@ -652,7 +653,7 @@ void performMoveArcRemoval(AnnotatedNetwork &ann_network, Move &move) {
     invalidatePmatrixIndex(ann_network, c_d_edge->pmatrix_index, visited);
 
     ann_network.travbuffer = reversed_topological_sort(ann_network.network);
-    assert(checkSanity(network));
+    assert(checkSanity(ann_network));
     assert(assertReticulationProbs(ann_network));
     assert(assertConsecutiveIndices(ann_network));
 

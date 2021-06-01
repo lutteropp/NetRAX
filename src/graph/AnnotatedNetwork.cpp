@@ -318,4 +318,16 @@ bool assertConsecutiveIndices(AnnotatedNetwork& ann_network) {
     return true;
 }
 
+bool checkSanity(AnnotatedNetwork& ann_network) {
+    bool good = true;
+    good &= checkSanity(ann_network.network);
+    for (size_t i = 0; i < ann_network.network.num_nodes(); ++i) {
+        for (size_t i = 0; i < ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].num_active_displayed_trees; ++i) {
+            DisplayedTreeData& dtd = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].displayed_trees[i];
+            assert(!dtd.treeLoglData.reticulationChoices.configs.empty());
+        }
+    }
+    return good;
+}
+
 }
