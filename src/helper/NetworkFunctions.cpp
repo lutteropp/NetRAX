@@ -494,6 +494,7 @@ std::vector<std::vector<size_t> > getDtBranchToNetworkBranchMapping(const pll_ut
 }
 
 std::vector<Node*> reversed_topological_sort(Network &network) {
+    assert(checkSanity(network));
     std::vector<Node*> res;
     res.reserve(network.num_nodes());
     std::vector<Node*> parent = grab_current_node_parents(network);

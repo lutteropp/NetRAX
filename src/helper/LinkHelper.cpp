@@ -1,16 +1,24 @@
 #include "Helper.hpp"
+#include "../DebugPrintFunctions.hpp"
 
 #include <stdexcept>
+#include <iostream>
 
 namespace netrax {
 
-Node* getTargetNode(const Network &network, const Link *link) {
+Node* getTargetNode(Network &network, const Link *link) {
     assert(link);
     if (network.edges_by_index[link->edge_pmatrix_index]->link1 == link) {
         return network.nodes_by_index[network.edges_by_index[link->edge_pmatrix_index]->link2->node_clv_index];
     } else if (network.edges_by_index[link->edge_pmatrix_index]->link2 == link) {
         return network.nodes_by_index[network.edges_by_index[link->edge_pmatrix_index]->link1->node_clv_index];
     } else {
+        if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+            std::cout << "Edge pmatrix index: " << link->edge_pmatrix_index << "\n";
+            std::cout << "Node clv index: " << link->node_clv_index << "\n";
+            std::cout << "Outer node clv index: " << link->outer->node_clv_index << "\n";
+            std::cout << exportDebugInfoNetwork(network) << "\n";
+        }
         throw std::runtime_error("Something is wrong with the edge links. The link believes it belongs to an edge, but the edge believes otherwise.");
     }
 }

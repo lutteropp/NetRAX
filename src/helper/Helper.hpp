@@ -41,7 +41,7 @@ void setReticulationParents(Network &network, const std::vector<ReticulationStat
 void setReticulationParents(Network &network, size_t treeIdx);
 
 /* helper functions related to links (LinkHelper.cpp) */
-Node* getTargetNode(const Network &network, const Link *link);
+Node* getTargetNode(Network &network, const Link *link);
 Link* make_link(Node *node, Edge *edge, Direction dir);
 std::vector<const Link*> getLinksToClvIndex(Network &network, const Node *node, size_t target_index);
 std::vector<Link*> getLinksToClvIndexMutable(Network &network, Node *node, size_t target_index);
@@ -79,13 +79,13 @@ std::vector<Node*> getParentPointers(AnnotatedNetwork& ann_network, const std::v
 std::vector<Node*> grab_current_node_parents(Network &network);
 
 /* helper functions related to neighbors (NeighborHelper.cpp) */
-std::vector<Node*> getNeighbors(const Network &network, const Node *node);
+std::vector<Node*> getNeighbors(Network &network, const Node *node);
 std::vector<Node*> getActiveNeighbors(Network &network, const Node *node);
 std::vector<Node*> getActiveAliveNeighbors(Network &network, const std::vector<bool> &dead_nodes,
         const Node *node);
 bool hasNeighbor(const Node *node1, const Node *node2);
 std::unordered_set<size_t> getNeighborPmatrixIndices(Network &network, const Edge *edge);
-std::vector<Node*> getNeighborsWithinRadius(const Network& network, const Node* node, int min_radius, int max_radius);
+std::vector<Node*> getNeighborsWithinRadius(Network& network, const Node* node, int min_radius, int max_radius);
 bool topology_equal(Network& n1, Network& n2);
 
 /* helper functions related to clv/pmatrix invalidation (InvalidationHelper.cpp) */

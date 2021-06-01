@@ -61,7 +61,7 @@ bool assert_branch_lengths(AnnotatedNetwork& ann_network) {
     return true;
 }
 
-bool neighborsSame(const Network& n1, const Network& n2) {
+bool neighborsSame(Network& n1, Network& n2) {
     bool same = true;
     for (size_t i = 0; i < n1.num_nodes(); ++i) {
         std::vector<Node*> n1_neighbors = getNeighbors(n1, n1.nodes_by_index[i]);

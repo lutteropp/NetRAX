@@ -3,7 +3,7 @@
 
 namespace netrax {
 
-std::vector<Node*> getNeighbors(const Network &network, const Node *node) {
+std::vector<Node*> getNeighbors(Network &network, const Node *node) {
     assert(node);
     std::vector<Node*> neighbors;
     for (const auto &link : node->links) {
@@ -103,7 +103,7 @@ std::unordered_set<size_t> getNeighborPmatrixIndices(Network &network, const Edg
     return res;
 }
 
-std::vector<Node*> getNeighborsWithinRadius(const Network& network, const Node* node, int min_radius, int max_radius) {
+std::vector<Node*> getNeighborsWithinRadius(Network& network, const Node* node, int min_radius, int max_radius) {
     assert(min_radius <= max_radius);
     if (min_radius == 0 && max_radius == std::numeric_limits<int>::max()) {
         std::vector<Node*> quick_res;
