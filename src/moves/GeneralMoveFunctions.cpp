@@ -282,6 +282,8 @@ void swapPmatrixIndex(AnnotatedNetwork& ann_network, Move& move, size_t old_pmat
     if (old_pmatrix_index == new_pmatrix_index) {
         return;
     }
+    assert(old_pmatrix_index < ann_network.network.num_branches());
+    assert(new_pmatrix_index < ann_network.network.num_branches());
     Edge* edge = ann_network.network.edges_by_index[old_pmatrix_index];
     Edge* other_edge = ann_network.network.edges_by_index[new_pmatrix_index];
     // update pmatrix valid and the pmatrices
@@ -325,6 +327,10 @@ void swapClvIndex(AnnotatedNetwork& ann_network, Move& move, size_t old_clv_inde
     if (old_clv_index == new_clv_index) {
         return;
     }
+    assert(old_clv_index < ann_network.network.num_nodes());
+    assert(new_clv_index < ann_network.network.num_nodes());
+    assert(old_clv_index >= ann_network.network.num_tips());
+    assert(new_clv_index >= ann_network.network.num_tips());
     Node* node = ann_network.network.nodes_by_index[old_clv_index];
     Node* other_node = ann_network.network.nodes_by_index[new_clv_index];
     assert(node);
@@ -372,6 +378,8 @@ void swapReticulationIndex(AnnotatedNetwork& ann_network, Move& move, size_t old
     if (old_reticulation_index == new_reticulation_index) {
         return;
     }
+    assert(old_reticulation_index < ann_network.network.num_reticulations());
+    assert(new_reticulation_index < ann_network.network.num_reticulations());
     Node* node = ann_network.network.reticulation_nodes[old_reticulation_index];
     Node* other_node = ann_network.network.reticulation_nodes[new_reticulation_index];
     // update reticulation states in the displayed trees data
