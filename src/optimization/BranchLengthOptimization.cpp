@@ -66,7 +66,7 @@ static double brent_target_networks(void *p, double x) {
     double score;
     if (old_x == x) {
         if (brlenOptMethod == BrlenOptMethod::BRENT_REROOT) {
-            score = -1 * computeLoglikelihoodBrlenOpt(*ann_network, *oldTrees, pmatrix_index, 1, 1);
+            score = -1 * computeLoglikelihoodBrlenOpt(*ann_network, *oldTrees, pmatrix_index, 1);
         } else { // BRENT_NORMAL
             score = -1 * computeLoglikelihood(*ann_network);
         }
@@ -84,7 +84,7 @@ static double brent_target_networks(void *p, double x) {
         }
 
         if (brlenOptMethod == BrlenOptMethod::BRENT_REROOT) {
-            score = -1 * computeLoglikelihoodBrlenOpt(*ann_network, *oldTrees, pmatrix_index, 1, 1);
+            score = -1 * computeLoglikelihoodBrlenOpt(*ann_network, *oldTrees, pmatrix_index, 1);
         } else { // BRENT_NORMAL
             score = -1 * computeLoglikelihood(*ann_network, 1, 1);
         }
@@ -245,7 +245,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, std::vector<DisplayedTreeD
 
     double start_logl;
     if (brlenOptMethod != BrlenOptMethod::BRENT_NORMAL) {
-        start_logl = computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index, 1, 1);
+        start_logl = computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index, 1);
     } else {
         start_logl = computeLoglikelihood(ann_network);
     }
@@ -260,7 +260,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, std::vector<DisplayedTreeD
             old_brlen = ann_network.fake_treeinfo->linked_branch_lengths[pmatrix_index];
         }
         optimize_branch_newton_raphson(ann_network, sumtables, oldTrees, pmatrix_index, partition_index, max_iters);
-        double new_logl = computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index, 1, 1);
+        double new_logl = computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index, 1);
         if (new_logl < start_logl) { // this can happen in rare cases, if NR didn't converge. If it happens, reoad the old branch length.
             //std::cout << "reload old brlen\n";
             if (ann_network.fake_treeinfo->brlen_linkage == PLLMOD_COMMON_BRLEN_UNLINKED) {
@@ -274,7 +274,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, std::vector<DisplayedTreeD
 
     double best_logl;
     if (brlenOptMethod != BrlenOptMethod::BRENT_NORMAL) {
-        best_logl = computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index, 1, 1);
+        best_logl = computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index, 1);
     } else {
         best_logl = computeLoglikelihood(ann_network);
     }
