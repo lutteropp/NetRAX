@@ -20,7 +20,7 @@ void invalidateSingleClv(AnnotatedNetwork& ann_network, unsigned int clv_index) 
 }
 
 void validateSingleClv(AnnotatedNetwork& ann_network, unsigned int clv_index) {
-    assert(ann_network.pernode_displayed_tree_data[clv_index].num_active_displayed_trees > 0);
+    assert(ann_network.network.nodes_by_index[clv_index]->isTip() || ann_network.pernode_displayed_tree_data[clv_index].num_active_displayed_trees > 0);
     pllmod_treeinfo_t* treeinfo = ann_network.fake_treeinfo;
     for (size_t p = 0; p < treeinfo->partition_count; ++p) {
         // skip remote partitions
