@@ -14,6 +14,7 @@
 #include "src/helper/NetworkFunctions.hpp"
 
 #include "src/search/CandidateSelection.hpp"
+#include "src/optimization/NetworkState.hpp"
 
 #include <gtest/gtest.h>
 #include <string>
@@ -61,6 +62,17 @@ void randomMovesStep(AnnotatedNetwork &ann_network, std::vector<Move> candidates
     std::string initialDebugInfo = exportDebugInfo(ann_network);
     //std::cout << initialDebugInfo << "\n";
     std::vector<std::vector<double> > old_brlens = extract_brlens(ann_network);
+    NetworkState old_state = extract_network_state(ann_network);
+
+    size_t old_num_active_trees = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].num_active_displayed_trees;
+
+    std::cout << "Displayed trees at root before move:\n";
+    for (size_t i = 0; i < ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].num_active_displayed_trees; ++i) {
+        DisplayedTreeData& dtd = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].displayed_trees[i];
+        assert(!dtd.treeLoglData.reticulationChoices.empty());
+        std::cout << "tree " << i << "logprob: " << dtd.treeLoglData.tree_logprob << "\n";
+        printReticulationChoices(dtd.treeLoglData.reticulationChoices);
+    }
 
     for (size_t j = 0; j < candidates.size(); ++j) {
         std::cout << "Testing moves for candidate " << j+1 << "/" << candidates.size() << "...\n";
@@ -79,6 +91,9 @@ void randomMovesStep(AnnotatedNetwork &ann_network, std::vector<Move> candidates
         //std::cout << "logl after move: " << moved_logl << "\n";
         //std::cout << "undo " << toString(candidates[j]) << "\n";
         undoMove(ann_network, candidates[j]);
+
+        NetworkState new_state = extract_network_state(ann_network);
+        ASSERT_TRUE(network_states_equal(old_state, new_state));
 
         ASSERT_EQ(origMove.arcRemovalData.a_clv_index, candidates[j].arcRemovalData.a_clv_index);
         ASSERT_EQ(origMove.arcRemovalData.b_clv_index, candidates[j].arcRemovalData.b_clv_index);
@@ -131,9 +146,22 @@ void randomMovesStep(AnnotatedNetwork &ann_network, std::vector<Move> candidates
             }
         }
 
+        std::cout << "Displayed trees at root after undo move:\n";
+        for (size_t i = 0; i < ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].num_active_displayed_trees; ++i) {
+            DisplayedTreeData& dtd = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].displayed_trees[i];
+            assert(!dtd.treeLoglData.reticulationChoices.empty());
+            std::cout << "tree " << i << " logprob: " << dtd.treeLoglData.tree_logprob << "\n";
+            printReticulationChoices(dtd.treeLoglData.reticulationChoices);
+        }
+
         EXPECT_EQ(initialDebugInfo, debugInfoAfterUndo);
         ASSERT_DOUBLE_EQ(netrax::computeLoglikelihood(ann_network, 1, 1), netrax::computeLoglikelihood(ann_network, 0, 1));
         double back_logl = computeLoglikelihood(ann_network);
+        ASSERT_GE(ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].num_active_displayed_trees, 1);
+
+        size_t act_num_active_trees = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].num_active_displayed_trees;
+        ASSERT_EQ(old_num_active_trees, act_num_active_trees);
+
         //ASSERT_EQ(newickBeforeMove, newickAfterUndoMove);
         ASSERT_DOUBLE_EQ(initial_logl, back_logl);
     }
