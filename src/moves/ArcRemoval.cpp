@@ -550,17 +550,6 @@ void performMoveArcRemoval(AnnotatedNetwork &ann_network, Move &move) {
     assert(getEdgeTo(network, move.arcRemovalData.u_clv_index, move.arcRemovalData.v_clv_index));
     assert(network.num_reticulations() <= network.reticulation_nodes.size());
     
-    for (size_t i = 0; i < network.num_reticulations(); ++i) {
-        assert(network.reticulation_nodes[i]->type == NodeType::RETICULATION_NODE);
-    }
-    assert(network.nodes_by_index[move.arcRemovalData.u_clv_index]->clv_index == move.arcRemovalData.u_clv_index);
-    removeNode(ann_network, move, network.nodes_by_index[move.arcRemovalData.u_clv_index], false);
-    assert(network.nodes_by_index[move.arcRemovalData.v_clv_index]->clv_index == move.arcRemovalData.v_clv_index);
-    removeNode(ann_network, move, network.nodes_by_index[move.arcRemovalData.v_clv_index], false);
-    for (size_t i = 0; i < network.num_reticulations(); ++i) {
-        assert(network.reticulation_nodes[i]->type == NodeType::RETICULATION_NODE);
-    }
-
     assert(getEdgeTo(network, move.arcRemovalData.a_clv_index, move.arcRemovalData.u_clv_index)->pmatrix_index == move.arcRemovalData.au_pmatrix_index);
     removeEdge(ann_network, move, network.edges_by_index[move.arcRemovalData.au_pmatrix_index], false);
     assert(getEdgeTo(network, move.arcRemovalData.u_clv_index, move.arcRemovalData.b_clv_index)->pmatrix_index == move.arcRemovalData.ub_pmatrix_index);
@@ -571,6 +560,17 @@ void performMoveArcRemoval(AnnotatedNetwork &ann_network, Move &move) {
     removeEdge(ann_network, move, network.edges_by_index[move.arcRemovalData.vd_pmatrix_index], false);
     assert(getEdgeTo(network, move.arcRemovalData.u_clv_index, move.arcRemovalData.v_clv_index)->pmatrix_index == move.arcRemovalData.uv_pmatrix_index);
     removeEdge(ann_network, move, network.edges_by_index[move.arcRemovalData.uv_pmatrix_index], false);
+
+    for (size_t i = 0; i < network.num_reticulations(); ++i) {
+        assert(network.reticulation_nodes[i]->type == NodeType::RETICULATION_NODE);
+    }
+    assert(network.nodes_by_index[move.arcRemovalData.u_clv_index]->clv_index == move.arcRemovalData.u_clv_index);
+    removeNode(ann_network, move, network.nodes_by_index[move.arcRemovalData.u_clv_index], false);
+    assert(network.nodes_by_index[move.arcRemovalData.v_clv_index]->clv_index == move.arcRemovalData.v_clv_index);
+    removeNode(ann_network, move, network.nodes_by_index[move.arcRemovalData.v_clv_index], false);
+    for (size_t i = 0; i < network.num_reticulations(); ++i) {
+        assert(network.reticulation_nodes[i]->type == NodeType::RETICULATION_NODE);
+    }
 
     for (size_t i = 0; i < network.num_reticulations(); ++i) {
         assert(network.reticulation_nodes[i]->type == NodeType::RETICULATION_NODE);
