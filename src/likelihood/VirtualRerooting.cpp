@@ -260,8 +260,8 @@ void recomputeTreeData(AnnotatedNetwork& ann_network, size_t pmatrix_index, Disp
     combinedTreeData.tree_logprob = computeReticulationConfigLogProb(combinedTreeData.reticulationChoices, ann_network.reticulation_probs);
 }
 
-double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::vector<DisplayedTreeData>& oldTrees, unsigned int pmatrix_index, int incremental, int update_pmatrices, bool print_extra_debug_info) {
-    if (ann_network.cached_logl_valid && incremental) {
+double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::vector<DisplayedTreeData>& oldTrees, unsigned int pmatrix_index, int update_pmatrices, bool print_extra_debug_info) {
+    if (ann_network.cached_logl_valid) {
         return ann_network.cached_logl;
     }
     Node* source = getSource(ann_network.network, ann_network.network.edges_by_index[pmatrix_index]);
@@ -275,7 +275,7 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
     std::vector<bool> source_tree_seen(n_trees_source, false);
     std::vector<bool> target_tree_seen(n_trees_target, false);
 
-    if (!reuseOldDisplayedTreesCheck(ann_network, incremental, ann_network.network.root->clv_index)) {
+    if (!clvValidCheck(ann_network, ann_network.network.root->clv_index)) {
         // TODO: Doesn't this need the virtual_root pointer, too?
         if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
             std::cout << exportDebugInfo(ann_network) << "\n";
@@ -283,7 +283,7 @@ double computeLoglikelihoodBrlenOpt(AnnotatedNetwork &ann_network, const std::ve
         throw std::runtime_error("Cannot reuse old displayed trees. For some reason, they are invalidated at the root node " + std::to_string(ann_network.network.root->clv_index));
     }
     if (update_pmatrices) {
-        pllmod_treeinfo_update_prob_matrices(ann_network.fake_treeinfo, !incremental);
+        pllmod_treeinfo_update_prob_matrices(ann_network.fake_treeinfo, 0);
     }
     //Instead of going over the-source-trees-only for final loglh evaluation, we need to go over all pairs of trees, one in source node and one in target node.
     std::vector<TreeLoglData> combinedTrees;
