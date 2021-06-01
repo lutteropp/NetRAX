@@ -11,6 +11,7 @@ void invalidateSingleClv(AnnotatedNetwork& ann_network, unsigned int clv_index) 
         }
         treeinfo->clv_valid[p][clv_index] = 0;
     }
+    // TODO: This is commented out because it broke things. Find out why it breaks things.
     /*ann_network.pernode_displayed_tree_data[clv_index].num_active_displayed_trees = 0;
     if (ann_network.options.save_memory) {
         ann_network.pernode_displayed_tree_data[clv_index].displayed_trees.clear();
@@ -46,6 +47,7 @@ void invalidateHigherClvs(AnnotatedNetwork &ann_network, pllmod_treeinfo_t *tree
             }
             treeinfo->clv_valid[p][node->clv_index] = 0;
         }
+        // TODO: This is commented out because it broke things. Find out why it breaks things.
         /*ann_network.pernode_displayed_tree_data[node->clv_index].num_active_displayed_trees = 0;
         if (ann_network.options.save_memory) {
             ann_network.pernode_displayed_tree_data[node->clv_index].displayed_trees.clear();
