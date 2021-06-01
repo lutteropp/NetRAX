@@ -130,6 +130,7 @@ std::vector<Node*> getCurrentChildren(AnnotatedNetwork& ann_network, const Node*
         std::cout << exportDebugInfo(ann_network) << "\n";
     }
     assert(res.size() <= 2);
+    assert(node->isTip() || !res.empty());
     return res;
 }
 
