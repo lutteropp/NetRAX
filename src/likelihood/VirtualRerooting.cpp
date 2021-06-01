@@ -200,11 +200,6 @@ void updateCLVsVirtualRerootTrees(AnnotatedNetwork& ann_network, Node* old_virtu
         for (size_t i = 0; i < paths[p].path.size(); ++i) {
             bool appendMode = ((p > 0) && (paths[p].path[i] == new_virtual_root));
             assert((paths[p].path[i] != new_virtual_root) || ((paths[p].path[i] == new_virtual_root) && (i == paths[p].path.size() - 1)));
-            if (paths[p].children[i].empty() && !paths[p].path[i]->isTip()) {
-                if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-                    std::cout << exportDebugInfo(ann_network) << "\n";
-                } 
-            }
             processNodeImproved(ann_network, 0, paths[p].path[i], paths[p].children[i], paths[p].reticulationChoices, appendMode);
         }
     }
