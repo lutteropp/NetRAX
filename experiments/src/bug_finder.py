@@ -2,6 +2,12 @@
 import subprocess
 import random
 
+"""
+
+A script that subsamples a partitioned MSA, trying to find a smaller dataset that already leads to a bug.
+
+"""
+
 ORIG_MSA = "data/datasets_40t_4r_small/0_0_msa.txt"
 ORIG_PARTITIONS = "data/datasets_40t_4r_small/0_0_partitions.txt"
 ORIG_OUTPUT = "data/datasets_40t_4r_small/0_0_BEST_LINKED_FROM_RAXML_inferred_network.nw"
