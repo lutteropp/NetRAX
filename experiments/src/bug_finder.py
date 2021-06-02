@@ -32,7 +32,7 @@ def parse_msa(msa_path):
     taxon_names = []
     msa = []
     with open(msa_path) as f:
-        lines = f.readlines.split()
+        lines = f.readlines()
         for i in range(len(lines)):
             if i % 2 == 0:
                 taxon_names.append(lines[i])
@@ -66,11 +66,13 @@ def parse_partitions(partitions_path):
     name = []
     prange = []
     with open(partitions_path) as f:
-        lines = f.readlines().split()
+        lines = f.readlines()
         for line in lines:
             model.append(line.split(',')[0])
             name.append(line.split(',')[1].split('=')[0])
-            prange.append(int(line.split(',')[1].split('=')[1].split('-')[0]), int(line.split(',')[1].split('=')[1].split('-')[1]))
+            prange_start = int(line.split(',')[1].split('=')[1].split('-')[0])
+            prange_end = int(line.split(',')[1].split('=')[1].split('-')[1])
+            prange.append((prange_start, prange_end))
     return (model, name, prange)
 
 def write_data(taxon_names, msa, model, name, prange, deleted_rows, deleted_cols, msa_path, partitions_path):
