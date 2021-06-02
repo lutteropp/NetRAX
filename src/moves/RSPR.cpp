@@ -14,62 +14,37 @@ bool checkSanityRSPR(AnnotatedNetwork &ann_network, const Move &move) {
            move.moveType == MoveType::HeadMove ||
            move.moveType == MoveType::TailMove);
 
-  good &= (ann_network.network.nodes_by_index[move.rsprData.x_clv_index] !=
-           nullptr);
-  good &=
-      (ann_network.network.nodes_by_index[move.rsprData.x_prime_clv_index] !=
-       nullptr);
-  good &= (ann_network.network.nodes_by_index[move.rsprData.y_clv_index] !=
-           nullptr);
-  good &=
-      (ann_network.network.nodes_by_index[move.rsprData.y_prime_clv_index] !=
-       nullptr);
-  good &= (ann_network.network.nodes_by_index[move.rsprData.z_clv_index] !=
-           nullptr);
+  Node *x = ann_network.network.nodes_by_index[move.rsprData.x_clv_index];
+  Node *y = ann_network.network.nodes_by_index[move.rsprData.y_clv_index];
+  Node *z = ann_network.network.nodes_by_index[move.rsprData.z_clv_index];
+  Node *x_prime =
+      ann_network.network.nodes_by_index[move.rsprData.x_prime_clv_index];
+  Node *y_prime =
+      ann_network.network.nodes_by_index[move.rsprData.y_prime_clv_index];
 
-  if (good)
-    good &= (hasNeighbor(
-        ann_network.network.nodes_by_index[move.rsprData.x_clv_index],
-        ann_network.network.nodes_by_index[move.rsprData.z_clv_index]));
-  if (good)
-    good &= (hasNeighbor(
-        ann_network.network.nodes_by_index[move.rsprData.z_clv_index],
-        ann_network.network.nodes_by_index[move.rsprData.y_clv_index]));
-  if (good)
-    good &= (hasNeighbor(
-        ann_network.network.nodes_by_index[move.rsprData.x_prime_clv_index],
-        ann_network.network.nodes_by_index[move.rsprData.y_prime_clv_index]));
+  if (good) good &= (x != nullptr);
+  if (good) good &= (y != nullptr);
+  if (good) good &= (z != nullptr);
+  if (good) good &= (x_prime != nullptr);
+  if (good) good &= (y_prime != nullptr);
 
-  const Node *w = nullptr;
-  auto zNeighbors = getNeighbors(
-      ann_network.network,
-      ann_network.network.nodes_by_index[move.rsprData.z_clv_index]);
-  assert(zNeighbors.size() == 3);
-  for (size_t j = 0; j < zNeighbors.size(); ++j) {
-    if (zNeighbors[j] !=
-            ann_network.network.nodes_by_index[move.rsprData.x_clv_index] &&
-        zNeighbors[j] !=
-            ann_network.network.nodes_by_index[move.rsprData.y_clv_index]) {
-      w = zNeighbors[j];
-      break;
-    }
+  if (good) good &= (hasChild(ann_network.network, x, z));
+  if (good) good &= (hasChild(ann_network.network, z, y));
+  if (good) good &= (hasChild(ann_network.network, x_prime, y_prime));
+
+  if (good) good &= (!hasChild(ann_network.network, x_prime, z));
+  if (good) good &= (!hasChild(ann_network.network, z, y_prime));
+  if (good) good &= (!hasChild(ann_network.network, x, y));
+
+  if (move.moveType == MoveType::HeadMove) {
+    if (good) good &= (z->getType() == NodeType::RETICULATION_NODE);
   }
-  assert(w);
-  if (ann_network.network.nodes_by_index[move.rsprData.z_clv_index]
-          ->getType() ==
-      NodeType::RETICULATION_NODE) {  // head-moving rSPR move
-    if (good)
-      good &= (!hasPath(
-          ann_network.network,
-          ann_network.network.nodes_by_index[move.rsprData.y_prime_clv_index],
-          w));
-  } else {  // tail-moving rSPR move
-    if (good)
-      good &= (!hasPath(
-          ann_network.network, w,
-          ann_network.network.nodes_by_index[move.rsprData.x_prime_clv_index]));
+  if (move.moveType == MoveType::TailMove) {
+    if (good) good &= (z->getType() != NodeType::RETICULATION_NODE);
   }
-
+  if (move.moveType == MoveType::RSPR1Move) {
+    if (good) good &= ((x == y_prime) || (y == x_prime) || (y == y_prime));
+  }
   return good;
 }
 
