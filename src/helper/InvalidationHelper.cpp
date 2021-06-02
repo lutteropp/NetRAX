@@ -1,5 +1,7 @@
 #include "Helper.hpp"
 
+#include "../graph/NodeDisplayedTreeData.hpp"
+
 namespace netrax {
 
 void invalidateSingleClv(AnnotatedNetwork &ann_network,
@@ -12,6 +14,10 @@ void invalidateSingleClv(AnnotatedNetwork &ann_network,
     }
     treeinfo->clv_valid[p][clv_index] = 0;
   }
+  for (size_t i = 0; i < ann_network.pernode_displayed_tree_data[clv_index].num_active_displayed_trees; ++i)  {
+      ann_network.pernode_displayed_tree_data[clv_index].displayed_trees[i].clv_valid = false;
+  }
+
   // TODO: This is commented out because it broke things. Find out why it breaks
   // things.
   /*ann_network.pernode_displayed_tree_data[clv_index].num_active_displayed_trees
@@ -45,20 +51,7 @@ void invalidateHigherClvs(AnnotatedNetwork &ann_network,
     return;
   }
   if (invalidate_myself) {
-    for (size_t p = 0; p < treeinfo->partition_count; ++p) {
-      // skip remote partitions
-      if (!ann_network.fake_treeinfo->partitions[p]) {
-        continue;
-      }
-      treeinfo->clv_valid[p][node->clv_index] = 0;
-    }
-    // TODO: This is commented out because it broke things. Find out why it
-    // breaks things.
-    /*ann_network.pernode_displayed_tree_data[node->clv_index].num_active_displayed_trees
-= 0; if (ann_network.options.save_memory) {
-    ann_network.pernode_displayed_tree_data[node->clv_index].displayed_trees.clear();
-}*/
-    ann_network.pseudo_clv_valid[node->clv_index] = false;
+    invalidateSingleClv(ann_network, node->clv_index);
     if (!visited.empty()) {
       visited[node->clv_index] = true;
     }
