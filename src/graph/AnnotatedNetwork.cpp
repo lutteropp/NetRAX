@@ -24,6 +24,7 @@
 #include "../utils.hpp"
 
 #include "NodeDisplayedTreeData.hpp"
+#include "DisplayedTreeData.hpp"
 
 namespace netrax {
 

@@ -28,6 +28,7 @@
 #include "NetraxOptions.hpp"
 
 #include "graph/NodeDisplayedTreeData.hpp"
+#include "graph/TreeLoglData.hpp"
 
 namespace netrax {
 

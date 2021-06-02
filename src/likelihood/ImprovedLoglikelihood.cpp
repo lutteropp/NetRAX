@@ -6,6 +6,9 @@
 #include "../likelihood/LikelihoodVariant.hpp"
 #include "../NetraxOptions.hpp"
 #include "../graph/NodeDisplayedTreeData.hpp"
+#include "../graph/ReticulationConfigSet.hpp"
+#include "../graph/DisplayedTreeData.hpp"
+#include "../graph/TreeLoglData.hpp"
 
 namespace netrax {
 

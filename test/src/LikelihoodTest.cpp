@@ -14,6 +14,7 @@
 #include "src/helper/NetworkFunctions.hpp"
 
 #include "src/optimization/Optimization.hpp"
+#include "src/graph/NodeDisplayedTreeData.hpp"
 
 #include <gtest/gtest.h>
 #include <string>

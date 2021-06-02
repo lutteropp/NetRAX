@@ -18,7 +18,6 @@ extern "C" {
 }
 #include <raxml-ng/main.hpp>
 
-#include "DisplayedTreeData.hpp"
 #include "Network.hpp"
 
 namespace netrax {
@@ -28,12 +27,12 @@ struct NetraxOptions;
 struct ScaleBufferRangeInfo;
 struct ClvRangeInfo;
 enum class MoveType;
+struct DisplayedTreeData;
+struct NodeDisplayedTreeData;
 
 struct Statistics {
     std::unordered_map<MoveType, size_t> moves_taken;
 };
-
-struct NodeDisplayedTreeData;
 
 void destroy_network_treeinfo(pllmod_treeinfo_t *treeinfo);
 

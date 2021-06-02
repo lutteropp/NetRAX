@@ -15,6 +15,8 @@
 
 #include "src/search/CandidateSelection.hpp"
 #include "src/optimization/NetworkState.hpp"
+#include "src/graph/NodeDisplayedTreeData.hpp"
+
 
 #include <gtest/gtest.h>
 #include <string>

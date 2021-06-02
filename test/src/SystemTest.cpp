@@ -10,6 +10,8 @@
 #include "src/RaxmlWrapper.hpp"
 #include "src/graph/Network.hpp"
 #include "src/moves/Move.hpp"
+#include "src/graph/NodeDisplayedTreeData.hpp"
+#include "src/graph/DisplayedTreeData.hpp"
 
 #include <gtest/gtest.h>
 #include <string>

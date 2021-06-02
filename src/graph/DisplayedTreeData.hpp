@@ -12,6 +12,7 @@ extern "C" {
 }
 
 #include "ReticulationConfigSet.hpp"
+#include "TreeLoglData.hpp"
 
 namespace netrax {
 
@@ -61,50 +62,6 @@ unsigned int** clone_scale_buffer(pll_partition_t* partition, unsigned int** sca
 void delete_cloned_scale_buffer(ScaleBufferRangeInfo rangeInfo, unsigned int** scale_buffer);
 void delete_cloned_scale_buffer(pll_partition_t* partition, unsigned int** scale_buffer);
 void assign_scale_buffer_entries(pll_partition_t* partition, unsigned int** from_scale_buffer, unsigned int** to_scale_buffer);
-
-struct TreeLoglData {
-    double tree_logprob = 0;
-    bool tree_logprob_valid = false;
-    bool tree_logl_valid = false;
-    std::vector<double> tree_partition_logl;
-    ReticulationConfigSet reticulationChoices;
-
-    TreeLoglData(size_t n_partitions, size_t max_reticulations) : reticulationChoices(max_reticulations) {
-        tree_partition_logl.resize(n_partitions);
-        std::vector<ReticulationState> allChoices(max_reticulations, ReticulationState::DONT_CARE);
-        reticulationChoices.configs.emplace_back(allChoices);
-    }
-
-    TreeLoglData(TreeLoglData&& rhs) : tree_logprob{rhs.tree_logprob}, tree_logprob_valid{rhs.tree_logprob_valid}, tree_logl_valid{rhs.tree_logl_valid}, tree_partition_logl{rhs.tree_partition_logl}, reticulationChoices{rhs.reticulationChoices} {}
-
-    TreeLoglData(const TreeLoglData& rhs) : tree_logprob{rhs.tree_logprob}, tree_logprob_valid{rhs.tree_logprob_valid}, tree_logl_valid{rhs.tree_logl_valid}, tree_partition_logl{rhs.tree_partition_logl}, reticulationChoices{rhs.reticulationChoices} {}
-
-    TreeLoglData& operator =(TreeLoglData&& rhs)
-    {
-        if (this != &rhs)
-        {
-            tree_partition_logl = rhs.tree_partition_logl;
-            reticulationChoices = std::move(rhs.reticulationChoices);
-            tree_logprob = rhs.tree_logprob;
-            tree_logprob_valid = rhs.tree_logprob_valid;
-            tree_logl_valid = rhs.tree_logl_valid;
-        }
-        return *this;
-    }
-
-    TreeLoglData& operator =(const TreeLoglData& rhs)
-    {
-        if (this != &rhs)
-        {
-            tree_partition_logl = rhs.tree_partition_logl;
-            reticulationChoices = rhs.reticulationChoices;
-            tree_logprob = rhs.tree_logprob;
-            tree_logprob_valid = rhs.tree_logprob_valid;
-            tree_logl_valid = rhs.tree_logl_valid;
-        }
-        return *this;
-    }
-};
 
 struct DisplayedTreeData {
     TreeLoglData treeLoglData;

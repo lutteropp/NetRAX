@@ -18,6 +18,7 @@
 
 #include "src/optimization/Optimization.hpp"
 #include "src/optimization/BranchLengthOptimization.hpp"
+#include "src/graph/NodeDisplayedTreeData.hpp"
 
 #include <gtest/gtest.h>
 #include <string>
