@@ -10,10 +10,10 @@
 #include "../likelihood/LikelihoodComputation.hpp"
 #include "../likelihood/PseudoLoglikelihood.hpp"
 #include "../moves/Move.hpp"
+#include "../moves/RNNI.hpp"
 #include "../optimization/BranchLengthOptimization.hpp"
 #include "../optimization/NetworkState.hpp"
 #include "../optimization/Optimization.hpp"
-#include "../moves/RNNI.hpp"
 
 namespace netrax {
 
@@ -747,9 +747,9 @@ void updateOldCandidates(AnnotatedNetwork &ann_network, const Move &chosenMove,
       std::vector<RNNIMoveType> validTypes =
           validMoveTypes(ann_network, u, v, s, t);
       for (size_t j = 0; j < validTypes.size(); ++j) {
-          Move newMove(move);
-          newMove.rnniData.type = validTypes[j];
-          newCandidates.emplace_back(newMove);
+        Move newMove(move);
+        newMove.rnniData.type = validTypes[j];
+        newCandidates.emplace_back(newMove);
       }
     }
     filterOutDuplicateMovesRNNI(newCandidates);
@@ -796,6 +796,7 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
     double score = scoreNetwork(ann_network);
     check_score_improvement(ann_network, best_score, bestNetworkData);
     if (score < old_score) {
+      tried_with_allnew = false;
       got_better = true;
       old_score = score;
 
@@ -880,7 +881,7 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
         }
       }*/
       prefilterCandidates(ann_network, candidates, silent);
-    } else {
+    } else { // score did not get better
       if (!tried_with_allnew && !acceptedMoves.empty()) {
         tried_with_allnew = true;
         if (ParallelContext::master_rank() &&
