@@ -4,6 +4,7 @@
 #include "../DebugPrintFunctions.hpp"
 #include "../NetraxOptions.hpp"
 #include "../colormod.h"  // namespace Color
+#include "../graph/NodeDisplayedTreeData.hpp"
 #include "../io/NetworkIO.hpp"
 #include "../likelihood/ComplexityScoring.hpp"
 #include "../likelihood/LikelihoodComputation.hpp"
@@ -12,7 +13,6 @@
 #include "../optimization/BranchLengthOptimization.hpp"
 #include "../optimization/NetworkState.hpp"
 #include "../optimization/Optimization.hpp"
-#include "../graph/NodeDisplayedTreeData.hpp"
 
 namespace netrax {
 
@@ -494,15 +494,15 @@ double chooseCandidate(AnnotatedNetwork &ann_network,
     assert(checkSanity(ann_network, move));
 
     ////assert(computeLoglikelihood(ann_network, 1, 1) ==
-    ///computeLoglikelihood(ann_network, 0, 1));
+    /// computeLoglikelihood(ann_network, 0, 1));
     performMove(ann_network, move);
     ////assert(computeLoglikelihood(ann_network, 1, 1) ==
-    ///computeLoglikelihood(ann_network, 0, 1));
+    /// computeLoglikelihood(ann_network, 0, 1));
     optimizeReticulationProbs(ann_network);
 
     optimizeBranches(ann_network);
     ////assert(computeLoglikelihood(ann_network, 1, 1) ==
-    ///computeLoglikelihood(ann_network, 0, 1));
+    /// computeLoglikelihood(ann_network, 0, 1));
 
     double bicScore = scoreNetwork(ann_network);
 
@@ -531,21 +531,21 @@ double chooseCandidate(AnnotatedNetwork &ann_network,
     scores[i] = ScoreItem<Move>{candidates[i], bicScore};
 
     ////assert(computeLoglikelihood(ann_network, 1, 1) ==
-    ///computeLoglikelihood(ann_network, 0, 1));
+    /// computeLoglikelihood(ann_network, 0, 1));
 
     undoMove(ann_network, move);
     if (move.moveType == MoveType::ArcRemovalMove) {
       computeLoglikelihood(ann_network, 0, 1);
     }
     ////assert(computeLoglikelihood(ann_network, 1, 1) ==
-    ///computeLoglikelihood(ann_network, 0, 1));
+    /// computeLoglikelihood(ann_network, 0, 1));
 
     assert(checkSanity(ann_network, candidates[i]));
 
     apply_network_state(ann_network, oldState);
 
     ////assert(computeLoglikelihood(ann_network, 1, 1) ==
-    ///computeLoglikelihood(ann_network, 0, 1));
+    /// computeLoglikelihood(ann_network, 0, 1));
 
     if (n_better >= ann_network.options.max_better_candidates) {
       scores.resize(n_better);
@@ -604,15 +604,24 @@ double acceptMove(AnnotatedNetwork &ann_network, Move &move,
     if (!silent) std::cout << toExtendedNewick(ann_network) << "\n";
 
     std::cout << "displayed trees:\n";
-    for (size_t i = 0; i < ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].num_active_displayed_trees; ++i) {
-        DisplayedTreeData& dtd = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].displayed_trees[i];
-        std::cout << "tree " << i << ":\n";
-        std::cout << "  prob: " << exp(dtd.treeLoglData.tree_logprob) << "\n";
-        double tree_logl = std::accumulate(dtd.treeLoglData.tree_partition_logl.begin(), dtd.treeLoglData.tree_partition_logl.end(), 0.0);
-        std::cout << "  logl: " << tree_logl << "\n";
-        printReticulationChoices(dtd.treeLoglData.reticulationChoices);
+    for (size_t i = 0;
+         i <
+         ann_network
+             .pernode_displayed_tree_data[ann_network.network.root->clv_index]
+             .num_active_displayed_trees;
+         ++i) {
+      DisplayedTreeData &dtd =
+          ann_network
+              .pernode_displayed_tree_data[ann_network.network.root->clv_index]
+              .displayed_trees[i];
+      std::cout << "tree " << i << ":\n";
+      std::cout << "  prob: " << exp(dtd.treeLoglData.tree_logprob) << "\n";
+      double tree_logl =
+          std::accumulate(dtd.treeLoglData.tree_partition_logl.begin(),
+                          dtd.treeLoglData.tree_partition_logl.end(), 0.0);
+      std::cout << "  logl: " << tree_logl << "\n";
+      printReticulationChoices(dtd.treeLoglData.reticulationChoices);
     }
-
   }
   ann_network.stats.moves_taken[move.moveType]++;
 
@@ -810,35 +819,44 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
           updateOldCandidates(ann_network, chosenMove, candidates);
         }
       } else {
-        for (size_t i = 0; i < takenRemovals.size(); ++i) {
+        /*for (size_t i = 0; i < takenRemovals.size(); ++i) {
           updateOldCandidates(ann_network, takenRemovals[i], candidates);
-        }
+        }*/
+        candidates.clear();
       }
       removeBadCandidates(ann_network, candidates);
 
       oldCandidates = candidates;
 
-      /*if (candidates.empty()) { // no old candidates to reuse. Thus,
-  completely gather new ones. if (ParallelContext::master_rank() &&
-  ParallelContext::master_thread()) { std::cout << "no old candidates to reuse.
-  Thus, completely gather new ones.\n";
-      }
-      candidates = possibleMoves(ann_network, type, rspr1_present,
-  delta_plus_present, 0, best_max_distance); oldCandidates.clear(); } else if
-  (!hadBadReticulationAfterInsertingArc) { double cand_bic =
-  prefilterCandidates(ann_network, candidates, silent); if (cand_bic >=
-  old_score) { // only consider more possible moves if the old candidates don't
-  bring it anymore... std::vector<Node*> start_nodes =
-  gatherStartNodes(ann_network, chosenMove); std::vector<Move> moreMoves =
-  possibleMoves(ann_network, type, start_nodes, rspr1_present,
-  delta_plus_present, 0, best_max_distance); if (ParallelContext::master_rank()
-  && ParallelContext::master_thread()) { std::cout << "Adding " <<
-  moreMoves.size() << " candidates to the " << candidates.size() << " previous
-  ones.\n";
+      if (candidates.empty()) {  // no old candidates to reuse. Thus,
+        // completely gather new ones.
+        if (ParallelContext::master_rank() &&
+            ParallelContext::master_thread()) {
+          std::cout << "no old candidates to reuse. Thus, completely gather "
+                       "new ones.\n";
+        }
+        candidates = possibleMoves(ann_network, type, rspr1_present,
+                                   delta_plus_present, 0, best_max_distance);
+        oldCandidates.clear();
+      } /*else if (!hadBadReticulationAfterInsertingArc) {
+        double cand_bic = prefilterCandidates(ann_network, candidates, silent);
+        if (cand_bic >= old_score) {  // only consider more possible moves if
+                                      // the old candidates don't
+          // bring it anymore...
+          std::vector<Node *> start_nodes =
+              gatherStartNodes(ann_network, chosenMove);
+          std::vector<Move> moreMoves =
+              possibleMoves(ann_network, type, start_nodes, rspr1_present,
+                            delta_plus_present, 0, best_max_distance);
+          if (ParallelContext::master_rank() &&
+              ParallelContext::master_thread()) {
+            std::cout << "Adding " << moreMoves.size() << " candidates to the "
+                      << candidates.size() << " previous ones.\n ";
           }
           candidates.insert(std::end(candidates), std::begin(moreMoves),
-  std::end(moreMoves));                }
-  }*/
+                            std::end(moreMoves));
+        }
+      }*/
       prefilterCandidates(ann_network, candidates, silent);
     }
   }
