@@ -15,6 +15,9 @@ ORIG_MSA = "data/datasets_40t_4r_small/0_0_msa.txt"
 ORIG_PARTITIONS = "data/datasets_40t_4r_small/0_0_partitions.txt"
 ORIG_OUTPUT = "data/datasets_40t_4r_small/0_0_BEST_LINKED_FROM_RAXML_inferred_network.nw"
 
+MIN_MSA_SIZE = 100
+MIN_N_TAXA = 4
+
 def build_command(msa_path, partitions_path, output_path):
     return "mpiexec ../bin/netrax --msa " + msa_path + " --output " + output_path + " --model " + partitions_path + " --best_displayed_tree_variant --num_random_start_networks 0 --num_parsimony_start_networks 1 --brlen linked --seed 42"
 
@@ -24,7 +27,7 @@ def orig_command():
 def trimmed_seq(orig_seq, deleted_cols):
     l = list(orig_seq)
     for c in deleted_cols:
-        l[c] = ""
+        l[c-1] = ""
     return "".join(l)
 
 def write_msa(taxon_names, msa, msa_path, deleted_rows=[], deleted_cols=[]):
@@ -90,8 +93,16 @@ def run_command(cmd):
     for line in p.stdout:
         print(line.decode(), end ='') # process line here
     #p = subprocess.run(cmd.split(), stdout=subprocess.PIPE, check=True)
+    p.wait()
     retcode = p.returncode
-    return (retcode == 0)
+
+    print("retcode: " + str(retcode))
+    if (retcode != 0):
+        print("Found a bug!!! Use this command to reproduce:")
+        print(cmd)
+        sys.exit()
+
+    return retcode
 
 def run_on_subsampled_data(taxon_names, msa, model, name, prange, deleted_rows, deleted_cols, msa_path, partitions_path, output_path):
     n_taxa = len(taxon_names)
@@ -102,8 +113,9 @@ def run_on_subsampled_data(taxon_names, msa, model, name, prange, deleted_rows, 
     return run_command(cmd)
 
 def subsample(n_taxa, n_cols, fraction_taxa, fraction_cols):
-    n_del_taxa = int(float(n_taxa) * fraction_taxa)
-    n_del_cols = int(float(n_cols) * fraction_cols)
+    n_del_taxa = int(n_taxa - float(n_taxa) * fraction_taxa)
+    n_del_cols = int(n_cols - float(n_cols) * fraction_cols)
+
     # rows are indexed starting from 0, cols are indexed starting from 1 here!
     all_rows = [i for i in range(n_taxa)]
     all_cols = [i+1 for i in range(n_cols)]
@@ -121,21 +133,31 @@ def search_bug_step(taxon_names, msa, model, name, prange, fraction_taxa, fracti
     output_path = "sampled_output_" + identifier + ".txt"
 
     deleted_rows, deleted_cols = subsample(n_taxa, n_cols, fraction_taxa, fraction_cols)
-    if (not run_on_subsampled_data(taxon_names, msa, model, name, prange, deleted_rows, deleted_cols, msa_path, partitions_path, output_path)):
-        print("Found a bug")
-        return True
-    else:
-        print("Found no bug")
-        return False
+
+    return run_on_subsampled_data(taxon_names, msa, model, name, prange, deleted_rows, deleted_cols, msa_path, partitions_path, output_path)
 
 def search_bug(taxon_names, msa, model, name, prange):
+    n_taxa = len(taxon_names)
+    n_cols = prange[-1][1]
     it = 0
-    taxon_fractions = [0.01, 0.1, 0.5, 1.0]
-    msa_fractions = [0.01, 0.1, 0.5]
+    taxon_fractions = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+    msa_fractions = [0.01, 0.1, 0.25, 0.5, 0.75, 1.0]
+
+    retcode = 0
+
     for fraction_taxa in taxon_fractions:
+        n_subsampled_taxa = int(float(n_taxa) * fraction_taxa)
+        if n_subsampled_taxa < MIN_N_TAXA:
+            continue
         for fraction_cols in msa_fractions:
-            search_bug_step(taxon_names, msa, model, name, prange, fraction_taxa, fraction_cols, it)
+            n_subsampled_cols = int(float(n_cols) * fraction_cols)
+            if n_subsampled_cols < MIN_MSA_SIZE:
+                 continue
+            retcode = search_bug_step(taxon_names, msa, model, name, prange, fraction_taxa, fraction_cols, it)
             it += 1
+        if retcode != 0:
+            print("We think a bug was found")
+            break
 
 if __name__ == "__main__":
     print("original command:")
