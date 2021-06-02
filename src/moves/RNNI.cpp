@@ -47,7 +47,8 @@ bool checkSanityRNNI(AnnotatedNetwork &ann_network, const Move &move) {
         ann_network.network.nodes_by_index[move.rnniData.s_clv_index],
         ann_network.network.nodes_by_index[move.rnniData.u_clv_index]));
   if (good)
-    good &= (hasNeighbor(
+    good &= (hasChild(
+        ann_network.network,
         ann_network.network.nodes_by_index[move.rnniData.u_clv_index],
         ann_network.network.nodes_by_index[move.rnniData.v_clv_index]));
   if (good)

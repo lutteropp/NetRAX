@@ -186,7 +186,7 @@ double performMovePrefilter(AnnotatedNetwork &ann_network, Move &move,
     optimizeReticulationProbs(ann_network);
     std::unordered_set<size_t> brlenopt_candidates;
     brlenopt_candidates.emplace(move.arcInsertionData.wanted_uv_pmatrix_index);
-    optimizeBranchesCandidates(ann_network, brlenopt_candidates);
+    optimizeBranchesCandidates(ann_network, brlenopt_candidates, 2.0 / RAXML_BRLEN_SMOOTHINGS); // two iterations max
     updateMoveBranchLengths(ann_network, move);
     switchLikelihoodVariant(ann_network, LikelihoodVariant::SARAH_PSEUDO);
   }
