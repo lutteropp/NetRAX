@@ -93,7 +93,7 @@ def run_command(cmd):
     print(cmd)
     p = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
     for line in p.stdout:
-        print(line.decode(), end='')
+        print(line.decode())
     p.wait()
     retcode = p.returncode
 
