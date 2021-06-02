@@ -371,7 +371,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index,
       if (ParallelContext::master_rank() && ParallelContext::master_thread) {
         std::cout << exportDebugInfo(ann_network) << "\n";
         ann_network.cached_logl_valid = false;
-        computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index, true);
+        computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index, 1, true);
         std::cout << "old_logl: " << old_logl << "\n";
         std::cout << "brlenopt_logl: " << brlenopt_logl << "\n";
         std::cout << "problem occurred while optimizing branch "
