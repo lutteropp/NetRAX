@@ -6,7 +6,7 @@ ORIG_PARTITIONS = "data/datasets_40t_4r_small/0_0_partitions.txt"
 ORIG_OUTPUT = "data/datasets_40t_4r_small/0_0_BEST_LINKED_FROM_RAXML_inferred_network.nw"
 
 def build_command(msa_path, partitions_path, output_path):
-    return "mpiexec ../bin/netrax --msa " + msa_path + " --output " + output_path + " --model " + partitions_path + " --best_displayed_tree_variant --start_network data/datasets_40t_4r_small/0_0.raxml.bestTree --brlen linked --seed 42 --judge data/datasets_40t_4r_small/0_0_true_network.nw"
+    return "mpiexec ../bin/netrax --msa " + msa_path + " --output " + output_path + " --model " + partitions_path + " --best_displayed_tree_variant --num_random_start_networks 0 --num_parsimony_start_networks 1 --brlen linked --seed 42"
 
 def orig_command():
     return build_command(ORIG_MSA, ORIG_PARTITIONS, ORIG_OUTPUT)
