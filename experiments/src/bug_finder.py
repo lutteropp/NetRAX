@@ -13,18 +13,22 @@ A script that subsamples a partitioned MSA, trying to find a smaller dataset tha
 
 """
 
-ORIG_MSA = "data/datasets_40t_4r_small/0_0_msa.txt"
-ORIG_PARTITIONS = "data/datasets_40t_4r_small/0_0_partitions.txt"
-ORIG_OUTPUT = "data/datasets_40t_4r_small/0_0_BEST_LINKED_FROM_RAXML_inferred_network.nw"
+ORIG_MSA = "sampled_msa_12_1200_0.fasta"
+ORIG_MSA_FORMAT="fasta"
+ORIG_PARTITIONS = "sampled_partitions_12_1200_0.txt"
 
-MIN_MSA_SIZE = 100
+MIN_MSA_SIZE = 165
 MIN_N_TAXA = 4
+
+TAXON_FRACTIONS = [1.0]
+MSA_FRACTIONS = [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+ITERATIONS = 1
 
 def build_command(msa_path, partitions_path, output_path):
     return "mpiexec ../bin/netrax --msa " + msa_path + " --output " + output_path + " --model " + partitions_path + " --best_displayed_tree_variant --num_random_start_networks 0 --num_parsimony_start_networks 1 --brlen linked --seed 42"
 
 def orig_command():
-    return build_command(ORIG_MSA, ORIG_PARTITIONS, ORIG_OUTPUT)
+    return build_command(ORIG_MSA, ORIG_PARTITIONS, "original_output")
 
 def trimmed_seq(orig_seq, deleted_cols):
     l = list(orig_seq)
@@ -41,10 +45,10 @@ def write_msa(taxon_names, msa, msa_path, deleted_rows=[], deleted_cols=[]):
             f.write(trimmed_seq(msa[i], deleted_cols) + "\n")
         f.close()
 
-def parse_msa(msa_path):
+def parse_msa(msa_path, format):
     taxon_names = []
     msa = []
-    alignment = AlignIO.read(open(msa_path), "phylip")
+    alignment = AlignIO.read(open(msa_path), format)
     for record in alignment:
         taxon_names.append(record.id)
         msa.append(record.seq)
@@ -152,21 +156,18 @@ def search_bug_step(taxon_names, msa, model, name, prange, fraction_taxa, fracti
 def search_bug(taxon_names, msa, model, name, prange):
     n_taxa = len(taxon_names)
     n_cols = prange[-1][1]
-    taxon_fractions = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-    msa_fractions = [0.01, 0.1, 0.25, 0.5, 0.75, 1.0]
-    iterations = 3
 
     retcode = 0
 
-    for fraction_taxa in taxon_fractions:
-        n_subsampled_taxa = int(float(n_taxa) * fraction_taxa)
-        if n_subsampled_taxa < MIN_N_TAXA:
-            continue
-        for fraction_cols in msa_fractions:
-            n_subsampled_cols = int(float(n_cols) * fraction_cols)
-            if n_subsampled_cols < MIN_MSA_SIZE:
-                 continue
-            for it in range(iterations):
+    for fraction_cols in MSA_FRACTIONS:
+        n_subsampled_cols = int(float(n_cols) * fraction_cols)
+        if n_subsampled_cols < MIN_MSA_SIZE:
+                continue
+        for fraction_taxa in TAXON_FRACTIONS:
+            n_subsampled_taxa = int(float(n_taxa) * fraction_taxa)
+            if n_subsampled_taxa < MIN_N_TAXA:
+                continue
+            for it in range(ITERATIONS):
                 retcode = search_bug_step(taxon_names, msa, model, name, prange, fraction_taxa, fraction_cols, it)
                 if retcode !=0:
                     break
@@ -177,6 +178,6 @@ def search_bug(taxon_names, msa, model, name, prange):
 if __name__ == "__main__":
     print("original command:")
     print(orig_command() + "\n")
-    taxon_names, msa = parse_msa(ORIG_MSA)
+    taxon_names, msa = parse_msa(ORIG_MSA, ORIG_MSA_FORMAT)
     model, name, prange = parse_partitions(ORIG_PARTITIONS)
     search_bug(taxon_names, msa, model, name, prange)
