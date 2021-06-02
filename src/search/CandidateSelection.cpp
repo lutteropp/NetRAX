@@ -821,10 +821,9 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
           updateOldCandidates(ann_network, chosenMove, candidates);
         }
       } else {
-        /*for (size_t i = 0; i < takenRemovals.size(); ++i) {
+        for (size_t i = 0; i < takenRemovals.size(); ++i) {
           updateOldCandidates(ann_network, takenRemovals[i], candidates);
-        }*/
-        candidates.clear();
+        }
       }
       removeBadCandidates(ann_network, candidates);
 
