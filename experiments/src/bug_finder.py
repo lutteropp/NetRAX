@@ -1,5 +1,6 @@
 
 import subprocess
+import random
 
 ORIG_MSA = "data/datasets_40t_4r_small/0_0_msa.txt"
 ORIG_PARTITIONS = "data/datasets_40t_4r_small/0_0_partitions.txt"
@@ -53,28 +54,28 @@ def trimmed_ranges(orig_ranges, deleted_cols):
         trimmed_ranges.append(current_start - n_before_start, current_end - n_before_end)
     return trimmed_ranges
 
-def write_partitions(model, name, range, partitions_path):
+def write_partitions(model, name, prange, partitions_path):
     with open(partitions_path, 'w') as f:
         for i in range(len(model)):
-            if (range[i][0] <= range[i][1]):
-                f.write(model[i] + "," + name[i] + "=" + str(range[i][0]) + "-" + str(range[i][1]))
+            if (prange[i][0] <= prange[i][1]):
+                f.write(model[i] + "," + name[i] + "=" + str(prange[i][0]) + "-" + str(prange[i][1]))
         f.close()
 
 def parse_partitions(partitions_path):
     model = []
     name = []
-    range = []
+    prange = []
     with open(partitions_path) as f:
         lines = f.readlines().split()
         for line in lines:
             model.append(line.split(',')[0])
             name.append(line.split(',')[1].split('=')[0])
-            range.append(int(line.split(',')[1].split('=')[1].split('-')[0]), int(line.split(',')[1].split('=')[1].split('-')[1]))
-    return (model, name, range)
+            prange.append(int(line.split(',')[1].split('=')[1].split('-')[0]), int(line.split(',')[1].split('=')[1].split('-')[1]))
+    return (model, name, prange)
 
-def write_data(taxon_names, msa, model, name, range, deleted_rows, deleted_cols, msa_path, partitions_path):
+def write_data(taxon_names, msa, model, name, prange, deleted_rows, deleted_cols, msa_path, partitions_path):
     write_msa(taxon_names, msa, msa_path, deleted_rows, deleted_cols)
-    write_partitions(model, name, trimmed_ranges(range, deleted_cols), partitions_path)
+    write_partitions(model, name, trimmed_ranges(prange, deleted_cols), partitions_path)
     
 def run_command(cmd):
     print(cmd)
@@ -85,7 +86,47 @@ def run_command(cmd):
         print(cmd_output)
     return (retcode == 0)
 
-def run_on_subsampled_data(taxon_names, msa, model, name, range, deleted_rows, deleted_cols, msa_path, partitions_path, output_path):
-    write_data(taxon_names, msa, model, name, range, deleted_rows, deleted_cols, msa_path, partitions_path)
+def run_on_subsampled_data(taxon_names, msa, model, name, prange, deleted_rows, deleted_cols, msa_path, partitions_path, output_path):
+    write_data(taxon_names, msa, model, name, prange, deleted_rows, deleted_cols, msa_path, partitions_path)
     cmd = build_command(msa_path, partitions_path, output_path)
     return run_command(cmd)
+
+def subsample(n_taxa, n_cols, fraction_taxa, fraction_cols):
+    n_del_taxa = int(float(n_taxa) * fraction_taxa)
+    n_del_cols = int(float(n_cols) * fraction_cols)
+    # rows are indexed starting from 0, cols are indexed starting from 1 here!
+    all_rows = [i for i in range(n_taxa)]
+    all_cols = [i+1 for i in range(n_cols)]
+    deleted_rows = random.sample(all_rows, n_del_taxa)
+    deleted_cols = random.sample(all_cols, n_del_cols)
+    return deleted_rows, deleted_cols
+
+def search_bug_step(taxon_names, msa, model, name, prange, fraction_taxa, fraction_cols, it):
+    n_taxa = len(taxon_names)
+    n_cols = prange[-1][1]
+    it = 0
+    msa_path = "sampled_msa_" + str(it) + ".fasta"
+    partitions_path = "sampled_partitions_" + str(it) + ".txt"
+    output_path = "sampled_output_" + str(it) + ".txt"
+
+    deleted_rows, deleted_cols = subsample(n_taxa, n_cols, fraction_taxa, fraction_cols)
+    if (not run_on_subsampled_data(taxon_names, msa, model, name, prange, deleted_rows, deleted_cols, msa_path, partitions_path, output_path)):
+        print("Found a bug")
+    else:
+        print("Found no bug")
+
+def search_bug(taxon_names, msa, model, name, prange):
+    it = 0
+    taxon_fractions = [0.1, 0.5, 1.0]
+    msa_fractions = [0.1, 0.5]
+    for fraction_taxa in taxon_fractions:
+        for fraction_cols in msa_fractions:
+            search_bug_step(taxon_names, msa, model, name, prange, fraction_taxa, fraction_cols, it)
+            it += 1
+
+if __name__ == "__main__":
+    print("original command:\n")
+    print(orig_command())
+    taxon_names, msa = parse_msa(ORIG_MSA)
+    model, name, prange = parse_partitions(ORIG_PARTITIONS)
+    search_bug(taxon_names, msa, model, name, prange)
