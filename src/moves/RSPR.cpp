@@ -622,7 +622,7 @@ void performMoveRSPR(AnnotatedNetwork &ann_network, Move &move) {
          move.moveType == MoveType::TailMove);
   assert(assertConsecutiveIndices(ann_network));
   Network &network = ann_network.network;
-  checkSanity(ann_network);
+  assert(checkSanity(ann_network));
   Node *x_prime = network.nodes_by_index[move.rsprData.x_prime_clv_index];
   Node *y_prime = network.nodes_by_index[move.rsprData.y_prime_clv_index];
   Node *x = network.nodes_by_index[move.rsprData.x_clv_index];
@@ -719,7 +719,7 @@ void performMoveRSPR(AnnotatedNetwork &ann_network, Move &move) {
 
   assert(assertReticulationProbs(ann_network));
   assert(assertConsecutiveIndices(ann_network));
-  checkSanity(ann_network);
+  assert(checkSanity(ann_network));
 }
 
 void undoMoveRSPR(AnnotatedNetwork &ann_network, Move &move) {
@@ -729,7 +729,7 @@ void undoMoveRSPR(AnnotatedNetwork &ann_network, Move &move) {
          move.moveType == MoveType::TailMove);
   assert(assertConsecutiveIndices(ann_network));
   Network &network = ann_network.network;
-  checkSanity(ann_network);
+  assert(checkSanity(ann_network));
   Node *x_prime = network.nodes_by_index[move.rsprData.x_prime_clv_index];
   Node *y_prime = network.nodes_by_index[move.rsprData.y_prime_clv_index];
   Node *x = network.nodes_by_index[move.rsprData.x_clv_index];
@@ -803,7 +803,7 @@ void undoMoveRSPR(AnnotatedNetwork &ann_network, Move &move) {
   ann_network.travbuffer = reversed_topological_sort(ann_network.network);
   assert(assertReticulationProbs(ann_network));
   assert(assertConsecutiveIndices(ann_network));
-  checkSanity(ann_network);
+  assert(checkSanity(ann_network));
 }
 
 std::string toStringRSPR(const Move &move) {
