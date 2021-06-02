@@ -856,6 +856,7 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
           std::cout << "no old candidates to reuse. Thus, completely gather "
                        "new ones.\n";
         }
+        tried_with_allnew = true;
         candidates = possibleMoves(ann_network, type, rspr1_present,
                                    delta_plus_present, 0, best_max_distance);
         oldCandidates.clear();
