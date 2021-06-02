@@ -45,3 +45,5 @@ src/io/stack.hh
 
 webserver/bin/*
 
+experiments/src/__pycache__/*
+

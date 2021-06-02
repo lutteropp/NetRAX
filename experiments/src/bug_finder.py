@@ -2,6 +2,7 @@
 import subprocess
 import random
 import sys
+import os
 
 from Bio import AlignIO
 
@@ -107,10 +108,19 @@ def run_command(cmd):
 def run_on_subsampled_data(taxon_names, msa, model, name, prange, deleted_rows, deleted_cols, msa_path, partitions_path, output_path):
     n_taxa = len(taxon_names)
     n_cols = prange[-1][1]
+    old_files = os.listdir()
     print("Doing subsampled run on " + str(n_taxa - len(deleted_rows)) + " taxa and " + str(n_cols - len(deleted_cols)) + " sites")
     write_data(taxon_names, msa, model, name, prange, deleted_rows, deleted_cols, msa_path, partitions_path)
     cmd = build_command(msa_path, partitions_path, output_path)
-    return run_command(cmd)
+    retcode = run_command(cmd)
+    if retcode == 0: # delete temporary files ads we don't need them anymore
+        os.remove(msa_path)
+        os.remove(partitions_path)
+        os.remove(output_path)
+        for f in os.listdir():
+            if f not in old_files:
+                os.remove(f)
+    return retcode
 
 def subsample(n_taxa, n_cols, fraction_taxa, fraction_cols):
     n_del_taxa = int(n_taxa - float(n_taxa) * fraction_taxa)
