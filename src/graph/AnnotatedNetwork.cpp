@@ -402,6 +402,7 @@ bool assertConsecutiveIndices(AnnotatedNetwork &ann_network) {
 
 bool checkSanity(AnnotatedNetwork &ann_network) {
   bool good = true;
+  good &= networkIsConnected(ann_network.network);
   good &= checkSanity(ann_network.network);
   for (size_t i = 0; i < ann_network.network.num_nodes(); ++i) {
     for (size_t i = 0;
