@@ -714,12 +714,30 @@ void performMoveArcInsertion(AnnotatedNetwork &ann_network, Move &move) {
                                   move.arcInsertionData.c_clv_index);
   Edge *a_b_edge = getEdgeTo(network, move.arcInsertionData.a_clv_index,
                              move.arcInsertionData.b_clv_index);
-  assert(move.arcInsertionData.ab_pmatrix_index == a_b_edge->pmatrix_index);
+  if (move.arcInsertionData.ab_pmatrix_index != a_b_edge->pmatrix_index) {
+    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+      std::cout << exportDebugInfo(ann_network);
+      std::cout << "move.arcInsertionData.ab_pmatrix_index: "
+                << move.arcInsertionData.ab_pmatrix_index << "\n";
+      std::cout << "a_b_edge->pmatrix_index: " << a_b_edge->pmatrix_index
+                << "\n";
+    }
+    throw std::runtime_error("invalid move data");
+  }
   assert(a_b_edge->link1);
   assert(a_b_edge->link2);
   Edge *c_d_edge = getEdgeTo(network, move.arcInsertionData.c_clv_index,
                              move.arcInsertionData.d_clv_index);
-  assert(move.arcInsertionData.cd_pmatrix_index == c_d_edge->pmatrix_index);
+  if (move.arcInsertionData.cd_pmatrix_index != c_d_edge->pmatrix_index) {
+    std::cout << exportDebugInfo(ann_network);
+    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+      std::cout << "move.arcInsertionData.cd_pmatrix_index: "
+                << move.arcInsertionData.cd_pmatrix_index << "\n";
+      std::cout << "c_d_edge->pmatrix_index: " << c_d_edge->pmatrix_index
+                << "\n";
+    }
+    throw std::runtime_error("invalid move data");
+  }
   assert(c_d_edge->link1);
   assert(c_d_edge->link2);
 
