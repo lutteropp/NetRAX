@@ -537,9 +537,6 @@ double chooseCandidate(AnnotatedNetwork &ann_network,
     /// computeLoglikelihood(ann_network, 0, 1));
 
     undoMove(ann_network, move);
-    if (move.moveType == MoveType::ArcRemovalMove) {
-      computeLoglikelihood(ann_network, 0, 1);
-    }
     ////assert(computeLoglikelihood(ann_network, 1, 1) ==
     /// computeLoglikelihood(ann_network, 0, 1));
 

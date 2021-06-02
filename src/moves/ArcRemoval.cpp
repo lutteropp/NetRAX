@@ -951,6 +951,10 @@ std::string toStringArcRemoval(const Move &move) {
   ss << "   a_b_len: " << move.arcRemovalData.a_b_len << "\n";
   ss << "  wanted cd = " << move.arcRemovalData.wanted_cd_pmatrix_index << "\n";
   ss << "   c_d_len: " << move.arcRemovalData.c_d_len << "\n";
+  ss << "  remapped_clv_indices: " << move.remapped_clv_indices << "\n";
+  ss << "  remapped_pmatrix_indices: " << move.remapped_pmatrix_indices << "\n";
+  ss << "  remapped_reticulation_indices: "
+     << move.remapped_reticulation_indices << "\n";
   return ss.str();
 }
 

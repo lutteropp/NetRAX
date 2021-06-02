@@ -3,9 +3,10 @@
 #include "../helper/Helper.hpp"
 #include "../helper/NetworkFunctions.hpp"
 #include "GeneralMoveFunctions.hpp"
+#include "../DebugPrintFunctions.hpp"
 
-#include <cassert>
 #include <algorithm>
+#include <cassert>
 
 namespace netrax {
 
@@ -650,6 +651,10 @@ std::string toStringRNNI(const Move &move) {
   ss << "  v = " << move.rnniData.v_clv_index << "\n";
   ss << "  s = " << move.rnniData.s_clv_index << "\n";
   ss << "  t = " << move.rnniData.t_clv_index << "\n";
+  ss << "  remapped_clv_indices: " << move.remapped_clv_indices << "\n";
+  ss << "  remapped_pmatrix_indices: " << move.remapped_pmatrix_indices << "\n";
+  ss << "  remapped_reticulation_indices: "
+     << move.remapped_reticulation_indices << "\n";
   return ss.str();
 }
 

@@ -4,6 +4,7 @@
 #include "../helper/Helper.hpp"
 #include "../helper/NetworkFunctions.hpp"
 #include "GeneralMoveFunctions.hpp"
+#include "../DebugPrintFunctions.hpp"
 
 namespace netrax {
 
@@ -817,6 +818,10 @@ std::string toStringRSPR(const Move &move) {
   ss << "  x = " << move.rsprData.x_clv_index << "\n";
   ss << "  y = " << move.rsprData.y_clv_index << "\n";
   ss << "  z = " << move.rsprData.z_clv_index << "\n";
+  ss << "  remapped_clv_indices: " << move.remapped_clv_indices << "\n";
+  ss << "  remapped_pmatrix_indices: " << move.remapped_pmatrix_indices << "\n";
+  ss << "  remapped_reticulation_indices: "
+     << move.remapped_reticulation_indices << "\n";
   return ss.str();
 }
 

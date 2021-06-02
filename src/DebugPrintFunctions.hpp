@@ -9,6 +9,7 @@
 
 #include <stddef.h>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <raxml-ng/main.hpp>
@@ -60,6 +61,12 @@ void printCandidates(std::vector<T> &candidates) {
     }
     std::cout << "End of candidates.\n";
   }
+}
+
+template <typename T, typename U>
+std::ostream &operator<<(std::ostream &os, const std::pair<T, U> &p) {
+  os << "(" << p.first << "," << p.second << ")";
+  return os;
 }
 
 template <typename T>

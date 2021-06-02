@@ -1002,6 +1002,10 @@ std::string toStringArcInsertion(const Move &move) {
   ss << "  wanted uv = " << move.arcInsertionData.wanted_uv_pmatrix_index
      << "\n";
   ss << "   u_v_len: " << move.arcInsertionData.u_v_len << "\n";
+  ss << "  remapped_clv_indices: " << move.remapped_clv_indices << "\n";
+  ss << "  remapped_pmatrix_indices: " << move.remapped_pmatrix_indices << "\n";
+  ss << "  remapped_reticulation_indices: "
+     << move.remapped_reticulation_indices << "\n";
   return ss.str();
 }
 
