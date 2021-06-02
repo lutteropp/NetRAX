@@ -1,6 +1,7 @@
 
 import subprocess
 import random
+import sys
 
 from Bio import AlignIO
 
@@ -85,14 +86,17 @@ def write_data(taxon_names, msa, model, name, prange, deleted_rows, deleted_cols
     
 def run_command(cmd):
     print(cmd)
-    p = subprocess.run(cmd.split(), stdout=subprocess.PIPE, check=True)
+    p = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
+    for line in p.stdout:
+        print(line.decode(), end ='') # process line here
+    #p = subprocess.run(cmd.split(), stdout=subprocess.PIPE, check=True)
     retcode = p.returncode
-    if (retcode != 0):
-        cmd_output = p.stdout.decode()
-        print(cmd_output)
     return (retcode == 0)
 
 def run_on_subsampled_data(taxon_names, msa, model, name, prange, deleted_rows, deleted_cols, msa_path, partitions_path, output_path):
+    n_taxa = len(taxon_names)
+    n_cols = prange[-1][1]
+    print("Doing subsampled run on " + str(n_taxa - len(deleted_rows)) + " taxa and " + str(n_cols - len(deleted_cols)) + " sites")
     write_data(taxon_names, msa, model, name, prange, deleted_rows, deleted_cols, msa_path, partitions_path)
     cmd = build_command(msa_path, partitions_path, output_path)
     return run_command(cmd)
@@ -134,8 +138,8 @@ def search_bug(taxon_names, msa, model, name, prange):
             it += 1
 
 if __name__ == "__main__":
-    print("original command:\n")
-    print(orig_command())
+    print("original command:")
+    print(orig_command() + "\n")
     taxon_names, msa = parse_msa(ORIG_MSA)
     model, name, prange = parse_partitions(ORIG_PARTITIONS)
     search_bug(taxon_names, msa, model, name, prange)
