@@ -2,6 +2,8 @@
 import subprocess
 import random
 
+from Bio import AlignIO
+
 """
 
 A script that subsamples a partitioned MSA, trying to find a smaller dataset that already leads to a bug.
@@ -34,16 +36,12 @@ def write_msa(taxon_names, msa, msa_path, deleted_rows=[], deleted_cols=[]):
         f.close()
 
 def parse_msa(msa_path):
-    # assumes fasta format for now
     taxon_names = []
     msa = []
-    with open(msa_path) as f:
-        lines = f.readlines()
-        for i in range(len(lines)):
-            if i % 2 == 0:
-                taxon_names.append(lines[i])
-            else:
-                msa.append(lines[i])
+    alignment = AlignIO.read(open(msa_path), "phylip")
+    for record in alignment:
+        taxon_names.append(record.id)
+        msa.append(record.seq)
     return (taxon_names, msa)
 
 def trimmed_ranges(orig_ranges, deleted_cols):
