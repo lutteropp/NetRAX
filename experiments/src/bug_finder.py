@@ -104,10 +104,11 @@ def subsample(n_taxa, n_cols, fraction_taxa, fraction_cols):
 def search_bug_step(taxon_names, msa, model, name, prange, fraction_taxa, fraction_cols, it):
     n_taxa = len(taxon_names)
     n_cols = prange[-1][1]
-    it = 0
-    msa_path = "sampled_msa_" + str(it) + ".fasta"
-    partitions_path = "sampled_partitions_" + str(it) + ".txt"
-    output_path = "sampled_output_" + str(it) + ".txt"
+
+    identifier = str(fraction_taxa).replace(".","_") + "_" + str(fraction_cols).replace(".","_") + "_" + str(it)
+    msa_path = "sampled_msa_" + identifier + ".fasta"
+    partitions_path = "sampled_partitions_" + identifier + ".txt"
+    output_path = "sampled_output_" + identifier + ".txt"
 
     deleted_rows, deleted_cols = subsample(n_taxa, n_cols, fraction_taxa, fraction_cols)
     if (not run_on_subsampled_data(taxon_names, msa, model, name, prange, deleted_rows, deleted_cols, msa_path, partitions_path, output_path)):
