@@ -134,7 +134,7 @@ void optimizeAllNonTopology(AnnotatedNetwork &ann_network,
 
   silent = false;
 
-  int max_rounds_slow = 3;
+  int max_rounds_slow = 2;
   int act_rounds_slow = 0;
 
   bool gotBetterSlow = true;
