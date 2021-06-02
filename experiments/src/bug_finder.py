@@ -62,7 +62,7 @@ def write_partitions(model, name, prange, partitions_path):
     with open(partitions_path, 'w') as f:
         for i in range(len(model)):
             if (prange[i][0] <= prange[i][1]):
-                f.write(model[i] + "," + name[i] + "=" + str(prange[i][0]) + "-" + str(prange[i][1]))
+                f.write(model[i] + "," + name[i] + "=" + str(prange[i][0]) + "-" + str(prange[i][1]) + "\n")
         f.close()
 
 def parse_partitions(partitions_path):
