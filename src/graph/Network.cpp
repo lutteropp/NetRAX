@@ -216,6 +216,13 @@ bool checkSanity(Network &network) {
       assert(link.node_clv_index == i);
     }
   }
+  // check reticulations sanity
+  for (size_t i = 0; i < network.reticulation_nodes.size(); ++i) {
+      assert(network.reticulation_nodes[i]->getReticulationData());
+      assert(network.reticulation_nodes[i]->getReticulationData()->getLinkToFirstParent());
+      assert(network.reticulation_nodes[i]->getReticulationData()->getLinkToSecondParent());
+      assert(network.reticulation_nodes[i]->getReticulationData()->getLinkToFirstParent()->outer->node_clv_index != network.reticulation_nodes[i]->getReticulationData()->getLinkToSecondParent()->outer->node_clv_index);
+  }
   return true;
 }
 
