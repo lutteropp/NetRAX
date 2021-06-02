@@ -16,6 +16,7 @@ void invalidateSingleClv(AnnotatedNetwork &ann_network,
   }
   for (size_t i = 0; i < ann_network.pernode_displayed_tree_data[clv_index].num_active_displayed_trees; ++i)  {
       ann_network.pernode_displayed_tree_data[clv_index].displayed_trees[i].clv_valid = false;
+      ann_network.pernode_displayed_tree_data[clv_index].displayed_trees[i].treeLoglData.tree_logl_valid = false;
   }
 
   // TODO: This is commented out because it broke things. Find out why it breaks
