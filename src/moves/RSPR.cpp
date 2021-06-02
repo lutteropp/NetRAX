@@ -7,6 +7,35 @@
 
 namespace netrax {
 
+bool resultingNetworkStillAcyclic(AnnotatedNetwork &ann_network,
+                                  const Move &move) {
+  bool good = true;
+  Node *x = ann_network.network.nodes_by_index[move.rsprData.x_clv_index];
+  Node *y = ann_network.network.nodes_by_index[move.rsprData.y_clv_index];
+  Node *z = ann_network.network.nodes_by_index[move.rsprData.z_clv_index];
+  Node *x_prime =
+      ann_network.network.nodes_by_index[move.rsprData.x_prime_clv_index];
+  Node *y_prime =
+      ann_network.network.nodes_by_index[move.rsprData.y_prime_clv_index];
+
+  const Node *w = nullptr;
+  auto zNeighbors = getNeighbors(ann_network.network, z);
+  assert(zNeighbors.size() == 3);
+  for (size_t j = 0; j < zNeighbors.size(); ++j) {
+    if (zNeighbors[j] != x && zNeighbors[j] != y) {
+      w = zNeighbors[j];
+      break;
+    }
+  }
+  assert(w);
+  if (z->getType() == NodeType::RETICULATION_NODE) {  // head-moving rSPR move
+    if (good) good &= (!hasPath(ann_network.network, y_prime, w));
+  } else {  // tail-moving rSPR move
+    if (good) good &= (!hasPath(ann_network.network, w, x_prime));
+  }
+  return good;
+}
+
 bool checkSanityRSPR(AnnotatedNetwork &ann_network, const Move &move) {
   bool good = true;
   good &= (move.moveType == MoveType::RSPRMove ||
@@ -45,6 +74,7 @@ bool checkSanityRSPR(AnnotatedNetwork &ann_network, const Move &move) {
   if (move.moveType == MoveType::RSPR1Move) {
     if (good) good &= ((x == y_prime) || (y == x_prime) || (y == y_prime));
   }
+  if (good) good &= resultingNetworkStillAcyclic(ann_network, move);
   return good;
 }
 
