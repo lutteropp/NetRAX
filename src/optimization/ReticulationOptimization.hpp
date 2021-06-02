@@ -1,9 +1,9 @@
 
 #pragma once
 
-#include "../graph/Network.hpp"
 #include "../NetraxOptions.hpp"
 #include "../graph/AnnotatedNetwork.hpp"
+#include "../graph/Network.hpp"
 
 #include <unordered_set>
 

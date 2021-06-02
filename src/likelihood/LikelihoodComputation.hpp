@@ -14,6 +14,7 @@
 
 namespace netrax {
 
-double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental = 1, int update_pmatrices = 1);
+double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental = 1,
+                            int update_pmatrices = 1);
 
 }

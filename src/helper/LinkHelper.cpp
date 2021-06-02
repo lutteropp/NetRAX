@@ -1,69 +1,80 @@
-#include "Helper.hpp"
 #include "../DebugPrintFunctions.hpp"
+#include "Helper.hpp"
 
-#include <stdexcept>
 #include <iostream>
+#include <stdexcept>
 
 namespace netrax {
 
-Node* getTargetNode(Network &network, const Link *link) {
-    assert(link);
-    if (network.edges_by_index[link->edge_pmatrix_index]->link1 == link) {
-        return network.nodes_by_index[network.edges_by_index[link->edge_pmatrix_index]->link2->node_clv_index];
-    } else if (network.edges_by_index[link->edge_pmatrix_index]->link2 == link) {
-        return network.nodes_by_index[network.edges_by_index[link->edge_pmatrix_index]->link1->node_clv_index];
-    } else {
-        if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-            std::cout << "Edge pmatrix index: " << link->edge_pmatrix_index << "\n";
-            std::cout << "Node clv index: " << link->node_clv_index << "\n";
-            std::cout << "Outer node clv index: " << link->outer->node_clv_index << "\n";
-            std::cout << exportDebugInfoNetwork(network) << "\n";
-        }
-        throw std::runtime_error("Something is wrong with the edge links. The link believes it belongs to an edge, but the edge believes otherwise.");
+Node *getTargetNode(Network &network, const Link *link) {
+  assert(link);
+  if (network.edges_by_index[link->edge_pmatrix_index]->link1 == link) {
+    return network
+        .nodes_by_index[network.edges_by_index[link->edge_pmatrix_index]
+                            ->link2->node_clv_index];
+  } else if (network.edges_by_index[link->edge_pmatrix_index]->link2 == link) {
+    return network
+        .nodes_by_index[network.edges_by_index[link->edge_pmatrix_index]
+                            ->link1->node_clv_index];
+  } else {
+    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+      std::cout << "Edge pmatrix index: " << link->edge_pmatrix_index << "\n";
+      std::cout << "Node clv index: " << link->node_clv_index << "\n";
+      std::cout << "Outer node clv index: " << link->outer->node_clv_index
+                << "\n";
+      std::cout << exportDebugInfoNetwork(network) << "\n";
     }
+    throw std::runtime_error(
+        "Something is wrong with the edge links. The link believes it belongs "
+        "to an edge, but the edge believes otherwise.");
+  }
 }
 
-Link* make_link(Node *node, Edge *edge, Direction dir) {
-    Link link;
-    link.init(node ? node->clv_index : 0, edge ? edge->pmatrix_index : 0, nullptr, nullptr, dir);
-    return node->addLink(link);
+Link *make_link(Node *node, Edge *edge, Direction dir) {
+  Link link;
+  link.init(node ? node->clv_index : 0, edge ? edge->pmatrix_index : 0, nullptr,
+            nullptr, dir);
+  return node->addLink(link);
 }
 
-std::vector<const Link*> getLinksToClvIndex(Network &network, const Node *node, size_t target_index) {
-    assert(node);
-    std::vector<const Link*> res;
-    for (size_t i = 0; i < node->links.size(); ++i) {
-        if (getTargetNode(network, &(node->links[i]))->clv_index == target_index) {
-            res.emplace_back(&(node->links[i]));
-        }
+std::vector<const Link *> getLinksToClvIndex(Network &network, const Node *node,
+                                             size_t target_index) {
+  assert(node);
+  std::vector<const Link *> res;
+  for (size_t i = 0; i < node->links.size(); ++i) {
+    if (getTargetNode(network, &(node->links[i]))->clv_index == target_index) {
+      res.emplace_back(&(node->links[i]));
     }
-    return res;
+  }
+  return res;
 }
 
-std::vector<Link*> getLinksToClvIndexMutable(Network &network, Node *node, size_t target_index) {
-    assert(node);
-    std::vector<Link*> res;
-    for (size_t i = 0; i < node->links.size(); ++i) {
-        if (getTargetNode(network, &(node->links[i]))->clv_index == target_index) {
-            res.emplace_back(&(node->links[i]));
-        }
+std::vector<Link *> getLinksToClvIndexMutable(Network &network, Node *node,
+                                              size_t target_index) {
+  assert(node);
+  std::vector<Link *> res;
+  for (size_t i = 0; i < node->links.size(); ++i) {
+    if (getTargetNode(network, &(node->links[i]))->clv_index == target_index) {
+      res.emplace_back(&(node->links[i]));
     }
-    return res;
+  }
+  return res;
 }
 
-Link* getLinkToNode(Network &network, Node *node, Node *target) {
-    assert(node);
-    for (size_t i = 0; i < node->links.size(); ++i) {
-        if (getTargetNode(network, &(node->links[i])) == target) {
-            return &(node->links[i]);
-        }
+Link *getLinkToNode(Network &network, Node *node, Node *target) {
+  assert(node);
+  for (size_t i = 0; i < node->links.size(); ++i) {
+    if (getTargetNode(network, &(node->links[i])) == target) {
+      return &(node->links[i]);
     }
-    throw std::runtime_error("the node is not a neighbor");
+  }
+  throw std::runtime_error("the node is not a neighbor");
 }
 
-Link* getLinkToNode(Network &network, size_t from_clv_index, size_t to_clv_index) {
-    return getLinkToNode(network, network.nodes_by_index[from_clv_index],
-            network.nodes_by_index[to_clv_index]);
+Link *getLinkToNode(Network &network, size_t from_clv_index,
+                    size_t to_clv_index) {
+  return getLinkToNode(network, network.nodes_by_index[from_clv_index],
+                       network.nodes_by_index[to_clv_index]);
 }
 
-}
+}  // namespace netrax

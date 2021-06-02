@@ -27,9 +27,10 @@ struct Network;
 struct RootedNetwork;
 struct Node;
 
-void printClv(const pllmod_treeinfo_t &treeinfo, size_t clv_index, double* clv, size_t partition_index);
-void print_clv_vector(pllmod_treeinfo_t &fake_treeinfo, size_t tree_idx, size_t partition_idx,
-        size_t clv_index);
+void printClv(const pllmod_treeinfo_t &treeinfo, size_t clv_index, double *clv,
+              size_t partition_index);
+void print_clv_vector(pllmod_treeinfo_t &fake_treeinfo, size_t tree_idx,
+                      size_t partition_idx, size_t clv_index);
 void printOperationArray(const std::vector<pll_operation_t> &ops);
 void printReticulationParents(Network &network);
 void print_brlens(AnnotatedNetwork &ann_network);
@@ -38,36 +39,38 @@ void printClvValid(AnnotatedNetwork &ann_network);
 void printReticulationFirstParents(AnnotatedNetwork &ann_network);
 
 std::string exportDebugInfoRootedNetwork(const RootedNetwork &rnetwork);
-std::string exportDebugInfo(AnnotatedNetwork &ann_network, bool with_labels = true);
+std::string exportDebugInfo(AnnotatedNetwork &ann_network,
+                            bool with_labels = true);
 std::string exportDebugInfoNetwork(Network &network, bool with_labels = true);
 
-void print_partition(AnnotatedNetwork& ann_network, pll_partition_t* partition);
-void print_treeinfo(AnnotatedNetwork& ann_network);
-void printDisplayedTrees(AnnotatedNetwork& ann_network);
-void printDisplayedTreesChoices(AnnotatedNetwork& ann_network, Node* virtualRoot);
+void print_partition(AnnotatedNetwork &ann_network, pll_partition_t *partition);
+void print_treeinfo(AnnotatedNetwork &ann_network);
+void printDisplayedTrees(AnnotatedNetwork &ann_network);
+void printDisplayedTreesChoices(AnnotatedNetwork &ann_network,
+                                Node *virtualRoot);
 
-void printAllDisplayedTreeConfigs(AnnotatedNetwork& ann_network);
-
-template <typename T>
-void printCandidates(std::vector<T>& candidates) {
-    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-        std::cout << "The candidates are:\n";
-        for (size_t i = 0; i < candidates.size(); ++i) {
-            std::cout << toStringArcRemoval(candidates[i]) << "\n";
-        }
-        std::cout << "End of candidates.\n";
-    }
-}
+void printAllDisplayedTreeConfigs(AnnotatedNetwork &ann_network);
 
 template <typename T>
-std::ostream& operator<<(std::ostream& os, const std::vector<T>& vec) {
-    for (size_t i = 0; i < vec.size(); ++i) {
-        os << vec[i];
-        if (i+1 < vec.size()) {
-            os << ", ";
-        }
+void printCandidates(std::vector<T> &candidates) {
+  if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+    std::cout << "The candidates are:\n";
+    for (size_t i = 0; i < candidates.size(); ++i) {
+      std::cout << toStringArcRemoval(candidates[i]) << "\n";
     }
-    return os;
+    std::cout << "End of candidates.\n";
+  }
 }
 
+template <typename T>
+std::ostream &operator<<(std::ostream &os, const std::vector<T> &vec) {
+  for (size_t i = 0; i < vec.size(); ++i) {
+    os << vec[i];
+    if (i + 1 < vec.size()) {
+      os << ", ";
+    }
+  }
+  return os;
 }
+
+}  // namespace netrax

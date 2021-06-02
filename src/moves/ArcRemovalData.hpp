@@ -1,138 +1,182 @@
 #pragma once
 
-#include <vector>
 #include <limits>
 #include <string>
+#include <vector>
 
 namespace netrax {
 
 struct ArcRemovalData {
-    size_t a_clv_index = 0;
-    size_t b_clv_index = 0;
-    size_t c_clv_index = 0;
-    size_t d_clv_index = 0;
-    size_t u_clv_index = 0;
-    size_t v_clv_index = 0;
+  size_t a_clv_index = 0;
+  size_t b_clv_index = 0;
+  size_t c_clv_index = 0;
+  size_t d_clv_index = 0;
+  size_t u_clv_index = 0;
+  size_t v_clv_index = 0;
 
-    std::vector<double> u_v_len = {0.0};
-    std::vector<double> c_v_len = {0.0};
-    std::vector<double> a_u_len = {1.0};
+  std::vector<double> u_v_len = {0.0};
+  std::vector<double> c_v_len = {0.0};
+  std::vector<double> a_u_len = {1.0};
 
-    size_t au_pmatrix_index = std::numeric_limits<size_t>::max();
-    size_t ub_pmatrix_index = std::numeric_limits<size_t>::max();
-    size_t cv_pmatrix_index = std::numeric_limits<size_t>::max();
-    size_t vd_pmatrix_index = std::numeric_limits<size_t>::max();
-    size_t uv_pmatrix_index = std::numeric_limits<size_t>::max();
+  size_t au_pmatrix_index = std::numeric_limits<size_t>::max();
+  size_t ub_pmatrix_index = std::numeric_limits<size_t>::max();
+  size_t cv_pmatrix_index = std::numeric_limits<size_t>::max();
+  size_t vd_pmatrix_index = std::numeric_limits<size_t>::max();
+  size_t uv_pmatrix_index = std::numeric_limits<size_t>::max();
 
-    size_t wanted_ab_pmatrix_index = std::numeric_limits<size_t>::max();
-    size_t wanted_cd_pmatrix_index = std::numeric_limits<size_t>::max();
-    std::vector<double> a_b_len = {0};
-    std::vector<double> c_d_len = {0};
+  size_t wanted_ab_pmatrix_index = std::numeric_limits<size_t>::max();
+  size_t wanted_cd_pmatrix_index = std::numeric_limits<size_t>::max();
+  std::vector<double> a_b_len = {0};
+  std::vector<double> c_d_len = {0};
 
-    std::vector<double> v_d_len = {0};
-    std::vector<double> u_b_len = {0};
+  std::vector<double> v_d_len = {0};
+  std::vector<double> u_b_len = {0};
 
+  std::string u_label;
+  std::string v_label;
+  std::string u_reticulation_label;
+  std::string v_reticulation_label;
 
-    std::string u_label;
-    std::string v_label;
-    std::string u_reticulation_label;
-    std::string v_reticulation_label;
+  ArcRemovalData() = default;
 
-    ArcRemovalData() = default;
+  ArcRemovalData(ArcRemovalData &&rhs)
+      : a_clv_index{rhs.a_clv_index},
+        b_clv_index{rhs.b_clv_index},
+        c_clv_index{rhs.c_clv_index},
+        d_clv_index{rhs.d_clv_index},
+        u_clv_index{rhs.u_clv_index},
+        v_clv_index{rhs.v_clv_index},
+        u_v_len{rhs.u_v_len},
+        c_v_len{rhs.c_v_len},
+        a_u_len{rhs.a_u_len},
+        au_pmatrix_index{rhs.au_pmatrix_index},
+        ub_pmatrix_index{rhs.ub_pmatrix_index},
+        cv_pmatrix_index{rhs.cv_pmatrix_index},
+        vd_pmatrix_index{rhs.vd_pmatrix_index},
+        uv_pmatrix_index{rhs.uv_pmatrix_index},
+        wanted_ab_pmatrix_index{rhs.wanted_ab_pmatrix_index},
+        wanted_cd_pmatrix_index{rhs.wanted_cd_pmatrix_index},
+        a_b_len{rhs.a_b_len},
+        c_d_len{rhs.c_d_len},
+        v_d_len{rhs.v_d_len},
+        u_b_len{rhs.u_b_len},
+        u_label{rhs.u_label},
+        v_label{rhs.v_label},
+        u_reticulation_label{rhs.u_reticulation_label},
+        v_reticulation_label{rhs.v_reticulation_label} {}
 
-    ArcRemovalData(ArcRemovalData&& rhs) : a_clv_index{rhs.a_clv_index}, b_clv_index{rhs.b_clv_index}, c_clv_index{rhs.c_clv_index}, d_clv_index{rhs.d_clv_index}, u_clv_index{rhs.u_clv_index}, v_clv_index{rhs.v_clv_index}, u_v_len{rhs.u_v_len}, c_v_len{rhs.c_v_len}, a_u_len{rhs.a_u_len}, au_pmatrix_index{rhs.au_pmatrix_index}, ub_pmatrix_index{rhs.ub_pmatrix_index}, cv_pmatrix_index{rhs.cv_pmatrix_index}, vd_pmatrix_index{rhs.vd_pmatrix_index}, uv_pmatrix_index{rhs.uv_pmatrix_index}, wanted_ab_pmatrix_index{rhs.wanted_ab_pmatrix_index}, wanted_cd_pmatrix_index{rhs.wanted_cd_pmatrix_index}, a_b_len{rhs.a_b_len}, c_d_len{rhs.c_d_len}, v_d_len{rhs.v_d_len}, u_b_len{rhs.u_b_len}, u_label{rhs.u_label}, v_label{rhs.v_label}, u_reticulation_label{rhs.u_reticulation_label}, v_reticulation_label{rhs.v_reticulation_label} {}
+  ArcRemovalData(const ArcRemovalData &rhs)
+      : a_clv_index{rhs.a_clv_index},
+        b_clv_index{rhs.b_clv_index},
+        c_clv_index{rhs.c_clv_index},
+        d_clv_index{rhs.d_clv_index},
+        u_clv_index{rhs.u_clv_index},
+        v_clv_index{rhs.v_clv_index},
+        u_v_len{rhs.u_v_len},
+        c_v_len{rhs.c_v_len},
+        a_u_len{rhs.a_u_len},
+        au_pmatrix_index{rhs.au_pmatrix_index},
+        ub_pmatrix_index{rhs.ub_pmatrix_index},
+        cv_pmatrix_index{rhs.cv_pmatrix_index},
+        vd_pmatrix_index{rhs.vd_pmatrix_index},
+        uv_pmatrix_index{rhs.uv_pmatrix_index},
+        wanted_ab_pmatrix_index{rhs.wanted_ab_pmatrix_index},
+        wanted_cd_pmatrix_index{rhs.wanted_cd_pmatrix_index},
+        a_b_len{rhs.a_b_len},
+        c_d_len{rhs.c_d_len},
+        v_d_len{rhs.v_d_len},
+        u_b_len{rhs.u_b_len},
+        u_label{rhs.u_label},
+        v_label{rhs.v_label},
+        u_reticulation_label{rhs.u_reticulation_label},
+        v_reticulation_label{rhs.v_reticulation_label} {}
 
-    ArcRemovalData(const ArcRemovalData& rhs) : a_clv_index{rhs.a_clv_index}, b_clv_index{rhs.b_clv_index}, c_clv_index{rhs.c_clv_index}, d_clv_index{rhs.d_clv_index}, u_clv_index{rhs.u_clv_index}, v_clv_index{rhs.v_clv_index}, u_v_len{rhs.u_v_len}, c_v_len{rhs.c_v_len}, a_u_len{rhs.a_u_len}, au_pmatrix_index{rhs.au_pmatrix_index}, ub_pmatrix_index{rhs.ub_pmatrix_index}, cv_pmatrix_index{rhs.cv_pmatrix_index}, vd_pmatrix_index{rhs.vd_pmatrix_index}, uv_pmatrix_index{rhs.uv_pmatrix_index}, wanted_ab_pmatrix_index{rhs.wanted_ab_pmatrix_index}, wanted_cd_pmatrix_index{rhs.wanted_cd_pmatrix_index}, a_b_len{rhs.a_b_len}, c_d_len{rhs.c_d_len}, v_d_len{rhs.v_d_len}, u_b_len{rhs.u_b_len}, u_label{rhs.u_label}, v_label{rhs.v_label}, u_reticulation_label{rhs.u_reticulation_label}, v_reticulation_label{rhs.v_reticulation_label} {}
-
-    ArcRemovalData& operator =(ArcRemovalData&& rhs) {
-        if (this != &rhs) {
-            a_clv_index = rhs.a_clv_index;
-            b_clv_index = rhs.b_clv_index;
-            c_clv_index = rhs.c_clv_index;
-            d_clv_index = rhs.d_clv_index;
-            u_clv_index = rhs.u_clv_index;
-            v_clv_index = rhs.v_clv_index;
-            u_v_len = rhs.u_v_len;
-            c_v_len = rhs.c_v_len;
-            a_u_len = rhs.a_u_len;
-            au_pmatrix_index = rhs.au_pmatrix_index;
-            ub_pmatrix_index = rhs.ub_pmatrix_index;
-            cv_pmatrix_index = rhs.cv_pmatrix_index;
-            vd_pmatrix_index = rhs.vd_pmatrix_index;
-            uv_pmatrix_index = rhs.uv_pmatrix_index;
-            wanted_ab_pmatrix_index = rhs.wanted_ab_pmatrix_index;
-            wanted_cd_pmatrix_index = rhs.wanted_cd_pmatrix_index;
-            a_b_len = rhs.a_b_len;
-            c_d_len = rhs.c_d_len;
-            v_d_len = rhs.v_d_len;
-            u_b_len = rhs.u_b_len;
-            u_label = rhs.u_label;
-            v_label = rhs.v_label;
-            u_reticulation_label = rhs.u_reticulation_label;
-            v_reticulation_label = rhs.v_reticulation_label;
-        }
-        return *this;
+  ArcRemovalData &operator=(ArcRemovalData &&rhs) {
+    if (this != &rhs) {
+      a_clv_index = rhs.a_clv_index;
+      b_clv_index = rhs.b_clv_index;
+      c_clv_index = rhs.c_clv_index;
+      d_clv_index = rhs.d_clv_index;
+      u_clv_index = rhs.u_clv_index;
+      v_clv_index = rhs.v_clv_index;
+      u_v_len = rhs.u_v_len;
+      c_v_len = rhs.c_v_len;
+      a_u_len = rhs.a_u_len;
+      au_pmatrix_index = rhs.au_pmatrix_index;
+      ub_pmatrix_index = rhs.ub_pmatrix_index;
+      cv_pmatrix_index = rhs.cv_pmatrix_index;
+      vd_pmatrix_index = rhs.vd_pmatrix_index;
+      uv_pmatrix_index = rhs.uv_pmatrix_index;
+      wanted_ab_pmatrix_index = rhs.wanted_ab_pmatrix_index;
+      wanted_cd_pmatrix_index = rhs.wanted_cd_pmatrix_index;
+      a_b_len = rhs.a_b_len;
+      c_d_len = rhs.c_d_len;
+      v_d_len = rhs.v_d_len;
+      u_b_len = rhs.u_b_len;
+      u_label = rhs.u_label;
+      v_label = rhs.v_label;
+      u_reticulation_label = rhs.u_reticulation_label;
+      v_reticulation_label = rhs.v_reticulation_label;
     }
+    return *this;
+  }
 
-    ArcRemovalData& operator =(const ArcRemovalData& rhs) {
-        if (this != &rhs) {
-            a_clv_index = rhs.a_clv_index;
-            b_clv_index = rhs.b_clv_index;
-            c_clv_index = rhs.c_clv_index;
-            d_clv_index = rhs.d_clv_index;
-            u_clv_index = rhs.u_clv_index;
-            v_clv_index = rhs.v_clv_index;
-            u_v_len = rhs.u_v_len;
-            c_v_len = rhs.c_v_len;
-            a_u_len = rhs.a_u_len;
-            au_pmatrix_index = rhs.au_pmatrix_index;
-            ub_pmatrix_index = rhs.ub_pmatrix_index;
-            cv_pmatrix_index = rhs.cv_pmatrix_index;
-            vd_pmatrix_index = rhs.vd_pmatrix_index;
-            uv_pmatrix_index = rhs.uv_pmatrix_index;
-            wanted_ab_pmatrix_index = rhs.wanted_ab_pmatrix_index;
-            wanted_cd_pmatrix_index = rhs.wanted_cd_pmatrix_index;
-            a_b_len = rhs.a_b_len;
-            c_d_len = rhs.c_d_len;
-            v_d_len = rhs.v_d_len;
-            u_b_len = rhs.u_b_len;
-            u_label = rhs.u_label;
-            v_label = rhs.v_label;
-            u_reticulation_label = rhs.u_reticulation_label;
-            v_reticulation_label = rhs.v_reticulation_label;
-        }
-        return *this;
+  ArcRemovalData &operator=(const ArcRemovalData &rhs) {
+    if (this != &rhs) {
+      a_clv_index = rhs.a_clv_index;
+      b_clv_index = rhs.b_clv_index;
+      c_clv_index = rhs.c_clv_index;
+      d_clv_index = rhs.d_clv_index;
+      u_clv_index = rhs.u_clv_index;
+      v_clv_index = rhs.v_clv_index;
+      u_v_len = rhs.u_v_len;
+      c_v_len = rhs.c_v_len;
+      a_u_len = rhs.a_u_len;
+      au_pmatrix_index = rhs.au_pmatrix_index;
+      ub_pmatrix_index = rhs.ub_pmatrix_index;
+      cv_pmatrix_index = rhs.cv_pmatrix_index;
+      vd_pmatrix_index = rhs.vd_pmatrix_index;
+      uv_pmatrix_index = rhs.uv_pmatrix_index;
+      wanted_ab_pmatrix_index = rhs.wanted_ab_pmatrix_index;
+      wanted_cd_pmatrix_index = rhs.wanted_cd_pmatrix_index;
+      a_b_len = rhs.a_b_len;
+      c_d_len = rhs.c_d_len;
+      v_d_len = rhs.v_d_len;
+      u_b_len = rhs.u_b_len;
+      u_label = rhs.u_label;
+      v_label = rhs.v_label;
+      u_reticulation_label = rhs.u_reticulation_label;
+      v_reticulation_label = rhs.v_reticulation_label;
     }
+    return *this;
+  }
 
-
-    bool operator==(const ArcRemovalData& rhs) const { 
-        return(
-            (this->a_clv_index == rhs.a_clv_index)
-            && (this->b_clv_index == rhs.b_clv_index)
-            && (this->c_clv_index == rhs.c_clv_index)
-            && (this->d_clv_index == rhs.d_clv_index)
+  bool operator==(const ArcRemovalData &rhs) const {
+    return ((this->a_clv_index == rhs.a_clv_index) &&
+            (this->b_clv_index == rhs.b_clv_index) &&
+            (this->c_clv_index == rhs.c_clv_index) &&
+            (this->d_clv_index == rhs.d_clv_index)
             /*&& (this->u_v_len == rhs.u_v_len)
-            && (this->c_v_len == rhs.c_v_len)
-            && (this->a_u_len == rhs.a_u_len)*/
-            && (this->u_clv_index == rhs.u_clv_index)
-            && (this->v_clv_index == rhs.v_clv_index)
-            && (this->au_pmatrix_index == rhs.au_pmatrix_index)
-            && (this->ub_pmatrix_index == rhs.ub_pmatrix_index)
-            && (this->cv_pmatrix_index == rhs.cv_pmatrix_index)
-            && (this->vd_pmatrix_index == rhs.vd_pmatrix_index)
-            && (this->uv_pmatrix_index == rhs.uv_pmatrix_index)
-            && (this->wanted_ab_pmatrix_index == rhs.wanted_ab_pmatrix_index)
-            && (this->wanted_cd_pmatrix_index == rhs.wanted_cd_pmatrix_index)
-            && (this->u_label == rhs.u_label)
-            && (this->v_label == rhs.v_label)
-            && (this->u_reticulation_label == rhs.u_reticulation_label)
-            && (this->v_reticulation_label == rhs.v_reticulation_label)
+        && (this->c_v_len == rhs.c_v_len)
+        && (this->a_u_len == rhs.a_u_len)*/
+            && (this->u_clv_index == rhs.u_clv_index) &&
+            (this->v_clv_index == rhs.v_clv_index) &&
+            (this->au_pmatrix_index == rhs.au_pmatrix_index) &&
+            (this->ub_pmatrix_index == rhs.ub_pmatrix_index) &&
+            (this->cv_pmatrix_index == rhs.cv_pmatrix_index) &&
+            (this->vd_pmatrix_index == rhs.vd_pmatrix_index) &&
+            (this->uv_pmatrix_index == rhs.uv_pmatrix_index) &&
+            (this->wanted_ab_pmatrix_index == rhs.wanted_ab_pmatrix_index) &&
+            (this->wanted_cd_pmatrix_index == rhs.wanted_cd_pmatrix_index) &&
+            (this->u_label == rhs.u_label) && (this->v_label == rhs.v_label) &&
+            (this->u_reticulation_label == rhs.u_reticulation_label) &&
+            (this->v_reticulation_label == rhs.v_reticulation_label)
             /*&& (this->a_b_len == rhs.a_b_len)
-            && (this->c_d_len == rhs.c_d_len)
-            && (this->v_d_len == rhs.v_d_len)
-            && (this->u_b_len == rhs.u_b_len)*/
-        );
-    }
+        && (this->c_d_len == rhs.c_d_len)
+        && (this->v_d_len == rhs.v_d_len)
+        && (this->u_b_len == rhs.u_b_len)*/
+    );
+  }
 };
 
-}
+}  // namespace netrax
