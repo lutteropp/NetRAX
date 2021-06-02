@@ -55,7 +55,7 @@ def trimmed_ranges(orig_ranges, deleted_cols):
         # and we need to know how many columns have been deleted before current end
         n_before_end = len([c for c in deleted_cols if c <= current_end])
         # this gives us the new partition range
-        trimmed_ranges.append(current_start - n_before_start, current_end - n_before_end)
+        trimmed_ranges.append((current_start - n_before_start, current_end - n_before_end))
     return trimmed_ranges
 
 def write_partitions(model, name, prange, partitions_path):
