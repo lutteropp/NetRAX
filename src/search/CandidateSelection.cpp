@@ -763,6 +763,8 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
 
   std::vector<Move> oldCandidates;
 
+  bool tried_with_allnew = false;
+
   bool got_better = true;
   while (got_better) {
     got_better = false;
@@ -858,6 +860,18 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
         }
       }*/
       prefilterCandidates(ann_network, candidates, silent);
+    } else {
+      if (!tried_with_allnew && !acceptedMoves.empty()) {
+        tried_with_allnew = true;
+        if (ParallelContext::master_rank() &&
+            ParallelContext::master_thread()) {
+          std::cout << "retrying with all new candidates\n";
+        }
+        candidates = possibleMoves(ann_network, type, rspr1_present,
+                                   delta_plus_present, 0, best_max_distance);
+        oldCandidates.clear();
+        got_better = true;
+      }
     }
   }
 
