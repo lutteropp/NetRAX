@@ -119,13 +119,15 @@ def search_bug_step(taxon_names, msa, model, name, prange, fraction_taxa, fracti
     deleted_rows, deleted_cols = subsample(n_taxa, n_cols, fraction_taxa, fraction_cols)
     if (not run_on_subsampled_data(taxon_names, msa, model, name, prange, deleted_rows, deleted_cols, msa_path, partitions_path, output_path)):
         print("Found a bug")
+        return True
     else:
         print("Found no bug")
+        return False
 
 def search_bug(taxon_names, msa, model, name, prange):
     it = 0
-    taxon_fractions = [0.1, 0.5, 1.0]
-    msa_fractions = [0.1, 0.5]
+    taxon_fractions = [0.01, 0.1, 0.5, 1.0]
+    msa_fractions = [0.01, 0.1, 0.5]
     for fraction_taxa in taxon_fractions:
         for fraction_cols in msa_fractions:
             search_bug_step(taxon_names, msa, model, name, prange, fraction_taxa, fraction_cols, it)
