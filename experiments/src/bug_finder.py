@@ -31,7 +31,7 @@ def write_msa(taxon_names, msa, msa_path, deleted_rows=[], deleted_cols=[]):
         for i in range(len(taxon_names)):
             if i in deleted_rows:
                 continue
-            f.write(taxon_names[i] + "\n")
+            f.write(">" + taxon_names[i] + "\n")
             f.write(trimmed_seq(msa[i], deleted_cols) + "\n")
         f.close()
 
