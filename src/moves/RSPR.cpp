@@ -33,7 +33,7 @@ bool checkSanityRSPR(AnnotatedNetwork &ann_network, const Move &move) {
   if (good) good &= (hasChild(ann_network.network, x_prime, y_prime));
 
   if (good) good &= (!hasChild(ann_network.network, x_prime, z));
-  if (good) good &= (!hasChild(ann_network.network, z, y_prime));
+  if (good) good &= (!hasChild(ann_network.network, z, x_prime));
   if (good) good &= (!hasChild(ann_network.network, x, y));
 
   if (move.moveType == MoveType::HeadMove) {
