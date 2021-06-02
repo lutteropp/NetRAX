@@ -134,6 +134,9 @@ void optimizeAllNonTopology(AnnotatedNetwork &ann_network,
 
   silent = false;
 
+  int max_rounds_slow = 3;
+  int act_rounds_slow = 0;
+
   bool gotBetterSlow = true;
 
   while (gotBetterSlow) {
@@ -201,6 +204,10 @@ void optimizeAllNonTopology(AnnotatedNetwork &ann_network,
           type == OptimizeAllNonTopologyType::SLOW) {
         gotBetterSlow = true;
       }
+    }
+    act_rounds_slow++;
+    if (act_rounds_slow >= max_rounds_slow) {
+        break;
     }
   }
   // assert(logl_stays_same(ann_network));
