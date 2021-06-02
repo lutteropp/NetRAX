@@ -796,7 +796,9 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
     double score = scoreNetwork(ann_network);
     check_score_improvement(ann_network, best_score, bestNetworkData);
     if (score < old_score) {
-      tried_with_allnew = false;
+      if (chosenMove.moveType != MoveType::INVALID) {
+        tried_with_allnew = false;
+      }
       got_better = true;
       old_score = score;
 
@@ -881,7 +883,7 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
         }
       }*/
       prefilterCandidates(ann_network, candidates, silent);
-    } else { // score did not get better
+    } else {  // score did not get better
       if (!tried_with_allnew && !acceptedMoves.empty()) {
         tried_with_allnew = true;
         if (ParallelContext::master_rank() &&
