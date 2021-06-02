@@ -1,10 +1,11 @@
-#include "Move.hpp"
+#include "RNNI.hpp"
 
 #include "../helper/Helper.hpp"
 #include "../helper/NetworkFunctions.hpp"
 #include "GeneralMoveFunctions.hpp"
 
 #include <cassert>
+#include <algorithm>
 
 namespace netrax {
 
@@ -29,10 +30,73 @@ void checkReticulationProperties(Node *notReticulation, Node *reticulation) {
   }
 }
 
+std::vector<RNNIMoveType> validMoveTypes(AnnotatedNetwork &ann_network, Node *u,
+                                         Node *v, Node *s, Node *t) {
+  std::vector<RNNIMoveType> res;
+  assert(u);
+  assert(v);
+  assert(s);
+  assert(t);
+
+  bool good = true;
+  if (good) good &= (hasNeighbor(s, u));
+  if (good) good &= (hasChild(ann_network.network, u, v));
+  if (good) good &= (hasNeighbor(v, t));
+
+  if (good) good &= (!hasNeighbor(u, t));
+  if (good) good &= (!hasNeighbor(s, v));
+
+  if (!good) {
+    return res;
+  }
+
+  if (hasChild(ann_network.network, u, s) &&
+      hasChild(ann_network.network, v, t) &&
+      !hasPath(ann_network.network, s, v)) {
+    res.emplace_back(RNNIMoveType::ONE);
+  }
+  if (hasChild(ann_network.network, u, s) &&
+      hasChild(ann_network.network, v, t) &&
+      !hasPath(ann_network.network, s, v) &&
+      (v->getType() == NodeType::RETICULATION_NODE) &&
+      (u != ann_network.network.root)) {
+    res.emplace_back(RNNIMoveType::ONE_STAR);
+  }
+  if (hasChild(ann_network.network, s, u) &&
+      hasChild(ann_network.network, t, v) &&
+      !hasPath(ann_network.network, u, t)) {
+    res.emplace_back(RNNIMoveType::TWO);
+  }
+  if (hasChild(ann_network.network, s, u) &&
+      hasChild(ann_network.network, t, v) &&
+      !hasPath(ann_network.network, u, t) &&
+      (u->getType() != NodeType::RETICULATION_NODE)) {
+    res.emplace_back(RNNIMoveType::TWO_STAR);
+  }
+  if (hasChild(ann_network.network, s, u) &&
+      hasChild(ann_network.network, v, t) &&
+      (u->getType() == NodeType::RETICULATION_NODE) &&
+      (v->getType() != NodeType::RETICULATION_NODE)) {
+    res.emplace_back(RNNIMoveType::THREE);
+  }
+  if (hasChild(ann_network.network, s, u) &&
+      hasChild(ann_network.network, v, t) &&
+      (!hasPath(ann_network.network, u, v, true))) {
+    res.emplace_back(RNNIMoveType::THREE_STAR);
+  }
+  if (hasChild(ann_network.network, u, s) &&
+      hasChild(ann_network.network, t, v) &&
+      (!hasPath(ann_network.network, s, t)) &&
+      (u != ann_network.network.root)) {
+    res.emplace_back(RNNIMoveType::FOUR);
+  }
+
+  return res;
+}
+
 bool checkSanityRNNI(AnnotatedNetwork &ann_network, const Move &move) {
   bool good = true;
   good &= (move.moveType == MoveType::RNNIMove);
-
   good &= (ann_network.network.nodes_by_index[move.rnniData.u_clv_index] !=
            nullptr);
   good &= (ann_network.network.nodes_by_index[move.rnniData.v_clv_index] !=
@@ -41,87 +105,16 @@ bool checkSanityRNNI(AnnotatedNetwork &ann_network, const Move &move) {
            nullptr);
   good &= (ann_network.network.nodes_by_index[move.rnniData.t_clv_index] !=
            nullptr);
-
-  if (good)
-    good &= (hasNeighbor(
-        ann_network.network.nodes_by_index[move.rnniData.s_clv_index],
-        ann_network.network.nodes_by_index[move.rnniData.u_clv_index]));
-  if (good)
-    good &= (hasChild(
-        ann_network.network,
-        ann_network.network.nodes_by_index[move.rnniData.u_clv_index],
-        ann_network.network.nodes_by_index[move.rnniData.v_clv_index]));
-  if (good)
-    good &= (hasNeighbor(
-        ann_network.network.nodes_by_index[move.rnniData.v_clv_index],
-        ann_network.network.nodes_by_index[move.rnniData.t_clv_index]));
-
-  if (good)
-    good &= (!hasNeighbor(
-        ann_network.network.nodes_by_index[move.rnniData.u_clv_index],
-        ann_network.network.nodes_by_index[move.rnniData.t_clv_index]));
-  if (good)
-    good &= (!hasNeighbor(
-        ann_network.network.nodes_by_index[move.rnniData.s_clv_index],
-        ann_network.network.nodes_by_index[move.rnniData.v_clv_index]));
-
-  if (move.rnniData.type == RNNIMoveType::ONE) {
-    if (good)
-      good &= (!hasPath(
-          ann_network.network,
-          ann_network.network.nodes_by_index[move.rnniData.s_clv_index],
-          ann_network.network.nodes_by_index[move.rnniData.v_clv_index]));
-  } else if (move.rnniData.type == RNNIMoveType::ONE_STAR) {
-    if (good)
-      good &= (!hasPath(
-          ann_network.network,
-          ann_network.network.nodes_by_index[move.rnniData.s_clv_index],
-          ann_network.network.nodes_by_index[move.rnniData.v_clv_index]));
-    if (good)
-      good &= (ann_network.network.nodes_by_index[move.rnniData.v_clv_index]
-                   ->getType() == NodeType::RETICULATION_NODE);
-    if (good)
-      good &= (ann_network.network.nodes_by_index[move.rnniData.u_clv_index] !=
-               ann_network.network.root);
-  } else if (move.rnniData.type == RNNIMoveType::TWO) {
-    if (good)
-      good &= (!hasPath(
-          ann_network.network,
-          ann_network.network.nodes_by_index[move.rnniData.u_clv_index],
-          ann_network.network.nodes_by_index[move.rnniData.t_clv_index]));
-  } else if (move.rnniData.type == RNNIMoveType::TWO_STAR) {
-    if (good)
-      good &= (!hasPath(
-          ann_network.network,
-          ann_network.network.nodes_by_index[move.rnniData.u_clv_index],
-          ann_network.network.nodes_by_index[move.rnniData.t_clv_index]));
-    if (good)
-      good &= (ann_network.network.nodes_by_index[move.rnniData.u_clv_index]
-                   ->getType() != NodeType::RETICULATION_NODE);
-  } else if (move.rnniData.type == RNNIMoveType::THREE) {
-    if (good)
-      good &= (ann_network.network.nodes_by_index[move.rnniData.u_clv_index]
-                   ->getType() == NodeType::RETICULATION_NODE);
-    if (good)
-      good &= (ann_network.network.nodes_by_index[move.rnniData.v_clv_index]
-                   ->getType() != NodeType::RETICULATION_NODE);
-  } else if (move.rnniData.type == RNNIMoveType::THREE_STAR) {
-    if (good)
-      good &= (!hasPath(
-          ann_network.network,
-          ann_network.network.nodes_by_index[move.rnniData.u_clv_index],
-          ann_network.network.nodes_by_index[move.rnniData.v_clv_index], true));
-  } else if (move.rnniData.type == RNNIMoveType::FOUR) {
-    if (good)
-      good &= (!hasPath(
-          ann_network.network,
-          ann_network.network.nodes_by_index[move.rnniData.s_clv_index],
-          ann_network.network.nodes_by_index[move.rnniData.t_clv_index]));
-    if (good)
-      good &= (ann_network.network.nodes_by_index[move.rnniData.u_clv_index] !=
-               ann_network.network.root);
+  if (good) {
+    Node *u = ann_network.network.nodes_by_index[move.rnniData.u_clv_index];
+    Node *v = ann_network.network.nodes_by_index[move.rnniData.v_clv_index];
+    Node *s = ann_network.network.nodes_by_index[move.rnniData.s_clv_index];
+    Node *t = ann_network.network.nodes_by_index[move.rnniData.t_clv_index];
+    std::vector<RNNIMoveType> validTypes =
+        validMoveTypes(ann_network, u, v, s, t);
+    good &= (std::find(validTypes.begin(), validTypes.end(),
+                       move.rnniData.type) != validTypes.end());
   }
-
   return good;
 }
 
@@ -607,6 +600,26 @@ bool isomorphicMoves(const Move &move1, const Move &move2) {
           std::max(s1, t1) == std::max(u2, v2));
 }
 
+void filterOutDuplicateMovesRNNI(std::vector<Move> &moves) {
+  // filter out duplicates
+  size_t cnt = 0;
+  for (size_t i = 0; i < moves.size(); ++i) {
+    assert(moves[i].moveType == MoveType::RNNIMove);
+    bool keep = true;
+    for (size_t j = 0; j < i; ++j) {
+      if (isomorphicMoves(moves[i], moves[j])) {
+        keep = false;
+        break;
+      }
+    }
+    if (keep) {
+      moves[cnt] = moves[i];
+      cnt++;
+    }
+  }
+  moves.resize(cnt);
+}
+
 std::vector<Move> possibleMovesRNNI(AnnotatedNetwork &ann_network) {
   std::vector<Move> res;
   Network &network = ann_network.network;
@@ -616,22 +629,7 @@ std::vector<Move> possibleMovesRNNI(AnnotatedNetwork &ann_network) {
     res.insert(std::end(res), std::begin(branch_moves), std::end(branch_moves));
   }
 
-  // filter out duplicates
-  size_t cnt = 0;
-  for (size_t i = 0; i < res.size(); ++i) {
-    bool keep = true;
-    for (size_t j = 0; j < i; ++j) {
-      if (isomorphicMoves(res[i], res[j])) {
-        keep = false;
-        break;
-      }
-    }
-    if (keep) {
-      res[cnt] = res[i];
-      cnt++;
-    }
-  }
-  res.resize(cnt);
+  filterOutDuplicateMovesRNNI(res);
   sortByProximity(res, ann_network);
   assert(checkSanityRNNI(ann_network, res));
   return res;

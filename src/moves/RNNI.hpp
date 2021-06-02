@@ -28,5 +28,9 @@ std::unordered_set<size_t> brlenOptCandidatesRNNI(AnnotatedNetwork &ann_network,
 std::unordered_set<size_t> brlenOptCandidatesUndoRNNI(
     AnnotatedNetwork &ann_network, const Move &move);
 Move randomMoveRNNI(AnnotatedNetwork &ann_network);
+std::vector<RNNIMoveType> validMoveTypes(AnnotatedNetwork &ann_network, Node *u,
+                                         Node *v, Node *s, Node *t);
+
+void filterOutDuplicateMovesRNNI(std::vector<Move> &moves);
 
 }  // namespace netrax

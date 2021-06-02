@@ -13,6 +13,7 @@
 #include "../optimization/BranchLengthOptimization.hpp"
 #include "../optimization/NetworkState.hpp"
 #include "../optimization/Optimization.hpp"
+#include "../moves/RNNI.hpp"
 
 namespace netrax {
 
@@ -186,7 +187,9 @@ double performMovePrefilter(AnnotatedNetwork &ann_network, Move &move,
     optimizeReticulationProbs(ann_network);
     std::unordered_set<size_t> brlenopt_candidates;
     brlenopt_candidates.emplace(move.arcInsertionData.wanted_uv_pmatrix_index);
-    optimizeBranchesCandidates(ann_network, brlenopt_candidates, 2.0 / RAXML_BRLEN_SMOOTHINGS); // two iterations max
+    optimizeBranchesCandidates(
+        ann_network, brlenopt_candidates,
+        2.0 / RAXML_BRLEN_SMOOTHINGS);  // two iterations max
     updateMoveBranchLengths(ann_network, move);
     switchLikelihoodVariant(ann_network, LikelihoodVariant::SARAH_PSEUDO);
   }
@@ -734,6 +737,26 @@ void updateOldCandidates(AnnotatedNetwork &ann_network, const Move &chosenMove,
           candidates[i], chosenMove.remapped_pmatrix_indices[j].first,
           chosenMove.remapped_pmatrix_indices[j].second, true);
     }
+  }
+
+  if (!candidates.empty() && candidates[0].moveType == MoveType::RNNIMove) {
+    std::vector<Move> newCandidates;
+    for (size_t i = 0; i < candidates.size(); ++i) {
+      Move &move = candidates[i];
+      Node *u = ann_network.network.nodes_by_index[move.rnniData.u_clv_index];
+      Node *v = ann_network.network.nodes_by_index[move.rnniData.v_clv_index];
+      Node *s = ann_network.network.nodes_by_index[move.rnniData.s_clv_index];
+      Node *t = ann_network.network.nodes_by_index[move.rnniData.t_clv_index];
+      std::vector<RNNIMoveType> validTypes =
+          validMoveTypes(ann_network, u, v, s, t);
+      for (size_t j = 0; j < validTypes.size(); ++j) {
+          Move newMove(move);
+          newMove.rnniData.type = validTypes[j];
+          newCandidates.emplace_back(newMove);
+      }
+    }
+    filterOutDuplicateMovesRNNI(newCandidates);
+    candidates = newCandidates;
   }
 }
 
