@@ -7,6 +7,7 @@ from Bio import AlignIO
 
 """
 
+Author: Sarah Lutteropp
 A script that subsamples a partitioned MSA, trying to find a smaller dataset that already leads to a bug.
 
 """
@@ -91,8 +92,7 @@ def run_command(cmd):
     print(cmd)
     p = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
     for line in p.stdout:
-        print(line.decode(), end ='') # process line here
-    #p = subprocess.run(cmd.split(), stdout=subprocess.PIPE, check=True)
+        print(line.decode(), end='')
     p.wait()
     retcode = p.returncode
 
@@ -127,7 +127,10 @@ def search_bug_step(taxon_names, msa, model, name, prange, fraction_taxa, fracti
     n_taxa = len(taxon_names)
     n_cols = prange[-1][1]
 
-    identifier = str(fraction_taxa).replace(".","_") + "_" + str(fraction_cols).replace(".","_") + "_" + str(it)
+    n_subsampled_taxa = int(float(n_taxa) * fraction_taxa)
+    n_subsampled_cols = int(float(n_cols) * fraction_cols)
+
+    identifier = str(n_subsampled_taxa) + "_" + str(n_subsampled_cols) + "_" + str(it)
     msa_path = "sampled_msa_" + identifier + ".fasta"
     partitions_path = "sampled_partitions_" + identifier + ".txt"
     output_path = "sampled_output_" + identifier + ".txt"
@@ -139,9 +142,9 @@ def search_bug_step(taxon_names, msa, model, name, prange, fraction_taxa, fracti
 def search_bug(taxon_names, msa, model, name, prange):
     n_taxa = len(taxon_names)
     n_cols = prange[-1][1]
-    it = 0
     taxon_fractions = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
     msa_fractions = [0.01, 0.1, 0.25, 0.5, 0.75, 1.0]
+    iterations = 3
 
     retcode = 0
 
@@ -153,8 +156,10 @@ def search_bug(taxon_names, msa, model, name, prange):
             n_subsampled_cols = int(float(n_cols) * fraction_cols)
             if n_subsampled_cols < MIN_MSA_SIZE:
                  continue
-            retcode = search_bug_step(taxon_names, msa, model, name, prange, fraction_taxa, fraction_cols, it)
-            it += 1
+            for it in range(iterations):
+                retcode = search_bug_step(taxon_names, msa, model, name, prange, fraction_taxa, fraction_cols, it)
+                if retcode !=0:
+                    break
         if retcode != 0:
             print("We think a bug was found")
             break
