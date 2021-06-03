@@ -925,6 +925,7 @@ void undoMoveArcInsertion(AnnotatedNetwork &ann_network, Move &move) {
       ann_network, move.arcInsertionData.a_clv_index,
       move.arcInsertionData.b_clv_index, move.arcInsertionData.c_clv_index,
       move.arcInsertionData.d_clv_index, u->clv_index, v->clv_index,
+      getReticulationFirstParent(ann_network.network, v)->clv_index,
       move.arcInsertionData.u_v_len, move.arcInsertionData.c_v_len,
       move.arcInsertionData.a_u_len, move.arcInsertionData.a_b_len,
       move.arcInsertionData.c_d_len, move.arcInsertionData.v_d_len,

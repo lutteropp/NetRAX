@@ -46,7 +46,7 @@ Move randomMoveDeltaMinus(AnnotatedNetwork &ann_network);
 Move buildMoveArcRemoval(
     AnnotatedNetwork &ann_network, size_t a_clv_index, size_t b_clv_index,
     size_t c_clv_index, size_t d_clv_index, size_t u_clv_index,
-    size_t v_clv_index, std::vector<double> &u_v_len,
+    size_t v_clv_index, size_t v_first_parent_clv_index, std::vector<double> &u_v_len,
     std::vector<double> &c_v_len, std::vector<double> &a_u_len,
     std::vector<double> &a_b_len, std::vector<double> &c_d_len,
     std::vector<double> &v_d_len, std::vector<double> &u_b_len,

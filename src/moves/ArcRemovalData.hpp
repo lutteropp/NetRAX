@@ -13,6 +13,7 @@ struct ArcRemovalData {
   size_t d_clv_index = 0;
   size_t u_clv_index = 0;
   size_t v_clv_index = 0;
+  size_t v_first_parent_clv_index = 0;
 
   std::vector<double> u_v_len = {0.0};
   std::vector<double> c_v_len = {0.0};
@@ -46,6 +47,7 @@ struct ArcRemovalData {
         d_clv_index{rhs.d_clv_index},
         u_clv_index{rhs.u_clv_index},
         v_clv_index{rhs.v_clv_index},
+        v_first_parent_clv_index{rhs.v_first_parent_clv_index},
         u_v_len{rhs.u_v_len},
         c_v_len{rhs.c_v_len},
         a_u_len{rhs.a_u_len},
@@ -72,6 +74,7 @@ struct ArcRemovalData {
         d_clv_index{rhs.d_clv_index},
         u_clv_index{rhs.u_clv_index},
         v_clv_index{rhs.v_clv_index},
+        v_first_parent_clv_index{rhs.v_first_parent_clv_index},
         u_v_len{rhs.u_v_len},
         c_v_len{rhs.c_v_len},
         a_u_len{rhs.a_u_len},
@@ -99,6 +102,7 @@ struct ArcRemovalData {
       d_clv_index = rhs.d_clv_index;
       u_clv_index = rhs.u_clv_index;
       v_clv_index = rhs.v_clv_index;
+      v_first_parent_clv_index = rhs.v_first_parent_clv_index;
       u_v_len = rhs.u_v_len;
       c_v_len = rhs.c_v_len;
       a_u_len = rhs.a_u_len;
@@ -129,6 +133,7 @@ struct ArcRemovalData {
       d_clv_index = rhs.d_clv_index;
       u_clv_index = rhs.u_clv_index;
       v_clv_index = rhs.v_clv_index;
+      v_first_parent_clv_index = rhs.v_first_parent_clv_index;
       u_v_len = rhs.u_v_len;
       c_v_len = rhs.c_v_len;
       a_u_len = rhs.a_u_len;
@@ -161,6 +166,7 @@ struct ArcRemovalData {
         && (this->a_u_len == rhs.a_u_len)*/
             && (this->u_clv_index == rhs.u_clv_index) &&
             (this->v_clv_index == rhs.v_clv_index) &&
+            (this->v_first_parent_clv_index == rhs.v_first_parent_clv_index) &&
             (this->au_pmatrix_index == rhs.au_pmatrix_index) &&
             (this->ub_pmatrix_index == rhs.ub_pmatrix_index) &&
             (this->cv_pmatrix_index == rhs.cv_pmatrix_index) &&

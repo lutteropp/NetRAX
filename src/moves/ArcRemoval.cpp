@@ -183,7 +183,7 @@ void updateMovePmatrixIndex(Move &move, size_t old_pmatrix_index,
 Move buildMoveArcRemoval(
     AnnotatedNetwork &ann_network, size_t a_clv_index, size_t b_clv_index,
     size_t c_clv_index, size_t d_clv_index, size_t u_clv_index,
-    size_t v_clv_index, std::vector<double> &u_v_len,
+    size_t v_clv_index, size_t v_first_parent_clv_index, std::vector<double> &u_v_len,
     std::vector<double> &c_v_len, std::vector<double> &a_u_len,
     std::vector<double> &a_b_len, std::vector<double> &c_d_len,
     std::vector<double> &v_d_len, std::vector<double> &u_b_len,
@@ -195,6 +195,7 @@ Move buildMoveArcRemoval(
   move.arcRemovalData.d_clv_index = d_clv_index;
   move.arcRemovalData.u_clv_index = u_clv_index;
   move.arcRemovalData.v_clv_index = v_clv_index;
+  move.arcRemovalData.v_first_parent_clv_index = v_first_parent_clv_index;
 
   move.arcRemovalData.u_v_len = u_v_len;
   for (size_t i = 0; i < u_v_len.size(); ++i) {
@@ -319,7 +320,7 @@ std::vector<Move> possibleMovesArcRemoval(AnnotatedNetwork &ann_network,
 
     Move move = buildMoveArcRemoval(
         ann_network, a->clv_index, b->clv_index, c->clv_index, d->clv_index,
-        u->clv_index, v->clv_index, u_v_len, c_v_len, a_u_len, a_b_len, c_d_len,
+        u->clv_index, v->clv_index, getReticulationFirstParent(ann_network.network, v)->clv_index, u_v_len, c_v_len, a_u_len, a_b_len, c_d_len,
         v_d_len, u_b_len, moveType, edge_orig_idx, v->clv_index);
 
     move.arcRemovalData.au_pmatrix_index =
@@ -494,6 +495,12 @@ void updateMoveClvIndexArcRemoval(Move &move, size_t old_clv_index,
     move.arcRemovalData.v_clv_index = new_clv_index;
   } else if (move.arcRemovalData.v_clv_index == new_clv_index) {
     move.arcRemovalData.v_clv_index = old_clv_index;
+  }
+
+  if (move.arcRemovalData.v_first_parent_clv_index == old_clv_index) {
+    move.arcRemovalData.v_first_parent_clv_index = new_clv_index;
+  } else if (move.arcRemovalData.v_first_parent_clv_index == new_clv_index) {
+    move.arcRemovalData.v_first_parent_clv_index = old_clv_index;
   }
 }
 
@@ -922,6 +929,14 @@ void undoMoveArcRemoval(AnnotatedNetwork &ann_network, Move &move) {
         ->label = move.arcRemovalData.v_reticulation_label;
   }
 
+  Node* v = ann_network.network.nodes_by_index[move.arcRemovalData.v_clv_index];
+  assert(v);
+  assert(v->getType() == NodeType::RETICULATION_NODE);
+  if (getReticulationFirstParent(ann_network.network, v)->clv_index != move.arcRemovalData.v_first_parent_clv_index) {
+    assert(getReticulationSecondParent(ann_network.network, v)->clv_index == move.arcRemovalData.v_first_parent_clv_index);
+    std::swap(v->getReticulationData()->link_to_first_parent, v->getReticulationData()->link_to_second_parent);
+  }
+
   checkSanity(ann_network.network);
 }
 
@@ -934,6 +949,7 @@ std::string toStringArcRemoval(const Move &move) {
   ss << "  d = " << move.arcRemovalData.d_clv_index << "\n";
   ss << "  u = " << move.arcRemovalData.u_clv_index << "\n";
   ss << "  v = " << move.arcRemovalData.v_clv_index << "\n";
+  ss << "  v_first_parent_clv_index = " << move.arcRemovalData.v_first_parent_clv_index << "\n";
   ss << "  au = " << move.arcRemovalData.au_pmatrix_index << "\n";
   ss << "   a_u_len: " << move.arcRemovalData.a_u_len << "\n";
   ss << "  cv = " << move.arcRemovalData.cv_pmatrix_index << "\n";
