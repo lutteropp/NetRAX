@@ -730,36 +730,36 @@ void recollectFirstParents(Network &network, std::vector<Move> &candidates) {
       Node *s = network.nodes_by_index[move.rnniData.s_clv_index];
       Node *t = network.nodes_by_index[move.rnniData.t_clv_index];
 
-      if (u->getType() == NodeType::RETICULATION_NODE) {
+      if (u && u->getType() == NodeType::RETICULATION_NODE) {
         move.rnniData.u_first_parent_clv_index =
             getReticulationFirstParent(network, u)->clv_index;
       }
-      if (v->getType() == NodeType::RETICULATION_NODE) {
+      if (v && v->getType() == NodeType::RETICULATION_NODE) {
         move.rnniData.v_first_parent_clv_index =
             getReticulationFirstParent(network, v)->clv_index;
       }
-      if (s->getType() == NodeType::RETICULATION_NODE) {
+      if (s && s->getType() == NodeType::RETICULATION_NODE) {
         move.rnniData.s_first_parent_clv_index =
             getReticulationFirstParent(network, s)->clv_index;
       }
-      if (t->getType() == NodeType::RETICULATION_NODE) {
+      if (t && t->getType() == NodeType::RETICULATION_NODE) {
         move.rnniData.t_first_parent_clv_index =
             getReticulationFirstParent(network, t)->clv_index;
       }
     } else if (isArcInsertion(move.moveType)) {
       Node *b = network.nodes_by_index[move.arcInsertionData.b_clv_index];
       Node *d = network.nodes_by_index[move.arcInsertionData.d_clv_index];
-      if (b->getType() == NodeType::RETICULATION_NODE) {
+      if (b && b->getType() == NodeType::RETICULATION_NODE) {
         move.arcInsertionData.b_first_parent_clv_index =
             getReticulationFirstParent(network, b)->clv_index;
       }
-      if (d->getType() == NodeType::RETICULATION_NODE) {
+      if (d && d->getType() == NodeType::RETICULATION_NODE) {
         move.arcInsertionData.d_first_parent_clv_index =
             getReticulationFirstParent(network, d)->clv_index;
       }
     } else if (isArcRemoval(move.moveType)) {
       Node *v = network.nodes_by_index[move.arcRemovalData.v_clv_index];
-      if (v->getType() == NodeType::RETICULATION_NODE) {
+      if (v && v->getType() == NodeType::RETICULATION_NODE) {
         move.arcRemovalData.v_first_parent_clv_index =
             getReticulationFirstParent(network, v)->clv_index;
       }
@@ -767,15 +767,15 @@ void recollectFirstParents(Network &network, std::vector<Move> &candidates) {
       Node *y_prime = network.nodes_by_index[move.rsprData.y_prime_clv_index];
       Node *y = network.nodes_by_index[move.rsprData.y_clv_index];
       Node *z = network.nodes_by_index[move.rsprData.z_clv_index];
-      if (y_prime->getType() == NodeType::RETICULATION_NODE) {
+      if (y_prime && y_prime->getType() == NodeType::RETICULATION_NODE) {
         move.rsprData.y_prime_first_parent_clv_index =
             getReticulationFirstParent(network, y_prime)->clv_index;
       }
-      if (y->getType() == NodeType::RETICULATION_NODE) {
+      if (y && y->getType() == NodeType::RETICULATION_NODE) {
         move.rsprData.y_first_parent_clv_index =
             getReticulationFirstParent(network, y)->clv_index;
       }
-      if (z->getType() == NodeType::RETICULATION_NODE) {
+      if (z && z->getType() == NodeType::RETICULATION_NODE) {
         move.rsprData.z_first_parent_clv_index =
             getReticulationFirstParent(network, z)->clv_index;
       }
