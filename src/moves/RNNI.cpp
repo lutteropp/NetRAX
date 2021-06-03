@@ -818,4 +818,15 @@ void updateMoveClvIndexRNNI(Move &move, size_t old_clv_index,
   }
 }
 
+void updateMovePmatrixIndexRNNI(Move &move, size_t old_pmatrix_index,
+                                        size_t new_pmatrix_index, bool undo) {
+  if (old_pmatrix_index == new_pmatrix_index) {
+    return;
+  }
+  if (!undo) {
+    move.remapped_pmatrix_indices.emplace_back(
+        std::make_pair(old_pmatrix_index, new_pmatrix_index));
+  }
+}
+
 }  // namespace netrax

@@ -462,6 +462,12 @@ void updateMovePmatrixIndex(Move &move, size_t old_pmatrix_index,
   } else if (isArcRemoval(move.moveType)) {
     updateMovePmatrixIndexArcRemoval(move, old_pmatrix_index, new_pmatrix_index,
                                      undo);
+  } else if (move.moveType == MoveType::RNNIMove) {
+    updateMovePmatrixIndexRNNI(move, old_pmatrix_index, new_pmatrix_index,
+                               undo);
+  } else if (isRSPR(move.moveType)) {
+    updateMovePmatrixIndexRSPR(move, old_pmatrix_index, new_pmatrix_index,
+                               undo);
   } else {
     throw std::runtime_error("unexpected move type");
   }

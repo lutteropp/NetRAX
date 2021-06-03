@@ -98,5 +98,7 @@ Move randomMoveHead(AnnotatedNetwork &ann_network);
 
 void updateMoveClvIndexRSPR(Move &move, size_t old_clv_index,
                             size_t new_clv_index, bool undo);
+void updateMovePmatrixIndexRSPR(Move &move, size_t old_pmatrix_index,
+                                size_t new_pmatrix_index, bool undo);
 
 }  // namespace netrax

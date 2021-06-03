@@ -862,9 +862,12 @@ std::string toStringRSPR(const Move &move) {
   ss << "  x = " << move.rsprData.x_clv_index << "\n";
   ss << "  y = " << move.rsprData.y_clv_index << "\n";
   ss << "  z = " << move.rsprData.z_clv_index << "\n";
-  ss << "  y_prime_first_parent_clv_index = " << move.rsprData.y_prime_first_parent_clv_index << "\n";
-  ss << "  y_first_parent_clv_index = " << move.rsprData.y_first_parent_clv_index << "\n";
-  ss << "  z_first_parent_clv_index = " << move.rsprData.z_first_parent_clv_index << "\n";
+  ss << "  y_prime_first_parent_clv_index = "
+     << move.rsprData.y_prime_first_parent_clv_index << "\n";
+  ss << "  y_first_parent_clv_index = "
+     << move.rsprData.y_first_parent_clv_index << "\n";
+  ss << "  z_first_parent_clv_index = "
+     << move.rsprData.z_first_parent_clv_index << "\n";
   ss << "  remapped_clv_indices: " << move.remapped_clv_indices << "\n";
   ss << "  remapped_pmatrix_indices: " << move.remapped_pmatrix_indices << "\n";
   ss << "  remapped_reticulation_indices: "
@@ -1025,6 +1028,17 @@ void updateMoveClvIndexRSPR(Move &move, size_t old_clv_index,
     move.rsprData.z_first_parent_clv_index = new_clv_index;
   } else if (move.rsprData.z_first_parent_clv_index == new_clv_index) {
     move.rsprData.z_first_parent_clv_index = old_clv_index;
+  }
+}
+
+void updateMovePmatrixIndexRSPR(Move &move, size_t old_pmatrix_index,
+                                size_t new_pmatrix_index, bool undo) {
+  if (old_pmatrix_index == new_pmatrix_index) {
+    return;
+  }
+  if (!undo) {
+    move.remapped_pmatrix_indices.emplace_back(
+        std::make_pair(old_pmatrix_index, new_pmatrix_index));
   }
 }
 

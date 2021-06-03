@@ -35,4 +35,7 @@ void filterOutDuplicateMovesRNNI(std::vector<Move> &moves);
 void updateMoveClvIndexRNNI(Move &move, size_t old_clv_index,
                             size_t new_clv_index, bool undo);
 
+void updateMovePmatrixIndexRNNI(Move &move, size_t old_pmatrix_index,
+                                size_t new_pmatrix_index, bool undo);
+
 }  // namespace netrax
