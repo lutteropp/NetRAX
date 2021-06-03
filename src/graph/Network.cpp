@@ -222,6 +222,9 @@ bool checkSanity(Network &network) {
       assert(network.reticulation_nodes[i]->getReticulationData()->getLinkToFirstParent());
       assert(network.reticulation_nodes[i]->getReticulationData()->getLinkToSecondParent());
       assert(network.reticulation_nodes[i]->getReticulationData()->getLinkToFirstParent()->outer->node_clv_index != network.reticulation_nodes[i]->getReticulationData()->getLinkToSecondParent()->outer->node_clv_index);
+      assert(network.reticulation_nodes[i]->getReticulationData()->getLinkToFirstParent()->direction == Direction::INCOMING);
+      assert(network.reticulation_nodes[i]->getReticulationData()->getLinkToSecondParent()->direction == Direction::INCOMING);
+      assert(network.reticulation_nodes[i]->getReticulationData()->getLinkToChild()->direction == Direction::OUTGOING);
   }
   
   return true;

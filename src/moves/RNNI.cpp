@@ -532,23 +532,6 @@ bool assertAfterMove(Network &network, const Move &move) {
   return true;
 }
 
-void repairReticulationData(Network& network) {
-  for (size_t i = 0; i < network.num_reticulations(); ++i) {
-    assert(network.reticulation_nodes[i]->getType() == NodeType::RETICULATION_NODE);
-    ReticulationData* retData = network.reticulation_nodes[i]->getReticulationData().get();
-    if (retData->link_to_child->direction == Direction::INCOMING) {
-      if (retData->link_to_first_parent->direction == Direction::OUTGOING) {
-        std::swap(retData->link_to_child, retData->link_to_first_parent);
-      } else if (retData->link_to_second_parent->direction == Direction::OUTGOING) {
-        std::swap(retData->link_to_child, retData->link_to_second_parent);
-      }
-    }
-    assert(retData->link_to_child->direction == Direction::OUTGOING);
-    assert(retData->link_to_first_parent->direction == Direction::INCOMING);
-    assert(retData->link_to_second_parent->direction == Direction::INCOMING);
-  }
-}
-
 void performMoveRNNI(AnnotatedNetwork &ann_network, Move &move) {
   assert(checkSanityRNNI(ann_network, move));
   assert(move.moveType == MoveType::RNNIMove);

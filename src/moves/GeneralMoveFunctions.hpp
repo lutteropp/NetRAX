@@ -78,4 +78,6 @@ void removeNode(AnnotatedNetwork &ann_network, Move &move, Node *node,
 void removeEdge(AnnotatedNetwork &ann_network, Move &move, Edge *edge,
                 bool undo);
 
+void repairReticulationData(Network& network);
+
 }  // namespace netrax
