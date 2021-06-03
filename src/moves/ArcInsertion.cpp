@@ -72,6 +72,22 @@ Move buildMoveArcInsertion(
   move.arcInsertionData.b_clv_index = b_clv_index;
   move.arcInsertionData.c_clv_index = c_clv_index;
   move.arcInsertionData.d_clv_index = d_clv_index;
+  if (ann_network.network.nodes_by_index[b_clv_index]->getType() ==
+      NodeType::RETICULATION_NODE) {
+    move.arcInsertionData.b_first_parent_clv_index =
+        getReticulationFirstParent(
+            ann_network.network,
+            ann_network.network.nodes_by_index[b_clv_index])
+            ->clv_index;
+  }
+  if (ann_network.network.nodes_by_index[d_clv_index]->getType() ==
+      NodeType::RETICULATION_NODE) {
+    move.arcInsertionData.d_first_parent_clv_index =
+        getReticulationFirstParent(
+            ann_network.network,
+            ann_network.network.nodes_by_index[d_clv_index])
+            ->clv_index;
+  }
 
   move.arcInsertionData.u_v_len = u_v_len;
   for (size_t i = 0; i < u_v_len.size(); ++i) {
@@ -674,6 +690,16 @@ void updateMoveClvIndexArcInsertion(Move &move, size_t old_clv_index,
   } else if (move.arcInsertionData.d_clv_index == new_clv_index) {
     move.arcInsertionData.d_clv_index = old_clv_index;
   }
+  if (move.arcInsertionData.b_first_parent_clv_index == old_clv_index) {
+    move.arcInsertionData.b_first_parent_clv_index = new_clv_index;
+  } else if (move.arcInsertionData.b_first_parent_clv_index == new_clv_index) {
+    move.arcInsertionData.b_first_parent_clv_index = old_clv_index;
+  }
+  if (move.arcInsertionData.d_first_parent_clv_index == old_clv_index) {
+    move.arcInsertionData.d_first_parent_clv_index = new_clv_index;
+  } else if (move.arcInsertionData.d_first_parent_clv_index == new_clv_index) {
+    move.arcInsertionData.d_first_parent_clv_index = old_clv_index;
+  }
 }
 
 void updateMovePmatrixIndexArcInsertion(Move &move, size_t old_pmatrix_index,
@@ -963,6 +989,25 @@ void undoMoveArcInsertion(AnnotatedNetwork &ann_network, Move &move) {
                      move.remapped_pmatrix_indices[i].second, true);
   }
 
+  if (b->getType() == NodeType::RETICULATION_NODE) {
+    if (getReticulationFirstParent(network, b)->clv_index !=
+        move.arcInsertionData.b_first_parent_clv_index) {
+      assert(getReticulationSecondParent(network, b)->clv_index ==
+             move.arcInsertionData.b_first_parent_clv_index);
+      std::swap(b->getReticulationData()->link_to_first_parent,
+                b->getReticulationData()->link_to_second_parent);
+    }
+  }
+  if (d->getType() == NodeType::RETICULATION_NODE) {
+    if (getReticulationFirstParent(network, d)->clv_index !=
+        move.arcInsertionData.d_first_parent_clv_index) {
+      assert(getReticulationSecondParent(network, d)->clv_index ==
+             move.arcInsertionData.d_first_parent_clv_index);
+      std::swap(d->getReticulationData()->link_to_first_parent,
+                d->getReticulationData()->link_to_second_parent);
+    }
+  }
+
   assert(assertConsecutiveIndices(ann_network));
   assert(assertBranchLengths(ann_network));
 }
@@ -974,6 +1019,10 @@ std::string toStringArcInsertion(const Move &move) {
   ss << "  b = " << move.arcInsertionData.b_clv_index << "\n";
   ss << "  c = " << move.arcInsertionData.c_clv_index << "\n";
   ss << "  d = " << move.arcInsertionData.d_clv_index << "\n";
+  ss << "  b_first_parent_clv_index = "
+     << move.arcInsertionData.b_first_parent_clv_index << "\n";
+  ss << "  d_first_parent_clv_index = "
+     << move.arcInsertionData.d_first_parent_clv_index << "\n";
   ss << "  wanted u = " << move.arcInsertionData.wanted_u_clv_index << "\n";
   ss << "  wanted v = " << move.arcInsertionData.wanted_v_clv_index << "\n";
   ss << "  ab = " << move.arcInsertionData.ab_pmatrix_index << "\n";

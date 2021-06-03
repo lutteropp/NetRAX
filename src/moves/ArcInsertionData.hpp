@@ -6,10 +6,13 @@
 namespace netrax {
 
 struct ArcInsertionData {
-  size_t a_clv_index = 0;
-  size_t b_clv_index = 0;
-  size_t c_clv_index = 0;
-  size_t d_clv_index = 0;
+  size_t a_clv_index = std::numeric_limits<size_t>::max();
+  size_t b_clv_index = std::numeric_limits<size_t>::max();
+  size_t c_clv_index = std::numeric_limits<size_t>::max();
+  size_t d_clv_index = std::numeric_limits<size_t>::max();
+
+  size_t b_first_parent_clv_index = std::numeric_limits<size_t>::max();
+  size_t d_first_parent_clv_index = std::numeric_limits<size_t>::max();
 
   std::vector<double> u_v_len = {1.0};
   std::vector<double> c_v_len = {1.0};
@@ -38,6 +41,8 @@ struct ArcInsertionData {
         b_clv_index{rhs.b_clv_index},
         c_clv_index{rhs.c_clv_index},
         d_clv_index{rhs.d_clv_index},
+        b_first_parent_clv_index{rhs.b_first_parent_clv_index},
+        d_first_parent_clv_index{rhs.d_first_parent_clv_index},
         u_v_len{rhs.u_v_len},
         c_v_len{rhs.c_v_len},
         a_u_len{rhs.a_u_len},
@@ -60,6 +65,8 @@ struct ArcInsertionData {
         b_clv_index{rhs.b_clv_index},
         c_clv_index{rhs.c_clv_index},
         d_clv_index{rhs.d_clv_index},
+        b_first_parent_clv_index{rhs.b_first_parent_clv_index},
+        d_first_parent_clv_index{rhs.d_first_parent_clv_index},
         u_v_len{rhs.u_v_len},
         c_v_len{rhs.c_v_len},
         a_u_len{rhs.a_u_len},
@@ -83,6 +90,8 @@ struct ArcInsertionData {
       b_clv_index = rhs.b_clv_index;
       c_clv_index = rhs.c_clv_index;
       d_clv_index = rhs.d_clv_index;
+      b_first_parent_clv_index = rhs.b_first_parent_clv_index;
+      d_first_parent_clv_index = rhs.d_first_parent_clv_index;
       u_v_len = rhs.u_v_len;
       c_v_len = rhs.c_v_len;
       a_u_len = rhs.a_u_len;
@@ -109,6 +118,8 @@ struct ArcInsertionData {
       b_clv_index = rhs.b_clv_index;
       c_clv_index = rhs.c_clv_index;
       d_clv_index = rhs.d_clv_index;
+      b_first_parent_clv_index = rhs.b_first_parent_clv_index;
+      d_first_parent_clv_index = rhs.d_first_parent_clv_index;
       u_v_len = rhs.u_v_len;
       c_v_len = rhs.c_v_len;
       a_u_len = rhs.a_u_len;
@@ -133,7 +144,9 @@ struct ArcInsertionData {
     return ((this->a_clv_index == rhs.a_clv_index) &&
             (this->b_clv_index == rhs.b_clv_index) &&
             (this->c_clv_index == rhs.c_clv_index) &&
-            (this->d_clv_index == rhs.d_clv_index)
+            (this->d_clv_index == rhs.d_clv_index) &&
+            (this->b_first_parent_clv_index == rhs.b_first_parent_clv_index) &&
+            (this->d_first_parent_clv_index == rhs.d_first_parent_clv_index)
             /*&& (this->u_v_len == rhs.u_v_len)
         && (this->c_v_len == rhs.c_v_len)
         && (this->a_u_len == rhs.a_u_len)*/
