@@ -102,10 +102,10 @@ std::vector<std::pair<const Node *, const Node *>> getZYChoices(
   return res;
 }
 
-Move buildMoveRSPR(size_t x_prime_clv_index, size_t y_prime_clv_index,
-                   size_t x_clv_index, size_t y_clv_index, size_t z_clv_index,
-                   MoveType moveType, size_t edge_orig_idx,
-                   size_t node_orig_idx) {
+Move buildMoveRSPR(Network &network, size_t x_prime_clv_index,
+                   size_t y_prime_clv_index, size_t x_clv_index,
+                   size_t y_clv_index, size_t z_clv_index, MoveType moveType,
+                   size_t edge_orig_idx, size_t node_orig_idx) {
   Move move = Move(moveType, edge_orig_idx, node_orig_idx);
   move.rsprData.x_prime_clv_index = x_prime_clv_index;
   move.rsprData.y_prime_clv_index = y_prime_clv_index;
@@ -113,6 +113,26 @@ Move buildMoveRSPR(size_t x_prime_clv_index, size_t y_prime_clv_index,
   move.rsprData.y_clv_index = y_clv_index;
   move.rsprData.z_clv_index = z_clv_index;
   move.moveType = moveType;
+
+  if (network.nodes_by_index[y_prime_clv_index]->getType() ==
+      NodeType::RETICULATION_NODE) {
+    move.rsprData.y_prime_first_parent_clv_index =
+        getReticulationFirstParent(network,
+                                   network.nodes_by_index[y_prime_clv_index])
+            ->clv_index;
+  }
+  if (network.nodes_by_index[y_clv_index]->getType() ==
+      NodeType::RETICULATION_NODE) {
+    move.rsprData.y_first_parent_clv_index =
+        getReticulationFirstParent(network, network.nodes_by_index[y_clv_index])
+            ->clv_index;
+  }
+  if (network.nodes_by_index[z_clv_index]->getType() ==
+      NodeType::RETICULATION_NODE) {
+    move.rsprData.z_first_parent_clv_index =
+        getReticulationFirstParent(network, network.nodes_by_index[z_clv_index])
+            ->clv_index;
+  }
   return move;
 }
 
@@ -159,9 +179,9 @@ void possibleMovesRSPRInternal(
 
     if (z->type == NodeType::RETICULATION_NODE) {  // head-moving rSPR move
       if (!hasPath(network, y_prime, w)) {
-        Move move = buildMoveRSPR(x_prime->clv_index, y_prime->clv_index,
-                                  x->clv_index, y->clv_index, z->clv_index,
-                                  moveType, edge_orig_idx, node_orig_idx);
+        Move move = buildMoveRSPR(
+            network, x_prime->clv_index, y_prime->clv_index, x->clv_index,
+            y->clv_index, z->clv_index, moveType, edge_orig_idx, node_orig_idx);
         move.rsprData.x_z_len = get_edge_lengths(
             ann_network, getEdgeTo(network, x, z)->pmatrix_index);
         move.rsprData.z_y_len = get_edge_lengths(
@@ -174,9 +194,9 @@ void possibleMovesRSPRInternal(
       }
     } else {  // tail-moving rSPR move
       if (!hasPath(network, w, x_prime)) {
-        Move move = buildMoveRSPR(x_prime->clv_index, y_prime->clv_index,
-                                  x->clv_index, y->clv_index, z->clv_index,
-                                  moveType, edge_orig_idx, node_orig_idx);
+        Move move = buildMoveRSPR(
+            network, x_prime->clv_index, y_prime->clv_index, x->clv_index,
+            y->clv_index, z->clv_index, moveType, edge_orig_idx, node_orig_idx);
         move.rsprData.x_z_len = get_edge_lengths(
             ann_network, getEdgeTo(network, x, z)->pmatrix_index);
         move.rsprData.z_y_len = get_edge_lengths(
@@ -245,7 +265,7 @@ void possibleMovesRSPRInternalNode(
 
       size_t edge_orig_idx =
           getEdgeTo(network, x_prime, y_prime)->pmatrix_index;
-      Move move = buildMoveRSPR(x_prime->clv_index, y_prime->clv_index,
+      Move move = buildMoveRSPR(network, x_prime->clv_index, y_prime->clv_index,
                                 x->clv_index, y->clv_index, z->clv_index,
                                 moveType, edge_orig_idx, node_orig_idx);
       move.rsprData.x_z_len = get_edge_lengths(
@@ -789,6 +809,34 @@ void undoMoveRSPR(AnnotatedNetwork &ann_network, Move &move) {
   set_edge_lengths(ann_network, x_z_edge->pmatrix_index, x_z_len);
   set_edge_lengths(ann_network, z_y_edge->pmatrix_index, z_y_len);
 
+  if (y_prime->getType() == NodeType::RETICULATION_NODE) {
+    if (getReticulationFirstParent(network, y_prime)->clv_index !=
+        move.rsprData.y_prime_first_parent_clv_index) {
+      assert(getReticulationSecondParent(network, y_prime)->clv_index ==
+             move.rsprData.y_prime_first_parent_clv_index);
+      std::swap(y_prime->getReticulationData()->link_to_first_parent,
+                y_prime->getReticulationData()->link_to_second_parent);
+    }
+  }
+  if (y->getType() == NodeType::RETICULATION_NODE) {
+    if (getReticulationFirstParent(network, y)->clv_index !=
+        move.rsprData.y_first_parent_clv_index) {
+      assert(getReticulationSecondParent(network, y)->clv_index ==
+             move.rsprData.y_first_parent_clv_index);
+      std::swap(y->getReticulationData()->link_to_first_parent,
+                y->getReticulationData()->link_to_second_parent);
+    }
+  }
+  if (z->getType() == NodeType::RETICULATION_NODE) {
+    if (getReticulationFirstParent(network, z)->clv_index !=
+        move.rsprData.z_first_parent_clv_index) {
+      assert(getReticulationSecondParent(network, z)->clv_index ==
+             move.rsprData.z_first_parent_clv_index);
+      std::swap(z->getReticulationData()->link_to_first_parent,
+                z->getReticulationData()->link_to_second_parent);
+    }
+  }
+
   std::vector<bool> visited(network.nodes.size(), false);
   invalidateHigherCLVs(ann_network, z, false, visited);
   invalidateHigherCLVs(ann_network, x, false, visited);
@@ -814,6 +862,9 @@ std::string toStringRSPR(const Move &move) {
   ss << "  x = " << move.rsprData.x_clv_index << "\n";
   ss << "  y = " << move.rsprData.y_clv_index << "\n";
   ss << "  z = " << move.rsprData.z_clv_index << "\n";
+  ss << "  y_prime_first_parent_clv_index = " << move.rsprData.y_prime_first_parent_clv_index << "\n";
+  ss << "  y_first_parent_clv_index = " << move.rsprData.y_first_parent_clv_index << "\n";
+  ss << "  z_first_parent_clv_index = " << move.rsprData.z_first_parent_clv_index << "\n";
   ss << "  remapped_clv_indices: " << move.remapped_clv_indices << "\n";
   ss << "  remapped_pmatrix_indices: " << move.remapped_pmatrix_indices << "\n";
   ss << "  remapped_reticulation_indices: "
@@ -959,6 +1010,21 @@ void updateMoveClvIndexRSPR(Move &move, size_t old_clv_index,
     move.rsprData.y_prime_clv_index = new_clv_index;
   } else if (move.rsprData.y_prime_clv_index == new_clv_index) {
     move.rsprData.y_prime_clv_index = old_clv_index;
+  }
+  if (move.rsprData.y_prime_first_parent_clv_index == old_clv_index) {
+    move.rsprData.y_prime_first_parent_clv_index = new_clv_index;
+  } else if (move.rsprData.y_prime_first_parent_clv_index == new_clv_index) {
+    move.rsprData.y_prime_first_parent_clv_index = old_clv_index;
+  }
+  if (move.rsprData.y_first_parent_clv_index == old_clv_index) {
+    move.rsprData.y_first_parent_clv_index = new_clv_index;
+  } else if (move.rsprData.y_first_parent_clv_index == new_clv_index) {
+    move.rsprData.y_first_parent_clv_index = old_clv_index;
+  }
+  if (move.rsprData.z_first_parent_clv_index == old_clv_index) {
+    move.rsprData.z_first_parent_clv_index = new_clv_index;
+  } else if (move.rsprData.z_first_parent_clv_index == new_clv_index) {
+    move.rsprData.z_first_parent_clv_index = old_clv_index;
   }
 }
 
