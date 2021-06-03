@@ -848,29 +848,7 @@ ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].dis
       printReticulationChoices(rcs);
   }
 }*/
-
-  for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
-    Node *retNode = ann_network.network.reticulation_nodes[i];
-    size_t first_parent_clv_index =
-        getReticulationFirstParent(ann_network.network, retNode)->clv_index;
-    size_t second_parent_clv_index =
-        getReticulationSecondParent(ann_network.network, retNode)->clv_index;
-    if (first_parent_clv_index > second_parent_clv_index) {
-      swapClvIndex(ann_network, move, first_parent_clv_index,
-                   second_parent_clv_index);
-    }
-  }
-
-  for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
-    Node *retNode = ann_network.network.reticulation_nodes[i];
-    size_t first_parent_clv_index =
-        getReticulationFirstParent(ann_network.network, retNode)->clv_index;
-    size_t second_parent_clv_index =
-        getReticulationSecondParent(ann_network.network, retNode)->clv_index;
-    assert(first_parent_clv_index < second_parent_clv_index);
-  }
-
-  fixReticulationLinks(ann_network);
+  fixReticulationLinks(ann_network, move);
 }
 
 void undoMoveArcRemoval(AnnotatedNetwork &ann_network, Move &move) {
@@ -945,7 +923,7 @@ void undoMoveArcRemoval(AnnotatedNetwork &ann_network, Move &move) {
         ->label = move.arcRemovalData.v_reticulation_label;
   }
 
-  fixReticulationLinks(ann_network);
+  fixReticulationLinks(ann_network, move);
   checkSanity(ann_network.network);
 }
 

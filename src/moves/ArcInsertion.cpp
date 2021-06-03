@@ -877,7 +877,7 @@ void performMoveArcInsertion(AnnotatedNetwork &ann_network, Move &move) {
   invalidatePmatrixIndex(ann_network, c_v_edge->pmatrix_index, visited);
   invalidatePmatrixIndex(ann_network, u_v_edge->pmatrix_index, visited);
 
-  fixReticulationLinks(ann_network);
+  fixReticulationLinks(ann_network, move);
 
   ann_network.travbuffer = reversed_topological_sort(ann_network.network);
   checkSanity(ann_network);
@@ -969,7 +969,7 @@ void undoMoveArcInsertion(AnnotatedNetwork &ann_network, Move &move) {
                      move.remapped_pmatrix_indices[i].second, true);
   }
 
-  fixReticulationLinks(ann_network);
+  fixReticulationLinks(ann_network, move);
   assert(assertConsecutiveIndices(ann_network));
   assert(assertBranchLengths(ann_network));
 }
