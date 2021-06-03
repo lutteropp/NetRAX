@@ -540,9 +540,9 @@ void resetReticulationLinks(AnnotatedNetwork& ann_network, Move& move, Node *nod
   assert(retData->link_to_first_parent);
   assert(retData->link_to_second_parent);
   assert(retData->link_to_child);
-  assert(hasChild(ann_network.network, getReticulationFirstParent(ann_network.network, retNode), node));
-  assert(hasChild(ann_network.network, getReticulationSecondParent(ann_network.network, retNode), node));
-  assert(hasChild(ann_network.network, node, getReticulationChild(ann_network.network, retNode)));
+  assert(hasChild(ann_network.network, getReticulationFirstParent(ann_network.network, node), node));
+  assert(hasChild(ann_network.network, getReticulationSecondParent(ann_network.network, node), node));
+  assert(hasChild(ann_network.network, node, getReticulationChild(ann_network.network, node)));
 }
 
 void fixReticulationLinks(AnnotatedNetwork &ann_network, Move& move) {
