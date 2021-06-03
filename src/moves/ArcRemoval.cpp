@@ -922,7 +922,6 @@ void undoMoveArcRemoval(AnnotatedNetwork &ann_network, Move &move) {
         ->label = move.arcRemovalData.v_reticulation_label;
   }
 
-  fixReticulationLinks(ann_network);
   checkSanity(ann_network.network);
 }
 
