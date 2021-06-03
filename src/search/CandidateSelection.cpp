@@ -179,7 +179,8 @@ double performMovePrefilter(AnnotatedNetwork &ann_network, Move &move,
                             LikelihoodVariant old_variant) {
   assert(checkSanity(ann_network, move));
   performMove(ann_network, move);
-  assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+  assert(computeLoglikelihood(ann_network, 1, 1) ==
+         computeLoglikelihood(ann_network, 0, 1));
   if (move.moveType == MoveType::ArcInsertionMove ||
       move.moveType == MoveType::DeltaPlusMove) {
     switchLikelihoodVariant(ann_network, old_variant);
@@ -222,7 +223,8 @@ double prefilterCandidates(AnnotatedNetwork &ann_network,
 
   NetworkState oldState = extract_network_state(ann_network);
 
-  assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
+  assert(computeLoglikelihood(ann_network) ==
+         computeLoglikelihood(ann_network, 0, 1));
 
   for (size_t i = 0; i < candidates.size(); ++i) {
     if (print_progress) {
@@ -270,7 +272,8 @@ double prefilterCandidates(AnnotatedNetwork &ann_network,
         candidates[0] = candidates[i];
         candidates.resize(1);
         undoMove(ann_network, move);
-        assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
+        assert(computeLoglikelihood(ann_network) ==
+               computeLoglikelihood(ann_network, 0, 1));
         apply_network_state(ann_network, oldState);
         if (print_progress && ParallelContext::master_rank() &&
             ParallelContext::master_thread()) {
@@ -282,11 +285,14 @@ double prefilterCandidates(AnnotatedNetwork &ann_network,
         switchLikelihoodVariant(ann_network, LikelihoodVariant::SARAH_PSEUDO);
       }
     }
-    assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+    assert(computeLoglikelihood(ann_network, 1, 1) ==
+           computeLoglikelihood(ann_network, 0, 1));
     undoMove(ann_network, move);
-    assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+    assert(computeLoglikelihood(ann_network, 1, 1) ==
+           computeLoglikelihood(ann_network, 0, 1));
     assert(checkSanity(ann_network, candidates[i]));
-    assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
+    assert(computeLoglikelihood(ann_network) ==
+           computeLoglikelihood(ann_network, 0, 1));
     apply_network_state(ann_network, oldState);
 
     if (old_bic != scoreNetwork(ann_network)) {
@@ -299,14 +305,16 @@ double prefilterCandidates(AnnotatedNetwork &ann_network,
     }
     assert(old_bic == scoreNetwork(ann_network));
 
-    assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+    assert(computeLoglikelihood(ann_network, 1, 1) ==
+           computeLoglikelihood(ann_network, 0, 1));
 
     if (n_better >= ann_network.options.max_better_candidates) {
       scores.resize(n_better);
       break;
     }
   }
-  assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
+  assert(computeLoglikelihood(ann_network) ==
+         computeLoglikelihood(ann_network, 0, 1));
   apply_network_state(ann_network, oldState);
 
   if (print_progress && ParallelContext::master_rank() &&
@@ -377,7 +385,8 @@ void rankCandidates(AnnotatedNetwork &ann_network,
     assert(checkSanity(ann_network, move));
 
     performMove(ann_network, move);
-    assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+    assert(computeLoglikelihood(ann_network, 1, 1) ==
+           computeLoglikelihood(ann_network, 0, 1));
 
     std::unordered_set<size_t> brlen_opt_candidates =
         brlenOptCandidates(ann_network, move);
@@ -387,7 +396,8 @@ void rankCandidates(AnnotatedNetwork &ann_network,
     optimizeReticulationProbs(ann_network);
     updateMoveBranchLengths(ann_network, move);
 
-    assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+    assert(computeLoglikelihood(ann_network, 1, 1) ==
+           computeLoglikelihood(ann_network, 0, 1));
     double bicScore = scoreNetwork(ann_network);
 
     scores[i] = ScoreItem<Move>{candidates[i], bicScore};
@@ -417,12 +427,15 @@ void rankCandidates(AnnotatedNetwork &ann_network,
       return;
     }
 
-    assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+    assert(computeLoglikelihood(ann_network, 1, 1) ==
+           computeLoglikelihood(ann_network, 0, 1));
     undoMove(ann_network, move);
-    assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+    assert(computeLoglikelihood(ann_network, 1, 1) ==
+           computeLoglikelihood(ann_network, 0, 1));
     assert(checkSanity(ann_network, candidates[i]));
     apply_network_state(ann_network, oldState);
-    assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+    assert(computeLoglikelihood(ann_network, 1, 1) ==
+           computeLoglikelihood(ann_network, 0, 1));
 
     if (n_better >= ann_network.options.max_better_candidates) {
       scores.resize(n_better);
@@ -472,7 +485,8 @@ double chooseCandidate(AnnotatedNetwork &ann_network,
   int barWidth = 70;
   NetworkState oldState = extract_network_state(ann_network);
   std::vector<ScoreItem<Move>> scores(candidates.size());
-  assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+  assert(computeLoglikelihood(ann_network, 1, 1) ==
+         computeLoglikelihood(ann_network, 0, 1));
 
   for (size_t i = 0; i < candidates.size(); ++i) {
     if (print_progress) {
@@ -482,13 +496,16 @@ double chooseCandidate(AnnotatedNetwork &ann_network,
 
     assert(checkSanity(ann_network, move));
 
-    assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+    assert(computeLoglikelihood(ann_network, 1, 1) ==
+           computeLoglikelihood(ann_network, 0, 1));
     performMove(ann_network, move);
-    assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+    assert(computeLoglikelihood(ann_network, 1, 1) ==
+           computeLoglikelihood(ann_network, 0, 1));
     optimizeReticulationProbs(ann_network);
 
     optimizeBranches(ann_network);
-    assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+    assert(computeLoglikelihood(ann_network, 1, 1) ==
+           computeLoglikelihood(ann_network, 0, 1));
 
     double bicScore = scoreNetwork(ann_network);
 
@@ -516,16 +533,19 @@ double chooseCandidate(AnnotatedNetwork &ann_network,
 
     scores[i] = ScoreItem<Move>{candidates[i], bicScore};
 
-    assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+    assert(computeLoglikelihood(ann_network, 1, 1) ==
+           computeLoglikelihood(ann_network, 0, 1));
 
     undoMove(ann_network, move);
-    assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+    assert(computeLoglikelihood(ann_network, 1, 1) ==
+           computeLoglikelihood(ann_network, 0, 1));
 
     assert(checkSanity(ann_network, candidates[i]));
 
     apply_network_state(ann_network, oldState);
 
-    assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+    assert(computeLoglikelihood(ann_network, 1, 1) ==
+           computeLoglikelihood(ann_network, 0, 1));
 
     if (n_better >= ann_network.options.max_better_candidates) {
       scores.resize(n_better);
@@ -701,6 +721,68 @@ int findBestMaxDistance(AnnotatedNetwork &ann_network, MoveType type,
   return best_max_distance;
 }
 
+void recollectFirstParents(Network &network, std::vector<Move> &candidates) {
+  for (size_t i = 0; i < candidates.size(); ++i) {
+    Move &move = candidates[i];
+    if (move.moveType == MoveType::RNNIMove) {
+      Node *u = network.nodes_by_index[move.rnniData.u_clv_index];
+      Node *v = network.nodes_by_index[move.rnniData.v_clv_index];
+      Node *s = network.nodes_by_index[move.rnniData.s_clv_index];
+      Node *t = network.nodes_by_index[move.rnniData.t_clv_index];
+
+      if (u->getType() == NodeType::RETICULATION_NODE) {
+        move.rnniData.u_first_parent_clv_index =
+            getReticulationFirstParent(network, u)->clv_index;
+      }
+      if (v->getType() == NodeType::RETICULATION_NODE) {
+        move.rnniData.v_first_parent_clv_index =
+            getReticulationFirstParent(network, v)->clv_index;
+      }
+      if (s->getType() == NodeType::RETICULATION_NODE) {
+        move.rnniData.s_first_parent_clv_index =
+            getReticulationFirstParent(network, s)->clv_index;
+      }
+      if (t->getType() == NodeType::RETICULATION_NODE) {
+        move.rnniData.t_first_parent_clv_index =
+            getReticulationFirstParent(network, t)->clv_index;
+      }
+    } else if (isArcInsertion(move.moveType)) {
+      Node *b = network.nodes_by_index[move.arcInsertionData.b_clv_index];
+      Node *d = network.nodes_by_index[move.arcInsertionData.d_clv_index];
+      if (b->getType() == NodeType::RETICULATION_NODE) {
+        move.arcInsertionData.b_first_parent_clv_index =
+            getReticulationFirstParent(network, b)->clv_index;
+      }
+      if (d->getType() == NodeType::RETICULATION_NODE) {
+        move.arcInsertionData.d_first_parent_clv_index =
+            getReticulationFirstParent(network, d)->clv_index;
+      }
+    } else if (isArcRemoval(move.moveType)) {
+      Node *v = network.nodes_by_index[move.arcRemovalData.v_clv_index];
+      if (v->getType() == NodeType::RETICULATION_NODE) {
+        move.arcRemovalData.v_first_parent_clv_index =
+            getReticulationFirstParent(network, v)->clv_index;
+      }
+    } else if (isRSPR(move.moveType)) {
+      Node *y_prime = network.nodes_by_index[move.rsprData.y_prime_clv_index];
+      Node *y = network.nodes_by_index[move.rsprData.y_clv_index];
+      Node *z = network.nodes_by_index[move.rsprData.z_clv_index];
+      if (y_prime->getType() == NodeType::RETICULATION_NODE) {
+        move.rsprData.y_prime_first_parent_clv_index =
+            getReticulationFirstParent(network, y_prime)->clv_index;
+      }
+      if (y->getType() == NodeType::RETICULATION_NODE) {
+        move.rsprData.y_first_parent_clv_index =
+            getReticulationFirstParent(network, y)->clv_index;
+      }
+      if (z->getType() == NodeType::RETICULATION_NODE) {
+        move.rsprData.z_first_parent_clv_index =
+            getReticulationFirstParent(network, z)->clv_index;
+      }
+    }
+  }
+}
+
 void updateOldCandidates(AnnotatedNetwork &ann_network, const Move &chosenMove,
                          std::vector<Move> &candidates) {
   for (size_t i = 0; i < candidates.size(); ++i) {
@@ -735,6 +817,7 @@ void updateOldCandidates(AnnotatedNetwork &ann_network, const Move &chosenMove,
     filterOutDuplicateMovesRNNI(newCandidates);
     candidates = newCandidates;
   }
+  recollectFirstParents(ann_network.network, candidates);
 }
 
 std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
