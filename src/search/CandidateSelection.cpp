@@ -179,8 +179,7 @@ double performMovePrefilter(AnnotatedNetwork &ann_network, Move &move,
                             LikelihoodVariant old_variant) {
   assert(checkSanity(ann_network, move));
   performMove(ann_network, move);
-  // assert(computeLoglikelihood(ann_network, 1, 1) ==
-  // computeLoglikelihood(ann_network, 0, 1));
+  assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
   if (move.moveType == MoveType::ArcInsertionMove ||
       move.moveType == MoveType::DeltaPlusMove) {
     switchLikelihoodVariant(ann_network, old_variant);
@@ -223,8 +222,7 @@ double prefilterCandidates(AnnotatedNetwork &ann_network,
 
   NetworkState oldState = extract_network_state(ann_network);
 
-  // assert(computeLoglikelihood(ann_network) ==
-  // computeLoglikelihood(ann_network, 0, 1));
+  assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
 
   for (size_t i = 0; i < candidates.size(); ++i) {
     if (print_progress) {
@@ -272,8 +270,7 @@ double prefilterCandidates(AnnotatedNetwork &ann_network,
         candidates[0] = candidates[i];
         candidates.resize(1);
         undoMove(ann_network, move);
-        // assert(computeLoglikelihood(ann_network) ==
-        // computeLoglikelihood(ann_network, 0, 1));
+        assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
         apply_network_state(ann_network, oldState);
         if (print_progress && ParallelContext::master_rank() &&
             ParallelContext::master_thread()) {
@@ -285,14 +282,11 @@ double prefilterCandidates(AnnotatedNetwork &ann_network,
         switchLikelihoodVariant(ann_network, LikelihoodVariant::SARAH_PSEUDO);
       }
     }
-    // assert(computeLoglikelihood(ann_network, 1, 1) ==
-    // computeLoglikelihood(ann_network, 0, 1));
+    assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
     undoMove(ann_network, move);
-    // assert(computeLoglikelihood(ann_network, 1, 1) ==
-    // computeLoglikelihood(ann_network, 0, 1));
+    assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
     assert(checkSanity(ann_network, candidates[i]));
-    // assert(computeLoglikelihood(ann_network) ==
-    // computeLoglikelihood(ann_network, 0, 1));
+    assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
     apply_network_state(ann_network, oldState);
 
     if (old_bic != scoreNetwork(ann_network)) {
@@ -305,16 +299,14 @@ double prefilterCandidates(AnnotatedNetwork &ann_network,
     }
     assert(old_bic == scoreNetwork(ann_network));
 
-    // assert(computeLoglikelihood(ann_network, 1, 1) ==
-    // computeLoglikelihood(ann_network, 0, 1));
+    assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
 
     if (n_better >= ann_network.options.max_better_candidates) {
       scores.resize(n_better);
       break;
     }
   }
-  // assert(computeLoglikelihood(ann_network) ==
-  // computeLoglikelihood(ann_network, 0, 1));
+  assert(computeLoglikelihood(ann_network) == computeLoglikelihood(ann_network, 0, 1));
   apply_network_state(ann_network, oldState);
 
   if (print_progress && ParallelContext::master_rank() &&
@@ -385,8 +377,7 @@ void rankCandidates(AnnotatedNetwork &ann_network,
     assert(checkSanity(ann_network, move));
 
     performMove(ann_network, move);
-    // assert(computeLoglikelihood(ann_network, 1, 1) ==
-    // computeLoglikelihood(ann_network, 0, 1));
+    assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
 
     std::unordered_set<size_t> brlen_opt_candidates =
         brlenOptCandidates(ann_network, move);
@@ -396,8 +387,7 @@ void rankCandidates(AnnotatedNetwork &ann_network,
     optimizeReticulationProbs(ann_network);
     updateMoveBranchLengths(ann_network, move);
 
-    // assert(computeLoglikelihood(ann_network, 1, 1) ==
-    // computeLoglikelihood(ann_network, 0, 1));
+    assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
     double bicScore = scoreNetwork(ann_network);
 
     scores[i] = ScoreItem<Move>{candidates[i], bicScore};
@@ -427,15 +417,12 @@ void rankCandidates(AnnotatedNetwork &ann_network,
       return;
     }
 
-    // assert(computeLoglikelihood(ann_network, 1, 1) ==
-    // computeLoglikelihood(ann_network, 0, 1));
+    assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
     undoMove(ann_network, move);
-    // assert(computeLoglikelihood(ann_network, 1, 1) ==
-    // computeLoglikelihood(ann_network, 0, 1));
+    assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
     assert(checkSanity(ann_network, candidates[i]));
     apply_network_state(ann_network, oldState);
-    // assert(computeLoglikelihood(ann_network, 1, 1) ==
-    // computeLoglikelihood(ann_network, 0, 1));
+    assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
 
     if (n_better >= ann_network.options.max_better_candidates) {
       scores.resize(n_better);
@@ -485,8 +472,7 @@ double chooseCandidate(AnnotatedNetwork &ann_network,
   int barWidth = 70;
   NetworkState oldState = extract_network_state(ann_network);
   std::vector<ScoreItem<Move>> scores(candidates.size());
-  // assert(computeLoglikelihood(ann_network, 1, 1) ==
-  // computeLoglikelihood(ann_network, 0, 1));
+  assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
 
   for (size_t i = 0; i < candidates.size(); ++i) {
     if (print_progress) {
@@ -496,16 +482,13 @@ double chooseCandidate(AnnotatedNetwork &ann_network,
 
     assert(checkSanity(ann_network, move));
 
-    ////assert(computeLoglikelihood(ann_network, 1, 1) ==
-    /// computeLoglikelihood(ann_network, 0, 1));
+    assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
     performMove(ann_network, move);
-    ////assert(computeLoglikelihood(ann_network, 1, 1) ==
-    /// computeLoglikelihood(ann_network, 0, 1));
+    assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
     optimizeReticulationProbs(ann_network);
 
     optimizeBranches(ann_network);
-    ////assert(computeLoglikelihood(ann_network, 1, 1) ==
-    /// computeLoglikelihood(ann_network, 0, 1));
+    assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
 
     double bicScore = scoreNetwork(ann_network);
 
@@ -533,19 +516,16 @@ double chooseCandidate(AnnotatedNetwork &ann_network,
 
     scores[i] = ScoreItem<Move>{candidates[i], bicScore};
 
-    ////assert(computeLoglikelihood(ann_network, 1, 1) ==
-    /// computeLoglikelihood(ann_network, 0, 1));
+    assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
 
     undoMove(ann_network, move);
-    ////assert(computeLoglikelihood(ann_network, 1, 1) ==
-    /// computeLoglikelihood(ann_network, 0, 1));
+    assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
 
     assert(checkSanity(ann_network, candidates[i]));
 
     apply_network_state(ann_network, oldState);
 
-    ////assert(computeLoglikelihood(ann_network, 1, 1) ==
-    /// computeLoglikelihood(ann_network, 0, 1));
+    assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
 
     if (n_better >= ann_network.options.max_better_candidates) {
       scores.resize(n_better);
@@ -852,6 +832,21 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
 
       oldCandidates = candidates;
 
+      if (!hadBadReticulationAfterInsertingArc) {
+        std::vector<Node *> start_nodes =
+            gatherStartNodes(ann_network, chosenMove);
+        std::vector<Move> moreMoves =
+            possibleMoves(ann_network, type, start_nodes, rspr1_present,
+                          delta_plus_present, 0, best_max_distance);
+        if (ParallelContext::master_rank() &&
+            ParallelContext::master_thread()) {
+          std::cout << "Adding " << moreMoves.size() << " candidates to the "
+                    << candidates.size() << " previous ones.\n ";
+        }
+        candidates.insert(std::end(candidates), std::begin(moreMoves),
+                          std::end(moreMoves));
+      }
+
       if (candidates.empty()) {  // no old candidates to reuse. Thus,
         // completely gather new ones.
         if (ParallelContext::master_rank() &&
@@ -863,24 +858,6 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
         candidates = possibleMoves(ann_network, type, rspr1_present,
                                    delta_plus_present, 0, best_max_distance);
         oldCandidates.clear();
-      } else if (!hadBadReticulationAfterInsertingArc) {
-        double cand_bic = prefilterCandidates(ann_network, candidates, silent);
-        if (cand_bic >= old_score) {  // only consider more possible moves if
-                                      // the old candidates don't
-          // bring it anymore...
-          std::vector<Node *> start_nodes =
-              gatherStartNodes(ann_network, chosenMove);
-          std::vector<Move> moreMoves =
-              possibleMoves(ann_network, type, start_nodes, rspr1_present,
-                            delta_plus_present, 0, best_max_distance);
-          if (ParallelContext::master_rank() &&
-              ParallelContext::master_thread()) {
-            std::cout << "Adding " << moreMoves.size() << " candidates to the "
-                      << candidates.size() << " previous ones.\n ";
-          }
-          candidates.insert(std::end(candidates), std::begin(moreMoves),
-                            std::end(moreMoves));
-        }
       }
       prefilterCandidates(ann_network, candidates, silent);
     } else {  // score did not get better
