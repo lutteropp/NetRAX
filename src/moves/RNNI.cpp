@@ -767,4 +767,55 @@ Move randomMoveRNNI(AnnotatedNetwork &ann_network) {
   throw std::runtime_error("No random move found");
 }
 
+void updateMoveClvIndexRNNI(Move &move, size_t old_clv_index,
+                            size_t new_clv_index, bool undo) {
+  if (old_clv_index == new_clv_index) {
+    return;
+  }
+  if (!undo) {
+    move.remapped_clv_indices.emplace_back(
+        std::make_pair(old_clv_index, new_clv_index));
+  }
+  if (move.rnniData.u_clv_index == old_clv_index) {
+    move.rnniData.u_clv_index = new_clv_index;
+  } else if (move.rnniData.u_clv_index == new_clv_index) {
+    move.rnniData.u_clv_index = old_clv_index;
+  }
+  if (move.rnniData.v_clv_index == old_clv_index) {
+    move.rnniData.v_clv_index = new_clv_index;
+  } else if (move.rnniData.v_clv_index == new_clv_index) {
+    move.rnniData.v_clv_index = old_clv_index;
+  }
+  if (move.rnniData.s_clv_index == old_clv_index) {
+    move.rnniData.s_clv_index = new_clv_index;
+  } else if (move.rnniData.s_clv_index == new_clv_index) {
+    move.rnniData.s_clv_index = old_clv_index;
+  }
+  if (move.rnniData.t_clv_index == old_clv_index) {
+    move.rnniData.t_clv_index = new_clv_index;
+  } else if (move.rnniData.t_clv_index == new_clv_index) {
+    move.rnniData.t_clv_index = old_clv_index;
+  }
+  if (move.rnniData.u_first_parent_clv_index == old_clv_index) {
+    move.rnniData.u_first_parent_clv_index = new_clv_index;
+  } else if (move.rnniData.u_first_parent_clv_index == new_clv_index) {
+    move.rnniData.u_first_parent_clv_index = old_clv_index;
+  }
+  if (move.rnniData.v_first_parent_clv_index == old_clv_index) {
+    move.rnniData.v_first_parent_clv_index = new_clv_index;
+  } else if (move.rnniData.v_first_parent_clv_index == new_clv_index) {
+    move.rnniData.v_first_parent_clv_index = old_clv_index;
+  }
+  if (move.rnniData.s_first_parent_clv_index == old_clv_index) {
+    move.rnniData.s_first_parent_clv_index = new_clv_index;
+  } else if (move.rnniData.s_first_parent_clv_index == new_clv_index) {
+    move.rnniData.s_first_parent_clv_index = old_clv_index;
+  }
+  if (move.rnniData.t_first_parent_clv_index == old_clv_index) {
+    move.rnniData.t_first_parent_clv_index = new_clv_index;
+  } else if (move.rnniData.t_first_parent_clv_index == new_clv_index) {
+    move.rnniData.t_first_parent_clv_index = old_clv_index;
+  }
+}
+
 }  // namespace netrax

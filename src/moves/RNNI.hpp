@@ -32,5 +32,7 @@ std::vector<RNNIMoveType> validMoveTypes(AnnotatedNetwork &ann_network, Node *u,
                                          Node *v, Node *s, Node *t);
 
 void filterOutDuplicateMovesRNNI(std::vector<Move> &moves);
+void updateMoveClvIndexRNNI(Move &move, size_t old_clv_index,
+                            size_t new_clv_index, bool undo);
 
 }  // namespace netrax

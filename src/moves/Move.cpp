@@ -473,6 +473,10 @@ void updateMoveClvIndex(Move &move, size_t old_clv_index, size_t new_clv_index,
     updateMoveClvIndexArcInsertion(move, old_clv_index, new_clv_index, undo);
   } else if (isArcRemoval(move.moveType)) {
     updateMoveClvIndexArcRemoval(move, old_clv_index, new_clv_index, undo);
+  } else if (move.moveType == MoveType::RNNIMove) {
+    updateMoveClvIndexRNNI(move, old_clv_index, new_clv_index, undo);
+  } else if (isRSPR(move.moveType)) {
+    updateMoveClvIndexRSPR(move, old_clv_index, new_clv_index, undo);
   } else {
     throw std::runtime_error("unexpected move type");
   }

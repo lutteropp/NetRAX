@@ -1,10 +1,10 @@
 #include "RSPR.hpp"
 #include "Move.hpp"
 
+#include "../DebugPrintFunctions.hpp"
 #include "../helper/Helper.hpp"
 #include "../helper/NetworkFunctions.hpp"
 #include "GeneralMoveFunctions.hpp"
-#include "../DebugPrintFunctions.hpp"
 
 namespace netrax {
 
@@ -923,6 +923,43 @@ Move randomMoveHead(AnnotatedNetwork &ann_network) {
     }
   }
   throw std::runtime_error("No random move found");
+}
+
+void updateMoveClvIndexRSPR(Move &move, size_t old_clv_index,
+                            size_t new_clv_index, bool undo) {
+  if (old_clv_index == new_clv_index) {
+    return;
+  }
+  if (!undo) {
+    move.remapped_clv_indices.emplace_back(
+        std::make_pair(old_clv_index, new_clv_index));
+  }
+
+  if (move.rsprData.x_clv_index == old_clv_index) {
+    move.rsprData.x_clv_index = new_clv_index;
+  } else if (move.rsprData.x_clv_index == new_clv_index) {
+    move.rsprData.x_clv_index = old_clv_index;
+  }
+  if (move.rsprData.y_clv_index == old_clv_index) {
+    move.rsprData.y_clv_index = new_clv_index;
+  } else if (move.rsprData.y_clv_index == new_clv_index) {
+    move.rsprData.y_clv_index = old_clv_index;
+  }
+  if (move.rsprData.z_clv_index == old_clv_index) {
+    move.rsprData.z_clv_index = new_clv_index;
+  } else if (move.rsprData.z_clv_index == new_clv_index) {
+    move.rsprData.z_clv_index = old_clv_index;
+  }
+  if (move.rsprData.x_prime_clv_index == old_clv_index) {
+    move.rsprData.x_prime_clv_index = new_clv_index;
+  } else if (move.rsprData.x_prime_clv_index == new_clv_index) {
+    move.rsprData.x_prime_clv_index = old_clv_index;
+  }
+  if (move.rsprData.y_prime_clv_index == old_clv_index) {
+    move.rsprData.y_prime_clv_index = new_clv_index;
+  } else if (move.rsprData.y_prime_clv_index == new_clv_index) {
+    move.rsprData.y_prime_clv_index = old_clv_index;
+  }
 }
 
 }  // namespace netrax
