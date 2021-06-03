@@ -1,9 +1,9 @@
 #include "RNNI.hpp"
 
+#include "../DebugPrintFunctions.hpp"
 #include "../helper/Helper.hpp"
 #include "../helper/NetworkFunctions.hpp"
 #include "GeneralMoveFunctions.hpp"
-#include "../DebugPrintFunctions.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -127,14 +127,38 @@ bool checkSanityRNNI(AnnotatedNetwork &ann_network, std::vector<Move> &moves) {
   return sane;
 }
 
-Move buildMoveRNNI(size_t u_clv_index, size_t v_clv_index, size_t s_clv_index,
-                   size_t t_clv_index, RNNIMoveType type, size_t edge_orig_idx,
-                   size_t node_orig_idx) {
+Move buildMoveRNNI(Network &network, size_t u_clv_index, size_t v_clv_index,
+                   size_t s_clv_index, size_t t_clv_index, RNNIMoveType type,
+                   size_t edge_orig_idx, size_t node_orig_idx) {
   Move move = Move(MoveType::RNNIMove, edge_orig_idx, node_orig_idx);
   move.rnniData.u_clv_index = u_clv_index;
   move.rnniData.v_clv_index = v_clv_index;
   move.rnniData.s_clv_index = s_clv_index;
   move.rnniData.t_clv_index = t_clv_index;
+  if (network.nodes_by_index[u_clv_index]->getType() ==
+      NodeType::RETICULATION_NODE) {
+    move.rnniData.u_first_parent_clv_index =
+        getReticulationFirstParent(network, network.nodes_by_index[u_clv_index])
+            ->clv_index;
+  }
+  if (network.nodes_by_index[v_clv_index]->getType() ==
+      NodeType::RETICULATION_NODE) {
+    move.rnniData.v_first_parent_clv_index =
+        getReticulationFirstParent(network, network.nodes_by_index[v_clv_index])
+            ->clv_index;
+  }
+  if (network.nodes_by_index[s_clv_index]->getType() ==
+      NodeType::RETICULATION_NODE) {
+    move.rnniData.s_first_parent_clv_index =
+        getReticulationFirstParent(network, network.nodes_by_index[s_clv_index])
+            ->clv_index;
+  }
+  if (network.nodes_by_index[t_clv_index]->getType() ==
+      NodeType::RETICULATION_NODE) {
+    move.rnniData.t_first_parent_clv_index =
+        getReticulationFirstParent(network, network.nodes_by_index[t_clv_index])
+            ->clv_index;
+  }
   move.rnniData.type = type;
   return move;
 }
@@ -186,26 +210,26 @@ std::vector<Move> possibleMovesRNNI(AnnotatedNetwork &ann_network,
     if (isOutgoing(network, u, s) && isOutgoing(network, v, t)) {
       if (!hasPath(network, s, v)) {
         // add move 1
-        res.emplace_back(buildMoveRNNI(u->clv_index, v->clv_index, s->clv_index,
-                                       t->clv_index, RNNIMoveType::ONE,
-                                       edge_orig_idx, node_orig_idx));
+        res.emplace_back(buildMoveRNNI(
+            network, u->clv_index, v->clv_index, s->clv_index, t->clv_index,
+            RNNIMoveType::ONE, edge_orig_idx, node_orig_idx));
         if (v->type == NodeType::RETICULATION_NODE && u != network.root) {
           // add move 1*
           res.emplace_back(buildMoveRNNI(
-              u->clv_index, v->clv_index, s->clv_index, t->clv_index,
+              network, u->clv_index, v->clv_index, s->clv_index, t->clv_index,
               RNNIMoveType::ONE_STAR, edge_orig_idx, node_orig_idx));
         }
       }
     } else if (isOutgoing(network, s, u) && isOutgoing(network, t, v)) {
       if (!hasPath(network, u, t)) {
         // add move 2
-        res.emplace_back(buildMoveRNNI(u->clv_index, v->clv_index, s->clv_index,
-                                       t->clv_index, RNNIMoveType::TWO,
-                                       edge_orig_idx, node_orig_idx));
+        res.emplace_back(buildMoveRNNI(
+            network, u->clv_index, v->clv_index, s->clv_index, t->clv_index,
+            RNNIMoveType::TWO, edge_orig_idx, node_orig_idx));
         if (u->type != NodeType::RETICULATION_NODE) {
           // add move 2*
           res.emplace_back(buildMoveRNNI(
-              u->clv_index, v->clv_index, s->clv_index, t->clv_index,
+              network, u->clv_index, v->clv_index, s->clv_index, t->clv_index,
               RNNIMoveType::TWO_STAR, edge_orig_idx, node_orig_idx));
         }
       }
@@ -213,22 +237,22 @@ std::vector<Move> possibleMovesRNNI(AnnotatedNetwork &ann_network,
       if (u->type == NodeType::RETICULATION_NODE &&
           v->type != NodeType::RETICULATION_NODE) {
         // add move 3
-        res.emplace_back(buildMoveRNNI(u->clv_index, v->clv_index, s->clv_index,
-                                       t->clv_index, RNNIMoveType::THREE,
-                                       edge_orig_idx, node_orig_idx));
+        res.emplace_back(buildMoveRNNI(
+            network, u->clv_index, v->clv_index, s->clv_index, t->clv_index,
+            RNNIMoveType::THREE, edge_orig_idx, node_orig_idx));
       }
       if (!hasPath(network, u, v, true)) {
         // add move 3*
-        res.emplace_back(buildMoveRNNI(u->clv_index, v->clv_index, s->clv_index,
-                                       t->clv_index, RNNIMoveType::THREE_STAR,
-                                       edge_orig_idx, node_orig_idx));
+        res.emplace_back(buildMoveRNNI(
+            network, u->clv_index, v->clv_index, s->clv_index, t->clv_index,
+            RNNIMoveType::THREE_STAR, edge_orig_idx, node_orig_idx));
       }
     } else if (isOutgoing(network, u, s) && isOutgoing(network, t, v)) {
       if (u != network.root && !hasPath(network, s, t)) {
         // add move 4
-        res.emplace_back(buildMoveRNNI(u->clv_index, v->clv_index, s->clv_index,
-                                       t->clv_index, RNNIMoveType::FOUR,
-                                       edge_orig_idx, node_orig_idx));
+        res.emplace_back(buildMoveRNNI(
+            network, u->clv_index, v->clv_index, s->clv_index, t->clv_index,
+            RNNIMoveType::FOUR, edge_orig_idx, node_orig_idx));
       }
     }
   }
@@ -559,6 +583,44 @@ void undoMoveRNNI(AnnotatedNetwork &ann_network, Move &move) {
       move.rnniData.type == RNNIMoveType::FOUR) {
     switchReticulations(network, u, v);
   }
+
+  if (u->getType() == NodeType::RETICULATION_NODE) {
+    if (getReticulationFirstParent(network, u)->clv_index !=
+        move.rnniData.u_first_parent_clv_index) {
+      assert(getReticulationSecondParent(network, u)->clv_index ==
+             move.rnniData.u_first_parent_clv_index);
+      std::swap(u->getReticulationData()->link_to_first_parent,
+                u->getReticulationData()->link_to_second_parent);
+    }
+  }
+  if (v->getType() == NodeType::RETICULATION_NODE) {
+    if (getReticulationFirstParent(network, v)->clv_index !=
+        move.rnniData.v_first_parent_clv_index) {
+      assert(getReticulationSecondParent(network, v)->clv_index ==
+             move.rnniData.v_first_parent_clv_index);
+      std::swap(v->getReticulationData()->link_to_first_parent,
+                v->getReticulationData()->link_to_second_parent);
+    }
+  }
+  if (s->getType() == NodeType::RETICULATION_NODE) {
+    if (getReticulationFirstParent(network, s)->clv_index !=
+        move.rnniData.s_first_parent_clv_index) {
+      assert(getReticulationSecondParent(network, s)->clv_index ==
+             move.rnniData.s_first_parent_clv_index);
+      std::swap(s->getReticulationData()->link_to_first_parent,
+                s->getReticulationData()->link_to_second_parent);
+    }
+  }
+  if (t->getType() == NodeType::RETICULATION_NODE) {
+    if (getReticulationFirstParent(network, t)->clv_index !=
+        move.rnniData.t_first_parent_clv_index) {
+      assert(getReticulationSecondParent(network, t)->clv_index ==
+             move.rnniData.t_first_parent_clv_index);
+      std::swap(t->getReticulationData()->link_to_first_parent,
+                t->getReticulationData()->link_to_second_parent);
+    }
+  }
+
   assert(assertBeforeMove(network, move));
 
   std::vector<bool> visited(network.nodes.size(), false);
@@ -644,6 +706,14 @@ std::string toStringRNNI(const Move &move) {
   ss << "  v = " << move.rnniData.v_clv_index << "\n";
   ss << "  s = " << move.rnniData.s_clv_index << "\n";
   ss << "  t = " << move.rnniData.t_clv_index << "\n";
+  ss << "  u_first_parent_clv_index = "
+     << move.rnniData.u_first_parent_clv_index << "\n";
+  ss << "  v_first_parent_clv_index = "
+     << move.rnniData.v_first_parent_clv_index << "\n";
+  ss << "  s_first_parent_clv_index = "
+     << move.rnniData.s_first_parent_clv_index << "\n";
+  ss << "  t_first_parent_clv_index = "
+     << move.rnniData.t_first_parent_clv_index << "\n";
   ss << "  remapped_clv_indices: " << move.remapped_clv_indices << "\n";
   ss << "  remapped_pmatrix_indices: " << move.remapped_pmatrix_indices << "\n";
   ss << "  remapped_reticulation_indices: "
