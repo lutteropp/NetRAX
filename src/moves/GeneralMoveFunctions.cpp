@@ -510,44 +510,35 @@ void removeEdge(AnnotatedNetwork &ann_network, Move &move, Edge *edge,
   ann_network.network.branchCount--;
 }
 
-void resetReticulationLinks(AnnotatedNetwork& ann_network, Move& move, Node *node) {
+void resetReticulationLinks(Node *node) {
   assert(node);
   assert(node->type == NodeType::RETICULATION_NODE);
   auto retData = node->getReticulationData().get();
   assert(retData);
-
-  for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
-    Node *retNode = ann_network.network.reticulation_nodes[i];
-    size_t first_parent_clv_index =
-        getReticulationFirstParent(ann_network.network, retNode)->clv_index;
-    size_t second_parent_clv_index =
-        getReticulationSecondParent(ann_network.network, retNode)->clv_index;
-    if (first_parent_clv_index > second_parent_clv_index) {
-      swapClvIndex(ann_network, move, first_parent_clv_index,
-                   second_parent_clv_index);
+  retData->link_to_first_parent = nullptr;
+  retData->link_to_second_parent = nullptr;
+  retData->link_to_child = nullptr;
+  for (Link &link : node->links) {
+    if (link.direction == Direction::OUTGOING) {
+      retData->link_to_child = &link;
+    } else if (retData->link_to_first_parent == nullptr) {
+      retData->link_to_first_parent = &link;
+    } else {
+      retData->link_to_second_parent = &link;
     }
   }
-
-  for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
-    Node *retNode = ann_network.network.reticulation_nodes[i];
-    size_t first_parent_clv_index =
-        getReticulationFirstParent(ann_network.network, retNode)->clv_index;
-    size_t second_parent_clv_index =
-        getReticulationSecondParent(ann_network.network, retNode)->clv_index;
-    assert(first_parent_clv_index < second_parent_clv_index);
-  }
-
   assert(retData->link_to_first_parent);
   assert(retData->link_to_second_parent);
   assert(retData->link_to_child);
-  assert(hasChild(ann_network.network, getReticulationFirstParent(ann_network.network, retNode), node));
-  assert(hasChild(ann_network.network, getReticulationSecondParent(ann_network.network, retNode), node));
-  assert(hasChild(ann_network.network, node, getReticulationChild(ann_network.network, retNode)));
+  if (retData->link_to_first_parent->outer->node_clv_index >
+      retData->link_to_second_parent->outer->node_clv_index) {
+    std::swap(retData->link_to_first_parent, retData->link_to_second_parent);
+  }
 }
 
-void fixReticulationLinks(AnnotatedNetwork &ann_network, Move& move) {
+void fixReticulationLinks(AnnotatedNetwork &ann_network) {
   for (size_t i = 0; i < ann_network.network.reticulation_nodes.size(); ++i) {
-    resetReticulationLinks(ann_network, move, ann_network.network.reticulation_nodes[i]);
+    resetReticulationLinks(ann_network.network.reticulation_nodes[i]);
   }
 }
 

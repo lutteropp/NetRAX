@@ -532,7 +532,7 @@ void performMoveRNNI(AnnotatedNetwork &ann_network, Move &move) {
       move.rnniData.type == RNNIMoveType::FOUR) {
     switchReticulations(network, u, v);
   }
-  fixReticulationLinks(ann_network, move);
+  fixReticulationLinks(ann_network);
   assert(assertAfterMove(network, move));
 
   std::vector<bool> visited(network.nodes.size(), false);
@@ -565,7 +565,7 @@ void undoMoveRNNI(AnnotatedNetwork &ann_network, Move &move) {
       move.rnniData.type == RNNIMoveType::FOUR) {
     switchReticulations(network, u, v);
   }
-  fixReticulationLinks(ann_network, move);
+  fixReticulationLinks(ann_network);
   assert(assertBeforeMove(network, move));
 
   std::vector<bool> visited(network.nodes.size(), false);
