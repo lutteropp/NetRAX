@@ -848,8 +848,6 @@ ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].dis
       printReticulationChoices(rcs);
   }
 }*/
-
-  fixReticulationLinks(ann_network);
 }
 
 void undoMoveArcRemoval(AnnotatedNetwork &ann_network, Move &move) {

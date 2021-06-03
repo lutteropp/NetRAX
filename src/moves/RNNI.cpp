@@ -340,11 +340,6 @@ void switchReticulations(Network &network, Node *u, Node *v) {
   assert(link_to_second_parent);
   assert(link_to_child);
 
-  if (link_to_first_parent->outer->node_clv_index >
-      link_to_second_parent->outer->node_clv_index) {
-    std::swap(link_to_first_parent, link_to_second_parent);
-  }
-
   ReticulationData retData;
   retData.init(reticulationId, label, active, link_to_first_parent,
                link_to_second_parent, link_to_child);
@@ -532,7 +527,6 @@ void performMoveRNNI(AnnotatedNetwork &ann_network, Move &move) {
       move.rnniData.type == RNNIMoveType::FOUR) {
     switchReticulations(network, u, v);
   }
-  fixReticulationLinks(ann_network);
   assert(assertAfterMove(network, move));
 
   std::vector<bool> visited(network.nodes.size(), false);
@@ -565,7 +559,6 @@ void undoMoveRNNI(AnnotatedNetwork &ann_network, Move &move) {
       move.rnniData.type == RNNIMoveType::FOUR) {
     switchReticulations(network, u, v);
   }
-  fixReticulationLinks(ann_network);
   assert(assertBeforeMove(network, move));
 
   std::vector<bool> visited(network.nodes.size(), false);

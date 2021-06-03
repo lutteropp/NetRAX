@@ -839,11 +839,6 @@ void performMoveArcInsertion(AnnotatedNetwork &ann_network, Move &move) {
   v->getReticulationData()->link_to_first_parent = v_u_link;
   v->getReticulationData()->link_to_second_parent = v_c_link;
   v->getReticulationData()->link_to_child = v_d_link;
-  if (v->getReticulationData()->link_to_first_parent->outer->node_clv_index >
-      v->getReticulationData()->link_to_second_parent->outer->node_clv_index) {
-    std::swap(v->getReticulationData()->link_to_first_parent,
-              v->getReticulationData()->link_to_second_parent);
-  }
 
   set_edge_lengths(ann_network, u_b_edge->pmatrix_index, u_b_edge_length);
   set_edge_lengths(ann_network, v_d_edge->pmatrix_index, v_d_edge_length);
@@ -876,8 +871,6 @@ void performMoveArcInsertion(AnnotatedNetwork &ann_network, Move &move) {
   invalidatePmatrixIndex(ann_network, a_u_edge->pmatrix_index, visited);
   invalidatePmatrixIndex(ann_network, c_v_edge->pmatrix_index, visited);
   invalidatePmatrixIndex(ann_network, u_v_edge->pmatrix_index, visited);
-
-  fixReticulationLinks(ann_network);
 
   ann_network.travbuffer = reversed_topological_sort(ann_network.network);
   checkSanity(ann_network);
@@ -969,7 +962,6 @@ void undoMoveArcInsertion(AnnotatedNetwork &ann_network, Move &move) {
                      move.remapped_pmatrix_indices[i].second, true);
   }
 
-  fixReticulationLinks(ann_network);
   assert(assertConsecutiveIndices(ann_network));
   assert(assertBranchLengths(ann_network));
 }

@@ -705,8 +705,6 @@ void performMoveRSPR(AnnotatedNetwork &ann_network, Move &move) {
   set_edge_lengths(ann_network, x_prime_z_edge->pmatrix_index, x_prime_z_len);
   set_edge_lengths(ann_network, z_y_prime_edge->pmatrix_index, z_y_prime_len);
 
-  fixReticulationLinks(ann_network);
-
   std::vector<bool> visited(network.nodes.size(), false);
   invalidateHigherCLVs(ann_network, z, false, visited);
   invalidateHigherCLVs(ann_network, x, false, visited);
@@ -790,8 +788,6 @@ void undoMoveRSPR(AnnotatedNetwork &ann_network, Move &move) {
                    x_prime_y_prime_len);
   set_edge_lengths(ann_network, x_z_edge->pmatrix_index, x_z_len);
   set_edge_lengths(ann_network, z_y_edge->pmatrix_index, z_y_len);
-
-  fixReticulationLinks(ann_network);
 
   std::vector<bool> visited(network.nodes.size(), false);
   invalidateHigherCLVs(ann_network, z, false, visited);
