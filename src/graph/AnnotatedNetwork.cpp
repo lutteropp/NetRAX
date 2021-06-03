@@ -420,12 +420,14 @@ bool checkSanity(AnnotatedNetwork &ann_network) {
   }
   for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
     Node *retNode = ann_network.network.reticulation_nodes[i];
-    assert(hasChild(ann_network.network, getReticulationFirstParent(retNode),
+    assert(hasChild(ann_network.network,
+                    getReticulationFirstParent(ann_network.network, retNode),
                     retNode));
-    assert(hasChild(ann_network.network, getReticulationSecondParent(retNode),
+    assert(hasChild(ann_network.network,
+                    getReticulationSecondParent(ann_network.network, retNode),
                     retNode));
-    assert(getReticulationFirstParent(retNode) !=
-           getReticulationSecondParent(retNode));
+    assert(getReticulationFirstParent(ann_network.network, retNode) !=
+           getReticulationSecondParent(ann_network.network, retNode));
     assert(hasChild(ann_network.network, retNode,
                     getReticulationChild(ann_network.network, retNode)));
   }
