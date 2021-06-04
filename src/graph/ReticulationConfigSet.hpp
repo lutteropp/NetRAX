@@ -81,10 +81,12 @@ struct ReticulationConfigSet {
 
 double computeReticulationConfigProb(
     const ReticulationConfigSet &choices,
-    const std::vector<double> &reticulationProbs);
+    const std::vector<double> &firstParentLogProbs,
+    const std::vector<double> &secondParentLogProbs);
 double computeReticulationConfigLogProb(
     const ReticulationConfigSet &choices,
-    const std::vector<double> &reticulationProbs);
+    const std::vector<double> &firstParentLogProbs,
+    const std::vector<double> &secondParentLogProbs);
 bool reticulationConfigsCompatible(const ReticulationConfigSet &left,
                                    const ReticulationConfigSet &right);
 void printReticulationChoices(const ReticulationConfigSet &reticulationChoices);

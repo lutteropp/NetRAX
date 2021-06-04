@@ -111,12 +111,22 @@ void wavesearch_internal(
   double old_best_score = *best_score;
   bool got_better = true;
 
-  check_score_improvement(ann_network, best_score, bestNetworkData);
-  optimizeEverythingRun(ann_network, typesBySpeed, start_state_to_reuse,
-                        best_state_to_reuse, start_time, bestNetworkData);
-  check_score_improvement(ann_network, best_score, bestNetworkData);
+  size_t old_moves_taken = ann_network.stats.totalMovesTaken();
+
+  while (got_better) {
+    got_better = false;
+    check_score_improvement(ann_network, best_score, bestNetworkData);
+    optimizeEverythingRun(ann_network, typesBySpeed, start_state_to_reuse,
+                          best_state_to_reuse, start_time, bestNetworkData);
+    check_score_improvement(ann_network, best_score, bestNetworkData);
+    if (ann_network.stats.totalMovesTaken() > old_moves_taken) {
+      old_moves_taken = ann_network.stats.totalMovesTaken();
+      got_better = true;
+    }
+  }
 
   if (ann_network.options.enforce_extra_search) {
+    got_better = true;
     // next, try enforcing some arc insertion
     while (got_better) {
       got_better = false;

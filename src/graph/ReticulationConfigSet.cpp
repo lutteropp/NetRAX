@@ -67,19 +67,18 @@ bool validReticulationChoices(const std::vector<ReticulationState> &choices) {
   return true;
 }
 
-mpfr::mpreal computeReticulationChoicesLogProb_internal(
+double computeReticulationChoicesLogProb_internal(
     const std::vector<ReticulationState> &choices,
-    const std::vector<double> &reticulationProbs) {
-  mpfr::mpreal logProb = 0;
-  for (size_t i = 0; i < reticulationProbs.size(); ++i) {
+    const std::vector<double> &firstParentLogProbs,
+    const std::vector<double> &secondParentLogProbs) {
+  double logProb = 0;
+  for (size_t i = 0; i < choices.size(); ++i) {
     if (choices[i] != ReticulationState::DONT_CARE) {
-      mpfr::mpreal prob;
       if (choices[i] == ReticulationState::TAKE_FIRST_PARENT) {
-        prob = reticulationProbs[i];
+        logProb += firstParentLogProbs[i];
       } else {
-        prob = 1.0 - reticulationProbs[i];
+        logProb += secondParentLogProbs[i];
       }
-      logProb += mpfr::log(prob);
     }
   }
   return logProb;
@@ -87,31 +86,44 @@ mpfr::mpreal computeReticulationChoicesLogProb_internal(
 
 double computeReticulationChoicesLogProb(
     const std::vector<ReticulationState> &choices,
-    const std::vector<double> &reticulationProbs) {
-  return computeReticulationChoicesLogProb_internal(choices, reticulationProbs)
-      .toDouble();
+    const std::vector<double> &firstParentLogProbs,
+    const std::vector<double> &secondParentLogProbs) {
+  return computeReticulationChoicesLogProb_internal(
+      choices, firstParentLogProbs, secondParentLogProbs);
 }
 
 double computeReticulationConfigLogProb(
     const ReticulationConfigSet &choices,
-    const std::vector<double> &reticulationProbs) {
-  mpfr::mpreal prob = 0.0;
-  for (size_t i = 0; i < choices.configs.size(); ++i) {
-    prob += mpfr::exp(computeReticulationChoicesLogProb_internal(
-        choices.configs[i], reticulationProbs));
+    const std::vector<double> &firstParentLogProbs,
+    const std::vector<double> &secondParentLogProbs) {
+  if (choices.configs.size() == 1) {
+    return computeReticulationChoicesLogProb_internal(
+        choices.configs[0], firstParentLogProbs, secondParentLogProbs);
+  } else {
+    mpfr::mpreal prob = 0.0;
+    for (size_t i = 0; i < choices.configs.size(); ++i) {
+      prob += mpfr::exp(computeReticulationChoicesLogProb_internal(
+          choices.configs[i], firstParentLogProbs, secondParentLogProbs));
+    }
+    return mpfr::log(prob).toDouble();
   }
-  return mpfr::log(prob).toDouble();
 }
 
 double computeReticulationConfigProb(
     const ReticulationConfigSet &choices,
-    const std::vector<double> &reticulationProbs) {
-  mpfr::mpreal prob = 0.0;
-  for (size_t i = 0; i < choices.configs.size(); ++i) {
-    prob += mpfr::exp(computeReticulationChoicesLogProb_internal(
-        choices.configs[i], reticulationProbs));
+    const std::vector<double> &firstParentLogProbs,
+    const std::vector<double> &secondParentLogProbs) {
+  if (choices.configs.size() == 1) {
+    return exp(computeReticulationChoicesLogProb_internal(
+        choices.configs[0], firstParentLogProbs, secondParentLogProbs));
+  } else {
+    mpfr::mpreal prob = 0.0;
+    for (size_t i = 0; i < choices.configs.size(); ++i) {
+      prob += mpfr::exp(computeReticulationChoicesLogProb_internal(
+          choices.configs[i], firstParentLogProbs, secondParentLogProbs));
+    }
+    return prob.toDouble();
   }
-  return prob.toDouble();
 }
 
 bool reticulationConfigsCompatible(const ReticulationConfigSet &left,

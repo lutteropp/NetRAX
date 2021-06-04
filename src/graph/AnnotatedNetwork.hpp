@@ -32,6 +32,7 @@ struct NodeDisplayedTreeData;
 
 struct Statistics {
   std::unordered_map<MoveType, size_t> moves_taken;
+  size_t totalMovesTaken() const;
 };
 
 void destroy_network_treeinfo(pllmod_treeinfo_t *treeinfo);
@@ -46,6 +47,8 @@ struct AnnotatedNetwork {
   pllmod_treeinfo_t *fake_treeinfo = nullptr;
   std::vector<double>
       reticulation_probs;  // the first-parent reticulation probs
+  std::vector<double> first_parent_logprobs;
+  std::vector<double> second_parent_logprobs;
   std::vector<double> partition_contributions;
 
   std::vector<ClvRangeInfo> partition_clv_ranges;

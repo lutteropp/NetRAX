@@ -471,6 +471,10 @@ void swapReticulationIndex(AnnotatedNetwork &ann_network, Move &move,
   // update reticulation probs array
   std::swap(ann_network.reticulation_probs[old_reticulation_index],
             ann_network.reticulation_probs[new_reticulation_index]);
+  std::swap(ann_network.first_parent_logprobs[old_reticulation_index],
+            ann_network.first_parent_logprobs[new_reticulation_index]);
+  std::swap(ann_network.second_parent_logprobs[old_reticulation_index],
+            ann_network.second_parent_logprobs[new_reticulation_index]);
 
   // update move data
   if (!undo) {

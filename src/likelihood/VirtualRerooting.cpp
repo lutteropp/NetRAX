@@ -218,10 +218,10 @@ void updateCLVsVirtualRerootTrees(AnnotatedNetwork &ann_network,
   }
 
   for (size_t p = 0; p < paths.size(); ++p) {
-    /*std::cout << "PROCESSING PATH " << p << " ON PARTITION " << partition_idx
-<< "\n"; printPathToVirtualRoot(paths[p]); std::cout << "The path has the
-following restrictions: \n";
-printReticulationChoices(paths[p].reticulationChoices);*/
+    //std::cout << "PROCESSING PATH " << p << "\n";
+    //printPathToVirtualRoot(paths[p]);
+    //std::cout << "The path has the following restrictions: \n";
+    //printReticulationChoices(paths[p].reticulationChoices);
 
     if (!reticulationConfigsCompatible(paths[p].reticulationChoices,
                                        restrictions)) {
@@ -230,9 +230,7 @@ printReticulationChoices(paths[p].reticulationChoices);*/
 
     // Restore required old NodeInformations for the path
     for (size_t nodeIndexToRestore : nodeSaveInfo.pathNodesToRestore[p]) {
-      /*if (ann_network.network.num_reticulations() == 1) {
-      std::cout << "restoring node info at " << nodeIndexToRestore << "\n";
-  }*/
+      //std::cout << "restoring node info at " << nodeIndexToRestore << "\n";
       ann_network.pernode_displayed_tree_data[nodeIndexToRestore] =
           bufferedNodeInformations[nodeIndexToRestore];
     }
@@ -261,7 +259,8 @@ void updateTreeData(AnnotatedNetwork &ann_network,
     assert(oldTree.tree_partition_logl[p] <= 0.0);
   }
   treeData.tree_logprob = computeReticulationConfigLogProb(
-      treeData.reticulationChoices, ann_network.reticulation_probs);
+      treeData.reticulationChoices, ann_network.first_parent_logprobs,
+      ann_network.second_parent_logprobs);
   treeData.tree_logl_valid = true;
   treeData.tree_logprob_valid = true;
 }
@@ -320,7 +319,8 @@ void recomputeTreeData(AnnotatedNetwork &ann_network, size_t pmatrix_index,
     }
   }
   combinedTreeData.tree_logprob = computeReticulationConfigLogProb(
-      combinedTreeData.reticulationChoices, ann_network.reticulation_probs);
+      combinedTreeData.reticulationChoices, ann_network.first_parent_logprobs,
+      ann_network.second_parent_logprobs);
 }
 
 double computeLoglikelihoodBrlenOpt(
@@ -535,15 +535,20 @@ double computeLoglikelihoodBrlenOpt(
       std::cout << "old trees:\n";
       for (size_t i = 0; i < oldTrees.size(); ++i) {
         printReticulationChoices(oldTrees[i].treeLoglData.reticulationChoices);
-        double tree_logl = std::accumulate(oldTrees[i].treeLoglData.tree_partition_logl.begin(), oldTrees[i].treeLoglData.tree_partition_logl.end(), 0.0);
+        double tree_logl = std::accumulate(
+            oldTrees[i].treeLoglData.tree_partition_logl.begin(),
+            oldTrees[i].treeLoglData.tree_partition_logl.end(), 0.0);
         std::cout << " tree logprob: " << oldTrees[i].treeLoglData.tree_logprob
                   << ", tree prob: "
-                  << exp(oldTrees[i].treeLoglData.tree_logprob) << ", tree loglh: " << tree_logl << "\n";
+                  << exp(oldTrees[i].treeLoglData.tree_logprob)
+                  << ", tree loglh: " << tree_logl << "\n";
       }
       std::cout << "\ncombined trees:\n";
       for (size_t i = 0; i < combinedTrees.size(); ++i) {
         printReticulationChoices(combinedTrees[i].reticulationChoices);
-        double tree_logl = std::accumulate(oldTrees[i].treeLoglData.tree_partition_logl.begin(), oldTrees[i].treeLoglData.tree_partition_logl.end(), 0.0);
+        double tree_logl = std::accumulate(
+            oldTrees[i].treeLoglData.tree_partition_logl.begin(),
+            oldTrees[i].treeLoglData.tree_partition_logl.end(), 0.0);
         std::cout << " tree logprob: " << combinedTrees[i].tree_logprob
                   << ", tree prob: " << exp(combinedTrees[i].tree_logprob)
                   << ", tree loglh: " << tree_logl << "\n";

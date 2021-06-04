@@ -155,6 +155,8 @@ void extract_network_state(AnnotatedNetwork &ann_network,
     }
   }
   state_to_reuse.reticulation_probs = ann_network.reticulation_probs;
+  state_to_reuse.first_parent_logprobs = ann_network.first_parent_logprobs;
+  state_to_reuse.second_parent_logprobs = ann_network.second_parent_logprobs;
   state_to_reuse.n_trees = (1 << ann_network.network.num_reticulations());
   state_to_reuse.n_branches = ann_network.network.num_branches();
 
@@ -267,6 +269,8 @@ void apply_network_state(AnnotatedNetwork &ann_network,
       assert(state.reticulation_probs[i] >= ann_network.options.brprob_min &&
              state.reticulation_probs[i] <= ann_network.options.brprob_max);
       ann_network.reticulation_probs[i] = state.reticulation_probs[i];
+      ann_network.first_parent_logprobs[i] = state.first_parent_logprobs[i];
+      ann_network.second_parent_logprobs[i] = state.second_parent_logprobs[i];
       ann_network.cached_logl_valid = false;
     }
   }

@@ -305,10 +305,9 @@ double displayed_tree_prob(AnnotatedNetwork &ann_network, size_t tree_index) {
         ann_network.network.reticulation_nodes[i]);
     size_t first_parent_pmatrix_idx = getReticulationFirstParentPmatrixIndex(
         ann_network.network.reticulation_nodes[i]);
-    double prob = (active_pmatrix_idx == first_parent_pmatrix_idx)
-                      ? ann_network.reticulation_probs[i]
-                      : 1.0 - ann_network.reticulation_probs[i];
-    logProb += log(prob);
+    logProb += (active_pmatrix_idx == first_parent_pmatrix_idx)
+                      ? ann_network.first_parent_logprobs[i]
+                      : ann_network.second_parent_logprobs[i];
   }
   return exp(logProb);
 }

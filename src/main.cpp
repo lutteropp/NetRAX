@@ -214,9 +214,6 @@ std::vector<MoveType> getTypesBySpeedGoodStart(const NetraxOptions &options) {
   // MoveType::ArcRemovalMove, MoveType::DeltaPlusMove,
   // MoveType::ArcInsertionMove};
   std::vector<MoveType> typesBySpeed;
-  if (!options.no_arc_removal_moves) {
-    typesBySpeed.emplace_back(MoveType::ArcRemovalMove);
-  }
   if (!options.no_arc_insertion_moves) {
     typesBySpeed.emplace_back(MoveType::ArcInsertionMove);
   } else {
@@ -227,9 +224,6 @@ std::vector<MoveType> getTypesBySpeedGoodStart(const NetraxOptions &options) {
   }
   if (!options.no_rnni_moves) {
     typesBySpeed.emplace_back(MoveType::RNNIMove);
-  }
-  if (!options.no_arc_removal_moves) {
-    typesBySpeed.emplace_back(MoveType::ArcRemovalMove);
   }
   return typesBySpeed;
 }
@@ -240,9 +234,6 @@ std::vector<MoveType> getTypesBySpeed(const NetraxOptions &options) {
   // MoveType::ArcRemovalMove, MoveType::DeltaPlusMove,
   // MoveType::ArcInsertionMove};
   std::vector<MoveType> typesBySpeed;
-  if (!options.no_arc_removal_moves) {
-    typesBySpeed.emplace_back(MoveType::ArcRemovalMove);
-  }
   if (!options.no_rspr_moves) {
     typesBySpeed.emplace_back(MoveType::RSPRMove);
   }
@@ -253,15 +244,6 @@ std::vector<MoveType> getTypesBySpeed(const NetraxOptions &options) {
     typesBySpeed.emplace_back(MoveType::ArcInsertionMove);
   } else {
     typesBySpeed.emplace_back(MoveType::DeltaPlusMove);
-  }
-  if (!options.no_rspr_moves) {
-    typesBySpeed.emplace_back(MoveType::RSPRMove);
-  }
-  if (!options.no_rnni_moves) {
-    typesBySpeed.emplace_back(MoveType::RNNIMove);
-  }
-  if (!options.no_arc_removal_moves) {
-    typesBySpeed.emplace_back(MoveType::ArcRemovalMove);
   }
   return typesBySpeed;
 }
@@ -518,6 +500,8 @@ void scale_reticulation_probs_only(NetraxOptions &netraxOptions,
   for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
     ann_network.reticulation_probs[i] =
         netraxOptions.overwritten_reticulation_prob;
+    ann_network.first_parent_logprobs[i] = log(ann_network.reticulation_probs[i]);
+    ann_network.second_parent_logprobs[i] = log(1.0 - ann_network.reticulation_probs[i]);
   }
   if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
     writeNetwork(ann_network, netraxOptions.output_file);

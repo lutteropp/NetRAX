@@ -755,8 +755,9 @@ void performMoveArcInsertion(AnnotatedNetwork &ann_network, Move &move) {
   Edge *c_d_edge = getEdgeTo(network, move.arcInsertionData.c_clv_index,
                              move.arcInsertionData.d_clv_index);
   if (move.arcInsertionData.cd_pmatrix_index != c_d_edge->pmatrix_index) {
-    std::cout << exportDebugInfo(ann_network);
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+      std::cout << exportDebugInfo(ann_network);
+      std::cout << toString(move) << "\n";
       std::cout << "move.arcInsertionData.cd_pmatrix_index: "
                 << move.arcInsertionData.cd_pmatrix_index << "\n";
       std::cout << "c_d_edge->pmatrix_index: " << c_d_edge->pmatrix_index
