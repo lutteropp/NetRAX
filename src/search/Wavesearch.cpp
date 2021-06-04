@@ -153,7 +153,16 @@ void wavesearch_internal(
                             silent, print_progress);
       if (ann_network.stats.totalMovesTaken() > old_moves_taken) {
         old_moves_taken = ann_network.stats.totalMovesTaken();
-        got_better = true;
+
+        optimizeEverythingRun(ann_network, typesBySpeedNoInsertions,
+                              start_state_to_reuse, best_state_to_reuse,
+                              start_time, bestNetworkData, silent,
+                              print_progress);
+        check_score_improvement(ann_network, best_score, bestNetworkData);
+        if (ann_network.stats.totalMovesTaken() > old_moves_taken) {
+          old_moves_taken = ann_network.stats.totalMovesTaken();
+          got_better = true;
+        }
       }
     }
     withInsertions = false;
