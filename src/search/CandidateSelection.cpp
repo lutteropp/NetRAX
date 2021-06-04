@@ -12,9 +12,9 @@
 #include "../moves/Move.hpp"
 #include "../moves/RNNI.hpp"
 #include "../optimization/BranchLengthOptimization.hpp"
-#include "../optimization/ReticulationOptimization.hpp"
 #include "../optimization/NetworkState.hpp"
 #include "../optimization/Optimization.hpp"
+#include "../optimization/ReticulationOptimization.hpp"
 
 namespace netrax {
 
@@ -430,7 +430,7 @@ void rankCandidates(AnnotatedNetwork &ann_network,
       }
       return;
     }
-    
+
     // assert(computeLoglikelihood(ann_network, 1, 1) ==
     // computeLoglikelihood(ann_network, 0, 1));
     undoMove(ann_network, move);
@@ -826,17 +826,9 @@ void updateOldCandidates(AnnotatedNetwork &ann_network, const Move &chosenMove,
   recollectFirstParents(ann_network.network, candidates);
 }
 
-std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
-                                     int best_max_distance, MoveType type,
-                                     const std::vector<MoveType> &typesBySpeed,
-                                     double *best_score,
-                                     BestNetworkData *bestNetworkData,
-                                     bool silent) {
-  std::vector<Move> acceptedMoves;
-
-  assert(best_max_distance >= 0);
-  double old_score = scoreNetwork(ann_network);
-
+std::vector<Move> getPossibleMoves(AnnotatedNetwork &ann_network,
+                                   const std::vector<MoveType> &typesBySpeed,
+                                   MoveType type, int best_max_distance) {
   bool rspr1_present = (std::find(typesBySpeed.begin(), typesBySpeed.end(),
                                   MoveType::RSPR1Move) != typesBySpeed.end());
   bool delta_plus_present =
@@ -845,6 +837,81 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
   std::vector<Move> candidates =
       possibleMoves(ann_network, type, rspr1_present, delta_plus_present, 0,
                     best_max_distance);
+  return candidates;
+}
+
+void updateCandidateMoves(AnnotatedNetwork &ann_network,
+                          const std::vector<MoveType> &typesBySpeed,
+                          int best_max_distance, const Move &chosenMove,
+                          const std::vector<Move> &takenRemovals,
+                          std::vector<Move> &candidates) {
+  bool rspr1_present = (std::find(typesBySpeed.begin(), typesBySpeed.end(),
+                                  MoveType::RSPR1Move) != typesBySpeed.end());
+  bool delta_plus_present =
+      (std::find(typesBySpeed.begin(), typesBySpeed.end(),
+                 MoveType::DeltaPlusMove) != typesBySpeed.end());
+  // add new possible moves to the candidate list
+  if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+    std::cout << "We have " << candidates.size()
+              << " candidates before removing the old bad ones.\n";
+  }
+  if (takenRemovals.empty()) {
+    updateOldCandidates(ann_network, chosenMove, candidates);
+    std::vector<Node *> start_nodes = gatherStartNodes(ann_network, chosenMove);
+    std::vector<Move> moreMoves =
+        possibleMoves(ann_network, chosenMove.moveType, start_nodes,
+                      rspr1_present, delta_plus_present, 0, best_max_distance);
+    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+      std::cout << "Adding " << moreMoves.size() << " candidates to the "
+                << candidates.size() << " previous ones.\n ";
+    }
+    candidates.insert(std::end(candidates), std::begin(moreMoves),
+                      std::end(moreMoves));
+  } else {
+    for (size_t i = 0; i < takenRemovals.size(); ++i) {
+      updateOldCandidates(ann_network, takenRemovals[i], candidates);
+    }
+  }
+  removeBadCandidates(ann_network, candidates);
+}
+
+std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
+                                     int best_max_distance, MoveType type,
+                                     const std::vector<MoveType> &typesBySpeed,
+                                     double *best_score,
+                                     BestNetworkData *bestNetworkData,
+                                     bool silent);
+
+std::vector<Move> interleaveArcRemovals(
+    AnnotatedNetwork &ann_network, const std::vector<MoveType> &typesBySpeed,
+    double *best_score, BestNetworkData *bestNetworkData, bool silent) {
+  std::vector<Move> takenRemovals;
+  if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+    std::cout << "Trying arc removal moves.\n";
+  }
+  takenRemovals = fastIterationsMode(
+      ann_network, ann_network.options.max_rearrangement_distance,
+      MoveType::ArcRemovalMove, typesBySpeed, best_score, bestNetworkData,
+      silent);
+  if (!takenRemovals.empty()) {
+    optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::NORMAL);
+  }
+  check_score_improvement(ann_network, best_score, bestNetworkData);
+  return takenRemovals;
+}
+
+std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
+                                     int best_max_distance, MoveType type,
+                                     const std::vector<MoveType> &typesBySpeed,
+                                     double *best_score,
+                                     BestNetworkData *bestNetworkData,
+                                     bool silent) {
+  assert(best_max_distance >= 0);
+  std::vector<Move> acceptedMoves;
+  double old_score = scoreNetwork(ann_network);
+
+  std::vector<Move> candidates =
+      getPossibleMoves(ann_network, typesBySpeed, type, best_max_distance);
   prefilterCandidates(ann_network, candidates, silent);
 
   bool old_no_prefiltering = ann_network.options.no_prefiltering;
@@ -860,83 +927,24 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
     Move chosenMove = applyBestCandidate(ann_network, candidates, best_score,
                                          bestNetworkData, false, silent);
     if (chosenMove.moveType != MoveType::INVALID) {
+      // we accepted a move, thus score got better
+      check_score_improvement(ann_network, best_score, bestNetworkData);
       acceptedMoves.emplace_back(chosenMove);
-    }
-    double score = scoreNetwork(ann_network);
-    check_score_improvement(ann_network, best_score, bestNetworkData);
-    if (score < old_score) {
-      if (chosenMove.moveType != MoveType::INVALID) {
-        tried_with_allnew = false;
-      }
+      tried_with_allnew = false;
       got_better = true;
-      old_score = score;
 
-      bool hadBadReticulationAfterInsertingArc = false;
       std::vector<Move> takenRemovals;
-
-      if (/*hasBadReticulation(ann_network) && */ isArcInsertion(
-          type)) {  // try doing arc removal moves
-        if (ParallelContext::master_rank() &&
-            ParallelContext::master_thread()) {
-          std::cout
-              << /*"Bad reticulation detected. */ "Trying arc removal moves.\n";
-        }
-        takenRemovals = fastIterationsMode(
-            ann_network, ann_network.options.max_rearrangement_distance,
-            MoveType::ArcRemovalMove, typesBySpeed, best_score, bestNetworkData,
-            silent);
+      if (isArcInsertion(chosenMove.moveType)) {
+        // try doing arc removal moves
+        takenRemovals = interleaveArcRemovals(
+            ann_network, typesBySpeed, best_score, bestNetworkData, silent);
         acceptedMoves.insert(acceptedMoves.end(), takenRemovals.begin(),
                              takenRemovals.end());
-        optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::NORMAL);
-        check_score_improvement(ann_network, best_score, bestNetworkData);
-        old_score = scoreNetwork(ann_network);
-        hadBadReticulationAfterInsertingArc = (!takenRemovals.empty());
       }
-
-      if (chosenMove.moveType != MoveType::INVALID) {
-        if (std::find(oldCandidates.begin(), oldCandidates.end(), chosenMove) !=
-            oldCandidates.end()) {
-          if (ParallelContext::master_rank() &&
-              ParallelContext::master_thread()) {
-            std::cout << " Info: Taken move was in the old candidates.\n";
-          }
-        }
-      }
-
-      // add new possible moves to the candidate list
-      if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-        std::cout << "We have " << candidates.size()
-                  << " candidates before removing the old bad ones.\n";
-      }
-      if (!hadBadReticulationAfterInsertingArc) {
-        if (chosenMove.moveType != MoveType::INVALID) {
-          updateOldCandidates(ann_network, chosenMove, candidates);
-        }
-      } else {
-        for (size_t i = 0; i < takenRemovals.size(); ++i) {
-          updateOldCandidates(ann_network, takenRemovals[i], candidates);
-        }
-      }
-      removeBadCandidates(ann_network, candidates);
-
-      oldCandidates = candidates;
-
-      if (!hadBadReticulationAfterInsertingArc) {
-        std::vector<Node *> start_nodes =
-            gatherStartNodes(ann_network, chosenMove);
-        std::vector<Move> moreMoves =
-            possibleMoves(ann_network, type, start_nodes, rspr1_present,
-                          delta_plus_present, 0, best_max_distance);
-        if (ParallelContext::master_rank() &&
-            ParallelContext::master_thread()) {
-          std::cout << "Adding " << moreMoves.size() << " candidates to the "
-                    << candidates.size() << " previous ones.\n ";
-        }
-        candidates.insert(std::end(candidates), std::begin(moreMoves),
-                          std::end(moreMoves));
-      }
-
-      if (candidates.empty() && !isArcInsertion(type)) {  // no old candidates to reuse. Thus,
+      updateCandidateMoves(ann_network, typesBySpeed, best_max_distance,
+                           chosenMove, takenRemovals, candidates);
+      if (candidates.empty() && !isArcInsertion(type)) {
+        // no old candidates to reuse. Thus,
         // completely gather new ones.
         if (ParallelContext::master_rank() &&
             ParallelContext::master_thread()) {
@@ -944,20 +952,22 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
                        "new ones.\n";
         }
         tried_with_allnew = true;
-        candidates = possibleMoves(ann_network, type, rspr1_present,
-                                   delta_plus_present, 0, best_max_distance);
+        candidates = getPossibleMoves(ann_network, typesBySpeed, type,
+                                      best_max_distance);
         oldCandidates.clear();
       }
       prefilterCandidates(ann_network, candidates, silent);
-    } else {  // score did not get better
-      if (!tried_with_allnew && !acceptedMoves.empty() && !isArcInsertion(type)) {
+    } else {
+      // score did not get better
+      if (!tried_with_allnew && !acceptedMoves.empty() &&
+          !isArcInsertion(type)) {
         tried_with_allnew = true;
         if (ParallelContext::master_rank() &&
             ParallelContext::master_thread()) {
           std::cout << "retrying with all new candidates\n";
         }
-        candidates = possibleMoves(ann_network, type, rspr1_present,
-                                   delta_plus_present, 0, best_max_distance);
+        candidates = getPossibleMoves(ann_network, typesBySpeed, type,
+                                      best_max_distance);
         oldCandidates.clear();
         got_better = true;
       }
@@ -966,7 +976,7 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
 
   ann_network.options.no_prefiltering = old_no_prefiltering;
   return acceptedMoves;
-}
+}  // namespace netrax
 
 double slowIterationsMode(AnnotatedNetwork &ann_network, MoveType type,
                           int step_size,
