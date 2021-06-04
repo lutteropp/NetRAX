@@ -241,12 +241,12 @@ std::vector<MoveType> getTypesBySpeed(const NetraxOptions &options) {
   if (!options.no_rnni_moves) {
     typesBySpeed.emplace_back(MoveType::RNNIMove);
   }
+  typesBySpeed.emplace_back(MoveType::ArcRemovalMove);
   if (!options.no_arc_insertion_moves) {
     typesBySpeed.emplace_back(MoveType::ArcInsertionMove);
   } else {
     typesBySpeed.emplace_back(MoveType::DeltaPlusMove);
   }
-  typesBySpeed.emplace_back(MoveType::ArcRemovalMove);
   return typesBySpeed;
 }
 
