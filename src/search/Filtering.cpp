@@ -51,11 +51,6 @@ std::unordered_set<size_t> findPromisingNodes(AnnotatedNetwork &ann_network,
       break;
     }
     if (scoresNodes[i].bicScore <= cutoff_bic) {
-      if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-        if (!silent)
-          std::cout << "prefiltered node " << scoresNodes[i].item->clv_index
-                    << " has best BIC: " << scoresNodes[i].bicScore << "\n";
-      }
       promisingNodes.emplace(scoresNodes[i].item->clv_index);
     }
 
@@ -95,11 +90,6 @@ void filterCandidatesByScore(std::vector<T> &candidates,
   }
 
   for (size_t i = 0; i < std::min(scores.size(), candidates.size()); ++i) {
-    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-      if (!silent)
-        std::cout << "candidate " << i + 1 << "/" << candidates.size()
-                  << " has BIC: " << scores[i].bicScore << "\n";
-    }
     if (scores[i].bicScore < cutoff_bic) {
       candidates[newSize] = scores[i].item;
       newSize++;
@@ -249,16 +239,18 @@ double filterCandidates(AnnotatedNetwork &ann_network,
   assert(n_keep > 0);
   filterCandidatesByScore(candidates, scores, old_bic, n_keep, keep_all_better,
                           silent);
-  if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-    if (print_progress) std::cout << "New size after ";
-    if (filterType == FilterType::PREFILTER) {
-      std::cout << "prefiltering: ";
-    } else if (filterType == FilterType::RANK) {
-      std::cout << "ranking: ";
-    } else if (filterType == FilterType::CHOOSE) {
-      std::cout << "choosing: ";
+  if (!silent) {
+    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+      std::cout << "New size after ";
+      if (filterType == FilterType::PREFILTER) {
+        std::cout << "prefiltering: ";
+      } else if (filterType == FilterType::RANK) {
+        std::cout << "ranking: ";
+      } else if (filterType == FilterType::CHOOSE) {
+        std::cout << "choosing: ";
+      }
+      std::cout << candidates.size() << " vs. " << oldCandidatesSize << "\n";
     }
-    std::cout << candidates.size() << " vs. " << oldCandidatesSize << "\n";
   }
   for (size_t i = 0; i < candidates.size(); ++i) {
     assert(checkSanity(ann_network, candidates[i]));
@@ -298,11 +290,11 @@ double chooseCandidate(AnnotatedNetwork &ann_network,
   }
   rankCandidates(ann_network, oldState, candidates, enforce, extreme_greedy,
                  silent, print_progress);
-  double best_bic = filterCandidates(ann_network, oldState, candidates, FilterType::CHOOSE,
-                          enforce, extreme_greedy, false, silent,
-                          print_progress);
+  double best_bic =
+      filterCandidates(ann_network, oldState, candidates, FilterType::CHOOSE,
+                       enforce, extreme_greedy, false, silent, print_progress);
   if (best_bic >= old_bic && !enforce) {
-      candidates.clear();
+    candidates.clear();
   }
   return best_bic;
 }
@@ -310,11 +302,14 @@ double chooseCandidate(AnnotatedNetwork &ann_network,
 double acceptMove(AnnotatedNetwork &ann_network, Move &move, double *best_score,
                   BestNetworkData *bestNetworkData, bool silent) {
   assert(checkSanity(ann_network, move));
-  assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+  assert(computeLoglikelihood(ann_network, 1, 1) ==
+         computeLoglikelihood(ann_network, 0, 1));
   performMove(ann_network, move);
-  assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+  assert(computeLoglikelihood(ann_network, 1, 1) ==
+         computeLoglikelihood(ann_network, 0, 1));
   optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::QUICK);
-  assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
+  assert(computeLoglikelihood(ann_network, 1, 1) ==
+         computeLoglikelihood(ann_network, 0, 1));
 
   double logl = computeLoglikelihood(ann_network);
   double bic_score = bic(ann_network, logl);
@@ -332,7 +327,7 @@ double acceptMove(AnnotatedNetwork &ann_network, Move &move, double *best_score,
     if (!silent)
       std::cout << "  num_reticulations: "
                 << ann_network.network.num_reticulations() << "\n";
-    if (!silent) std::cout << toExtendedNewick(ann_network) << "\n";
+    //if (!silent) std::cout << toExtendedNewick(ann_network) << "\n";
 
     std::cout << "displayed trees:\n";
     for (size_t i = 0;

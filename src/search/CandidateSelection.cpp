@@ -41,7 +41,7 @@ double best_fast_improvement(AnnotatedNetwork &ann_network,
                              bool print_progress) {
   std::vector<Move> candidates = getPossibleMoves(ann_network, typesBySpeed, type, min_radius, max_radius);
   return prefilterCandidates(ann_network, oldState, candidates, true,
-                              silent, print_progress);
+                              true, print_progress);
 }
 
 int findBestMaxDistance(AnnotatedNetwork &ann_network, MoveType type,

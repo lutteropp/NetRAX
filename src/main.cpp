@@ -627,10 +627,10 @@ void netrax_thread_main(NetraxOptions &netraxOptions,
     std::vector<MoveType> typesBySpeedGoodStart =
         getTypesBySpeedGoodStart(netraxOptions);
     run_single_start_waves(netraxOptions, instance, typesBySpeed,
-                           typesBySpeedGoodStart, rng, true, true);
+                           typesBySpeedGoodStart, rng, false, true);
   } else {
     std::vector<MoveType> typesBySpeed = getTypesBySpeed(netraxOptions);
-    run_random(netraxOptions, instance, typesBySpeed, rng, true, true);
+    run_random(netraxOptions, instance, typesBySpeed, rng, false, true);
   }
   ParallelContext::global_barrier();
 }
