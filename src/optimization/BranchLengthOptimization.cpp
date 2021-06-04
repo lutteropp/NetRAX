@@ -343,7 +343,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index,
   assert(pmatrix_index < ann_network.network.num_branches());
   double old_logl = computeLoglikelihood(ann_network);
   assert(old_logl <= 0.0);
-  assert(computeLoglikelihood(ann_network, 0, 1) == old_logl);
+  //assert(computeLoglikelihood(ann_network, 0, 1) == old_logl);
   std::vector<DisplayedTreeData> oldTrees;
   std::vector<std::vector<SumtableInfo>> sumtables;
 

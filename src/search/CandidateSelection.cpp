@@ -180,8 +180,8 @@ double performMovePrefilter(AnnotatedNetwork &ann_network, Move &move,
                             LikelihoodVariant old_variant) {
   assert(checkSanity(ann_network, move));
   performMove(ann_network, move);
-  assert(computeLoglikelihood(ann_network, 1, 1) ==
-         computeLoglikelihood(ann_network, 0, 1));
+  // assert(computeLoglikelihood(ann_network, 1, 1) ==
+  // computeLoglikelihood(ann_network, 0, 1));
   if (move.moveType == MoveType::ArcInsertionMove ||
       move.moveType == MoveType::DeltaPlusMove) {
     switchLikelihoodVariant(ann_network, old_variant);
@@ -191,7 +191,8 @@ double performMovePrefilter(AnnotatedNetwork &ann_network, Move &move,
         ann_network, brlenopt_candidates,
         2.0 / RAXML_BRLEN_SMOOTHINGS);  // two iterations max
     updateMoveBranchLengths(ann_network, move);
-    optimize_reticulation(ann_network, ann_network.network.num_reticulations() - 1);
+    optimize_reticulation(ann_network,
+                          ann_network.network.num_reticulations() - 1);
     switchLikelihoodVariant(ann_network, LikelihoodVariant::SARAH_PSEUDO);
   }
   for (size_t j = 0; j < ann_network.network.num_nodes(); ++j) {
@@ -224,8 +225,8 @@ double prefilterCandidates(AnnotatedNetwork &ann_network,
 
   NetworkState oldState = extract_network_state(ann_network);
 
-  assert(computeLoglikelihood(ann_network) ==
-         computeLoglikelihood(ann_network, 0, 1));
+  // assert(computeLoglikelihood(ann_network) ==
+  // computeLoglikelihood(ann_network, 0, 1));
 
   for (size_t i = 0; i < candidates.size(); ++i) {
     if (print_progress) {
@@ -273,8 +274,8 @@ double prefilterCandidates(AnnotatedNetwork &ann_network,
         candidates[0] = candidates[i];
         candidates.resize(1);
         undoMove(ann_network, move);
-        assert(computeLoglikelihood(ann_network) ==
-               computeLoglikelihood(ann_network, 0, 1));
+        // assert(computeLoglikelihood(ann_network) ==
+        // computeLoglikelihood(ann_network, 0, 1));
         apply_network_state(ann_network, oldState);
         if (print_progress && ParallelContext::master_rank() &&
             ParallelContext::master_thread()) {
@@ -286,14 +287,14 @@ double prefilterCandidates(AnnotatedNetwork &ann_network,
         switchLikelihoodVariant(ann_network, LikelihoodVariant::SARAH_PSEUDO);
       }
     }
-    assert(computeLoglikelihood(ann_network, 1, 1) ==
-           computeLoglikelihood(ann_network, 0, 1));
+    // assert(computeLoglikelihood(ann_network, 1, 1) ==
+    // computeLoglikelihood(ann_network, 0, 1));
     undoMove(ann_network, move);
-    assert(computeLoglikelihood(ann_network, 1, 1) ==
-           computeLoglikelihood(ann_network, 0, 1));
+    // assert(computeLoglikelihood(ann_network, 1, 1) ==
+    // computeLoglikelihood(ann_network, 0, 1));
     assert(checkSanity(ann_network, candidates[i]));
-    assert(computeLoglikelihood(ann_network) ==
-           computeLoglikelihood(ann_network, 0, 1));
+    // assert(computeLoglikelihood(ann_network) ==
+    // computeLoglikelihood(ann_network, 0, 1));
     apply_network_state(ann_network, oldState);
 
     if (old_bic != scoreNetwork(ann_network)) {
@@ -307,16 +308,16 @@ double prefilterCandidates(AnnotatedNetwork &ann_network,
     }
     assert(old_bic == scoreNetwork(ann_network));
 
-    assert(computeLoglikelihood(ann_network, 1, 1) ==
-           computeLoglikelihood(ann_network, 0, 1));
+    // assert(computeLoglikelihood(ann_network, 1, 1) ==
+    // computeLoglikelihood(ann_network, 0, 1));
 
     if (n_better >= ann_network.options.max_better_candidates) {
       scores.resize(n_better);
       break;
     }
   }
-  assert(computeLoglikelihood(ann_network) ==
-         computeLoglikelihood(ann_network, 0, 1));
+  // assert(computeLoglikelihood(ann_network) ==
+  // computeLoglikelihood(ann_network, 0, 1));
   apply_network_state(ann_network, oldState);
 
   if (print_progress && ParallelContext::master_rank() &&
@@ -387,8 +388,8 @@ void rankCandidates(AnnotatedNetwork &ann_network,
     assert(checkSanity(ann_network, move));
 
     performMove(ann_network, move);
-    assert(computeLoglikelihood(ann_network, 1, 1) ==
-           computeLoglikelihood(ann_network, 0, 1));
+    // assert(computeLoglikelihood(ann_network, 1, 1) ==
+    // computeLoglikelihood(ann_network, 0, 1));
 
     std::unordered_set<size_t> brlen_opt_candidates =
         brlenOptCandidates(ann_network, move);
@@ -398,8 +399,9 @@ void rankCandidates(AnnotatedNetwork &ann_network,
     optimizeReticulationProbs(ann_network);
     updateMoveBranchLengths(ann_network, move);
 
-    assert(computeLoglikelihood(ann_network, 1, 1) ==
-           computeLoglikelihood(ann_network, 0, 1));
+    // assert(computeLoglikelihood(ann_network, 1, 1) ==
+    // computeLoglikelihood(ann_network, 0, 1));
+
     double bicScore = scoreNetwork(ann_network);
 
     scores[i] = ScoreItem<Move>{candidates[i], bicScore};
@@ -428,16 +430,17 @@ void rankCandidates(AnnotatedNetwork &ann_network,
       }
       return;
     }
-
-    assert(computeLoglikelihood(ann_network, 1, 1) ==
-           computeLoglikelihood(ann_network, 0, 1));
+    
+    // assert(computeLoglikelihood(ann_network, 1, 1) ==
+    // computeLoglikelihood(ann_network, 0, 1));
     undoMove(ann_network, move);
-    assert(computeLoglikelihood(ann_network, 1, 1) ==
-           computeLoglikelihood(ann_network, 0, 1));
+    // assert(computeLoglikelihood(ann_network, 1, 1) ==
+    // computeLoglikelihood(ann_network, 0, 1));
+
     assert(checkSanity(ann_network, candidates[i]));
     apply_network_state(ann_network, oldState);
-    assert(computeLoglikelihood(ann_network, 1, 1) ==
-           computeLoglikelihood(ann_network, 0, 1));
+    // assert(computeLoglikelihood(ann_network, 1, 1) ==
+    // computeLoglikelihood(ann_network, 0, 1));
 
     if (n_better >= ann_network.options.max_better_candidates) {
       scores.resize(n_better);
@@ -487,8 +490,8 @@ double chooseCandidate(AnnotatedNetwork &ann_network,
   int barWidth = 70;
   NetworkState oldState = extract_network_state(ann_network);
   std::vector<ScoreItem<Move>> scores(candidates.size());
-  assert(computeLoglikelihood(ann_network, 1, 1) ==
-         computeLoglikelihood(ann_network, 0, 1));
+  // assert(computeLoglikelihood(ann_network, 1, 1) ==
+  // computeLoglikelihood(ann_network, 0, 1));
 
   for (size_t i = 0; i < candidates.size(); ++i) {
     if (print_progress) {
@@ -498,16 +501,17 @@ double chooseCandidate(AnnotatedNetwork &ann_network,
 
     assert(checkSanity(ann_network, move));
 
-    assert(computeLoglikelihood(ann_network, 1, 1) ==
-           computeLoglikelihood(ann_network, 0, 1));
+    // assert(computeLoglikelihood(ann_network, 1, 1) ==
+    // computeLoglikelihood(ann_network, 0, 1));
     performMove(ann_network, move);
-    assert(computeLoglikelihood(ann_network, 1, 1) ==
-           computeLoglikelihood(ann_network, 0, 1));
+    // assert(computeLoglikelihood(ann_network, 1, 1) ==
+    // computeLoglikelihood(ann_network, 0, 1));
+
     optimizeReticulationProbs(ann_network);
 
     optimizeBranches(ann_network);
-    assert(computeLoglikelihood(ann_network, 1, 1) ==
-           computeLoglikelihood(ann_network, 0, 1));
+    // assert(computeLoglikelihood(ann_network, 1, 1) ==
+    // computeLoglikelihood(ann_network, 0, 1));
 
     double bicScore = scoreNetwork(ann_network);
 
@@ -535,19 +539,19 @@ double chooseCandidate(AnnotatedNetwork &ann_network,
 
     scores[i] = ScoreItem<Move>{candidates[i], bicScore};
 
-    assert(computeLoglikelihood(ann_network, 1, 1) ==
-           computeLoglikelihood(ann_network, 0, 1));
+    // assert(computeLoglikelihood(ann_network, 1, 1) ==
+    // computeLoglikelihood(ann_network, 0, 1));
 
     undoMove(ann_network, move);
-    assert(computeLoglikelihood(ann_network, 1, 1) ==
-           computeLoglikelihood(ann_network, 0, 1));
+    // assert(computeLoglikelihood(ann_network, 1, 1) ==
+    // computeLoglikelihood(ann_network, 0, 1));
 
     assert(checkSanity(ann_network, candidates[i]));
 
     apply_network_state(ann_network, oldState);
 
-    assert(computeLoglikelihood(ann_network, 1, 1) ==
-           computeLoglikelihood(ann_network, 0, 1));
+    // assert(computeLoglikelihood(ann_network, 1, 1) ==
+    // computeLoglikelihood(ann_network, 0, 1));
 
     if (n_better >= ann_network.options.max_better_candidates) {
       scores.resize(n_better);
