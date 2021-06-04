@@ -197,7 +197,7 @@ void updateCandidateMoves(AnnotatedNetwork &ann_network,
               << " candidates before removing the old bad ones.\n";
   }
   updateOldCandidates(ann_network, chosenMove, candidates);
-  if (takenRemovals.empty()) {
+  /*if (takenRemovals.empty()) {
     std::vector<Node *> start_nodes = gatherStartNodes(ann_network, chosenMove);
     std::vector<Move> moreMoves =
         possibleMoves(ann_network, chosenMove.moveType, start_nodes,
@@ -208,7 +208,7 @@ void updateCandidateMoves(AnnotatedNetwork &ann_network,
     }
     candidates.insert(std::end(candidates), std::begin(moreMoves),
                       std::end(moreMoves));
-  }
+  }*/
   for (size_t i = 0; i < takenRemovals.size(); ++i) {
     updateOldCandidates(ann_network, takenRemovals[i], candidates);
   }
