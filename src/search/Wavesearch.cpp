@@ -238,7 +238,6 @@ void wavesearch(AnnotatedNetwork &ann_network, BestNetworkData *bestNetworkData,
   NetworkState best_state_to_reuse = extract_network_state(ann_network);
   auto start_time = std::chrono::high_resolution_clock::now();
   double best_score = std::numeric_limits<double>::infinity();
-  ScoreImprovementResult score_improvement;
   // std::cout << "Initial network is:\n" << toExtendedNewick(ann_network) <<
   // "\n\n";
 
@@ -246,20 +245,20 @@ void wavesearch(AnnotatedNetwork &ann_network, BestNetworkData *bestNetworkData,
            .empty()) {  // don't waste time trying to first horizontally
                         // optimize the user-given start network
     optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::NORMAL);
-    score_improvement =
-        check_score_improvement(ann_network, &best_score, bestNetworkData);
+    check_score_improvement(ann_network, &best_score, bestNetworkData);
     wavesearch_main_internal(ann_network, bestNetworkData,
                              typesBySpeedGoodStart, start_state_to_reuse,
                              best_state_to_reuse, &best_score, start_time,
                              silent, print_progress);
   } else {
     optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::QUICK);
-    score_improvement =
-        check_score_improvement(ann_network, &best_score, bestNetworkData);
+    check_score_improvement(ann_network, &best_score, bestNetworkData);
     wavesearch_main_internal(ann_network, bestNetworkData, typesBySpeed,
                              start_state_to_reuse, best_state_to_reuse,
                              &best_score, start_time, silent, print_progress);
   }
+  optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::SLOW);
+  check_score_improvement(ann_network, &best_score, bestNetworkData);
 }
 
 }  // namespace netrax
