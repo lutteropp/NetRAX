@@ -403,11 +403,12 @@ double fullSearch(AnnotatedNetwork &ann_network, MoveType type,
       type == MoveType::DeltaMinusMove) {
     best_max_distance = ann_network.options.max_rearrangement_distance;
   } else {
-    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+    /*if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
       std::cout << toString(type) << " step1: find best max distance\n";
     }
     best_max_distance = findBestMaxDistance(ann_network, type, typesBySpeed,
-                                            step_size, silent, print_progress);
+                                            step_size, silent, print_progress);*/
+    best_max_distance = step_size;
   }
 
   // step 2: fast iterations mode, with the best max distance
