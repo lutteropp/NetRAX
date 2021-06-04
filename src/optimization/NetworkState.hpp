@@ -54,7 +54,6 @@ struct NetworkState {
       alphas = std::move(rhs.alphas);
       partition_models = std::move(rhs.partition_models);
       reticulation_probs = std::move(rhs.reticulation_probs);
-      ;
       cached_logl = std::move(rhs.cached_logl);
       cached_logl_valid = std::move(rhs.cached_logl_valid);
     }

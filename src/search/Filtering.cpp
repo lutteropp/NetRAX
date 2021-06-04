@@ -293,26 +293,28 @@ double chooseCandidate(AnnotatedNetwork &ann_network,
                        std::vector<Move> &candidates, bool enforce,
                        bool extreme_greedy, bool silent, bool print_progress) {
   double old_bic = scoreNetwork(ann_network);
-  double best_bic = old_bic;
-  if (enforce) {
-    best_bic = std::numeric_limits<double>::infinity();
-  }
   if (candidates.empty()) {
-    return best_bic;
+    return old_bic;
   }
   rankCandidates(ann_network, oldState, candidates, enforce, extreme_greedy,
                  silent, print_progress);
-  return filterCandidates(ann_network, oldState, candidates, FilterType::CHOOSE,
+  double best_bic = filterCandidates(ann_network, oldState, candidates, FilterType::CHOOSE,
                           enforce, extreme_greedy, false, silent,
                           print_progress);
+  if (best_bic >= old_bic && !enforce) {
+      candidates.clear();
+  }
+  return best_bic;
 }
 
 double acceptMove(AnnotatedNetwork &ann_network, Move &move, double *best_score,
                   BestNetworkData *bestNetworkData, bool silent) {
   assert(checkSanity(ann_network, move));
-
+  assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
   performMove(ann_network, move);
+  assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
   optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::QUICK);
+  assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
 
   double logl = computeLoglikelihood(ann_network);
   double bic_score = bic(ann_network, logl);
@@ -369,7 +371,7 @@ Move applyBestCandidate(AnnotatedNetwork &ann_network,
                                     extreme_greedy, silent, print_progress);
   assert(scoreNetwork(ann_network) == old_score);
 
-  if (!candidates.empty() && (enforce || (best_bic < old_score))) {
+  if (!candidates.empty()) {
     Move move(candidates[0]);
     acceptMove(ann_network, move, best_score, bestNetworkData, silent);
 
