@@ -371,7 +371,7 @@ Move applyBestCandidate(AnnotatedNetwork &ann_network,
   assert(scoreNetwork(ann_network) == old_score);
 
   if (!candidates.empty()) {
-    Move move(candidates[0]);
+    Move& move = candidates[0];
     acceptMove(ann_network, move, best_score, bestNetworkData, silent);
 
     if (!enforce) {
