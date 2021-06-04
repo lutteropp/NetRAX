@@ -31,6 +31,8 @@ static double brent_target_networks_prob(void *p, double x) {
     score = -1 * computeLoglikelihood(*ann_network, 1, 1);
   } else {
     ann_network->reticulation_probs[reticulation_index] = x;
+    ann_network->first_parent_logprobs[reticulation_index] = log(x);
+    ann_network->second_parent_logprobs[reticulation_index] = log(1.0 - x);
     ann_network->cached_logl_valid = false;
     if (ann_network->options.likelihood_variant ==
         LikelihoodVariant::SARAH_PSEUDO) {
@@ -54,6 +56,8 @@ double optimize_reticulation_linear_search(AnnotatedNetwork &ann_network,
     double mid = i * step;
 
     ann_network.reticulation_probs[reticulation_index] = mid;
+    ann_network.first_parent_logprobs[reticulation_index] = log(mid);
+    ann_network.second_parent_logprobs[reticulation_index] = log(1.0 - mid);
     ann_network.cached_logl_valid = false;
     if (ann_network.options.likelihood_variant ==
         LikelihoodVariant::SARAH_PSEUDO) {
@@ -71,6 +75,8 @@ double optimize_reticulation_linear_search(AnnotatedNetwork &ann_network,
   }
 
   ann_network.reticulation_probs[reticulation_index] = best_prob;
+  ann_network.first_parent_logprobs[reticulation_index] = log(best_prob);
+  ann_network.second_parent_logprobs[reticulation_index] = log(1.0 - best_prob);
   ann_network.cached_logl_valid = false;
   return best_prob;
 }
@@ -101,6 +107,8 @@ double optimize_reticulation(AnnotatedNetwork &ann_network,
       min_brprob, old_brprob, max_brprob, tolerance, &score, &f2x,
       (void *)&params, &brent_target_networks_prob);
   ann_network.reticulation_probs[reticulation_index] = new_brprob;
+  ann_network.first_parent_logprobs[reticulation_index] = log(new_brprob);
+  ann_network.second_parent_logprobs[reticulation_index] = log(1.0 - new_brprob);
   ann_network.cached_logl_valid = false;
   if (ann_network.options.likelihood_variant ==
       LikelihoodVariant::SARAH_PSEUDO) {

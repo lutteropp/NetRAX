@@ -55,6 +55,8 @@ void allocateBranchProbsArray(AnnotatedNetwork &ann_network) {
   // allocate branch probs array...
   ann_network.reticulation_probs =
       std::vector<double>(ann_network.options.max_reticulations, 0.5);
+  ann_network.first_parent_logprobs = std::vector<double>(ann_network.options.max_reticulations, log(0.5));
+  ann_network.second_parent_logprobs = std::vector<double>(ann_network.options.max_reticulations, log(0.5));
 }
 
 /**
@@ -81,6 +83,8 @@ void init_annotated_network(AnnotatedNetwork &ann_network, std::mt19937 &rng) {
                                 ->edge_pmatrix_index]
             ->prob;
     ann_network.reticulation_probs[i] = firstParentProb;
+    ann_network.first_parent_logprobs[i] = log(firstParentProb);
+    ann_network.second_parent_logprobs[i] = log(1.0 - firstParentProb);
   }
 
   ann_network.fake_treeinfo->active_partition = PLLMOD_TREEINFO_PARTITION_ALL;

@@ -409,7 +409,7 @@ void computeDisplayedTreeLoglikelihood(AnnotatedNetwork &ann_network,
   treeAtRoot.treeLoglData.tree_logl_valid = true;
   treeAtRoot.treeLoglData.tree_logprob = computeReticulationConfigLogProb(
       treeAtRoot.treeLoglData.reticulationChoices,
-      ann_network.reticulation_probs);
+      ann_network.first_parent_logprobs, ann_network.second_parent_logprobs);
   treeAtRoot.treeLoglData.tree_logprob_valid = true;
 }
 
@@ -588,7 +588,8 @@ double computeLoglikelihoodImproved(AnnotatedNetwork &ann_network,
         displayed_root_trees[t].treeLoglData.tree_logprob =
             computeReticulationConfigLogProb(
                 displayed_root_trees[t].treeLoglData.reticulationChoices,
-                ann_network.reticulation_probs);
+                ann_network.first_parent_logprobs,
+                ann_network.second_parent_logprobs);
         displayed_root_trees[t].treeLoglData.tree_logprob_valid = true;
       }
     }

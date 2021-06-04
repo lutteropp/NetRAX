@@ -257,7 +257,8 @@ SumtableInfo computeSumtable(
     SumtableInfo sumtableInfo(0, 0, &left_tree, &right_tree, left_tree_idx,
                               right_tree_idx);
     sumtableInfo.tree_prob = computeReticulationConfigProb(
-        restrictions, ann_network.reticulation_probs);
+        restrictions, ann_network.first_parent_logprobs,
+        ann_network.second_parent_logprobs);
     return sumtableInfo;
   }
 
@@ -269,7 +270,8 @@ SumtableInfo computeSumtable(
                             &right_tree, left_tree_idx, right_tree_idx);
 
   sumtableInfo.tree_prob = computeReticulationConfigProb(
-      restrictions, ann_network.reticulation_probs);
+      restrictions, ann_network.first_parent_logprobs,
+      ann_network.second_parent_logprobs);
   sumtableInfo.sumtable = (double *)pll_aligned_alloc(
       sumtableSize * sizeof(double), partition->alignment);
   if (!sumtableInfo.sumtable) {

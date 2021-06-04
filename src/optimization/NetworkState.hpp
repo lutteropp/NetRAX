@@ -20,6 +20,8 @@ struct NetworkState {
   std::vector<Model> partition_models;
   std::vector<double>
       reticulation_probs;  // the first-parent reticulation probs
+  std::vector<double> first_parent_logprobs;
+  std::vector<double> second_parent_logprobs;
 
   double cached_logl;
   bool cached_logl_valid;

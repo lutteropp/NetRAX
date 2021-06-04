@@ -46,6 +46,8 @@ struct AnnotatedNetwork {
   pllmod_treeinfo_t *fake_treeinfo = nullptr;
   std::vector<double>
       reticulation_probs;  // the first-parent reticulation probs
+  std::vector<double> first_parent_logprobs;
+  std::vector<double> second_parent_logprobs;
   std::vector<double> partition_contributions;
 
   std::vector<ClvRangeInfo> partition_clv_ranges;
