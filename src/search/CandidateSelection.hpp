@@ -10,7 +10,8 @@ namespace netrax {
 struct BestNetworkData;
 
 std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
-                                     int best_max_distance, MoveType type,
+                                     int min_radius, int max_radius,
+                                     MoveType type,
                                      const std::vector<MoveType> &typesBySpeed,
                                      double *best_score,
                                      BestNetworkData *bestNetworkData,
