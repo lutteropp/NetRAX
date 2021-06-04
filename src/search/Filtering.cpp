@@ -205,9 +205,12 @@ double filterCandidates(AnnotatedNetwork &ann_network,
     optimizeAfterMove(ann_network, move, filterType);
     double bicScore = scoreNetwork(ann_network);
     scores[i] = ScoreItem<Move>{candidates[i], bicScore};
-    best_bic = std::min(best_bic, bicScore);
     if (bicScore < old_bic) {
       n_better++;
+    }
+    if (bicScore < best_bic) {
+        best_bic = bicScore;
+        candidates[i].state = extract_network_state(ann_network);
     }
     if (extreme_greedy && (bicScore < old_bic)) {
       std::swap(candidates[0], candidates[i]);
@@ -305,9 +308,10 @@ double acceptMove(AnnotatedNetwork &ann_network, Move &move, double *best_score,
   assert(computeLoglikelihood(ann_network, 1, 1) ==
          computeLoglikelihood(ann_network, 0, 1));
   performMove(ann_network, move);
+  apply_network_state(ann_network, move.state);
   assert(computeLoglikelihood(ann_network, 1, 1) ==
          computeLoglikelihood(ann_network, 0, 1));
-  optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::NORMAL);
+  optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::QUICK);
   assert(computeLoglikelihood(ann_network, 1, 1) ==
          computeLoglikelihood(ann_network, 0, 1));
 

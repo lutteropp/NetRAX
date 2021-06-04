@@ -22,6 +22,8 @@
 #include "RNNIData.hpp"
 #include "RSPRData.hpp"
 
+#include "../optimization/NetworkState.hpp"
+
 #include "../graph/AnnotatedNetwork.hpp"
 
 namespace netrax {
@@ -45,6 +47,7 @@ struct Move {
   RSPRData rsprData;
   ArcInsertionData arcInsertionData;
   ArcRemovalData arcRemovalData;
+  NetworkState state;
 
   Move() = default;
 
@@ -58,7 +61,8 @@ struct Move {
         rnniData{rhs.rnniData},
         rsprData{rhs.rsprData},
         arcInsertionData{rhs.arcInsertionData},
-        arcRemovalData{rhs.arcRemovalData} {}
+        arcRemovalData{rhs.arcRemovalData},
+        state{rhs.state} {}
 
   Move(const Move &rhs)
       : moveType{rhs.moveType},
@@ -70,7 +74,8 @@ struct Move {
         rnniData{rhs.rnniData},
         rsprData{rhs.rsprData},
         arcInsertionData{rhs.arcInsertionData},
-        arcRemovalData{rhs.arcRemovalData} {}
+        arcRemovalData{rhs.arcRemovalData},
+        state{rhs.state} {}
 
   Move &operator=(Move &&rhs) {
     if (this != &rhs) {
@@ -84,6 +89,7 @@ struct Move {
       rsprData = rhs.rsprData;
       arcInsertionData = rhs.arcInsertionData;
       arcRemovalData = rhs.arcRemovalData;
+      state = rhs.state;
     }
     return *this;
   }
@@ -100,6 +106,7 @@ struct Move {
       rsprData = rhs.rsprData;
       arcInsertionData = rhs.arcInsertionData;
       arcRemovalData = rhs.arcRemovalData;
+      state = rhs.state;
     }
     return *this;
   }
