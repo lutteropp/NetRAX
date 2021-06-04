@@ -800,37 +800,6 @@ void updateOldCandidates(AnnotatedNetwork &ann_network, const Move &chosenMove,
     }
   }
 
-  Network& network = ann_network.network;
-
-  for (size_t i = 0; i < candidates.size(); ++i) {
-    Move& move = candidates[i];
-    if (isArcInsertion(move.moveType)) {
-      Node* a = ann_network.network.nodes_by_index[move.arcInsertionData.a_clv_index];
-      Node* b = ann_network.network.nodes_by_index[move.arcInsertionData.b_clv_index];
-      Node* c = ann_network.network.nodes_by_index[move.arcInsertionData.c_clv_index];
-      Node* d = ann_network.network.nodes_by_index[move.arcInsertionData.d_clv_index];
-      if (a && b && c && d && hasChild(network, a, b) && hasChild(network, c, d)) {
-        move.arcInsertionData.ab_pmatrix_index = getEdgeTo(network, a, b)->pmatrix_index;
-        move.arcInsertionData.cd_pmatrix_index = getEdgeTo(network, c, d)->pmatrix_index;
-      }
-    } else if (isArcRemoval(move.moveType)) {
-      Node* a = ann_network.network.nodes_by_index[move.arcRemovalData.a_clv_index];
-      Node* b = ann_network.network.nodes_by_index[move.arcRemovalData.b_clv_index];
-      Node* c = ann_network.network.nodes_by_index[move.arcRemovalData.c_clv_index];
-      Node* d = ann_network.network.nodes_by_index[move.arcRemovalData.d_clv_index];
-      Node* u = ann_network.network.nodes_by_index[move.arcRemovalData.u_clv_index];
-      Node* v = ann_network.network.nodes_by_index[move.arcRemovalData.v_clv_index];
-      if (a && b && c && d && u && v && hasChild(network, a, u) && hasChild(network, u, b) && hasChild(network, c, v) && hasChild(network, v, d) && hasChild(network, u, v)) {
-        move.arcRemovalData.au_pmatrix_index = getEdgeTo(network, a, u)->pmatrix_index;
-        move.arcRemovalData.ub_pmatrix_index = getEdgeTo(network, u, b)->pmatrix_index;
-        move.arcRemovalData.cv_pmatrix_index = getEdgeTo(network, c, v)->pmatrix_index;
-        move.arcRemovalData.vd_pmatrix_index = getEdgeTo(network, v, d)->pmatrix_index;
-        move.arcRemovalData.uv_pmatrix_index = getEdgeTo(network, u, v)->pmatrix_index;
-      }
-    }
-  }
-
-
   if (!candidates.empty() && candidates[0].moveType == MoveType::RNNIMove) {
     std::vector<Move> newCandidates;
     for (size_t i = 0; i < candidates.size(); ++i) {
@@ -849,7 +818,7 @@ void updateOldCandidates(AnnotatedNetwork &ann_network, const Move &chosenMove,
     }
     filterOutDuplicateMovesRNNI(newCandidates);
     candidates = newCandidates;
-  } else if (!candidates.empty())
+  }
   recollectFirstParents(ann_network.network, candidates);
 }
 
