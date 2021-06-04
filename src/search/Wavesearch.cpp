@@ -10,6 +10,7 @@
 #include "../optimization/Optimization.hpp"
 #include "CandidateSelection.hpp"
 #include "Scrambling.hpp"
+#include "Filtering.hpp"
 
 #include "../colormod.h"  // namespace Color
 

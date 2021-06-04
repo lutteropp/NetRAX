@@ -23,17 +23,8 @@
 
 namespace netrax {
 
-void judgeNetwork(BestNetworkData &best_network_data,
-                  NetraxOptions &netraxOptions, const RaxmlInstance &instance,
-                  std::mt19937 &rng) {
-  AnnotatedNetwork inferredNetwork = build_annotated_network_from_string(
-      netraxOptions, instance,
-      best_network_data.newick[best_network_data.best_n_reticulations]);
-  init_annotated_network(inferredNetwork, rng);
-  AnnotatedNetwork trueNetwork = build_annotated_network_from_file(
-      netraxOptions, instance, netraxOptions.true_network_path);
-  init_annotated_network(trueNetwork, rng);
-
+void judgeNetwork(AnnotatedNetwork &inferredNetwork,
+                  AnnotatedNetwork &trueNetwork) {
   if (inferredNetwork.network.num_tips() != trueNetwork.network.num_tips()) {
     throw std::runtime_error("Unequal number of taxa");
   }
@@ -124,6 +115,19 @@ void judgeNetwork(BestNetworkData &best_network_data,
                      NetworkDistanceType::ROOTED_NESTED_LABELS_DISTANCE)
               << "\n";
   }
+}
+
+void judgeNetwork(BestNetworkData &best_network_data,
+                  NetraxOptions &netraxOptions, const RaxmlInstance &instance,
+                  std::mt19937 &rng) {
+  AnnotatedNetwork inferredNetwork = build_annotated_network_from_string(
+      netraxOptions, instance,
+      best_network_data.newick[best_network_data.best_n_reticulations]);
+  init_annotated_network(inferredNetwork, rng);
+  AnnotatedNetwork trueNetwork = build_annotated_network_from_file(
+      netraxOptions, instance, netraxOptions.true_network_path);
+  init_annotated_network(trueNetwork, rng);
+  judgeNetwork(inferredNetwork, trueNetwork);
 }
 
 void run_single_start_waves(NetraxOptions &netraxOptions,

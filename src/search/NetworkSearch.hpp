@@ -5,6 +5,9 @@
 
 namespace netrax {
 
+void judgeNetwork(AnnotatedNetwork &inferredNetwork,
+                  AnnotatedNetwork &trueNetwork);
+
 void run_single_start_waves(NetraxOptions &netraxOptions,
                             const RaxmlInstance &instance,
                             const std::vector<MoveType> &typesBySpeed,

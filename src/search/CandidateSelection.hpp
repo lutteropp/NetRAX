@@ -7,10 +7,14 @@
 
 namespace netrax {
 
-Move applyBestCandidate(AnnotatedNetwork &ann_network,
-                        std::vector<Move> candidates, double *best_score,
-                        BestNetworkData *bestNetworkData, bool enforce,
-                        bool silent);
+struct BestNetworkData;
+
+std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
+                                     int best_max_distance, MoveType type,
+                                     const std::vector<MoveType> &typesBySpeed,
+                                     double *best_score,
+                                     BestNetworkData *bestNetworkData,
+                                     bool silent);
 
 double fullSearch(AnnotatedNetwork &ann_network, MoveType type,
                   const std::vector<MoveType> &typesBySpeed, double *best_score,
