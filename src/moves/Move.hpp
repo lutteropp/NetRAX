@@ -47,7 +47,6 @@ struct Move {
   RSPRData rsprData;
   ArcInsertionData arcInsertionData;
   ArcRemovalData arcRemovalData;
-  NetworkState state;
 
   Move() = default;
 
@@ -61,8 +60,7 @@ struct Move {
         rnniData{rhs.rnniData},
         rsprData{rhs.rsprData},
         arcInsertionData{rhs.arcInsertionData},
-        arcRemovalData{rhs.arcRemovalData},
-        state{rhs.state} {}
+        arcRemovalData{rhs.arcRemovalData} {}
 
   Move(const Move &rhs)
       : moveType{rhs.moveType},
@@ -74,8 +72,7 @@ struct Move {
         rnniData{rhs.rnniData},
         rsprData{rhs.rsprData},
         arcInsertionData{rhs.arcInsertionData},
-        arcRemovalData{rhs.arcRemovalData},
-        state{rhs.state} {}
+        arcRemovalData{rhs.arcRemovalData} {}
 
   Move &operator=(Move &&rhs) {
     if (this != &rhs) {
@@ -89,7 +86,6 @@ struct Move {
       rsprData = rhs.rsprData;
       arcInsertionData = rhs.arcInsertionData;
       arcRemovalData = rhs.arcRemovalData;
-      state = rhs.state;
     }
     return *this;
   }
@@ -106,7 +102,6 @@ struct Move {
       rsprData = rhs.rsprData;
       arcInsertionData = rhs.arcInsertionData;
       arcRemovalData = rhs.arcRemovalData;
-      state = rhs.state;
     }
     return *this;
   }

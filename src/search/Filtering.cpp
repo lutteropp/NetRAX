@@ -179,7 +179,7 @@ void optimizeAfterMove(AnnotatedNetwork &ann_network, Move &move,
 }
 
 double filterCandidates(AnnotatedNetwork &ann_network,
-                        const NetworkState &oldState,
+                        const NetworkState &oldState, NetworkState &bestState,
                         std::vector<Move> &candidates, FilterType filterType,
                         bool enforce, bool extreme_greedy, bool keep_all_better,
                         bool silent, bool print_progress) {
@@ -209,8 +209,8 @@ double filterCandidates(AnnotatedNetwork &ann_network,
       n_better++;
     }
     if (bicScore < best_bic) {
-        best_bic = bicScore;
-        candidates[i].state = extract_network_state(ann_network);
+      best_bic = bicScore;
+      extract_network_state(ann_network, bestState);
     }
     if (extreme_greedy && (bicScore < old_bic)) {
       std::swap(candidates[0], candidates[i]);
@@ -263,52 +263,54 @@ double filterCandidates(AnnotatedNetwork &ann_network,
 
 double prefilterCandidates(AnnotatedNetwork &ann_network,
                            const NetworkState &oldState,
+                           NetworkState &bestState,
                            std::vector<Move> &candidates, bool extreme_greedy,
                            bool silent, bool print_progress) {
-  return filterCandidates(ann_network, oldState, candidates,
+  return filterCandidates(ann_network, oldState, bestState, candidates,
                           FilterType::PREFILTER, false, extreme_greedy, true,
                           silent, print_progress);
 }
 
 double rankCandidates(AnnotatedNetwork &ann_network,
-                      const NetworkState &oldState,
+                      const NetworkState &oldState, NetworkState &bestState,
                       std::vector<Move> &candidates, bool enforce,
                       bool extreme_greedy, bool silent, bool print_progress) {
   if (!ann_network.options.no_prefiltering) {
-    prefilterCandidates(ann_network, oldState, candidates, extreme_greedy,
+    prefilterCandidates(ann_network, oldState, bestState, candidates, extreme_greedy,
                         silent, print_progress);
   }
-  return filterCandidates(ann_network, oldState, candidates, FilterType::RANK,
-                          enforce, extreme_greedy, false, silent,
-                          print_progress);
+  return filterCandidates(ann_network, oldState, bestState, candidates,
+                          FilterType::RANK, enforce, extreme_greedy, false,
+                          silent, print_progress);
 }
 
 double chooseCandidate(AnnotatedNetwork &ann_network,
-                       const NetworkState &oldState,
+                       const NetworkState &oldState, NetworkState &bestState,
                        std::vector<Move> &candidates, bool enforce,
                        bool extreme_greedy, bool silent, bool print_progress) {
   double old_bic = scoreNetwork(ann_network);
   if (candidates.empty()) {
     return old_bic;
   }
-  rankCandidates(ann_network, oldState, candidates, enforce, extreme_greedy,
-                 silent, print_progress);
-  double best_bic =
-      filterCandidates(ann_network, oldState, candidates, FilterType::CHOOSE,
-                       enforce, extreme_greedy, false, silent, print_progress);
+  rankCandidates(ann_network, oldState, bestState, candidates, enforce,
+                 extreme_greedy, silent, print_progress);
+  double best_bic = filterCandidates(
+      ann_network, oldState, bestState, candidates, FilterType::CHOOSE, enforce,
+      extreme_greedy, false, silent, print_progress);
   if (best_bic >= old_bic && !enforce) {
     candidates.clear();
   }
   return best_bic;
 }
 
-double acceptMove(AnnotatedNetwork &ann_network, Move &move, double *best_score,
+double acceptMove(AnnotatedNetwork &ann_network, Move &move,
+                  const NetworkState &bestState, double *best_score,
                   BestNetworkData *bestNetworkData, bool silent) {
   assert(checkSanity(ann_network, move));
   assert(computeLoglikelihood(ann_network, 1, 1) ==
          computeLoglikelihood(ann_network, 0, 1));
   performMove(ann_network, move);
-  apply_network_state(ann_network, move.state);
+  apply_network_state(ann_network, bestState);
   assert(computeLoglikelihood(ann_network, 1, 1) ==
          computeLoglikelihood(ann_network, 0, 1));
   optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::NORMAL);
@@ -331,7 +333,7 @@ double acceptMove(AnnotatedNetwork &ann_network, Move &move, double *best_score,
     if (!silent)
       std::cout << "  num_reticulations: "
                 << ann_network.network.num_reticulations() << "\n";
-    //if (!silent) std::cout << toExtendedNewick(ann_network) << "\n";
+    // if (!silent) std::cout << toExtendedNewick(ann_network) << "\n";
 
     std::cout << "displayed trees:\n";
     for (size_t i = 0;
@@ -366,13 +368,15 @@ Move applyBestCandidate(AnnotatedNetwork &ann_network,
   double old_score = scoreNetwork(ann_network);
 
   NetworkState oldState = extract_network_state(ann_network);
-  double best_bic = chooseCandidate(ann_network, oldState, candidates, enforce,
-                                    extreme_greedy, silent, print_progress);
+  NetworkState bestState = extract_network_state(ann_network);
+  double best_bic =
+      chooseCandidate(ann_network, oldState, bestState, candidates, enforce,
+                      extreme_greedy, silent, print_progress);
   assert(scoreNetwork(ann_network) == old_score);
 
   if (!candidates.empty()) {
-    Move& move = candidates[0];
-    acceptMove(ann_network, move, best_score, bestNetworkData, silent);
+    acceptMove(ann_network, candidates[0], bestState, best_score,
+               bestNetworkData, silent);
 
     if (!enforce) {
       if (scoreNetwork(ann_network) > old_score) {
@@ -386,7 +390,7 @@ Move applyBestCandidate(AnnotatedNetwork &ann_network,
             "worse!");
       }
     }
-    return move;
+    return candidates[0];
   }
 
   return {};

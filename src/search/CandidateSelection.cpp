@@ -35,14 +35,15 @@ std::vector<Move> getPossibleMoves(AnnotatedNetwork &ann_network,
 }
 
 double best_fast_improvement(AnnotatedNetwork &ann_network,
-                             const NetworkState &oldState, MoveType type,
+                             const NetworkState &oldState,
+                             NetworkState &bestState, MoveType type,
                              const std::vector<MoveType> &typesBySpeed,
                              int min_radius, int max_radius, bool silent,
                              bool print_progress) {
   std::vector<Move> candidates =
       getPossibleMoves(ann_network, typesBySpeed, type, min_radius, max_radius);
-  return prefilterCandidates(ann_network, oldState, candidates, true, true,
-                             print_progress);
+  return prefilterCandidates(ann_network, oldState, bestState, candidates, true,
+                             true, print_progress);
 }
 
 int findBestMaxDistance(AnnotatedNetwork &ann_network, MoveType type,
@@ -57,12 +58,13 @@ int findBestMaxDistance(AnnotatedNetwork &ann_network, MoveType type,
     int act_max_distance = 0;
     int old_max_distance = 0;
     NetworkState oldState = extract_network_state(ann_network);
+    NetworkState bestState = extract_network_state(ann_network);
     while (act_max_distance < ann_network.options.max_rearrangement_distance) {
       act_max_distance =
           std::min(act_max_distance + step_size,
                    ann_network.options.max_rearrangement_distance);
       double score = best_fast_improvement(
-          ann_network, oldState, type, typesBySpeed, old_max_distance,
+          ann_network, oldState, bestState, type, typesBySpeed, old_max_distance,
           act_max_distance, silent, print_progress);
       if (score < old_score) {
         old_max_distance = act_max_distance + 1;
@@ -240,11 +242,12 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
   double old_score = scoreNetwork(ann_network);
 
   NetworkState oldState = extract_network_state(ann_network);
+  NetworkState bestState = extract_network_state(ann_network);
 
   std::vector<Move> candidates =
       getPossibleMoves(ann_network, typesBySpeed, type, 0, best_max_distance);
-  prefilterCandidates(ann_network, oldState, candidates, false, silent,
-                      print_progress);
+  prefilterCandidates(ann_network, oldState, bestState, candidates, false,
+                      silent, print_progress);
 
   bool old_no_prefiltering = ann_network.options.no_prefiltering;
   ann_network.options.no_prefiltering = true;
@@ -294,8 +297,8 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
                                       best_max_distance);
         oldCandidates.clear();
       }
-      prefilterCandidates(ann_network, oldState, candidates, false, silent,
-                          print_progress);
+      prefilterCandidates(ann_network, oldState, bestState, candidates, false,
+                          silent, print_progress);
     } else {
       // score did not get better
       if (!tried_with_allnew && !acceptedMoves.empty() &&
