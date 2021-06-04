@@ -32,6 +32,7 @@ struct NodeDisplayedTreeData;
 
 struct Statistics {
   std::unordered_map<MoveType, size_t> moves_taken;
+  size_t totalMovesTaken() const;
 };
 
 void destroy_network_treeinfo(pllmod_treeinfo_t *treeinfo);

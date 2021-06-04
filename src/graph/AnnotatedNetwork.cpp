@@ -28,6 +28,14 @@
 
 namespace netrax {
 
+size_t Statistics::totalMovesTaken() const {
+  size_t res = 0;
+  for (const auto& entry : moves_taken) {
+    res += entry.second;
+  }
+  return res;
+}
+
 AnnotatedNetwork::AnnotatedNetwork(NetraxOptions &options,
                                    const RaxmlInstance &instance)
     : options{options}, instance{instance} {}
