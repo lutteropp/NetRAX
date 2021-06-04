@@ -11,21 +11,28 @@ from Bio import AlignIO
 Author: Sarah Lutteropp
 A script that subsamples a partitioned MSA, trying to find a smaller dataset that already leads to a bug.
 
+mpiexec ../bin/netrax --msa sampled_msa_30_400_0.fasta --output sampled_output_30_400_0.txt --model sampled_partitions_30_400_0.txt --best_displayed_tree_variant --num_random_start_networks 0 --num_parsimony_start_networks 1 --brlen linked --seed 42 --extreme_greedy
+
+mpiexec ../bin/netrax --msa data/datasets_40t_4r_small/0_0_msa.txt --output data/datasets_40t_4r_small/0_0_BEST_LINKED_FROM_RAXML_inferred_network.nw --model data/datasets_40t_4r_small/0_0_partitions.txt --best_displayed_tree_variant --num_random_start_networks 0 --num_parsimony_start_networks 1 --brlen linked --seed 42
 """
 
-ORIG_MSA = "sampled_msa_12_1200_0.fasta"
+#ORIG_MSA = "data/datasets_40t_4r_small/0_0_msa.txt"
+#ORIG_MSA_FORMAT="phylip"
+#ORIG_PARTITIONS = "data/datasets_40t_4r_small/0_0_partitions.txt"
+
+ORIG_MSA = "sampled_msa_30_400_0.fasta"
 ORIG_MSA_FORMAT="fasta"
-ORIG_PARTITIONS = "sampled_partitions_12_1200_0.txt"
+ORIG_PARTITIONS = "sampled_partitions_30_400_0.txt"
 
 MIN_MSA_SIZE = 165
 MIN_N_TAXA = 4
 
-TAXON_FRACTIONS = [1.0]
-MSA_FRACTIONS = [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+TAXON_FRACTIONS = [0.25, 0.5, 0.75, 1.0]
+MSA_FRACTIONS = [0.25, 0.5, 0.75, 1.0]
 ITERATIONS = 1
 
 def build_command(msa_path, partitions_path, output_path):
-    return "mpiexec ../bin/netrax --msa " + msa_path + " --output " + output_path + " --model " + partitions_path + " --best_displayed_tree_variant --num_random_start_networks 0 --num_parsimony_start_networks 1 --brlen linked --seed 42"
+    return "mpiexec ../bin/netrax --msa " + msa_path + " --output " + output_path + " --model " + partitions_path + " --best_displayed_tree_variant --num_random_start_networks 0 --num_parsimony_start_networks 1 --brlen linked --seed 42 --extreme_greedy"
 
 def orig_command():
     return build_command(ORIG_MSA, ORIG_PARTITIONS, "original_output")
