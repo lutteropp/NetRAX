@@ -245,12 +245,6 @@ std::vector<MoveType> getTypesBySpeed(const NetraxOptions &options) {
   } else {
     typesBySpeed.emplace_back(MoveType::DeltaPlusMove);
   }
-  if (!options.no_rspr_moves) {
-    typesBySpeed.emplace_back(MoveType::RSPRMove);
-  }
-  if (!options.no_rnni_moves) {
-    typesBySpeed.emplace_back(MoveType::RNNIMove);
-  }
   return typesBySpeed;
 }
 
