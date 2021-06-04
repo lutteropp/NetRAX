@@ -218,10 +218,10 @@ void updateCLVsVirtualRerootTrees(AnnotatedNetwork &ann_network,
   }
 
   for (size_t p = 0; p < paths.size(); ++p) {
-    /*std::cout << "PROCESSING PATH " << p << " ON PARTITION " << partition_idx
-<< "\n"; printPathToVirtualRoot(paths[p]); std::cout << "The path has the
-following restrictions: \n";
-printReticulationChoices(paths[p].reticulationChoices);*/
+    //std::cout << "PROCESSING PATH " << p << "\n";
+    //printPathToVirtualRoot(paths[p]);
+    //std::cout << "The path has the following restrictions: \n";
+    //printReticulationChoices(paths[p].reticulationChoices);
 
     if (!reticulationConfigsCompatible(paths[p].reticulationChoices,
                                        restrictions)) {
@@ -230,9 +230,7 @@ printReticulationChoices(paths[p].reticulationChoices);*/
 
     // Restore required old NodeInformations for the path
     for (size_t nodeIndexToRestore : nodeSaveInfo.pathNodesToRestore[p]) {
-      /*if (ann_network.network.num_reticulations() == 1) {
-      std::cout << "restoring node info at " << nodeIndexToRestore << "\n";
-  }*/
+      //std::cout << "restoring node info at " << nodeIndexToRestore << "\n";
       ann_network.pernode_displayed_tree_data[nodeIndexToRestore] =
           bufferedNodeInformations[nodeIndexToRestore];
     }

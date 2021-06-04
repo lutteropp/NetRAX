@@ -191,7 +191,7 @@ double performMovePrefilter(AnnotatedNetwork &ann_network, Move &move,
         ann_network, brlenopt_candidates,
         2.0 / RAXML_BRLEN_SMOOTHINGS);  // two iterations max
     updateMoveBranchLengths(ann_network, move);
-    optimize_reticulation(ann_network, move.arcInsertionData.wanted_v_clv_index);
+    optimize_reticulation(ann_network, ann_network.network.num_reticulations() - 1);
     switchLikelihoodVariant(ann_network, LikelihoodVariant::SARAH_PSEUDO);
   }
   for (size_t j = 0; j < ann_network.network.num_nodes(); ++j) {
@@ -300,6 +300,7 @@ double prefilterCandidates(AnnotatedNetwork &ann_network,
       if (ParallelContext::master_thread() && ParallelContext::master_rank()) {
         std::cout << "old_bic: " << old_bic << "\n";
         std::cout << "scoreNetwork: " << scoreNetwork(ann_network) << "\n";
+        std::cout << exportDebugInfo(ann_network) << "\n";
       }
       throw std::runtime_error(
           "BIC after undoing move is not the same as BIC we had before");
