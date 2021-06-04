@@ -932,7 +932,7 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
                           std::end(moreMoves));
       }
 
-      if (candidates.empty()) {  // no old candidates to reuse. Thus,
+      /*if (candidates.empty()) {  // no old candidates to reuse. Thus,
         // completely gather new ones.
         if (ParallelContext::master_rank() &&
             ParallelContext::master_thread()) {
@@ -943,10 +943,10 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
         candidates = possibleMoves(ann_network, type, rspr1_present,
                                    delta_plus_present, 0, best_max_distance);
         oldCandidates.clear();
-      }
+      }*/
       prefilterCandidates(ann_network, candidates, silent);
     } else {  // score did not get better
-      if (!tried_with_allnew && !acceptedMoves.empty()) {
+      /*if (!tried_with_allnew && !acceptedMoves.empty()) {
         tried_with_allnew = true;
         if (ParallelContext::master_rank() &&
             ParallelContext::master_thread()) {
@@ -956,7 +956,7 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
                                    delta_plus_present, 0, best_max_distance);
         oldCandidates.clear();
         got_better = true;
-      }
+      }*/
     }
   }
 
