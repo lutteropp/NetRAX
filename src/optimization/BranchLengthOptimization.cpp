@@ -340,6 +340,7 @@ double optimize_branch(AnnotatedNetwork &ann_network,
 
 double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index,
                        BrlenOptMethod brlenOptMethod, unsigned int max_iters) {
+  assert(pmatrix_index < ann_network.network.num_branches());
   double old_logl = computeLoglikelihood(ann_network);
   assert(old_logl <= 0.0);
   assert(computeLoglikelihood(ann_network, 0, 1) == old_logl);
