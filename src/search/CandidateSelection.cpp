@@ -12,6 +12,7 @@
 #include "../moves/Move.hpp"
 #include "../moves/RNNI.hpp"
 #include "../optimization/BranchLengthOptimization.hpp"
+#include "../optimization/ReticulationOptimization.hpp"
 #include "../optimization/NetworkState.hpp"
 #include "../optimization/Optimization.hpp"
 
@@ -184,13 +185,13 @@ double performMovePrefilter(AnnotatedNetwork &ann_network, Move &move,
   if (move.moveType == MoveType::ArcInsertionMove ||
       move.moveType == MoveType::DeltaPlusMove) {
     switchLikelihoodVariant(ann_network, old_variant);
-    optimizeReticulationProbs(ann_network);
     std::unordered_set<size_t> brlenopt_candidates;
     brlenopt_candidates.emplace(move.arcInsertionData.wanted_uv_pmatrix_index);
     optimizeBranchesCandidates(
         ann_network, brlenopt_candidates,
         2.0 / RAXML_BRLEN_SMOOTHINGS);  // two iterations max
     updateMoveBranchLengths(ann_network, move);
+    optimize_reticulation(ann_network, move.arcInsertionData.wanted_v_clv_index);
     switchLikelihoodVariant(ann_network, LikelihoodVariant::SARAH_PSEUDO);
   }
   for (size_t j = 0; j < ann_network.network.num_nodes(); ++j) {

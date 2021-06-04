@@ -14,5 +14,7 @@ extern "C" {
 namespace netrax {
 
 double optimize_reticulations(AnnotatedNetwork &ann_network, int max_iters);
+double optimize_reticulation(AnnotatedNetwork &ann_network,
+                             size_t reticulation_index);
 
-}
+}  // namespace netrax
