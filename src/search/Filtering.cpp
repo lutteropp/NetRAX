@@ -266,9 +266,14 @@ double prefilterCandidates(AnnotatedNetwork &ann_network,
                            NetworkState &bestState,
                            std::vector<Move> &candidates, bool extreme_greedy,
                            bool silent, bool print_progress) {
-  return filterCandidates(ann_network, oldState, bestState, candidates,
+  double old_bic = scoreNetwork(ann_network);
+  double best_bic = filterCandidates(ann_network, oldState, bestState, candidates,
                           FilterType::PREFILTER, false, extreme_greedy, true,
                           silent, print_progress);
+  if (best_bic >= old_bic) {
+      candidates.clear();
+  }
+  return best_bic;
 }
 
 double rankCandidates(AnnotatedNetwork &ann_network,
