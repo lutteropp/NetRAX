@@ -120,10 +120,10 @@ void wavesearch_internal(
   size_t old_moves_taken = ann_network.stats.totalMovesTaken();
 
   // only search for arc insertion moves in first and last round
-  std::vector<MoveType> typesBySpeedNoInsertions = typesBySpeed;
-  typesBySpeedNoInsertions.erase(std::remove_if(
-      typesBySpeedNoInsertions.begin(), typesBySpeedNoInsertions.end(),
-      [](MoveType type) { return isArcInsertion(type); }));
+  std::vector<MoveType> typesBySpeedHorizontal = typesBySpeed;
+  typesBySpeedHorizontal.erase(std::remove_if(
+      typesBySpeedHorizontal.begin(), typesBySpeedHorizontal.end(),
+      [](MoveType type) { return isArcInsertion(type) || isArcRemoval(type); }));
 
   std::vector<MoveType> insertionTypes;
   for (size_t i = 0; i < typesBySpeed.size(); ++i) {
@@ -138,7 +138,7 @@ void wavesearch_internal(
     got_better = false;
     check_score_improvement(ann_network, best_score, bestNetworkData);
     optimizeEverythingRun(
-        ann_network, (withInsertions) ? typesBySpeed : typesBySpeedNoInsertions,
+        ann_network, (withInsertions) ? typesBySpeed : typesBySpeedHorizontal,
         start_state_to_reuse, best_state_to_reuse, start_time, bestNetworkData,
         silent, print_progress);
     check_score_improvement(ann_network, best_score, bestNetworkData);
@@ -154,7 +154,7 @@ void wavesearch_internal(
       if (ann_network.stats.totalMovesTaken() > old_moves_taken) {
         old_moves_taken = ann_network.stats.totalMovesTaken();
 
-        optimizeEverythingRun(ann_network, typesBySpeedNoInsertions,
+        optimizeEverythingRun(ann_network, typesBySpeedHorizontal,
                               start_state_to_reuse, best_state_to_reuse,
                               start_time, bestNetworkData, silent,
                               print_progress);
