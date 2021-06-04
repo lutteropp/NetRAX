@@ -165,7 +165,7 @@ void extract_network_state(AnnotatedNetwork &ann_network,
 }
 
 NetworkState extract_network_state(AnnotatedNetwork &ann_network) {
-  NetworkState state(true);
+  NetworkState state;
 
   // branch lengths allocation stuff
   state.linked_brlens.resize(ann_network.fake_treeinfo->tree->edge_count);

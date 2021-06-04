@@ -22,6 +22,8 @@
 #include "RNNIData.hpp"
 #include "RSPRData.hpp"
 
+#include "../optimization/NetworkState.hpp"
+
 #include "../graph/AnnotatedNetwork.hpp"
 
 namespace netrax {

@@ -730,9 +730,16 @@ std::unordered_set<size_t> brlenOptCandidatesRNNI(AnnotatedNetwork &ann_network,
   Node *v = ann_network.network.nodes_by_index[move.rnniData.v_clv_index];
   Node *s = ann_network.network.nodes_by_index[move.rnniData.s_clv_index];
   Node *t = ann_network.network.nodes_by_index[move.rnniData.t_clv_index];
+  assert(u);
+  assert(v);
+  assert(s);
+  assert(t);
   Edge *u_v_edge = getEdgeTo(ann_network.network, u, v);
   Edge *v_s_edge = getEdgeTo(ann_network.network, v, s);
   Edge *u_t_edge = getEdgeTo(ann_network.network, u, t);
+  assert(u_v_edge);
+  assert(v_s_edge);
+  assert(u_t_edge);
   return {u_v_edge->pmatrix_index, v_s_edge->pmatrix_index,
           u_t_edge->pmatrix_index};
 }
@@ -744,9 +751,16 @@ std::unordered_set<size_t> brlenOptCandidatesUndoRNNI(
   Node *v = ann_network.network.nodes_by_index[move.rnniData.v_clv_index];
   Node *s = ann_network.network.nodes_by_index[move.rnniData.s_clv_index];
   Node *t = ann_network.network.nodes_by_index[move.rnniData.t_clv_index];
+  assert(u);
+  assert(v);
+  assert(s);
+  assert(t);
   Edge *u_s_edge = getEdgeTo(ann_network.network, u, s);
   Edge *v_t_edge = getEdgeTo(ann_network.network, v, t);
   Edge *u_t_edge = getEdgeTo(ann_network.network, u, t);
+  assert(u_s_edge);
+  assert(v_t_edge);
+  assert(u_t_edge);
   return {u_s_edge->pmatrix_index, v_t_edge->pmatrix_index,
           u_t_edge->pmatrix_index};
 }

@@ -23,17 +23,8 @@
 
 namespace netrax {
 
-void judgeNetwork(BestNetworkData &best_network_data,
-                  NetraxOptions &netraxOptions, const RaxmlInstance &instance,
-                  std::mt19937 &rng) {
-  AnnotatedNetwork inferredNetwork = build_annotated_network_from_string(
-      netraxOptions, instance,
-      best_network_data.newick[best_network_data.best_n_reticulations]);
-  init_annotated_network(inferredNetwork, rng);
-  AnnotatedNetwork trueNetwork = build_annotated_network_from_file(
-      netraxOptions, instance, netraxOptions.true_network_path);
-  init_annotated_network(trueNetwork, rng);
-
+void judgeNetwork(AnnotatedNetwork &inferredNetwork,
+                  AnnotatedNetwork &trueNetwork) {
   if (inferredNetwork.network.num_tips() != trueNetwork.network.num_tips()) {
     throw std::runtime_error("Unequal number of taxa");
   }
@@ -126,11 +117,24 @@ void judgeNetwork(BestNetworkData &best_network_data,
   }
 }
 
+void judgeNetwork(BestNetworkData &best_network_data,
+                  NetraxOptions &netraxOptions, const RaxmlInstance &instance,
+                  std::mt19937 &rng) {
+  AnnotatedNetwork inferredNetwork = build_annotated_network_from_string(
+      netraxOptions, instance,
+      best_network_data.newick[best_network_data.best_n_reticulations]);
+  init_annotated_network(inferredNetwork, rng);
+  AnnotatedNetwork trueNetwork = build_annotated_network_from_file(
+      netraxOptions, instance, netraxOptions.true_network_path);
+  init_annotated_network(trueNetwork, rng);
+  judgeNetwork(inferredNetwork, trueNetwork);
+}
+
 void run_single_start_waves(NetraxOptions &netraxOptions,
                             const RaxmlInstance &instance,
                             const std::vector<MoveType> &typesBySpeed,
                             const std::vector<MoveType> &typesBySpeedGoodStart,
-                            std::mt19937 &rng) {
+                            std::mt19937 &rng, bool silent, bool print_progress) {
   /* non-master ranks load starting trees from a file */
   ParallelContext::global_mpi_barrier();
   netrax::AnnotatedNetwork ann_network =
@@ -144,7 +148,7 @@ void run_single_start_waves(NetraxOptions &netraxOptions,
   }
 
   wavesearch(ann_network, &bestNetworkData, typesBySpeed,
-             typesBySpeedGoodStart);
+             typesBySpeedGoodStart, silent, print_progress);
 
   if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
     std::cout << "Statistics on which moves were taken:\n";
@@ -193,7 +197,7 @@ void run_single_start_waves(NetraxOptions &netraxOptions,
 }
 
 void run_random(NetraxOptions &netraxOptions, const RaxmlInstance &instance,
-                const std::vector<MoveType> &typesBySpeed, std::mt19937 &rng) {
+                const std::vector<MoveType> &typesBySpeed, std::mt19937 &rng, bool silent, bool print_progress) {
   std::uniform_int_distribution<long> dist(0, RAND_MAX);
   BestNetworkData bestNetworkData(netraxOptions.max_reticulations);
 
@@ -226,7 +230,7 @@ void run_random(NetraxOptions &netraxOptions, const RaxmlInstance &instance,
       init_annotated_network(ann_network, rng);
       add_extra_reticulations(ann_network, start_reticulations);
 
-      wavesearch(ann_network, &bestNetworkData, typesBySpeed, typesBySpeed);
+      wavesearch(ann_network, &bestNetworkData, typesBySpeed, typesBySpeed, silent, print_progress);
       if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         std::cout << " Inferred " << ann_network.network.num_reticulations()
                   << " reticulations, logl = "
@@ -267,7 +271,7 @@ void run_random(NetraxOptions &netraxOptions, const RaxmlInstance &instance,
           build_parsimony_annotated_network(netraxOptions, instance, seed);
       init_annotated_network(ann_network, rng);
       add_extra_reticulations(ann_network, start_reticulations);
-      wavesearch(ann_network, &bestNetworkData, typesBySpeed, typesBySpeed);
+      wavesearch(ann_network, &bestNetworkData, typesBySpeed, typesBySpeed, silent, print_progress);
       if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         std::cout << " Inferred " << ann_network.network.num_reticulations()
                   << " reticulations, logl = "

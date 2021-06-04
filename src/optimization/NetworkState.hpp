@@ -26,7 +26,7 @@ struct NetworkState {
   double cached_logl;
   bool cached_logl_valid;
 
-  NetworkState(bool){};
+  NetworkState() = default;
 
   NetworkState(NetworkState &&rhs) {
     brlen_linkage = rhs.brlen_linkage;
@@ -42,7 +42,7 @@ struct NetworkState {
     cached_logl = std::move(rhs.cached_logl);
     cached_logl_valid = std::move(rhs.cached_logl_valid);
   }
-  NetworkState(const NetworkState &rhs) = delete;
+  NetworkState(const NetworkState &rhs) = default;
   NetworkState &operator=(NetworkState &&rhs) {
     if (this != &rhs) {
       brlen_linkage = rhs.brlen_linkage;
@@ -54,13 +54,12 @@ struct NetworkState {
       alphas = std::move(rhs.alphas);
       partition_models = std::move(rhs.partition_models);
       reticulation_probs = std::move(rhs.reticulation_probs);
-      ;
       cached_logl = std::move(rhs.cached_logl);
       cached_logl_valid = std::move(rhs.cached_logl_valid);
     }
     return *this;
   }
-  NetworkState &operator=(const NetworkState &rhs) = delete;
+  NetworkState &operator=(const NetworkState &rhs) = default;
 };
 
 bool neighborsSame(const Network &n1, const Network &n2);

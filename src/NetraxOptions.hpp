@@ -68,7 +68,7 @@ class NetraxOptions {
   unsigned int timeout = 0;  // maximum number of seconds to run the network
                              // search, value of zero will be ignored
 
-  double greedy_factor = std::numeric_limits<double>::infinity();
+  bool extreme_greedy = false;
   bool reorder_candidates = false;
 
   size_t prefilter_keep = 60;

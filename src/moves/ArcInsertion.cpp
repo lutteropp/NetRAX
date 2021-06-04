@@ -1059,43 +1059,25 @@ std::unordered_set<size_t> brlenOptCandidatesArcInsertion(
   const Node *b = network.nodes_by_index[move.arcInsertionData.b_clv_index];
   const Node *c = network.nodes_by_index[move.arcInsertionData.c_clv_index];
   const Node *d = network.nodes_by_index[move.arcInsertionData.d_clv_index];
-
-  // find u and v
-  const Node *u = nullptr;
-  const Node *v = nullptr;
-  std::vector<Node *> uCandidates = getChildren(network, a);
-  std::vector<Node *> vCandidates = getChildren(network, c);
-  for (size_t i = 0; i < uCandidates.size(); ++i) {
-    if (!hasChild(network, uCandidates[i], b)) {
-      continue;
-    }
-    for (size_t j = 0; j < vCandidates.size(); ++j) {
-      if (hasChild(network, uCandidates[i], b) &&
-          hasChild(network, uCandidates[i], vCandidates[j]) &&
-          hasChild(network, vCandidates[j], d)) {
-        const Node *u_cand = uCandidates[i];
-        const Node *v_cand = vCandidates[j];
-        if (u_cand != a && u_cand != b && u_cand != c && u_cand != d &&
-            v_cand != a && v_cand != b && v_cand != c && v_cand != d &&
-            u_cand != v_cand) {
-          u = u_cand;
-          v = v_cand;
-          break;
-        }
-      }
-    }
-    if (u != nullptr && v != nullptr) {
-      break;
-    }
-  }
+  const Node *u = network.nodes_by_index[move.arcInsertionData.wanted_u_clv_index];
+  const Node *v = network.nodes_by_index[move.arcInsertionData.wanted_v_clv_index];
+  assert(a);
+  assert(b);
+  assert(c);
+  assert(d);
   assert(u);
   assert(v);
 
   const Edge *a_u_edge = getEdgeTo(network, a, u);
+  assert(move.arcInsertionData.wanted_au_pmatrix_index == a_u_edge->pmatrix_index);
   const Edge *u_b_edge = getEdgeTo(network, u, b);
+  assert(move.arcInsertionData.wanted_ub_pmatrix_index == u_b_edge->pmatrix_index);
   const Edge *c_v_edge = getEdgeTo(network, c, v);
+  assert(move.arcInsertionData.wanted_cv_pmatrix_index == c_v_edge->pmatrix_index);
   const Edge *v_d_edge = getEdgeTo(network, v, d);
+  assert(move.arcInsertionData.wanted_vd_pmatrix_index == v_d_edge->pmatrix_index);
   const Edge *u_v_edge = getEdgeTo(network, u, v);
+  assert(move.arcInsertionData.wanted_uv_pmatrix_index == u_v_edge->pmatrix_index);
   return {a_u_edge->pmatrix_index, u_b_edge->pmatrix_index,
           c_v_edge->pmatrix_index, v_d_edge->pmatrix_index,
           u_v_edge->pmatrix_index};
@@ -1113,6 +1095,8 @@ std::unordered_set<size_t> brlenOptCandidatesUndoArcInsertion(
       ann_network.network.nodes_by_index[move.arcInsertionData.d_clv_index];
   Edge *a_b_edge = getEdgeTo(ann_network.network, a, b);
   Edge *c_d_edge = getEdgeTo(ann_network.network, c, d);
+  assert(move.arcInsertionData.ab_pmatrix_index == a_b_edge->pmatrix_index);
+  assert(move.arcInsertionData.cd_pmatrix_index == c_d_edge->pmatrix_index);
   return {a_b_edge->pmatrix_index, c_d_edge->pmatrix_index};
 }
 

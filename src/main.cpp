@@ -120,11 +120,8 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
       "--rank_keep", options->prefilter_keep,
       "Number of promising candidates to keep after ranking (default: 20)");
 
-  app.add_option(
-      "--greedy_factor", options->greedy_factor,
-      "Instantly accept a move if it improves BIC by more than the given "
-      "factor (default: infinity). Gives (maybe faster) results with (maybe "
-      "worse) inference quality. Needs to be greater-equal than 1.");
+  app.add_flag("--extreme_greedy", options->extreme_greedy,
+               "Instantly accept a move if it improves BIC.");
   app.add_flag("--reorder_candidates", options->reorder_candidates,
                "Reorder move candidates by proximity to last accepted move.");
 
@@ -196,10 +193,6 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
     error_exit("brlen_linkage needs to be one of {linked, scaled, unlinked}");
   }
 
-  if (options->greedy_factor < 1.0) {
-    error_exit("greedy_factor needs to be at least 1.0");
-  }
-
   if (options->prefilter_keep < 1) {
     error_exit("prefilter keep must be at least 1");
   }
@@ -241,12 +234,12 @@ std::vector<MoveType> getTypesBySpeed(const NetraxOptions &options) {
   if (!options.no_rnni_moves) {
     typesBySpeed.emplace_back(MoveType::RNNIMove);
   }
+  typesBySpeed.emplace_back(MoveType::ArcRemovalMove);
   if (!options.no_arc_insertion_moves) {
     typesBySpeed.emplace_back(MoveType::ArcInsertionMove);
   } else {
     typesBySpeed.emplace_back(MoveType::DeltaPlusMove);
   }
-  typesBySpeed.emplace_back(MoveType::ArcRemovalMove);
   return typesBySpeed;
 }
 
@@ -502,8 +495,10 @@ void scale_reticulation_probs_only(NetraxOptions &netraxOptions,
   for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
     ann_network.reticulation_probs[i] =
         netraxOptions.overwritten_reticulation_prob;
-    ann_network.first_parent_logprobs[i] = log(ann_network.reticulation_probs[i]);
-    ann_network.second_parent_logprobs[i] = log(1.0 - ann_network.reticulation_probs[i]);
+    ann_network.first_parent_logprobs[i] =
+        log(ann_network.reticulation_probs[i]);
+    ann_network.second_parent_logprobs[i] =
+        log(1.0 - ann_network.reticulation_probs[i]);
   }
   if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
     writeNetwork(ann_network, netraxOptions.output_file);
@@ -632,10 +627,10 @@ void netrax_thread_main(NetraxOptions &netraxOptions,
     std::vector<MoveType> typesBySpeedGoodStart =
         getTypesBySpeedGoodStart(netraxOptions);
     run_single_start_waves(netraxOptions, instance, typesBySpeed,
-                           typesBySpeedGoodStart, rng);
+                           typesBySpeedGoodStart, rng, false, true);
   } else {
     std::vector<MoveType> typesBySpeed = getTypesBySpeed(netraxOptions);
-    run_random(netraxOptions, instance, typesBySpeed, rng);
+    run_random(netraxOptions, instance, typesBySpeed, rng, false, true);
   }
   ParallelContext::global_barrier();
 }
