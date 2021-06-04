@@ -9,17 +9,16 @@ namespace netrax {
 struct BestNetworkData;
 
 double prefilterCandidates(AnnotatedNetwork &ann_network,
-                           std::vector<Move> &candidates, bool silent = true,
-                           bool print_progress = true,
-                           bool need_best_bic = false);
+                            const NetworkState &oldState,
+                           std::vector<Move> &candidates, bool extreme_greedy,
+                           bool silent, bool print_progress);
 
 Move applyBestCandidate(AnnotatedNetwork &ann_network,
                         std::vector<Move> candidates, double *best_score,
-                        BestNetworkData *bestNetworkData, bool enforce,
-                        bool silent);
+                        BestNetworkData *bestNetworkData, bool enforce, bool extreme_greedy,
+                        bool silent, bool print_progress);
 
 double acceptMove(AnnotatedNetwork &ann_network, Move &move,
-                  double expected_bic, const NetworkState &state,
                   double *best_score, BestNetworkData *bestNetworkData,
                   bool silent = true);
 

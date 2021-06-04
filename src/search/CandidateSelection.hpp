@@ -14,11 +14,12 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
                                      const std::vector<MoveType> &typesBySpeed,
                                      double *best_score,
                                      BestNetworkData *bestNetworkData,
-                                     bool silent);
+                                     bool silent, bool print_progress);
 
 double fullSearch(AnnotatedNetwork &ann_network, MoveType type,
                   const std::vector<MoveType> &typesBySpeed, double *best_score,
-                  BestNetworkData *bestNetworkData, bool silent);
+                  BestNetworkData *bestNetworkData, bool silent,
+                  bool print_progress);
 
 void updateOldCandidates(AnnotatedNetwork &ann_network, const Move &chosenMove,
                          std::vector<Move> &candidates);
