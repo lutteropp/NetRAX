@@ -192,16 +192,18 @@ void updateCandidateMoves(AnnotatedNetwork &ann_network,
               << " candidates before removing the old bad ones.\n";
   }
   updateOldCandidates(ann_network, chosenMove, candidates);
-  std::vector<Node *> start_nodes = gatherStartNodes(ann_network, chosenMove);
-  std::vector<Move> moreMoves =
-      possibleMoves(ann_network, chosenMove.moveType, start_nodes,
-                    rspr1_present, delta_plus_present, 0, best_max_distance);
-  if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-    std::cout << "Adding " << moreMoves.size() << " candidates to the "
-              << candidates.size() << " previous ones.\n ";
+  if (takenRemovals.empty()) {
+    std::vector<Node *> start_nodes = gatherStartNodes(ann_network, chosenMove);
+    std::vector<Move> moreMoves =
+        possibleMoves(ann_network, chosenMove.moveType, start_nodes,
+                      rspr1_present, delta_plus_present, 0, best_max_distance);
+    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+      std::cout << "Adding " << moreMoves.size() << " candidates to the "
+                << candidates.size() << " previous ones.\n ";
+    }
+    candidates.insert(std::end(candidates), std::begin(moreMoves),
+                      std::end(moreMoves));
   }
-  candidates.insert(std::end(candidates), std::begin(moreMoves),
-                    std::end(moreMoves));
   for (size_t i = 0; i < takenRemovals.size(); ++i) {
     updateOldCandidates(ann_network, takenRemovals[i], candidates);
   }
