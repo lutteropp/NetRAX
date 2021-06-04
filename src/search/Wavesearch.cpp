@@ -96,7 +96,8 @@ double optimizeEverythingRun(
     }
   } while (type_idx < typesBySpeed.size());
 
-  // optimizeAllNonTopology(ann_network, true);
+  optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::NORMAL);
+  check_score_improvement(ann_network, &best_score, bestNetworkData);
   best_score = scoreNetwork(ann_network);
 
   return best_score;

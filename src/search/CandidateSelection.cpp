@@ -399,8 +399,6 @@ double fullSearch(AnnotatedNetwork &ann_network, MoveType type,
     }
     fastIterationsMode(ann_network, best_max_distance, type, typesBySpeed,
                        best_score, bestNetworkData, silent, print_progress);
-    optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::NORMAL);
-    check_score_improvement(ann_network, best_score, bestNetworkData);
   }
 
   // step 3: slow iterations mode, with increasing max distance
@@ -417,7 +415,6 @@ double fullSearch(AnnotatedNetwork &ann_network, MoveType type,
                        bestNetworkData, silent, print_progress);
   }
 
-  optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::NORMAL);
   old_score = scoreNetwork(ann_network);
   check_score_improvement(ann_network, best_score, bestNetworkData);
 
