@@ -83,6 +83,7 @@ double optimize_reticulation_linear_search(AnnotatedNetwork &ann_network,
 
 double optimize_reticulation(AnnotatedNetwork &ann_network,
                              size_t reticulation_index) {
+  assert(reticulation_index < ann_network.network.num_reticulations());
   // return optimize_reticulation_linear_search(ann_network,
   // reticulation_index);
 
