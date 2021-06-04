@@ -50,8 +50,7 @@ int findBestMaxDistance(AnnotatedNetwork &ann_network, MoveType type,
                         const std::vector<MoveType> &typesBySpeed,
                         int step_size, bool silent, bool print_progress) {
   int best_max_distance = -1;
-  if (type == MoveType::RNNIMove || type == MoveType::ArcRemovalMove ||
-      type == MoveType::DeltaMinusMove) {
+  if (type == MoveType::RNNIMove || isArcRemoval(type)) {
     best_max_distance = ann_network.options.max_rearrangement_distance;
   } else {
     double old_score = scoreNetwork(ann_network);
@@ -69,6 +68,10 @@ int findBestMaxDistance(AnnotatedNetwork &ann_network, MoveType type,
       if (score < old_score) {
         old_max_distance = act_max_distance + 1;
         best_max_distance = act_max_distance;
+        if (isArcInsertion(type)) {
+          apply_network_state(ann_network, oldState);
+          break;
+        }
       } else {
         assert(score == old_score);
         break;
