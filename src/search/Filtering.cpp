@@ -254,6 +254,11 @@ double filterCandidates(AnnotatedNetwork &ann_network,
       }
       std::cout << candidates.size() << " vs. " << oldCandidatesSize << "\n";
     }
+    if (best_bic >= old_bic && filterType == FilterType::PREFILTER) {
+      if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+        std::cout << "None of the prefiltered candidates improved BIC.\n";
+      }
+    }
   }
   for (size_t i = 0; i < candidates.size(); ++i) {
     assert(checkSanity(ann_network, candidates[i]));
@@ -270,16 +275,11 @@ double prefilterCandidates(AnnotatedNetwork &ann_network,
   double best_bic = filterCandidates(
       ann_network, oldState, bestState, candidates, FilterType::PREFILTER,
       false, extreme_greedy, true, silent, print_progress);
-  if (best_bic >= old_bic) {
-    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-      std::cout << "None of the prefiltered candidates improved BIC.\n";
-    }
-    if (ann_network.options.prefilter_greedy) {
-      candidates.clear();
-    }
+  if ((best_bic >= old_bic) && ann_network.options.prefilter_greedy) {
+    candidates.clear();
   }
   return best_bic;
-}
+}  // namespace netrax
 
 double rankCandidates(AnnotatedNetwork &ann_network,
                       const NetworkState &oldState, NetworkState &bestState,
