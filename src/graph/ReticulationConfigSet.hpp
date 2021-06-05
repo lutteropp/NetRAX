@@ -26,13 +26,15 @@ struct ReticulationConfigSet {
       return false;
     }
     for (size_t i = 0; i < configs.size(); ++i) {
-      if (configs[i].size() != other.configs[i].size()) {
-        return false;
-      }
-      for (size_t j = 0; j < configs[i].size(); ++j) {
-        if (configs[i][j] != other.configs[i][j]) {
-          return false;
+      bool found = false;
+      for (size_t j = 0; j < other.configs.size(); ++j) {
+        if (configs[i] == other.configs[j]) {
+          found = true;
+          break;
         }
+      }
+      if (!found) {
+        return false;
       }
     }
 
