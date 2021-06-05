@@ -352,6 +352,7 @@ void processNodeImproved(AnnotatedNetwork &ann_network, int incremental,
     return;
   }
   if (incremental && allClvsValid(ann_network, node->clv_index)) {
+    assert(ann_network.pernode_displayed_tree_data[node->clv_index].num_active_displayed_trees > 0);
     return;
   }
   if (!append) {
@@ -395,6 +396,7 @@ void processNodeImproved(AnnotatedNetwork &ann_network, int incremental,
          (1 << ann_network.network.num_reticulations()));
 
   validateSingleClv(ann_network, node->clv_index);
+  assert(ann_network.pernode_displayed_tree_data[node->clv_index].num_active_displayed_trees > 0);
 
   /*std::cout << "Node " << node->clv_index << " has been processed, displayed
 trees at the node are:\n"; for (size_t i = 0; i <
