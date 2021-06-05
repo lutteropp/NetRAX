@@ -81,7 +81,7 @@ double computeReticulationChoicesLogProb_internal(
       }
     }
   }
-  if (choices[0][0] != ReticulationState::DONT_CARE) {
+  if (choices[0] != ReticulationState::DONT_CARE) {
     assert(logProb != 0.0);
   }
   return logProb;
