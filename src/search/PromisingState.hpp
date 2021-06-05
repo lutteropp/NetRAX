@@ -6,16 +6,18 @@
 
 #include <limits>
 #include <queue>
+#include <unordered_set>
 #include <vector>
 
 namespace netrax {
 
 struct AnnotatedNetwork;
+struct BestNetworkData;
 
 struct PromisingState {
   double target_bic;
   Move move;
-  Network& network;
+  Network network;
   NetworkState state;
 };
 
@@ -26,16 +28,17 @@ class PromisingStateComparator {
   }
 };
 
-struct PromisingStateManager {
-  void addPromisingState(AnnotatedNetwork& ann_network, Move move,
-                         double target_bic);
+struct PromisingStateQueue {
   std::priority_queue<PromisingState, std::vector<PromisingState>,
                       PromisingStateComparator>
       promising_states;
-
- private:
-  std::vector<Network> promisingNetworks;
+  std::unordered_set<const PromisingState*> deleted_elements;
 };
+
+void addPromisingState(AnnotatedNetwork& ann_network, Move move,
+                       double target_bic, PromisingStateQueue& psq);
+bool hasPromisingStates(PromisingStateQueue& psq);
+PromisingState getPromisingState(PromisingStateQueue& psq);
 
 void applyPromisingState(AnnotatedNetwork& ann_network, PromisingState& pstate,
                          double* best_score, BestNetworkData* bestNetworkData,
