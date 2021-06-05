@@ -43,13 +43,6 @@ std::vector<DisplayedTreeData> extractOldTrees(AnnotatedNetwork &ann_network,
       ann_network.pernode_displayed_tree_data[virtual_root->clv_index];
   for (size_t i = 0; i < nodeTrees.num_active_displayed_trees; ++i) {
     DisplayedTreeData &tree = nodeTrees.displayed_trees[i];
-    if (!tree.treeLoglData.tree_logprob_valid) {
-      tree.treeLoglData.tree_logprob = computeReticulationConfigLogProb(
-          tree.treeLoglData.reticulationChoices,
-          ann_network.first_parent_logprobs,
-          ann_network.second_parent_logprobs);
-      tree.treeLoglData.tree_logprob_valid;
-    }
     oldTrees.emplace_back(tree);
   }
   return oldTrees;
@@ -350,7 +343,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index,
   assert(pmatrix_index < ann_network.network.num_branches());
   double old_logl = computeLoglikelihood(ann_network);
   assert(old_logl <= 0.0);
-  // assert(computeLoglikelihood(ann_network, 0, 1) == old_logl);
+  //assert(computeLoglikelihood(ann_network, 0, 1) == old_logl);
   std::vector<DisplayedTreeData> oldTrees;
   std::vector<std::vector<SumtableInfo>> sumtables;
 
@@ -379,8 +372,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index,
       if (ParallelContext::master_rank() && ParallelContext::master_thread) {
         std::cout << exportDebugInfo(ann_network) << "\n";
         ann_network.cached_logl_valid = false;
-        computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index, 1,
-                                     true);
+        computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index, 1, true);
         std::cout << "old_logl: " << old_logl << "\n";
         std::cout << "brlenopt_logl: " << brlenopt_logl << "\n";
         std::cout << "problem occurred while optimizing branch "
