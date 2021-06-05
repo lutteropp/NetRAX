@@ -201,6 +201,10 @@ bool allClvsValid(AnnotatedNetwork &ann_network, size_t clv_index) {
           computeReticulationConfigLogProb(dtd.treeLoglData.reticulationChoices,
                                            ann_network.first_parent_logprobs,
                                            ann_network.second_parent_logprobs);
+      if (dtd.treeLoglData.reticulationChoices.configs[0][0] !=
+          ReticulationState::DONT_CARE) {
+        assert(dtd.treeLoglData.tree_logprob != 0.0);
+      }
       dtd.treeLoglData.tree_logprob_valid = true;
     }
     if (!dtd.clv_valid &&
@@ -260,6 +264,10 @@ void invalidateTreeLogprobs(AnnotatedNetwork &ann_network,
             dtd.treeLoglData.reticulationChoices,
             ann_network.first_parent_logprobs,
             ann_network.second_parent_logprobs);
+        if (dtd.treeLoglData.reticulationChoices.configs[0][0] !=
+            ReticulationState::DONT_CARE) {
+          assert(dtd.treeLoglData.tree_logprob != 0.0);
+        }
         dtd.treeLoglData.tree_logprob_valid = true;
       }
     }

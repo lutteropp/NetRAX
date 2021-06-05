@@ -536,6 +536,11 @@ void printAllDisplayedTreeConfigs(AnnotatedNetwork &ann_network) {
                 nodeData.displayed_trees[j].treeLoglData.reticulationChoices,
                 ann_network.first_parent_logprobs,
                 ann_network.second_parent_logprobs);
+        if (nodeData.displayed_trees[j]
+                .treeLoglData.reticulationChoices.configs[0][0] !=
+            ReticulationState::DONT_CARE) {
+          assert(nodeData.displayed_trees[j].treeLoglData.tree_logprob != 0.0);
+        }
         nodeData.displayed_trees[j].treeLoglData.tree_logprob_valid = true;
       }
       std::cout << " tree prob: "

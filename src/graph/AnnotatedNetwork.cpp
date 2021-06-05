@@ -370,6 +370,10 @@ bool reuseOldDisplayedTreesCheck(AnnotatedNetwork &ann_network, int incremental,
           computeReticulationConfigLogProb(dtd.treeLoglData.reticulationChoices,
                                            ann_network.first_parent_logprobs,
                                            ann_network.second_parent_logprobs);
+      if (dtd.treeLoglData.reticulationChoices.configs[0][0] !=
+          ReticulationState::DONT_CARE) {
+        assert(dtd.treeLoglData.tree_logprob != 0.0);
+      }
       dtd.treeLoglData.tree_logprob_valid = true;
     }
     if (!dtd.clv_valid &&

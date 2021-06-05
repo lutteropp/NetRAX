@@ -264,6 +264,10 @@ void updateTreeData(AnnotatedNetwork &ann_network,
   treeData.tree_logprob = computeReticulationConfigLogProb(
       treeData.reticulationChoices, ann_network.first_parent_logprobs,
       ann_network.second_parent_logprobs);
+  if (treeData.reticulationChoices.configs[0][0] !=
+      ReticulationState::DONT_CARE) {
+    assert(treeData.tree_logprob != 0.0);
+  }
   treeData.tree_logprob_valid = true;
   treeData.tree_logl_valid = oldTree.tree_logl_valid;
 }
@@ -275,6 +279,10 @@ void recomputeTreeData(AnnotatedNetwork &ann_network, size_t pmatrix_index,
   combinedTreeData.tree_logprob = computeReticulationConfigLogProb(
       combinedTreeData.reticulationChoices, ann_network.first_parent_logprobs,
       ann_network.second_parent_logprobs);
+  if (combinedTreeData.reticulationChoices.configs[0][0] !=
+      ReticulationState::DONT_CARE) {
+    assert(combinedTreeData.tree_logprob != 0.0);
+  }
   combinedTreeData.tree_logprob_valid = true;
   if (combinedTreeData.tree_logprob <
       ann_network.options.min_interesting_tree_logprob) {
