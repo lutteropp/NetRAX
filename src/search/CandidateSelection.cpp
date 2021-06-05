@@ -193,9 +193,15 @@ void updateCandidateMoves(AnnotatedNetwork &ann_network,
   }
   updateOldCandidates(ann_network, chosenMove, candidates);
   if (takenRemovals.empty()) {
+    bool rspr1_present = (std::find(typesBySpeed.begin(), typesBySpeed.end(),
+                                    MoveType::RSPR1Move) != typesBySpeed.end());
+    bool delta_plus_present =
+        (std::find(typesBySpeed.begin(), typesBySpeed.end(),
+                   MoveType::DeltaPlusMove) != typesBySpeed.end());
     std::vector<Node *> start_nodes = gatherStartNodes(ann_network, chosenMove);
-    std::vector<Move> moreMoves = getPossibleMoves(
-        ann_network, typesBySpeed, chosenMove.moveType, 0, best_max_distance);
+    std::vector<Move> moreMoves =
+        possibleMoves(ann_network, chosenMove.moveType, start_nodes,
+                      rspr1_present, delta_plus_present, 0, best_max_distance);
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
       std::cout << "Adding " << moreMoves.size() << " candidates to the "
                 << candidates.size() << " previous ones.\n ";
