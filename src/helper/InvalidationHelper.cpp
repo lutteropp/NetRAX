@@ -28,10 +28,11 @@ void invalidateSingleClv(AnnotatedNetwork &ann_network,
 
   // TODO: This is commented out because it broke things. Find out why it breaks
   // things.
-  /*ann_network.pernode_displayed_tree_data[clv_index].num_active_displayed_trees
-= 0; if (ann_network.options.save_memory) {
-  ann_network.pernode_displayed_tree_data[clv_index].displayed_trees.clear();
-}*/
+  ann_network.pernode_displayed_tree_data[clv_index]
+      .num_active_displayed_trees = 0;
+  if (ann_network.options.save_memory) {
+    ann_network.pernode_displayed_tree_data[clv_index].displayed_trees.clear();
+  }
   ann_network.pseudo_clv_valid[clv_index] = false;
   ann_network.cached_logl_valid = false;
 }
