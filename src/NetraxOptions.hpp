@@ -80,6 +80,7 @@ class NetraxOptions {
   bool enforce_extra_search = false;
   unsigned int scrambling = 0;
   unsigned int scrambling_radius = 2;
+  bool scrambling_only = false;
 
   bool prefilter_greedy = false;
 

@@ -207,9 +207,16 @@ void wavesearch_main_internal(
     std::cout << "\n";
   }
 
-  wavesearch_internal(ann_network, bestNetworkData, typesBySpeed,
-                      start_state_to_reuse, best_state_to_reuse, best_score,
-                      start_time, silent, print_progress);
+  if (!ann_network.options.scrambling_only) {
+    wavesearch_internal(ann_network, bestNetworkData, typesBySpeed,
+                        start_state_to_reuse, best_state_to_reuse, best_score,
+                        start_time, silent, print_progress);
+  } else {
+    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+      std::cout << "Skipping initial inference and directly entering "
+                   "scrambling mode.\n";
+    }
+  }
 
   double old_best_score = *best_score;
 

@@ -158,6 +158,8 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
   app.add_option("--scrambling_radius", options->scrambling_radius,
                  "Number of random rSPR moves to apply when scrambling a "
                  "network (default: 2).");
+  app.add_flag("--scrambling_only", options->scrambling_only,
+               "Directly go into scrambling mode.");
 
   app.add_option("--judge", options->true_network_path,
                  "Path to true network for checking the inference quality.");
@@ -212,6 +214,13 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
 
   if (options->prefilter_keep < 1) {
     error_exit("prefilter keep must be at least 1");
+  }
+
+  if (options->scrambling_only) {
+    if (options->start_network_file.empty() || options->scrambling == 0) {
+      error_exit(
+          "scrambling mode needs --start_network and --scrambling parameters");
+    }
   }
 
   assert(!options->use_repeats);
