@@ -120,6 +120,9 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
       "--rank_keep", options->prefilter_keep,
       "Number of promising candidates to keep after ranking (default: 20)");
 
+  app.add_flag(
+      "--greedy_prefiltering", options->greedy_prefiltering,
+      "Keep only move candidates that improve BIC in the prefiltering phase.");
   app.add_flag("--extreme_greedy", options->extreme_greedy,
                "Instantly accept a move if it improves BIC.");
   app.add_flag("--reorder_candidates", options->reorder_candidates,

@@ -270,7 +270,7 @@ double prefilterCandidates(AnnotatedNetwork &ann_network,
   double best_bic = filterCandidates(ann_network, oldState, bestState, candidates,
                           FilterType::PREFILTER, false, extreme_greedy, true,
                           silent, print_progress);
-  if (best_bic >= old_bic) {
+  if (ann_network.options.greedy_prefiltering && best_bic >= old_bic) {
       candidates.clear();
   }
   return best_bic;
