@@ -246,7 +246,6 @@ void updateCLVsVirtualRerootTrees(AnnotatedNetwork &ann_network,
                           appendMode);
     }
   }
-  assert(ann_network.pernode_displayed_tree_data[old_virtual_root->clv_index].num_active_displayed_trees > 0);
   assert(ann_network.pernode_displayed_tree_data[new_virtual_root->clv_index].num_active_displayed_trees > 0);
 }
 
@@ -366,7 +365,7 @@ double computeLoglikelihoodBrlenOpt(
   std::vector<bool> source_tree_seen(n_trees_source, false);
   std::vector<bool> target_tree_seen(n_trees_target, false);
 
-  if (!clvValidCheck(ann_network, ann_network.network.root->clv_index)) {
+  if (!clvValidCheck(ann_network, ann_network.network.root->clv_index, false)) {
     // TODO: Doesn't this need the virtual_root pointer, too?
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
       std::cout << exportDebugInfo(ann_network) << "\n";

@@ -367,9 +367,6 @@ void processNodeImproved(AnnotatedNetwork &ann_network, int incremental,
     }
   }
   if (children.size() == 0) {
-    if (ParallelContext::rank_id() == 0 && ParallelContext::thread_id() == 0) {
-      std::cout << "the node " << node->clv_index << " has no active children\n";
-    }
     validateSingleClv(ann_network, node->clv_index);
     return;
   }

@@ -101,8 +101,8 @@ void add_extra_reticulations(AnnotatedNetwork &ann_network,
 void init_annotated_network(AnnotatedNetwork &ann_network, std::mt19937 &rng);
 void init_annotated_network(AnnotatedNetwork &ann_network);
 
-bool clvValidCheck(AnnotatedNetwork &ann_network,
-                   size_t virtual_root_clv_index);
+bool clvValidCheck(AnnotatedNetwork &ann_network, size_t virtual_root_clv_index,
+                   bool care_about_trees = false);
 bool reuseOldDisplayedTreesCheck(AnnotatedNetwork &ann_network, int incremental,
                                  size_t virtual_root_clv_index);
 bool hasBadReticulation(AnnotatedNetwork &ann_network);

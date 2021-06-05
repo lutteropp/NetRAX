@@ -335,9 +335,11 @@ AnnotatedNetwork::AnnotatedNetwork(const AnnotatedNetwork &orig_network)
   init_annotated_network(*this);
 }
 
-bool clvValidCheck(AnnotatedNetwork &ann_network,
-                   size_t virtual_root_clv_index) {
-  if (ann_network.pernode_displayed_tree_data[virtual_root_clv_index].num_active_displayed_trees == 0) {
+bool clvValidCheck(AnnotatedNetwork &ann_network, size_t virtual_root_clv_index,
+                   bool care_about_trees) {
+  if (care_about_trees &&
+      ann_network.pernode_displayed_tree_data[virtual_root_clv_index]
+              .num_active_displayed_trees == 0) {
     return false;
   }
   pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
