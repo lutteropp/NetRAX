@@ -152,6 +152,9 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
                "After finishing the normal search, keep searching by enforcing "
                "an extra reticulation.");
 
+  app.add_option("--step_size", options->step_size,
+                 "radius to consider when searching moves (default: 5)");
+
   app.add_option("--scrambling", options->scrambling,
                  "Maximum failed consecutive scrambling retries for escaping "
                  "out of local maxima (default: 0).");
@@ -221,6 +224,10 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
       error_exit(
           "scrambling mode needs --start_network and --scrambling parameters");
     }
+  }
+
+  if (options->step_size < 1) {
+    error_exit("step_size must be at least 1");
   }
 
   assert(!options->use_repeats);

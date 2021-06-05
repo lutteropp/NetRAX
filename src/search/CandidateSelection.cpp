@@ -63,8 +63,8 @@ int findBestMaxDistance(AnnotatedNetwork &ann_network, MoveType type,
           std::min(act_max_distance + step_size,
                    ann_network.options.max_rearrangement_distance);
       double score = best_fast_improvement(
-          ann_network, oldState, bestState, type, typesBySpeed, old_max_distance,
-          act_max_distance, silent, print_progress);
+          ann_network, oldState, bestState, type, typesBySpeed,
+          old_max_distance, act_max_distance, silent, print_progress);
       if (score < old_score) {
         old_max_distance = act_max_distance + 1;
         best_max_distance = act_max_distance;
@@ -286,7 +286,9 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
         }
       }
 
-      // if we interleaved an arc insertion with some taken arc removal, it is better to stop arc insertions for now and go on with some horizontal moves first
+      // if we interleaved an arc insertion with some taken arc removal, it is
+      // better to stop arc insertions for now and go on with some horizontal
+      // moves first
       /*if (!takenRemovals.empty()) {
         ann_network.options.no_prefiltering = old_no_prefiltering;
         return acceptedMoves;
@@ -311,9 +313,7 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
                           silent, print_progress);
     } else {
       // score did not get better
-      if (!tried_with_allnew && !acceptedMoves.empty() &&
-          isArcRemoval(type)) {
-        
+      if (!tried_with_allnew && !acceptedMoves.empty() && isArcRemoval(type)) {
         tried_with_allnew = true;
         if (ParallelContext::master_rank() &&
             ParallelContext::master_thread()) {
@@ -395,7 +395,7 @@ double fullSearch(AnnotatedNetwork &ann_network, MoveType type,
     std::cout << def;
   }
 
-  int step_size = 5;
+  int step_size = ann_network.options.step_size;
 
   // step 1: find best max distance
   int best_max_distance;
@@ -407,7 +407,8 @@ double fullSearch(AnnotatedNetwork &ann_network, MoveType type,
       std::cout << toString(type) << " step1: find best max distance\n";
     }
     best_max_distance = findBestMaxDistance(ann_network, type, typesBySpeed,
-                                            step_size, silent, print_progress);*/
+                                            step_size, silent,
+    print_progress);*/
     best_max_distance = step_size;
   }
 
