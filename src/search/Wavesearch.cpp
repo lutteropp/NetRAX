@@ -32,6 +32,7 @@ double optimizeEverythingRun(
       (std::find(typesBySpeed.begin(), typesBySpeed.end(),
                  MoveType::DeltaPlusMove) != typesBySpeed.end());
 
+  size_t old_moves_taken = ann_network.stats.totalMovesTaken();
   bool got_better = true;
   do {
     got_better = false;
@@ -80,7 +81,10 @@ double optimizeEverythingRun(
     if (new_score < old_score) {  // score got better
       new_score = scoreNetwork(ann_network);
       best_score = new_score;
-      got_better = true;
+      if (ann_network.stats.totalMovesTaken() > old_moves_taken) {
+        old_moves_taken = ann_network.stats.totalMovesTaken();
+        got_better = true;
+      }
       if (ann_network.options.old_wavesearch) {
         type_idx = 0;
         optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::NORMAL);
@@ -121,9 +125,11 @@ void wavesearch_internal(
 
   // only search for arc insertion moves in first and last round
   std::vector<MoveType> typesBySpeedHorizontal = typesBySpeed;
-  typesBySpeedHorizontal.erase(std::remove_if(
-      typesBySpeedHorizontal.begin(), typesBySpeedHorizontal.end(),
-      [](MoveType type) { return isArcInsertion(type) || isArcRemoval(type); }));
+  typesBySpeedHorizontal.erase(
+      std::remove_if(typesBySpeedHorizontal.begin(),
+                     typesBySpeedHorizontal.end(), [](MoveType type) {
+                       return isArcInsertion(type) || isArcRemoval(type);
+                     }));
 
   std::vector<MoveType> insertionTypes;
   for (size_t i = 0; i < typesBySpeed.size(); ++i) {
