@@ -14,6 +14,7 @@
 
 #include "SimulatedAnnealing.hpp"
 #include "Wavesearch.hpp"
+#include "../colormod.h"
 
 #include "../NetworkDistances.hpp"
 #include "../graph/NodeDisplayedTreeData.hpp"
@@ -221,9 +222,9 @@ void run_random(NetraxOptions &netraxOptions, const RaxmlInstance &instance,
       n_iterations++;
       int seed = dist(rng);
       if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-        std::cout << "Starting with new random network " << n_iterations
+        std::cout << Color::FG_LIGHT_GRAY << "Starting with new random network " << n_iterations
                   << " with " << start_reticulations
-                  << " reticulations, tree seed = " << seed << ".\n";
+                  << " reticulations, tree seed = " << seed << ".\n" << Color::FG_DEFAULT;
       }
       netrax::AnnotatedNetwork ann_network =
           build_random_annotated_network(netraxOptions, instance, seed);
@@ -263,9 +264,9 @@ void run_random(NetraxOptions &netraxOptions, const RaxmlInstance &instance,
       n_iterations++;
       int seed = dist(rng);
       if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-        std::cout << "Starting with new parsimony tree " << n_iterations
+        std::cout << Color::FG_LIGHT_GRAY << "Starting with new parsimony tree " << n_iterations
                   << " with " << start_reticulations
-                  << " reticulations, tree seed = " << seed << ".\n";
+                  << " reticulations, tree seed = " << seed << ".\n" << Color::FG_DEFAULT;
       }
       netrax::AnnotatedNetwork ann_network =
           build_parsimony_annotated_network(netraxOptions, instance, seed);

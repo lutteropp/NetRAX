@@ -2,6 +2,7 @@
 
 #include "../DebugPrintFunctions.hpp"
 #include "../NetraxOptions.hpp"
+#include "../colormod.h"
 #include "../graph/AnnotatedNetwork.hpp"
 #include "../graph/NodeDisplayedTreeData.hpp"
 #include "../io/NetworkIO.hpp"
@@ -263,9 +264,9 @@ double filterCandidates(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
         std::cout << "None of the prefiltered candidates improved BIC.\n";
       }
     } else {
-        if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-            std::cout << n_better << " filtered candidates improved BIC.\n";
-        }
+      if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+        std::cout << n_better << " filtered candidates improved BIC.\n";
+      }
     }
   }
   for (size_t i = 0; i < candidates.size(); ++i) {
@@ -344,7 +345,9 @@ double acceptMove(AnnotatedNetwork &ann_network, Move &move,
   double aicc_score = aicc(ann_network, logl);
 
   if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-    /*if (!silent) */ std::cout << " Took " << toString(move.moveType) << "\n";
+    /*if (!silent) */ std::cout << Color::FG_GREEN << " Took "
+                                << toString(move.moveType) << Color::FG_DEFAULT
+                                << "\n";
     if (!silent)
       std::cout << "  Logl: " << logl << ", BIC: " << bic_score
                 << ", AIC: " << aic_score << ", AICc: " << aicc_score << "\n";
