@@ -33,7 +33,7 @@ void applyPromisingState(AnnotatedNetwork& ann_network, PromisingState& pstate,
 bool addPromisingState(AnnotatedNetwork& ann_network, Move move,
                        double target_bic, PromisingStateQueue& psq) {
   size_t max_entries =
-      (ann_network.options.retry == 0) ? 0 : ann_network.options.retry + 3;
+      (ann_network.options.retry == 0) ? 0 : ann_network.options.retry * 4;
 
   // We do not have to store more good states in the PSQ than
   // ann_network.options.retry. Just keep the best ones.
@@ -44,16 +44,11 @@ bool addPromisingState(AnnotatedNetwork& ann_network, Move move,
   }
 
   if (psq.promising_states.size() < max_entries) {
-    // Take care of duplicates. Otherwise, candidates will be added multiple
-    // times.
-    if (std::find_if(psq.promising_states.begin(), psq.promising_states.end(),
-                     [&move](const PromisingState& ps) {
-                       return (ps.move == move);
-                     }) == psq.promising_states.end()) {
-      PromisingState p = extractPromisingState(ann_network, move, target_bic);
-      psq.promising_states.emplace_back(p);
-      return true;
-    }
+    // TODO: Take care of duplicates. Otherwise, candidates will be added
+    // multiple times.
+    PromisingState p = extractPromisingState(ann_network, move, target_bic);
+    psq.promising_states.emplace_back(p);
+    return true;
   }
   return false;
 }
