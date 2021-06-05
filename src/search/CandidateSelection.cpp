@@ -266,9 +266,8 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
   while (got_better) {
     got_better = false;
     Move chosenMove = applyBestCandidate(
-        ann_network, psq, candidates, best_score, bestNetworkData,
-        isArcInsertion(type), ann_network.options.extreme_greedy, silent,
-        print_progress);
+        ann_network, psq, candidates, best_score, bestNetworkData, false,
+        ann_network.options.extreme_greedy, silent, print_progress);
     if (chosenMove.moveType != MoveType::INVALID) {
       extract_network_state(ann_network, oldState);
       // we accepted a move, thus score got better
@@ -279,10 +278,6 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
 
       std::vector<Move> takenRemovals;
       if (isArcInsertion(chosenMove.moveType)) {
-        ann_network.options.no_prefiltering = old_no_prefiltering;
-        return acceptedMoves;
-
-        /*
         // try doing arc removal moves
         takenRemovals =
             interleaveArcRemovals(ann_network, psq, typesBySpeed, best_score,
@@ -291,7 +286,7 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
                              takenRemovals.end());
         if (!takenRemovals.empty()) {
           extract_network_state(ann_network, oldState);
-        }*/
+        }
       }
 
       // if we interleaved an arc insertion with some taken arc removal, it is
