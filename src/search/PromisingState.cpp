@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <stdexcept>
 
+#include "../DebugPrintFunctions.hpp"
 #include "../NetraxOptions.hpp"
 #include "../graph/AnnotatedNetwork.hpp"
 #include "../helper/NetworkFunctions.hpp"
@@ -78,10 +79,14 @@ PromisingState getPromisingState(PromisingStateQueue& psq) {
 
 void deleteMoveFromPSQ(AnnotatedNetwork& ann_network, PromisingStateQueue& psq,
                        const Move& move) {
+  std::string networkInfo = exportDebugInfoNetwork(ann_network.network);
   psq.promising_states.erase(
-      std::remove_if(
-          psq.promising_states.begin(), psq.promising_states.end(),
-          [&move](const PromisingState& ps) { return (ps.move == move); }),
+      std::remove_if(psq.promising_states.begin(), psq.promising_states.end(),
+                     [&move, &networkInfo](PromisingState& ps) {
+                       return (ps.move == move &&
+                               networkInfo ==
+                                   exportDebugInfoNetwork(ps.network));
+                     }),
       psq.promising_states.end());
 }
 
