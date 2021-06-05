@@ -31,6 +31,7 @@ void addPromisingState(AnnotatedNetwork& ann_network, Move move,
   PromisingState p = extractPromisingState(ann_network, move, target_bic);
   psq.promising_states.emplace(p);
   // TODO: Take care of duplicates. Otherwise, candidates will be added multiple times.
+  // TODO: We do not have to store more good states in the PSQ than ann_network.options.retry. Just keep the best ones.
 }
 
 bool hasPromisingStates(PromisingStateQueue& psq) {
