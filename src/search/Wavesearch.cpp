@@ -264,8 +264,8 @@ void wavesearch_main_internal(
     double old_best_score = *best_score;
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
       if (!silent)
-        std::cout << " Network before scrambling has BIC Score: "
-                  << scoreNetwork(ann_network) << "\n";
+        std::cout << CYAN << " Network before scrambling has BIC Score: "
+                  << scoreNetwork(ann_network) << "\n" << RESET;
     }
     while (tries < ann_network.options.scrambling) {
       apply_network_state(ann_network, bestState, true);
@@ -284,7 +284,7 @@ void wavesearch_main_internal(
       }
       if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         if (!silent)
-          std::cout << " scrambling BIC: " << scoreNetwork(ann_network) << "\n";
+          std::cout << CYAN << " scrambling BIC: " << scoreNetwork(ann_network) << "\n" << RESET;
       }
       if (*best_score < old_best_score) {
         old_best_score = *best_score;
