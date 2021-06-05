@@ -58,25 +58,9 @@ double optimizeEverythingRun(
       break;
     }
     double old_score = scoreNetwork(ann_network);
-    double new_score;
-    if (!ann_network.options.old_wavesearch) {
-      new_score =
-          fullSearch(ann_network, typesBySpeed[type_idx], typesBySpeed,
-                     &best_score, bestNetworkData, silent, print_progress);
-    } else {
-      std::vector<Move> candidates =
-          possibleMoves(ann_network, typesBySpeed[type_idx], rspr1_present,
-                        delta_plus_present);
-      applyBestCandidate(ann_network, candidates, &best_score, bestNetworkData,
-                         false, ann_network.options.extreme_greedy, silent,
-                         print_progress);
-      new_score = scoreNetwork(ann_network);
-
-      if (typesBySpeed[type_idx] != MoveType::RNNIMove) {
-        optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::QUICK);
-        check_score_improvement(ann_network, &best_score, bestNetworkData);
-      }
-    }
+    double new_score =
+        fullSearch(ann_network, typesBySpeed[type_idx], typesBySpeed,
+                   &best_score, bestNetworkData, silent, print_progress);
 
     if (new_score < old_score) {  // score got better
       new_score = scoreNetwork(ann_network);
@@ -84,11 +68,6 @@ double optimizeEverythingRun(
       if (ann_network.stats.totalMovesTaken() > old_moves_taken) {
         old_moves_taken = ann_network.stats.totalMovesTaken();
         got_better = true;
-      }
-      if (ann_network.options.old_wavesearch) {
-        type_idx = 0;
-        optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::NORMAL);
-        check_score_improvement(ann_network, &best_score, bestNetworkData);
       }
     }
     type_idx++;

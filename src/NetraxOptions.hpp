@@ -49,8 +49,6 @@ class NetraxOptions {
   bool change_reticulation_probs_only = false;
   double overwritten_reticulation_prob = -1;
 
-  bool old_wavesearch = false;
-
   bool network_distance_only = false;
   std::string first_network_path = "";
   std::string second_network_path = "";
