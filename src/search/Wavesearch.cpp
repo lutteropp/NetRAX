@@ -107,9 +107,11 @@ void wavesearch_internal(
 
   // only search for arc insertion moves in first and last round
   std::vector<MoveType> typesBySpeedHorizontal = typesBySpeed;
-  typesBySpeedHorizontal.erase(std::remove_if(
-      typesBySpeedHorizontal.begin(), typesBySpeedHorizontal.end(),
-      [](MoveType type) { return isArcInsertion(type); }));
+  typesBySpeedHorizontal.erase(
+      std::remove_if(typesBySpeedHorizontal.begin(),
+                     typesBySpeedHorizontal.end(), [](MoveType type) {
+                       return isArcInsertion(type) || isArcRemoval(type);
+                     }));
 
   std::vector<MoveType> insertionTypes;
   for (size_t i = 0; i < typesBySpeed.size(); ++i) {
