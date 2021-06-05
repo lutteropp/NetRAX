@@ -196,6 +196,7 @@ void updateCLVsVirtualRerootTrees(AnnotatedNetwork &ann_network,
                                   ReticulationConfigSet &restrictions) {
   assert(old_virtual_root);
   assert(new_virtual_root);
+  assert(ann_network.pernode_displayed_tree_data[old_virtual_root->clv_index].num_active_displayed_trees > 0);
 
   // 1.) for all paths from retNode to new_virtual_root:
   //     1.1) Collect the reticulation nodes encountered on the path, build exta
@@ -245,6 +246,8 @@ void updateCLVsVirtualRerootTrees(AnnotatedNetwork &ann_network,
                           appendMode);
     }
   }
+  assert(ann_network.pernode_displayed_tree_data[old_virtual_root->clv_index].num_active_displayed_trees > 0);
+  assert(ann_network.pernode_displayed_tree_data[new_virtual_root->clv_index].num_active_displayed_trees > 0);
 }
 
 void updateTreeData(AnnotatedNetwork &ann_network,
