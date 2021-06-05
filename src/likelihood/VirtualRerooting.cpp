@@ -245,6 +245,7 @@ void updateCLVsVirtualRerootTrees(AnnotatedNetwork &ann_network,
                           appendMode);
     }
   }
+  invalidateTreeLogprobs(ann_network);
 }
 
 void updateTreeData(AnnotatedNetwork &ann_network,
