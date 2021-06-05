@@ -49,8 +49,6 @@ class NetraxOptions {
   bool change_reticulation_probs_only = false;
   double overwritten_reticulation_prob = -1;
 
-  bool old_wavesearch = false;
-
   bool network_distance_only = false;
   std::string first_network_path = "";
   std::string second_network_path = "";
@@ -82,8 +80,11 @@ class NetraxOptions {
   bool enforce_extra_search = false;
   unsigned int scrambling = 0;
   unsigned int scrambling_radius = 2;
+  bool scrambling_only = false;
 
-  // bool extreme_greedy_prefiltering = false;
+  int step_size = 5;
+
+  bool prefilter_greedy = false;
 
   int max_rearrangement_distance = 25;
 
@@ -99,6 +100,8 @@ class NetraxOptions {
   double lh_epsilon = DEF_LH_EPSILON;
   double tolerance = DEF_LH_EPSILON;  // RAXML_BRLEN_TOLERANCE;
   double brlen_smoothings = RAXML_BRLEN_SMOOTHINGS;
+
+  double min_interesting_tree_logprob = log(1E-6);
 
   bool run_single_threaded = false;
 

@@ -254,6 +254,11 @@ double filterCandidates(AnnotatedNetwork &ann_network,
       }
       std::cout << candidates.size() << " vs. " << oldCandidatesSize << "\n";
     }
+    if (best_bic >= old_bic && filterType == FilterType::PREFILTER) {
+      if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+        std::cout << "None of the prefiltered candidates improved BIC.\n";
+      }
+    }
   }
   for (size_t i = 0; i < candidates.size(); ++i) {
     assert(checkSanity(ann_network, candidates[i]));
@@ -266,18 +271,23 @@ double prefilterCandidates(AnnotatedNetwork &ann_network,
                            NetworkState &bestState,
                            std::vector<Move> &candidates, bool extreme_greedy,
                            bool silent, bool print_progress) {
-  return filterCandidates(ann_network, oldState, bestState, candidates,
-                          FilterType::PREFILTER, false, extreme_greedy, true,
-                          silent, print_progress);
-}
+  double old_bic = scoreNetwork(ann_network);
+  double best_bic = filterCandidates(
+      ann_network, oldState, bestState, candidates, FilterType::PREFILTER,
+      false, extreme_greedy, true, silent, print_progress);
+  if ((best_bic >= old_bic) && ann_network.options.prefilter_greedy) {
+    candidates.clear();
+  }
+  return best_bic;
+}  // namespace netrax
 
 double rankCandidates(AnnotatedNetwork &ann_network,
                       const NetworkState &oldState, NetworkState &bestState,
                       std::vector<Move> &candidates, bool enforce,
                       bool extreme_greedy, bool silent, bool print_progress) {
   if (!ann_network.options.no_prefiltering) {
-    prefilterCandidates(ann_network, oldState, bestState, candidates, extreme_greedy,
-                        silent, print_progress);
+    prefilterCandidates(ann_network, oldState, bestState, candidates,
+                        extreme_greedy, silent, print_progress);
   }
   return filterCandidates(ann_network, oldState, bestState, candidates,
                           FilterType::RANK, enforce, extreme_greedy, false,

@@ -48,7 +48,16 @@ bool checkSanityRSPR(AnnotatedNetwork &ann_network, const Move &move) {
   }
 
   // the resulting network needs to still be acyclic
-  if (good) good &= (!hasPath(ann_network.network, z, x_prime));
+  if (good) {
+    if (z->getType() == NodeType::RETICULATION_NODE) { // head-moving
+      Node* w = getReticulationOtherParent(ann_network.network, z, x);
+      good &= (!hasPath(ann_network.network, w, x_prime));
+    } else { // tail-moving
+      Node* w = getOtherChild(ann_network.network, z, y);
+      good &= (!hasPath(ann_network.network, y_prime, w));
+    }
+  }
+
   return good;
 }
 

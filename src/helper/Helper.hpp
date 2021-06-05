@@ -136,10 +136,13 @@ void invalidatePmatrixIndex(AnnotatedNetwork &ann_network,
                             size_t pmatrix_index);
 void invalidPmatrixIndexOnly(AnnotatedNetwork &ann_network,
                              size_t pmatrix_index);
-bool allClvsValid(pllmod_treeinfo_t *treeinfo, size_t clv_index);
+bool allClvsValid(AnnotatedNetwork &ann_network, size_t clv_index);
 void invalidate_pmatrices(AnnotatedNetwork &ann_network,
                           std::vector<size_t> &affectedPmatrixIndices);
 void invalidateAllCLVs(AnnotatedNetwork &ann_network);
+void invalidateTreeLogprobs(AnnotatedNetwork &ann_network,
+                            size_t reticulation_idx);
+void invalidateTreeLogprobs(AnnotatedNetwork &ann_network);
 
 /* helper functions related to reticulation config set
  * (ReticulationConfigHelper.cpp) */

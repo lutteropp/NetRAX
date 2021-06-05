@@ -50,8 +50,7 @@ int findBestMaxDistance(AnnotatedNetwork &ann_network, MoveType type,
                         const std::vector<MoveType> &typesBySpeed,
                         int step_size, bool silent, bool print_progress) {
   int best_max_distance = -1;
-  if (type == MoveType::RNNIMove || type == MoveType::ArcRemovalMove ||
-      type == MoveType::DeltaMinusMove) {
+  if (type == MoveType::RNNIMove || isArcRemoval(type)) {
     best_max_distance = ann_network.options.max_rearrangement_distance;
   } else {
     double old_score = scoreNetwork(ann_network);
@@ -64,11 +63,15 @@ int findBestMaxDistance(AnnotatedNetwork &ann_network, MoveType type,
           std::min(act_max_distance + step_size,
                    ann_network.options.max_rearrangement_distance);
       double score = best_fast_improvement(
-          ann_network, oldState, bestState, type, typesBySpeed, old_max_distance,
-          act_max_distance, silent, print_progress);
+          ann_network, oldState, bestState, type, typesBySpeed,
+          old_max_distance, act_max_distance, silent, print_progress);
       if (score < old_score) {
         old_max_distance = act_max_distance + 1;
         best_max_distance = act_max_distance;
+        if (isArcInsertion(type)) {
+          apply_network_state(ann_network, oldState);
+          break;
+        }
       } else {
         assert(score == old_score);
         break;
@@ -194,7 +197,7 @@ void updateCandidateMoves(AnnotatedNetwork &ann_network,
               << " candidates before removing the old bad ones.\n";
   }
   updateOldCandidates(ann_network, chosenMove, candidates);
-  if (takenRemovals.empty()) {
+  if (takenRemovals.empty() && chosenMove.moveType == MoveType::RNNIMove) {
     std::vector<Node *> start_nodes = gatherStartNodes(ann_network, chosenMove);
     std::vector<Move> moreMoves =
         possibleMoves(ann_network, chosenMove.moveType, start_nodes,
@@ -282,9 +285,18 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
           extract_network_state(ann_network, oldState);
         }
       }
+
+      // if we interleaved an arc insertion with some taken arc removal, it is
+      // better to stop arc insertions for now and go on with some horizontal
+      // moves first
+      /*if (!takenRemovals.empty()) {
+        ann_network.options.no_prefiltering = old_no_prefiltering;
+        return acceptedMoves;
+      }*/
+
       updateCandidateMoves(ann_network, typesBySpeed, best_max_distance,
                            chosenMove, takenRemovals, candidates);
-      if (candidates.empty() && !isArcInsertion(type)) {
+      if (candidates.empty() && isArcRemoval(type)) {
         // no old candidates to reuse. Thus,
         // completely gather new ones.
         if (ParallelContext::master_rank() &&
@@ -301,8 +313,7 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
                           silent, print_progress);
     } else {
       // score did not get better
-      if (!tried_with_allnew && !acceptedMoves.empty() &&
-          !isArcInsertion(type)) {
+      if (!tried_with_allnew && !acceptedMoves.empty() && isArcRemoval(type)) {
         tried_with_allnew = true;
         if (ParallelContext::master_rank() &&
             ParallelContext::master_thread()) {
@@ -384,7 +395,7 @@ double fullSearch(AnnotatedNetwork &ann_network, MoveType type,
     std::cout << def;
   }
 
-  int step_size = 5;
+  int step_size = ann_network.options.step_size;
 
   // step 1: find best max distance
   int best_max_distance;
@@ -392,11 +403,13 @@ double fullSearch(AnnotatedNetwork &ann_network, MoveType type,
       type == MoveType::DeltaMinusMove) {
     best_max_distance = ann_network.options.max_rearrangement_distance;
   } else {
-    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+    /*if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
       std::cout << toString(type) << " step1: find best max distance\n";
     }
     best_max_distance = findBestMaxDistance(ann_network, type, typesBySpeed,
-                                            step_size, silent, print_progress);
+                                            step_size, silent,
+    print_progress);*/
+    best_max_distance = step_size;
   }
 
   // step 2: fast iterations mode, with the best max distance

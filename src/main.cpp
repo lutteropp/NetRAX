@@ -104,6 +104,7 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
 
   bool average_displayed_tree_variant = false;
   bool best_displayed_tree_variant = false;
+  bool pseudo_likelihood_variant = false;
   app.add_flag("--average_displayed_tree_variant",
                average_displayed_tree_variant,
                "Use weighted average instead of only best displayed tree in "
@@ -111,6 +112,8 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
   app.add_flag("--best_displayed_tree_variant", best_displayed_tree_variant,
                "Use best displayed tree instead of weighted average in network "
                "likelihood formula.");
+  app.add_flag("--pseudo_likelihood_variant", pseudo_likelihood_variant,
+               "Use pseudologlikelihood formula.");
   app.add_flag("--no_prefiltering", options->no_prefiltering,
                "Disable prefiltering of highly-promising move candidates.");
   app.add_option("--prefilter_keep", options->prefilter_keep,
@@ -120,13 +123,13 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
       "--rank_keep", options->prefilter_keep,
       "Number of promising candidates to keep after ranking (default: 20)");
 
+  app.add_flag(
+      "--prefilter_greedy", options->prefilter_greedy,
+      "Keep only move candidates that improve BIC in the prefiltering phase.");
   app.add_flag("--extreme_greedy", options->extreme_greedy,
                "Instantly accept a move if it improves BIC.");
   app.add_flag("--reorder_candidates", options->reorder_candidates,
                "Reorder move candidates by proximity to last accepted move.");
-
-  app.add_flag("--old_wavesearch", options->old_wavesearch,
-               "Use the old wavesearch algorithm.");
 
   app.add_flag("--slow_mode", options->slow_mode, "Enable slow mode.");
   app.add_flag("--save_memory", options->save_memory, "Save some memory.");
@@ -149,12 +152,17 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
                "After finishing the normal search, keep searching by enforcing "
                "an extra reticulation.");
 
+  app.add_option("--step_size", options->step_size,
+                 "radius to consider when searching moves (default: 5)");
+
   app.add_option("--scrambling", options->scrambling,
                  "Maximum failed consecutive scrambling retries for escaping "
                  "out of local maxima (default: 0).");
   app.add_option("--scrambling_radius", options->scrambling_radius,
                  "Number of random rSPR moves to apply when scrambling a "
                  "network (default: 2).");
+  app.add_flag("--scrambling_only", options->scrambling_only,
+               "Directly go into scrambling mode.");
 
   app.add_option("--judge", options->true_network_path,
                  "Path to true network for checking the inference quality.");
@@ -177,11 +185,25 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
         "Cannot specify both --average_displayed_tree_variant and "
         "--best_displayed_tree_variant at once");
   }
-  options->likelihood_variant = (average_displayed_tree_variant)
-                                    ? LikelihoodVariant::AVERAGE_DISPLAYED_TREES
-                                    : LikelihoodVariant::BEST_DISPLAYED_TREE;
-  // options->computePseudo = (options->likelihood_variant ==
-  // LikelihoodVariant::SARAH_PSEUDO);
+  if (average_displayed_tree_variant && pseudo_likelihood_variant) {
+    error_exit(
+        "Cannot specify both --average_displayed_tree_variant and "
+        "--pseudo_likelihood_variant at once");
+  }
+  if (best_displayed_tree_variant && pseudo_likelihood_variant) {
+    error_exit(
+        "Cannot specify both --best_displayed_tree_variant and "
+        "--pseudo_likelihood_variant at once");
+  }
+
+  if (average_displayed_tree_variant) {
+    options->likelihood_variant = LikelihoodVariant::AVERAGE_DISPLAYED_TREES;
+  } else if (best_displayed_tree_variant) {
+    options->likelihood_variant = LikelihoodVariant::BEST_DISPLAYED_TREE;
+  } else if (pseudo_likelihood_variant) {
+    options->likelihood_variant = LikelihoodVariant::SARAH_PSEUDO;
+    options->brlenOptMethod = BrlenOptMethod::BRENT_NORMAL;
+  }
 
   if (brlen_linkage == "scaled") {
     options->brlen_linkage = PLLMOD_COMMON_BRLEN_SCALED;
@@ -195,6 +217,17 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
 
   if (options->prefilter_keep < 1) {
     error_exit("prefilter keep must be at least 1");
+  }
+
+  if (options->scrambling_only) {
+    if (options->start_network_file.empty() || options->scrambling == 0) {
+      error_exit(
+          "scrambling mode needs --start_network and --scrambling parameters");
+    }
+  }
+
+  if (options->step_size < 1) {
+    error_exit("step_size must be at least 1");
   }
 
   assert(!options->use_repeats);
