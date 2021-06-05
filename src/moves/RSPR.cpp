@@ -49,12 +49,12 @@ bool checkSanityRSPR(AnnotatedNetwork &ann_network, const Move &move) {
 
   // the resulting network needs to still be acyclic
   if (good) {
-    if (z->getType() == NodeType::RETICULATION_NODE) { // head-moving
-      Node* w = getReticulationOtherParent(ann_network.network, z, x);
+    if (z->getType() == NodeType::RETICULATION_NODE) {  // head-moving
+      Node *w = getReticulationOtherParent(ann_network.network, z, x);
       assert(w);
       good &= (!hasPath(ann_network.network, w, x_prime));
-    } else { // tail-moving
-      Node* w = getOtherChild(ann_network.network, z, y);
+    } else {  // tail-moving
+      Node *w = getOtherChild(ann_network.network, z, y);
       assert(w);
       good &= (!hasPath(ann_network.network, y_prime, w));
     }
@@ -176,10 +176,9 @@ void possibleMovesRSPRInternal(
     }
 
     size_t node_orig_idx = z->clv_index;
-    
 
     if (z->type == NodeType::RETICULATION_NODE) {  // head-moving rSPR move
-      Node* w = getReticulationOtherParent(ann_network.network, z, x);
+      Node *w = getReticulationOtherParent(ann_network.network, z, x);
       assert(w);
       if (!hasPath(network, y_prime, w)) {
         Move move = buildMoveRSPR(
@@ -196,7 +195,7 @@ void possibleMovesRSPRInternal(
         }
       }
     } else {  // tail-moving rSPR move
-      Node* w = getOtherChild(ann_network.network, z, y);
+      Node *w = getOtherChild(ann_network.network, z, y);
       assert(w);
       if (!hasPath(network, w, x_prime)) {
         Move move = buildMoveRSPR(
@@ -238,15 +237,18 @@ void possibleMovesRSPRInternalNode(
     }
     bool problemFound = false;
 
-    if (z->getType() == NodeType::RETICULATION_NODE) { // head-moving
-      Node* w = getReticulationOtherParent(ann_network.network, z, x);
+    if (z->getType() == NodeType::RETICULATION_NODE) {  // head-moving
+      Node *w = getReticulationOtherParent(ann_network.network, z, x);
       assert(w);
       problemFound = hasPath(ann_network.network, w, x_prime);
-    } else { // tail-moving
-      Node* w = getOtherChild(ann_network.network, z, y);
+    } else {  // tail-moving
+      Node *w = getOtherChild(ann_network.network, z, y);
       assert(w);
       problemFound = hasPath(ann_network.network, y_prime, w);
     }
+    problemFound |= (hasChild(ann_network.network, x_prime, z));
+    problemFound |= (hasChild(ann_network.network, z, x_prime));
+    problemFound |= (hasChild(ann_network.network, x, y));
 
     if (problemFound) {
       continue;
