@@ -18,6 +18,29 @@
 
 namespace netrax {
 
+void skipImpossibleTypes(AnnotatedNetwork &ann_network,
+                         const std::vector<MoveType> &typesBySpeed,
+                         unsigned int &type_idx) {
+  while (ann_network.network.num_reticulations() == 0 &&
+         isArcRemoval(typesBySpeed[type_idx])) {
+    type_idx++;
+    if (type_idx >= typesBySpeed.size()) {
+      break;
+    }
+  }
+  if (type_idx >= typesBySpeed.size()) {
+    return;
+  }
+  while (ann_network.network.num_reticulations() ==
+             ann_network.options.max_reticulations &&
+         isArcInsertion(typesBySpeed[type_idx])) {
+    type_idx++;
+    if (type_idx >= typesBySpeed.size()) {
+      break;
+    }
+  }
+}
+
 double optimizeEverythingRun(
     AnnotatedNetwork &ann_network, const std::vector<MoveType> &typesBySpeed,
     NetworkState &start_state_to_reuse, NetworkState &best_state_to_reuse,
@@ -26,37 +49,17 @@ double optimizeEverythingRun(
   unsigned int type_idx = 0;
   unsigned int max_seconds = ann_network.options.timeout;
   double best_score = scoreNetwork(ann_network);
-  bool rspr1_present = (std::find(typesBySpeed.begin(), typesBySpeed.end(),
-                                  MoveType::RSPR1Move) != typesBySpeed.end());
-  bool delta_plus_present =
-      (std::find(typesBySpeed.begin(), typesBySpeed.end(),
-                 MoveType::DeltaPlusMove) != typesBySpeed.end());
 
   size_t old_moves_taken = ann_network.stats.totalMovesTaken();
   bool got_better = true;
   do {
     got_better = false;
-    while (ann_network.network.num_reticulations() == 0 &&
-           isArcRemoval(typesBySpeed[type_idx])) {
-      type_idx++;
-      if (type_idx >= typesBySpeed.size()) {
-        break;
-      }
-    }
+
+    skipImpossibleTypes(ann_network, typesBySpeed, type_idx);
     if (type_idx >= typesBySpeed.size()) {
       break;
     }
-    while (ann_network.network.num_reticulations() ==
-               ann_network.options.max_reticulations &&
-           isArcInsertion(typesBySpeed[type_idx])) {
-      type_idx++;
-      if (type_idx >= typesBySpeed.size()) {
-        break;
-      }
-    }
-    if (type_idx >= typesBySpeed.size()) {
-      break;
-    }
+
     double old_score = scoreNetwork(ann_network);
     double new_score =
         fullSearch(ann_network, typesBySpeed[type_idx], typesBySpeed,
@@ -70,8 +73,8 @@ double optimizeEverythingRun(
         got_better = true;
       }
     }
-    type_idx++;
     assert(new_score <= old_score);
+    type_idx++;
 
     if (max_seconds != 0) {
       auto act_time = std::chrono::high_resolution_clock::now();
