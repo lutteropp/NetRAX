@@ -592,6 +592,9 @@ double evaluateTreesPartition(AnnotatedNetwork &ann_network,
 
   std::vector<TreeLoglData> treeLoglData;
   for (size_t i = 0; i < n_trees; ++i) {
+    if (displayed_root_trees[i].treeLoglData.tree_logl_valid) {
+      assert(displayed_root_trees[i].clv_valid);
+    }
     treeLoglData.emplace_back(displayed_root_trees[i].treeLoglData);
   }
 
