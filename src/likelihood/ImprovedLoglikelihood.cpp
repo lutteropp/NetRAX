@@ -105,6 +105,9 @@ DisplayedTreeData &add_displayed_tree(
   DisplayedTreeData &tree =
       data.displayed_trees[data.num_active_displayed_trees - 1];
   tree.treeLoglData.reticulationChoices = reticulationChoices;
+  tree.treeLoglData.tree_logprob = computeReticulationConfigLogProb(
+      reticulationChoices, ann_network.first_parent_logprobs,
+      ann_network.second_parent_logprobs);
   return tree;
 }
 
