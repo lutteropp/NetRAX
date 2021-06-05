@@ -403,7 +403,7 @@ Move applyBestCandidate(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
 
   if (!candidates.empty()) {
     acceptMove(ann_network, candidates[0], &bestState, best_score,
-               bestNetworkData, silent);
+               bestNetworkData, true);
     deleteMoveFromPSQ(ann_network, psq, candidates[0]);
 
     if (!enforce) {
