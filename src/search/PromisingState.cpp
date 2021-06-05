@@ -25,9 +25,7 @@ void applyPromisingState(AnnotatedNetwork& ann_network, PromisingState& pstate,
     apply_network_state(ann_network, pstate.state,
                         true);  // we need to also update the model
   }
-  ann_network.travbuffer = reversed_topological_sort(ann_network.network);
-  acceptMove(ann_network, pstate.move, pstate.state, best_score,
-             bestNetworkData, silent);
+  performMove(ann_network, pstate.move);
 }
 
 bool addPromisingState(AnnotatedNetwork& ann_network, Move move,
