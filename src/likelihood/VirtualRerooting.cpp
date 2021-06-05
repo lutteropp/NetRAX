@@ -261,9 +261,11 @@ void updateTreeData(AnnotatedNetwork &ann_network,
       assert(oldTree.tree_partition_logl[p] <= 0.0);
     }
   }
-  treeData.tree_logprob = oldTree.tree_logprob;
+  treeData.tree_logprob = computeReticulationConfigLogProb(
+      treeData.reticulationChoices, ann_network.first_parent_logprobs,
+      ann_network.second_parent_logprobs);
+  treeData.tree_logprob_valid = true;
   treeData.tree_logl_valid = oldTree.tree_logl_valid;
-  treeData.tree_logprob_valid = oldTree.tree_logprob_valid;
 }
 
 void recomputeTreeData(AnnotatedNetwork &ann_network, size_t pmatrix_index,
