@@ -466,7 +466,7 @@ double evaluateTreesPartition(AnnotatedNetwork &ann_network,
              -std::numeric_limits<double>::infinity());
       assert(tree.tree_partition_logl[partition_idx] < 0.0);
       if (tree.tree_logprob != std::numeric_limits<double>::infinity()) {
-        if (mpfr::exp(tree.tree_logprob) < 1E-6) {
+        if (tree.tree_logprob < ann_network.options.min_interesting_tree_prob) {
           continue;  // TODO: We can save computations by not updating clvs for
                      // such unlikely trees
 
@@ -503,7 +503,7 @@ double evaluateTreesPartition(AnnotatedNetwork &ann_network,
              -std::numeric_limits<double>::infinity());
       assert(tree.tree_partition_logl[partition_idx] < 0.0);
       if (tree.tree_logprob != std::numeric_limits<double>::infinity()) {
-        if (mpfr::exp(tree.tree_logprob) < 1E-6) {
+        if (tree.tree_logprob < ann_network.options.min_interesting_tree_prob) {
           continue;  // TODO: We can save computations by not updating clvs for
                      // such unlikely trees
 

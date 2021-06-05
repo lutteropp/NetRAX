@@ -101,6 +101,8 @@ class NetraxOptions {
   double tolerance = DEF_LH_EPSILON;  // RAXML_BRLEN_TOLERANCE;
   double brlen_smoothings = RAXML_BRLEN_SMOOTHINGS;
 
+  double min_interesting_tree_prob = log(1E-6);
+
   bool run_single_threaded = false;
 
   bool slow_mode = false;
