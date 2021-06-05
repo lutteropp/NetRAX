@@ -37,6 +37,12 @@ bool addPromisingState(AnnotatedNetwork& ann_network, Move move,
 
   // We do not have to store more good states in the PSQ than
   // ann_network.options.retry. Just keep the best ones.
+  if (psq.promising_states.size() > max_entries) {
+    std::sort(psq.promising_states.begin(), psq.promising_states.end(),
+              [](const PromisingState& p1, const PromisingState& p2) {
+                return p1.target_bic > p2.target_bic;
+              });
+  }
   while (psq.promising_states.size() > max_entries) {
     if (psq.promising_states.back().target_bic > target_bic) {
       psq.promising_states.pop_back();
