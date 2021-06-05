@@ -77,9 +77,11 @@ PromisingState getPromisingState(PromisingStateQueue& psq) {
 
 void deleteMoveFromPSQ(AnnotatedNetwork& ann_network, PromisingStateQueue& psq,
                        const Move& move) {
-  psq.promising_states.erase(std::remove_if(
-      psq.promising_states.begin(), psq.promising_states.end(),
-      [&move](const PromisingState& ps) { return (ps.move == move); }));
+  psq.promising_states.erase(
+      std::remove_if(
+          psq.promising_states.begin(), psq.promising_states.end(),
+          [&move](const PromisingState& ps) { return (ps.move == move); }),
+      psq.promising_states.end());
 }
 
 }  // namespace netrax
