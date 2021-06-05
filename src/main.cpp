@@ -104,6 +104,7 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
 
   bool average_displayed_tree_variant = false;
   bool best_displayed_tree_variant = false;
+  bool pseudo_likelihood_variant = false;
   app.add_flag("--average_displayed_tree_variant",
                average_displayed_tree_variant,
                "Use weighted average instead of only best displayed tree in "
@@ -111,6 +112,8 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
   app.add_flag("--best_displayed_tree_variant", best_displayed_tree_variant,
                "Use best displayed tree instead of weighted average in network "
                "likelihood formula.");
+  app.add_flag("--pseudo_likelihood_variant", pseudo_likelihood_variant,
+               "Use pseudologlikelihood formula.");
   app.add_flag("--no_prefiltering", options->no_prefiltering,
                "Disable prefiltering of highly-promising move candidates.");
   app.add_option("--prefilter_keep", options->prefilter_keep,
@@ -177,11 +180,25 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
         "Cannot specify both --average_displayed_tree_variant and "
         "--best_displayed_tree_variant at once");
   }
-  options->likelihood_variant = (average_displayed_tree_variant)
-                                    ? LikelihoodVariant::AVERAGE_DISPLAYED_TREES
-                                    : LikelihoodVariant::BEST_DISPLAYED_TREE;
-  // options->computePseudo = (options->likelihood_variant ==
-  // LikelihoodVariant::SARAH_PSEUDO);
+  if (average_displayed_tree_variant && pseudo_likelihood_variant) {
+    error_exit(
+        "Cannot specify both --average_displayed_tree_variant and "
+        "--pseudo_likelihood_variant at once");
+  }
+  if (best_displayed_tree_variant && pseudo_likelihood_variant) {
+    error_exit(
+        "Cannot specify both --best_displayed_tree_variant and "
+        "--pseudo_likelihood_variant at once");
+  }
+
+  if (average_displayed_tree_variant) {
+    options->likelihood_variant = LikelihoodVariant::AVERAGE_DISPLAYED_TREES;
+  } else if (best_displayed_tree_variant) {
+    options->likelihood_variant = LikelihoodVariant::BEST_DISPLAYED_TREE;
+  } else if (pseudo_likelihood_variant) {
+    options->likelihood_variant = LikelihoodVariant::SARAH_PSEUDO;
+    options->brlenOptMethod = BrlenOptMethod::BRENT_NORMAL;
+  }
 
   if (brlen_linkage == "scaled") {
     options->brlen_linkage = PLLMOD_COMMON_BRLEN_SCALED;
