@@ -166,7 +166,7 @@ void wavesearch_internal(
       break;
     }
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-      std::cout << "Retrying search from a promising past state " << i
+      std::cout << "\n\nRetrying search from a promising past state " << i
                 << "...\n";
       ann_network.options.retry = std::max(ann_network.options.retry - 1, 0);
       PromisingState pstate = getPromisingState(
