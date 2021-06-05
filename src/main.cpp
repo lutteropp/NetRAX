@@ -176,7 +176,7 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
 
   app.add_option("--retry", options->retry,
                  "Number of times to retry taking different search paths in "
-                 "the promising states (default: 3).");
+                 "the promising states (default: 0).");
 
   // app.add_flag("--extreme_greedy_prefiltering",
   // options->extreme_greedy_prefiltering, "Enable extreme greedy prefiltering
