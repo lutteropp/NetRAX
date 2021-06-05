@@ -81,7 +81,7 @@ class NetraxOptions {
   unsigned int scrambling = 0;
   unsigned int scrambling_radius = 2;
 
-  bool greedy_prefiltering = false;
+  bool prefilter_greedy = false;
 
   int max_rearrangement_distance = 25;
 
