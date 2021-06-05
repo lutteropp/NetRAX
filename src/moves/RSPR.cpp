@@ -240,11 +240,11 @@ void possibleMovesRSPRInternalNode(
     if (z->getType() == NodeType::RETICULATION_NODE) {  // head-moving
       Node *w = getReticulationOtherParent(ann_network.network, z, x);
       assert(w);
-      problemFound = hasPath(ann_network.network, w, x_prime);
+      problemFound = hasPath(ann_network.network, y_prime, w);
     } else {  // tail-moving
       Node *w = getOtherChild(ann_network.network, z, y);
       assert(w);
-      problemFound = hasPath(ann_network.network, y_prime, w);
+      problemFound = hasPath(ann_network.network, w, x_prime);
     }
     problemFound |= (hasChild(ann_network.network, x_prime, z));
     problemFound |= (hasChild(ann_network.network, z, x_prime));
