@@ -360,24 +360,27 @@ double acceptMove(AnnotatedNetwork &ann_network, Move &move,
 
     std::cout << RESET;
 
-    std::cout << "displayed trees:\n";
-    for (size_t i = 0;
-         i <
-         ann_network
-             .pernode_displayed_tree_data[ann_network.network.root->clv_index]
-             .num_active_displayed_trees;
-         ++i) {
-      DisplayedTreeData &dtd =
-          ann_network
-              .pernode_displayed_tree_data[ann_network.network.root->clv_index]
-              .displayed_trees[i];
-      std::cout << "tree " << i << ":\n";
-      std::cout << "  prob: " << exp(dtd.treeLoglData.tree_logprob) << "\n";
-      double tree_logl =
-          std::accumulate(dtd.treeLoglData.tree_partition_logl.begin(),
-                          dtd.treeLoglData.tree_partition_logl.end(), 0.0);
-      std::cout << "  logl: " << tree_logl << "\n";
-      printReticulationChoices(dtd.treeLoglData.reticulationChoices);
+    if (!silent) {
+      std::cout << "displayed trees:\n";
+      for (size_t i = 0;
+           i <
+           ann_network
+               .pernode_displayed_tree_data[ann_network.network.root->clv_index]
+               .num_active_displayed_trees;
+           ++i) {
+        DisplayedTreeData &dtd =
+            ann_network
+                .pernode_displayed_tree_data[ann_network.network.root
+                                                 ->clv_index]
+                .displayed_trees[i];
+        std::cout << "tree " << i << ":\n";
+        std::cout << "  prob: " << exp(dtd.treeLoglData.tree_logprob) << "\n";
+        double tree_logl =
+            std::accumulate(dtd.treeLoglData.tree_partition_logl.begin(),
+                            dtd.treeLoglData.tree_partition_logl.end(), 0.0);
+        std::cout << "  logl: " << tree_logl << "\n";
+        printReticulationChoices(dtd.treeLoglData.reticulationChoices);
+      }
     }
   }
   ann_network.stats.moves_taken[move.moveType]++;
