@@ -52,11 +52,11 @@ bool checkSanityRSPR(AnnotatedNetwork &ann_network, const Move &move) {
     if (z->getType() == NodeType::RETICULATION_NODE) {  // head-moving
       Node *w = getReticulationOtherParent(ann_network.network, z, x);
       assert(w);
-      good &= (!hasPath(ann_network.network, w, x_prime));
+      good &= (!hasPath(ann_network.network, y_prime, w));
     } else {  // tail-moving
       Node *w = getOtherChild(ann_network.network, z, y);
       assert(w);
-      good &= (!hasPath(ann_network.network, y_prime, w));
+      good &= (!hasPath(ann_network.network, w, x_prime));
     }
   }
 
