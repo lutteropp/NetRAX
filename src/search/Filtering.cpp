@@ -391,6 +391,7 @@ Move applyBestCandidate(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
   if (!candidates.empty()) {
     acceptMove(ann_network, candidates[0], bestState, best_score,
                bestNetworkData, silent);
+    deleteMoveFromPSQ(ann_network, psq, candidates[0]);
 
     if (!enforce) {
       if (scoreNetwork(ann_network) > old_score) {

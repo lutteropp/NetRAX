@@ -31,7 +31,7 @@ struct PromisingStateQueue {
   std::vector<PromisingState> promising_states;
 };
 
-void addPromisingState(AnnotatedNetwork& ann_network, Move move,
+bool addPromisingState(AnnotatedNetwork& ann_network, Move move,
                        double target_bic, PromisingStateQueue& psq);
 bool hasPromisingStates(PromisingStateQueue& psq);
 PromisingState getPromisingState(PromisingStateQueue& psq);
@@ -39,5 +39,7 @@ PromisingState getPromisingState(PromisingStateQueue& psq);
 void applyPromisingState(AnnotatedNetwork& ann_network, PromisingState& pstate,
                          double* best_score, BestNetworkData* bestNetworkData,
                          bool alternative_route, bool silent);
+
+void deleteMoveFromPSQ(AnnotatedNetwork& ann_network, PromisingStateQueue& psq, const Move& move);
 
 }  // namespace netrax
