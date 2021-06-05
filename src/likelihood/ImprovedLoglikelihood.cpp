@@ -518,6 +518,7 @@ double evaluateTreesPartition(AnnotatedNetwork &ann_network,
                               size_t partition_idx,
                               std::vector<TreeLoglData> &treeLoglData) {
   size_t n_trees = treeLoglData.size();
+  assert(n_trees > 0);
 
   assert(ann_network.options.likelihood_variant !=
          LikelihoodVariant::SARAH_PSEUDO);
@@ -590,6 +591,7 @@ double evaluateTreesPartition(AnnotatedNetwork &ann_network,
   std::vector<DisplayedTreeData> &displayed_root_trees =
       nodeDisplayedTreeData.displayed_trees;
   size_t n_trees = nodeDisplayedTreeData.num_active_displayed_trees;
+  assert(n_trees > 0);
 
   std::vector<TreeLoglData> treeLoglData;
   for (size_t i = 0; i < n_trees; ++i) {
