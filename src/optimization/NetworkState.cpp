@@ -272,6 +272,7 @@ void apply_network_state(AnnotatedNetwork &ann_network,
       ann_network.first_parent_logprobs[i] = state.first_parent_logprobs[i];
       ann_network.second_parent_logprobs[i] = state.second_parent_logprobs[i];
       ann_network.cached_logl_valid = false;
+      invalidateTreeLogprobs(ann_network, i);
     }
   }
 

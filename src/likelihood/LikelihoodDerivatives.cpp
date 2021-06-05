@@ -322,6 +322,13 @@ std::vector<std::vector<SumtableInfo>> computePartitionSumtables(
           sourceTrees[i].treeLoglData.reticulationChoices,
           targetTrees[j].treeLoglData.reticulationChoices);
       if (isActiveBranch(ann_network, restrictions, pmatrix_index)) {
+        if (computeReticulationConfigLogProb(
+                restrictions, ann_network.first_parent_logprobs,
+                ann_network.second_parent_logprobs) <
+            ann_network.options.min_interesting_tree_logprob) {
+          continue;
+        }
+
         for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count;
              ++p) {  // here we need all partitions, as we require the sumtable
                      // info metadata
@@ -332,9 +339,6 @@ std::vector<std::vector<SumtableInfo>> computePartitionSumtables(
       }
     }
   }
-
-  // TODO: This is just for comining left and right tree. Sometimes, we need a
-  // single tree...
   return res;
 }
 

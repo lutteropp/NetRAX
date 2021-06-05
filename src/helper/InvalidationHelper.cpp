@@ -1,5 +1,6 @@
 #include "Helper.hpp"
 
+#include "../NetraxOptions.hpp"
 #include "../graph/NodeDisplayedTreeData.hpp"
 
 namespace netrax {
@@ -14,9 +15,15 @@ void invalidateSingleClv(AnnotatedNetwork &ann_network,
     }
     treeinfo->clv_valid[p][clv_index] = 0;
   }
-  for (size_t i = 0; i < ann_network.pernode_displayed_tree_data[clv_index].num_active_displayed_trees; ++i)  {
-      ann_network.pernode_displayed_tree_data[clv_index].displayed_trees[i].clv_valid = false;
-      ann_network.pernode_displayed_tree_data[clv_index].displayed_trees[i].treeLoglData.tree_logl_valid = false;
+  for (size_t i = 0; i < ann_network.pernode_displayed_tree_data[clv_index]
+                             .num_active_displayed_trees;
+       ++i) {
+    ann_network.pernode_displayed_tree_data[clv_index]
+        .displayed_trees[i]
+        .clv_valid = false;
+    ann_network.pernode_displayed_tree_data[clv_index]
+        .displayed_trees[i]
+        .treeLoglData.tree_logl_valid = false;
   }
 
   // TODO: This is commented out because it broke things. Find out why it breaks
@@ -176,12 +183,29 @@ void invalidPmatrixIndexOnly(AnnotatedNetwork &ann_network,
   ann_network.cached_logl_valid = false;
 }
 
-bool allClvsValid(pllmod_treeinfo_t *treeinfo, size_t clv_index) {
-  for (size_t p = 0; p < treeinfo->partition_count; ++p) {
-    if (treeinfo->partitions[p]) {
-      if (!treeinfo->clv_valid[p][clv_index]) {
+bool allClvsValid(AnnotatedNetwork &ann_network, size_t clv_index) {
+  for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
+    if (ann_network.fake_treeinfo->partitions[p]) {
+      if (!ann_network.fake_treeinfo->clv_valid[p][clv_index]) {
         return false;
       }
+    }
+  }
+  for (size_t i = 0; i < ann_network.pernode_displayed_tree_data[clv_index]
+                             .num_active_displayed_trees;
+       ++i) {
+    DisplayedTreeData &dtd =
+        ann_network.pernode_displayed_tree_data[clv_index].displayed_trees[i];
+    if (!dtd.treeLoglData.tree_logprob_valid) {
+      dtd.treeLoglData.tree_logprob =
+          computeReticulationConfigLogProb(dtd.treeLoglData.reticulationChoices,
+                                           ann_network.first_parent_logprobs,
+                                           ann_network.second_parent_logprobs);
+      dtd.treeLoglData.tree_logprob_valid = true;
+    }
+    if (!dtd.clv_valid && dtd.treeLoglData.tree_logprob <
+                              ann_network.options.min_interesting_tree_logprob) {
+      return false;
     }
   }
   return true;
@@ -207,6 +231,33 @@ void invalidateAllCLVs(AnnotatedNetwork &ann_network) {
   for (size_t i = ann_network.network.num_tips();
        i < ann_network.network.num_nodes(); ++i) {
     invalidateSingleClv(ann_network, i);
+  }
+}
+
+bool hasReticulationChoice(DisplayedTreeData &dtd, size_t reticulation_idx) {
+  for (size_t i = 0; i < dtd.treeLoglData.reticulationChoices.configs.size();
+       ++i) {
+    if (dtd.treeLoglData.reticulationChoices.configs[i][reticulation_idx] !=
+        ReticulationState::DONT_CARE) {
+      return true;
+    }
+  }
+  return false;
+}
+
+void invalidateTreeLogprobs(AnnotatedNetwork &ann_network,
+                            size_t reticulation_idx) {
+  for (size_t i = 0; i < ann_network.network.num_nodes(); ++i) {
+    for (size_t j = 0;
+         j <
+         ann_network.pernode_displayed_tree_data[i].num_active_displayed_trees;
+         ++j) {
+      DisplayedTreeData &dtd =
+          ann_network.pernode_displayed_tree_data[i].displayed_trees[j];
+      if (hasReticulationChoice(dtd, reticulation_idx)) {
+        dtd.treeLoglData.tree_logprob_valid = false;
+      }
+    }
   }
 }
 

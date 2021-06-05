@@ -34,6 +34,8 @@ static double brent_target_networks_prob(void *p, double x) {
     ann_network->first_parent_logprobs[reticulation_index] = log(x);
     ann_network->second_parent_logprobs[reticulation_index] = log(1.0 - x);
     ann_network->cached_logl_valid = false;
+    invalidateTreeLogprobs(*ann_network, x);
+
     if (ann_network->options.likelihood_variant ==
         LikelihoodVariant::SARAH_PSEUDO) {
       invalidateHigherCLVs(
@@ -109,7 +111,8 @@ double optimize_reticulation(AnnotatedNetwork &ann_network,
       (void *)&params, &brent_target_networks_prob);
   ann_network.reticulation_probs[reticulation_index] = new_brprob;
   ann_network.first_parent_logprobs[reticulation_index] = log(new_brprob);
-  ann_network.second_parent_logprobs[reticulation_index] = log(1.0 - new_brprob);
+  ann_network.second_parent_logprobs[reticulation_index] =
+      log(1.0 - new_brprob);
   ann_network.cached_logl_valid = false;
   if (ann_network.options.likelihood_variant ==
       LikelihoodVariant::SARAH_PSEUDO) {
