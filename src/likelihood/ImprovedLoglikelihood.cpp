@@ -516,23 +516,26 @@ double evaluateTreesPartition(AnnotatedNetwork &ann_network,
     for (size_t tree_idx = 0; tree_idx < n_trees; ++tree_idx) {
       TreeLoglData &tree = treeLoglData[tree_idx];
       assert(tree.tree_logprob_valid);
-      if (tree.tree_logprob != std::numeric_limits<double>::infinity()) {
-        if (tree.tree_logprob <
-            ann_network.options.min_interesting_tree_logprob) {
-          continue;  // TODO: We can save computations by not updating clvs for
-                     // such unlikely trees
-        }
-        if (!tree.tree_logl_valid) {
-          throw std::runtime_error("invalid tree logl");
-        }
-        assert(tree.tree_logl_valid);
-        assert(tree.tree_partition_logl[partition_idx] != 0.0);
-        assert(tree.tree_partition_logl[partition_idx] !=
-               -std::numeric_limits<double>::infinity());
-        assert(tree.tree_partition_logl[partition_idx] < 0.0);
-        partition_lh += mpfr::exp(tree.tree_logprob) *
-                        mpfr::exp(tree.tree_partition_logl[partition_idx]);
+      assert(tree.tree_logprob != std::numeric_limits<double>::infinity());
+      if (tree.tree_logprob <
+          ann_network.options.min_interesting_tree_logprob) {
+        continue;  // TODO: We can save computations by not updating clvs for
+                   // such unlikely trees
       }
+      if (tree.reticulationChoices.configs[0][0] !=
+          ReticulationState::DONT_CARE) {
+        assert(tree.tree_logprob != 0.0);
+      }
+      if (!tree.tree_logl_valid) {
+        throw std::runtime_error("invalid tree logl");
+      }
+      assert(tree.tree_logl_valid);
+      assert(tree.tree_partition_logl[partition_idx] != 0.0);
+      assert(tree.tree_partition_logl[partition_idx] !=
+             -std::numeric_limits<double>::infinity());
+      assert(tree.tree_partition_logl[partition_idx] < 0.0);
+      partition_lh += mpfr::exp(tree.tree_logprob) *
+                      mpfr::exp(tree.tree_partition_logl[partition_idx]);
     }
     double partition_logl = mpfr::log(partition_lh).toDouble();
     ann_network.fake_treeinfo->partition_loglh[partition_idx] = partition_logl;
@@ -542,24 +545,27 @@ double evaluateTreesPartition(AnnotatedNetwork &ann_network,
     for (size_t tree_idx = 0; tree_idx < n_trees; ++tree_idx) {
       TreeLoglData &tree = treeLoglData[tree_idx];
       assert(tree.tree_logprob_valid);
-      if (tree.tree_logprob != std::numeric_limits<double>::infinity()) {
-        if (tree.tree_logprob <
-            ann_network.options.min_interesting_tree_logprob) {
-          continue;  // TODO: We can save computations by not updating clvs for
-                     // such unlikely trees
-        }
-        if (!tree.tree_logl_valid) {
-          throw std::runtime_error("invalid tree logl");
-        }
-        assert(tree.tree_logl_valid);
-        assert(tree.tree_partition_logl[partition_idx] != 0.0);
-        assert(tree.tree_partition_logl[partition_idx] !=
-               -std::numeric_limits<double>::infinity());
-        assert(tree.tree_partition_logl[partition_idx] < 0.0);
-        partition_logl = std::max(
-            partition_logl,
-            tree.tree_logprob + tree.tree_partition_logl[partition_idx]);
+      assert(tree.tree_logprob != std::numeric_limits<double>::infinity());
+      if (tree.tree_logprob <
+          ann_network.options.min_interesting_tree_logprob) {
+        continue;  // TODO: We can save computations by not updating clvs for
+                   // such unlikely trees
       }
+      if (tree.reticulationChoices.configs[0][0] !=
+          ReticulationState::DONT_CARE) {
+        assert(tree.tree_logprob != 0.0);
+      }
+      if (!tree.tree_logl_valid) {
+        throw std::runtime_error("invalid tree logl");
+      }
+      assert(tree.tree_logl_valid);
+      assert(tree.tree_partition_logl[partition_idx] != 0.0);
+      assert(tree.tree_partition_logl[partition_idx] !=
+             -std::numeric_limits<double>::infinity());
+      assert(tree.tree_partition_logl[partition_idx] < 0.0);
+      partition_logl =
+          std::max(partition_logl,
+                   tree.tree_logprob + tree.tree_partition_logl[partition_idx]);
     }
     ann_network.fake_treeinfo->partition_loglh[partition_idx] = partition_logl;
     return partition_logl;
