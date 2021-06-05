@@ -506,18 +506,6 @@ double evaluateTreesPartition(AnnotatedNetwork &ann_network,
         if (tree.tree_logprob < ann_network.options.min_interesting_tree_prob) {
           continue;  // TODO: We can save computations by not updating clvs for
                      // such unlikely trees
-
-          /*if (ParallelContext::master_rank() &&
-      ParallelContext::master_thread()) { std::cout <<
-      exportDebugInfo(ann_network) << "\n";
-
-          printReticulationChoices(tree.reticulationChoices);
-          std::cout << "reticulation probs: " << ann_network.reticulation_probs
-      << "\n"; std::cout << "tree probability: " << mpfr::exp(tree.tree_logprob)
-      << "\n";
-      }
-      throw std::runtime_error("The tree probability is too small, leading to
-      numerical trouble!");*/
         }
         partition_logl = std::max(
             partition_logl,
