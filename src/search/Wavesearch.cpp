@@ -10,6 +10,7 @@
 #include "../optimization/Optimization.hpp"
 #include "CandidateSelection.hpp"
 #include "Filtering.hpp"
+#include "PromisingState.hpp"
 #include "Scrambling.hpp"
 
 #include <algorithm>
@@ -42,8 +43,8 @@ void skipImpossibleTypes(AnnotatedNetwork &ann_network,
 }
 
 double optimizeEverythingRun(
-    AnnotatedNetwork &ann_network, const std::vector<MoveType> &typesBySpeed,
-    NetworkState &start_state_to_reuse, NetworkState &best_state_to_reuse,
+    AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
+    const std::vector<MoveType> &typesBySpeed,
     const std::chrono::high_resolution_clock::time_point &start_time,
     BestNetworkData *bestNetworkData, bool silent, bool print_progress) {
   unsigned int type_idx = 0;
@@ -51,10 +52,7 @@ double optimizeEverythingRun(
   double best_score = scoreNetwork(ann_network);
 
   size_t old_moves_taken = ann_network.stats.totalMovesTaken();
-  bool got_better = true;
   do {
-    got_better = false;
-
     skipImpossibleTypes(ann_network, typesBySpeed, type_idx);
     if (type_idx >= typesBySpeed.size()) {
       break;
@@ -62,7 +60,7 @@ double optimizeEverythingRun(
 
     double old_score = scoreNetwork(ann_network);
     double new_score =
-        fullSearch(ann_network, typesBySpeed[type_idx], typesBySpeed,
+        fullSearch(ann_network, psq, typesBySpeed[type_idx], typesBySpeed,
                    &best_score, bestNetworkData, silent, print_progress);
 
     if (new_score < old_score) {  // score got better
@@ -70,7 +68,6 @@ double optimizeEverythingRun(
       best_score = new_score;
       if (ann_network.stats.totalMovesTaken() > old_moves_taken) {
         old_moves_taken = ann_network.stats.totalMovesTaken();
-        got_better = true;
       }
     }
     assert(new_score <= old_score);
@@ -93,17 +90,57 @@ double optimizeEverythingRun(
   return best_score;
 }
 
+void wavesearch_internal_loop(
+    AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
+    BestNetworkData *bestNetworkData, const std::vector<MoveType> &typesBySpeed,
+    const std::vector<MoveType> &typesBySpeedHorizontal,
+    const std::vector<MoveType> &insertionTypes, double *best_score,
+    const std::chrono::high_resolution_clock::time_point &start_time,
+    bool silent, bool print_progress) {
+  bool got_better = true;
+  bool withInsertions = true;
+  size_t old_moves_taken = ann_network.stats.totalMovesTaken();
+
+  while (got_better) {
+    got_better = false;
+    check_score_improvement(ann_network, best_score, bestNetworkData);
+    optimizeEverythingRun(
+        ann_network, psq,
+        (withInsertions) ? typesBySpeed : typesBySpeedHorizontal, start_time,
+        bestNetworkData, silent, print_progress);
+    check_score_improvement(ann_network, best_score, bestNetworkData);
+    if (ann_network.stats.totalMovesTaken() > old_moves_taken) {
+      old_moves_taken = ann_network.stats.totalMovesTaken();
+      got_better = true;
+    }
+    if (!got_better && !withInsertions) {
+      withInsertions = true;
+      optimizeEverythingRun(ann_network, psq, insertionTypes, start_time,
+                            bestNetworkData, silent, print_progress);
+      if (ann_network.stats.totalMovesTaken() > old_moves_taken) {
+        old_moves_taken = ann_network.stats.totalMovesTaken();
+
+        optimizeEverythingRun(ann_network, psq, typesBySpeedHorizontal,
+                              start_time, bestNetworkData, silent,
+                              print_progress);
+        check_score_improvement(ann_network, best_score, bestNetworkData);
+        if (ann_network.stats.totalMovesTaken() > old_moves_taken) {
+          old_moves_taken = ann_network.stats.totalMovesTaken();
+          got_better = true;
+        }
+      }
+    }
+    withInsertions = false;
+  }
+}
+
 void wavesearch_internal(
-    AnnotatedNetwork &ann_network, BestNetworkData *bestNetworkData,
-    const std::vector<MoveType> &typesBySpeed,
-    NetworkState &start_state_to_reuse, NetworkState &best_state_to_reuse,
+    AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
+    BestNetworkData *bestNetworkData, const std::vector<MoveType> &typesBySpeed,
     double *best_score,
     const std::chrono::high_resolution_clock::time_point &start_time,
     bool silent, bool print_progress) {
   double old_best_score = *best_score;
-  bool got_better = true;
-
-  size_t old_moves_taken = ann_network.stats.totalMovesTaken();
 
   // only search for arc insertion moves in first and last round
   std::vector<MoveType> typesBySpeedHorizontal = typesBySpeed;
@@ -120,44 +157,41 @@ void wavesearch_internal(
     }
   }
 
-  bool withInsertions = true;
-
-  while (got_better) {
-    got_better = false;
-    check_score_improvement(ann_network, best_score, bestNetworkData);
-    optimizeEverythingRun(
-        ann_network, (withInsertions) ? typesBySpeed : typesBySpeedHorizontal,
-        start_state_to_reuse, best_state_to_reuse, start_time, bestNetworkData,
-        silent, print_progress);
-    check_score_improvement(ann_network, best_score, bestNetworkData);
-    if (ann_network.stats.totalMovesTaken() > old_moves_taken) {
-      old_moves_taken = ann_network.stats.totalMovesTaken();
-      got_better = true;
-    }
-    if (!got_better && !withInsertions) {
-      withInsertions = true;
-      optimizeEverythingRun(ann_network, insertionTypes, start_state_to_reuse,
-                            best_state_to_reuse, start_time, bestNetworkData,
-                            silent, print_progress);
-      if (ann_network.stats.totalMovesTaken() > old_moves_taken) {
-        old_moves_taken = ann_network.stats.totalMovesTaken();
-
-        optimizeEverythingRun(ann_network, typesBySpeedHorizontal,
-                              start_state_to_reuse, best_state_to_reuse,
-                              start_time, bestNetworkData, silent,
-                              print_progress);
-        check_score_improvement(ann_network, best_score, bestNetworkData);
-        if (ann_network.stats.totalMovesTaken() > old_moves_taken) {
-          old_moves_taken = ann_network.stats.totalMovesTaken();
-          got_better = true;
-        }
+  wavesearch_internal_loop(ann_network, psq, bestNetworkData, typesBySpeed,
+                           typesBySpeedHorizontal, insertionTypes, best_score,
+                           start_time, silent, print_progress);
+  if (ann_network.options.retry > 0) {
+    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+      std::cout << "The promising older candidates are: \n";
+      for (size_t i = 0; i < psq.promising_states.size(); ++i) {
+        std::cout << toString(psq.promising_states[i].move.moveType) << ": "
+                  << psq.promising_states[i].target_bic << "\n";
       }
     }
-    withInsertions = false;
+  }
+  // Here we takine old other good configurations from the PSQ.
+  for (size_t i = 0; i < ann_network.options.retry; ++i) {
+    if (!hasPromisingStates(psq)) {
+      break;
+    }
+    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+      std::cout << Color::FG_BLUE
+                << "\n\nRetrying search from a promising past state iteration "
+                << i << "...\n"
+                << Color::FG_DEFAULT;
+    }
+    ann_network.options.retry = std::max(ann_network.options.retry - 1, 0);
+    PromisingState pstate = getPromisingState(
+        psq);  // TODO: This does an unneccessary copy operation. Fix this.
+    applyPromisingState(ann_network, pstate, best_score, bestNetworkData, true,
+                        silent);
+    wavesearch_internal_loop(ann_network, psq, bestNetworkData, typesBySpeed,
+                             typesBySpeedHorizontal, insertionTypes, best_score,
+                             start_time, silent, print_progress);
   }
 
   if (ann_network.options.enforce_extra_search) {
-    got_better = true;
+    bool got_better = true;
     // next, try enforcing some arc insertion
     while (got_better) {
       got_better = false;
@@ -173,13 +207,12 @@ void wavesearch_internal(
         candidates =
             possibleMoves(ann_network, MoveType::DeltaPlusMove, false, true);
       }
-      applyBestCandidate(ann_network, candidates, best_score, bestNetworkData,
-                         true, ann_network.options.extreme_greedy, silent,
-                         print_progress);
+      applyBestCandidate(
+          ann_network, psq, candidates, best_score, bestNetworkData, true,
+          ann_network.options.extreme_greedy, silent, print_progress);
       check_score_improvement(ann_network, best_score, bestNetworkData);
-      optimizeEverythingRun(ann_network, typesBySpeed, start_state_to_reuse,
-                            best_state_to_reuse, start_time, bestNetworkData,
-                            silent, print_progress);
+      optimizeEverythingRun(ann_network, psq, typesBySpeed, start_time,
+                            bestNetworkData, silent, print_progress);
       check_score_improvement(ann_network, best_score, bestNetworkData);
       if (*best_score < old_best_score) {
         got_better = true;
@@ -190,8 +223,8 @@ void wavesearch_internal(
 }
 
 void wavesearch_main_internal(
-    AnnotatedNetwork &ann_network, BestNetworkData *bestNetworkData,
-    const std::vector<MoveType> &typesBySpeed,
+    AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
+    BestNetworkData *bestNetworkData, const std::vector<MoveType> &typesBySpeed,
     NetworkState &start_state_to_reuse, NetworkState &best_state_to_reuse,
     double *best_score,
     const std::chrono::high_resolution_clock::time_point &start_time,
@@ -208,17 +241,14 @@ void wavesearch_main_internal(
   }
 
   if (!ann_network.options.scrambling_only) {
-    wavesearch_internal(ann_network, bestNetworkData, typesBySpeed,
-                        start_state_to_reuse, best_state_to_reuse, best_score,
-                        start_time, silent, print_progress);
+    wavesearch_internal(ann_network, psq, bestNetworkData, typesBySpeed,
+                        best_score, start_time, silent, print_progress);
   } else {
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
       std::cout << "Skipping initial inference and directly entering "
                    "scrambling mode.\n";
     }
   }
-
-  double old_best_score = *best_score;
 
   if (ann_network.options.scrambling > 0) {
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
@@ -244,8 +274,7 @@ void wavesearch_main_internal(
       bool improved = true;
       while (improved) {
         improved = false;
-        wavesearch_internal(ann_network, bestNetworkData, typesBySpeed,
-                            start_state_to_reuse, best_state_to_reuse,
+        wavesearch_internal(ann_network, psq, bestNetworkData, typesBySpeed,
                             best_score, start_time, silent, print_progress);
         if (*best_score < old_best_score_scrambling) {
           old_best_score_scrambling = *best_score;
@@ -272,6 +301,7 @@ void wavesearch(AnnotatedNetwork &ann_network, BestNetworkData *bestNetworkData,
                 const std::vector<MoveType> &typesBySpeed,
                 const std::vector<MoveType> &typesBySpeedGoodStart, bool silent,
                 bool print_progress) {
+  PromisingStateQueue psq;
   NetworkState start_state_to_reuse = extract_network_state(ann_network);
   NetworkState best_state_to_reuse = extract_network_state(ann_network);
   auto start_time = std::chrono::high_resolution_clock::now();
@@ -284,14 +314,14 @@ void wavesearch(AnnotatedNetwork &ann_network, BestNetworkData *bestNetworkData,
                         // optimize the user-given start network
     optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::NORMAL);
     check_score_improvement(ann_network, &best_score, bestNetworkData);
-    wavesearch_main_internal(ann_network, bestNetworkData,
+    wavesearch_main_internal(ann_network, psq, bestNetworkData,
                              typesBySpeedGoodStart, start_state_to_reuse,
                              best_state_to_reuse, &best_score, start_time,
                              silent, print_progress);
   } else {
     optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::QUICK);
     check_score_improvement(ann_network, &best_score, bestNetworkData);
-    wavesearch_main_internal(ann_network, bestNetworkData, typesBySpeed,
+    wavesearch_main_internal(ann_network, psq, bestNetworkData, typesBySpeed,
                              start_state_to_reuse, best_state_to_reuse,
                              &best_score, start_time, silent, print_progress);
   }
