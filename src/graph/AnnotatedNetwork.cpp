@@ -376,7 +376,7 @@ bool reuseOldDisplayedTreesCheck(AnnotatedNetwork &ann_network, int incremental,
       }
       dtd.treeLoglData.tree_logprob_valid = true;
     }
-    if (!dtd.clv_valid &&
+    if ((!dtd.clv_valid || !dtd.treeLoglData.tree_logl_valid) &&
         dtd.treeLoglData.tree_logprob >=
             ann_network.options.min_interesting_tree_logprob) {
       return false;

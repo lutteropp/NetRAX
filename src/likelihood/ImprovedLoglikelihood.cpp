@@ -420,6 +420,10 @@ void computeDisplayedTreeLoglikelihood(AnnotatedNetwork &ann_network,
     return;
   }
 
+  if (treeAtRoot.treeLoglData.tree_logl_valid) {
+    return;
+  }
+
   Node *displayed_tree_root = findFirstNodeWithTwoActiveChildren(
       ann_network, treeAtRoot.treeLoglData.reticulationChoices, actRoot);
   DisplayedTreeData &treeWithoutDeadPath = findMatchingDisplayedTree(
