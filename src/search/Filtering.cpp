@@ -358,6 +358,8 @@ double acceptMove(AnnotatedNetwork &ann_network, Move &move,
                 << ann_network.network.num_reticulations() << "\n";
     // if (!silent) std::cout << toExtendedNewick(ann_network) << "\n";
 
+    std::cout << RESET;
+
     std::cout << "displayed trees:\n";
     for (size_t i = 0;
          i <
@@ -376,7 +378,6 @@ double acceptMove(AnnotatedNetwork &ann_network, Move &move,
                           dtd.treeLoglData.tree_partition_logl.end(), 0.0);
       std::cout << "  logl: " << tree_logl << "\n";
       printReticulationChoices(dtd.treeLoglData.reticulationChoices);
-      std::cout << RESET;
     }
   }
   ann_network.stats.moves_taken[move.moveType]++;
