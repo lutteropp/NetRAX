@@ -607,6 +607,7 @@ double computeLoglikelihoodImproved(AnnotatedNetwork &ann_network,
   if (!incremental) {
     invalidateAllCLVs(ann_network);
   }
+  invalidateTreeLogprobs(ann_network);
   const Network &network = ann_network.network;
   pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
   bool reuse_old_displayed_trees = reuseOldDisplayedTreesCheck(

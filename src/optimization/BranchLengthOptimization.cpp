@@ -418,7 +418,6 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters,
                          int max_iters_outside, int radius,
                          std::unordered_set<size_t> candidates,
                          bool restricted_total_iters) {
-  invalidateTreeLogprobs(ann_network);
   for (size_t idx : candidates) {
     assert(idx < ann_network.network.num_branches());
   }
