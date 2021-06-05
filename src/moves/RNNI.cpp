@@ -542,6 +542,11 @@ void performMoveRNNI(AnnotatedNetwork &ann_network, Move &move) {
   Node *v = network.nodes_by_index[move.rnniData.v_clv_index];
   Node *s = network.nodes_by_index[move.rnniData.s_clv_index];
   Node *t = network.nodes_by_index[move.rnniData.t_clv_index];
+
+  assert(hasNeighbor(u, v));
+  assert(hasNeighbor(s, u));
+  assert(hasNeighbor(v, t));
+
   assert(assertBeforeMove(network, move));
   exchangeEdges(network, u, v, s, t);
   updateLinkDirections(network, move);
@@ -552,6 +557,11 @@ void performMoveRNNI(AnnotatedNetwork &ann_network, Move &move) {
     switchReticulations(network, u, v);
   }
   repairReticulationData(network);
+
+  assert(hasNeighbor(u, v));
+  assert(hasNeighbor(s, v));
+  assert(hasNeighbor(u, t));
+
   assert(assertAfterMove(network, move));
 
   std::vector<bool> visited(network.nodes.size(), false);
@@ -576,6 +586,11 @@ void undoMoveRNNI(AnnotatedNetwork &ann_network, Move &move) {
   Node *s = network.nodes_by_index[move.rnniData.s_clv_index];
   Node *t = network.nodes_by_index[move.rnniData.t_clv_index];
   assert(assertAfterMove(network, move));
+
+  assert(hasNeighbor(u, v));
+  assert(hasNeighbor(s, v));
+  assert(hasNeighbor(u, t));
+
   exchangeEdges(network, u, v, t, s);  // note that s and t are exchanged here
   updateLinkDirectionsReverse(network, move);
   if (move.rnniData.type == RNNIMoveType::ONE_STAR ||
@@ -622,6 +637,10 @@ void undoMoveRNNI(AnnotatedNetwork &ann_network, Move &move) {
                 t->getReticulationData()->link_to_second_parent);
     }
   }
+
+  assert(hasNeighbor(u, v));
+  assert(hasNeighbor(s, u));
+  assert(hasNeighbor(v, t));
 
   assert(assertBeforeMove(network, move));
 
