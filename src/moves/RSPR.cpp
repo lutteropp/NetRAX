@@ -175,20 +175,12 @@ void possibleMovesRSPRInternal(
       continue;
     }
 
-    const Node *w = nullptr;
-    auto zNeighbors = getNeighbors(network, z);
-    assert(zNeighbors.size() == 3);
-    for (size_t j = 0; j < zNeighbors.size(); ++j) {
-      if (zNeighbors[j] != x && zNeighbors[j] != y) {
-        w = zNeighbors[j];
-        break;
-      }
-    }
-    assert(w);
-
     size_t node_orig_idx = z->clv_index;
+    
 
     if (z->type == NodeType::RETICULATION_NODE) {  // head-moving rSPR move
+      Node* w = getReticulationOtherParent(ann_network.network, z, x);
+      assert(w);
       if (!hasPath(network, y_prime, w)) {
         Move move = buildMoveRSPR(
             network, x_prime->clv_index, y_prime->clv_index, x->clv_index,
@@ -204,6 +196,8 @@ void possibleMovesRSPRInternal(
         }
       }
     } else {  // tail-moving rSPR move
+      Node* w = getOtherChild(ann_network.network, z, y);
+      assert(w);
       if (!hasPath(network, w, x_prime)) {
         Move move = buildMoveRSPR(
             network, x_prime->clv_index, y_prime->clv_index, x->clv_index,
