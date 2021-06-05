@@ -27,8 +27,7 @@ double trim(double x, int digitsAfterComma) {
 }
 
 std::unordered_set<size_t> findPromisingNodes(AnnotatedNetwork &ann_network,
-                                              std::vector<double> &nodeScore,
-                                              bool silent) {
+                                              std::vector<double> &nodeScore) {
   std::unordered_set<size_t> promisingNodes;
   std::vector<ScoreItem<Node *>> scoresNodes(ann_network.network.num_nodes());
   for (size_t i = 0; i < ann_network.network.num_nodes(); ++i) {
@@ -76,8 +75,8 @@ void filterCandidatesByNodes(std::vector<T> &candidates,
 template <typename T>
 void filterCandidatesByScore(std::vector<T> &candidates,
                              std::vector<ScoreItem<T>> &scores,
-                             double old_score, int n_keep, bool keep_all_better,
-                             bool silent) {
+                             double old_score, int n_keep,
+                             bool keep_all_better) {
   std::sort(scores.begin(), scores.end(),
             [](const ScoreItem<T> &lhs, const ScoreItem<T> &rhs) {
               return lhs.bicScore < rhs.bicScore;
@@ -240,8 +239,7 @@ double filterCandidates(AnnotatedNetwork &ann_network,
     n_keep = elbowMethod(scores, n_keep);
   }
   assert(n_keep > 0);
-  filterCandidatesByScore(candidates, scores, old_bic, n_keep, keep_all_better,
-                          silent);
+  filterCandidatesByScore(candidates, scores, old_bic, n_keep, keep_all_better);
   if (!silent) {
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
       std::cout << "New size after ";
@@ -379,9 +377,8 @@ Move applyBestCandidate(AnnotatedNetwork &ann_network,
 
   NetworkState oldState = extract_network_state(ann_network);
   NetworkState bestState = extract_network_state(ann_network);
-  double best_bic =
-      chooseCandidate(ann_network, oldState, bestState, candidates, enforce,
-                      extreme_greedy, silent, print_progress);
+  chooseCandidate(ann_network, oldState, bestState, candidates, enforce,
+                  extreme_greedy, silent, print_progress);
   assert(scoreNetwork(ann_network) == old_score);
 
   if (!candidates.empty()) {

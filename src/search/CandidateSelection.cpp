@@ -38,7 +38,7 @@ double best_fast_improvement(AnnotatedNetwork &ann_network,
                              const NetworkState &oldState,
                              NetworkState &bestState, MoveType type,
                              const std::vector<MoveType> &typesBySpeed,
-                             int min_radius, int max_radius, bool silent,
+                             int min_radius, int max_radius,
                              bool print_progress) {
   std::vector<Move> candidates =
       getPossibleMoves(ann_network, typesBySpeed, type, min_radius, max_radius);
@@ -48,7 +48,7 @@ double best_fast_improvement(AnnotatedNetwork &ann_network,
 
 int findBestMaxDistance(AnnotatedNetwork &ann_network, MoveType type,
                         const std::vector<MoveType> &typesBySpeed,
-                        int step_size, bool silent, bool print_progress) {
+                        int step_size, bool print_progress) {
   int best_max_distance = -1;
   if (type == MoveType::RNNIMove || isArcRemoval(type)) {
     best_max_distance = ann_network.options.max_rearrangement_distance;
@@ -62,9 +62,9 @@ int findBestMaxDistance(AnnotatedNetwork &ann_network, MoveType type,
       act_max_distance =
           std::min(act_max_distance + step_size,
                    ann_network.options.max_rearrangement_distance);
-      double score = best_fast_improvement(
-          ann_network, oldState, bestState, type, typesBySpeed,
-          old_max_distance, act_max_distance, silent, print_progress);
+      double score = best_fast_improvement(ann_network, oldState, bestState,
+                                           type, typesBySpeed, old_max_distance,
+                                           act_max_distance, print_progress);
       if (score < old_score) {
         old_max_distance = act_max_distance + 1;
         best_max_distance = act_max_distance;
@@ -242,7 +242,6 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
                                      bool silent, bool print_progress) {
   assert(best_max_distance >= 0);
   std::vector<Move> acceptedMoves;
-  double old_score = scoreNetwork(ann_network);
 
   NetworkState oldState = extract_network_state(ann_network);
   NetworkState bestState = extract_network_state(ann_network);
@@ -407,8 +406,7 @@ double fullSearch(AnnotatedNetwork &ann_network, MoveType type,
       std::cout << toString(type) << " step1: find best max distance\n";
     }
     best_max_distance = findBestMaxDistance(ann_network, type, typesBySpeed,
-                                            step_size, silent,
-    print_progress);*/
+                                            step_size, print_progress);*/
     best_max_distance = step_size;
   }
 

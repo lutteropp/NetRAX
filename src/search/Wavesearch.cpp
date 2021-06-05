@@ -43,7 +43,6 @@ void skipImpossibleTypes(AnnotatedNetwork &ann_network,
 
 double optimizeEverythingRun(
     AnnotatedNetwork &ann_network, const std::vector<MoveType> &typesBySpeed,
-    NetworkState &start_state_to_reuse, NetworkState &best_state_to_reuse,
     const std::chrono::high_resolution_clock::time_point &start_time,
     BestNetworkData *bestNetworkData, bool silent, bool print_progress) {
   unsigned int type_idx = 0;
@@ -95,9 +94,7 @@ double optimizeEverythingRun(
 
 void wavesearch_internal(
     AnnotatedNetwork &ann_network, BestNetworkData *bestNetworkData,
-    const std::vector<MoveType> &typesBySpeed,
-    NetworkState &start_state_to_reuse, NetworkState &best_state_to_reuse,
-    double *best_score,
+    const std::vector<MoveType> &typesBySpeed, double *best_score,
     const std::chrono::high_resolution_clock::time_point &start_time,
     bool silent, bool print_progress) {
   double old_best_score = *best_score;
@@ -127,8 +124,7 @@ void wavesearch_internal(
     check_score_improvement(ann_network, best_score, bestNetworkData);
     optimizeEverythingRun(
         ann_network, (withInsertions) ? typesBySpeed : typesBySpeedHorizontal,
-        start_state_to_reuse, best_state_to_reuse, start_time, bestNetworkData,
-        silent, print_progress);
+        start_time, bestNetworkData, silent, print_progress);
     check_score_improvement(ann_network, best_score, bestNetworkData);
     if (ann_network.stats.totalMovesTaken() > old_moves_taken) {
       old_moves_taken = ann_network.stats.totalMovesTaken();
@@ -136,16 +132,13 @@ void wavesearch_internal(
     }
     if (!got_better && !withInsertions) {
       withInsertions = true;
-      optimizeEverythingRun(ann_network, insertionTypes, start_state_to_reuse,
-                            best_state_to_reuse, start_time, bestNetworkData,
-                            silent, print_progress);
+      optimizeEverythingRun(ann_network, insertionTypes, start_time,
+                            bestNetworkData, silent, print_progress);
       if (ann_network.stats.totalMovesTaken() > old_moves_taken) {
         old_moves_taken = ann_network.stats.totalMovesTaken();
 
-        optimizeEverythingRun(ann_network, typesBySpeedHorizontal,
-                              start_state_to_reuse, best_state_to_reuse,
-                              start_time, bestNetworkData, silent,
-                              print_progress);
+        optimizeEverythingRun(ann_network, typesBySpeedHorizontal, start_time,
+                              bestNetworkData, silent, print_progress);
         check_score_improvement(ann_network, best_score, bestNetworkData);
         if (ann_network.stats.totalMovesTaken() > old_moves_taken) {
           old_moves_taken = ann_network.stats.totalMovesTaken();
@@ -177,9 +170,8 @@ void wavesearch_internal(
                          true, ann_network.options.extreme_greedy, silent,
                          print_progress);
       check_score_improvement(ann_network, best_score, bestNetworkData);
-      optimizeEverythingRun(ann_network, typesBySpeed, start_state_to_reuse,
-                            best_state_to_reuse, start_time, bestNetworkData,
-                            silent, print_progress);
+      optimizeEverythingRun(ann_network, typesBySpeed, start_time,
+                            bestNetworkData, silent, print_progress);
       check_score_improvement(ann_network, best_score, bestNetworkData);
       if (*best_score < old_best_score) {
         got_better = true;
@@ -208,8 +200,7 @@ void wavesearch_main_internal(
   }
 
   if (!ann_network.options.scrambling_only) {
-    wavesearch_internal(ann_network, bestNetworkData, typesBySpeed,
-                        start_state_to_reuse, best_state_to_reuse, best_score,
+    wavesearch_internal(ann_network, bestNetworkData, typesBySpeed, best_score,
                         start_time, silent, print_progress);
   } else {
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
@@ -217,8 +208,6 @@ void wavesearch_main_internal(
                    "scrambling mode.\n";
     }
   }
-
-  double old_best_score = *best_score;
 
   if (ann_network.options.scrambling > 0) {
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
@@ -245,7 +234,6 @@ void wavesearch_main_internal(
       while (improved) {
         improved = false;
         wavesearch_internal(ann_network, bestNetworkData, typesBySpeed,
-                            start_state_to_reuse, best_state_to_reuse,
                             best_score, start_time, silent, print_progress);
         if (*best_score < old_best_score_scrambling) {
           old_best_score_scrambling = *best_score;
