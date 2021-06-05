@@ -34,7 +34,7 @@ static double brent_target_networks_prob(void *p, double x) {
     ann_network->first_parent_logprobs[reticulation_index] = log(x);
     ann_network->second_parent_logprobs[reticulation_index] = log(1.0 - x);
     ann_network->cached_logl_valid = false;
-    invalidateTreeLogprobs(*ann_network, x);
+    invalidateTreeLogprobs(*ann_network, reticulation_index);
 
     if (ann_network->options.likelihood_variant ==
         LikelihoodVariant::SARAH_PSEUDO) {
