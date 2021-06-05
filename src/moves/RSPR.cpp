@@ -51,9 +51,11 @@ bool checkSanityRSPR(AnnotatedNetwork &ann_network, const Move &move) {
   if (good) {
     if (z->getType() == NodeType::RETICULATION_NODE) { // head-moving
       Node* w = getReticulationOtherParent(ann_network.network, z, x);
+      assert(w);
       good &= (!hasPath(ann_network.network, w, x_prime));
     } else { // tail-moving
       Node* w = getOtherChild(ann_network.network, z, y);
+      assert(w);
       good &= (!hasPath(ann_network.network, y_prime, w));
     }
   }
@@ -173,20 +175,12 @@ void possibleMovesRSPRInternal(
       continue;
     }
 
-    const Node *w = nullptr;
-    auto zNeighbors = getNeighbors(network, z);
-    assert(zNeighbors.size() == 3);
-    for (size_t j = 0; j < zNeighbors.size(); ++j) {
-      if (zNeighbors[j] != x && zNeighbors[j] != y) {
-        w = zNeighbors[j];
-        break;
-      }
-    }
-    assert(w);
-
     size_t node_orig_idx = z->clv_index;
+    
 
     if (z->type == NodeType::RETICULATION_NODE) {  // head-moving rSPR move
+      Node* w = getReticulationOtherParent(ann_network.network, z, x);
+      assert(w);
       if (!hasPath(network, y_prime, w)) {
         Move move = buildMoveRSPR(
             network, x_prime->clv_index, y_prime->clv_index, x->clv_index,
@@ -202,6 +196,8 @@ void possibleMovesRSPRInternal(
         }
       }
     } else {  // tail-moving rSPR move
+      Node* w = getOtherChild(ann_network.network, z, y);
+      assert(w);
       if (!hasPath(network, w, x_prime)) {
         Move move = buildMoveRSPR(
             network, x_prime->clv_index, y_prime->clv_index, x->clv_index,
@@ -241,27 +237,15 @@ void possibleMovesRSPRInternalNode(
       continue;
     }
     bool problemFound = false;
-    // if there is an arc z->w, we need that there is no w->x_prime path in the
-    // network
-    std::vector<Node *> zChildren = getChildren(network, z);
-    for (const Node *w : zChildren) {
-      if (problemFound) {
-        break;
-      }
-      if (hasPath(network, w, x_prime)) {
-        problemFound = true;
-      }
-    }
-    // if there is an arc w->z, we need that there is no y_prime->w path in the
-    // network
-    std::vector<Node *> zParents = getAllParents(network, z);
-    for (const Node *w : zParents) {
-      if (problemFound) {
-        break;
-      }
-      if (hasPath(network, y_prime, w)) {
-        problemFound = true;
-      }
+
+    if (z->getType() == NodeType::RETICULATION_NODE) { // head-moving
+      Node* w = getReticulationOtherParent(ann_network.network, z, x);
+      assert(w);
+      problemFound |= (!hasPath(ann_network.network, w, x_prime));
+    } else { // tail-moving
+      Node* w = getOtherChild(ann_network.network, z, y);
+      assert(w);
+      problemFound |= (!hasPath(ann_network.network, y_prime, w));
     }
 
     if (problemFound) {
