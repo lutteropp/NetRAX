@@ -607,7 +607,6 @@ double computeLoglikelihoodImproved(AnnotatedNetwork &ann_network,
   if (!incremental) {
     invalidateAllCLVs(ann_network);
   }
-  invalidateTreeLogprobs(ann_network);
   const Network &network = ann_network.network;
   pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
   bool reuse_old_displayed_trees = reuseOldDisplayedTreesCheck(
@@ -615,24 +614,6 @@ double computeLoglikelihoodImproved(AnnotatedNetwork &ann_network,
   if (reuse_old_displayed_trees) {
     if (ann_network.cached_logl_valid) {
       return ann_network.cached_logl;
-    }
-    for (size_t p = 0; p < fake_treeinfo.partition_count;
-         ++p) {  // This is in here due to reticulation prob optimization
-      std::vector<DisplayedTreeData> &displayed_root_trees =
-          ann_network.pernode_displayed_tree_data[network.root->clv_index]
-              .displayed_trees;
-      size_t n_trees =
-          ann_network.pernode_displayed_tree_data[network.root->clv_index]
-              .num_active_displayed_trees;
-      for (size_t t = 0; t < n_trees; ++t) {
-        assert(displayed_root_trees[t].treeLoglData.tree_logl_valid == true);
-        displayed_root_trees[t].treeLoglData.tree_logprob =
-            computeReticulationConfigLogProb(
-                displayed_root_trees[t].treeLoglData.reticulationChoices,
-                ann_network.first_parent_logprobs,
-                ann_network.second_parent_logprobs);
-        displayed_root_trees[t].treeLoglData.tree_logprob_valid = true;
-      }
     }
   } else {
     if (update_pmatrices) {

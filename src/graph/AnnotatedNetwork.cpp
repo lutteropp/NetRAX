@@ -30,7 +30,7 @@ namespace netrax {
 
 size_t Statistics::totalMovesTaken() const {
   size_t res = 0;
-  for (const auto& entry : moves_taken) {
+  for (const auto &entry : moves_taken) {
     res += entry.second;
   }
   return res;
@@ -63,8 +63,10 @@ void allocateBranchProbsArray(AnnotatedNetwork &ann_network) {
   // allocate branch probs array...
   ann_network.reticulation_probs =
       std::vector<double>(ann_network.options.max_reticulations, 0.5);
-  ann_network.first_parent_logprobs = std::vector<double>(ann_network.options.max_reticulations, log(0.5));
-  ann_network.second_parent_logprobs = std::vector<double>(ann_network.options.max_reticulations, log(0.5));
+  ann_network.first_parent_logprobs =
+      std::vector<double>(ann_network.options.max_reticulations, log(0.5));
+  ann_network.second_parent_logprobs =
+      std::vector<double>(ann_network.options.max_reticulations, log(0.5));
 }
 
 /**
@@ -352,7 +354,32 @@ bool reuseOldDisplayedTreesCheck(AnnotatedNetwork &ann_network, int incremental,
   if (!incremental) {
     return false;
   }
-  return clvValidCheck(ann_network, virtual_root_clv_index);
+  if (!clvValidCheck(ann_network, virtual_root_clv_index)) {
+    return false;
+  }
+
+  for (size_t i = 0;
+       i < ann_network.pernode_displayed_tree_data[virtual_root_clv_index]
+               .num_active_displayed_trees;
+       ++i) {
+    DisplayedTreeData &dtd =
+        ann_network.pernode_displayed_tree_data[virtual_root_clv_index]
+            .displayed_trees[i];
+    if (!dtd.treeLoglData.tree_logprob_valid) {
+      dtd.treeLoglData.tree_logprob =
+          computeReticulationConfigLogProb(dtd.treeLoglData.reticulationChoices,
+                                           ann_network.first_parent_logprobs,
+                                           ann_network.second_parent_logprobs);
+      dtd.treeLoglData.tree_logprob_valid = true;
+    }
+    if (!dtd.clv_valid &&
+        dtd.treeLoglData.tree_logprob >=
+            ann_network.options.min_interesting_tree_logprob) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 bool hasBadReticulation(AnnotatedNetwork &ann_network) {
