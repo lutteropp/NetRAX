@@ -203,8 +203,9 @@ bool allClvsValid(AnnotatedNetwork &ann_network, size_t clv_index) {
                                            ann_network.second_parent_logprobs);
       dtd.treeLoglData.tree_logprob_valid = true;
     }
-    if (!dtd.clv_valid && dtd.treeLoglData.tree_logprob <
-                              ann_network.options.min_interesting_tree_logprob) {
+    if (!dtd.clv_valid &&
+        dtd.treeLoglData.tree_logprob <
+            ann_network.options.min_interesting_tree_logprob) {
       return false;
     }
   }
@@ -255,7 +256,11 @@ void invalidateTreeLogprobs(AnnotatedNetwork &ann_network,
       DisplayedTreeData &dtd =
           ann_network.pernode_displayed_tree_data[i].displayed_trees[j];
       if (hasReticulationChoice(dtd, reticulation_idx)) {
-        dtd.treeLoglData.tree_logprob_valid = false;
+        dtd.treeLoglData.tree_logprob = computeReticulationConfigLogProb(
+            dtd.treeLoglData.reticulationChoices,
+            ann_network.first_parent_logprobs,
+            ann_network.second_parent_logprobs);
+        dtd.treeLoglData.tree_logprob_valid = true;
       }
     }
   }
