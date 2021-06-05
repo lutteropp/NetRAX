@@ -160,13 +160,21 @@ void wavesearch_internal(
   wavesearch_internal_loop(ann_network, psq, bestNetworkData, typesBySpeed,
                            typesBySpeedHorizontal, insertionTypes, best_score,
                            start_time, silent, print_progress);
+  if (ann_network.options.retry > 0) {
+    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+      std::cout << "The promising older candidates are: \n";
+      for (size_t i = 0; i < psq.promising_states.size(); ++i) {
+        std::cout << toString(psq.promising_states[i].move.moveType) << ": " << psq.promising_states[i].target_bic << "\n";
+      }
+    }
+  }
   // Here we takine old other good configurations from the PSQ.
   for (size_t i = 0; i < ann_network.options.retry; ++i) {
     if (!hasPromisingStates(psq)) {
       break;
     }
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-      std::cout << Color::BG_BLUE << "\n\nRetrying search from a promising past state " << i
+      std::cout << Color::BG_BLUE << "\n\nRetrying search from a promising past state iteration " << i
                 << "...\n" << Color::BG_DEFAULT;
       ann_network.options.retry = std::max(ann_network.options.retry - 1, 0);
       PromisingState pstate = getPromisingState(
