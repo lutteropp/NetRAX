@@ -1,11 +1,12 @@
 #pragma once
 
 #include <vector>
+#include <limits>
 #include "ReticulationConfigSet.hpp"
 
 namespace netrax {
 struct TreeLoglData {
-  double tree_logprob = 0;
+  double tree_logprob = std::numeric_limits<double>::infinity();
   bool tree_logprob_valid = false;
   bool tree_logl_valid = false;
   std::vector<double> tree_partition_logl;
