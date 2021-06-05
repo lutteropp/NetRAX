@@ -243,27 +243,15 @@ void possibleMovesRSPRInternalNode(
       continue;
     }
     bool problemFound = false;
-    // if there is an arc z->w, we need that there is no w->x_prime path in the
-    // network
-    std::vector<Node *> zChildren = getChildren(network, z);
-    for (const Node *w : zChildren) {
-      if (problemFound) {
-        break;
-      }
-      if (hasPath(network, w, x_prime)) {
-        problemFound = true;
-      }
-    }
-    // if there is an arc w->z, we need that there is no y_prime->w path in the
-    // network
-    std::vector<Node *> zParents = getAllParents(network, z);
-    for (const Node *w : zParents) {
-      if (problemFound) {
-        break;
-      }
-      if (hasPath(network, y_prime, w)) {
-        problemFound = true;
-      }
+
+    if (z->getType() == NodeType::RETICULATION_NODE) { // head-moving
+      Node* w = getReticulationOtherParent(ann_network.network, z, x);
+      assert(w);
+      problemFound |= (!hasPath(ann_network.network, w, x_prime));
+    } else { // tail-moving
+      Node* w = getOtherChild(ann_network.network, z, y);
+      assert(w);
+      problemFound |= (!hasPath(ann_network.network, y_prime, w));
     }
 
     if (problemFound) {
