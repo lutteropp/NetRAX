@@ -109,7 +109,7 @@ class NetraxOptions {
 
   bool save_memory = false;
 
-  size_t retry = 3;
+  int retry = 3;
 
   std::string true_network_path;
 

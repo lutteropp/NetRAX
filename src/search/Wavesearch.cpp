@@ -168,6 +168,7 @@ void wavesearch_internal(
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
       std::cout << "Retrying search from a promising past state " << i
                 << "...\n";
+      ann_network.options.retry = std::max(ann_network.options.retry - 1, 0);
       PromisingState pstate = getPromisingState(
           psq);  // TODO: This does an unneccessary copy operation. Fix this.
       applyPromisingState(ann_network, pstate, best_score, bestNetworkData,
