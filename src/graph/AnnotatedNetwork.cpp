@@ -337,6 +337,9 @@ AnnotatedNetwork::AnnotatedNetwork(const AnnotatedNetwork &orig_network)
 
 bool clvValidCheck(AnnotatedNetwork &ann_network,
                    size_t virtual_root_clv_index) {
+  if (ann_network.pernode_displayed_tree_data[virtual_root_clv_index].num_active_displayed_trees == 0) {
+    return false;
+  }
   pllmod_treeinfo_t &fake_treeinfo = *ann_network.fake_treeinfo;
   bool all_clvs_valid = true;
   for (size_t p = 0; p < fake_treeinfo.partition_count; ++p) {

@@ -53,6 +53,7 @@ bool tree_already_present_and_fine(
       return true;
     }
   }
+  return false;
 }
 
 DisplayedTreeData &add_displayed_tree(

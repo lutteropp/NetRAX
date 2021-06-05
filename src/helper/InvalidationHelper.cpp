@@ -7,6 +7,7 @@ namespace netrax {
 
 void invalidateSingleClv(AnnotatedNetwork &ann_network,
                          unsigned int clv_index) {
+  assert(clv_index >= ann_network.network.num_tips());
   pllmod_treeinfo_t *treeinfo = ann_network.fake_treeinfo;
   for (size_t p = 0; p < treeinfo->partition_count; ++p) {
     // skip remote partitions
@@ -191,6 +192,9 @@ bool allClvsValid(AnnotatedNetwork &ann_network, size_t clv_index) {
         return false;
       }
     }
+  }
+  if (ann_network.pernode_displayed_tree_data[clv_index].num_active_displayed_trees == 0) {
+    return false;
   }
   for (size_t i = 0; i < ann_network.pernode_displayed_tree_data[clv_index]
                              .num_active_displayed_trees;
