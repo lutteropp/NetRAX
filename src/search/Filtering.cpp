@@ -319,13 +319,15 @@ double chooseCandidate(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
 }
 
 double acceptMove(AnnotatedNetwork &ann_network, Move &move,
-                  const NetworkState &bestState, double *best_score,
+                  NetworkState *bestState, double *best_score,
                   BestNetworkData *bestNetworkData, bool silent) {
   assert(checkSanity(ann_network, move));
   assert(computeLoglikelihood(ann_network, 1, 1) ==
          computeLoglikelihood(ann_network, 0, 1));
   performMove(ann_network, move);
-  apply_network_state(ann_network, bestState);
+  if (bestState) {
+    apply_network_state(ann_network, *bestState);
+  }
   assert(computeLoglikelihood(ann_network, 1, 1) ==
          computeLoglikelihood(ann_network, 0, 1));
   optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::NORMAL);
@@ -389,7 +391,7 @@ Move applyBestCandidate(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
   assert(scoreNetwork(ann_network) == old_score);
 
   if (!candidates.empty()) {
-    acceptMove(ann_network, candidates[0], bestState, best_score,
+    acceptMove(ann_network, candidates[0], &bestState, best_score,
                bestNetworkData, silent);
     deleteMoveFromPSQ(ann_network, psq, candidates[0]);
 
