@@ -5,7 +5,6 @@
 #include "../optimization/NetworkState.hpp"
 
 #include <limits>
-#include <queue>
 #include <unordered_set>
 #include <vector>
 
@@ -29,10 +28,7 @@ class PromisingStateComparator {
 };
 
 struct PromisingStateQueue {
-  std::priority_queue<PromisingState, std::vector<PromisingState>,
-                      PromisingStateComparator>
-      promising_states;
-  std::unordered_set<const PromisingState*> deleted_elements;
+  std::vector<PromisingState> promising_states;
 };
 
 void addPromisingState(AnnotatedNetwork& ann_network, Move move,

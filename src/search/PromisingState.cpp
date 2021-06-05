@@ -4,6 +4,7 @@
 
 #include "../graph/AnnotatedNetwork.hpp"
 #include "Filtering.hpp"
+#include "../NetraxOptions.hpp"
 
 namespace netrax {
 
@@ -28,33 +29,31 @@ void applyPromisingState(AnnotatedNetwork& ann_network, PromisingState& pstate,
 
 void addPromisingState(AnnotatedNetwork& ann_network, Move move,
                        double target_bic, PromisingStateQueue& psq) {
-  PromisingState p = extractPromisingState(ann_network, move, target_bic);
-  psq.promising_states.emplace(p);
+  // We do not have to store more good states in the PSQ than ann_network.options.retry. Just keep the best ones.
+  while (psq.promising_states.size() > ann_network.options.retry) {
+      if (psq.promising_states.back().target_bic > target_bic) {
+          psq.promising_states.pop_back();
+      }
+  }
+
+  if (psq.promising_states.size() < ann_network.options.retry) {
+      PromisingState p = extractPromisingState(ann_network, move, target_bic);
+      psq.promising_states.emplace_back(p);
+  }
+
   // TODO: Take care of duplicates. Otherwise, candidates will be added multiple times.
-  // TODO: We do not have to store more good states in the PSQ than ann_network.options.retry. Just keep the best ones.
 }
 
 bool hasPromisingStates(PromisingStateQueue& psq) {
-  while (!psq.promising_states.empty()) {
-    const PromisingState& p = psq.promising_states.top();
-    if (psq.deleted_elements.count(&p) != 0) {
-      psq.promising_states.pop();
-    } else {
-      return true;
-    }
-  }
-  return false;
+  return (!psq.promising_states.empty());
 }
 
 PromisingState getPromisingState(PromisingStateQueue& psq) {
-  while (!psq.promising_states.empty()) {
-    const PromisingState& p = psq.promising_states.top();
-    if (psq.deleted_elements.count(&p) != 0) {
-      psq.promising_states.pop();
-    } else {
-      psq.deleted_elements.emplace(&p);
-      return p;
-    }
+  std::sort(psq.promising_states.begin(), psq.promising_states.end(), [](const PromisingState& p1, const PromisingState& p2) {return p1.target_bic > p2.target_bic;});
+  if (!psq.promising_states.empty()) {
+    PromisingState res = std::move(psq.promising_states.back());
+    psq.promising_states.pop_back();
+    return res;
   }
   throw std::runtime_error("Promising state queue is empty");
 }
