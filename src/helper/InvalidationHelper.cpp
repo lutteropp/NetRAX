@@ -266,4 +266,10 @@ void invalidateTreeLogprobs(AnnotatedNetwork &ann_network,
   }
 }
 
+void invalidateTreeLogprobs(AnnotatedNetwork &ann_network) {
+  for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
+    invalidateTreeLogprobs(ann_network, i);
+  }
+}
+
 }  // namespace netrax

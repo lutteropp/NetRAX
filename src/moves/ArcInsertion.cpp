@@ -873,6 +873,8 @@ void performMoveArcInsertion(AnnotatedNetwork &ann_network, Move &move) {
   set_edge_lengths(ann_network, c_v_edge->pmatrix_index, c_v_edge_length);
   set_edge_lengths(ann_network, u_v_edge->pmatrix_index, u_v_edge_length);
 
+  invalidateTreeLogprobs(ann_network);
+
   std::vector<size_t> updateMe = {
       u_v_edge->pmatrix_index, c_v_edge->pmatrix_index, v_d_edge->pmatrix_index,
       a_u_edge->pmatrix_index, u_b_edge->pmatrix_index};

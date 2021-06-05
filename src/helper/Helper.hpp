@@ -142,6 +142,7 @@ void invalidate_pmatrices(AnnotatedNetwork &ann_network,
 void invalidateAllCLVs(AnnotatedNetwork &ann_network);
 void invalidateTreeLogprobs(AnnotatedNetwork &ann_network,
                             size_t reticulation_idx);
+void invalidateTreeLogprobs(AnnotatedNetwork &ann_network);
 
 /* helper functions related to reticulation config set
  * (ReticulationConfigHelper.cpp) */

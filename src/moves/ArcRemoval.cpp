@@ -803,6 +803,8 @@ ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index].dis
   from_c_link->edge_pmatrix_index = c_d_edge->pmatrix_index;
   to_d_link->edge_pmatrix_index = c_d_edge->pmatrix_index;
 
+  invalidateTreeLogprobs(ann_network);
+
   std::vector<bool> visited(network.nodes.size(), false);
   invalidateHigherCLVs(ann_network,
                        network.nodes_by_index[move.arcRemovalData.a_clv_index],
