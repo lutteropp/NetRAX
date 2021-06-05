@@ -207,8 +207,6 @@ double filterCandidates(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
     scores[i] = ScoreItem<Move>{candidates[i], bicScore};
     if (bicScore < old_bic) {
       n_better++;
-      //Here, we need to add the promising candidate to the promising state queue
-      addPromisingState(ann_network, candidates[i], bicScore, psq);
     }
     if (bicScore < best_bic) {
       best_bic = bicScore;
@@ -228,6 +226,11 @@ double filterCandidates(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
     undoMove(ann_network, move);
     assert(checkSanity(ann_network, candidates[i]));
     apply_network_state(ann_network, oldState);
+    if (bicScore < old_bic) {
+      // Here, we need to add the promising candidate to the promising state
+      // queue
+      addPromisingState(ann_network, candidates[i], bicScore, psq);
+    }
   }
 
   apply_network_state(ann_network, oldState);
