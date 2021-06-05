@@ -287,10 +287,10 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
       }
 
       // if we interleaved an arc insertion with some taken arc removal, it is better to stop arc insertions for now and go on with some horizontal moves first
-      if (!takenRemovals.empty()) {
+      /*if (!takenRemovals.empty()) {
         ann_network.options.no_prefiltering = old_no_prefiltering;
         return acceptedMoves;
-      }
+      }*/
 
       updateCandidateMoves(ann_network, typesBySpeed, best_max_distance,
                            chosenMove, takenRemovals, candidates);
