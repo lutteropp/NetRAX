@@ -162,12 +162,12 @@ void wavesearch_internal(
                            start_time, silent, print_progress);
   if (ann_network.options.retry > 0) {
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-      std::cout << Color::FG_LIGHT_MAGENTA << "The promising older candidates are: \n";
+      std::cout << MAGENTA << "The promising older candidates are: \n";
       for (size_t i = 0; i < psq.promising_states.size(); ++i) {
         std::cout << toString(psq.promising_states[i].move.moveType) << ": "
                   << psq.promising_states[i].target_bic << "\n";
       }
-      std::cout << Color::FG_DEFAULT;
+      std::cout << RESET;
     }
   }
   // Here we takine old other good configurations from the PSQ.
@@ -176,10 +176,10 @@ void wavesearch_internal(
       break;
     }
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-      std::cout << Color::FG_LIGHT_MAGENTA
+      std::cout << MAGENTA
                 << "\n\nRetrying search from a promising past state iteration "
                 << i << "...\n"
-                << Color::FG_DEFAULT;
+                << RESET;
     }
     ann_network.options.retry = std::max(ann_network.options.retry - 1, 0);
     PromisingState pstate = getPromisingState(
@@ -198,7 +198,7 @@ void wavesearch_internal(
       got_better = false;
 
       if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-        std::cout <<  Color::FG_LIGHT_YELLOW << "Enforcing an arc insertion...\n" << Color::FG_DEFAULT;
+        std::cout << YELLOW << "Enforcing an arc insertion...\n" << RESET;
       }
       std::vector<Move> candidates;
       if (!ann_network.options.no_arc_insertion_moves) {
@@ -246,18 +246,18 @@ void wavesearch_main_internal(
                         best_score, start_time, silent, print_progress);
   } else {
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-      std::cout << Color::FG_LIGHT_YELLOW
+      std::cout << YELLOW
                 << "Skipping initial inference and directly entering "
                    "scrambling mode.\n"
-                << Color::FG_DEFAULT;
+                << RESET;
     }
   }
 
   if (ann_network.options.scrambling > 0) {
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-      std::cout << Color::FG_LIGHT_CYAN;
+      std::cout << CYAN;
       std::cout << "\nStarting scrambling phase...\n";
-      std::cout << Color::FG_DEFAULT;
+      std::cout << RESET;
     }
     unsigned int tries = 0;
     NetworkState bestState = extract_network_state(ann_network);

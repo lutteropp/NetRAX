@@ -38,11 +38,11 @@ ScoreImprovementResult check_score_improvement(AnnotatedNetwork &ann_network,
         collect_average_branches(ann_network);
       }
       if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-        std::cout << Color::FG_LIGHT_GREEN;
+        std::cout << BOLDGREEN;
         std::cout << "IMPROVED GLOBAL BEST SCORE FOUND SO FAR ("
                   << ann_network.network.num_reticulations()
                   << " reticulations): " << new_score << "\n";
-        std::cout << Color::FG_DEFAULT;
+        std::cout << RESET;
         writeNetwork(ann_network, ann_network.options.output_file);
         if (!silent) std::cout << toExtendedNewick(ann_network) << "\n";
         if (!silent)

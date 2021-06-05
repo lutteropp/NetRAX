@@ -391,12 +391,10 @@ double fullSearch(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
   double old_score = scoreNetwork(ann_network);
 
   if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-    Color::Modifier blue(Color::FG_BLUE);
-    Color::Modifier def(Color::FG_DEFAULT);
-    std::cout << blue;
+    std::cout << BOLDBLUE;
     std::cout << "\nStarting full search for move type: " << toString(type)
               << "\n";
-    std::cout << def;
+    std::cout << RESET;
   }
 
   int step_size = ann_network.options.step_size;

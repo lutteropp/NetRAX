@@ -345,9 +345,8 @@ double acceptMove(AnnotatedNetwork &ann_network, Move &move,
   double aicc_score = aicc(ann_network, logl);
 
   if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-    /*if (!silent) */ std::cout << Color::FG_GREEN << " Took "
-                                << toString(move.moveType) << Color::FG_DEFAULT
-                                << "\n";
+    /*if (!silent) */ std::cout << BOLDYELLOW << " Took "
+                                << toString(move.moveType) << "\n";
     if (!silent)
       std::cout << "  Logl: " << logl << ", BIC: " << bic_score
                 << ", AIC: " << aic_score << ", AICc: " << aicc_score << "\n";
@@ -377,6 +376,7 @@ double acceptMove(AnnotatedNetwork &ann_network, Move &move,
                           dtd.treeLoglData.tree_partition_logl.end(), 0.0);
       std::cout << "  logl: " << tree_logl << "\n";
       printReticulationChoices(dtd.treeLoglData.reticulationChoices);
+      std::cout << RESET;
     }
   }
   ann_network.stats.moves_taken[move.moveType]++;
