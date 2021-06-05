@@ -24,7 +24,7 @@ Move applyBestCandidate(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
                         bool extreme_greedy, bool silent, bool print_progress);
 
 double acceptMove(AnnotatedNetwork &ann_network, Move &move,
-                  const NetworkState &bestState, double *best_score,
+                  NetworkState *bestState, double *best_score,
                   BestNetworkData *bestNetworkData, bool silent = true);
 
 }  // namespace netrax
