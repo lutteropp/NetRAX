@@ -55,7 +55,7 @@ bool checkSanityRSPR(AnnotatedNetwork &ann_network, const Move &move) {
       good &= (!hasPath(ann_network.network, w, x_prime));
     } else { // tail-moving
       Node* w = getOtherChild(ann_network.network, z, y);
-      asssert(w);
+      assert(w);
       good &= (!hasPath(ann_network.network, y_prime, w));
     }
   }
