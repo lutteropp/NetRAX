@@ -56,6 +56,9 @@ void invalidateHigherClvs(AnnotatedNetwork &ann_network,
   if (!node) {
     return;
   }
+  if (node->clv_index < ann_network.network.num_tips()) {
+    invalidate_myself = false;
+  }
   if (!visited.empty() &&
       visited[node->clv_index]) {  // clv at node is already invalidated
     return;
@@ -90,6 +93,9 @@ void invalidateHigherPseudoClvs(AnnotatedNetwork &ann_network,
   Network &network = ann_network.network;
   if (!node) {
     return;
+  }
+  if (node->clv_index < ann_network.network.num_tips()) {
+    invalidate_myself = false;
   }
   if (!visited.empty() &&
       visited[node->clv_index]) {  // clv at node is already invalidated
