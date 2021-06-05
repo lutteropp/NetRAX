@@ -268,14 +268,16 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
       got_better = true;
 
       std::vector<Move> takenRemovals;
-      // try doing arc removal moves
-      takenRemovals =
-          interleaveArcRemovals(ann_network, typesBySpeed, best_score,
-                                bestNetworkData, silent, print_progress);
-      acceptedMoves.insert(acceptedMoves.end(), takenRemovals.begin(),
-                           takenRemovals.end());
-      if (!takenRemovals.empty()) {
-        extract_network_state(ann_network, oldState);
+      if (isArcInsertion(chosenMove.moveType)) {
+        // try doing arc removal moves
+        takenRemovals =
+            interleaveArcRemovals(ann_network, typesBySpeed, best_score,
+                                  bestNetworkData, silent, print_progress);
+        acceptedMoves.insert(acceptedMoves.end(), takenRemovals.begin(),
+                             takenRemovals.end());
+        if (!takenRemovals.empty()) {
+          extract_network_state(ann_network, oldState);
+        }
       }
 
       // if we interleaved an arc insertion with some taken arc removal, it is
