@@ -164,7 +164,8 @@ void wavesearch_internal(
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
       std::cout << "The promising older candidates are: \n";
       for (size_t i = 0; i < psq.promising_states.size(); ++i) {
-        std::cout << toString(psq.promising_states[i].move.moveType) << ": " << psq.promising_states[i].target_bic << "\n";
+        std::cout << toString(psq.promising_states[i].move.moveType) << ": "
+                  << psq.promising_states[i].target_bic << "\n";
       }
     }
   }
@@ -174,17 +175,19 @@ void wavesearch_internal(
       break;
     }
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-      std::cout << Color::BG_BLUE << "\n\nRetrying search from a promising past state iteration " << i
-                << "...\n" << Color::BG_DEFAULT;
-      ann_network.options.retry = std::max(ann_network.options.retry - 1, 0);
-      PromisingState pstate = getPromisingState(
-          psq);  // TODO: This does an unneccessary copy operation. Fix this.
-      applyPromisingState(ann_network, pstate, best_score, bestNetworkData,
-                          true, silent);
-      wavesearch_internal_loop(ann_network, psq, bestNetworkData, typesBySpeed,
-                               typesBySpeedHorizontal, insertionTypes,
-                               best_score, start_time, silent, print_progress);
+      std::cout << Color::FG_BLUE
+                << "\n\nRetrying search from a promising past state iteration "
+                << i << "...\n"
+                << Color::FG_DEFAULT;
     }
+    ann_network.options.retry = std::max(ann_network.options.retry - 1, 0);
+    PromisingState pstate = getPromisingState(
+        psq);  // TODO: This does an unneccessary copy operation. Fix this.
+    applyPromisingState(ann_network, pstate, best_score, bestNetworkData, true,
+                        silent);
+    wavesearch_internal_loop(ann_network, psq, bestNetworkData, typesBySpeed,
+                             typesBySpeedHorizontal, insertionTypes, best_score,
+                             start_time, silent, print_progress);
   }
 
   if (ann_network.options.enforce_extra_search) {
