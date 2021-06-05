@@ -21,6 +21,9 @@ PromisingState extractPromisingState(AnnotatedNetwork& ann_network, Move move,
 void applyPromisingState(AnnotatedNetwork& ann_network, PromisingState& pstate,
                          double* best_score, BestNetworkData* bestNetworkData,
                          bool alternative_route, bool silent) {
+  if (ann_network.options.retry == 0) {
+    return;
+  }
   ann_network.network = std::move(pstate.network);
   if (alternative_route) {
     apply_network_state(ann_network, pstate.state,
@@ -33,6 +36,9 @@ void applyPromisingState(AnnotatedNetwork& ann_network, PromisingState& pstate,
 
 bool addPromisingState(AnnotatedNetwork& ann_network, Move move,
                        double target_bic, PromisingStateQueue& psq) {
+  if (ann_network.options.retry == 0) {
+    return false;
+  }
   size_t max_entries =
       (ann_network.options.retry == 0) ? 0 : ann_network.options.retry * 4;
 
@@ -79,6 +85,9 @@ PromisingState getPromisingState(PromisingStateQueue& psq) {
 
 void deleteMoveFromPSQ(AnnotatedNetwork& ann_network, PromisingStateQueue& psq,
                        const Move& move) {
+  if (ann_network.options.retry == 0) {
+    return;
+  }
   std::string networkInfo = exportDebugInfoNetwork(ann_network.network);
   psq.promising_states.erase(
       std::remove_if(psq.promising_states.begin(), psq.promising_states.end(),
