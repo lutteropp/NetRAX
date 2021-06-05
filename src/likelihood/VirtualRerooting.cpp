@@ -252,11 +252,11 @@ void updateTreeData(AnnotatedNetwork &ann_network,
                     TreeLoglData &treeData) {
   const TreeLoglData &oldTree =
       getMatchingTreeData(oldTrees, treeData.reticulationChoices);
-  assert(oldTree.tree_logl_valid);
   treeData.tree_partition_logl = oldTree.tree_partition_logl;
   assert(oldTree.tree_logprob_valid);
   if (oldTree.tree_logprob >=
       ann_network.options.min_interesting_tree_logprob) {
+    assert(oldTree.tree_logl_valid);
     for (size_t p = 0; p < ann_network.fake_treeinfo->partition_count; ++p) {
       assert(oldTree.tree_partition_logl[p] <= 0.0);
     }
