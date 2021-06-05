@@ -174,6 +174,10 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
       "--start_temperature", options->start_temperature,
       "Start temperature to be used for simulated annealing (default: 100).");
 
+  app.add_option("--retry", options->retry,
+                 "Number of times to retry taking different search paths in "
+                 "the promising states (default: 3).");
+
   // app.add_flag("--extreme_greedy_prefiltering",
   // options->extreme_greedy_prefiltering, "Enable extreme greedy prefiltering
   // mode.");

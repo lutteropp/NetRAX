@@ -8,18 +8,20 @@
 namespace netrax {
 
 struct BestNetworkData;
+struct PromisingStateQueue;
 
 std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
+                                     PromisingStateQueue &psq,
                                      int best_max_distance, MoveType type,
                                      const std::vector<MoveType> &typesBySpeed,
                                      double *best_score,
                                      BestNetworkData *bestNetworkData,
                                      bool silent, bool print_progress);
 
-double fullSearch(AnnotatedNetwork &ann_network, MoveType type,
-                  const std::vector<MoveType> &typesBySpeed, double *best_score,
-                  BestNetworkData *bestNetworkData, bool silent,
-                  bool print_progress);
+double fullSearch(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
+                  MoveType type, const std::vector<MoveType> &typesBySpeed,
+                  double *best_score, BestNetworkData *bestNetworkData,
+                  bool silent, bool print_progress);
 
 void updateOldCandidates(AnnotatedNetwork &ann_network, const Move &chosenMove,
                          std::vector<Move> &candidates);

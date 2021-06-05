@@ -30,6 +30,7 @@ void addPromisingState(AnnotatedNetwork& ann_network, Move move,
                        double target_bic, PromisingStateQueue& psq) {
   PromisingState p = extractPromisingState(ann_network, move, target_bic);
   psq.promising_states.emplace(p);
+  // TODO: Take care of duplicates. Otherwise, candidates will be added multiple times.
 }
 
 bool hasPromisingStates(PromisingStateQueue& psq) {
