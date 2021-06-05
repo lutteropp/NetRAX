@@ -63,8 +63,8 @@ int findBestMaxDistance(AnnotatedNetwork &ann_network, MoveType type,
           std::min(act_max_distance + step_size,
                    ann_network.options.max_rearrangement_distance);
       double score = best_fast_improvement(
-          ann_network, oldState, bestState, type, typesBySpeed,
-          old_max_distance, act_max_distance, silent, print_progress);
+          ann_network, oldState, bestState, type, typesBySpeed, old_max_distance,
+          act_max_distance, silent, print_progress);
       if (score < old_score) {
         old_max_distance = act_max_distance + 1;
         best_max_distance = act_max_distance;
@@ -186,16 +186,22 @@ void updateCandidateMoves(AnnotatedNetwork &ann_network,
                           int best_max_distance, const Move &chosenMove,
                           const std::vector<Move> &takenRemovals,
                           std::vector<Move> &candidates) {
+  bool rspr1_present = (std::find(typesBySpeed.begin(), typesBySpeed.end(),
+                                  MoveType::RSPR1Move) != typesBySpeed.end());
+  bool delta_plus_present =
+      (std::find(typesBySpeed.begin(), typesBySpeed.end(),
+                 MoveType::DeltaPlusMove) != typesBySpeed.end());
   // add new possible moves to the candidate list
   if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
     std::cout << "We have " << candidates.size()
               << " candidates before removing the old bad ones.\n";
   }
   updateOldCandidates(ann_network, chosenMove, candidates);
-  if (takenRemovals.empty()) {
+  if (takenRemovals.empty() && chosenMove.moveType == MoveType::RNNIMove) {
     std::vector<Node *> start_nodes = gatherStartNodes(ann_network, chosenMove);
-    std::vector<Move> moreMoves = getPossibleMoves(
-        ann_network, typesBySpeed, chosenMove.moveType, 0, best_max_distance);
+    std::vector<Move> moreMoves =
+        possibleMoves(ann_network, chosenMove.moveType, start_nodes,
+                      rspr1_present, delta_plus_present, 0, best_max_distance);
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
       std::cout << "Adding " << moreMoves.size() << " candidates to the "
                 << candidates.size() << " previous ones.\n ";
@@ -280,9 +286,7 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
         }
       }
 
-      // if we interleaved an arc insertion with some taken arc removal, it is
-      // better to stop arc insertions for now and go on with some horizontal
-      // moves first
+      // if we interleaved an arc insertion with some taken arc removal, it is better to stop arc insertions for now and go on with some horizontal moves first
       /*if (!takenRemovals.empty()) {
         ann_network.options.no_prefiltering = old_no_prefiltering;
         return acceptedMoves;
@@ -307,7 +311,9 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
                           silent, print_progress);
     } else {
       // score did not get better
-      if (!tried_with_allnew && !acceptedMoves.empty() && isArcRemoval(type)) {
+      if (!tried_with_allnew && !acceptedMoves.empty() &&
+          isArcRemoval(type)) {
+        
         tried_with_allnew = true;
         if (ParallelContext::master_rank() &&
             ParallelContext::master_thread()) {
@@ -401,8 +407,7 @@ double fullSearch(AnnotatedNetwork &ann_network, MoveType type,
       std::cout << toString(type) << " step1: find best max distance\n";
     }
     best_max_distance = findBestMaxDistance(ann_network, type, typesBySpeed,
-                                            step_size, silent,
-    print_progress);*/
+                                            step_size, silent, print_progress);*/
     best_max_distance = step_size;
   }
 
