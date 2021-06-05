@@ -267,11 +267,16 @@ double prefilterCandidates(AnnotatedNetwork &ann_network,
                            std::vector<Move> &candidates, bool extreme_greedy,
                            bool silent, bool print_progress) {
   double old_bic = scoreNetwork(ann_network);
-  double best_bic = filterCandidates(ann_network, oldState, bestState, candidates,
-                          FilterType::PREFILTER, false, extreme_greedy, true,
-                          silent, print_progress);
-  if (ann_network.options.prefilter_greedy && best_bic >= old_bic) {
+  double best_bic = filterCandidates(
+      ann_network, oldState, bestState, candidates, FilterType::PREFILTER,
+      false, extreme_greedy, true, silent, print_progress);
+  if (best_bic >= old_bic) {
+    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+      std::cout << "None of the prefiltered candidates improved BIC.\n";
+    }
+    if (ann_network.options.prefilter_greedy) {
       candidates.clear();
+    }
   }
   return best_bic;
 }
@@ -281,8 +286,8 @@ double rankCandidates(AnnotatedNetwork &ann_network,
                       std::vector<Move> &candidates, bool enforce,
                       bool extreme_greedy, bool silent, bool print_progress) {
   if (!ann_network.options.no_prefiltering) {
-    prefilterCandidates(ann_network, oldState, bestState, candidates, extreme_greedy,
-                        silent, print_progress);
+    prefilterCandidates(ann_network, oldState, bestState, candidates,
+                        extreme_greedy, silent, print_progress);
   }
   return filterCandidates(ann_network, oldState, bestState, candidates,
                           FilterType::RANK, enforce, extreme_greedy, false,
