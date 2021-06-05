@@ -12,7 +12,54 @@
 
 namespace netrax {
 
-void add_displayed_tree(AnnotatedNetwork &ann_network, size_t clv_index) {
+DisplayedTreeData *findDisplayedTree(
+    AnnotatedNetwork &ann_network, size_t clv_index,
+    const ReticulationConfigSet &reticulationChoices) {
+  for (size_t i = 0; i < ann_network.pernode_displayed_tree_data[clv_index]
+                             .num_active_displayed_trees;
+       ++i) {
+    DisplayedTreeData &dtd =
+        ann_network.pernode_displayed_tree_data[clv_index].displayed_trees[i];
+    if (dtd.treeLoglData.reticulationChoices == reticulationChoices) {
+      return &dtd;
+    }
+  }
+  return nullptr;
+}
+
+bool tree_already_present_and_fine(
+    AnnotatedNetwork &ann_network, size_t clv_index,
+    const ReticulationConfigSet &reticulationChoices) {
+  DisplayedTreeData *dtd =
+      findDisplayedTree(ann_network, clv_index, reticulationChoices);
+  if (!dtd) {
+    return false;
+  }
+  if (dtd->treeLoglData.reticulationChoices == reticulationChoices) {
+    if (!dtd->treeLoglData.tree_logprob_valid) {
+      dtd->treeLoglData.tree_logprob = computeReticulationConfigLogProb(
+          dtd->treeLoglData.reticulationChoices,
+          ann_network.first_parent_logprobs,
+          ann_network.second_parent_logprobs);
+      dtd->treeLoglData.tree_logprob_valid = true;
+    }
+    if (dtd->clv_valid ||
+        dtd->treeLoglData.tree_logprob <
+            ann_network.options.min_interesting_tree_logprob) {
+      return true;
+    }
+  }
+}
+
+DisplayedTreeData &add_displayed_tree(
+    AnnotatedNetwork &ann_network, size_t clv_index,
+    const ReticulationConfigSet &reticulationChoices) {
+  DisplayedTreeData *dtd =
+      findDisplayedTree(ann_network, clv_index, reticulationChoices);
+  if (dtd) {
+    return *dtd;
+  }
+
   NodeDisplayedTreeData &data =
       ann_network.pernode_displayed_tree_data[clv_index];
   data.num_active_displayed_trees++;
@@ -51,31 +98,10 @@ void add_displayed_tree(AnnotatedNetwork &ann_network, size_t clv_index) {
     }
   }
   data.displayed_trees[data.num_active_displayed_trees - 1].clv_valid = false;
-}
-
-bool tree_already_present_and_fine(
-    AnnotatedNetwork &ann_network, size_t clv_index,
-    const ReticulationConfigSet &reticulationChoices) {
-  for (size_t i = 0; i < ann_network.pernode_displayed_tree_data[clv_index]
-                             .num_active_displayed_trees;
-       ++i) {
-    DisplayedTreeData &dtd =
-        ann_network.pernode_displayed_tree_data[clv_index].displayed_trees[i];
-    if (dtd.treeLoglData.reticulationChoices == reticulationChoices) {
-      if (!dtd.treeLoglData.tree_logprob_valid) {
-        dtd.treeLoglData.tree_logprob = computeReticulationConfigLogProb(
-            dtd.treeLoglData.reticulationChoices,
-            ann_network.first_parent_logprobs,
-            ann_network.second_parent_logprobs);
-        dtd.treeLoglData.tree_logprob_valid = true;
-      }
-      if (dtd.clv_valid ||
-          dtd.treeLoglData.tree_logprob <
-              ann_network.options.min_interesting_tree_logprob) {
-        return true;
-      }
-    }
-  }
+  DisplayedTreeData &tree =
+      data.displayed_trees[data.num_active_displayed_trees - 1];
+  tree.treeLoglData.reticulationChoices = reticulationChoices;
+  return tree;
 }
 
 void add_tree_single(AnnotatedNetwork &ann_network, size_t clv_index,
@@ -85,13 +111,9 @@ void add_tree_single(AnnotatedNetwork &ann_network, size_t clv_index,
                                     reticulationChoices)) {
     return;
   }
-  add_displayed_tree(ann_network, clv_index);
-  NodeDisplayedTreeData &displayed_trees =
-      ann_network.pernode_displayed_tree_data[clv_index];
   size_t fake_clv_index = ann_network.network.nodes.size();
   DisplayedTreeData &tree =
-      displayed_trees
-          .displayed_trees[displayed_trees.num_active_displayed_trees - 1];
+      add_displayed_tree(ann_network, clv_index, reticulationChoices);
   for (size_t partition_idx = 0;
        partition_idx < ann_network.fake_treeinfo->partition_count;
        ++partition_idx) {
@@ -118,7 +140,6 @@ void add_tree_single(AnnotatedNetwork &ann_network, size_t clv_index,
     assert(!single_clv_is_all_zeros(
         ann_network.partition_clv_ranges[partition_idx], parent_clv));
   }
-  tree.treeLoglData.reticulationChoices = reticulationChoices;
   tree.clv_valid = true;
 }
 
@@ -130,12 +151,8 @@ void add_tree_both(AnnotatedNetwork &ann_network, size_t clv_index,
                                     reticulationChoices)) {
     return;
   }
-  add_displayed_tree(ann_network, clv_index);
-  NodeDisplayedTreeData &displayed_trees =
-      ann_network.pernode_displayed_tree_data[clv_index];
   DisplayedTreeData &tree =
-      displayed_trees
-          .displayed_trees[displayed_trees.num_active_displayed_trees - 1];
+      add_displayed_tree(ann_network, clv_index, reticulationChoices);
   for (size_t partition_idx = 0;
        partition_idx < ann_network.fake_treeinfo->partition_count;
        ++partition_idx) {
@@ -163,7 +180,6 @@ void add_tree_both(AnnotatedNetwork &ann_network, size_t clv_index,
     assert(!single_clv_is_all_zeros(
         ann_network.partition_clv_ranges[partition_idx], parent_clv));
   }
-  tree.treeLoglData.reticulationChoices = reticulationChoices;
   tree.clv_valid = true;
 }
 
