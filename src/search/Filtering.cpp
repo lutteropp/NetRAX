@@ -276,6 +276,7 @@ double filterCandidates(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
     }
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
       std::cout << n_better << " filtered candidates improved BIC.\n";
+      std::cout << "best_bic: " << best_bic << "\n";
     }
   }
   for (size_t i = 0; i < candidates.size(); ++i) {
