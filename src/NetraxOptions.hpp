@@ -109,6 +109,8 @@ class NetraxOptions {
 
   bool save_memory = false;
 
+  bool randomize_candidates = false;
+
   int retry = 0;
 
   std::string true_network_path;

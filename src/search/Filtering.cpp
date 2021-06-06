@@ -15,6 +15,9 @@
 #include "PromisingState.hpp"
 #include "ScoreImprovement.hpp"
 
+#include <algorithm>
+#include <random>
+
 namespace netrax {
 
 template <typename T>
@@ -187,6 +190,10 @@ double filterCandidates(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
   if (candidates.empty()) {
     return scoreNetwork(ann_network);
   }
+  if (ann_network.options.randomize_candidates) {
+      std::shuffle(candidates.begin(), candidates.end(), ann_network.rng);
+  }
+
   assert(!(extreme_greedy && enforce));
   int n_better = 0;
   int barWidth = 70;

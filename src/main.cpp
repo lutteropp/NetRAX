@@ -178,6 +178,8 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
                  "Number of times to retry taking different search paths in "
                  "the promising states (default: 0).");
 
+  app.add_flag("--randomize_candidates", options->randomize_candidates, "Randomize move candidates.");
+
   // app.add_flag("--extreme_greedy_prefiltering",
   // options->extreme_greedy_prefiltering, "Enable extreme greedy prefiltering
   // mode.");

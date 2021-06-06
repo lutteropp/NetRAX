@@ -8,10 +8,13 @@
 #include "CandidateSelection.hpp"
 
 #include "../DebugPrintFunctions.hpp"
+#include "../colormod.h"
 #include "../helper/NetworkFunctions.hpp"
 #include "../io/NetworkIO.hpp"
 #include "../moves/Move.hpp"
-#include "../colormod.h"
+
+#include <algorithm>
+#include <random>
 
 namespace netrax {
 
@@ -33,10 +36,11 @@ bool simanneal_step(AnnotatedNetwork &ann_network,
   int radius = 1;
 
   double old_bic = scoreNetwork(ann_network);
+  std::vector<Move> allMoves =
+      possibleMoves(ann_network, typesBySpeed, min_radius, max_radius);
+  std::shuffle(allMoves.begin(), allMoves.end(), ann_network.rng);
 
-  while (true) {
-    Move move =
-        getRandomMove(ann_network, typesBySpeed, min_radius, max_radius);
+  for (Move &move : allMoves) {
     assert(checkSanity(ann_network, move));
     performMove(ann_network, move);
     std::unordered_set<size_t> brlen_opt_candidates =
@@ -51,7 +55,8 @@ bool simanneal_step(AnnotatedNetwork &ann_network,
 
     if (bicScore < old_bic) {
       if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-        std::cout << YELLOW << " Took " << toString(move.moveType) << "\n" << RESET;
+        std::cout << YELLOW << " Took " << toString(move.moveType) << "\n"
+                  << RESET;
         if (!silent)
           std::cout << "  Logl: " << computeLoglikelihood(ann_network)
                     << ", BIC: " << scoreNetwork(ann_network) << "\n";
