@@ -30,6 +30,8 @@ DisplayedTreeData *findDisplayedTree(
 bool tree_already_present_and_fine(
     AnnotatedNetwork &ann_network, size_t clv_index,
     const ReticulationConfigSet &reticulationChoices) {
+  return false;
+
   DisplayedTreeData *dtd =
       findDisplayedTree(ann_network, clv_index, reticulationChoices);
   if (!dtd) {
