@@ -122,6 +122,7 @@ struct Move {
 };
 
 Move randomMove(AnnotatedNetwork &ann_network, MoveType type);
+Move getRandomMove(AnnotatedNetwork& ann_network, std::vector<MoveType> typesBySpeed, int min_radius, int max_radius);
 void performMove(AnnotatedNetwork &ann_network, Move &move);
 void undoMove(AnnotatedNetwork &ann_network, Move &move);
 std::string toString(const Move &move);
@@ -156,7 +157,6 @@ std::vector<Move> possibleMoves(
     int max_radius = std::numeric_limits<int>::max());
 std::vector<Move> possibleMoves(
     AnnotatedNetwork &ann_network, std::vector<MoveType> types,
-    bool rspr1_present = false, bool delta_plus_present = false,
     int min_radius = 0, int max_radius = std::numeric_limits<int>::max());
 
 void removeBadCandidates(AnnotatedNetwork &ann_network,
