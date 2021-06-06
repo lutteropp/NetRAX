@@ -71,13 +71,9 @@ bool hasPromisingStates(PromisingStateQueue& psq) {
 }
 
 PromisingState getPromisingState(PromisingStateQueue& psq) {
-  std::sort(psq.promising_states.begin(), psq.promising_states.end(),
-            [](const PromisingState& p1, const PromisingState& p2) {
-              return p1.target_bic > p2.target_bic;
-            });
   if (!psq.promising_states.empty()) {
-    PromisingState res = std::move(psq.promising_states.back());
-    psq.promising_states.pop_back();
+    PromisingState res = std::move(psq.promising_states.front());
+    psq.promising_states.pop_front();
     return res;
   }
   throw std::runtime_error("Promising state queue is empty");
