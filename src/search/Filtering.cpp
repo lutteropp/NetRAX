@@ -184,8 +184,8 @@ void optimizeAfterMove(AnnotatedNetwork &ann_network, Move &move,
     updateMoveBranchLengths(ann_network, move);
   }
   double end_score = scoreNetwork(ann_network);
-  if (start_score > end_score) {
-    throw std::runtime_error("start_score > end_score");
+  if (start_score < end_score) {
+    throw std::runtime_error("start_score < end_score");
   }
 }
 
