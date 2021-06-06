@@ -188,6 +188,7 @@ double filterCandidates(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
                         double old_bic, bool enforce, bool extreme_greedy,
                         bool keep_all_better, bool silent,
                         bool print_progress) {
+  assert(scoreNetwork(ann_network) == old_bic);
   if (candidates.empty()) {
     return scoreNetwork(ann_network);
   }
