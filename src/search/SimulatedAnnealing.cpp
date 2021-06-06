@@ -86,7 +86,6 @@ bool simanneal_step(AnnotatedNetwork &ann_network,
       return true;
     }
     apply_network_state(ann_network, oldState);
-    assert(checkSanity(ann_network, neighbors[i]));
   }
 
   return false;

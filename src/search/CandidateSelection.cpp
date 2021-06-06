@@ -200,7 +200,7 @@ void updateCandidateMoves(AnnotatedNetwork &ann_network,
               << " candidates before removing the old bad ones.\n";
   }
   updateOldCandidates(ann_network, chosenMove, candidates);
-  if (takenRemovals.empty() && chosenMove.moveType == MoveType::RNNIMove) {
+  if (takenRemovals.empty()) {
     std::vector<Node *> start_nodes = gatherStartNodes(ann_network, chosenMove);
     std::vector<Move> moreMoves =
         possibleMoves(ann_network, chosenMove.moveType, start_nodes,
@@ -265,6 +265,7 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
   bool got_better = true;
   while (got_better) {
     got_better = false;
+    oldCandidates = candidates;
     Move chosenMove = applyBestCandidate(
         ann_network, psq, candidates, best_score, bestNetworkData, false,
         ann_network.options.extreme_greedy, silent, print_progress);
@@ -299,7 +300,7 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
 
       updateCandidateMoves(ann_network, typesBySpeed, best_max_distance,
                            chosenMove, takenRemovals, candidates);
-      if (candidates.empty() && isArcRemoval(type)) {
+      if (candidates.empty()) {
         // no old candidates to reuse. Thus,
         // completely gather new ones.
         if (ParallelContext::master_rank() &&
@@ -316,7 +317,7 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
                           false, silent, print_progress);
     } else {
       // score did not get better
-      if (!tried_with_allnew && !acceptedMoves.empty() && isArcRemoval(type)) {
+      if (!tried_with_allnew && !acceptedMoves.empty()) {
         tried_with_allnew = true;
         if (ParallelContext::master_rank() &&
             ParallelContext::master_thread()) {
@@ -324,6 +325,14 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
         }
         candidates = getPossibleMoves(ann_network, typesBySpeed, type, 0,
                                       best_max_distance);
+        candidates.erase(
+            std::remove_if(candidates.begin(), candidates.end(),
+                           [&oldCandidates](const Move &move) {
+                             return std::find(oldCandidates.begin(),
+                                              oldCandidates.end(),
+                                              move) != oldCandidates.end();
+                           }),
+            candidates.end());
         oldCandidates.clear();
         got_better = true;
       }
