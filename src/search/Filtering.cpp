@@ -189,6 +189,9 @@ double filterCandidates(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
                         bool keep_all_better, bool silent,
                         bool print_progress) {
   assert(scoreNetwork(ann_network) == old_bic);
+  if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+    std::cout << "old_bic: " << old_bic << "\n";
+  }
   if (candidates.empty()) {
     return scoreNetwork(ann_network);
   }
@@ -267,14 +270,8 @@ double filterCandidates(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
       }
       std::cout << candidates.size() << " vs. " << oldCandidatesSize << "\n";
     }
-    if (best_bic >= old_bic && filterType == FilterType::PREFILTER) {
-      if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-        std::cout << "None of the prefiltered candidates improved BIC.\n";
-      }
-    } else {
-      if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-        std::cout << n_better << " filtered candidates improved BIC.\n";
-      }
+    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+      std::cout << n_better << " filtered candidates improved BIC.\n";
     }
   }
   for (size_t i = 0; i < candidates.size(); ++i) {
