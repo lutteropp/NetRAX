@@ -14,6 +14,7 @@ struct PromisingStateQueue;
 double prefilterCandidates(AnnotatedNetwork &ann_network,
                            PromisingStateQueue &psq,
                            const NetworkState &oldState,
+                           double old_bic,
                            NetworkState &bestState,
                            std::vector<Move> &candidates, bool extreme_greedy,
                            bool silent, bool print_progress);

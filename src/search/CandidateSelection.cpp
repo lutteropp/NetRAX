@@ -44,7 +44,8 @@ double best_fast_improvement(AnnotatedNetwork &ann_network,
                              bool print_progress) {
   std::vector<Move> candidates =
       getPossibleMoves(ann_network, typesBySpeed, type, min_radius, max_radius);
-  return prefilterCandidates(ann_network, psq, oldState, bestState, candidates,
+  return prefilterCandidates(ann_network, psq, oldState,
+                             scoreNetwork(ann_network), bestState, candidates,
                              true, true, print_progress);
 }
 
@@ -252,8 +253,8 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
 
   std::vector<Move> candidates =
       getPossibleMoves(ann_network, typesBySpeed, type, 0, best_max_distance);
-  prefilterCandidates(ann_network, psq, oldState, bestState, candidates, false,
-                      silent, print_progress);
+  prefilterCandidates(ann_network, psq, oldState, scoreNetwork(ann_network),
+                      bestState, candidates, false, silent, print_progress);
 
   bool old_no_prefiltering = ann_network.options.no_prefiltering;
   ann_network.options.no_prefiltering = true;
@@ -313,8 +314,8 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
                                       best_max_distance);
         oldCandidates.clear();
       }
-      prefilterCandidates(ann_network, psq, oldState, bestState, candidates,
-                          false, silent, print_progress);
+      prefilterCandidates(ann_network, psq, oldState, scoreNetwork(ann_network),
+                          bestState, candidates, false, silent, print_progress);
     } else {
       // score did not get better
       if (!tried_with_allnew && !acceptedMoves.empty()) {

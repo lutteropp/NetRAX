@@ -185,19 +185,19 @@ void optimizeAfterMove(AnnotatedNetwork &ann_network, Move &move,
 double filterCandidates(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
                         const NetworkState &oldState, NetworkState &bestState,
                         std::vector<Move> &candidates, FilterType filterType,
-                        bool enforce, bool extreme_greedy, bool keep_all_better,
-                        bool silent, bool print_progress) {
+                        double old_bic, bool enforce, bool extreme_greedy,
+                        bool keep_all_better, bool silent,
+                        bool print_progress) {
   if (candidates.empty()) {
     return scoreNetwork(ann_network);
   }
   if (ann_network.options.randomize_candidates) {
-      std::shuffle(candidates.begin(), candidates.end(), ann_network.rng);
+    std::shuffle(candidates.begin(), candidates.end(), ann_network.rng);
   }
 
   assert(!(extreme_greedy && enforce));
   int n_better = 0;
   int barWidth = 70;
-  double old_bic = scoreNetwork(ann_network);
   double best_bic = old_bic;
   if (enforce) {
     best_bic = std::numeric_limits<double>::infinity();
@@ -284,14 +284,13 @@ double filterCandidates(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
 
 double prefilterCandidates(AnnotatedNetwork &ann_network,
                            PromisingStateQueue &psq,
-                           const NetworkState &oldState,
+                           const NetworkState &oldState, double old_bic,
                            NetworkState &bestState,
                            std::vector<Move> &candidates, bool extreme_greedy,
                            bool silent, bool print_progress) {
-  double old_bic = scoreNetwork(ann_network);
   double best_bic = filterCandidates(
       ann_network, psq, oldState, bestState, candidates, FilterType::PREFILTER,
-      false, extreme_greedy, true, silent, print_progress);
+      old_bic, false, extreme_greedy, true, silent, print_progress);
   if ((best_bic >= old_bic) && ann_network.options.prefilter_greedy) {
     candidates.clear();
   }
@@ -299,31 +298,32 @@ double prefilterCandidates(AnnotatedNetwork &ann_network,
 }  // namespace netrax
 
 double rankCandidates(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
-                      const NetworkState &oldState, NetworkState &bestState,
-                      std::vector<Move> &candidates, bool enforce,
-                      bool extreme_greedy, bool silent, bool print_progress) {
+                      const NetworkState &oldState, double old_bic,
+                      NetworkState &bestState, std::vector<Move> &candidates,
+                      bool enforce, bool extreme_greedy, bool silent,
+                      bool print_progress) {
   if (!ann_network.options.no_prefiltering) {
-    prefilterCandidates(ann_network, psq, oldState, bestState, candidates,
-                        extreme_greedy, silent, print_progress);
+    prefilterCandidates(ann_network, psq, oldState, old_bic, bestState,
+                        candidates, extreme_greedy, silent, print_progress);
   }
   return filterCandidates(ann_network, psq, oldState, bestState, candidates,
-                          FilterType::RANK, enforce, extreme_greedy, false,
-                          silent, print_progress);
+                          FilterType::RANK, old_bic, enforce, extreme_greedy,
+                          false, silent, print_progress);
 }
 
 double chooseCandidate(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
-                       const NetworkState &oldState, NetworkState &bestState,
-                       std::vector<Move> &candidates, bool enforce,
-                       bool extreme_greedy, bool silent, bool print_progress) {
-  double old_bic = scoreNetwork(ann_network);
+                       const NetworkState &oldState, double old_bic,
+                       NetworkState &bestState, std::vector<Move> &candidates,
+                       bool enforce, bool extreme_greedy, bool silent,
+                       bool print_progress) {
   if (candidates.empty()) {
     return old_bic;
   }
-  rankCandidates(ann_network, psq, oldState, bestState, candidates, enforce,
-                 extreme_greedy, silent, print_progress);
+  rankCandidates(ann_network, psq, oldState, old_bic, bestState, candidates,
+                 enforce, extreme_greedy, silent, print_progress);
   double best_bic = filterCandidates(
       ann_network, psq, oldState, bestState, candidates, FilterType::CHOOSE,
-      enforce, extreme_greedy, false, silent, print_progress);
+      old_bic, enforce, extreme_greedy, false, silent, print_progress);
   if (best_bic >= old_bic && !enforce) {
     candidates.clear();
   }
@@ -404,8 +404,8 @@ Move applyBestCandidate(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
 
   NetworkState oldState = extract_network_state(ann_network);
   NetworkState bestState = extract_network_state(ann_network);
-  chooseCandidate(ann_network, psq, oldState, bestState, candidates, enforce,
-                  extreme_greedy, silent, print_progress);
+  chooseCandidate(ann_network, psq, oldState, old_score, bestState, candidates,
+                  enforce, extreme_greedy, silent, print_progress);
   assert(scoreNetwork(ann_network) == old_score);
 
   if (!candidates.empty()) {
