@@ -18,7 +18,7 @@ namespace netrax {
 double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental,
                             int update_pmatrices) {
   // just for debug
-  incremental = 0;
+  // incremental = 0;
   // update_pmatrices = 1;
   if (ann_network.options.likelihood_variant ==
       LikelihoodVariant::SARAH_PSEUDO) {
