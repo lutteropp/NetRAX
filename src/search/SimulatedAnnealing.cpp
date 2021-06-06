@@ -75,7 +75,7 @@ bool simanneal_step(AnnotatedNetwork &ann_network,
     double x = std::uniform_real_distribution<double>(0, 1)(ann_network.rng);
     if (x <= acceptance_ratio) {
       if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-        if (!silent) std::cout << " Took " << toString(move.moveType) << "\n";
+        std::cout << YELLOW << " Took " << toString(move.moveType) << "\n" << RESET;
         if (!silent)
           std::cout << "  Logl: " << computeLoglikelihood(ann_network)
                     << ", BIC: " << scoreNetwork(ann_network) << "\n";

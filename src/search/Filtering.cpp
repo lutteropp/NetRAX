@@ -234,7 +234,7 @@ double filterCandidates(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
     undoMove(ann_network, move);
     assert(checkSanity(ann_network, candidates[i]));
     apply_network_state(ann_network, oldState);
-    if (bicScore < old_bic) {
+    if ((bicScore < old_bic) && (filterType == FilterType::CHOOSE)) {
       // Here, we need to add the promising candidate to the promising state
       // queue
       addPromisingState(ann_network, candidates[i], bicScore, psq);
