@@ -195,12 +195,13 @@ double filterCandidates(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
                         double old_bic, bool enforce, bool extreme_greedy,
                         bool keep_all_better, bool silent,
                         bool print_progress) {
-  assert(scoreNetwork(ann_network) == old_bic);
+  assert(fabs(scoreNetwork(ann_network) - old_bic) <= 1E-3);
   if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
     std::cout << "old_bic: " << old_bic << "\n";
     std::cout << "scoreNetwork: " << scoreNetwork(ann_network) << "\n";
+    std::cout << "scoreNetwork again: " << scoreNetwork(ann_network) << "\n";
   }
-  if (scoreNetwork(ann_network) != old_bic) {
+  if (fabs(scoreNetwork(ann_network) - old_bic) > 1E-3) {
     throw std::runtime_error("something is wrong with the old network score");
   }
   if (candidates.empty()) {

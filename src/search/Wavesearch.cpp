@@ -102,6 +102,18 @@ void wavesearch_internal_loop(
   bool withInsertions = true;
   size_t old_moves_taken = ann_network.stats.totalMovesTaken();
 
+  double s1 = scoreNetwork(ann_network);
+  double s2 = scoreNetwork(ann_network);
+  if (s1 != s2) {
+    throw std::runtime_error("network scoring is still wrong: " + std::to_string(s1) + " vs. " + std::to_string(s2));
+  }
+
+  double lh1 = computeLoglikelihood(ann_network, 1, 1);
+  double lh2 = computeLoglikelihood(ann_network, 0, 1);
+  if (lh1 != lh2) {
+    throw std::runtime_error("incremental loglh is still wrong: " + std::to_string(lh1) + " vs. " + std::to_string(lh2));
+  }
+
   while (got_better) {
     got_better = false;
     check_score_improvement(ann_network, best_score, bestNetworkData);
