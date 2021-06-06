@@ -156,7 +156,7 @@ enum class FilterType { PREFILTER = 0, RANK = 1, CHOOSE = 2 };
 
 void optimizeAfterMove(AnnotatedNetwork &ann_network, Move &move,
                        FilterType filterType) {
-  if (filterType == FilterType::PREFILTER) {
+  if (filterType == FilterType::PREFILTER || filterType == FilterType::RANK || filterType == FilterType::CHOOSE) {
     if (isArcInsertion(move.moveType)) {
       std::unordered_set<size_t> brlenopt_candidates;
       brlenopt_candidates.emplace(
@@ -168,14 +168,16 @@ void optimizeAfterMove(AnnotatedNetwork &ann_network, Move &move,
                             ann_network.network.num_reticulations() - 1);
       updateMoveBranchLengths(ann_network, move);
     }
-  } else if (filterType == FilterType::RANK) {
+  }
+  if (filterType == FilterType::RANK || filterType == FilterType::CHOOSE) {
     std::unordered_set<size_t> brlen_opt_candidates =
         brlenOptCandidates(ann_network, move);
     assert(!brlen_opt_candidates.empty());
     optimizeBranchesCandidates(ann_network, brlen_opt_candidates);
     optimizeReticulationProbs(ann_network);
     updateMoveBranchLengths(ann_network, move);
-  } else if (filterType == FilterType::CHOOSE) {
+  } 
+  if (filterType == FilterType::CHOOSE) {
     optimizeBranches(ann_network);
     optimizeReticulationProbs(ann_network);
     updateMoveBranchLengths(ann_network, move);
