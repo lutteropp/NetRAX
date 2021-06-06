@@ -312,13 +312,18 @@ double rankCandidates(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
                       NetworkState &bestState, std::vector<Move> &candidates,
                       bool enforce, bool extreme_greedy, bool silent,
                       bool print_progress) {
+  double best_bic_prefilter = scoreNetwork(ann_network);
   if (!ann_network.options.no_prefiltering) {
-    prefilterCandidates(ann_network, psq, oldState, old_bic, bestState,
+    best_bic_prefilter = prefilterCandidates(ann_network, psq, oldState, old_bic, bestState,
                         candidates, extreme_greedy, silent, print_progress);
   }
-  return filterCandidates(ann_network, psq, oldState, bestState, candidates,
+  double best_bic_rank = filterCandidates(ann_network, psq, oldState, bestState, candidates,
                           FilterType::RANK, old_bic, enforce, extreme_greedy,
                           false, silent, print_progress);
+  if (best_bic_rank > best_bic_prefilter) {
+    throw std::runtime_error("best_bic_rank > best_bic_prefilter");
+  }
+  return best_bic_rank;
 }
 
 double chooseCandidate(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
@@ -329,15 +334,18 @@ double chooseCandidate(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
   if (candidates.empty()) {
     return old_bic;
   }
-  rankCandidates(ann_network, psq, oldState, old_bic, bestState, candidates,
+  double best_bic_rank = rankCandidates(ann_network, psq, oldState, old_bic, bestState, candidates,
                  enforce, extreme_greedy, silent, print_progress);
-  double best_bic = filterCandidates(
+  double best_bic_choose = filterCandidates(
       ann_network, psq, oldState, bestState, candidates, FilterType::CHOOSE,
       old_bic, enforce, extreme_greedy, false, silent, print_progress);
-  if (best_bic >= old_bic && !enforce) {
+  if (best_bic_choose > best_bic_rank) {
+    throw std::runtime_error("best_bic_choose > best_bic_rank");
+  }
+  if (best_bic_choose >= old_bic && !enforce) {
     candidates.clear();
   }
-  return best_bic;
+  return best_bic_choose;
 }
 
 double acceptMove(AnnotatedNetwork &ann_network, Move &move,
