@@ -352,6 +352,11 @@ double chooseCandidate(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
   }
   double best_bic_rank = rankCandidates(ann_network, psq, oldState, old_bic, bestState, candidates,
                  enforce, extreme_greedy, silent, print_progress);
+
+  if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+    std::cout << "first candidate evaluated in choosing phase is: " << toString(candidates[0]) << "\n";
+  }
+
   double best_bic_choose = filterCandidates(
       ann_network, psq, oldState, bestState, candidates, FilterType::CHOOSE,
       old_bic, enforce, extreme_greedy, false, silent, print_progress);
