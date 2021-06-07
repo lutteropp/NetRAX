@@ -172,6 +172,9 @@ void optimizeAfterMove(AnnotatedNetwork &ann_network, Move &move,
                             ann_network.network.num_reticulations() - 1);
       updateMoveBranchLengths(ann_network, move);
     }
+    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+      std::cout << "score after prefiltering opt for candidate " << toString(move) << ": " << scoreNetwork(ann_network) << "\n"; 
+    }
   }
   if (filterType == FilterType::RANK || filterType == FilterType::CHOOSE) {
     std::unordered_set<size_t> brlen_opt_candidates =
@@ -180,11 +183,17 @@ void optimizeAfterMove(AnnotatedNetwork &ann_network, Move &move,
     optimizeBranchesCandidates(ann_network, brlen_opt_candidates);
     optimizeReticulationProbs(ann_network);
     updateMoveBranchLengths(ann_network, move);
+    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+      std::cout << "score after ranking opt for candidate " << toString(move) << ": " << scoreNetwork(ann_network) << "\n"; 
+    }
   } 
   if (filterType == FilterType::CHOOSE) {
     optimizeBranches(ann_network);
     optimizeReticulationProbs(ann_network);
     updateMoveBranchLengths(ann_network, move);
+    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+      std::cout << "score after choosing opt for candidate " << toString(move) << ": " << scoreNetwork(ann_network) << "\n"; 
+    }
   }
   double end_score = scoreNetwork(ann_network);
   if (start_score < end_score) {
