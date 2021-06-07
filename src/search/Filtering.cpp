@@ -439,11 +439,11 @@ Move applyBestCandidate(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
 
   NetworkState oldState = extract_network_state(ann_network);
   NetworkState bestState = extract_network_state(ann_network);
-  chooseCandidate(ann_network, psq, oldState, old_score, bestState, candidates,
+  double target_score = chooseCandidate(ann_network, psq, oldState, old_score, bestState, candidates,
                   enforce, extreme_greedy, best_bic_prefilter, silent, print_progress);
   assert(scoreNetwork(ann_network) == old_score);
 
-  if (!candidates.empty()) {
+  if (!candidates.empty() && (old_score - target_score >= 1E-3)) {
     acceptMove(ann_network, candidates[0], &bestState, best_score,
                bestNetworkData, true);
     deleteMoveFromPSQ(ann_network, psq, candidates[0]);
