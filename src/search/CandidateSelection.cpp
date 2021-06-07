@@ -297,22 +297,23 @@ double prefilterCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& can
     return best_real_bic;
 }
 
-void rankCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& candidates, bool silent = true, bool print_progress = true) {
+double rankCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& candidates, bool silent = true, bool print_progress = true) {
+    double best_bic = std::numeric_limits<double>::infinity();
+    double prefilter_bic = scoreNetwork(ann_network);
     if (candidates.empty()) {
-        return;
+        return best_bic;
     }
     if (!ann_network.options.no_prefiltering) {
-        prefilterCandidates(ann_network, candidates, silent, print_progress);
+        prefilter_bic = prefilterCandidates(ann_network, candidates, silent, print_progress);
     }
 
     if (ann_network.options.rank_keep >= candidates.size()) {
-        return; // we would keep all anyway...
+        return prefilter_bic; // we would keep all anyway...
     }
 
     int n_better = 0;
     int barWidth = 70;
     double old_bic = scoreNetwork(ann_network);
-    double best_bic = std::numeric_limits<double>::infinity();
     NetworkState oldState = extract_network_state(ann_network);
     std::vector<ScoreItem<Move> > scores(candidates.size());
 
@@ -366,7 +367,7 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& candidates
             if (print_progress && ParallelContext::master_rank() && ParallelContext::master_thread()) {
                 std::cout << std::endl;
             }
-            return;
+            return best_bic;
         }
 
         //assert(computeLoglikelihood(ann_network, 1, 1) == computeLoglikelihood(ann_network, 0, 1));
@@ -399,6 +400,12 @@ void rankCandidates(AnnotatedNetwork& ann_network, std::vector<Move>& candidates
     for (size_t i = 0; i < candidates.size(); ++i) {
         assert(checkSanity(ann_network, candidates[i]));
     }
+
+    if (best_bic > prefilter_bic) {
+        throw std::runtime_error("best_bic > prefilter_bic");
+    }
+
+    return best_bic;
 }
 
 double chooseCandidate(AnnotatedNetwork& ann_network, std::vector<Move>& candidates, NetworkState* state, bool enforce, bool silent = true, bool print_progress = true) {
@@ -411,7 +418,7 @@ double chooseCandidate(AnnotatedNetwork& ann_network, std::vector<Move>& candida
     if (candidates.empty()) {
         return best_bic;
     }
-    rankCandidates(ann_network, candidates, silent, print_progress);
+    double rank_bic = rankCandidates(ann_network, candidates, silent, print_progress);
 
     int n_better = 0;
     int barWidth = 70;
@@ -485,6 +492,10 @@ double chooseCandidate(AnnotatedNetwork& ann_network, std::vector<Move>& candida
     apply_network_state(ann_network, oldState);
     assert(scoreNetwork(ann_network) == old_bic);
     filterCandidatesByScore(candidates, scores, old_bic, candidates.size(), false, false, silent);
+
+    if (best_bic > rank_bic) {
+        throw std::runtime_error("choose_bic > rank_bic");
+    }
 
     return best_bic;
 }
