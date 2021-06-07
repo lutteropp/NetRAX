@@ -5,8 +5,8 @@
 #include "../optimization/NetworkState.hpp"
 
 #include <limits>
-#include <unordered_set>
 #include <vector>
+#include <deque>
 
 namespace netrax {
 
@@ -28,7 +28,7 @@ class PromisingStateComparator {
 };
 
 struct PromisingStateQueue {
-  std::vector<PromisingState> promising_states;
+  std::deque<PromisingState> promising_states;
 };
 
 bool addPromisingState(AnnotatedNetwork& ann_network, Move move,

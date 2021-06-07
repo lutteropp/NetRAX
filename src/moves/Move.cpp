@@ -325,14 +325,28 @@ std::vector<Move> possibleMoves(AnnotatedNetwork &ann_network,
 }
 
 std::vector<Move> possibleMoves(AnnotatedNetwork &ann_network,
-                                std::vector<MoveType> types) {
+                                std::vector<MoveType> types, int min_radius,
+                                int max_radius) {
   std::vector<Move> res;
+  bool rspr1Present = (std::find(types.begin(), types.end(),
+                                 MoveType::RSPR1Move) != types.end());
+  bool deltaPlusPresent = (std::find(types.begin(), types.end(),
+                                     MoveType::DeltaPlusMove) != types.end());
   std::vector<Move> moreMoves;
   for (MoveType type : types) {
-    moreMoves = possibleMoves(ann_network, type);
+    moreMoves = possibleMoves(ann_network, type, rspr1Present, deltaPlusPresent,
+                              min_radius, max_radius);
     res.insert(std::end(res), std::begin(moreMoves), std::end(moreMoves));
   }
   return res;
+}
+
+Move getRandomMove(AnnotatedNetwork &ann_network,
+                   std::vector<MoveType> typesBySpeed, int min_radius,
+                   int max_radius) {
+  std::vector<Move> allMoves =
+      possibleMoves(ann_network, typesBySpeed, min_radius, max_radius);
+  return allMoves[getRandomIndex(ann_network.rng, allMoves.size())];
 }
 
 void updateMoveBranchLengths(AnnotatedNetwork &ann_network,

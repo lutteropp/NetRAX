@@ -199,7 +199,8 @@ bool allClvsValid(AnnotatedNetwork &ann_network, size_t clv_index) {
       }
     }
   }
-  if (ann_network.pernode_displayed_tree_data[clv_index].num_active_displayed_trees == 0) {
+  if (ann_network.pernode_displayed_tree_data[clv_index]
+          .num_active_displayed_trees == 0) {
     return false;
   }
   for (size_t i = 0; i < ann_network.pernode_displayed_tree_data[clv_index]
@@ -282,6 +283,13 @@ void invalidateTreeLogprobs(AnnotatedNetwork &ann_network,
         dtd.treeLoglData.tree_logprob_valid = true;
       }
     }
+  }
+
+  if (ann_network.options.likelihood_variant ==
+      LikelihoodVariant::SARAH_PSEUDO) {
+    invalidateHigherCLVs(
+        ann_network, ann_network.network.reticulation_nodes[reticulation_idx],
+        false);
   }
 }
 

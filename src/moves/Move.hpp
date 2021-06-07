@@ -30,6 +30,53 @@ namespace netrax {
 // The moves correspond to the moves from this paper:
 // https://doi.org/10.1371/journal.pcbi.1005611
 
+struct MoveDebugInfo {
+  double prefilter_bic = std::numeric_limits<double>::infinity();
+  double rank_bic = std::numeric_limits<double>::infinity();
+  double choose_bic = std::numeric_limits<double>::infinity();
+  MoveDebugInfo() = default;
+
+  MoveDebugInfo(MoveDebugInfo &&rhs)
+      : prefilter_bic{rhs.prefilter_bic},
+        rank_bic{rhs.rank_bic},
+        choose_bic{rhs.choose_bic} {}
+
+  MoveDebugInfo(const MoveDebugInfo &rhs)
+      : prefilter_bic{rhs.prefilter_bic},
+        rank_bic{rhs.rank_bic},
+        choose_bic{rhs.choose_bic} {}
+
+  MoveDebugInfo &operator=(MoveDebugInfo &&rhs) {
+    if (this != &rhs) {
+      prefilter_bic = rhs.prefilter_bic;
+      rank_bic = rhs.rank_bic;
+      choose_bic = rhs.choose_bic;
+    }
+    return *this;
+  }
+
+  MoveDebugInfo &operator=(const MoveDebugInfo &rhs) {
+    if (this != &rhs) {
+      prefilter_bic = rhs.prefilter_bic;
+      rank_bic = rhs.rank_bic;
+      choose_bic = rhs.choose_bic;
+    }
+    return *this;
+  }
+
+  bool operator==(const MoveDebugInfo &rhs) const {
+    return ((this->prefilter_bic == rhs.prefilter_bic) &&
+            (this->rank_bic == rhs.rank_bic) &&
+            (this->choose_bic == rhs.choose_bic));
+  }
+};
+
+inline std::ostream& operator<<(std::ostream& os, const MoveDebugInfo& dt)
+{
+    os << dt.prefilter_bic << '/' << dt.rank_bic << '/' << dt.choose_bic;
+    return os;
+};
+
 struct Move {
   Move(MoveType type, size_t edge_orig_idx, size_t node_orig_idx)
       : moveType(type),
@@ -47,6 +94,7 @@ struct Move {
   RSPRData rsprData;
   ArcInsertionData arcInsertionData;
   ArcRemovalData arcRemovalData;
+  MoveDebugInfo moveDebugInfo;
 
   Move() = default;
 
@@ -60,7 +108,8 @@ struct Move {
         rnniData{rhs.rnniData},
         rsprData{rhs.rsprData},
         arcInsertionData{rhs.arcInsertionData},
-        arcRemovalData{rhs.arcRemovalData} {}
+        arcRemovalData{rhs.arcRemovalData},
+        moveDebugInfo{rhs.moveDebugInfo} {}
 
   Move(const Move &rhs)
       : moveType{rhs.moveType},
@@ -72,7 +121,8 @@ struct Move {
         rnniData{rhs.rnniData},
         rsprData{rhs.rsprData},
         arcInsertionData{rhs.arcInsertionData},
-        arcRemovalData{rhs.arcRemovalData} {}
+        arcRemovalData{rhs.arcRemovalData},
+        moveDebugInfo{rhs.moveDebugInfo} {}
 
   Move &operator=(Move &&rhs) {
     if (this != &rhs) {
@@ -86,6 +136,7 @@ struct Move {
       rsprData = rhs.rsprData;
       arcInsertionData = rhs.arcInsertionData;
       arcRemovalData = rhs.arcRemovalData;
+      moveDebugInfo = rhs.moveDebugInfo;
     }
     return *this;
   }
@@ -102,6 +153,7 @@ struct Move {
       rsprData = rhs.rsprData;
       arcInsertionData = rhs.arcInsertionData;
       arcRemovalData = rhs.arcRemovalData;
+      moveDebugInfo = rhs.moveDebugInfo;
     }
     return *this;
   }
@@ -122,6 +174,9 @@ struct Move {
 };
 
 Move randomMove(AnnotatedNetwork &ann_network, MoveType type);
+Move getRandomMove(AnnotatedNetwork &ann_network,
+                   std::vector<MoveType> typesBySpeed, int min_radius,
+                   int max_radius);
 void performMove(AnnotatedNetwork &ann_network, Move &move);
 void undoMove(AnnotatedNetwork &ann_network, Move &move);
 std::string toString(const Move &move);
@@ -156,7 +211,6 @@ std::vector<Move> possibleMoves(
     int max_radius = std::numeric_limits<int>::max());
 std::vector<Move> possibleMoves(
     AnnotatedNetwork &ann_network, std::vector<MoveType> types,
-    bool rspr1_present = false, bool delta_plus_present = false,
     int min_radius = 0, int max_radius = std::numeric_limits<int>::max());
 
 void removeBadCandidates(AnnotatedNetwork &ann_network,

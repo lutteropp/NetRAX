@@ -178,6 +178,8 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
                  "Number of times to retry taking different search paths in "
                  "the promising states (default: 0).");
 
+  app.add_flag("--randomize_candidates", options->randomize_candidates, "Randomize move candidates.");
+
   // app.add_flag("--extreme_greedy_prefiltering",
   // options->extreme_greedy_prefiltering, "Enable extreme greedy prefiltering
   // mode.");
@@ -244,7 +246,6 @@ std::vector<MoveType> getTypesBySpeedGoodStart(const NetraxOptions &options) {
   // MoveType::ArcRemovalMove, MoveType::DeltaPlusMove,
   // MoveType::ArcInsertionMove};
   std::vector<MoveType> typesBySpeed;
-  typesBySpeed.emplace_back(MoveType::ArcRemovalMove);
   if (!options.no_arc_insertion_moves) {
     typesBySpeed.emplace_back(MoveType::ArcInsertionMove);
   } else {
@@ -256,6 +257,7 @@ std::vector<MoveType> getTypesBySpeedGoodStart(const NetraxOptions &options) {
   if (!options.no_rnni_moves) {
     typesBySpeed.emplace_back(MoveType::RNNIMove);
   }
+  typesBySpeed.emplace_back(MoveType::ArcRemovalMove);
   return typesBySpeed;
 }
 

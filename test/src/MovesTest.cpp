@@ -11,6 +11,9 @@
 #include "src/likelihood/LikelihoodComputation.hpp"
 #include "src/moves/Move.hpp"
 
+#include "src/likelihood/ComplexityScoring.hpp"
+#include "src/search/Filtering.hpp"
+
 #include "src/helper/NetworkFunctions.hpp"
 
 #include "src/graph/NodeDisplayedTreeData.hpp"
@@ -227,6 +230,73 @@ void randomMovesStep(AnnotatedNetwork &ann_network,
   }
 }
 
+void checkMove(AnnotatedNetwork &ann_network, Move move) {
+  //std::cout << "The move: " << toString(move) << "\n";
+  //std::cout << "Initial network:\n";
+  //std::cout << exportDebugInfo(ann_network) << "\n\n";
+
+  Move move1(move);
+  Move move2(move);
+
+  NetworkState stateBefore = extract_network_state(ann_network);
+  double score_before = scoreNetwork(ann_network);
+  ASSERT_DOUBLE_EQ(computeLoglikelihood(ann_network, 1, 1), computeLoglikelihood(ann_network, 0, 1));
+  performMove(ann_network, move1);
+  //std::cout << "Network after perform move:\n";
+  //std::cout << exportDebugInfo(ann_network) << "\n\n";
+  double score_after_perform = scoreNetwork(ann_network);
+  optimizeAfterMovePrefilter(ann_network, move1);
+  double score_after_perform_optimize = scoreNetwork(ann_network);
+  undoMove(ann_network, move1);
+  //std::cout << "Network after undo move:\n";
+  //std::cout << exportDebugInfo(ann_network) << "\n\n";
+  double score_after_undo = scoreNetwork(ann_network);
+  apply_network_state(ann_network, stateBefore);
+  ASSERT_DOUBLE_EQ(computeLoglikelihood(ann_network, 1, 1), computeLoglikelihood(ann_network, 0, 1));
+  ASSERT_DOUBLE_EQ(score_before, scoreNetwork(ann_network));
+
+
+  performMove(ann_network, move2);
+  //std::cout << "Network after perform move 2:\n";
+  //std::cout << exportDebugInfo(ann_network) << "\n\n";
+  ASSERT_DOUBLE_EQ(computeLoglikelihood(ann_network, 1, 1), computeLoglikelihood(ann_network, 0, 1));
+  ASSERT_DOUBLE_EQ(score_after_perform, scoreNetwork(ann_network));
+  optimizeAfterMovePrefilter(ann_network, move2);
+  ASSERT_DOUBLE_EQ(computeLoglikelihood(ann_network, 1, 1), computeLoglikelihood(ann_network, 0, 1));
+  ASSERT_DOUBLE_EQ(score_after_perform_optimize, scoreNetwork(ann_network));
+  undoMove(ann_network, move2);
+  //std::cout << "Network after undo move 2:\n";
+  //std::cout << exportDebugInfo(ann_network) << "\n";
+  ASSERT_DOUBLE_EQ(computeLoglikelihood(ann_network, 1, 1), computeLoglikelihood(ann_network, 0, 1));
+  ASSERT_DOUBLE_EQ(score_after_undo, scoreNetwork(ann_network));
+  apply_network_state(ann_network, stateBefore);
+  ASSERT_DOUBLE_EQ(computeLoglikelihood(ann_network, 1, 1), computeLoglikelihood(ann_network, 0, 1));
+  ASSERT_DOUBLE_EQ(score_before, scoreNetwork(ann_network));
+}
+
+void checkMoves(const std::string &networkPath, const std::string &msaPath,
+                bool useRepeats, MoveType type) {
+  NetraxOptions options;
+  options.run_single_threaded = true;
+  options.start_network_file = networkPath;
+  options.msa_file = msaPath;
+  options.use_repeats = useRepeats;
+  const RaxmlInstance instance = createRaxmlInstance(options);
+  AnnotatedNetwork ann_network = build_annotated_network(options, instance);
+  init_annotated_network(ann_network);
+
+  std::vector<Move> candidates = possibleMoves(ann_network, type);
+
+  size_t max_candidates = candidates.size();  // 200;
+
+  std::random_shuffle(candidates.begin(), candidates.end());
+  candidates.resize(std::min(candidates.size(), max_candidates));
+
+  for (size_t i = 0; i < candidates.size(); ++i) {
+    checkMove(ann_network, candidates[i]);
+  }
+}
+
 void randomMoves(const std::string &networkPath, const std::string &msaPath,
                  bool useRepeats, MoveType type) {
   NetraxOptions options;
@@ -362,6 +432,13 @@ TEST(MovesTest, arcInsertion) {
   randomMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt",
               false, MoveType::ArcInsertionMove);
   randomMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt",
+              false, MoveType::ArcInsertionMove);
+}
+
+TEST(MovesTest, checkMovesArcInsertion) {
+  checkMoves(DATA_PATH + "small.nw", DATA_PATH + "small_fake_alignment.txt",
+              false, MoveType::ArcInsertionMove);
+  checkMoves(DATA_PATH + "celine.nw", DATA_PATH + "celine_fake_alignment.txt",
               false, MoveType::ArcInsertionMove);
 }
 

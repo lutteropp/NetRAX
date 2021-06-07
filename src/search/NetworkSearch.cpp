@@ -14,6 +14,7 @@
 
 #include "SimulatedAnnealing.hpp"
 #include "Wavesearch.hpp"
+#include "../colormod.h"
 
 #include "../NetworkDistances.hpp"
 #include "../graph/NodeDisplayedTreeData.hpp"
@@ -221,9 +222,9 @@ void run_random(NetraxOptions &netraxOptions, const RaxmlInstance &instance,
       n_iterations++;
       int seed = dist(rng);
       if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-        std::cout << "Starting with new random network " << n_iterations
+        std::cout << BOLDWHITE << "Starting with new random network " << n_iterations
                   << " with " << start_reticulations
-                  << " reticulations, tree seed = " << seed << ".\n";
+                  << " reticulations, tree seed = " << seed << ".\n" << RESET;
       }
       netrax::AnnotatedNetwork ann_network =
           build_random_annotated_network(netraxOptions, instance, seed);
@@ -263,9 +264,9 @@ void run_random(NetraxOptions &netraxOptions, const RaxmlInstance &instance,
       n_iterations++;
       int seed = dist(rng);
       if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-        std::cout << "Starting with new parsimony tree " << n_iterations
+        std::cout << BOLDWHITE << "Starting with new parsimony tree " << n_iterations
                   << " with " << start_reticulations
-                  << " reticulations, tree seed = " << seed << ".\n";
+                  << " reticulations, tree seed = " << seed << ".\n" << RESET;
       }
       netrax::AnnotatedNetwork ann_network =
           build_parsimony_annotated_network(netraxOptions, instance, seed);
@@ -297,7 +298,7 @@ void run_random(NetraxOptions &netraxOptions, const RaxmlInstance &instance,
   }
 
   if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-    std::cout << "\nAggregated statistics on which moves were taken:\n";
+    std::cout << BOLDWHITE << "\nAggregated statistics on which moves were taken:\n";
     std::unordered_set<MoveType> seen;
     for (const MoveType &type : typesBySpeed) {
       if (seen.count(type) == 0) {
@@ -306,7 +307,7 @@ void run_random(NetraxOptions &netraxOptions, const RaxmlInstance &instance,
       }
       seen.emplace(type);
     }
-    std::cout << "\n";
+    std::cout << "\n" << RESET;
 
     std::cout << "Best inferred network has "
               << bestNetworkData.best_n_reticulations

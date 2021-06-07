@@ -264,7 +264,7 @@ void apply_network_state(AnnotatedNetwork &ann_network,
           state.partition_brlen_scalers[p];
     }
   }
-  for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
+  for (size_t i = 0; i < ann_network.reticulation_probs.size(); ++i) {
     if (ann_network.reticulation_probs[i] != state.reticulation_probs[i]) {
       assert(state.reticulation_probs[i] >= ann_network.options.brprob_min &&
              state.reticulation_probs[i] <= ann_network.options.brprob_max);

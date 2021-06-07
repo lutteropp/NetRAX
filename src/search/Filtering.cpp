@@ -2,6 +2,7 @@
 
 #include "../DebugPrintFunctions.hpp"
 #include "../NetraxOptions.hpp"
+#include "../colormod.h"
 #include "../graph/AnnotatedNetwork.hpp"
 #include "../graph/NodeDisplayedTreeData.hpp"
 #include "../io/NetworkIO.hpp"
@@ -13,6 +14,9 @@
 #include "../optimization/ReticulationOptimization.hpp"
 #include "PromisingState.hpp"
 #include "ScoreImprovement.hpp"
+
+#include <algorithm>
+#include <random>
 
 namespace netrax {
 
@@ -150,46 +154,130 @@ size_t elbowMethod(const std::vector<ScoreItem<T>> &elements,
 
 enum class FilterType { PREFILTER = 0, RANK = 1, CHOOSE = 2 };
 
+double optimizeAfterMovePrefilter(AnnotatedNetwork &ann_network, Move &move) {
+  if (isArcInsertion(move.moveType)) {
+    std::unordered_set<size_t> brlenopt_candidates;
+    brlenopt_candidates.emplace(move.arcInsertionData.wanted_uv_pmatrix_index);
+    optimizeBranchesCandidates(ann_network, brlenopt_candidates,
+                               1.0 / RAXML_BRLEN_SMOOTHINGS);  // one iteration
+    optimize_reticulation(ann_network,
+                          ann_network.network.num_reticulations() - 1);
+    updateMoveBranchLengths(ann_network, move);
+  }
+  double score = scoreNetwork(ann_network);
+  if (move.moveDebugInfo.prefilter_bic !=
+      std::numeric_limits<double>::infinity()) {
+    if (move.moveDebugInfo.prefilter_bic != score) {
+      throw std::runtime_error(
+          "Different prefilter bic than before: " + std::to_string(score) +
+          " vs. " + std::to_string(move.moveDebugInfo.prefilter_bic) + " for " +
+          toString(move));
+    }
+  }
+  move.moveDebugInfo.prefilter_bic = score;
+  return score;
+}
+
+double optimizeAfterMoveRank(AnnotatedNetwork &ann_network, Move &move) {
+  std::unordered_set<size_t> brlen_opt_candidates =
+      brlenOptCandidates(ann_network, move);
+  assert(!brlen_opt_candidates.empty());
+  optimizeBranchesCandidates(ann_network, brlen_opt_candidates);
+  optimizeReticulationProbs(ann_network);
+  updateMoveBranchLengths(ann_network, move);
+  double score = scoreNetwork(ann_network);
+  if (move.moveDebugInfo.rank_bic != std::numeric_limits<double>::infinity()) {
+    if (move.moveDebugInfo.rank_bic != score) {
+      throw std::runtime_error(
+          "Different rank bic than before: " + std::to_string(score) + " vs. " +
+          std::to_string(move.moveDebugInfo.rank_bic) + " for " +
+          toString(move));
+    }
+  }
+  move.moveDebugInfo.rank_bic = score;
+  return score;
+}
+
+double optimizeAfterMoveChoose(AnnotatedNetwork &ann_network, Move &move) {
+  optimizeBranches(ann_network);
+  optimizeReticulationProbs(ann_network);
+  updateMoveBranchLengths(ann_network, move);
+  double score = scoreNetwork(ann_network);
+  if (move.moveDebugInfo.choose_bic !=
+      std::numeric_limits<double>::infinity()) {
+    if (move.moveDebugInfo.choose_bic != score) {
+      throw std::runtime_error(
+          "Different choose bic than before: " + std::to_string(score) +
+          " vs. " + std::to_string(move.moveDebugInfo.choose_bic) + " for " +
+          toString(move));
+    }
+  }
+  move.moveDebugInfo.choose_bic = score;
+  return score;
+}
+
 void optimizeAfterMove(AnnotatedNetwork &ann_network, Move &move,
                        FilterType filterType) {
-  if (filterType == FilterType::PREFILTER) {
-    if (isArcInsertion(move.moveType)) {
-      std::unordered_set<size_t> brlenopt_candidates;
-      brlenopt_candidates.emplace(
-          move.arcInsertionData.wanted_uv_pmatrix_index);
-      optimizeBranchesCandidates(
-          ann_network, brlenopt_candidates,
-          1.0 / RAXML_BRLEN_SMOOTHINGS);  // one iteration
-      optimize_reticulation(ann_network,
-                            ann_network.network.num_reticulations() - 1);
-      updateMoveBranchLengths(ann_network, move);
+  double start_score = scoreNetwork(ann_network);
+  if (filterType == FilterType::PREFILTER || filterType == FilterType::RANK ||
+      filterType == FilterType::CHOOSE) {
+    optimizeAfterMovePrefilter(ann_network, move);
+    if (move.moveDebugInfo.prefilter_bic ==
+        std::numeric_limits<double>::infinity()) {
+      throw std::runtime_error(
+          "why is the move after prefilter bic not set here???");
     }
-  } else if (filterType == FilterType::RANK) {
-    std::unordered_set<size_t> brlen_opt_candidates =
-        brlenOptCandidates(ann_network, move);
-    assert(!brlen_opt_candidates.empty());
-    optimizeBranchesCandidates(ann_network, brlen_opt_candidates);
-    optimizeReticulationProbs(ann_network);
-    updateMoveBranchLengths(ann_network, move);
-  } else if (filterType == FilterType::CHOOSE) {
-    optimizeBranches(ann_network);
-    optimizeReticulationProbs(ann_network);
-    updateMoveBranchLengths(ann_network, move);
+  }
+  if (filterType == FilterType::RANK || filterType == FilterType::CHOOSE) {
+    if (move.moveDebugInfo.prefilter_bic ==
+        std::numeric_limits<double>::infinity()) {
+      throw std::runtime_error("why is the move prefilter bic not set here?");
+    }
+    optimizeAfterMoveRank(ann_network, move);
+    if (move.moveDebugInfo.rank_bic ==
+        std::numeric_limits<double>::infinity()) {
+      throw std::runtime_error(
+          "why is the move after rank bic not set here???");
+    }
+  }
+  if (filterType == FilterType::CHOOSE) {
+    if (move.moveDebugInfo.rank_bic ==
+        std::numeric_limits<double>::infinity()) {
+      throw std::runtime_error("why is the move prefilter bic not set here?");
+    }
+    optimizeAfterMoveChoose(ann_network, move);
+    if (move.moveDebugInfo.choose_bic ==
+        std::numeric_limits<double>::infinity()) {
+      throw std::runtime_error(
+          "why is the move after choose bic not set here???");
+    }
+  }
+  double end_score = scoreNetwork(ann_network);
+  if (start_score < end_score) {
+    throw std::runtime_error("start_score < end_score");
   }
 }
 
 double filterCandidates(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
                         const NetworkState &oldState, NetworkState &bestState,
                         std::vector<Move> &candidates, FilterType filterType,
-                        bool enforce, bool extreme_greedy, bool keep_all_better,
-                        bool silent, bool print_progress) {
+                        double old_bic, bool enforce, bool extreme_greedy,
+                        bool keep_all_better, bool silent,
+                        bool print_progress) {
+  assert(scoreNetwork(ann_network) == old_bic);
+  if (scoreNetwork(ann_network) != old_bic) {
+    throw std::runtime_error("something is wrong with the old network score");
+  }
   if (candidates.empty()) {
     return scoreNetwork(ann_network);
   }
+  if (ann_network.options.randomize_candidates) {
+    std::shuffle(candidates.begin(), candidates.end(), ann_network.rng);
+  }
+
   assert(!(extreme_greedy && enforce));
   int n_better = 0;
   int barWidth = 70;
-  double old_bic = scoreNetwork(ann_network);
   double best_bic = old_bic;
   if (enforce) {
     best_bic = std::numeric_limits<double>::infinity();
@@ -203,6 +291,7 @@ double filterCandidates(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
     Move move(candidates[i]);
     performMove(ann_network, move);
     optimizeAfterMove(ann_network, move, filterType);
+    candidates[i].moveDebugInfo = move.moveDebugInfo;
     double bicScore = scoreNetwork(ann_network);
     scores[i] = ScoreItem<Move>{candidates[i], bicScore};
     if (bicScore < old_bic) {
@@ -226,7 +315,7 @@ double filterCandidates(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
     undoMove(ann_network, move);
     assert(checkSanity(ann_network, candidates[i]));
     apply_network_state(ann_network, oldState);
-    if (bicScore < old_bic) {
+    if ((bicScore < old_bic) && (filterType == FilterType::CHOOSE)) {
       // Here, we need to add the promising candidate to the promising state
       // queue
       addPromisingState(ann_network, candidates[i], bicScore, psq);
@@ -258,10 +347,9 @@ double filterCandidates(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
       }
       std::cout << candidates.size() << " vs. " << oldCandidatesSize << "\n";
     }
-    if (best_bic >= old_bic && filterType == FilterType::PREFILTER) {
-      if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-        std::cout << "None of the prefiltered candidates improved BIC.\n";
-      }
+    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+      std::cout << n_better << " filtered candidates improved BIC.\n";
+      std::cout << "best_bic: " << best_bic << "\n";
     }
   }
   for (size_t i = 0; i < candidates.size(); ++i) {
@@ -272,14 +360,13 @@ double filterCandidates(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
 
 double prefilterCandidates(AnnotatedNetwork &ann_network,
                            PromisingStateQueue &psq,
-                           const NetworkState &oldState,
+                           const NetworkState &oldState, double old_bic,
                            NetworkState &bestState,
                            std::vector<Move> &candidates, bool extreme_greedy,
                            bool silent, bool print_progress) {
-  double old_bic = scoreNetwork(ann_network);
   double best_bic = filterCandidates(
       ann_network, psq, oldState, bestState, candidates, FilterType::PREFILTER,
-      false, extreme_greedy, true, silent, print_progress);
+      old_bic, false, extreme_greedy, true, silent, print_progress);
   if ((best_bic >= old_bic) && ann_network.options.prefilter_greedy) {
     candidates.clear();
   }
@@ -287,35 +374,47 @@ double prefilterCandidates(AnnotatedNetwork &ann_network,
 }  // namespace netrax
 
 double rankCandidates(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
-                      const NetworkState &oldState, NetworkState &bestState,
-                      std::vector<Move> &candidates, bool enforce,
-                      bool extreme_greedy, bool silent, bool print_progress) {
+                      const NetworkState &oldState, double old_bic,
+                      NetworkState &bestState, std::vector<Move> &candidates,
+                      bool enforce, bool extreme_greedy, bool silent,
+                      bool print_progress) {
+  double best_bic_prefilter = scoreNetwork(ann_network);
   if (!ann_network.options.no_prefiltering) {
-    prefilterCandidates(ann_network, psq, oldState, bestState, candidates,
-                        extreme_greedy, silent, print_progress);
+    best_bic_prefilter =
+        prefilterCandidates(ann_network, psq, oldState, old_bic, bestState,
+                            candidates, extreme_greedy, silent, print_progress);
   }
-  return filterCandidates(ann_network, psq, oldState, bestState, candidates,
-                          FilterType::RANK, enforce, extreme_greedy, false,
-                          silent, print_progress);
+  double best_bic_rank = filterCandidates(
+      ann_network, psq, oldState, bestState, candidates, FilterType::RANK,
+      old_bic, enforce, extreme_greedy, false, silent, print_progress);
+  if (!candidates.empty() && best_bic_rank > best_bic_prefilter) {
+    throw std::runtime_error("best_bic_rank > best_bic_prefilter");
+  }
+  return best_bic_rank;
 }
 
 double chooseCandidate(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
-                       const NetworkState &oldState, NetworkState &bestState,
-                       std::vector<Move> &candidates, bool enforce,
-                       bool extreme_greedy, bool silent, bool print_progress) {
-  double old_bic = scoreNetwork(ann_network);
+                       const NetworkState &oldState, double old_bic,
+                       NetworkState &bestState, std::vector<Move> &candidates,
+                       bool enforce, bool extreme_greedy, bool silent,
+                       bool print_progress) {
   if (candidates.empty()) {
     return old_bic;
   }
-  rankCandidates(ann_network, psq, oldState, bestState, candidates, enforce,
-                 extreme_greedy, silent, print_progress);
-  double best_bic = filterCandidates(
+  double best_bic_rank =
+      rankCandidates(ann_network, psq, oldState, old_bic, bestState, candidates,
+                     enforce, extreme_greedy, silent, print_progress);
+
+  double best_bic_choose = filterCandidates(
       ann_network, psq, oldState, bestState, candidates, FilterType::CHOOSE,
-      enforce, extreme_greedy, false, silent, print_progress);
-  if (best_bic >= old_bic && !enforce) {
+      old_bic, enforce, extreme_greedy, false, silent, print_progress);
+  if (!candidates.empty() && best_bic_choose > best_bic_rank) {
+    throw std::runtime_error("best_bic_choose > best_bic_rank");
+  }
+  if (best_bic_choose >= old_bic && !enforce) {
     candidates.clear();
   }
-  return best_bic;
+  return best_bic_choose;
 }
 
 double acceptMove(AnnotatedNetwork &ann_network, Move &move,
@@ -340,7 +439,8 @@ double acceptMove(AnnotatedNetwork &ann_network, Move &move,
   double aicc_score = aicc(ann_network, logl);
 
   if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-    /*if (!silent) */ std::cout << " Took " << toString(move.moveType) << "\n";
+    /*if (!silent) */ std::cout << BOLDYELLOW << " Took "
+                                << toString(move.moveType) << "\n";
     if (!silent)
       std::cout << "  Logl: " << logl << ", BIC: " << bic_score
                 << ", AIC: " << aic_score << ", AICc: " << aicc_score << "\n";
@@ -352,24 +452,29 @@ double acceptMove(AnnotatedNetwork &ann_network, Move &move,
                 << ann_network.network.num_reticulations() << "\n";
     // if (!silent) std::cout << toExtendedNewick(ann_network) << "\n";
 
-    std::cout << "displayed trees:\n";
-    for (size_t i = 0;
-         i <
-         ann_network
-             .pernode_displayed_tree_data[ann_network.network.root->clv_index]
-             .num_active_displayed_trees;
-         ++i) {
-      DisplayedTreeData &dtd =
-          ann_network
-              .pernode_displayed_tree_data[ann_network.network.root->clv_index]
-              .displayed_trees[i];
-      std::cout << "tree " << i << ":\n";
-      std::cout << "  prob: " << exp(dtd.treeLoglData.tree_logprob) << "\n";
-      double tree_logl =
-          std::accumulate(dtd.treeLoglData.tree_partition_logl.begin(),
-                          dtd.treeLoglData.tree_partition_logl.end(), 0.0);
-      std::cout << "  logl: " << tree_logl << "\n";
-      printReticulationChoices(dtd.treeLoglData.reticulationChoices);
+    std::cout << RESET;
+
+    if (!silent) {
+      std::cout << "displayed trees:\n";
+      for (size_t i = 0;
+           i <
+           ann_network
+               .pernode_displayed_tree_data[ann_network.network.root->clv_index]
+               .num_active_displayed_trees;
+           ++i) {
+        DisplayedTreeData &dtd =
+            ann_network
+                .pernode_displayed_tree_data[ann_network.network.root
+                                                 ->clv_index]
+                .displayed_trees[i];
+        std::cout << "tree " << i << ":\n";
+        std::cout << "  prob: " << exp(dtd.treeLoglData.tree_logprob) << "\n";
+        double tree_logl =
+            std::accumulate(dtd.treeLoglData.tree_partition_logl.begin(),
+                            dtd.treeLoglData.tree_partition_logl.end(), 0.0);
+        std::cout << "  logl: " << tree_logl << "\n";
+        printReticulationChoices(dtd.treeLoglData.reticulationChoices);
+      }
     }
   }
   ann_network.stats.moves_taken[move.moveType]++;
@@ -386,13 +491,13 @@ Move applyBestCandidate(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
 
   NetworkState oldState = extract_network_state(ann_network);
   NetworkState bestState = extract_network_state(ann_network);
-  chooseCandidate(ann_network, psq, oldState, bestState, candidates, enforce,
-                  extreme_greedy, silent, print_progress);
+  chooseCandidate(ann_network, psq, oldState, old_score, bestState, candidates,
+                  enforce, extreme_greedy, silent, print_progress);
   assert(scoreNetwork(ann_network) == old_score);
 
   if (!candidates.empty()) {
     acceptMove(ann_network, candidates[0], &bestState, best_score,
-               bestNetworkData, silent);
+               bestNetworkData, true);
     deleteMoveFromPSQ(ann_network, psq, candidates[0]);
 
     if (!enforce) {

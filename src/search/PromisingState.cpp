@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <stdexcept>
 
+#include "../DebugPrintFunctions.hpp"
 #include "../NetraxOptions.hpp"
 #include "../graph/AnnotatedNetwork.hpp"
 #include "../helper/NetworkFunctions.hpp"
@@ -20,6 +21,9 @@ PromisingState extractPromisingState(AnnotatedNetwork& ann_network, Move move,
 void applyPromisingState(AnnotatedNetwork& ann_network, PromisingState& pstate,
                          double* best_score, BestNetworkData* bestNetworkData,
                          bool alternative_route, bool silent) {
+  if (ann_network.options.retry == 0) {
+    return;
+  }
   ann_network.network = std::move(pstate.network);
   if (alternative_route) {
     apply_network_state(ann_network, pstate.state,
@@ -27,16 +31,25 @@ void applyPromisingState(AnnotatedNetwork& ann_network, PromisingState& pstate,
   }
   ann_network.travbuffer = reversed_topological_sort(ann_network.network);
   acceptMove(ann_network, pstate.move, nullptr, best_score, bestNetworkData,
-             silent);
+             true);
 }
 
 bool addPromisingState(AnnotatedNetwork& ann_network, Move move,
                        double target_bic, PromisingStateQueue& psq) {
+  if (ann_network.options.retry == 0) {
+    return false;
+  }
   size_t max_entries =
       (ann_network.options.retry == 0) ? 0 : ann_network.options.retry * 4;
 
   // We do not have to store more good states in the PSQ than
   // ann_network.options.retry. Just keep the best ones.
+  if (psq.promising_states.size() > max_entries) {
+    std::sort(psq.promising_states.begin(), psq.promising_states.end(),
+              [](const PromisingState& p1, const PromisingState& p2) {
+                return p1.target_bic > p2.target_bic;
+              });
+  }
   while (psq.promising_states.size() > max_entries) {
     if (psq.promising_states.back().target_bic > target_bic) {
       psq.promising_states.pop_back();
@@ -58,13 +71,9 @@ bool hasPromisingStates(PromisingStateQueue& psq) {
 }
 
 PromisingState getPromisingState(PromisingStateQueue& psq) {
-  std::sort(psq.promising_states.begin(), psq.promising_states.end(),
-            [](const PromisingState& p1, const PromisingState& p2) {
-              return p1.target_bic > p2.target_bic;
-            });
   if (!psq.promising_states.empty()) {
-    PromisingState res = std::move(psq.promising_states.back());
-    psq.promising_states.pop_back();
+    PromisingState res = std::move(psq.promising_states.front());
+    psq.promising_states.pop_front();
     return res;
   }
   throw std::runtime_error("Promising state queue is empty");
@@ -72,10 +81,17 @@ PromisingState getPromisingState(PromisingStateQueue& psq) {
 
 void deleteMoveFromPSQ(AnnotatedNetwork& ann_network, PromisingStateQueue& psq,
                        const Move& move) {
+  if (ann_network.options.retry == 0) {
+    return;
+  }
+  std::string networkInfo = exportDebugInfoNetwork(ann_network.network);
   psq.promising_states.erase(
-      std::remove_if(
-          psq.promising_states.begin(), psq.promising_states.end(),
-          [&move](const PromisingState& ps) { return (ps.move == move); }),
+      std::remove_if(psq.promising_states.begin(), psq.promising_states.end(),
+                     [&move, &networkInfo](PromisingState& ps) {
+                       return (ps.move == move &&
+                               networkInfo ==
+                                   exportDebugInfoNetwork(ps.network));
+                     }),
       psq.promising_states.end());
 }
 

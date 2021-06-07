@@ -12,6 +12,7 @@
 #include "Filtering.hpp"
 #include "PromisingState.hpp"
 #include "Scrambling.hpp"
+#include "SimulatedAnnealing.hpp"
 
 #include <algorithm>
 
@@ -162,11 +163,12 @@ void wavesearch_internal(
                            start_time, silent, print_progress);
   if (ann_network.options.retry > 0) {
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-      std::cout << "The promising older candidates are: \n";
+      std::cout << MAGENTA << "The promising older candidates are: \n";
       for (size_t i = 0; i < psq.promising_states.size(); ++i) {
         std::cout << toString(psq.promising_states[i].move.moveType) << ": "
                   << psq.promising_states[i].target_bic << "\n";
       }
+      std::cout << RESET;
     }
   }
   // Here we takine old other good configurations from the PSQ.
@@ -175,10 +177,10 @@ void wavesearch_internal(
       break;
     }
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-      std::cout << Color::FG_BLUE
+      std::cout << MAGENTA
                 << "\n\nRetrying search from a promising past state iteration "
                 << i << "...\n"
-                << Color::FG_DEFAULT;
+                << RESET;
     }
     ann_network.options.retry = std::max(ann_network.options.retry - 1, 0);
     PromisingState pstate = getPromisingState(
@@ -197,7 +199,7 @@ void wavesearch_internal(
       got_better = false;
 
       if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-        std::cout << "Enforcing an arc insertion...\n";
+        std::cout << YELLOW << "Enforcing an arc insertion...\n" << RESET;
       }
       std::vector<Move> candidates;
       if (!ann_network.options.no_arc_insertion_moves) {
@@ -245,26 +247,27 @@ void wavesearch_main_internal(
                         best_score, start_time, silent, print_progress);
   } else {
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-      std::cout << "Skipping initial inference and directly entering "
-                   "scrambling mode.\n";
+      std::cout << YELLOW
+                << "Skipping initial inference and directly entering "
+                   "scrambling mode.\n"
+                << RESET;
     }
   }
 
   if (ann_network.options.scrambling > 0) {
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-      Color::Modifier blue(Color::FG_BLUE);
-      Color::Modifier def(Color::FG_DEFAULT);
-      std::cout << blue;
+      std::cout << CYAN;
       std::cout << "\nStarting scrambling phase...\n";
-      std::cout << def;
+      std::cout << RESET;
     }
     unsigned int tries = 0;
     NetworkState bestState = extract_network_state(ann_network);
     double old_best_score = *best_score;
     if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
       if (!silent)
-        std::cout << " Network before scrambling has BIC Score: "
-                  << scoreNetwork(ann_network) << "\n";
+        std::cout << CYAN << " Network before scrambling has BIC Score: "
+                  << scoreNetwork(ann_network) << "\n"
+                  << RESET;
     }
     while (tries < ann_network.options.scrambling) {
       apply_network_state(ann_network, bestState, true);
@@ -283,7 +286,9 @@ void wavesearch_main_internal(
       }
       if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         if (!silent)
-          std::cout << " scrambling BIC: " << scoreNetwork(ann_network) << "\n";
+          std::cout << CYAN << " scrambling BIC: " << scoreNetwork(ann_network)
+                    << "\n"
+                    << RESET;
       }
       if (*best_score < old_best_score) {
         old_best_score = *best_score;
@@ -309,21 +314,28 @@ void wavesearch(AnnotatedNetwork &ann_network, BestNetworkData *bestNetworkData,
   // std::cout << "Initial network is:\n" << toExtendedNewick(ann_network) <<
   // "\n\n";
 
-  if (!ann_network.options.start_network_file
-           .empty()) {  // don't waste time trying to first horizontally
-                        // optimize the user-given start network
-    optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::NORMAL);
-    check_score_improvement(ann_network, &best_score, bestNetworkData);
-    wavesearch_main_internal(ann_network, psq, bestNetworkData,
-                             typesBySpeedGoodStart, start_state_to_reuse,
-                             best_state_to_reuse, &best_score, start_time,
-                             silent, print_progress);
+  if (ann_network.options.sim_anneal) {
+    simanneal(ann_network, typesBySpeed, 0, ann_network.options.step_size,
+              ann_network.options.start_temperature, bestNetworkData, silent);
   } else {
-    optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::QUICK);
-    check_score_improvement(ann_network, &best_score, bestNetworkData);
-    wavesearch_main_internal(ann_network, psq, bestNetworkData, typesBySpeed,
-                             start_state_to_reuse, best_state_to_reuse,
-                             &best_score, start_time, silent, print_progress);
+    if (!ann_network.options.start_network_file
+             .empty()) {  // don't waste time trying to first horizontally
+                          // optimize the user-given start network
+      optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::NORMAL);
+      check_score_improvement(ann_network, &best_score, bestNetworkData);
+
+      wavesearch_main_internal(ann_network, psq, bestNetworkData,
+                               typesBySpeedGoodStart, start_state_to_reuse,
+                               best_state_to_reuse, &best_score, start_time,
+                               silent, print_progress);
+
+    } else {
+      optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::QUICK);
+      check_score_improvement(ann_network, &best_score, bestNetworkData);
+      wavesearch_main_internal(ann_network, psq, bestNetworkData, typesBySpeed,
+                               start_state_to_reuse, best_state_to_reuse,
+                               &best_score, start_time, silent, print_progress);
+    }
   }
   optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::SLOW);
   check_score_improvement(ann_network, &best_score, bestNetworkData);
