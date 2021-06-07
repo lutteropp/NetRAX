@@ -35,13 +35,6 @@ static double brent_target_networks_prob(void *p, double x) {
     ann_network->second_parent_logprobs[reticulation_index] = log(1.0 - x);
     ann_network->cached_logl_valid = false;
     invalidateTreeLogprobs(*ann_network, reticulation_index);
-
-    if (ann_network->options.likelihood_variant ==
-        LikelihoodVariant::SARAH_PSEUDO) {
-      invalidateHigherCLVs(
-          *ann_network,
-          ann_network->network.reticulation_nodes[reticulation_index], false);
-    }
     score = -1 * computeLoglikelihood(*ann_network, 1, 1);
   }
   return score;
@@ -62,12 +55,6 @@ double optimize_reticulation_linear_search(AnnotatedNetwork &ann_network,
     ann_network.second_parent_logprobs[reticulation_index] = log(1.0 - mid);
     invalidateTreeLogprobs(ann_network, reticulation_index);
     ann_network.cached_logl_valid = false;
-    if (ann_network.options.likelihood_variant ==
-        LikelihoodVariant::SARAH_PSEUDO) {
-      invalidateHigherCLVs(
-          ann_network,
-          ann_network.network.reticulation_nodes[reticulation_index], false);
-    }
 
     double act_logl = computeLoglikelihood(ann_network);
 
@@ -117,12 +104,6 @@ double optimize_reticulation(AnnotatedNetwork &ann_network,
       log(1.0 - new_brprob);
   invalidateTreeLogprobs(ann_network, reticulation_index);
   ann_network.cached_logl_valid = false;
-  if (ann_network.options.likelihood_variant ==
-      LikelihoodVariant::SARAH_PSEUDO) {
-    invalidateHigherCLVs(
-        ann_network, ann_network.network.reticulation_nodes[reticulation_index],
-        false);
-  }
 
   assert(new_brprob >= min_brprob && new_brprob <= max_brprob);
   ann_network.cached_logl_valid = false;
