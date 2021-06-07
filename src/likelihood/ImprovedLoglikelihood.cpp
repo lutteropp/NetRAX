@@ -351,8 +351,7 @@ void processNodeImproved(AnnotatedNetwork &ann_network, int incremental,
   if (node->clv_index < ann_network.network.num_tips()) {
     return;
   }
-  if (incremental &&
-      allClvsValid(ann_network, node->clv_index)) {
+  if (incremental && allClvsValid(ann_network, node->clv_index)) {
     assert(ann_network.pernode_displayed_tree_data[node->clv_index]
                .num_active_displayed_trees > 0);
     return;
@@ -486,8 +485,7 @@ void computeDisplayedTreeLoglikelihood(AnnotatedNetwork &ann_network,
   treeAtRoot.treeLoglData.tree_logl_valid = true;
 }
 
-void processPartitionsImproved(
-    AnnotatedNetwork &ann_network, int incremental) {
+void processPartitionsImproved(AnnotatedNetwork &ann_network, int incremental) {
   std::vector<bool> seen(ann_network.network.num_nodes(), false);
 
   assert(ann_network.travbuffer.size() == ann_network.network.num_nodes());
@@ -529,17 +527,17 @@ double evaluateTreesPartition(AnnotatedNetwork &ann_network,
   assert(ann_network.options.likelihood_variant !=
          LikelihoodVariant::SARAH_PSEUDO);
 
-  ReticulationConfigSet &interestingTreeRestrictions =
-      getInterestingTreeRestriction(ann_network);
+  const ReticulationConfigSet &interestingTreeRestriction =
+      ann_network.getInterestingTreeRestriction();
 
   if (ann_network.options.likelihood_variant ==
       LikelihoodVariant::AVERAGE_DISPLAYED_TREES) {
     mpfr::mpreal partition_lh = 0.0;
     for (size_t tree_idx = 0; tree_idx < n_trees; ++tree_idx) {
       TreeLoglData &tree = treeLoglData[tree_idx];
-      if (!interestingTreeRestrictions.empty() &&
+      if (!interestingTreeRestriction.empty() &&
           !reticulationConfigsCompatible(tree.reticulationChoices,
-                                         interestingTreeRestrictions)) {
+                                         interestingTreeRestriction)) {
         continue;
       }
 
@@ -572,9 +570,9 @@ double evaluateTreesPartition(AnnotatedNetwork &ann_network,
     double partition_logl = -std::numeric_limits<double>::infinity();
     for (size_t tree_idx = 0; tree_idx < n_trees; ++tree_idx) {
       TreeLoglData &tree = treeLoglData[tree_idx];
-      if (!interestingTreeRestrictions.empty() &&
+      if (!interestingTreeRestriction.empty() &&
           !reticulationConfigsCompatible(tree.reticulationChoices,
-                                         interestingTreeRestrictions)) {
+                                         interestingTreeRestriction)) {
         continue;
       }
       assert(tree.tree_logprob_valid);
