@@ -357,7 +357,7 @@ double chooseCandidate(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
 
   double best_bic_choose = filterCandidates(
       ann_network, psq, oldState, bestState, candidates, FilterType::CHOOSE,
-      old_bic, enforce, extreme_greedy, false, silent, print_progress);
+      old_bic, enforce, extreme_greedy, true, silent, print_progress);
   if (!candidates.empty() && best_bic_choose > best_bic_rank) {
     throw std::runtime_error("best_bic_choose > best_bic_rank");
   }
