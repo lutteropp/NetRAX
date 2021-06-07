@@ -209,9 +209,16 @@ void wavesearch_internal(
         candidates =
             possibleMoves(ann_network, MoveType::DeltaPlusMove, false, true);
       }
-      applyBestCandidate(
-          ann_network, psq, candidates, best_score, bestNetworkData, true,
-          ann_network.options.extreme_greedy, silent, print_progress);
+      NetworkState oldState = extract_network_state(ann_network);
+      NetworkState bestState = extract_network_state(ann_network);
+      double best_bic_prefilter = prefilterCandidates(
+          ann_network, psq, oldState, scoreNetwork(ann_network), bestState,
+          candidates, ann_network.options.extreme_greedy, silent,
+          print_progress);
+      applyBestCandidate(ann_network, psq, candidates, best_score,
+                         bestNetworkData, true,
+                         ann_network.options.extreme_greedy, best_bic_prefilter,
+                         silent, print_progress);
       check_score_improvement(ann_network, best_score, bestNetworkData);
       optimizeEverythingRun(ann_network, psq, typesBySpeed, start_time,
                             bestNetworkData, silent, print_progress);
