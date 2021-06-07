@@ -308,7 +308,7 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
 
       updateCandidateMoves(ann_network, typesBySpeed, best_max_distance,
                            chosenMove, takenRemovals, candidates);
-      if (candidates.empty()) {
+      if (candidates.empty() && !isArcInsertion(type)) {
         // no old candidates to reuse. Thus,
         // completely gather new ones.
         if (ParallelContext::master_rank() &&
@@ -325,7 +325,7 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
                           bestState, candidates, false, silent, print_progress);
     } else {
       // score did not get better
-      if (!tried_with_allnew && !acceptedMoves.empty()) {
+      if (!tried_with_allnew && !acceptedMoves.empty() && !isArcInsertion(type)) {
         tried_with_allnew = true;
         if (ParallelContext::master_rank() &&
             ParallelContext::master_thread()) {
