@@ -78,6 +78,14 @@ struct AnnotatedNetwork {
   AnnotatedNetwork(NetraxOptions &options, const RaxmlInstance &instance);
   AnnotatedNetwork(const AnnotatedNetwork &orig_network);
   ~AnnotatedNetwork();
+
+  const ReticulationConfigSet &getInterestingTreeRestriction() const;
+  void addInterestingTreeRestriction(
+      ReticulationConfigSet &interestingTreeRestriction);
+  void clearInterestingTreeRestriction();
+
+ private:
+  ReticulationConfigSet interestingTreeRestriction;
 };
 
 AnnotatedNetwork build_annotated_network(NetraxOptions &options,
@@ -112,12 +120,5 @@ std::vector<Node *> getBadReticulations(AnnotatedNetwork &ann_network);
 bool assertBranchLengths(AnnotatedNetwork &ann_network);
 bool assertConsecutiveIndices(AnnotatedNetwork &ann_network);
 bool checkSanity(AnnotatedNetwork &ann_network);
-
-ReticulationConfigSet &getInterestingTreeRestriction(
-    AnnotatedNetwork &ann_network);
-void addInterestingTreeRestriction(
-    AnnotatedNetwork &ann_network,
-    ReticulationConfigSet &interestingTreeRestriction);
-void clearInterestingTreeRestriction(AnnotatedNetwork &ann_network);
 
 }  // namespace netrax

@@ -38,7 +38,9 @@ size_t Statistics::totalMovesTaken() const {
 
 AnnotatedNetwork::AnnotatedNetwork(NetraxOptions &options,
                                    const RaxmlInstance &instance)
-    : options{options}, instance{instance} {}
+    : options{options},
+      instance{instance},
+      interestingTreeRestriction{options.max_reticulations} {}
 
 AnnotatedNetwork::~AnnotatedNetwork() {
   if (fake_treeinfo) {
@@ -482,31 +484,20 @@ bool checkSanity(AnnotatedNetwork &ann_network) {
   return good;
 }
 
-ReticulationConfigSet &getInterestingTreeRestriction(
-    AnnotatedNetwork &ann_network) {
-  return ((NetworkParams *)(ann_network.fake_treeinfo
-                                ->likelihood_computation_params))
-      ->interestingTreeRestriction;
+const ReticulationConfigSet &AnnotatedNetwork::getInterestingTreeRestriction()
+    const {
+  return interestingTreeRestriction;
 }
 
-void addInterestingTreeRestriction(
-    AnnotatedNetwork &ann_network,
-    ReticulationConfigSet &interestingTreeRestriction) {
-  ReticulationConfigSet &actInteresting =
-      getInterestingTreeRestriction(ann_network);
-  addOrReticulationChoices(actInteresting, interestingTreeRestriction);
-  ann_network.cached_logl_valid = false;
+void AnnotatedNetwork::addInterestingTreeRestriction(
+    ReticulationConfigSet &extra) {
+  addOrReticulationChoices(interestingTreeRestriction, extra);
+  cached_logl_valid = false;
 }
 
-void clearInterestingTreeRestriction(AnnotatedNetwork &ann_network) {
-  ReticulationConfigSet &oldRestriction =
-      getInterestingTreeRestriction(ann_network);
-  if (!oldRestriction.empty()) {
-    ((NetworkParams *)(ann_network.fake_treeinfo
-                           ->likelihood_computation_params))
-        ->interestingTreeRestriction = {};
-    ann_network.cached_logl_valid = false;
-  }
+void AnnotatedNetwork::clearInterestingTreeRestriction() {
+  interestingTreeRestriction.configs.clear();
+  cached_logl_valid = false;
 }
 
 }  // namespace netrax

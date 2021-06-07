@@ -19,9 +19,8 @@ namespace netrax {
 
 struct NetworkParams {
   AnnotatedNetwork* ann_network;
-  ReticulationConfigSet interestingTreeRestriction;
   NetworkParams(AnnotatedNetwork* ann_network)
-      : ann_network(ann_network), interestingTreeRestriction{} {}
+      : ann_network(ann_network) {}
 };
 
 RaxmlInstance createRaxmlInstance(const NetraxOptions& options);

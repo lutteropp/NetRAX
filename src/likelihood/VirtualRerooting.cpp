@@ -219,8 +219,8 @@ void updateCLVsVirtualRerootTrees(AnnotatedNetwork &ann_network,
     }
   }
 
-  ReticulationConfigSet &interestingTreeRestrictions =
-      getInterestingTreeRestriction(ann_network);
+  const ReticulationConfigSet &interestingTreeRestriction =
+      ann_network.getInterestingTreeRestriction();
 
   for (size_t p = 0; p < paths.size(); ++p) {
     // std::cout << "PROCESSING PATH " << p << "\n";
@@ -232,9 +232,9 @@ void updateCLVsVirtualRerootTrees(AnnotatedNetwork &ann_network,
                                        restrictions)) {
       continue;
     }
-    if (!interestingTreeRestrictions.empty() &&
+    if (!interestingTreeRestriction.empty() &&
         !reticulationConfigsCompatible(paths[p].reticulationChoices,
-                                       interestingTreeRestrictions)) {
+                                       interestingTreeRestriction)) {
       continue;
     }
 
@@ -360,8 +360,8 @@ double computeLoglikelihoodBrlenOpt(
   if (ann_network.cached_logl_valid) {
     return ann_network.cached_logl;
   }
-  ReticulationConfigSet &interestingTreeRestriction =
-      getInterestingTreeRestriction(ann_network);
+  const ReticulationConfigSet &interestingTreeRestriction =
+      ann_network.getInterestingTreeRestriction();
   Node *source = getSource(ann_network.network,
                            ann_network.network.edges_by_index[pmatrix_index]);
   Node *target = getTarget(ann_network.network,
