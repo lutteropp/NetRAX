@@ -344,6 +344,9 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
                            }),
             candidates.end());
         oldCandidates.clear();
+        best_bic_prefilter = prefilterCandidates(
+            ann_network, psq, oldState, scoreNetwork(ann_network), bestState,
+            candidates, false, silent, print_progress);
         got_better = true;
       }
     }
