@@ -246,27 +246,6 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
   return 0;
 }
 
-std::vector<MoveType> getTypesBySpeedGoodStart(const NetraxOptions &options) {
-  // std::vector<MoveType> typesBySpeed = {MoveType::RNNIMove,
-  // MoveType::RSPR1Move, MoveType::HeadMove, MoveType::TailMove,
-  // MoveType::ArcRemovalMove, MoveType::DeltaPlusMove,
-  // MoveType::ArcInsertionMove};
-  std::vector<MoveType> typesBySpeed;
-  if (!options.no_arc_insertion_moves) {
-    typesBySpeed.emplace_back(MoveType::ArcInsertionMove);
-  } else {
-    typesBySpeed.emplace_back(MoveType::DeltaPlusMove);
-  }
-  if (!options.no_rspr_moves) {
-    typesBySpeed.emplace_back(MoveType::RSPRMove);
-  }
-  if (!options.no_rnni_moves) {
-    typesBySpeed.emplace_back(MoveType::RNNIMove);
-  }
-  typesBySpeed.emplace_back(MoveType::ArcRemovalMove);
-  return typesBySpeed;
-}
-
 std::vector<MoveType> getTypesBySpeed(const NetraxOptions &options) {
   // std::vector<MoveType> typesBySpeed = {MoveType::RNNIMove,
   // MoveType::RSPR1Move, MoveType::HeadMove, MoveType::TailMove,
@@ -669,10 +648,8 @@ void netrax_thread_main(NetraxOptions &netraxOptions,
     score_only(netraxOptions, instance, rng);
   } else if (!netraxOptions.start_network_file.empty()) {
     std::vector<MoveType> typesBySpeed = getTypesBySpeed(netraxOptions);
-    std::vector<MoveType> typesBySpeedGoodStart =
-        getTypesBySpeedGoodStart(netraxOptions);
-    run_single_start_waves(netraxOptions, instance, typesBySpeed,
-                           typesBySpeedGoodStart, rng, false, true);
+    run_single_start_waves(netraxOptions, instance, typesBySpeed, rng, false,
+                           true);
   } else {
     std::vector<MoveType> typesBySpeed = getTypesBySpeed(netraxOptions);
     run_random(netraxOptions, instance, typesBySpeed, rng, false, true);

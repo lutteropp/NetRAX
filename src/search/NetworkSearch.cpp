@@ -12,9 +12,9 @@
 
 //#define _RAXML_PTHREADS
 
+#include "../colormod.h"
 #include "SimulatedAnnealing.hpp"
 #include "Wavesearch.hpp"
-#include "../colormod.h"
 
 #include "../NetworkDistances.hpp"
 #include "../graph/NodeDisplayedTreeData.hpp"
@@ -134,8 +134,8 @@ void judgeNetwork(BestNetworkData &best_network_data,
 void run_single_start_waves(NetraxOptions &netraxOptions,
                             const RaxmlInstance &instance,
                             const std::vector<MoveType> &typesBySpeed,
-                            const std::vector<MoveType> &typesBySpeedGoodStart,
-                            std::mt19937 &rng, bool silent, bool print_progress) {
+                            std::mt19937 &rng, bool silent,
+                            bool print_progress) {
   /* non-master ranks load starting trees from a file */
   ParallelContext::global_mpi_barrier();
   netrax::AnnotatedNetwork ann_network =
@@ -148,8 +148,8 @@ void run_single_start_waves(NetraxOptions &netraxOptions,
         "The user-specified start network has a reticulation with 0/1 prob");
   }
 
-  wavesearch(ann_network, &bestNetworkData, typesBySpeed,
-             typesBySpeedGoodStart, silent, print_progress);
+  wavesearch(ann_network, &bestNetworkData, typesBySpeed, typesBySpeed, silent,
+             print_progress);
 
   if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
     std::cout << "Statistics on which moves were taken:\n";
@@ -198,7 +198,8 @@ void run_single_start_waves(NetraxOptions &netraxOptions,
 }
 
 void run_random(NetraxOptions &netraxOptions, const RaxmlInstance &instance,
-                const std::vector<MoveType> &typesBySpeed, std::mt19937 &rng, bool silent, bool print_progress) {
+                const std::vector<MoveType> &typesBySpeed, std::mt19937 &rng,
+                bool silent, bool print_progress) {
   std::uniform_int_distribution<long> dist(0, RAND_MAX);
   BestNetworkData bestNetworkData(netraxOptions.max_reticulations);
 
@@ -222,16 +223,18 @@ void run_random(NetraxOptions &netraxOptions, const RaxmlInstance &instance,
       n_iterations++;
       int seed = dist(rng);
       if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-        std::cout << BOLDWHITE << "Starting with new random network " << n_iterations
-                  << " with " << start_reticulations
-                  << " reticulations, tree seed = " << seed << ".\n" << RESET;
+        std::cout << BOLDWHITE << "Starting with new random network "
+                  << n_iterations << " with " << start_reticulations
+                  << " reticulations, tree seed = " << seed << ".\n"
+                  << RESET;
       }
       netrax::AnnotatedNetwork ann_network =
           build_random_annotated_network(netraxOptions, instance, seed);
       init_annotated_network(ann_network, rng);
       add_extra_reticulations(ann_network, start_reticulations);
 
-      wavesearch(ann_network, &bestNetworkData, typesBySpeed, typesBySpeed, silent, print_progress);
+      wavesearch(ann_network, &bestNetworkData, typesBySpeed, typesBySpeed,
+                 silent, print_progress);
       if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         std::cout << " Inferred " << ann_network.network.num_reticulations()
                   << " reticulations, logl = "
@@ -264,15 +267,17 @@ void run_random(NetraxOptions &netraxOptions, const RaxmlInstance &instance,
       n_iterations++;
       int seed = dist(rng);
       if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-        std::cout << BOLDWHITE << "Starting with new parsimony tree " << n_iterations
-                  << " with " << start_reticulations
-                  << " reticulations, tree seed = " << seed << ".\n" << RESET;
+        std::cout << BOLDWHITE << "Starting with new parsimony tree "
+                  << n_iterations << " with " << start_reticulations
+                  << " reticulations, tree seed = " << seed << ".\n"
+                  << RESET;
       }
       netrax::AnnotatedNetwork ann_network =
           build_parsimony_annotated_network(netraxOptions, instance, seed);
       init_annotated_network(ann_network, rng);
       add_extra_reticulations(ann_network, start_reticulations);
-      wavesearch(ann_network, &bestNetworkData, typesBySpeed, typesBySpeed, silent, print_progress);
+      wavesearch(ann_network, &bestNetworkData, typesBySpeed, typesBySpeed,
+                 silent, print_progress);
       if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
         std::cout << " Inferred " << ann_network.network.num_reticulations()
                   << " reticulations, logl = "
@@ -298,7 +303,8 @@ void run_random(NetraxOptions &netraxOptions, const RaxmlInstance &instance,
   }
 
   if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-    std::cout << BOLDWHITE << "\nAggregated statistics on which moves were taken:\n";
+    std::cout << BOLDWHITE
+              << "\nAggregated statistics on which moves were taken:\n";
     std::unordered_set<MoveType> seen;
     for (const MoveType &type : typesBySpeed) {
       if (seen.count(type) == 0) {
