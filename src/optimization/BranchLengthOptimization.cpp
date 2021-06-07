@@ -526,7 +526,6 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters,
                          std::unordered_set<size_t> candidates,
                          bool restricted_total_iters) {
   double old_logl = computeLoglikelihood(ann_network);
-  NetworkState oldState = extract_network_state(ann_network);
   double new_logl;
 
   if (ann_network.network.num_reticulations() > 1) {
@@ -539,7 +538,6 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters,
     ann_network.clearInterestingTreeRestriction();
     new_logl = computeLoglikelihood(ann_network);
     if (new_logl <= old_logl && !rcs.empty()) {
-      apply_network_state(ann_network, oldState);
       new_logl = optimize_branches_internal(ann_network, max_iters,
                                             max_iters_outside, radius,
                                             candidates, restricted_total_iters);
