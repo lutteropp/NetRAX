@@ -278,7 +278,9 @@ double filterCandidates(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
 
   size_t oldCandidatesSize = candidates.size();
   int n_keep = ann_network.options.rank_keep;
-  if (!ann_network.options.no_elbow_method) {
+  if (filterType == FilterType::PREFILTER && ann_network.options.prefilter_greedy) {
+    n_keep = n_better;
+  } else if (!ann_network.options.no_elbow_method) {
     n_keep = elbowMethod(scores, n_keep);
   }
   assert(n_keep > 0);
