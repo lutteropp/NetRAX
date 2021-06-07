@@ -537,7 +537,7 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters,
                                radius, candidates, restricted_total_iters);
     ann_network.clearInterestingTreeRestriction();
     new_logl = computeLoglikelihood(ann_network);
-    if (new_logl <= old_logl && !rcs.empty()) {
+    if (new_logl < old_logl && !rcs.empty()) {
       new_logl = optimize_branches_internal(ann_network, max_iters,
                                             max_iters_outside, radius,
                                             candidates, restricted_total_iters);
