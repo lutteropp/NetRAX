@@ -290,9 +290,6 @@ SumtableInfo computeSumtable(
 
 std::vector<std::vector<SumtableInfo>> computePartitionSumtables(
     AnnotatedNetwork &ann_network, unsigned int pmatrix_index) {
-  const ReticulationConfigSet &interestingTreeRestriction =
-      ann_network.getInterestingTreeRestriction();
-
   std::vector<std::vector<SumtableInfo>> res(
       ann_network.fake_treeinfo->partition_count);
   Node *source = getSource(ann_network.network,
@@ -324,12 +321,6 @@ std::vector<std::vector<SumtableInfo>> computePartitionSumtables(
       ReticulationConfigSet restrictions = combineReticulationChoices(
           sourceTrees[i].treeLoglData.reticulationChoices,
           targetTrees[j].treeLoglData.reticulationChoices);
-
-      if (!interestingTreeRestriction.empty() &&
-          !reticulationConfigsCompatible(interestingTreeRestriction,
-                                         restrictions)) {
-        continue;
-      }
 
       if (isActiveBranch(ann_network, restrictions, pmatrix_index)) {
         if (computeReticulationConfigLogProb(
