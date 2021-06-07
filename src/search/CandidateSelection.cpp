@@ -224,9 +224,6 @@ std::vector<Move> interleaveArcRemovals(
     const std::vector<MoveType> &typesBySpeed, double *best_score,
     BestNetworkData *bestNetworkData, bool silent, bool print_progress) {
   std::vector<Move> takenRemovals;
-  if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-    std::cout << "Trying arc removal moves.\n";
-  }
   takenRemovals = fastIterationsMode(
       ann_network, psq, ann_network.options.max_rearrangement_distance,
       MoveType::ArcRemovalMove, typesBySpeed, best_score, bestNetworkData,
@@ -280,6 +277,11 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
 
       std::vector<Move> takenRemovals;
       if (isArcInsertion(chosenMove.moveType)) {
+        if (ParallelContext::master_rank() &&
+            ParallelContext::master_thread()) {
+          std::cout << BLUE << "Trying to interleave arc removal moves.\n"
+                    << RESET;
+        }
         // try doing arc removal moves
         takenRemovals =
             interleaveArcRemovals(ann_network, psq, typesBySpeed, best_score,
@@ -288,6 +290,10 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
                              takenRemovals.end());
         if (!takenRemovals.empty()) {
           extract_network_state(ann_network, oldState);
+        }
+        if (ParallelContext::master_rank() &&
+            ParallelContext::master_thread()) {
+          std::cout << BLUE << "Back to arc insertions...\n" << RESET;
         }
       }
 
@@ -301,8 +307,7 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
 
       updateCandidateMoves(ann_network, typesBySpeed, best_max_distance,
                            chosenMove, takenRemovals, candidates);
-      if (candidates.empty() && !isArcInsertion(type) && !isRSPR(type) &&
-          !isArcRemoval(type)) {
+      if (candidates.empty()) {
         // no old candidates to reuse. Thus,
         // completely gather new ones.
         if (ParallelContext::master_rank() &&
@@ -319,8 +324,7 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
                           bestState, candidates, false, silent, print_progress);
     } else {
       // score did not get better
-      if (!tried_with_allnew && !acceptedMoves.empty() &&
-          !isArcInsertion(type) && !isRSPR(type) && !(isArcRemoval(type))) {
+      if (!tried_with_allnew && !acceptedMoves.empty()) {
         tried_with_allnew = true;
         if (ParallelContext::master_rank() &&
             ParallelContext::master_thread()) {
