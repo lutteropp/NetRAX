@@ -466,6 +466,13 @@ pmatrix_index, 1);
     // old_virtual_root = new_virtual_root;
   }
 
+  if ((old_logl < start_logl) && (fabs(old_logl - start_logl) >= 1E-3)) {
+    std::cout << "old_logl: " << old_logl << "\n";
+    std::cout << "start_logl: " << start_logl << "\n";
+    throw std::runtime_error("Overall loglikelihood got worse");
+  }
+  assert((old_logl >= start_logl) || (fabs(old_logl - start_logl) < 1E-3));
+
   return old_logl;
 }
 
@@ -484,7 +491,8 @@ ReticulationConfigSet decideInterestingTrees(
   // we need a tree with all zeros, and we need a tree with all ones
   ReticulationConfigSet allZero(ann_network.options.max_reticulations);
   ReticulationConfigSet allOne(ann_network.options.max_reticulations);
-  std::vector<ReticulationState> vec(ann_network.options.max_reticulations, ReticulationState::DONT_CARE);
+  std::vector<ReticulationState> vec(ann_network.options.max_reticulations,
+                                     ReticulationState::DONT_CARE);
   allZero.configs.emplace_back(vec);
   allOne.configs.emplace_back(vec);
   for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
@@ -512,10 +520,15 @@ ReticulationConfigSet decideInterestingTrees(
   }*/
 
   for (size_t i = 0; i < ndtd.num_active_displayed_trees; ++i) {
-    if (reticulationConfigsCompatible(ndtd.displayed_trees[i].treeLoglData.reticulationChoices, allOne)) {
-      addOrReticulationChoices(res, ndtd.displayed_trees[i].treeLoglData.reticulationChoices);
-    } else if (reticulationConfigsCompatible(ndtd.displayed_trees[i].treeLoglData.reticulationChoices, allZero)) {
-      addOrReticulationChoices(res, ndtd.displayed_trees[i].treeLoglData.reticulationChoices);
+    if (reticulationConfigsCompatible(
+            ndtd.displayed_trees[i].treeLoglData.reticulationChoices, allOne)) {
+      addOrReticulationChoices(
+          res, ndtd.displayed_trees[i].treeLoglData.reticulationChoices);
+    } else if (reticulationConfigsCompatible(
+                   ndtd.displayed_trees[i].treeLoglData.reticulationChoices,
+                   allZero)) {
+      addOrReticulationChoices(
+          res, ndtd.displayed_trees[i].treeLoglData.reticulationChoices);
     }
   }
   return res;
@@ -549,12 +562,6 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters,
         optimize_branches_internal(ann_network, max_iters, max_iters_outside,
                                    radius, candidates, restricted_total_iters);
   }
-  if ((new_logl < old_logl) && (fabs(new_logl - old_logl) >= 1E-3)) {
-    std::cout << "new_logl: " << new_logl << "\n";
-    std::cout << "old_logl: " << old_logl << "\n";
-    throw std::runtime_error("Overall loglikelihood got worse");
-  }
-  assert((new_logl >= old_logl) || (fabs(new_logl - old_logl) < 1E-3));
   return new_logl;
 }
 
