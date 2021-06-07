@@ -269,11 +269,18 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
         ann_network, psq, candidates, best_score, bestNetworkData, false,
         ann_network.options.extreme_greedy, best_bic_prefilter, silent,
         print_progress);
+
     if (chosenMove.moveType != MoveType::INVALID) {
       extract_network_state(ann_network, oldState);
       // we accepted a move, thus score got better
       check_score_improvement(ann_network, best_score, bestNetworkData);
       acceptedMoves.emplace_back(chosenMove);
+
+      // if we took an arc insertion, go on with horizontal search first
+      if (ann_network.options.horizontal_after_reticulation, isArcInsertion(chosenMove.moveType)) {
+        return acceptedMoves;
+      }
+
       tried_with_allnew = false;
       got_better = true;
 
