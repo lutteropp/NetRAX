@@ -98,6 +98,9 @@ void filterCandidatesByScore(std::vector<T> &candidates,
       candidates[newSize] = scores[i].item;
       newSize++;
     }
+    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+      std::cout << "candidate " << i << ": " << toString(scores[i].item) << " has score: " << scores[i].bicScore << "\n";
+    }
   }
   candidates.resize(newSize);
 }
