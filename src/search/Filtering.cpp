@@ -248,12 +248,27 @@ void optimizeAfterMove(AnnotatedNetwork &ann_network, Move &move,
   if (filterType == FilterType::PREFILTER || filterType == FilterType::RANK ||
       filterType == FilterType::CHOOSE) {
     optimizeAfterMovePrefilter(ann_network, move);
+    if (move.moveDebugInfo.prefilter_bic == std::numeric_limits<double>::infinity()) {
+      throw std::runtime_error("why is the move after prefilter bic not set here???");
+    }
   }
   if (filterType == FilterType::RANK || filterType == FilterType::CHOOSE) {
+    if (move.moveDebugInfo.prefilter_bic == std::numeric_limits<double>::infinity()) {
+      throw std::runtime_error("why is the move prefilter bic not set here?");
+    }
     optimizeAfterMoveRank(ann_network, move);
+    if (move.moveDebugInfo.rank_bic == std::numeric_limits<double>::infinity()) {
+      throw std::runtime_error("why is the move after rank bic not set here???");
+    }
   }
   if (filterType == FilterType::CHOOSE) {
+    if (move.moveDebugInfo.rank_bic == std::numeric_limits<double>::infinity()) {
+      throw std::runtime_error("why is the move prefilter bic not set here?");
+    }
     optimizeAfterMoveChoose(ann_network, move);
+    if (move.moveDebugInfo.choose_bic == std::numeric_limits<double>::infinity()) {
+      throw std::runtime_error("why is the move after choose bic not set here???");
+    }
   }
   double end_score = scoreNetwork(ann_network);
   if (start_score < end_score) {
