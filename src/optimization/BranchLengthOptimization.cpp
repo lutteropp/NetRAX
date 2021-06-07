@@ -469,8 +469,20 @@ pmatrix_index, 1);
   return old_logl;
 }
 
-ReticulationConfigSet decideInterestingTrees(AnnotatedNetwork &ann_network) {
-  return getTreeConfig(ann_network, 0);
+ReticulationConfigSet decideInterestingTrees(AnnotatedNetwork &ann_network, std::unordered_set<size_t>& candidates) {
+  // Find a set of trees such that all candidate branches are active in at least one of the trees
+  ReticulationConfigSet res;
+  NodeDisplayedTreeData& ndtd = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index]; 
+  for (size_t cand : candidates) {
+    if (!isActiveAliveBranch(ann_network, res, cand)) {
+      for (size_t i = 0; i < ndtd.num_active_displayed_trees; ++i) {
+        if (isActiveAliveBranch(ann_network, ndtd.displayed_trees[i].treeLoglData.reticulationChoices, cand)) {
+          addOrReticulationChoices(res, ndtd.displayed_trees[i].treeLoglData.reticulationChoices);
+        }
+      }
+    }
+  }
+  return res;
 }
 
 double optimize_branches(AnnotatedNetwork &ann_network, int max_iters,
@@ -481,7 +493,7 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters,
   NetworkState oldState = extract_network_state(ann_network);
   // try first optimizing the braanch on just a single tree
   ann_network.clearInterestingTreeRestriction();
-  ReticulationConfigSet rcs = decideInterestingTrees(ann_network);
+  ReticulationConfigSet rcs = decideInterestingTrees(ann_network, candidates);
   ann_network.addInterestingTreeRestriction(rcs);
   optimize_branches_internal(ann_network, max_iters, max_iters_outside, radius,
                              candidates, restricted_total_iters);
@@ -492,7 +504,6 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters,
       std::cout << RED << "Doing brlenopt from a single tree was good enough.\n"
                 << RESET;
     }*/
-    new_logl = computeLoglikelihood(ann_network);
   } else {
     apply_network_state(ann_network, oldState);
     new_logl =
