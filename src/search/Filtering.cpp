@@ -274,13 +274,13 @@ double filterCandidates(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
     }
     if (bicScore < best_bic) {
       best_bic = bicScore;
-      extract_network_state(ann_network, bestState, true);
+      extract_network_state(ann_network, bestState);
     }
     if (extreme_greedy && (bicScore < old_bic)) {
       std::swap(candidates[0], candidates[i]);
       candidates.resize(1);
       undoMove(ann_network, move);
-      apply_network_state(ann_network, oldState, true);
+      apply_network_state(ann_network, oldState);
       if (print_progress && ParallelContext::master_rank() &&
           ParallelContext::master_thread()) {
         std::cout << std::endl;
@@ -289,7 +289,7 @@ double filterCandidates(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
     }
     undoMove(ann_network, move);
     assert(checkSanity(ann_network, candidates[i]));
-    apply_network_state(ann_network, oldState, true);
+    apply_network_state(ann_network, oldState);
     if ((bicScore < old_bic) && (filterType == FilterType::CHOOSE)) {
       // Here, we need to add the promising candidate to the promising state
       // queue
@@ -297,7 +297,7 @@ double filterCandidates(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
     }
   }
 
-  apply_network_state(ann_network, oldState, true);
+  apply_network_state(ann_network, oldState);
   if (print_progress && ParallelContext::master_rank() &&
       ParallelContext::master_thread()) {
     std::cout << std::endl;
@@ -400,7 +400,7 @@ double acceptMove(AnnotatedNetwork &ann_network, Move &move,
          computeLoglikelihood(ann_network, 0, 1));
   performMove(ann_network, move);
   if (bestState) {
-    apply_network_state(ann_network, *bestState, true);
+    apply_network_state(ann_network, *bestState);
   }
   assert(computeLoglikelihood(ann_network, 1, 1) ==
          computeLoglikelihood(ann_network, 0, 1));
