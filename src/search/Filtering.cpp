@@ -169,13 +169,13 @@ enum class FilterType { PREFILTER = 0, RANK = 1, CHOOSE = 2 };
 
 double optimizeAfterMovePrefilter(AnnotatedNetwork &ann_network, Move &move) {
   if (isArcInsertion(move.moveType)) {
-    std::unordered_set<size_t> brlenopt_candidates;
-    brlenopt_candidates.emplace(move.arcInsertionData.wanted_uv_pmatrix_index);
-    optimizeBranchesCandidates(ann_network, brlenopt_candidates,
-                               1.0 / RAXML_BRLEN_SMOOTHINGS);  // one iteration
+    //std::unordered_set<size_t> brlenopt_candidates;
+    //brlenopt_candidates.emplace(move.arcInsertionData.wanted_uv_pmatrix_index);
+    //optimizeBranchesCandidates(ann_network, brlenopt_candidates,
+    //                           1.0 / RAXML_BRLEN_SMOOTHINGS);  // one iteration
     optimize_reticulation(ann_network,
                           ann_network.network.num_reticulations() - 1);
-    updateMoveBranchLengths(ann_network, move);
+    //updateMoveBranchLengths(ann_network, move);
   }
   if (printMyDebug(move) && ParallelContext::master_rank() &&
       ParallelContext::master_thread()) {
