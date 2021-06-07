@@ -463,12 +463,6 @@ pmatrix_index, 1);
     old_logl = new_logl;
     // old_virtual_root = new_virtual_root;
   }
-  if ((old_logl < start_logl) && (fabs(old_logl - start_logl) >= 1E-3)) {
-    std::cout << "old_logl: " << old_logl << "\n";
-    std::cout << "start_logl: " << start_logl << "\n";
-    throw std::runtime_error("Overall loglikelihood got worse");
-  }
-  assert((old_logl >= start_logl) || (fabs(old_logl - start_logl) < 1E-3));
 
   return old_logl;
 }
@@ -483,8 +477,8 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters,
   ann_network.clearInterestingTreeRestriction();
   ReticulationConfigSet rcs = getTreeConfig(ann_network, 0);
   ann_network.addInterestingTreeRestriction(rcs);
-  optimize_branches_internal(ann_network, max_iters, max_iters_outside,
-                                 radius, candidates, restricted_total_iters);
+  optimize_branches_internal(ann_network, max_iters, max_iters_outside, radius,
+                             candidates, restricted_total_iters);
   ann_network.clearInterestingTreeRestriction();
   double new_logl = computeLoglikelihood(ann_network);
   if (new_logl > old_logl) {
@@ -495,6 +489,12 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters,
         optimize_branches_internal(ann_network, max_iters, max_iters_outside,
                                    radius, candidates, restricted_total_iters);
   }
+  if ((new_logl < old_logl) && (fabs(new_logl - old_logl) >= 1E-3)) {
+    std::cout << "new_logl: " << new_logl << "\n";
+    std::cout << "old_logl: " << old_logl << "\n";
+    throw std::runtime_error("Overall loglikelihood got worse");
+  }
+  assert((new_logl >= old_logl) || (fabs(new_logl - old_logl) < 1E-3));
   return new_logl;
 }
 
