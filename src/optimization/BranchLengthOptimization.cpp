@@ -477,6 +477,7 @@ ReticulationConfigSet decideInterestingTrees(
   NodeDisplayedTreeData &ndtd =
       ann_network
           .pernode_displayed_tree_data[ann_network.network.root->clv_index];
+  unsigned int n_added = 0;
   for (size_t cand : candidates) {
     if (res.empty() || !isActiveAliveBranchInOrSet(ann_network, res, cand)) {
       for (size_t i = 0; i < ndtd.num_active_displayed_trees; ++i) {
@@ -486,9 +487,13 @@ ReticulationConfigSet decideInterestingTrees(
                 cand)) {
           addOrReticulationChoices(
               res, ndtd.displayed_trees[i].treeLoglData.reticulationChoices);
+          n_added++;
         }
       }
     }
+  }
+  if (n_added == ndtd.num_active_displayed_trees) {
+    res.configs.clear();
   }
   return res;
 }
@@ -510,7 +515,7 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters,
                                radius, candidates, restricted_total_iters);
     ann_network.clearInterestingTreeRestriction();
     new_logl = computeLoglikelihood(ann_network);
-    if (new_logl <= old_logl) {
+    if (new_logl <= old_logl && !rcs.empty()) {
       apply_network_state(ann_network, oldState);
       new_logl = optimize_branches_internal(ann_network, max_iters,
                                             max_iters_outside, radius,
