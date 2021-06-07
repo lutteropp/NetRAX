@@ -25,6 +25,8 @@
 #include "../likelihood/LikelihoodDerivatives.hpp"
 #include "../likelihood/VirtualRerooting.hpp"
 
+#include "NetworkState.hpp"
+
 namespace netrax {
 
 std::vector<DisplayedTreeData> extractOldTrees(AnnotatedNetwork &ann_network,
@@ -475,6 +477,7 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters,
                          int max_iters_outside, int radius,
                          std::unordered_set<size_t> candidates,
                          bool restricted_total_iters) {
+  NetworkState oldState = extract_network_state(ann_network);
   // try first optimizing the braanch on just a single tree
   ann_network.clearInterestingTreeRestriction();
   ReticulationConfigSet rcs = getTreeConfig(ann_network, 0);
@@ -488,6 +491,7 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters,
   if (new_logl_single < old_logl_single) {
     new_logl = computeLoglikelihood(ann_network);
   } else {
+    apply_network_state(ann_network, oldState);
     new_logl =
         optimize_branches_internal(ann_network, max_iters, max_iters_outside,
                                    radius, candidates, restricted_total_iters);
