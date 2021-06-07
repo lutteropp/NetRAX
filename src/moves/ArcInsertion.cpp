@@ -1009,6 +1009,10 @@ void undoMoveArcInsertion(AnnotatedNetwork &ann_network, Move &move) {
     }
   }
 
+  ann_network.reticulation_probs[ann_network.network.num_reticulations()] = 0.5;
+  ann_network.first_parent_logprobs[ann_network.network.num_reticulations()] = log(0.5);
+  ann_network.second_parent_logprobs[ann_network.network.num_reticulations()] = log(0.5);
+
   assert(assertConsecutiveIndices(ann_network));
   assert(assertBranchLengths(ann_network));
 }
