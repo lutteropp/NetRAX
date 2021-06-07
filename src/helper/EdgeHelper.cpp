@@ -120,4 +120,20 @@ bool isActiveAliveBranch(AnnotatedNetwork &ann_network,
                              pmatrix_index);
 }
 
+bool isActiveAliveBranchInOrSet(
+    AnnotatedNetwork &ann_network,
+    const ReticulationConfigSet &reticulationChoices,
+    unsigned int pmatrix_index) {
+  for (size_t i = 0; i < reticulationChoices.configs.size(); ++i) {
+    setReticulationParents(ann_network.network, reticulationChoices.configs[i]);
+    std::vector<bool> dead_nodes = collect_dead_nodes(
+        ann_network.network, ann_network.network.root->clv_index);
+    if (isActiveAliveBranch(ann_network, reticulationChoices, dead_nodes,
+                            pmatrix_index)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 }  // namespace netrax

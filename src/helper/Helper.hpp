@@ -76,6 +76,10 @@ bool isActiveAliveBranch(AnnotatedNetwork &ann_network,
 bool isActiveAliveBranch(AnnotatedNetwork &ann_network,
                          const ReticulationConfigSet &reticulationChoices,
                          unsigned int pmatrix_index);
+bool isActiveAliveBranchInOrSet(
+    AnnotatedNetwork &ann_network,
+    const ReticulationConfigSet &reticulationChoices,
+    unsigned int pmatrix_index);
 
 /* helper functions related to children (ChildrenHelper.cpp) */
 std::vector<Node *> getChildren(Network &network, const Node *node);

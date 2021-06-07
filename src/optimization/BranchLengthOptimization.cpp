@@ -474,7 +474,7 @@ ReticulationConfigSet decideInterestingTrees(AnnotatedNetwork &ann_network, std:
   ReticulationConfigSet res;
   NodeDisplayedTreeData& ndtd = ann_network.pernode_displayed_tree_data[ann_network.network.root->clv_index]; 
   for (size_t cand : candidates) {
-    if (!isActiveAliveBranch(ann_network, res, cand)) {
+    if (res.empty() || !isActiveAliveBranchInOrSet(ann_network, res, cand)) {
       for (size_t i = 0; i < ndtd.num_active_displayed_trees; ++i) {
         if (isActiveAliveBranch(ann_network, ndtd.displayed_trees[i].treeLoglData.reticulationChoices, cand)) {
           addOrReticulationChoices(res, ndtd.displayed_trees[i].treeLoglData.reticulationChoices);
