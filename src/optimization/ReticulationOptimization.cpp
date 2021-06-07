@@ -88,6 +88,10 @@ double optimize_reticulation(AnnotatedNetwork &ann_network,
 
   double score = 0;
   double f2x;
+
+  // just for debug, because something is fishy with Brent
+  setReticulationProb(ann_network, reticulation_index, 0.5);
+
   double new_brprob = pllmod_opt_minimize_brent(
       min_brprob, old_brprob, max_brprob, tolerance, &score, &f2x,
       (void *)&params, &brent_target_networks_prob);
