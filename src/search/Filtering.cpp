@@ -314,10 +314,7 @@ double prefilterCandidates(AnnotatedNetwork &ann_network,
                            bool silent, bool print_progress) {
   double best_bic = filterCandidates(
       ann_network, psq, oldState, bestState, candidates, FilterType::PREFILTER,
-      old_bic, false, extreme_greedy, true, silent, print_progress);
-  if ((best_bic >= old_bic) && ann_network.options.prefilter_greedy) {
-    candidates.clear();
-  }
+      old_bic, false, (extreme_greedy | ann_network.options.prefilter_greedy), true, silent, print_progress);
   return best_bic;
 }  // namespace netrax
 
