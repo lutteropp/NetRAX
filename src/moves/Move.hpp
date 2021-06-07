@@ -60,8 +60,8 @@ struct MoveDebugInfo {
       prefilter_bic = rhs.prefilter_bic;
       rank_bic = rhs.rank_bic;
       choose_bic = rhs.choose_bic;
-      return *this;
     }
+    return *this;
   }
 
   bool operator==(const MoveDebugInfo &rhs) const {
