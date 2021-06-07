@@ -185,10 +185,10 @@ void updateOldCandidates(AnnotatedNetwork &ann_network, const Move &chosenMove,
   recollectFirstParents(ann_network.network, candidates);
 }
 
-void invalidateDebugInfo(std::vector<Move>& candidates) {
-    for (size_t i = 0; i < candidates.size(); ++i) {
-        candidates[i].moveDebugInfo = {};
-    }
+void invalidateDebugInfo(std::vector<Move> &candidates) {
+  for (size_t i = 0; i < candidates.size(); ++i) {
+    candidates[i].moveDebugInfo = {};
+  }
 }
 
 void updateCandidateMoves(AnnotatedNetwork &ann_network,
@@ -308,7 +308,8 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
 
       updateCandidateMoves(ann_network, typesBySpeed, best_max_distance,
                            chosenMove, takenRemovals, candidates);
-      if (candidates.empty() && !isArcInsertion(type)) {
+      if (candidates.empty() && !isArcInsertion(type) && !isRSPR(type) &&
+          !isArcRemoval(type)) {
         // no old candidates to reuse. Thus,
         // completely gather new ones.
         if (ParallelContext::master_rank() &&
@@ -325,7 +326,8 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
                           bestState, candidates, false, silent, print_progress);
     } else {
       // score did not get better
-      if (!tried_with_allnew && !acceptedMoves.empty() && !isArcInsertion(type)) {
+      if (!tried_with_allnew && !acceptedMoves.empty() &&
+          !isArcInsertion(type) && !isRSPR(type) && !(isArcRemoval(type))) {
         tried_with_allnew = true;
         if (ParallelContext::master_rank() &&
             ParallelContext::master_thread()) {
