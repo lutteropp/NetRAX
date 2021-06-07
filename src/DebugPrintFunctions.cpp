@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <fstream>
 #include <iostream>
 #include <iterator>
 #include <memory>
@@ -247,6 +248,15 @@ std::string exportDebugInfo(AnnotatedNetwork &ann_network, bool with_label) {
 std::string exportDebugInfoNetwork(Network &network, bool with_labels) {
   return exportDebugInfoExtraNodeNumber(network, std::vector<unsigned int>(),
                                         with_labels);
+}
+
+void exportDebugInfoToFile(AnnotatedNetwork &ann_network,
+                           std::string &filename) {
+  if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+    std::ofstream outfile(filename);
+    outfile << exportDebugInfo(ann_network) << "\n";
+    outfile.close();
+  }
 }
 
 void print_partition(AnnotatedNetwork &ann_network,

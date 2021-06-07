@@ -42,6 +42,7 @@ void printReticulationFirstParents(AnnotatedNetwork &ann_network);
 std::string exportDebugInfoRootedNetwork(const RootedNetwork &rnetwork);
 std::string exportDebugInfo(AnnotatedNetwork &ann_network,
                             bool with_labels = true);
+void exportDebugInfoToFile(AnnotatedNetwork& ann_network, std::string& filename);
 std::string exportDebugInfoNetwork(Network &network, bool with_labels = true);
 
 void print_partition(AnnotatedNetwork &ann_network, pll_partition_t *partition);
