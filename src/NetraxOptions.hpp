@@ -111,6 +111,8 @@ class NetraxOptions {
 
   bool randomize_candidates = false;
 
+  bool reticulation_after_reticulation = false;
+
   int retry = 0;
 
   std::string true_network_path;

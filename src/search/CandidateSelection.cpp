@@ -185,12 +185,6 @@ void updateOldCandidates(AnnotatedNetwork &ann_network, const Move &chosenMove,
   recollectFirstParents(ann_network.network, candidates);
 }
 
-void invalidateDebugInfo(std::vector<Move> &candidates) {
-  for (size_t i = 0; i < candidates.size(); ++i) {
-    candidates[i].moveDebugInfo = {};
-  }
-}
-
 void updateCandidateMoves(AnnotatedNetwork &ann_network,
                           const std::vector<MoveType> &typesBySpeed,
                           int best_max_distance, const Move &chosenMove,
@@ -223,7 +217,6 @@ void updateCandidateMoves(AnnotatedNetwork &ann_network,
     updateOldCandidates(ann_network, takenRemovals[i], candidates);
   }
   removeBadCandidates(ann_network, candidates);
-  invalidateDebugInfo(candidates);
 }
 
 std::vector<Move> interleaveArcRemovals(
@@ -231,9 +224,6 @@ std::vector<Move> interleaveArcRemovals(
     const std::vector<MoveType> &typesBySpeed, double *best_score,
     BestNetworkData *bestNetworkData, bool silent, bool print_progress) {
   std::vector<Move> takenRemovals;
-  if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-    std::cout << "Trying arc removal moves.\n";
-  }
   takenRemovals = fastIterationsMode(
       ann_network, psq, ann_network.options.max_rearrangement_distance,
       MoveType::ArcRemovalMove, typesBySpeed, best_score, bestNetworkData,
@@ -260,8 +250,9 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
 
   std::vector<Move> candidates =
       getPossibleMoves(ann_network, typesBySpeed, type, 0, best_max_distance);
-  prefilterCandidates(ann_network, psq, oldState, scoreNetwork(ann_network),
-                      bestState, candidates, false, silent, print_progress);
+  double best_bic_prefilter =
+      prefilterCandidates(ann_network, psq, oldState, scoreNetwork(ann_network),
+                          bestState, candidates, false, silent, print_progress);
 
   bool old_no_prefiltering = ann_network.options.no_prefiltering;
   ann_network.options.no_prefiltering = true;
@@ -276,17 +267,30 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
     oldCandidates = candidates;
     Move chosenMove = applyBestCandidate(
         ann_network, psq, candidates, best_score, bestNetworkData, false,
-        ann_network.options.extreme_greedy, silent, print_progress);
+        ann_network.options.extreme_greedy, best_bic_prefilter, silent,
+        print_progress);
+
     if (chosenMove.moveType != MoveType::INVALID) {
       extract_network_state(ann_network, oldState);
       // we accepted a move, thus score got better
       check_score_improvement(ann_network, best_score, bestNetworkData);
       acceptedMoves.emplace_back(chosenMove);
+
+      // if we took an arc insertion, go on with horizontal search first
+      if (!ann_network.options.reticulation_after_reticulation, isArcInsertion(chosenMove.moveType)) {
+        return acceptedMoves;
+      }
+
       tried_with_allnew = false;
       got_better = true;
 
       std::vector<Move> takenRemovals;
       if (isArcInsertion(chosenMove.moveType)) {
+        if (ParallelContext::master_rank() &&
+            ParallelContext::master_thread()) {
+          std::cout << BLUE << "Trying to interleave arc removal moves.\n"
+                    << RESET;
+        }
         // try doing arc removal moves
         takenRemovals =
             interleaveArcRemovals(ann_network, psq, typesBySpeed, best_score,
@@ -295,6 +299,10 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
                              takenRemovals.end());
         if (!takenRemovals.empty()) {
           extract_network_state(ann_network, oldState);
+        }
+        if (ParallelContext::master_rank() &&
+            ParallelContext::master_thread()) {
+          std::cout << BLUE << "Back to arc insertions...\n" << RESET;
         }
       }
 
@@ -308,8 +316,7 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
 
       updateCandidateMoves(ann_network, typesBySpeed, best_max_distance,
                            chosenMove, takenRemovals, candidates);
-      if (candidates.empty() && !isArcInsertion(type) && !isRSPR(type) &&
-          !isArcRemoval(type)) {
+      if (candidates.empty()) {
         // no old candidates to reuse. Thus,
         // completely gather new ones.
         if (ParallelContext::master_rank() &&
@@ -322,12 +329,12 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
                                       best_max_distance);
         oldCandidates.clear();
       }
-      prefilterCandidates(ann_network, psq, oldState, scoreNetwork(ann_network),
-                          bestState, candidates, false, silent, print_progress);
+      best_bic_prefilter = prefilterCandidates(
+          ann_network, psq, oldState, scoreNetwork(ann_network), bestState,
+          candidates, false, silent, print_progress);
     } else {
       // score did not get better
-      if (!tried_with_allnew && !acceptedMoves.empty() &&
-          !isArcInsertion(type) && !isRSPR(type) && !(isArcRemoval(type))) {
+      if (!tried_with_allnew && !acceptedMoves.empty()) {
         tried_with_allnew = true;
         if (ParallelContext::master_rank() &&
             ParallelContext::master_thread()) {
@@ -344,6 +351,9 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
                            }),
             candidates.end());
         oldCandidates.clear();
+        best_bic_prefilter = prefilterCandidates(
+            ann_network, psq, oldState, scoreNetwork(ann_network), bestState,
+            candidates, false, silent, print_progress);
         got_better = true;
       }
     }
@@ -379,9 +389,11 @@ double slowIterationsMode(AnnotatedNetwork &ann_network,
     got_better = false;
     std::vector<Move> candidates =
         getPossibleMoves(ann_network, typesBySpeed, type, min_dist, max_dist);
-    applyBestCandidate(
-        ann_network, psq, candidates, best_score, bestNetworkData, false,
-        ann_network.options.extreme_greedy, silent, print_progress);
+
+    applyBestCandidate(ann_network, psq, candidates, best_score,
+                       bestNetworkData, false,
+                       ann_network.options.extreme_greedy,
+                       scoreNetwork(ann_network), silent, print_progress);
     double score = scoreNetwork(ann_network);
     if (score < old_score) {
       got_better = true;
