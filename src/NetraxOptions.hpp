@@ -111,7 +111,7 @@ class NetraxOptions {
 
   bool randomize_candidates = false;
 
-  bool horizontal_after_reticulation = false;
+  bool reticulation_after_reticulation = false;
 
   int retry = 0;
 

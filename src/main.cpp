@@ -185,9 +185,10 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
   // options->extreme_greedy_prefiltering, "Enable extreme greedy prefiltering
   // mode.");
 
-  app.add_flag(
-      "--horizontal_after_reticulation", options->horizontal_after_reticulation,
-      "If we took an arc insertion, go on with horizontal search first.");
+  app.add_flag("--horizontal_after_reticulation",
+               options->reticulation_after_reticulation,
+               "If we took an arc insertion, keep trying more arc insertions "
+               "instead of going with horizontal search first.");
 
   CLI11_PARSE(app, argc, argv);
 
