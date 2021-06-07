@@ -250,8 +250,9 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
 
   std::vector<Move> candidates =
       getPossibleMoves(ann_network, typesBySpeed, type, 0, best_max_distance);
-  prefilterCandidates(ann_network, psq, oldState, scoreNetwork(ann_network),
-                      bestState, candidates, false, silent, print_progress);
+  double best_bic_prefilter =
+      prefilterCandidates(ann_network, psq, oldState, scoreNetwork(ann_network),
+                          bestState, candidates, false, silent, print_progress);
 
   bool old_no_prefiltering = ann_network.options.no_prefiltering;
   ann_network.options.no_prefiltering = true;
@@ -266,7 +267,8 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
     oldCandidates = candidates;
     Move chosenMove = applyBestCandidate(
         ann_network, psq, candidates, best_score, bestNetworkData, false,
-        ann_network.options.extreme_greedy, silent, print_progress);
+        ann_network.options.extreme_greedy, best_bic_prefilter, silent,
+        print_progress);
     if (chosenMove.moveType != MoveType::INVALID) {
       extract_network_state(ann_network, oldState);
       // we accepted a move, thus score got better
@@ -320,8 +322,9 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
                                       best_max_distance);
         oldCandidates.clear();
       }
-      prefilterCandidates(ann_network, psq, oldState, scoreNetwork(ann_network),
-                          bestState, candidates, false, silent, print_progress);
+      best_bic_prefilter = prefilterCandidates(
+          ann_network, psq, oldState, scoreNetwork(ann_network), bestState,
+          candidates, false, silent, print_progress);
     } else {
       // score did not get better
       if (!tried_with_allnew && !acceptedMoves.empty()) {
@@ -376,9 +379,11 @@ double slowIterationsMode(AnnotatedNetwork &ann_network,
     got_better = false;
     std::vector<Move> candidates =
         getPossibleMoves(ann_network, typesBySpeed, type, min_dist, max_dist);
-    applyBestCandidate(
-        ann_network, psq, candidates, best_score, bestNetworkData, false,
-        ann_network.options.extreme_greedy, silent, print_progress);
+
+    applyBestCandidate(ann_network, psq, candidates, best_score,
+                       bestNetworkData, false,
+                       ann_network.options.extreme_greedy,
+                       scoreNetwork(ann_network), silent, print_progress);
     double score = scoreNetwork(ann_network);
     if (score < old_score) {
       got_better = true;
