@@ -14,6 +14,7 @@
 #include "../optimization/ReticulationOptimization.hpp"
 #include "PromisingState.hpp"
 #include "ScoreImprovement.hpp"
+#include "../helper/Helper.hpp"
 
 #include <algorithm>
 #include <random>
@@ -311,6 +312,18 @@ double prefilterCandidates(AnnotatedNetwork &ann_network,
                            NetworkState &bestState,
                            std::vector<Move> &candidates, bool extreme_greedy,
                            bool silent, bool print_progress) {
+  if (!candidates.empty() && !isArcInsertion(candidates[0].moveType) && !isArcRemoval(candidates[0].moveType)) {
+    LikelihoodVariant oldVariant = ann_network.options.likelihood_variant;
+    ann_network.options.likelihood_variant = LikelihoodVariant::SARAH_PSEUDO;
+    invalidateAllCLVs(ann_network);
+    double old_bic_pseudo = scoreNetwork(ann_network);
+    filterCandidates(
+        ann_network, psq, oldState, bestState, candidates, FilterType::PREFILTER,
+        old_bic_pseudo, false, extreme_greedy, true, silent, print_progress);
+    ann_network.options.likelihood_variant = oldVariant;
+    invalidateAllCLVs(ann_network);
+  }
+
   double best_bic = filterCandidates(
       ann_network, psq, oldState, bestState, candidates, FilterType::PREFILTER,
       old_bic, false, extreme_greedy, true, silent, print_progress);
