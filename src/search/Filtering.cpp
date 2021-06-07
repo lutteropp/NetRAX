@@ -77,13 +77,6 @@ void filterCandidatesByNodes(std::vector<T> &candidates,
   candidates = newCandidates;
 }
 
-bool printMyDebug(const Move &move) {
-  return (move.arcInsertionData.a_clv_index == 47 &&
-          move.arcInsertionData.b_clv_index == 49 &&
-          move.arcInsertionData.c_clv_index == 44 &&
-          move.arcInsertionData.d_clv_index == 45);
-}
-
 template <typename T>
 void filterCandidatesByScore(std::vector<T> &candidates,
                              std::vector<ScoreItem<T>> &scores,
@@ -104,12 +97,6 @@ void filterCandidatesByScore(std::vector<T> &candidates,
     if (scores[i].bicScore < cutoff_bic) {
       candidates[newSize] = scores[i].item;
       newSize++;
-    }
-    if (printMyDebug(scores[i].item) && ParallelContext::master_rank() &&
-        ParallelContext::master_thread()) {
-      std::cout << "candidate " << i << ": " << toString(scores[i].item)
-                << " has score: " << scores[i].bicScore << " and debug info "
-                << scores[i].item.moveDebugInfo << "\n";
     }
   }
   candidates.resize(newSize);
@@ -177,11 +164,6 @@ double optimizeAfterMovePrefilter(AnnotatedNetwork &ann_network, Move &move) {
                           ann_network.network.num_reticulations() - 1);
     updateMoveBranchLengths(ann_network, move);
   }
-  if (printMyDebug(move) && ParallelContext::master_rank() &&
-      ParallelContext::master_thread()) {
-    std::cout << "score after prefiltering opt for candidate " << toString(move)
-              << ": " << scoreNetwork(ann_network) << "\n";
-  }
   double score = scoreNetwork(ann_network);
   if (move.moveDebugInfo.prefilter_bic !=
       std::numeric_limits<double>::infinity()) {
@@ -203,11 +185,6 @@ double optimizeAfterMoveRank(AnnotatedNetwork &ann_network, Move &move) {
   optimizeBranchesCandidates(ann_network, brlen_opt_candidates);
   optimizeReticulationProbs(ann_network);
   updateMoveBranchLengths(ann_network, move);
-  if (printMyDebug(move) && ParallelContext::master_rank() &&
-      ParallelContext::master_thread()) {
-    std::cout << "score after ranking opt for candidate " << toString(move)
-              << ": " << scoreNetwork(ann_network) << "\n";
-  }
   double score = scoreNetwork(ann_network);
   if (move.moveDebugInfo.rank_bic != std::numeric_limits<double>::infinity()) {
     if (move.moveDebugInfo.rank_bic != score) {
@@ -225,11 +202,6 @@ double optimizeAfterMoveChoose(AnnotatedNetwork &ann_network, Move &move) {
   optimizeBranches(ann_network);
   optimizeReticulationProbs(ann_network);
   updateMoveBranchLengths(ann_network, move);
-  if (printMyDebug(move) && ParallelContext::master_rank() &&
-      ParallelContext::master_thread()) {
-    std::cout << "score after choosing opt for candidate " << toString(move)
-              << ": " << scoreNetwork(ann_network) << "\n";
-  }
   double score = scoreNetwork(ann_network);
   if (move.moveDebugInfo.choose_bic !=
       std::numeric_limits<double>::infinity()) {
