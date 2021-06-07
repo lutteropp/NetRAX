@@ -13,11 +13,15 @@
 #include "NetraxOptions.hpp"
 #include "graph/AnnotatedNetwork.hpp"
 #include "graph/Network.hpp"
+#include "graph/ReticulationConfigSet.hpp"
+
 namespace netrax {
 
 struct NetworkParams {
   AnnotatedNetwork* ann_network;
-  NetworkParams(AnnotatedNetwork* ann_network) : ann_network(ann_network) {}
+  ReticulationConfigSet interestingTreeRestriction;
+  NetworkParams(AnnotatedNetwork* ann_network)
+      : ann_network(ann_network), interestingTreeRestriction{} {}
 };
 
 RaxmlInstance createRaxmlInstance(const NetraxOptions& options);

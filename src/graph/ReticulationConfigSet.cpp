@@ -233,4 +233,12 @@ ReticulationConfigSet combineReticulationChoices(
   return res;
 }
 
+void addOrReticulationChoices(ReticulationConfigSet &rcs,
+                              const ReticulationConfigSet &moreChoices) {
+  for (std::vector<ReticulationState> choice : moreChoices.configs) {
+    rcs.configs.emplace_back(choice);
+  }
+  simplifyReticulationChoices(rcs);
+}
+
 }  // namespace netrax

@@ -96,5 +96,6 @@ ReticulationConfigSet combineReticulationChoices(
     const ReticulationConfigSet &left, const ReticulationConfigSet &right);
 void simplifyReticulationChoices(ReticulationConfigSet &res);
 bool validReticulationChoices(const std::vector<ReticulationState> &choices);
+void addOrReticulationChoices(ReticulationConfigSet& rcs, const ReticulationConfigSet& moreChoices);
 
 }  // namespace netrax

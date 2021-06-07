@@ -203,11 +203,19 @@ bool allClvsValid(AnnotatedNetwork &ann_network, size_t clv_index) {
           .num_active_displayed_trees == 0) {
     return false;
   }
+
+  ReticulationConfigSet &interestingTreeRestrictions =
+      getInterestingTreeRestriction(ann_network);
   for (size_t i = 0; i < ann_network.pernode_displayed_tree_data[clv_index]
                              .num_active_displayed_trees;
        ++i) {
     DisplayedTreeData &dtd =
         ann_network.pernode_displayed_tree_data[clv_index].displayed_trees[i];
+    if (!interestingTreeRestrictions.empty() &&
+        !reticulationConfigsCompatible(interestingTreeRestrictions,
+                                       dtd.treeLoglData.reticulationChoices)) {
+      continue;
+    }
     if (!dtd.treeLoglData.tree_logprob_valid) {
       dtd.treeLoglData.tree_logprob =
           computeReticulationConfigLogProb(dtd.treeLoglData.reticulationChoices,

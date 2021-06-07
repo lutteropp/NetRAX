@@ -196,7 +196,8 @@ void updateCLVsVirtualRerootTrees(AnnotatedNetwork &ann_network,
                                   ReticulationConfigSet &restrictions) {
   assert(old_virtual_root);
   assert(new_virtual_root);
-  assert(ann_network.pernode_displayed_tree_data[old_virtual_root->clv_index].num_active_displayed_trees > 0);
+  assert(ann_network.pernode_displayed_tree_data[old_virtual_root->clv_index]
+             .num_active_displayed_trees > 0);
 
   // 1.) for all paths from retNode to new_virtual_root:
   //     1.1) Collect the reticulation nodes encountered on the path, build exta
@@ -218,6 +219,9 @@ void updateCLVsVirtualRerootTrees(AnnotatedNetwork &ann_network,
     }
   }
 
+  ReticulationConfigSet &interestingTreeRestrictions =
+      getInterestingTreeRestriction(ann_network);
+
   for (size_t p = 0; p < paths.size(); ++p) {
     // std::cout << "PROCESSING PATH " << p << "\n";
     // printPathToVirtualRoot(paths[p]);
@@ -226,6 +230,11 @@ void updateCLVsVirtualRerootTrees(AnnotatedNetwork &ann_network,
 
     if (!reticulationConfigsCompatible(paths[p].reticulationChoices,
                                        restrictions)) {
+      continue;
+    }
+    if (!interestingTreeRestrictions.empty() &&
+        !reticulationConfigsCompatible(paths[p].reticulationChoices,
+                                       interestingTreeRestrictions)) {
       continue;
     }
 
@@ -246,7 +255,8 @@ void updateCLVsVirtualRerootTrees(AnnotatedNetwork &ann_network,
                           appendMode);
     }
   }
-  assert(ann_network.pernode_displayed_tree_data[new_virtual_root->clv_index].num_active_displayed_trees > 0);
+  assert(ann_network.pernode_displayed_tree_data[new_virtual_root->clv_index]
+             .num_active_displayed_trees > 0);
 }
 
 void updateTreeData(AnnotatedNetwork &ann_network,
@@ -350,6 +360,8 @@ double computeLoglikelihoodBrlenOpt(
   if (ann_network.cached_logl_valid) {
     return ann_network.cached_logl;
   }
+  ReticulationConfigSet &interestingTreeRestriction =
+      getInterestingTreeRestriction(ann_network);
   Node *source = getSource(ann_network.network,
                            ann_network.network.edges_by_index[pmatrix_index]);
   Node *target = getTarget(ann_network.network,
@@ -410,6 +422,14 @@ double computeLoglikelihoodBrlenOpt(
       combinedTreeData.reticulationChoices = combineReticulationChoices(
           sourceTrees[i].treeLoglData.reticulationChoices,
           targetTrees[j].treeLoglData.reticulationChoices);
+
+      if (!interestingTreeRestriction.empty() &&
+          !reticulationConfigsCompatible(
+              interestingTreeRestriction,
+              combinedTreeData.reticulationChoices)) {
+        continue;
+      }
+
       if (isActiveAliveBranch(ann_network, combinedTreeData.reticulationChoices,
                               pmatrix_index)) {
         if (print_extra_debug_info) {
@@ -437,6 +457,12 @@ double computeLoglikelihoodBrlenOpt(
 
   for (size_t i = 0; i < n_trees_source; ++i) {
     if (!source_tree_seen[i]) {
+      if (!interestingTreeRestriction.empty() &&
+          !reticulationConfigsCompatible(
+              interestingTreeRestriction,
+              sourceTrees[i].treeLoglData.reticulationChoices)) {
+        continue;
+      }
       if (isActiveAliveBranch(ann_network,
                               sourceTrees[i].treeLoglData.reticulationChoices,
                               pmatrix_index)) {
@@ -447,6 +473,12 @@ double computeLoglikelihoodBrlenOpt(
   }
   for (size_t j = 0; j < n_trees_target; ++j) {
     if (!target_tree_seen[j]) {
+      if (!interestingTreeRestriction.empty() &&
+          !reticulationConfigsCompatible(
+              interestingTreeRestriction,
+              targetTrees[j].treeLoglData.reticulationChoices)) {
+        continue;
+      }
       if (isActiveAliveBranch(ann_network,
                               targetTrees[j].treeLoglData.reticulationChoices,
                               pmatrix_index)) {
@@ -493,6 +525,12 @@ double computeLoglikelihoodBrlenOpt(
                                     ann_network.options.max_reticulations);
       combinedTreeData.reticulationChoices =
           oldTrees[i].treeLoglData.reticulationChoices;
+      if (!interestingTreeRestriction.empty() &&
+          !reticulationConfigsCompatible(
+              interestingTreeRestriction,
+              combinedTreeData.reticulationChoices)) {
+        continue;
+      }
       updateTreeData(ann_network, oldTrees, combinedTreeData);
       combinedTrees.emplace_back(combinedTreeData);
     }
@@ -512,6 +550,13 @@ double computeLoglikelihoodBrlenOpt(
   for (size_t tree_idx = 0;
        tree_idx < (1 << ann_network.network.num_reticulations()); ++tree_idx) {
     ReticulationConfigSet treeChoices = getTreeConfig(ann_network, tree_idx);
+
+    if (!interestingTreeRestriction.empty() &&
+        !reticulationConfigsCompatible(interestingTreeRestriction,
+                                       treeChoices)) {
+      continue;
+    }
+
     bool seen = false;
     for (size_t i = 0; i < combinedTrees.size(); ++i) {
       if (reticulationConfigsCompatible(treeChoices,
@@ -520,6 +565,7 @@ double computeLoglikelihoodBrlenOpt(
         break;
       }
     }
+
     if (!seen) {
       // search the tree in the old trees. If found, add it to the combined
       // trees.

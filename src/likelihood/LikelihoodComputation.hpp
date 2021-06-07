@@ -10,11 +10,11 @@
 #include <stddef.h>
 #include <vector>
 
-#include "../graph/AnnotatedNetwork.hpp"
-
 namespace netrax {
+
+struct AnnotatedNetwork;
 
 double computeLoglikelihood(AnnotatedNetwork &ann_network, int incremental = 1,
                             int update_pmatrices = 1);
 
-}
+}  // namespace netrax

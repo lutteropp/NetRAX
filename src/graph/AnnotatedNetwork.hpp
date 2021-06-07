@@ -20,6 +20,8 @@ extern "C" {
 
 #include "Network.hpp"
 
+#include "ReticulationConfigSet.hpp"
+
 namespace netrax {
 
 struct NetworkState;
@@ -110,5 +112,12 @@ std::vector<Node *> getBadReticulations(AnnotatedNetwork &ann_network);
 bool assertBranchLengths(AnnotatedNetwork &ann_network);
 bool assertConsecutiveIndices(AnnotatedNetwork &ann_network);
 bool checkSanity(AnnotatedNetwork &ann_network);
+
+ReticulationConfigSet &getInterestingTreeRestriction(
+    AnnotatedNetwork &ann_network);
+void addInterestingTreeRestriction(
+    AnnotatedNetwork &ann_network,
+    ReticulationConfigSet &interestingTreeRestriction);
+void clearInterestingTreeRestriction(AnnotatedNetwork &ann_network);
 
 }  // namespace netrax
