@@ -469,6 +469,10 @@ pmatrix_index, 1);
   return old_logl;
 }
 
+ReticulationConfigSet decideInterestingTrees(AnnotatedNetwork &ann_network) {
+  return getTreeConfig(ann_network, 0);
+}
+
 double optimize_branches(AnnotatedNetwork &ann_network, int max_iters,
                          int max_iters_outside, int radius,
                          std::unordered_set<size_t> candidates,
@@ -477,16 +481,17 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters,
   NetworkState oldState = extract_network_state(ann_network);
   // try first optimizing the braanch on just a single tree
   ann_network.clearInterestingTreeRestriction();
-  ReticulationConfigSet rcs = getTreeConfig(ann_network, 0);
+  ReticulationConfigSet rcs = decideInterestingTrees(ann_network);
   ann_network.addInterestingTreeRestriction(rcs);
   optimize_branches_internal(ann_network, max_iters, max_iters_outside, radius,
                              candidates, restricted_total_iters);
   ann_network.clearInterestingTreeRestriction();
   double new_logl = computeLoglikelihood(ann_network);
   if (new_logl > old_logl) {
-    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-      std::cout << RED << "Doing brlenopt from a single tree was good enough.\n" << RESET;
-    }
+    /*if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+      std::cout << RED << "Doing brlenopt from a single tree was good enough.\n"
+                << RESET;
+    }*/
     new_logl = computeLoglikelihood(ann_network);
   } else {
     apply_network_state(ann_network, oldState);
