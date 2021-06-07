@@ -34,6 +34,41 @@ struct MoveDebugInfo {
   double prefilter_bic = std::numeric_limits<double>::infinity();
   double rank_bic = std::numeric_limits<double>::infinity();
   double choose_bic = std::numeric_limits<double>::infinity();
+  MoveDebugInfo() = default;
+
+  MoveDebugInfo(MoveDebugInfo &&rhs)
+      : prefilter_bic{rhs.prefilter_bic},
+        rank_bic{rhs.rank_bic},
+        choose_bic{rhs.choose_bic} {}
+
+  MoveDebugInfo(const MoveDebugInfo &rhs)
+      : prefilter_bic{rhs.prefilter_bic},
+        rank_bic{rhs.rank_bic},
+        choose_bic{rhs.choose_bic} {}
+
+  MoveDebugInfo &operator=(MoveDebugInfo &&rhs) {
+    if (this != &rhs) {
+      prefilter_bic = rhs.prefilter_bic;
+      rank_bic = rhs.rank_bic;
+      choose_bic = rhs.choose_bic;
+    }
+    return *this;
+  }
+
+  MoveDebugInfo &operator=(const MoveDebugInfo &rhs) {
+    if (this != &rhs) {
+      prefilter_bic = rhs.prefilter_bic;
+      rank_bic = rhs.rank_bic;
+      choose_bic = rhs.choose_bic;
+      return *this;
+    }
+  }
+
+  bool operator==(const MoveDebugInfo &rhs) const {
+    return ((this->prefilter_bic == rhs.prefilter_bic) &&
+            (this->rank_bic == rhs.rank_bic) &&
+            (this->choose_bic == rhs.choose_bic));
+  }
 };
 
 struct Move {
@@ -67,7 +102,8 @@ struct Move {
         rnniData{rhs.rnniData},
         rsprData{rhs.rsprData},
         arcInsertionData{rhs.arcInsertionData},
-        arcRemovalData{rhs.arcRemovalData}, moveDebugInfo{rhs.moveDebugInfo} {}
+        arcRemovalData{rhs.arcRemovalData},
+        moveDebugInfo{rhs.moveDebugInfo} {}
 
   Move(const Move &rhs)
       : moveType{rhs.moveType},
@@ -79,7 +115,8 @@ struct Move {
         rnniData{rhs.rnniData},
         rsprData{rhs.rsprData},
         arcInsertionData{rhs.arcInsertionData},
-        arcRemovalData{rhs.arcRemovalData}, moveDebugInfo{rhs.moveDebugInfo} {}
+        arcRemovalData{rhs.arcRemovalData},
+        moveDebugInfo{rhs.moveDebugInfo} {}
 
   Move &operator=(Move &&rhs) {
     if (this != &rhs) {
@@ -131,7 +168,9 @@ struct Move {
 };
 
 Move randomMove(AnnotatedNetwork &ann_network, MoveType type);
-Move getRandomMove(AnnotatedNetwork& ann_network, std::vector<MoveType> typesBySpeed, int min_radius, int max_radius);
+Move getRandomMove(AnnotatedNetwork &ann_network,
+                   std::vector<MoveType> typesBySpeed, int min_radius,
+                   int max_radius);
 void performMove(AnnotatedNetwork &ann_network, Move &move);
 void undoMove(AnnotatedNetwork &ann_network, Move &move);
 std::string toString(const Move &move);
