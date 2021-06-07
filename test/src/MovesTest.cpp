@@ -231,23 +231,40 @@ void randomMovesStep(AnnotatedNetwork &ann_network,
 }
 
 void checkMove(AnnotatedNetwork &ann_network, Move move) {
+  std::cout << "The move: " << toString(move) << "\n";
+  std::cout << "Initial network:\n";
+  std::cout << exportDebugInfo(ann_network) << "\n\n";
   NetworkState stateBefore = extract_network_state(ann_network);
   double score_before = scoreNetwork(ann_network);
+  ASSERT_DOUBLE_EQ(computeLoglikelihood(ann_network, 1, 1), computeLoglikelihood(ann_network, 0, 1));
   performMove(ann_network, move);
+  std::cout << "Network after perform move:\n";
+  std::cout << exportDebugInfo(ann_network) << "\n\n";
   double score_after_perform = scoreNetwork(ann_network);
   optimizeAfterMovePrefilter(ann_network, move);
   double score_after_perform_optimize = scoreNetwork(ann_network);
   undoMove(ann_network, move);
+  std::cout << "Network after undo move:\n";
+   std::cout << exportDebugInfo(ann_network) << "\n\n";
   double score_after_undo = scoreNetwork(ann_network);
   apply_network_state(ann_network, stateBefore);
+  ASSERT_DOUBLE_EQ(computeLoglikelihood(ann_network, 1, 1), computeLoglikelihood(ann_network, 0, 1));
   ASSERT_DOUBLE_EQ(score_before, scoreNetwork(ann_network));
   performMove(ann_network, move);
+  std::cout << "Network after perform move 2:\n";
+  std::cout << exportDebugInfo(ann_network) << "\n\n";
+  ASSERT_DOUBLE_EQ(computeLoglikelihood(ann_network, 1, 1), computeLoglikelihood(ann_network, 0, 1));
   ASSERT_DOUBLE_EQ(score_after_perform, scoreNetwork(ann_network));
   optimizeAfterMovePrefilter(ann_network, move);
+  ASSERT_DOUBLE_EQ(computeLoglikelihood(ann_network, 1, 1), computeLoglikelihood(ann_network, 0, 1));
   ASSERT_DOUBLE_EQ(score_after_perform_optimize, scoreNetwork(ann_network));
   undoMove(ann_network, move);
+  std::cout << "Network after undo move 2:\n";
+  std::cout << exportDebugInfo(ann_network) << "\n";
+  ASSERT_DOUBLE_EQ(computeLoglikelihood(ann_network, 1, 1), computeLoglikelihood(ann_network, 0, 1));
   ASSERT_DOUBLE_EQ(score_after_undo, scoreNetwork(ann_network));
   apply_network_state(ann_network, stateBefore);
+  ASSERT_DOUBLE_EQ(computeLoglikelihood(ann_network, 1, 1), computeLoglikelihood(ann_network, 0, 1));
   ASSERT_DOUBLE_EQ(score_before, scoreNetwork(ann_network));
 }
 
