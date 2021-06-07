@@ -11,6 +11,8 @@ struct BestNetworkData;
 struct NetworkState;
 struct PromisingStateQueue;
 
+double optimizeAfterMovePrefilter(AnnotatedNetwork &ann_network, Move &move);
+
 double prefilterCandidates(AnnotatedNetwork &ann_network,
                            PromisingStateQueue &psq,
                            const NetworkState &oldState,
