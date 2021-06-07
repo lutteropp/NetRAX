@@ -77,8 +77,11 @@ void filterCandidatesByNodes(std::vector<T> &candidates,
   candidates = newCandidates;
 }
 
-bool printMyDebug(const Move& move) {
-  return (move.arcInsertionData.a_clv_index == 47 && move.arcInsertionData.b_clv_index == 49 && move.arcInsertionData.c_clv_index == 44 && move.arcInsertionData.d_clv_index == 45);
+bool printMyDebug(const Move &move) {
+  return (move.arcInsertionData.a_clv_index == 47 &&
+          move.arcInsertionData.b_clv_index == 49 &&
+          move.arcInsertionData.c_clv_index == 44 &&
+          move.arcInsertionData.d_clv_index == 45);
 }
 
 template <typename T>
@@ -102,8 +105,10 @@ void filterCandidatesByScore(std::vector<T> &candidates,
       candidates[newSize] = scores[i].item;
       newSize++;
     }
-    if (printMyDebug(scores[i].item) && ParallelContext::master_rank() && ParallelContext::master_thread()) {
-      std::cout << "candidate " << i << ": " << toString(scores[i].item) << " has score: " << scores[i].bicScore << "\n";
+    if (printMyDebug(scores[i].item) && ParallelContext::master_rank() &&
+        ParallelContext::master_thread()) {
+      std::cout << "candidate " << i << ": " << toString(scores[i].item)
+                << " has score: " << scores[i].bicScore << "\n";
     }
   }
   candidates.resize(newSize);
@@ -161,43 +166,63 @@ size_t elbowMethod(const std::vector<ScoreItem<T>> &elements,
 
 enum class FilterType { PREFILTER = 0, RANK = 1, CHOOSE = 2 };
 
+double optimizeAfterMovePrefilter(AnnotatedNetwork &ann_network, Move &move) {
+  if (isArcInsertion(move.moveType)) {
+    std::unordered_set<size_t> brlenopt_candidates;
+    brlenopt_candidates.emplace(move.arcInsertionData.wanted_uv_pmatrix_index);
+    optimizeBranchesCandidates(ann_network, brlenopt_candidates,
+                               1.0 / RAXML_BRLEN_SMOOTHINGS);  // one iteration
+    optimize_reticulation(ann_network,
+                          ann_network.network.num_reticulations() - 1);
+    updateMoveBranchLengths(ann_network, move);
+  }
+  if (printMyDebug(move) && ParallelContext::master_rank() &&
+      ParallelContext::master_thread()) {
+    std::cout << "score after prefiltering opt for candidate " << toString(move)
+              << ": " << scoreNetwork(ann_network) << "\n";
+  }
+  return scoreNetwork(ann_network);
+}
+
+double optimizeAfterMoveRank(AnnotatedNetwork &ann_network, Move &move) {
+  std::unordered_set<size_t> brlen_opt_candidates =
+      brlenOptCandidates(ann_network, move);
+  assert(!brlen_opt_candidates.empty());
+  optimizeBranchesCandidates(ann_network, brlen_opt_candidates);
+  optimizeReticulationProbs(ann_network);
+  updateMoveBranchLengths(ann_network, move);
+  if (printMyDebug(move) && ParallelContext::master_rank() &&
+      ParallelContext::master_thread()) {
+    std::cout << "score after ranking opt for candidate " << toString(move)
+              << ": " << scoreNetwork(ann_network) << "\n";
+  }
+  return scoreNetwork(ann_network);
+}
+
+double optimizeAfterMoveChoose(AnnotatedNetwork &ann_network, Move &move) {
+  optimizeBranches(ann_network);
+  optimizeReticulationProbs(ann_network);
+  updateMoveBranchLengths(ann_network, move);
+  if (printMyDebug(move) && ParallelContext::master_rank() &&
+      ParallelContext::master_thread()) {
+    std::cout << "score after choosing opt for candidate " << toString(move)
+              << ": " << scoreNetwork(ann_network) << "\n";
+  }
+  return scoreNetwork(ann_network);
+}
+
 void optimizeAfterMove(AnnotatedNetwork &ann_network, Move &move,
                        FilterType filterType) {
   double start_score = scoreNetwork(ann_network);
-  if (filterType == FilterType::PREFILTER || filterType == FilterType::RANK || filterType == FilterType::CHOOSE) {
-    if (isArcInsertion(move.moveType)) {
-      std::unordered_set<size_t> brlenopt_candidates;
-      brlenopt_candidates.emplace(
-          move.arcInsertionData.wanted_uv_pmatrix_index);
-      optimizeBranchesCandidates(
-          ann_network, brlenopt_candidates,
-          1.0 / RAXML_BRLEN_SMOOTHINGS);  // one iteration
-      optimize_reticulation(ann_network,
-                            ann_network.network.num_reticulations() - 1);
-      updateMoveBranchLengths(ann_network, move);
-    }
-    if (printMyDebug(move) && ParallelContext::master_rank() && ParallelContext::master_thread()) {
-      std::cout << "score after prefiltering opt for candidate " << toString(move) << ": " << scoreNetwork(ann_network) << "\n"; 
-    }
+  if (filterType == FilterType::PREFILTER || filterType == FilterType::RANK ||
+      filterType == FilterType::CHOOSE) {
+    optimizeAfterMovePrefilter(ann_network, move);
   }
   if (filterType == FilterType::RANK || filterType == FilterType::CHOOSE) {
-    std::unordered_set<size_t> brlen_opt_candidates =
-        brlenOptCandidates(ann_network, move);
-    assert(!brlen_opt_candidates.empty());
-    optimizeBranchesCandidates(ann_network, brlen_opt_candidates);
-    optimizeReticulationProbs(ann_network);
-    updateMoveBranchLengths(ann_network, move);
-    if (printMyDebug(move) && ParallelContext::master_rank() && ParallelContext::master_thread()) {
-      std::cout << "score after ranking opt for candidate " << toString(move) << ": " << scoreNetwork(ann_network) << "\n"; 
-    }
-  } 
+    optimizeAfterMoveRank(ann_network, move);
+  }
   if (filterType == FilterType::CHOOSE) {
-    optimizeBranches(ann_network);
-    optimizeReticulationProbs(ann_network);
-    updateMoveBranchLengths(ann_network, move);
-    if (printMyDebug(move) && ParallelContext::master_rank() && ParallelContext::master_thread()) {
-      std::cout << "score after choosing opt for candidate " << toString(move) << ": " << scoreNetwork(ann_network) << "\n"; 
-    }
+    optimizeAfterMoveChoose(ann_network, move);
   }
   double end_score = scoreNetwork(ann_network);
   if (start_score < end_score) {
@@ -330,12 +355,13 @@ double rankCandidates(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
                       bool print_progress) {
   double best_bic_prefilter = scoreNetwork(ann_network);
   if (!ann_network.options.no_prefiltering) {
-    best_bic_prefilter = prefilterCandidates(ann_network, psq, oldState, old_bic, bestState,
-                        candidates, extreme_greedy, silent, print_progress);
+    best_bic_prefilter =
+        prefilterCandidates(ann_network, psq, oldState, old_bic, bestState,
+                            candidates, extreme_greedy, silent, print_progress);
   }
-  double best_bic_rank = filterCandidates(ann_network, psq, oldState, bestState, candidates,
-                          FilterType::RANK, old_bic, enforce, extreme_greedy,
-                          false, silent, print_progress);
+  double best_bic_rank = filterCandidates(
+      ann_network, psq, oldState, bestState, candidates, FilterType::RANK,
+      old_bic, enforce, extreme_greedy, false, silent, print_progress);
   if (!candidates.empty() && best_bic_rank > best_bic_prefilter) {
     throw std::runtime_error("best_bic_rank > best_bic_prefilter");
   }
@@ -350,12 +376,9 @@ double chooseCandidate(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
   if (candidates.empty()) {
     return old_bic;
   }
-  double best_bic_rank = rankCandidates(ann_network, psq, oldState, old_bic, bestState, candidates,
-                 enforce, extreme_greedy, silent, print_progress);
-
-  if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
-    std::cout << "first candidate evaluated in choosing phase is: " << toString(candidates[0]) << "\n";
-  }
+  double best_bic_rank =
+      rankCandidates(ann_network, psq, oldState, old_bic, bestState, candidates,
+                     enforce, extreme_greedy, silent, print_progress);
 
   double best_bic_choose = filterCandidates(
       ann_network, psq, oldState, bestState, candidates, FilterType::CHOOSE,
