@@ -492,12 +492,12 @@ const ReticulationConfigSet &AnnotatedNetwork::getInterestingTreeRestriction()
 void AnnotatedNetwork::addInterestingTreeRestriction(
     ReticulationConfigSet &extra) {
   addOrReticulationChoices(interestingTreeRestriction, extra);
-  cached_logl_valid = false;
+  invalidateAllCLVs(*this);
 }
 
 void AnnotatedNetwork::clearInterestingTreeRestriction() {
   interestingTreeRestriction.configs.clear();
-  cached_logl_valid = false;
+  invalidateAllCLVs(*this);
 }
 
 }  // namespace netrax
