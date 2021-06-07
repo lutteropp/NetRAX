@@ -477,7 +477,22 @@ ReticulationConfigSet decideInterestingTrees(
   NodeDisplayedTreeData &ndtd =
       ann_network
           .pernode_displayed_tree_data[ann_network.network.root->clv_index];
-  unsigned int n_added = 0;
+  if (ndtd.num_active_displayed_trees <= 2) {
+    return {};
+  }
+
+  // we need a tree with all zeros, and we need a tree with all ones
+  ReticulationConfigSet allZero(ann_network.options.max_reticulations);
+  ReticulationConfigSet allOne(ann_network.options.max_reticulations);
+  std::vector<ReticulationState> vec(ann_network.options.max_reticulations, ReticulationState::DONT_CARE);
+  allZero.configs.emplace_back(vec);
+  allOne.configs.emplace_back(vec);
+  for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
+    allZero.configs[0][i] = ReticulationState::TAKE_FIRST_PARENT;
+    allOne.configs[0][i] = ReticulationState::TAKE_SECOND_PARENT;
+  }
+
+  /*unsigned int n_added = 0;
   for (size_t cand : candidates) {
     if (res.empty() || !isActiveAliveBranchInOrSet(ann_network, res, cand)) {
       for (size_t i = 0; i < ndtd.num_active_displayed_trees; ++i) {
@@ -494,6 +509,14 @@ ReticulationConfigSet decideInterestingTrees(
   }
   if (n_added == ndtd.num_active_displayed_trees) {
     res.configs.clear();
+  }*/
+
+  for (size_t i = 0; i < ndtd.num_active_displayed_trees; ++i) {
+    if (reticulationConfigsCompatible(ndtd.displayed_trees[i].treeLoglData.reticulationChoices, allOne)) {
+      addOrReticulationChoices(res, ndtd.displayed_trees[i].treeLoglData.reticulationChoices);
+    } else if (reticulationConfigsCompatible(ndtd.displayed_trees[i].treeLoglData.reticulationChoices, allZero)) {
+      addOrReticulationChoices(res, ndtd.displayed_trees[i].treeLoglData.reticulationChoices);
+    }
   }
   return res;
 }
