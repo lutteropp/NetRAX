@@ -323,6 +323,7 @@ double filterCandidates(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
     Move move(candidates[i]);
     performMove(ann_network, move);
     optimizeAfterMove(ann_network, move, filterType);
+    candidates[i].moveDebugInfo = move.moveDebugInfo;
     double bicScore = scoreNetwork(ann_network);
     scores[i] = ScoreItem<Move>{candidates[i], bicScore};
     if (bicScore < old_bic) {
