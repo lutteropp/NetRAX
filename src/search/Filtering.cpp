@@ -334,6 +334,10 @@ double rankCandidates(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
         prefilterCandidates(ann_network, psq, oldState, old_bic, bestState,
                             candidates, extreme_greedy, silent, print_progress);
   }
+  if (best_bic_prefilter < scoreNetwork(ann_network)) {
+    // no need to do ranking if prefltering found already some better scores
+    return best_bic_prefilter;
+  }
   double best_bic_rank = filterCandidates(
       ann_network, psq, oldState, bestState, candidates, FilterType::RANK,
       old_bic, enforce, extreme_greedy, true, silent, print_progress);
