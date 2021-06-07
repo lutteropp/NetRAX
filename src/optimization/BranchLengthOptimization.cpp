@@ -343,7 +343,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index,
   assert(pmatrix_index < ann_network.network.num_branches());
   double old_logl = computeLoglikelihood(ann_network);
   assert(old_logl <= 0.0);
-  //assert(computeLoglikelihood(ann_network, 0, 1) == old_logl);
+  // assert(computeLoglikelihood(ann_network, 0, 1) == old_logl);
   std::vector<DisplayedTreeData> oldTrees;
   std::vector<std::vector<SumtableInfo>> sumtables;
 
@@ -372,7 +372,8 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index,
       if (ParallelContext::master_rank() && ParallelContext::master_thread) {
         std::cout << exportDebugInfo(ann_network) << "\n";
         ann_network.cached_logl_valid = false;
-        computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index, 1, true);
+        computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index, 1,
+                                     true);
         std::cout << "old_logl: " << old_logl << "\n";
         std::cout << "brlenopt_logl: " << brlenopt_logl << "\n";
         std::cout << "problem occurred while optimizing branch "
@@ -414,10 +415,10 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index,
   return final_logl;
 }
 
-double optimize_branches(AnnotatedNetwork &ann_network, int max_iters,
-                         int max_iters_outside, int radius,
-                         std::unordered_set<size_t> candidates,
-                         bool restricted_total_iters) {
+double optimize_branches_internal(AnnotatedNetwork &ann_network, int max_iters,
+                                  int max_iters_outside, int radius,
+                                  std::unordered_set<size_t> candidates,
+                                  bool restricted_total_iters) {
   for (size_t idx : candidates) {
     assert(idx < ann_network.network.num_branches());
   }
@@ -468,6 +469,30 @@ pmatrix_index, 1);
   assert((old_logl >= start_logl) || (fabs(old_logl - start_logl) < 1E-3));
 
   return old_logl;
+}
+
+double optimize_branches(AnnotatedNetwork &ann_network, int max_iters,
+                         int max_iters_outside, int radius,
+                         std::unordered_set<size_t> candidates,
+                         bool restricted_total_iters) {
+  // try first optimizing the braanch on just a single tree
+  ann_network.clearInterestingTreeRestriction();
+  ReticulationConfigSet rcs = getTreeConfig(ann_network, 0);
+  ann_network.addInterestingTreeRestriction(rcs);
+  double old_logl_single = computeLoglikelihood(ann_network);
+  double new_logl_single =
+      optimize_branches_internal(ann_network, max_iters, max_iters_outside,
+                                 radius, candidates, restricted_total_iters);
+  ann_network.clearInterestingTreeRestriction();
+  double new_logl;
+  if (new_logl_single < old_logl_single) {
+    new_logl = computeLoglikelihood(ann_network);
+  } else {
+    new_logl =
+        optimize_branches_internal(ann_network, max_iters, max_iters_outside,
+                                   radius, candidates, restricted_total_iters);
+  }
+  return new_logl;
 }
 
 double optimize_branches(AnnotatedNetwork &ann_network, int max_iters,
