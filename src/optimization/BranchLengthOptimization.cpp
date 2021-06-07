@@ -25,6 +25,8 @@
 #include "../likelihood/LikelihoodDerivatives.hpp"
 #include "../likelihood/VirtualRerooting.hpp"
 
+#include "../colormod.h"
+
 #include "NetworkState.hpp"
 
 namespace netrax {
@@ -482,6 +484,9 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters,
   ann_network.clearInterestingTreeRestriction();
   double new_logl = computeLoglikelihood(ann_network);
   if (new_logl > old_logl) {
+    if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+      std::cout << RED << "Doing brlenopt from a single tree was good enough.\n" << RESET;
+    }
     new_logl = computeLoglikelihood(ann_network);
   } else {
     apply_network_state(ann_network, oldState);
