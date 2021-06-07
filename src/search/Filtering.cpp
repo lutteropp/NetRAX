@@ -108,7 +108,8 @@ void filterCandidatesByScore(std::vector<T> &candidates,
     if (printMyDebug(scores[i].item) && ParallelContext::master_rank() &&
         ParallelContext::master_thread()) {
       std::cout << "candidate " << i << ": " << toString(scores[i].item)
-                << " has score: " << scores[i].bicScore << "\n";
+                << " has score: " << scores[i].bicScore << " and debug info "
+                << scores[i].item.moveDebugInfo << "\n";
     }
   }
   candidates.resize(newSize);
@@ -230,11 +231,12 @@ double optimizeAfterMoveChoose(AnnotatedNetwork &ann_network, Move &move) {
               << ": " << scoreNetwork(ann_network) << "\n";
   }
   double score = scoreNetwork(ann_network);
-  if (move.moveDebugInfo.choose_bic != std::numeric_limits<double>::infinity()) {
+  if (move.moveDebugInfo.choose_bic !=
+      std::numeric_limits<double>::infinity()) {
     if (move.moveDebugInfo.choose_bic != score) {
       throw std::runtime_error(
-          "Different choose bic than before: " + std::to_string(score) + " vs. " +
-          std::to_string(move.moveDebugInfo.choose_bic) + " for " +
+          "Different choose bic than before: " + std::to_string(score) +
+          " vs. " + std::to_string(move.moveDebugInfo.choose_bic) + " for " +
           toString(move));
     }
   }
@@ -248,26 +250,34 @@ void optimizeAfterMove(AnnotatedNetwork &ann_network, Move &move,
   if (filterType == FilterType::PREFILTER || filterType == FilterType::RANK ||
       filterType == FilterType::CHOOSE) {
     optimizeAfterMovePrefilter(ann_network, move);
-    if (move.moveDebugInfo.prefilter_bic == std::numeric_limits<double>::infinity()) {
-      throw std::runtime_error("why is the move after prefilter bic not set here???");
+    if (move.moveDebugInfo.prefilter_bic ==
+        std::numeric_limits<double>::infinity()) {
+      throw std::runtime_error(
+          "why is the move after prefilter bic not set here???");
     }
   }
   if (filterType == FilterType::RANK || filterType == FilterType::CHOOSE) {
-    if (move.moveDebugInfo.prefilter_bic == std::numeric_limits<double>::infinity()) {
+    if (move.moveDebugInfo.prefilter_bic ==
+        std::numeric_limits<double>::infinity()) {
       throw std::runtime_error("why is the move prefilter bic not set here?");
     }
     optimizeAfterMoveRank(ann_network, move);
-    if (move.moveDebugInfo.rank_bic == std::numeric_limits<double>::infinity()) {
-      throw std::runtime_error("why is the move after rank bic not set here???");
+    if (move.moveDebugInfo.rank_bic ==
+        std::numeric_limits<double>::infinity()) {
+      throw std::runtime_error(
+          "why is the move after rank bic not set here???");
     }
   }
   if (filterType == FilterType::CHOOSE) {
-    if (move.moveDebugInfo.rank_bic == std::numeric_limits<double>::infinity()) {
+    if (move.moveDebugInfo.rank_bic ==
+        std::numeric_limits<double>::infinity()) {
       throw std::runtime_error("why is the move prefilter bic not set here?");
     }
     optimizeAfterMoveChoose(ann_network, move);
-    if (move.moveDebugInfo.choose_bic == std::numeric_limits<double>::infinity()) {
-      throw std::runtime_error("why is the move after choose bic not set here???");
+    if (move.moveDebugInfo.choose_bic ==
+        std::numeric_limits<double>::infinity()) {
+      throw std::runtime_error(
+          "why is the move after choose bic not set here???");
     }
   }
   double end_score = scoreNetwork(ann_network);

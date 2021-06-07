@@ -71,6 +71,12 @@ struct MoveDebugInfo {
   }
 };
 
+inline std::ostream& operator<<(std::ostream& os, const MoveDebugInfo& dt)
+{
+    os << dt.prefilter_bic << '/' << dt.rank_bic << '/' << dt.choose_bic;
+    return os;
+};
+
 struct Move {
   Move(MoveType type, size_t edge_orig_idx, size_t node_orig_idx)
       : moveType(type),
