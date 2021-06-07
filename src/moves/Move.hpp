@@ -30,6 +30,12 @@ namespace netrax {
 // The moves correspond to the moves from this paper:
 // https://doi.org/10.1371/journal.pcbi.1005611
 
+struct MoveDebugInfo {
+  double prefilter_bic = std::numeric_limits<double>::infinity();
+  double rank_bic = std::numeric_limits<double>::infinity();
+  double choose_bic = std::numeric_limits<double>::infinity();
+};
+
 struct Move {
   Move(MoveType type, size_t edge_orig_idx, size_t node_orig_idx)
       : moveType(type),
@@ -47,6 +53,7 @@ struct Move {
   RSPRData rsprData;
   ArcInsertionData arcInsertionData;
   ArcRemovalData arcRemovalData;
+  MoveDebugInfo moveDebugInfo;
 
   Move() = default;
 
@@ -60,7 +67,7 @@ struct Move {
         rnniData{rhs.rnniData},
         rsprData{rhs.rsprData},
         arcInsertionData{rhs.arcInsertionData},
-        arcRemovalData{rhs.arcRemovalData} {}
+        arcRemovalData{rhs.arcRemovalData}, moveDebugInfo{rhs.moveDebugInfo} {}
 
   Move(const Move &rhs)
       : moveType{rhs.moveType},
@@ -72,7 +79,7 @@ struct Move {
         rnniData{rhs.rnniData},
         rsprData{rhs.rsprData},
         arcInsertionData{rhs.arcInsertionData},
-        arcRemovalData{rhs.arcRemovalData} {}
+        arcRemovalData{rhs.arcRemovalData}, moveDebugInfo{rhs.moveDebugInfo} {}
 
   Move &operator=(Move &&rhs) {
     if (this != &rhs) {
@@ -86,6 +93,7 @@ struct Move {
       rsprData = rhs.rsprData;
       arcInsertionData = rhs.arcInsertionData;
       arcRemovalData = rhs.arcRemovalData;
+      moveDebugInfo = rhs.moveDebugInfo;
     }
     return *this;
   }
@@ -102,6 +110,7 @@ struct Move {
       rsprData = rhs.rsprData;
       arcInsertionData = rhs.arcInsertionData;
       arcRemovalData = rhs.arcRemovalData;
+      moveDebugInfo = rhs.moveDebugInfo;
     }
     return *this;
   }

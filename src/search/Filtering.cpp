@@ -181,7 +181,18 @@ double optimizeAfterMovePrefilter(AnnotatedNetwork &ann_network, Move &move) {
     std::cout << "score after prefiltering opt for candidate " << toString(move)
               << ": " << scoreNetwork(ann_network) << "\n";
   }
-  return scoreNetwork(ann_network);
+  double score = scoreNetwork(ann_network);
+  if (move.moveDebugInfo.prefilter_bic !=
+      std::numeric_limits<double>::infinity()) {
+    if (move.moveDebugInfo.prefilter_bic != score) {
+      throw std::runtime_error(
+          "Different prefilter bic than before: " + std::to_string(score) +
+          " vs. " + std::to_string(move.moveDebugInfo.prefilter_bic) + " for " +
+          toString(move));
+    }
+  }
+  move.moveDebugInfo.prefilter_bic = score;
+  return score;
 }
 
 double optimizeAfterMoveRank(AnnotatedNetwork &ann_network, Move &move) {
@@ -196,7 +207,17 @@ double optimizeAfterMoveRank(AnnotatedNetwork &ann_network, Move &move) {
     std::cout << "score after ranking opt for candidate " << toString(move)
               << ": " << scoreNetwork(ann_network) << "\n";
   }
-  return scoreNetwork(ann_network);
+  double score = scoreNetwork(ann_network);
+  if (move.moveDebugInfo.rank_bic != std::numeric_limits<double>::infinity()) {
+    if (move.moveDebugInfo.rank_bic != score) {
+      throw std::runtime_error(
+          "Different rank bic than before: " + std::to_string(score) + " vs. " +
+          std::to_string(move.moveDebugInfo.rank_bic) + " for " +
+          toString(move));
+    }
+  }
+  move.moveDebugInfo.rank_bic = score;
+  return score;
 }
 
 double optimizeAfterMoveChoose(AnnotatedNetwork &ann_network, Move &move) {
@@ -208,7 +229,17 @@ double optimizeAfterMoveChoose(AnnotatedNetwork &ann_network, Move &move) {
     std::cout << "score after choosing opt for candidate " << toString(move)
               << ": " << scoreNetwork(ann_network) << "\n";
   }
-  return scoreNetwork(ann_network);
+  double score = scoreNetwork(ann_network);
+  if (move.moveDebugInfo.choose_bic != std::numeric_limits<double>::infinity()) {
+    if (move.moveDebugInfo.choose_bic != score) {
+      throw std::runtime_error(
+          "Different choose bic than before: " + std::to_string(score) + " vs. " +
+          std::to_string(move.moveDebugInfo.choose_bic) + " for " +
+          toString(move));
+    }
+  }
+  move.moveDebugInfo.choose_bic = score;
+  return score;
 }
 
 void optimizeAfterMove(AnnotatedNetwork &ann_network, Move &move,

@@ -185,6 +185,12 @@ void updateOldCandidates(AnnotatedNetwork &ann_network, const Move &chosenMove,
   recollectFirstParents(ann_network.network, candidates);
 }
 
+void invalidateDebugInfo(std::vector<Move>& candidates) {
+    for (size_t i = 0; i < candidates.size(); ++i) {
+        candidates[i].moveDebugInfo = {};
+    }
+}
+
 void updateCandidateMoves(AnnotatedNetwork &ann_network,
                           const std::vector<MoveType> &typesBySpeed,
                           int best_max_distance, const Move &chosenMove,
@@ -217,6 +223,7 @@ void updateCandidateMoves(AnnotatedNetwork &ann_network,
     updateOldCandidates(ann_network, takenRemovals[i], candidates);
   }
   removeBadCandidates(ann_network, candidates);
+  invalidateDebugInfo(candidates);
 }
 
 std::vector<Move> interleaveArcRemovals(
