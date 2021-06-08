@@ -60,4 +60,12 @@ inline bool isComplexityChangingMove(const MoveType &moveType) {
   return isArcInsertion(moveType) || isArcRemoval(moveType);
 }
 
+inline bool isVerticalMove(const MoveType &moveType) {
+  return isComplexityChangingMove(moveType);
+}
+
+inline bool isHorizontalMove(const MoveType &moveType) {
+  return !(isComplexityChangingMove(moveType));
+}
+
 }  // namespace netrax

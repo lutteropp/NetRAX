@@ -82,6 +82,8 @@ class NetraxOptions {
   unsigned int scrambling_radius = 2;
   bool scrambling_only = false;
 
+  bool good_start = false;
+
   int step_size = 5;
 
   bool prefilter_greedy = false;

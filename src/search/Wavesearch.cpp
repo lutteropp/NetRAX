@@ -47,7 +47,8 @@ double optimizeEverythingRun(
     AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
     const std::vector<MoveType> &typesBySpeed,
     const std::chrono::high_resolution_clock::time_point &start_time,
-    BestNetworkData *bestNetworkData, bool silent, bool print_progress) {
+    BestNetworkData *bestNetworkData, bool skip_horizontal, bool silent,
+    bool print_progress) {
   unsigned int type_idx = 0;
   unsigned int max_seconds = ann_network.options.timeout;
   double best_score = scoreNetwork(ann_network);
@@ -55,6 +56,12 @@ double optimizeEverythingRun(
   size_t old_moves_taken = ann_network.stats.totalMovesTaken();
   do {
     skipImpossibleTypes(ann_network, typesBySpeed, type_idx);
+
+    while (skip_horizontal && type_idx < typesBySpeed.size() &&
+           isHorizontalMove(typesBySpeed[type_idx])) {
+      type_idx++;
+    }
+
     if (type_idx >= typesBySpeed.size()) {
       break;
     }
@@ -99,16 +106,20 @@ void wavesearch_internal_loop(
   bool got_better = true;
   size_t old_moves_taken = ann_network.stats.totalMovesTaken();
 
+  bool skip_horizontal = ann_network.options.good_start;
+
   while (got_better) {
     got_better = false;
     check_score_improvement(ann_network, best_score, bestNetworkData);
     optimizeEverythingRun(ann_network, psq, typesBySpeed, start_time,
-                          bestNetworkData, silent, print_progress);
+                          bestNetworkData, skip_horizontal, silent,
+                          print_progress);
     check_score_improvement(ann_network, best_score, bestNetworkData);
     if (ann_network.stats.totalMovesTaken() > old_moves_taken) {
       old_moves_taken = ann_network.stats.totalMovesTaken();
       got_better = true;
     }
+    skip_horizontal = false;
   }
 }
 
