@@ -131,6 +131,8 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
   app.add_flag("--reorder_candidates", options->reorder_candidates,
                "Reorder move candidates by proximity to last accepted move.");
 
+  app.add_flag("--good_start", options->good_start, "Skip the first horizontal move round.");
+
   app.add_flag("--slow_mode", options->slow_mode, "Enable slow mode.");
   app.add_flag("--save_memory", options->save_memory, "Save some memory.");
   app.add_flag("--no_elbow_method", options->no_elbow_method,
