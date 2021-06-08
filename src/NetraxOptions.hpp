@@ -84,7 +84,7 @@ class NetraxOptions {
 
   int step_size = 5;
 
-  bool prefilter_greedy = false;
+  bool prefilter_non_greedy = false;
 
   int max_rearrangement_distance = 25;
 
