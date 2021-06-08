@@ -65,7 +65,7 @@ def infer_networks(ds):
                 str(var.n_random_start_networks) + " --num_parsimony_start_networks " + \
                 str(var.n_parsimony_start_networks)
         else:  # StartType.FROM_RAXML
-            netrax_cmd += " --start_network " + ds.raxml_tree_path
+            netrax_cmd += " --start_network " + ds.raxml_tree_path + " --good_start"
 
         if var.brlen_linkage_type == BrlenLinkageType.UNLINKED:
             netrax_cmd += " --brlen unlinked"
