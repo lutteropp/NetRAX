@@ -26,8 +26,8 @@ SETTINGS=$1
 PREFIX=$2
 ITERATIONS=$3
 
-SCRIPTS="src"
-FOLDER_PATH="data"
+SCRIPTS="/home/luttersh/NetRAX/experiments/src"
+FOLDER_PATH="/home/luttersh/NetRAX/experiments/data"
 SUBFOLDER_PATH=${FOLDER_PATH}/${PREFIX}
 LOGS_PATH=${FOLDER_PATH}/logs_${PREFIX}
 

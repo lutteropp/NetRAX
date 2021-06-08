@@ -3,7 +3,7 @@ import collections
 
 from experiment_model import Dataset
 
-SEQGEN_PATH = '../deps/seq-gen'
+SEQGEN_PATH = '/home/luttersh/NetRAX/experiments/deps/seq-gen'
 
 
 def simulate_msa(dataset):
