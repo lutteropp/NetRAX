@@ -279,7 +279,7 @@ double filterCandidates(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
   size_t oldCandidatesSize = candidates.size();
   int n_keep = ann_network.options.rank_keep;
   if (filterType == FilterType::PREFILTER &&
-      !ann_network.options.prefilter_non_greedy) {
+      ann_network.options.prefilter_greedy) {
     n_keep = n_better;
   } else if (!ann_network.options.no_elbow_method) {
     n_keep = elbowMethod(scores, n_keep);
@@ -322,7 +322,7 @@ double prefilterCandidates(AnnotatedNetwork &ann_network,
   double best_bic = filterCandidates(
       ann_network, psq, oldState, bestState, candidates, FilterType::PREFILTER,
       old_bic, false, extreme_greedy, keepAllBetter, silent, print_progress);
-  if ((best_bic >= old_bic) && !ann_network.options.prefilter_non_greedy) {
+  if ((best_bic >= old_bic) && ann_network.options.prefilter_greedy) {
     candidates.clear();
   }
   return best_bic;
