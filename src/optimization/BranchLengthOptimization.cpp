@@ -488,6 +488,7 @@ ReticulationConfigSet decideInterestingTrees(
     return {};
   }
 
+  unsigned int n_added = 0;
   // we need a tree with all zeros, and we need a tree with all ones
   ReticulationConfigSet allZero(ann_network.options.max_reticulations);
   ReticulationConfigSet allOne(ann_network.options.max_reticulations);
@@ -499,38 +500,36 @@ ReticulationConfigSet decideInterestingTrees(
     allZero.configs[0][i] = ReticulationState::TAKE_FIRST_PARENT;
     allOne.configs[0][i] = ReticulationState::TAKE_SECOND_PARENT;
   }
-
-  /*unsigned int n_added = 0;
-  for (size_t cand : candidates) {
-    if (res.empty() || !isActiveAliveBranchInOrSet(ann_network, res, cand)) {
-      for (size_t i = 0; i < ndtd.num_active_displayed_trees; ++i) {
-        if (isActiveAliveBranch(
-                ann_network,
-                ndtd.displayed_trees[i].treeLoglData.reticulationChoices,
-                cand)) {
-          addOrReticulationChoices(
-              res, ndtd.displayed_trees[i].treeLoglData.reticulationChoices);
-          n_added++;
-        }
-      }
-    }
-  }
-  if (n_added == ndtd.num_active_displayed_trees) {
-    res.configs.clear();
-  }*/
-
   for (size_t i = 0; i < ndtd.num_active_displayed_trees; ++i) {
     if (reticulationConfigsCompatible(
             ndtd.displayed_trees[i].treeLoglData.reticulationChoices, allOne)) {
       addOrReticulationChoices(
           res, ndtd.displayed_trees[i].treeLoglData.reticulationChoices);
+      n_added++;
     } else if (reticulationConfigsCompatible(
                    ndtd.displayed_trees[i].treeLoglData.reticulationChoices,
                    allZero)) {
       addOrReticulationChoices(
           res, ndtd.displayed_trees[i].treeLoglData.reticulationChoices);
+      n_added++;
     }
   }
+
+  /*for (size_t i = 0; i < ndtd.num_active_displayed_trees; ++i) {
+    if (!reticulationConfigsCompatible(
+            res, ndtd.displayed_trees[i].treeLoglData.reticulationChoices)) {
+      addOrReticulationChoices(
+          res, ndtd.displayed_trees[i].treeLoglData.reticulationChoices);
+      n_added++;
+    }
+    if (n_added == ndtd.num_active_displayed_trees / 2) {
+      break;
+    }
+  }*/
+  if (n_added == ndtd.num_active_displayed_trees) {
+    res.configs.clear();
+  }
+
   return res;
 }
 
@@ -539,7 +538,7 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters,
                          std::unordered_set<size_t> candidates,
                          bool restricted_total_iters) {
   double old_logl = computeLoglikelihood(ann_network);
-  NetworkState oldState = extract_network_state(ann_network);
+  //NetworkState oldState = extract_network_state(ann_network);
   double new_logl;
 
   if (ann_network.network.num_reticulations() > 1) {
@@ -552,7 +551,7 @@ double optimize_branches(AnnotatedNetwork &ann_network, int max_iters,
     ann_network.clearInterestingTreeRestriction();
     new_logl = computeLoglikelihood(ann_network);
     if (new_logl < old_logl) {
-      apply_network_state(ann_network, oldState);
+      //apply_network_state(ann_network, oldState);
       new_logl = optimize_branches_internal(ann_network, max_iters,
                                             max_iters_outside, radius,
                                             candidates, restricted_total_iters);
