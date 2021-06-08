@@ -393,7 +393,7 @@ double acceptMove(AnnotatedNetwork &ann_network, Move &move,
   }
   assert(computeLoglikelihood(ann_network, 1, 1) ==
          computeLoglikelihood(ann_network, 0, 1));
-  optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::NORMAL);
+  optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::QUICK);
   assert(computeLoglikelihood(ann_network, 1, 1) ==
          computeLoglikelihood(ann_network, 0, 1));
 
