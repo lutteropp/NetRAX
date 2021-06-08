@@ -84,7 +84,6 @@ double optimizeEverythingRun(
     }
   } while (type_idx < typesBySpeed.size());
 
-  optimizeAllNonTopology(ann_network, OptimizeAllNonTopologyType::NORMAL);
   check_score_improvement(ann_network, &best_score, bestNetworkData);
   best_score = scoreNetwork(ann_network);
 
@@ -180,9 +179,6 @@ void wavesearch_internal(
                          bestNetworkData, true,
                          ann_network.options.extreme_greedy, best_bic_prefilter,
                          silent, print_progress);
-      check_score_improvement(ann_network, best_score, bestNetworkData);
-      optimizeEverythingRun(ann_network, psq, typesBySpeed, start_time,
-                            bestNetworkData, silent, print_progress);
       check_score_improvement(ann_network, best_score, bestNetworkData);
       if (*best_score < old_best_score) {
         got_better = true;
