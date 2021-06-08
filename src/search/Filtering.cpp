@@ -5,6 +5,7 @@
 #include "../colormod.h"
 #include "../graph/AnnotatedNetwork.hpp"
 #include "../graph/NodeDisplayedTreeData.hpp"
+#include "../helper/Helper.hpp"
 #include "../io/NetworkIO.hpp"
 #include "../likelihood/ComplexityScoring.hpp"
 #include "../likelihood/LikelihoodComputation.hpp"
@@ -14,7 +15,6 @@
 #include "../optimization/ReticulationOptimization.hpp"
 #include "PromisingState.hpp"
 #include "ScoreImprovement.hpp"
-#include "../helper/Helper.hpp"
 
 #include <algorithm>
 #include <random>
@@ -278,7 +278,8 @@ double filterCandidates(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
 
   size_t oldCandidatesSize = candidates.size();
   int n_keep = ann_network.options.rank_keep;
-  if (filterType == FilterType::PREFILTER && ann_network.options.prefilter_greedy) {
+  if (filterType == FilterType::PREFILTER &&
+      ann_network.options.prefilter_greedy) {
     n_keep = n_better;
   } else if (!ann_network.options.no_elbow_method) {
     n_keep = elbowMethod(scores, n_keep);
@@ -314,9 +315,13 @@ double prefilterCandidates(AnnotatedNetwork &ann_network,
                            NetworkState &bestState,
                            std::vector<Move> &candidates, bool extreme_greedy,
                            bool silent, bool print_progress) {
+  bool keepAllBetter = true;
+  if (!candidates.empty() && isArcInsertion(candidates[0].moveType)) {
+    keepAllBetter = false;
+  }
   double best_bic = filterCandidates(
       ann_network, psq, oldState, bestState, candidates, FilterType::PREFILTER,
-      old_bic, false, extreme_greedy, true, silent, print_progress);
+      old_bic, false, extreme_greedy, keepAllBetter, silent, print_progress);
   if ((best_bic >= old_bic) && ann_network.options.prefilter_greedy) {
     candidates.clear();
   }
@@ -326,15 +331,20 @@ double prefilterCandidates(AnnotatedNetwork &ann_network,
 double rankCandidates(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
                       const NetworkState &oldState, double old_bic,
                       NetworkState &bestState, std::vector<Move> &candidates,
-                      bool enforce, bool extreme_greedy, double best_bic_prefilter, bool silent,
+                      bool enforce, bool extreme_greedy,
+                      double best_bic_prefilter, bool silent,
                       bool print_progress) {
   if (best_bic_prefilter < scoreNetwork(ann_network)) {
     // no need to do ranking if prefltering found already some better scores
     return best_bic_prefilter;
   }
+  bool keepAllBetter = true;
+  if (!candidates.empty() && isArcInsertion(candidates[0].moveType)) {
+    keepAllBetter = false;
+  }
   double best_bic_rank = filterCandidates(
       ann_network, psq, oldState, bestState, candidates, FilterType::RANK,
-      old_bic, enforce, extreme_greedy, true, silent, print_progress);
+      old_bic, enforce, extreme_greedy, keepAllBetter, silent, print_progress);
   if (!candidates.empty() && best_bic_rank > best_bic_prefilter) {
     throw std::runtime_error("best_bic_rank > best_bic_prefilter");
   }
@@ -344,18 +354,24 @@ double rankCandidates(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
 double chooseCandidate(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
                        const NetworkState &oldState, double old_bic,
                        NetworkState &bestState, std::vector<Move> &candidates,
-                       bool enforce, bool extreme_greedy, double best_bic_prefilter, bool silent,
+                       bool enforce, bool extreme_greedy,
+                       double best_bic_prefilter, bool silent,
                        bool print_progress) {
   if (candidates.empty()) {
     return old_bic;
   }
-  double best_bic_rank =
-      rankCandidates(ann_network, psq, oldState, old_bic, bestState, candidates,
-                     enforce, extreme_greedy, best_bic_prefilter, silent, print_progress);
+  double best_bic_rank = rankCandidates(
+      ann_network, psq, oldState, old_bic, bestState, candidates, enforce,
+      extreme_greedy, best_bic_prefilter, silent, print_progress);
+
+  bool keepAllBetter = true;
+  if (!candidates.empty() && isArcInsertion(candidates[0].moveType)) {
+    keepAllBetter = false;
+  }
 
   double best_bic_choose = filterCandidates(
       ann_network, psq, oldState, bestState, candidates, FilterType::CHOOSE,
-      old_bic, enforce, extreme_greedy, true, silent, print_progress);
+      old_bic, enforce, extreme_greedy, keepAllBetter, silent, print_progress);
   if (!candidates.empty() && best_bic_choose > best_bic_rank) {
     throw std::runtime_error("best_bic_choose > best_bic_rank");
   }
@@ -434,13 +450,15 @@ double acceptMove(AnnotatedNetwork &ann_network, Move &move,
 Move applyBestCandidate(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
                         std::vector<Move> candidates, double *best_score,
                         BestNetworkData *bestNetworkData, bool enforce,
-                        bool extreme_greedy, double best_bic_prefilter, bool silent, bool print_progress) {
+                        bool extreme_greedy, double best_bic_prefilter,
+                        bool silent, bool print_progress) {
   double old_score = scoreNetwork(ann_network);
 
   NetworkState oldState = extract_network_state(ann_network);
   NetworkState bestState = extract_network_state(ann_network);
-  double target_score = chooseCandidate(ann_network, psq, oldState, old_score, bestState, candidates,
-                  enforce, extreme_greedy, best_bic_prefilter, silent, print_progress);
+  double target_score = chooseCandidate(
+      ann_network, psq, oldState, old_score, bestState, candidates, enforce,
+      extreme_greedy, best_bic_prefilter, silent, print_progress);
   assert(scoreNetwork(ann_network) == old_score);
 
   if (!candidates.empty() && (old_score - target_score >= 1E-3)) {
