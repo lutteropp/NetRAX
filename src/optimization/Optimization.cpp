@@ -145,7 +145,7 @@ void optimizeAllNonTopology(AnnotatedNetwork &ann_network,
     bool doBrlenOpt = true;
     bool doReticulationOpt = true;
     bool doModelOpt = true;
-    double score_epsilon = 1E-3;
+    double score_epsilon = 0.01;
 
     // assert(logl_stays_same(ann_network));
     bool gotBetter = true;
@@ -161,7 +161,7 @@ void optimizeAllNonTopology(AnnotatedNetwork &ann_network,
         optimizeModel(ann_network, silent);
         double score_after_model = scoreNetwork(ann_network);
         double model_improv = score_before_model - score_after_model;
-        if (model_improv < score_epsilon) {
+        if (model_improv > score_epsilon) {
           doModelOpt = false;
         }
       }
@@ -171,7 +171,7 @@ void optimizeAllNonTopology(AnnotatedNetwork &ann_network,
         optimizeReticulationProbs(ann_network, silent);
         double score_after_probs = scoreNetwork(ann_network);
         double prob_improv = score_before_probs - score_after_probs;
-        if (prob_improv < score_epsilon) {
+        if (prob_improv > score_epsilon) {
           doReticulationOpt = false;
         }
       }
@@ -182,7 +182,7 @@ void optimizeAllNonTopology(AnnotatedNetwork &ann_network,
         optimizeBranches(ann_network, 1.0, silent);
         double score_after_branches = scoreNetwork(ann_network);
         double brlen_improv = score_before_branches - score_after_branches;
-        if (brlen_improv < score_epsilon) {
+        if (brlen_improv > score_epsilon) {
           doBrlenOpt = false;
         }
       }
@@ -190,7 +190,9 @@ void optimizeAllNonTopology(AnnotatedNetwork &ann_network,
       double score_after = scoreNetwork(ann_network);
       // assert(logl_stays_same(ann_network));
 
-      if (score_after < score_before &&
+      double overall_improv = score_before - score_after;
+
+      if (overall_improv > score_epsilon &&
           type != OptimizeAllNonTopologyType::QUICK &&
           (doBrlenOpt || doReticulationOpt || doModelOpt)) {
         gotBetter = true;
@@ -200,7 +202,7 @@ void optimizeAllNonTopology(AnnotatedNetwork &ann_network,
         }
       }
 
-      if (score_after < score_before &&
+      if (overall_improv > score_epsilon &&
           type == OptimizeAllNonTopologyType::SLOW) {
         gotBetterSlow = true;
       }
