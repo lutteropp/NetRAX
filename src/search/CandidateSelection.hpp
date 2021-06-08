@@ -1,14 +1,29 @@
 #pragma once
 
 #include "../graph/AnnotatedNetwork.hpp"
-#include "ScoreImprovement.hpp"
-#include "../moves/MoveType.hpp"
 #include "../moves/Move.hpp"
+#include "../moves/MoveType.hpp"
+#include "ScoreImprovement.hpp"
 
 namespace netrax {
 
-Move applyBestCandidate(AnnotatedNetwork& ann_network, std::vector<Move> candidates, double* best_score, BestNetworkData* bestNetworkData, bool enforce, bool silent);
+struct BestNetworkData;
+struct PromisingStateQueue;
 
-double fullSearch(AnnotatedNetwork& ann_network, MoveType type, const std::vector<MoveType>& typesBySpeed, double* best_score, BestNetworkData* bestNetworkData, bool silent);
+std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
+                                     PromisingStateQueue &psq,
+                                     int best_max_distance, MoveType type,
+                                     const std::vector<MoveType> &typesBySpeed,
+                                     double *best_score,
+                                     BestNetworkData *bestNetworkData,
+                                     bool silent, bool print_progress);
 
-}
+double fullSearch(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
+                  MoveType type, const std::vector<MoveType> &typesBySpeed,
+                  double *best_score, BestNetworkData *bestNetworkData,
+                  bool silent, bool print_progress);
+
+void updateOldCandidates(AnnotatedNetwork &ann_network, const Move &chosenMove,
+                         std::vector<Move> &candidates);
+
+}  // namespace netrax
