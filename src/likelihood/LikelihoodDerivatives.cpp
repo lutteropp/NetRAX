@@ -321,6 +321,7 @@ std::vector<std::vector<SumtableInfo>> computePartitionSumtables(
       ReticulationConfigSet restrictions = combineReticulationChoices(
           sourceTrees[i].treeLoglData.reticulationChoices,
           targetTrees[j].treeLoglData.reticulationChoices);
+
       if (isActiveBranch(ann_network, restrictions, pmatrix_index)) {
         if (computeReticulationConfigLogProb(
                 restrictions, ann_network.first_parent_logprobs,

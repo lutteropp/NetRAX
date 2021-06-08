@@ -20,6 +20,8 @@ extern "C" {
 
 #include "Network.hpp"
 
+#include "ReticulationConfigSet.hpp"
+
 namespace netrax {
 
 struct NetworkState;
@@ -76,6 +78,14 @@ struct AnnotatedNetwork {
   AnnotatedNetwork(NetraxOptions &options, const RaxmlInstance &instance);
   AnnotatedNetwork(const AnnotatedNetwork &orig_network);
   ~AnnotatedNetwork();
+
+  const ReticulationConfigSet &getInterestingTreeRestriction() const;
+  void addInterestingTreeRestriction(
+      ReticulationConfigSet &interestingTreeRestriction);
+  void clearInterestingTreeRestriction();
+
+ private:
+  ReticulationConfigSet interestingTreeRestriction;
 };
 
 AnnotatedNetwork build_annotated_network(NetraxOptions &options,

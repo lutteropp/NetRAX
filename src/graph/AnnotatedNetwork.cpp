@@ -38,7 +38,9 @@ size_t Statistics::totalMovesTaken() const {
 
 AnnotatedNetwork::AnnotatedNetwork(NetraxOptions &options,
                                    const RaxmlInstance &instance)
-    : options{options}, instance{instance} {}
+    : options{options},
+      instance{instance},
+      interestingTreeRestriction{options.max_reticulations} {}
 
 AnnotatedNetwork::~AnnotatedNetwork() {
   if (fake_treeinfo) {
@@ -480,6 +482,22 @@ bool checkSanity(AnnotatedNetwork &ann_network) {
                     getReticulationChild(ann_network.network, retNode)));
   }
   return good;
+}
+
+const ReticulationConfigSet &AnnotatedNetwork::getInterestingTreeRestriction()
+    const {
+  return interestingTreeRestriction;
+}
+
+void AnnotatedNetwork::addInterestingTreeRestriction(
+    ReticulationConfigSet &extra) {
+  addOrReticulationChoices(interestingTreeRestriction, extra);
+  cached_logl_valid = false;
+}
+
+void AnnotatedNetwork::clearInterestingTreeRestriction() {
+  interestingTreeRestriction.configs.clear();
+  cached_logl_valid = false;
 }
 
 }  // namespace netrax

@@ -25,6 +25,10 @@
 #include "../likelihood/LikelihoodDerivatives.hpp"
 #include "../likelihood/VirtualRerooting.hpp"
 
+#include "../colormod.h"
+
+#include "NetworkState.hpp"
+
 namespace netrax {
 
 std::vector<DisplayedTreeData> extractOldTrees(AnnotatedNetwork &ann_network,
@@ -343,7 +347,7 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index,
   assert(pmatrix_index < ann_network.network.num_branches());
   double old_logl = computeLoglikelihood(ann_network);
   assert(old_logl <= 0.0);
-  //assert(computeLoglikelihood(ann_network, 0, 1) == old_logl);
+  // assert(computeLoglikelihood(ann_network, 0, 1) == old_logl);
   std::vector<DisplayedTreeData> oldTrees;
   std::vector<std::vector<SumtableInfo>> sumtables;
 
@@ -372,7 +376,8 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index,
       if (ParallelContext::master_rank() && ParallelContext::master_thread) {
         std::cout << exportDebugInfo(ann_network) << "\n";
         ann_network.cached_logl_valid = false;
-        computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index, 1, true);
+        computeLoglikelihoodBrlenOpt(ann_network, oldTrees, pmatrix_index, 1,
+                                     true);
         std::cout << "old_logl: " << old_logl << "\n";
         std::cout << "brlenopt_logl: " << brlenopt_logl << "\n";
         std::cout << "problem occurred while optimizing branch "
@@ -414,10 +419,10 @@ double optimize_branch(AnnotatedNetwork &ann_network, size_t pmatrix_index,
   return final_logl;
 }
 
-double optimize_branches(AnnotatedNetwork &ann_network, int max_iters,
-                         int max_iters_outside, int radius,
-                         std::unordered_set<size_t> candidates,
-                         bool restricted_total_iters) {
+double optimize_branches_internal(AnnotatedNetwork &ann_network, int max_iters,
+                                  int max_iters_outside, int radius,
+                                  std::unordered_set<size_t> candidates,
+                                  bool restricted_total_iters) {
   for (size_t idx : candidates) {
     assert(idx < ann_network.network.num_branches());
   }
@@ -460,6 +465,7 @@ pmatrix_index, 1);
     old_logl = new_logl;
     // old_virtual_root = new_virtual_root;
   }
+
   if ((old_logl < start_logl) && (fabs(old_logl - start_logl) >= 1E-3)) {
     std::cout << "old_logl: " << old_logl << "\n";
     std::cout << "start_logl: " << start_logl << "\n";
@@ -468,6 +474,97 @@ pmatrix_index, 1);
   assert((old_logl >= start_logl) || (fabs(old_logl - start_logl) < 1E-3));
 
   return old_logl;
+}
+
+ReticulationConfigSet decideInterestingTrees(
+    AnnotatedNetwork &ann_network, std::unordered_set<size_t> &candidates) {
+  // Find a set of trees such that all candidate branches are active in at least
+  // one of the trees
+  ReticulationConfigSet res;
+  NodeDisplayedTreeData &ndtd =
+      ann_network
+          .pernode_displayed_tree_data[ann_network.network.root->clv_index];
+  if (ndtd.num_active_displayed_trees <= 2) {
+    return {};
+  }
+
+  unsigned int n_added = 0;
+  // we need a tree with all zeros, and we need a tree with all ones
+  ReticulationConfigSet allZero(ann_network.options.max_reticulations);
+  ReticulationConfigSet allOne(ann_network.options.max_reticulations);
+  std::vector<ReticulationState> vec(ann_network.options.max_reticulations,
+                                     ReticulationState::DONT_CARE);
+  allZero.configs.emplace_back(vec);
+  allOne.configs.emplace_back(vec);
+  for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
+    allZero.configs[0][i] = ReticulationState::TAKE_FIRST_PARENT;
+    allOne.configs[0][i] = ReticulationState::TAKE_SECOND_PARENT;
+  }
+  for (size_t i = 0; i < ndtd.num_active_displayed_trees; ++i) {
+    if (reticulationConfigsCompatible(
+            ndtd.displayed_trees[i].treeLoglData.reticulationChoices, allOne)) {
+      addOrReticulationChoices(
+          res, ndtd.displayed_trees[i].treeLoglData.reticulationChoices);
+      n_added++;
+    } else if (reticulationConfigsCompatible(
+                   ndtd.displayed_trees[i].treeLoglData.reticulationChoices,
+                   allZero)) {
+      addOrReticulationChoices(
+          res, ndtd.displayed_trees[i].treeLoglData.reticulationChoices);
+      n_added++;
+    }
+  }
+
+  /*for (size_t i = 0; i < ndtd.num_active_displayed_trees; ++i) {
+    if (!reticulationConfigsCompatible(
+            res, ndtd.displayed_trees[i].treeLoglData.reticulationChoices)) {
+      addOrReticulationChoices(
+          res, ndtd.displayed_trees[i].treeLoglData.reticulationChoices);
+      n_added++;
+    }
+    if (n_added == ndtd.num_active_displayed_trees / 2) {
+      break;
+    }
+  }*/
+  if (n_added == ndtd.num_active_displayed_trees) {
+    res.configs.clear();
+  }
+
+  return res;
+}
+
+double optimize_branches(AnnotatedNetwork &ann_network, int max_iters,
+                         int max_iters_outside, int radius,
+                         std::unordered_set<size_t> candidates,
+                         bool restricted_total_iters) {
+  /*double old_logl = computeLoglikelihood(ann_network);
+  double new_logl;
+
+  if (ann_network.network.num_reticulations() > 1) {
+    NetworkState oldState = extract_network_state(ann_network);
+    // try first optimizing the braanch on just a subset of displayed trees
+    ann_network.clearInterestingTreeRestriction();
+    ReticulationConfigSet rcs = decideInterestingTrees(ann_network, candidates);
+    ann_network.addInterestingTreeRestriction(rcs);
+    optimize_branches_internal(ann_network, max_iters, max_iters_outside,
+                               radius, candidates, restricted_total_iters);
+    ann_network.clearInterestingTreeRestriction();
+    new_logl = computeLoglikelihood(ann_network);
+    if (new_logl < old_logl) {
+      apply_network_state(ann_network, oldState);
+      new_logl = optimize_branches_internal(ann_network, max_iters,
+                                            max_iters_outside, radius,
+                                            candidates, restricted_total_iters);
+    }
+  } else {
+    new_logl =
+        optimize_branches_internal(ann_network, max_iters, max_iters_outside,
+                                   radius, candidates, restricted_total_iters);
+  }
+  return new_logl;*/
+
+  return optimize_branches_internal(ann_network, max_iters, max_iters_outside,
+                                   radius, candidates, restricted_total_iters);
 }
 
 double optimize_branches(AnnotatedNetwork &ann_network, int max_iters,

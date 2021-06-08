@@ -276,11 +276,6 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
       check_score_improvement(ann_network, best_score, bestNetworkData);
       acceptedMoves.emplace_back(chosenMove);
 
-      // if we took an arc insertion, go on with horizontal search first
-      if (!ann_network.options.reticulation_after_reticulation, isArcInsertion(chosenMove.moveType)) {
-        return acceptedMoves;
-      }
-
       tried_with_allnew = false;
       got_better = true;
 
@@ -304,6 +299,12 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
             ParallelContext::master_thread()) {
           std::cout << BLUE << "Back to arc insertions...\n" << RESET;
         }
+      }
+
+      // if we took an arc insertion, go on with horizontal search first
+      if (!ann_network.options.reticulation_after_reticulation &&
+          isArcInsertion(chosenMove.moveType) && takenRemovals.empty()) {
+        return acceptedMoves;
       }
 
       // if we interleaved an arc insertion with some taken arc removal, it is
