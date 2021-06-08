@@ -302,7 +302,8 @@ std::vector<Move> fastIterationsMode(AnnotatedNetwork &ann_network,
       }
 
       // if we took an arc insertion, go on with horizontal search first
-      if (!ann_network.options.reticulation_after_reticulation, isArcInsertion(chosenMove.moveType)) {
+      if (!ann_network.options.reticulation_after_reticulation &&
+          isArcInsertion(chosenMove.moveType) && takenRemovals.empty()) {
         return acceptedMoves;
       }
 
