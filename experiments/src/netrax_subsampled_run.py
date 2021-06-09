@@ -13,7 +13,6 @@ def infer_ancestral_sequences(tree, species):
 
 
 def collapse_species(msa, best_tree, species, species_ancestor_sequences):
-    species_ancestor_sequences = infer_ancestral_sequences(best_tree, species)
     reduced_msa = None
     reduced_tree = None
     return reduced_msa, reduced_tree
@@ -40,7 +39,8 @@ def subsampled_inference_run(start_tree, full_msa, partitions, is_best_tree):
     else:
         best_tree = start_tree
     species = infer_species(best_tree)
-    reduced_msa, reduced_tree = collapse_species(full_msa, best_tree)
+    species_ancestor_sequences = infer_ancestral_sequences(best_tree, species)
+    reduced_msa, reduced_tree = collapse_species(full_msa, best_tree, species_ancestor_sequences)
     reduced_network = infer_network_netrax(reduced_msa, partitions, reduced_tree)
     uncollapsed_network = uncollapse_species_subtrees(reduced_network, best_tree, species)
     final_network = infer_network_netrax(full_msa, partitions, uncollapsed_network)
