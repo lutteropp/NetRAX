@@ -86,68 +86,6 @@ int findBestMaxDistance(AnnotatedNetwork &ann_network, PromisingStateQueue &psq,
   return best_max_distance;
 }
 
-void recollectFirstParents(Network &network, std::vector<Move> &candidates) {
-  for (size_t i = 0; i < candidates.size(); ++i) {
-    Move &move = candidates[i];
-    if (move.moveType == MoveType::RNNIMove) {
-      Node *u = network.nodes_by_index[move.rnniData.u_clv_index];
-      Node *v = network.nodes_by_index[move.rnniData.v_clv_index];
-      Node *s = network.nodes_by_index[move.rnniData.s_clv_index];
-      Node *t = network.nodes_by_index[move.rnniData.t_clv_index];
-
-      if (u && u->getType() == NodeType::RETICULATION_NODE) {
-        move.rnniData.u_first_parent_clv_index =
-            getReticulationFirstParent(network, u)->clv_index;
-      }
-      if (v && v->getType() == NodeType::RETICULATION_NODE) {
-        move.rnniData.v_first_parent_clv_index =
-            getReticulationFirstParent(network, v)->clv_index;
-      }
-      if (s && s->getType() == NodeType::RETICULATION_NODE) {
-        move.rnniData.s_first_parent_clv_index =
-            getReticulationFirstParent(network, s)->clv_index;
-      }
-      if (t && t->getType() == NodeType::RETICULATION_NODE) {
-        move.rnniData.t_first_parent_clv_index =
-            getReticulationFirstParent(network, t)->clv_index;
-      }
-    } else if (isArcInsertion(move.moveType)) {
-      Node *b = network.nodes_by_index[move.arcInsertionData.b_clv_index];
-      Node *d = network.nodes_by_index[move.arcInsertionData.d_clv_index];
-      if (b && b->getType() == NodeType::RETICULATION_NODE) {
-        move.arcInsertionData.b_first_parent_clv_index =
-            getReticulationFirstParent(network, b)->clv_index;
-      }
-      if (d && d->getType() == NodeType::RETICULATION_NODE) {
-        move.arcInsertionData.d_first_parent_clv_index =
-            getReticulationFirstParent(network, d)->clv_index;
-      }
-    } else if (isArcRemoval(move.moveType)) {
-      Node *v = network.nodes_by_index[move.arcRemovalData.v_clv_index];
-      if (v && v->getType() == NodeType::RETICULATION_NODE) {
-        move.arcRemovalData.v_first_parent_clv_index =
-            getReticulationFirstParent(network, v)->clv_index;
-      }
-    } else if (isRSPR(move.moveType)) {
-      Node *y_prime = network.nodes_by_index[move.rsprData.y_prime_clv_index];
-      Node *y = network.nodes_by_index[move.rsprData.y_clv_index];
-      Node *z = network.nodes_by_index[move.rsprData.z_clv_index];
-      if (y_prime && y_prime->getType() == NodeType::RETICULATION_NODE) {
-        move.rsprData.y_prime_first_parent_clv_index =
-            getReticulationFirstParent(network, y_prime)->clv_index;
-      }
-      if (y && y->getType() == NodeType::RETICULATION_NODE) {
-        move.rsprData.y_first_parent_clv_index =
-            getReticulationFirstParent(network, y)->clv_index;
-      }
-      if (z && z->getType() == NodeType::RETICULATION_NODE) {
-        move.rsprData.z_first_parent_clv_index =
-            getReticulationFirstParent(network, z)->clv_index;
-      }
-    }
-  }
-}
-
 void updateOldCandidates(AnnotatedNetwork &ann_network, const Move &chosenMove,
                          std::vector<Move> &candidates) {
   for (size_t i = 0; i < candidates.size(); ++i) {

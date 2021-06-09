@@ -14,7 +14,8 @@ enum class MoveType {
   ArcInsertionMove,
   ArcRemovalMove,
   DeltaPlusMove,
-  DeltaMinusMove
+  DeltaMinusMove,
+  ParentChange
 };
 
 inline std::string toString(MoveType type) {
@@ -37,6 +38,8 @@ inline std::string toString(MoveType type) {
       return "RSPRMove";
     case MoveType::TailMove:
       return "TailMove";
+    case MoveType::ParentChange:
+      return "ParentChange";
     default:
       throw std::runtime_error("Invalid move type");
   }
@@ -66,6 +69,10 @@ inline bool isVerticalMove(const MoveType &moveType) {
 
 inline bool isHorizontalMove(const MoveType &moveType) {
   return !(isComplexityChangingMove(moveType));
+}
+
+inline bool isParentChange(const MoveType& moveType) {
+  return (moveType == MoveType::ParentChange);
 }
 
 }  // namespace netrax

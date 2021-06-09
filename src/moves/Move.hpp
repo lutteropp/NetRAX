@@ -172,4 +172,8 @@ void updateMovePmatrixIndex(Move &move, size_t old_pmatrix_index,
 void updateMoveClvIndex(Move &move, size_t old_clv_index, size_t new_clv_index,
                         bool undo);
 
+void recollectFirstParents(Network &network, Move &move);
+void recollectFirstParents(Network &network, std::vector<Move> &candidates);
+void updateMove(Network& network, const Move& chosenMove, Move& move);
+
 }  // namespace netrax

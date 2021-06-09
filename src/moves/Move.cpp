@@ -4,6 +4,7 @@
 
 #include "ArcInsertion.hpp"
 #include "ArcRemoval.hpp"
+#include "ParentChange.hpp"
 #include "RNNI.hpp"
 #include "RSPR.hpp"
 
@@ -33,6 +34,8 @@ Move randomMove(AnnotatedNetwork &ann_network, MoveType type) {
       return randomMoveHead(ann_network);
     case MoveType::TailMove:
       return randomMoveTail(ann_network);
+    case MoveType::ParentChange:
+      return randomMoveParentChange(ann_network);
     default:
       throw std::runtime_error("Invalid move type randomMove: " +
                                toString(type));
@@ -67,6 +70,9 @@ void performMove(AnnotatedNetwork &ann_network, Move &move) {
       break;
     case MoveType::TailMove:
       performMoveRSPR(ann_network, move);
+      break;
+    case MoveType::ParentChange:
+      performMoveParentChange(ann_network, move);
       break;
     default:
       throw std::runtime_error("Invalid move type performMove: " +
@@ -104,6 +110,9 @@ void undoMove(AnnotatedNetwork &ann_network, Move &move) {
     case MoveType::TailMove:
       undoMoveRSPR(ann_network, move);
       break;
+    case MoveType::ParentChange:
+      undoMoveParentChange(ann_network, move);
+      break;
     default:
       throw std::runtime_error("Invalid move type undoMove: " +
                                toString(move.moveType));
@@ -131,6 +140,8 @@ std::string toString(const Move &move) {
       return toStringRSPR(move);
     case MoveType::TailMove:
       return toStringRSPR(move);
+    case MoveType::ParentChange:
+      return toStringParentChange(move);
     default:
       throw std::runtime_error("Invalid move type toString: " +
                                toString(move.moveType));
@@ -157,6 +168,8 @@ bool checkSanity(AnnotatedNetwork &ann_network, const Move &move) {
       return checkSanityRSPR(ann_network, move);
     case MoveType::TailMove:
       return checkSanityRSPR(ann_network, move);
+    case MoveType::ParentChange:
+      return checkSanityParentChange(ann_network, move);
     default:
       throw std::runtime_error("Invalid move type checkSanity: " +
                                toString(move.moveType));
@@ -184,6 +197,8 @@ std::unordered_set<size_t> brlenOptCandidates(AnnotatedNetwork &ann_network,
       return brlenOptCandidatesRSPR(ann_network, move);
     case MoveType::TailMove:
       return brlenOptCandidatesRSPR(ann_network, move);
+    case MoveType::ParentChange:
+      return brlenOptCandidatesParentChange(ann_network, move);
     default:
       throw std::runtime_error("Invalid move type brlenOptCandidates: " +
                                toString(move.moveType));
@@ -216,6 +231,9 @@ std::vector<Move> possibleMoves(AnnotatedNetwork &ann_network, MoveType type,
     case MoveType::TailMove:
       return possibleMovesTail(ann_network, rspr1_present, min_radius,
                                max_radius);
+    case MoveType::ParentChange:
+      return possibleMovesParentChange(ann_network, rspr1_present, min_radius,
+                                       max_radius);
     default:
       throw std::runtime_error("Invalid move type possibleMoves: " +
                                toString(type));
@@ -255,6 +273,9 @@ std::vector<Move> possibleMoves(AnnotatedNetwork &ann_network, MoveType type,
     case MoveType::TailMove:
       return possibleMovesTail(ann_network, start_edges, rspr1_present,
                                min_radius, max_radius);
+    case MoveType::ParentChange:
+      return possibleMovesParentChange(ann_network, start_edges, rspr1_present,
+                                       min_radius, max_radius);
     default:
       throw std::runtime_error("Invalid move type possibleMoves: " +
                                toString(type));
@@ -294,6 +315,9 @@ std::vector<Move> possibleMoves(AnnotatedNetwork &ann_network, MoveType type,
     case MoveType::TailMove:
       return possibleMovesTail(ann_network, start_nodes, rspr1_present,
                                min_radius, max_radius);
+    case MoveType::ParentChange:
+      return possibleMovesParentChange(ann_network, start_nodes, rspr1_present,
+                                       min_radius, max_radius);
     default:
       throw std::runtime_error("Invalid move type possibleMoves: " +
                                toString(type));
@@ -382,6 +406,8 @@ void updateMoveBranchLengths(AnnotatedNetwork &ann_network,
       move.rsprData.z_y_len = get_edge_lengths(ann_network, z_y_pmatrix_index);
     }
   }
+
+  // TODO: Add updateMoveBranchLengths for ParentChange move
 }
 
 bool keepThisCandidate(AnnotatedNetwork &ann_network, const Move &move) {
@@ -466,6 +492,7 @@ void updateMoveBranchLengths(AnnotatedNetwork &ann_network, Move &move) {
     move.arcRemovalData.c_d_len = get_edge_lengths(
         ann_network, move.arcRemovalData.wanted_cd_pmatrix_index);
   }
+  // TODO: Add updateMoveBranch lengths for ParentChange move
 }
 
 void updateMovePmatrixIndex(Move &move, size_t old_pmatrix_index,
@@ -482,6 +509,9 @@ void updateMovePmatrixIndex(Move &move, size_t old_pmatrix_index,
   } else if (isRSPR(move.moveType)) {
     updateMovePmatrixIndexRSPR(move, old_pmatrix_index, new_pmatrix_index,
                                undo);
+  } else if (isParentChange(move.moveType)) {
+    updateMovePmatrixIndexParentChange(move, old_pmatrix_index,
+                                       new_pmatrix_index, undo);
   } else {
     throw std::runtime_error("unexpected move type");
   }
@@ -497,9 +527,91 @@ void updateMoveClvIndex(Move &move, size_t old_clv_index, size_t new_clv_index,
     updateMoveClvIndexRNNI(move, old_clv_index, new_clv_index, undo);
   } else if (isRSPR(move.moveType)) {
     updateMoveClvIndexRSPR(move, old_clv_index, new_clv_index, undo);
+  } else if (isParentChange(move.moveType)) {
+    updateMoveClvIndexParentChange(move, old_clv_index, new_clv_index, undo);
   } else {
     throw std::runtime_error("unexpected move type");
   }
+}
+
+void recollectFirstParents(Network &network, Move &move) {
+    if (move.moveType == MoveType::RNNIMove) {
+      Node *u = network.nodes_by_index[move.rnniData.u_clv_index];
+      Node *v = network.nodes_by_index[move.rnniData.v_clv_index];
+      Node *s = network.nodes_by_index[move.rnniData.s_clv_index];
+      Node *t = network.nodes_by_index[move.rnniData.t_clv_index];
+
+      if (u && u->getType() == NodeType::RETICULATION_NODE) {
+        move.rnniData.u_first_parent_clv_index =
+            getReticulationFirstParent(network, u)->clv_index;
+      }
+      if (v && v->getType() == NodeType::RETICULATION_NODE) {
+        move.rnniData.v_first_parent_clv_index =
+            getReticulationFirstParent(network, v)->clv_index;
+      }
+      if (s && s->getType() == NodeType::RETICULATION_NODE) {
+        move.rnniData.s_first_parent_clv_index =
+            getReticulationFirstParent(network, s)->clv_index;
+      }
+      if (t && t->getType() == NodeType::RETICULATION_NODE) {
+        move.rnniData.t_first_parent_clv_index =
+            getReticulationFirstParent(network, t)->clv_index;
+      }
+    } else if (isArcInsertion(move.moveType)) {
+      Node *b = network.nodes_by_index[move.arcInsertionData.b_clv_index];
+      Node *d = network.nodes_by_index[move.arcInsertionData.d_clv_index];
+      if (b && b->getType() == NodeType::RETICULATION_NODE) {
+        move.arcInsertionData.b_first_parent_clv_index =
+            getReticulationFirstParent(network, b)->clv_index;
+      }
+      if (d && d->getType() == NodeType::RETICULATION_NODE) {
+        move.arcInsertionData.d_first_parent_clv_index =
+            getReticulationFirstParent(network, d)->clv_index;
+      }
+    } else if (isArcRemoval(move.moveType)) {
+      Node *v = network.nodes_by_index[move.arcRemovalData.v_clv_index];
+      if (v && v->getType() == NodeType::RETICULATION_NODE) {
+        move.arcRemovalData.v_first_parent_clv_index =
+            getReticulationFirstParent(network, v)->clv_index;
+      }
+    } else if (isRSPR(move.moveType)) {
+      Node *y_prime = network.nodes_by_index[move.rsprData.y_prime_clv_index];
+      Node *y = network.nodes_by_index[move.rsprData.y_clv_index];
+      Node *z = network.nodes_by_index[move.rsprData.z_clv_index];
+      if (y_prime && y_prime->getType() == NodeType::RETICULATION_NODE) {
+        move.rsprData.y_prime_first_parent_clv_index =
+            getReticulationFirstParent(network, y_prime)->clv_index;
+      }
+      if (y && y->getType() == NodeType::RETICULATION_NODE) {
+        move.rsprData.y_first_parent_clv_index =
+            getReticulationFirstParent(network, y)->clv_index;
+      }
+      if (z && z->getType() == NodeType::RETICULATION_NODE) {
+        move.rsprData.z_first_parent_clv_index =
+            getReticulationFirstParent(network, z)->clv_index;
+      }
+    } else {
+      throw std::runtime_error("Not implemented yet");
+    }
+    // TODO: Add case for ParentChangeMove
+}
+
+void recollectFirstParents(Network &network, std::vector<Move> &candidates) {
+  for (size_t i = 0; i < candidates.size(); ++i) {
+    recollectFirstParents(network, candidates[i]);
+  }
+}
+
+void updateMove(Network &network, const Move &chosenMove, Move &move) {
+  for (size_t j = 0; j < chosenMove.remapped_clv_indices.size(); ++j) {
+    updateMoveClvIndex(move, chosenMove.remapped_clv_indices[j].first,
+                       chosenMove.remapped_clv_indices[j].second, true);
+  }
+  for (size_t j = 0; j < chosenMove.remapped_pmatrix_indices.size(); ++j) {
+    updateMovePmatrixIndex(move, chosenMove.remapped_pmatrix_indices[j].first,
+                           chosenMove.remapped_pmatrix_indices[j].second, true);
+  }
+  recollectFirstParents(network, move);
 }
 
 }  // namespace netrax
