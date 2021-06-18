@@ -80,7 +80,7 @@ def exp_change_reticulation_count(n_taxa):
     settings.likelihood_types = [LikelihoodType.BEST, LikelihoodType.AVERAGE]
     settings.partition_sizes = [1000]
     settings.fixed_n_taxa = [n_taxa]
-    settings.fixed_n_reticulations = [1, 2, 3]
+    settings.fixed_n_reticulations = [1, 2, 3, 4]
     settings.fixed_reticulation_probs = [0.5]
     settings.use_fixed_simulation = True
     return (prefix, settings)
@@ -125,6 +125,12 @@ def gather_labeled_settings():
     setups['t_15_change_brlen_scaler'] = exp_change_brlen_scaler(15)
     setups['t_15_change_reticulation_count'] = exp_change_reticulation_count(15)
     setups['t_15_unpartitioned'] = exp_unpartitioned(15)
+
+    setups['t_25_change_reticulation_prob'] = exp_change_reticulation_prob(25)
+    setups['t_25_change_brlen_scaler'] = exp_change_brlen_scaler(25)
+    setups['t_25_change_reticulation_count'] = exp_change_reticulation_count(25)
+    setups['t_25_unpartitioned'] = exp_unpartitioned(25)
+
     setups['smoke_test_fixed'] = smoke_test_fixed(40, 4)
     setups['smoke_test_medium'] = smoke_test_fixed(20, 2)
     setups['smoke_test_small'] = smoke_test_fixed(10, 1)
