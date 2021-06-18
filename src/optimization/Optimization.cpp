@@ -55,13 +55,13 @@ void optimizeBranchesCandidates(AnnotatedNetwork &ann_network,
     std::cout << "BIC score after branch length optimization: " << new_score
               << "\n";
 
-  if (fabs(new_score - old_score) > 1E-3) {
+  if (new_score - old_score > 1E-3) {
     std::cout << "old score: " << old_score << "\n";
     std::cout << "new score: " << new_score << "\n";
     throw std::runtime_error("Complete brlenopt made BIC worse");
   }
 
-  assert(fabs(new_score - old_score) <= 1E-3);
+  assert(new_score - old_score <= 1E-3);
 
   optimize_scalers(ann_network, silent);
 }
