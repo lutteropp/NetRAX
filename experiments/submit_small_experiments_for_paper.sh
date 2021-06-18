@@ -1,6 +1,6 @@
 #!/bin/bash
 
-names=("t_25_change_reticulation_prob", "t_25_change_reticulation_count", "t_25_change_reticulation_prob", "t_25_change_brlen_scaler", "t_25_unpartitioned")
+names=("t_25_change_reticulation_prob", "t_25_change_reticulation_count", "t_25_change_brlen_scaler", "t_25_unpartitioned")
 
 for name in ${names[@]}
 do
