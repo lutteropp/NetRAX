@@ -102,11 +102,11 @@ void optimizeReticulationProbs(AnnotatedNetwork &ann_network, bool silent) {
   if (!silent && ParallelContext::master())
     std::cout << "BIC score after updating reticulation probs: " << new_score
               << "\n";
-  if (new_score > old_score) {
+  if (new_score - old_score > 1E-3) {
     throw std::runtime_error(
         "BIC got worse after optimizing reticulation probs");
   }
-  assert(new_score <= old_score);
+  assert(new_score - old_score <= 1E-3);
 }
 
 bool logl_stays_same(AnnotatedNetwork &ann_network) {
