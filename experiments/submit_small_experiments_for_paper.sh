@@ -30,7 +30,7 @@ do
     do
         for exp_name in ${exp_name_list[*]}
         do
-            name="t_"+"$n_taxa"+"_r_"+"$n_reticulations"+"_"+"$exp_name"
+            name="t_"$n_taxa"_r_"$n_reticulations"_"$exp_name
             sbatch -N 1 -n 1 submit_experiments_haswell.sh "$name" "$name" 1
         done
     done
