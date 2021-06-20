@@ -131,6 +131,11 @@ def gather_labeled_settings():
     setups['t_25_change_reticulation_count'] = exp_change_reticulation_count(25)
     setups['t_25_unpartitioned'] = exp_unpartitioned(25)
 
+    setups['t_20_change_reticulation_prob'] = exp_change_reticulation_prob(20)
+    setups['t_20_change_brlen_scaler'] = exp_change_brlen_scaler(20)
+    setups['t_20_change_reticulation_count'] = exp_change_reticulation_count(20)
+    setups['t_20_unpartitioned'] = exp_unpartitioned(20)
+
     setups['smoke_test_fixed'] = smoke_test_fixed(40, 4)
     setups['smoke_test_medium'] = smoke_test_fixed(20, 2)
     setups['smoke_test_small'] = smoke_test_fixed(10, 1)

@@ -1,10 +1,10 @@
 #!/bin/bash
 
 declare -a names=(
-    "t_25_change_reticulation_prob"
-    "t_25_change_reticulation_count"
-    "t_25_change_brlen_scaler"
-    "t_25_unpartitioned"
+    "t_20_change_reticulation_prob"
+    "t_20_change_reticulation_count"
+    "t_20_change_brlen_scaler"
+    "t_20_unpartitioned"
     )
 
 for name in ${names[*]}
