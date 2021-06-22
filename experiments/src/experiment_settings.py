@@ -124,7 +124,7 @@ def exp_brlen_linkage(n_taxa, n_reticulations, with_random=False):
         settings.start_types = [StartType.FROM_RAXML, StartType.RANDOM]
     else:
         settings.start_types = [StartType.FROM_RAXML]
-    settings.brlen_linkage_types = [BrlenLinkageType.LINKED, BrlenLinkageType.SCALED, BrlenLinkageType.UNLINKED]
+    settings.brlen_linkage_types = [BrlenLinkageType.LINKED, BrlenLinkageType.UNLINKED]
     settings.likelihood_types = [LikelihoodType.BEST, LikelihoodType.AVERAGE]
     settings.partition_sizes = [1000]
     settings.fixed_n_taxa = [n_taxa]
