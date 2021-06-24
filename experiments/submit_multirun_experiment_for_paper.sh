@@ -3,7 +3,7 @@
 n_taxa="40"
 n_reticulations="4"
 n_runs=100
-exp_name="standard"
+exp_name="standard_multi"
 
 for (( c=1; c<=$n_runs; c++ ))
 do  

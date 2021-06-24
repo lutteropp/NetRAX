@@ -197,6 +197,7 @@ def gather_labeled_settings():
             setups['t_'+str(n_taxa)+'_r_'+str(n_reticulations)+'_change_reticulation_prob'] = exp_change_reticulation_prob(n_taxa, n_reticulations)
             setups['t_'+str(n_taxa)+'_r_'+str(n_reticulations)+'_change_brlen_scaler'] = exp_change_brlen_scaler(n_taxa, n_reticulations)
             setups['t_'+str(n_taxa)+'_r_'+str(n_reticulations)+'_standard'] = exp_standard(n_taxa, n_reticulations)
+            setups['t_'+str(n_taxa)+'_r_'+str(n_reticulations)+'_standard_multi'] = exp_standard(n_taxa, n_reticulations)
             setups['t_'+str(n_taxa)+'_r_'+str(n_reticulations)+'_unpartitioned'] = exp_unpartitioned(n_taxa, n_reticulations)
 
             setups['t_'+str(n_taxa)+'_r_'+str(n_reticulations)+'_standard_random'] = exp_standard(n_taxa, n_reticulations, True)
