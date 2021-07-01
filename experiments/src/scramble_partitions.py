@@ -19,8 +19,8 @@ def parse_orig_partitions(partitions_path):
 def write_partitions(model, name, psites, partitions_path):
     with open(partitions_path, 'w') as f:
         for i in range(len(model)):
-            if (len(psites[i] > 0)):
-                f.write(model[i] + "," + name[i] + "=" + ",".join(psites[i]) + "\n")
+            if (len(psites[i]) > 0):
+                f.write(model[i] + "," + name[i] + "=" + ",".join([str(s) for s in psites[i]]) + "\n")
         f.close()
 
 
