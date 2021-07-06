@@ -3,6 +3,7 @@ from experiment_settings import exp_standard
 from netrax_wrapper import infer_networks, check_weird_network, extract_displayed_trees
 from evaluate_experiments import run_inference_and_evaluate, write_results_to_csv
 from run_experiments import simulate_network_celine_fixed_nonweird, build_dataset
+from dataset_builder import sample_trees
 import argparse
 import copy
 
