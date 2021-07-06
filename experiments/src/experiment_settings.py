@@ -100,7 +100,7 @@ def exp_change_reticulation_count(n_taxa, with_random=False):
 
 def exp_standard(n_taxa, n_reticulations, with_random=False):
     settings = ExperimentSettings()
-    prefix = 't_' + str(n_taxa) + '_change_reticulation_count'
+    prefix = 't_' + str(n_taxa) + '_standard'
     settings.sampling_types = [SamplingType.PERFECT_SAMPLING]
     if with_random:
         settings.start_types = [StartType.FROM_RAXML, StartType.RANDOM]
@@ -136,7 +136,7 @@ def exp_brlen_linkage(n_taxa, n_reticulations, with_random=False):
 
 def exp_standard_random(n_taxa, n_reticulations, with_random=False):
     settings = ExperimentSettings()
-    prefix = 't_' + str(n_taxa) + '_change_reticulation_count'
+    prefix = 't_' + str(n_taxa) + '_standard_randomt'
     settings.sampling_types = [SamplingType.PERFECT_SAMPLING]
     if with_random:
         settings.start_types = [StartType.FROM_RAXML, StartType.RANDOM]
