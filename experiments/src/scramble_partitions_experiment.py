@@ -63,6 +63,11 @@ if __name__ == '__main__':
         new_ds = copy.deepcopy(ds)
         new_ds.partitions_path = outfile_name
         new_ds.my_id = act_id
+        name = 'data/' + "datasets_" + prefix + "/" + str(new_ds.my_id)
+        new_ds.raxml_tree_path = name + ".raxml.bestTree"
+        for var in new_ds.inference_variants:
+            var.inferred_network_path = name + "_" + str(var.likelihood_type) + "_" + str(
+            var.brlen_linkage_type) + "_" + str(var.start_type) + "_inferred_network.nw"
         act_id += 1
         new_datasets.append(new_ds)
 
