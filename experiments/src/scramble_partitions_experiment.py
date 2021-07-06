@@ -63,8 +63,5 @@ if __name__ == '__main__':
         new_ds.partitions_path = outfile_name
         new_datasets.append(new_ds)
 
-    for new_ds in new_datasets:
-        infer_networks(new_ds)
-
     run_inference_and_evaluate(new_datasets)
     write_results_to_csv(new_datasets, settings.folder_path + prefix + "_results.csv")
