@@ -2,7 +2,7 @@ from scramble_partitions import scramble_partitions, write_partitions
 from experiment_settings import exp_standard
 from netrax_wrapper import infer_networks
 from evaluate_experiments import run_inference_and_evaluate, write_results_to_csv
-from celine_simulator import simulate_network_celine_fixed_nonweird
+from run_experiments import simulate_network_celine_fixed_nonweird
 import argparse
 import copy
 
