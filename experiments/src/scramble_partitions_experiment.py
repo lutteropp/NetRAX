@@ -26,7 +26,7 @@ def simulate_stuff(prefix, n_taxa, n_reticulations):
     n_trees = 2 ** param_info["no_of_hybrids"]
     ds = build_dataset(prefix, n_taxa, n_reticulations, n_trees * settings.partition_sizes[0], settings.simulator_types[0], settings.fixed_brlen_scalers[0],
                   settings.sampling_types[0], settings.likelihood_types, settings.brlen_linkage_types, settings.start_types, settings.use_partitioned_msa_types, settings.folder_path, 0, 0, 0.5)
-    ds.sites_per_tree = partition_size
+    ds.sites_per_tree = settings.partition_sizes[0]
     ds.celine_params = param_info
     ds.n_trees = 2 ** ds.celine_params["no_of_hybrids"]
 
