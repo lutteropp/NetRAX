@@ -54,6 +54,7 @@ if __name__ == '__main__':
     ds = simulate_stuff(prefix, n_taxa, n_reticulations)
     infile_name = ds.partitions_path
     
+    act_id = 0
     new_datasets = []
     for fraction in SCRAMBLE_FACTOR:
         outfile_name = infile_name.split('.')[0] + '_' + str(fraction).replace('.', '_') + '.txt'
@@ -61,6 +62,8 @@ if __name__ == '__main__':
         write_partitions(model, name, new_psites, outfile_name)
         new_ds = copy.deepcopy(ds)
         new_ds.partitions_path = outfile_name
+        new_ds.my_id = act_id
+        act_id += 1
         new_datasets.append(new_ds)
 
     run_inference_and_evaluate(new_datasets)
