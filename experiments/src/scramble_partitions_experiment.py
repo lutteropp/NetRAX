@@ -21,6 +21,7 @@ def parse_command_line_arguments_pscramble_exp():
 
 def simulate_stuff(prefix, n_taxa, n_reticulations):
     (_, settings) = exp_standard(n_taxa, n_reticulations)
+    settings.folder_path = 'data/'
     _, _, newick, param_info = simulate_network_celine_fixed_nonweird(settings, n_taxa, n_reticulations)
     n_trees = 2 ** param_info["no_of_hybrids"]
     ds = build_dataset(prefix, n_taxa, n_reticulations, n_trees * settings.partition_sizes[0], settings.simulator_types[0], settings.fixed_brlen_scalers[0],
