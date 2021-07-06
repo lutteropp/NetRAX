@@ -4,6 +4,7 @@ from netrax_wrapper import infer_networks, check_weird_network, extract_displaye
 from evaluate_experiments import run_inference_and_evaluate, write_results_to_csv
 from run_experiments import simulate_network_celine_fixed_nonweird, build_dataset
 from dataset_builder import sample_trees, build_trees_file
+from seqgen_wrapper import simulate_msa
 import argparse
 import copy
 
