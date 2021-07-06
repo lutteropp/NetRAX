@@ -14,7 +14,7 @@ SCRAMBLE_FACTOR=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
 
 def parse_command_line_arguments_pscramble_exp():
     CLI = argparse.ArgumentParser()
-    CLI.add_argument("--prefix", type=str, default="dataset")
+    CLI.add_argument("--prefix", type=str, default="scramble_partitions")
     CLI.add_argument("--n_taxa", type=int, default=40)
     CLI.add_argument("--n_reticulations", type=int, default=4)
     args = CLI.parse_args()
