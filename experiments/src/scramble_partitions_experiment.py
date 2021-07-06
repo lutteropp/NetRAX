@@ -18,7 +18,7 @@ def parse_command_line_arguments_pscramble_exp():
     return args.prefix, args.n_taxa, args.n_reticulations
 
 
-def simulate_stuff(n_taxa, n_reticulations):
+def simulate_stuff(prefix, n_taxa, n_reticulations):
     (_, settings) = exp_standard(n_taxa, n_reticulations)
     _, _, newick, param_info = simulate_network_celine_fixed_nonweird(settings, n_taxa, n_reticulations)
     n_trees = 2 ** param_info["no_of_hybrids"]
