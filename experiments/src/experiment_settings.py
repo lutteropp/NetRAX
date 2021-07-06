@@ -136,7 +136,7 @@ def exp_brlen_linkage(n_taxa, n_reticulations, with_random=False):
 
 def exp_standard_random(n_taxa, n_reticulations, with_random=False):
     settings = ExperimentSettings()
-    prefix = 't_' + str(n_taxa) + '_standard_randomt'
+    prefix = 't_' + str(n_taxa) + '_standard_random'
     settings.sampling_types = [SamplingType.PERFECT_SAMPLING]
     if with_random:
         settings.start_types = [StartType.FROM_RAXML, StartType.RANDOM]
