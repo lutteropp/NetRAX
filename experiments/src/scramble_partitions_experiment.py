@@ -5,6 +5,9 @@ from evaluate_experiments import run_inference_and_evaluate, write_results_to_cs
 from run_experiments import simulate_network_celine_fixed_nonweird, build_dataset
 from dataset_builder import sample_trees, build_trees_file
 from seqgen_wrapper import simulate_msa
+from append_topological_distances import append_distances_netrax
+from append_msa_patterns import append_patterns
+from csv_merger import postprocess_merge
 import argparse
 import copy
 
@@ -63,7 +66,7 @@ if __name__ == '__main__':
         new_ds = copy.deepcopy(ds)
         new_ds.partitions_path = outfile_name
         new_ds.my_id = act_id
-        name = 'data/' + "datasets_" + prefix + "/" + str(new_ds.my_id)
+        name = 'data/' + "datasets_" + prefix + "/" + '0_' + str(new_ds.my_id)
         new_ds.raxml_tree_path = name + ".raxml.bestTree"
         for var in new_ds.inference_variants:
             var.inferred_network_path = name + "_" + str(var.likelihood_type) + "_" + str(
@@ -73,3 +76,11 @@ if __name__ == '__main__':
 
     run_inference_and_evaluate(new_datasets)
     write_results_to_csv(new_datasets, settings.folder_path + prefix + "_results.csv")
+
+    iterations_global = 1
+    iterations_local = len(SCRAMBLE_FACTOR)
+    for g_it in range(iterations_global):
+        postprocess_merge(prefix + "_" + str(g_it), iterations_local)
+    postprocess_merge(prefix, iterations_global)
+    append_patterns(prefix)
+    append_distances_netrax(prefix)
