@@ -76,7 +76,7 @@ if __name__ == '__main__':
         new_datasets.append(new_ds)
 
     run_inference_and_evaluate(new_datasets)
-    write_results_to_csv(new_datasets, 'data/' + prefix + "_results.csv")
+    write_results_to_csv(new_datasets, 'data/' + prefix + "_0_results.csv")
 
     iterations_global = 1
     iterations_local = len(SCRAMBLE_FACTOR)
