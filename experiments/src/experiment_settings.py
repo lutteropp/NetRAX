@@ -116,6 +116,24 @@ def exp_standard(n_taxa, n_reticulations, with_random=False):
     return (prefix, settings)
 
 
+def exp_partition_size(n_taxa, n_reticulations, with_random=False):
+    settings = ExperimentSettings()
+    prefix = 't_' + str(n_taxa) + '_partition_size'
+    settings.sampling_types = [SamplingType.PERFECT_SAMPLING]
+    if with_random:
+        settings.start_types = [StartType.FROM_RAXML, StartType.RANDOM]
+    else:
+        settings.start_types = [StartType.FROM_RAXML]
+    settings.brlen_linkage_types = [BrlenLinkageType.LINKED]
+    settings.likelihood_types = [LikelihoodType.BEST, LikelihoodType.AVERAGE]
+    settings.partition_sizes = [100, 500, 1000, 5000, 10000]
+    settings.fixed_n_taxa = [n_taxa]
+    settings.fixed_n_reticulations = [n_reticulations]
+    settings.fixed_reticulation_probs = [0.5]
+    settings.use_fixed_simulation = True
+    return (prefix, settings)
+
+
 def exp_brlen_linkage(n_taxa, n_reticulations, with_random=False):
     settings = ExperimentSettings()
     prefix = 't_' + str(n_taxa) + '_change_reticulation_count'
@@ -199,6 +217,7 @@ def gather_labeled_settings():
             setups['t_'+str(n_taxa)+'_r_'+str(n_reticulations)+'_standard'] = exp_standard(n_taxa, n_reticulations)
             setups['t_'+str(n_taxa)+'_r_'+str(n_reticulations)+'_standard_multi'] = exp_standard(n_taxa, n_reticulations)
             setups['t_'+str(n_taxa)+'_r_'+str(n_reticulations)+'_unpartitioned'] = exp_unpartitioned(n_taxa, n_reticulations)
+            setups['t_'+str(n_taxa)+'_r_'+str(n_reticulations)+'_partition_size'] = exp_partition_size(n_taxa, n_reticulations)
 
             setups['t_'+str(n_taxa)+'_r_'+str(n_reticulations)+'_standard_random'] = exp_standard(n_taxa, n_reticulations, True)
             setups['t_'+str(n_taxa)+'_r_'+str(n_reticulations)+'_brlen_linkage'] = exp_brlen_linkage(n_taxa, n_reticulations)
