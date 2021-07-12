@@ -65,7 +65,7 @@ def majority_consensus_char(species_chars):
 def majority_consensus_sequence(species_seqs):
     seq = []
     for idx in range(len(species_seqs[0])):
-        print(str(idx) + "/" + str(len(species_seqs[0])))
+        #print(str(idx) + "/" + str(len(species_seqs[0])))
         chars = [species_seqs[i][idx] for i in range(len(species_seqs))]
         seq.append(majority_consensus_char(chars))
     return "".join(seq)
