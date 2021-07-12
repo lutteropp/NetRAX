@@ -56,7 +56,10 @@ def majority_consensus_char(species_chars):
         max_chars.append('T')
     if max_cnt == 0:
         return '-'
-    return random.choice(max_chars)
+    elif len(max_chars) == 0:
+        return max_chars[0]
+    else:
+        return random.choice(max_chars)
 
 
 def majority_consensus_sequence(species_seqs):
