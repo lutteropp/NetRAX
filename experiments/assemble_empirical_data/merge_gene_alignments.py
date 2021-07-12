@@ -54,6 +54,8 @@ def majority_consensus_char(species_chars):
         max_chars.append('G')
     if cnt_t == max_cnt:
         max_chars.append('T')
+    if max_cnt == 0:
+        return '-'
     return random.choice(max_chars)
 
 
