@@ -12,7 +12,7 @@
 module purge
 module load gompi/2019a
 
-root=/home/luttersh/NetRAX/experiments/data
+root=/home/luttersh/NetRAX/experiments/data_old
 raxng=/home/luttersh/raxml-ng/bin/raxml-ng-mpi
 ali=$root/datasets_big_empirical/merged_genes_species_msa.txt.raxml.rba
 model=$root/datasets_big_empirical/merged_genes_species_partitions.txt
