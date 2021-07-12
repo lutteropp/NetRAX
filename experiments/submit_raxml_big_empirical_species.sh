@@ -6,8 +6,8 @@
 #SBATCH --cpus-per-task=16
 #SBATCH --hint=compute_bound
 #SBATCH -t 24:00:00
-#SBATCH -N 20
-#SBATCH -n 20
+#SBATCH -N 10
+#SBATCH -n 10
  
 module purge
 module load gompi/2019a
