@@ -62,6 +62,7 @@ def majority_consensus_char(species_chars):
 def majority_consensus_sequence(species_seqs):
     seq = []
     for idx in range(len(species_seqs[0])):
+        print(str(idx) + "/" + str(len(species_seqs[0])))
         chars = [species_seqs[i][idx] for i in range(len(species_seqs))]
         seq.append(majority_consensus_char(chars))
     return "".join(seq)
@@ -70,7 +71,9 @@ def majority_consensus_sequence(species_seqs):
 def build_species_msa(msa, taxon_names, species_names):
     species_msa = {}
     for species in species_names:
+        print("Extracting species seqs for species: " + species + "...")
         species_seqs = extract_species_seqs(msa, taxon_names, species)
+        print("Building majority consensus sequence for species " + species + "...")
         species_msa[species] = majority_consensus_sequence(species_seqs)
     return species_msa
 
