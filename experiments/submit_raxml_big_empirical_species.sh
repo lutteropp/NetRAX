@@ -16,7 +16,7 @@ root=/home/luttersh/NetRAX/experiments/data_old
 raxng=/home/luttersh/raxml-ng/bin/raxml-ng-mpi
 ali=$root/datasets_big_empirical/merged_genes_species_msa.txt.raxml.rba
 model=$root/datasets_big_empirical/merged_genes_species_partitions.txt
-outdir=$root/datasets_big_empirical
+outdir=$root/datasets_big_empirical_species
 
 mkdir -p $outdir
 
