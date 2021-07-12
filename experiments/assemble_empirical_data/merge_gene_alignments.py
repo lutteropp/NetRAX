@@ -25,7 +25,7 @@ def extract_species_name(taxon):
 def extract_species_seqs(msa, taxon_names, species):
     seqs = []
     for taxon in taxon_names:
-        if extract_species_name[taxon] == species:
+        if extract_species_name(taxon) == species:
             seqs.append(msa[taxon])
     return seqs
 
