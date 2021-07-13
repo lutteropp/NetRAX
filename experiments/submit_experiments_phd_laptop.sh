@@ -11,8 +11,11 @@ SETTINGS=$1
 PREFIX=$1
 ITERATIONS=$2
 
-SCRIPTS="/home/sarah/eclipse-workspace/NetRAX/experiments/src"
-FOLDER_PATH="/home/sarah/eclipse-workspace/NetRAX/experiments/data"
+#SCRIPTS="/home/sarah/eclipse-workspace/NetRAX/experiments/src"
+#FOLDER_PATH="/home/sarah/eclipse-workspace/NetRAX/experiments/data"
+
+SCRIPTS="/home/luttersh/NetRAX/experiments/src"
+FOLDER_PATH="/home/luttersh/NetRAX/experiments/data"
 SUBFOLDER_PATH=${FOLDER_PATH}/${PREFIX}
 LOGS_PATH=${FOLDER_PATH}/logs_${PREFIX}
 
