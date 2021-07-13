@@ -15,7 +15,7 @@ git clone --recurse-submodules https://github.com/lutteropp/NetRAX.git
 cd NetRAX
 mkdir build
 cd build
-cmake -DCMAKE_BUILD_TYPE=Release -USE_MPI=ON ..
+cmake -DCMAKE_BUILD_TYPE=Release -DUSE_MPI=ON ..
 make
 ```
 3. **Documentation**
