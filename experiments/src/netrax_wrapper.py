@@ -6,6 +6,7 @@ import random
 from experiment_model import LikelihoodType, BrlenLinkageType, StartType
 
 NETRAX_PATH = "mpiexec /home/luttersh/NetRAX/bin/netrax"
+#NETRAX_PATH = "mpiexec /home/sarah/code-workspace/NetRAX/bin/netrax"
 
 NETWORK_DISTANCE_NAMES = ['unrooted_softwired_network_distance', 'unrooted_hardwired_network_distance', 'unrooted_displayed_trees_distance', 'rooted_softwired_network_distance', 'rooted_hardwired_network_distance', 'rooted_displayed_trees_distance', 'rooted_tripartition_distance', 'rooted_path_multiplicity_distance', 'rooted_nested_labels_distance']
 
@@ -77,12 +78,11 @@ def infer_networks(ds):
 
         print(netrax_cmd, flush=True)
         start_time = time.time()
-
         p = subprocess.run(netrax_cmd.split(), stdout=subprocess.PIPE, check=True)
+        var.runtime_inference = round(time.time() - start_time, 3)
+
         cmd_output = p.stdout.decode()
         print(cmd_output)
-
-        var.runtime_inference = round(time.time() - start_time, 3)
 
 
 # Extracts all displayed trees of a given network, returning two lists: one containing the NEWICK strings, and one containing the tree probabilities

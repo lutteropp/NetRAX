@@ -1,14 +1,20 @@
 import subprocess
 from experiment_model import Dataset
+import time
 
 RAXML_PATH = '/home/luttersh/NetRAX/experiments/deps/raxml-ng'
+#RAXML_PATH = '/home/sarah/code-workspace/NetRAX/experiments/deps/raxml-ng'
 
 
 def infer_raxml_tree(dataset):
     cmd = RAXML_PATH + ' --msa ' + str(dataset.msa_path) + ' --model ' + str(
         dataset.partitions_path) + ' --prefix ' + str(dataset.name) + ' --seed 42'
     print(cmd, flush=True)
+
+    start_time = time.time()
     p = subprocess.run(cmd.split(), stdout=subprocess.PIPE, check=True)
+    dataset.runtime_raxml = round(time.time() - start_time, 3)
+    
     cmd_output = p.stdout.decode()   
     print(cmd_output)
     lines = cmd_output.splitlines()
