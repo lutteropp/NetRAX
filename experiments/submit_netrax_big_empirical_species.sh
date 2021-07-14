@@ -21,4 +21,4 @@ outdir=$root
 
 mkdir -p $outdir
 
-mpiexec $netrax --msa $ali --model $model --seed 42 --output $outdir/merged_genes_species_inferred_network.nw --best_displayed_tree_variant --brlen linked --start_network $raxtree --good_start
+mpiexec $netrax --msa $ali --model $model --seed 42 --output $outdir/merged_genes_species_inferred_network.nw --best_displayed_tree_variant --brlen linked --start_network $raxtree #--good_start
