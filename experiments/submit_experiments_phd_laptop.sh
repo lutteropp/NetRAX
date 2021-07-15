@@ -1,15 +1,15 @@
 #!/bin/sh
 
-USAGE="Usage: sh submit_experiments_phd_laptop.sh SETTINGS ITERATIONS"
+USAGE="Usage: sh submit_experiments_phd_laptop.sh SETTINGS PREFIX ITERATIONS"
 
-if [ $# -lt 2 ]; then
+if [ $# -lt 3 ]; then
     echo "Illegal number of parameters. ${USAGE}"
     exit 2
 fi
 
 SETTINGS=$1
-PREFIX=$1
-ITERATIONS=$2
+PREFIX=$2
+ITERATIONS=$3
 
 #SCRIPTS="/home/sarah/eclipse-workspace/NetRAX/experiments/src"
 #FOLDER_PATH="/home/sarah/eclipse-workspace/NetRAX/experiments/data"
