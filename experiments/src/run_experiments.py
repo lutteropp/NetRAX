@@ -51,8 +51,7 @@ def simulate_network_celine_fixed_nonweird(settings, wanted_n_taxa, wanted_n_ret
     if n_equal == 0:
         return n_taxa, n_reticulations, newick, param_info
     else:
-        return simulate_network_celine_fixed_nonweird(
-                wanted_n_taxa, wanted_n_reticulations, settings.min_reticulation_prob, settings.max_reticulation_prob)
+        return simulate_network_celine_fixed_nonweird(settings, wanted_n_taxa, wanted_n_reticulations)
 
 
 def simulate_datasets_range(prefix, settings, iterations):
