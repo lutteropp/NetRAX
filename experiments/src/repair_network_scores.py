@@ -21,7 +21,7 @@ def recompute_network_scores(prefix):
         
     for _, row in df.iterrows():
         true_network_path = prefix + "/" + row["true_network_path"]
-        msa_path = rue_network_path.split("_msa.txt")[0] + "_msa.txt"
+        msa_path = true_network_path.split("_msa.txt")[0] + "_msa.txt"
         raxml_tree_path = true_network_path.split("_msa.txt")[0] + ".raxml.bestTree"
         partitions_path = true_network_path.split("_msa.txt")[0] + "_partitions.txt"
 
