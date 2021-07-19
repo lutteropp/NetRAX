@@ -44,7 +44,7 @@ def score_network(network_path, msa_path, partitions_path, likelihood_type, brle
         if line.startswith("AIC Score:"):
             aic = float(line.split(": ")[1])
         if line.startswith("AICc Score:"):
-            aiccc = float(line.split(": ")[1])
+            aicc = float(line.split(": ")[1])
     return n_reticulations, bic, logl, aic, aicc
 
 
