@@ -21,9 +21,9 @@ def recompute_network_scores(prefix):
         
     for _, row in df.iterrows():
         true_network_path = prefix + "/" + row["true_network_path"]
-        msa_path = prefix + "/" + row["msa_path"]
-        raxml_tree_path = msa_path.split("_msa.txt")[0] + ".raxml.bestTree"
-        partitions_path = msa_path.split("_msa.txt")[0] + "_partitions.txt"
+        msa_path = rue_network_path.split("_msa.txt")[0] + "_msa.txt"
+        raxml_tree_path = true_network_path.split("_msa.txt")[0] + ".raxml.bestTree"
+        partitions_path = true_network_path.split("_msa.txt")[0] + "_partitions.txt"
 
         if row["use_partitioned_msa"].contains("False") or row["use_partitioned_msa"].contains("false") or row["use_partitioned_msa"].contains("FALSE"):
             partitions_path = "DNA"
