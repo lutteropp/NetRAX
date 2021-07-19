@@ -32,14 +32,14 @@ def recompute_network_scores(prefix):
 
         likelihood_type_str = row["likelihood_type"]
         likelihood_type = LikelihoodType.AVERAGE
-        if likelihood_type_str.contains("BEST") or likelihood_type_str.contains("Best") or likelihood_type_str.contains("best"):
+        if "BEST" in likelihood_type_str:
             likelihood_type = LikelihoodType.BEST
 
         brlen_linkage_type_str = row["brlen_linkage_type"]
         brlen_linkage_type = BrlenLinkageType.LINKED
-        if brlen_linkage_type_str.contains("UNLINKED") or brlen_linkage_type_str.contains("Unlinked") or brlen_linkage_type_str.contains("unlinked"):
+        if "UNLINKED" in brlen_linkage_type_str:
             brlen_linkage_type = BrlenLinkageType.UNLINKED
-        elif brlen_linkage_type_str.contains("SCALED") or brlen_linkage_type_str.contains("Scaled") or brlen_linkage_type_str.contains("scaled"):
+        elif "SCALED" in brlen_linkage_type_str:
             brlen_linkage_type = BrlenLinkageType.SCALED
 
         _, act_bic_true, act_logl_true, act_aic_true, act_aicc_true = score_network(
