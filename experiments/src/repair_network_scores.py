@@ -5,7 +5,7 @@ import argparse
 
 
 def recompute_network_scores(prefix):
-input_csv_path = prefix + "_results.csv"
+    input_csv_path = prefix + "_results.csv"
     output_csv_path = prefix + "_results.csv"
     df = pd.read_csv(input_csv_path)
     
