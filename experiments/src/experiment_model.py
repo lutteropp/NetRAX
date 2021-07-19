@@ -77,7 +77,7 @@ DATASET_CSV_HEADER = "name,n_taxa,n_trees,n_reticulations,msa_size,sites_per_tre
 
 INFERENCE_VARIANT_CSV_HEADER = "inferred_network_path,likelihood_type,brlen_linkage_type,start_type,timeout,n_random_start_networks,n_parsimony_start_networks,runtime_inference,use_partitioned_msa"
 
-RESULT_CSV_HEADER = "n_reticulations_inferred,bic_true,logl_true,bic_inferred,logl_inferred,bic_raxml,logl_raxml,rf_absolute_raxml,rf_relative_raxml,rf_absolute_inferred,rf_relative_inferred" 
+RESULT_CSV_HEADER = "n_reticulations_inferred,bic_true,logl_true,aic_true,aicc_true,bic_inferred,logl_inferred,aic_inferred,aicc_inferred,bic_raxml,logl_raxml,aic_raxml,aicc_raxml,rf_absolute_raxml,rf_relative_raxml,rf_absolute_inferred,rf_relative_inferred" 
 #+ "," + ",".join(TOPOLOGICAL_DISTANCE_NAMES)
 
 
@@ -119,10 +119,16 @@ class Result:
     def __init__(self):
         self.bic_true = 0
         self.logl_true = 0
+        self.aic_true = 0
+        self.aicc_true = 0
         self.bic_inferred = 0
         self.logl_inferred = 0
+        self.aic_inferred = 0
+        self.aicc_inferred = 0
         self.bic_raxml = 0
         self.logl_raxml = 0
+        self.aic_raxml = 0
+        self.aicc_raxml = 0
         self.n_reticulations_inferred = 0
         #self.topological_distances = {}
         self.rf_absolute_raxml = -1
@@ -132,4 +138,4 @@ class Result:
 
     def get_csv_line(self):
         #topo_scores_strings_ordered = [str(self.topological_distances[x]) for x in TOPOLOGICAL_DISTANCE_NAMES]
-        return str(self.n_reticulations_inferred) + "," + str(self.bic_true) + "," + str(self.logl_true) + "," + str(self.bic_inferred) + "," + str(self.logl_inferred) + "," + str(self.bic_raxml) + "," + str(self.logl_raxml) + "," + str(self.rf_absolute_raxml) + "," + str(self.rf_relative_raxml) + "," + str(self.rf_absolute_inferred) + "," + str(self.rf_relative_inferred)# + "," + ",".join(topo_scores_strings_ordered)
+        return str(self.n_reticulations_inferred) + "," + str(self.bic_true) + "," + str(self.logl_true) + "," + str(self.aic_true) + "," + str(self.aicc_true) + "," + str(self.bic_inferred) + "," + str(self.logl_inferred) + "," + str(self.aic_inferred) + "," + str(self.aicc_inferred) + "," + str(self.bic_raxml) + "," + str(self.logl_raxml) + "," + str(self.aic_raxml) + "," + str(self.aicc_raxml) + "," + str(self.rf_absolute_raxml) + "," + str(self.rf_relative_raxml) + "," + str(self.rf_absolute_inferred) + "," + str(self.rf_relative_inferred)# + "," + ",".join(topo_scores_strings_ordered)

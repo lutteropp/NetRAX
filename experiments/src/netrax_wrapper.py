@@ -33,7 +33,7 @@ def score_network(network_path, msa_path, partitions_path, likelihood_type, brle
     cmd_output = p.stdout.decode()
     print(cmd_output)
     netrax_output = cmd_output.splitlines()
-    n_reticulations, bic, logl = 0, 0, 0
+    n_reticulations, bic, logl, aic, aicc = 0, 0, 0, 0, 0
     for line in netrax_output:
         if line.startswith("Number of reticulations:"):
             n_reticulations = float(line.split(": ")[1])
@@ -41,7 +41,11 @@ def score_network(network_path, msa_path, partitions_path, likelihood_type, brle
             bic = float(line.split(": ")[1])
         if line.startswith("Loglikelihood:"):
             logl = float(line.split(": ")[1])
-    return n_reticulations, bic, logl
+        if line.startswith("AIC Score:"):
+            aic = float(line.split(": ")[1])
+        if line.startswith("AICc Score:"):
+            aiccc = float(line.split(": ")[1])
+    return n_reticulations, bic, logl, aic, aicc
 
 
 def infer_networks(ds):

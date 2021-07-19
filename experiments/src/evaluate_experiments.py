@@ -14,11 +14,11 @@ def evaluate_dataset(ds):
 
     for var in ds.inference_variants:
         res = Result()
-        _, res.bic_true, res.logl_true = score_network(
+        _, res.bic_true, res.logl_true, res.aic_true, res.aicc_true = score_network(
             ds.true_network_path, ds.msa_path, ds.partitions_path, var.likelihood_type, var.brlen_linkage_type)
-        _, res.bic_raxml, res.logl_raxml = score_network(
+        _, res.bic_raxml, res.logl_raxml, res.aic_raxml, res.aicc_raxml = score_network(
             ds.raxml_tree_path, ds.msa_path, ds.partitions_path, var.likelihood_type, var.brlen_linkage_type)
-        res.n_reticulations_inferred, res.bic_inferred, res.logl_inferred = score_network(
+        res.n_reticulations_inferred, res.bic_inferred, res.logl_inferred, res.aic_inferred, res.aicc_inferred = score_network(
             var.inferred_network_path, ds.msa_path, ds.partitions_path, var.likelihood_type, var.brlen_linkage_type)
         #res.topological_distances = retrieve_topological_distances(ds.true_network_path, var.inferred_network_path)
 
