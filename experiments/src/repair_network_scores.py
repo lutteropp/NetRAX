@@ -14,6 +14,11 @@ def recompute_network_scores(prefix):
     aic_true = []
     aicc_true = []
 
+    bic_raxml = []
+    logl_raxml = []
+    aic_raxml = []
+    aicc_raxml = []
+
     bic_inferred = []
     logl_inferred = []
     aic_inferred = []
