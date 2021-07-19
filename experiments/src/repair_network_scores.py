@@ -39,7 +39,7 @@ def recompute_network_scores(prefix):
         brlen_linkage_type = BrlenLinkageType.LINKED
         if brlen_linkage_type_str.contains("UNLINKED") or brlen_linkage_type_str.contains("Unlinked") or brlen_linkage_type_str.contains("unlinked"):
             brlen_linkage_type = BrlenLinkageType.UNLINKED
-        else if brlen_linkage_type_str.contains("SCALED") or brlen_linkage_type_str.contains("Scaled") or brlen_linkage_type_str.contains("scaled"):
+        elif brlen_linkage_type_str.contains("SCALED") or brlen_linkage_type_str.contains("Scaled") or brlen_linkage_type_str.contains("scaled"):
             brlen_linkage_type = BrlenLinkageType.SCALED
 
         _, act_bic_true, act_logl_true, act_aic_true, act_aicc_true = score_network(
