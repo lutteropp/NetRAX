@@ -20,7 +20,7 @@ def recompute_network_scores(prefix):
     aicc_inferred = []
         
     for _, row in df.iterrows():
-        true_network_path = prefix + "/" + row["true_network_path"]
+        true_network_path = row["true_network_path"]
         msa_path = true_network_path.split("_msa.txt")[0] + "_msa.txt"
         raxml_tree_path = true_network_path.split("_msa.txt")[0] + ".raxml.bestTree"
         partitions_path = true_network_path.split("_msa.txt")[0] + "_partitions.txt"
@@ -28,7 +28,7 @@ def recompute_network_scores(prefix):
         if row["use_partitioned_msa"] == False:
             partitions_path = "DNA"
 
-        inferred_network_path = prefix + "/" + row["inferred_network_path"]
+        inferred_network_path = row["inferred_network_path"]
 
         likelihood_type_str = row["likelihood_type"]
         likelihood_type = LikelihoodType.AVERAGE
