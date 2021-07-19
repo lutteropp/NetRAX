@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for i in {0..50}
+for i in {0..49}
 do
     name="A_10_1_run_$i"
     echo $name
