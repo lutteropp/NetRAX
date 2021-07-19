@@ -25,7 +25,7 @@ def recompute_network_scores(prefix):
         raxml_tree_path = true_network_path.split("_msa.txt")[0] + ".raxml.bestTree"
         partitions_path = true_network_path.split("_msa.txt")[0] + "_partitions.txt"
 
-        if row["use_partitioned_msa"].contains("False") or row["use_partitioned_msa"].contains("false") or row["use_partitioned_msa"].contains("FALSE"):
+        if row["use_partitioned_msa"] == False:
             partitions_path = "DNA"
 
         inferred_network_path = prefix + "/" + row["inferred_network_path"]
