@@ -16,6 +16,7 @@
 #include "helper/NetworkFunctions.hpp"
 #include "io/NetworkIO.hpp"
 #include "likelihood/LikelihoodComputation.hpp"
+#include "likelihood/ComplexityScoring.hpp"
 #include "likelihood/mpreal.h"
 #include "optimization/ModelOptimization.hpp"
 #include "search/NetworkSearch.hpp"
@@ -313,6 +314,8 @@ void score_only(NetraxOptions &netraxOptions, const RaxmlInstance &instance,
               << ann_network.network.num_reticulations() << "\n";
     std::cout << "BIC Score: " << final_bic << "\n";
     std::cout << "Loglikelihood: " << final_logl << "\n";
+    std::cout << "AIC Score: " << aic(ann_network, final_logl) << "\n";
+    std::cout << "AICc Score: " << aicc(ann_network, final_logl) << "\n";
   }
 }
 
