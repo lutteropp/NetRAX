@@ -25,9 +25,9 @@ done
 
 for i in {0..49}
 do
-    name="C_20_1_run_$i"
+    name="C_20_2_run_$i"
     echo $name
-    bash submit_experiments_phd_laptop.sh "t_20_r_1_unpartitioned" "$name" 1
+    bash submit_experiments_phd_laptop.sh "t_20_r_2_unpartitioned" "$name" 1
 done
 
 for i in {0..49}
