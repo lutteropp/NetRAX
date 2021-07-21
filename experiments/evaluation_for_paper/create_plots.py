@@ -19,6 +19,25 @@ def import_dataframe(filename):
     df['aicc_diff_relative'] = (df['aicc_true'] - df['aicc_inferred']) / df['aicc_true']
     df['logl_diff_relative'] = (df['logl_true'] - df['logl_inferred']) / df['logl_true']
     df['msa_patterns_relative'] = df['msa_patterns'] / df['msa_size']
+    
+    df['inferred_bic_better_or_equal'] = (df['bic_inferred'] <= df['bic_true'])
+    df['inferred_aic_better_or_equal'] = (df['aic_inferred'] <= df['aic_true'])
+    df['inferred_aicc_better_or_equal'] = (df['aicc_inferred'] <= df['aicc_true'])
+    df['inferred_logl_better_or_equal'] = (df['logl_inferred'] >= df['logl_true'])
+    df['inferred_bic_worse'] = (df['bic_inferred'] > df['bic_true'])
+    df['inferred_aic_worse'] = (df['aic_inferred'] > df['aic_true'])
+    df['inferred_aicc_worse'] = (df['aicc_inferred'] > df['aicc_true'])
+    df['inferred_logl_worse'] = (df['logl_inferred'] < df['logl_true'])
+    
+    df['inferred_n_reticulations_less'] = (df['n_reticulations_inferred'] < df['n_reticulations'])
+    df['inferred_n_reticulations_equal'] = (df['n_reticulations_inferred'] == df['n_reticulations'])
+    df['inferred_n_reticulations_more'] = (df['n_reticulations_inferred'] > df['n_reticulations'])
+    df['unrooted_softwired_distance_zero'] = (df['unrooted_softwired_network_distance'] == 0)
+    
+    df['good_result'] = (df['inferred_bic_better_or_equal'] | df['unrooted_softwired_distance_zero'])
+    df['okay_result'] = ((df['inferred_bic_better_or_equal'] == False) & (df['unrooted_softwired_distance_zero'] == False) & (df['inferred_n_reticulations_equal'] == True))
+    df['bad_result'] = ((df['inferred_bic_better_or_equal'] == False) & (df['unrooted_softwired_distance_zero'] == False) & (df['inferred_n_reticulations_equal'] == False))
+    
     return df
 
 
@@ -147,7 +166,6 @@ def quality_stats(prefix, df):
     data_df = pd.DataFrame(data, columns=[prefix, 'LikelihoodType.AVERAGE', 'LikelihoodType.BEST'])
     generate_ascii_table(data_df)
     print(data_df.to_latex())
-    plot_relative_quality_stats(prefix, df)
     
     
 def plot_weirdness_stats(prefix, df):
@@ -261,9 +279,10 @@ def show_brlen_scaler_effects(prefix, df):
 
 
 def show_plots(prefix, df):
-    quality_stats(prefix, df)
-    print("")
+    #quality_stats(prefix, df)
+    #print("")
     #distances_dendroscope(df)
+    plot_relative_quality_stats(prefix, df)
     distances_netrax(prefix, df)
     #show_pattern_quality_effects(df)
 
