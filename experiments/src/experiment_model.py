@@ -56,8 +56,13 @@ class InferenceVariant:
         self.likelihood_type = likelihood_type
         self.brlen_linkage_type = brlen_linkage_type
         self.start_type = start_type
-        self.inferred_network_path = inferred_network_prefix + "_" + str(self.likelihood_type) + "_" + str(
-            self.brlen_linkage_type) + "_" + str(self.start_type) + "_inferred_network.nw"
+
+        if not use_partitioned_msa:
+            self.inferred_network_path = inferred_network_prefix + "_" + str(self.likelihood_type) + "_" + str(
+                self.brlen_linkage_type) + "_" + str(self.start_type) + "unpartitioned_inferred_network.nw"
+        else:
+            self.inferred_network_path = inferred_network_prefix + "_" + str(self.likelihood_type) + "_" + str(
+                self.brlen_linkage_type) + "_" + str(self.start_type) + "inferred_network.nw"
 
         self.timeout = 0
         self.n_random_start_networks = 0
