@@ -17,9 +17,9 @@ name="B_20_1_run_$i"
 echo $name
 sbatch -N 1 -n 1 submit_experiments_haswell.sh "t_20_r_1_change_reticulation_prob" "$name" 1
 
-name="C_20_2_run_$i"
+name="C_20_1_run_$i"
 echo $name
-sbatch -N 1 -n 1 submit_experiments_haswell.sh "t_20_r_2_unpartitioned" "$name" 1
+sbatch -N 1 -n 1 submit_experiments_haswell.sh "t_20_r_1_unpartitioned" "$name" 1
 
 name="A_norandom_40_1_run_$i"
 echo $name
