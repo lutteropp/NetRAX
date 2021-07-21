@@ -62,19 +62,20 @@ def report_reticulations_more(df):
     return str(cnt) + " (" + "%.2f" % (float(cnt*100)/len(df)) + " %)"
 
 
-def plot_relative_quality_stats(df):
+def plot_relative_quality_stats(prefix, df):
     plt.figure()
     fig, axes = plt.subplots(2, 2)
-    fig.suptitle("Relative Quality Statistics")
+    fig.suptitle(prefix.split("_results.csv")[0] + " - " + "Relative Quality Statistics")
     df['bic_diff_relative'].plot.hist(bins=100, alpha=0.5, title='Relative BIC difference (>0 means better)\n (bic_true - bic_inferred) / bic_true', ax=axes[0][0])
     df['logl_diff_relative'].plot.hist(bins=100, alpha=0.5, title='Relative loglh difference (<0 means better)\n (logl_true - logl_inferred) / logl_true', ax=axes[0][1])
     df['bic_diff'].plot.hist(bins=100, alpha=0.5, title='Absolute BIC difference (>0 means better)\n (bic_true - bic_inferred)', ax=axes[1][0])
     df['logl_diff'].plot.hist(bins=100, alpha=0.5, title='Absolute loglh difference (<0 means better)\n (logl_true - logl_inferred)', ax=axes[1][1])
     plt.tight_layout()
+    plt.savefig(prefix + '_relative_quality_stats.png')
     plt.show()
 
 
-def quality_stats(df):
+def quality_stats(prefix, df):
     df_likelihood_average = df.query('likelihood_type == "AVERAGE"')
     df_likelihood_best = df.query('likelihood_type == "BEST"')
     data = [['Inferred BIC better or equal',report_bic_better_or_equal(df_likelihood_average),report_bic_better_or_equal(df_likelihood_best),report_bic_better_or_equal(df)],
@@ -86,18 +87,18 @@ def quality_stats(df):
             ['Inferred n_reticulations more', report_reticulations_more(df_likelihood_average),report_reticulations_more(df_likelihood_best),report_reticulations_more(df)]]
     data_df = pd.DataFrame(data, columns=['', 'LikelihoodType.AVERAGE', 'LikelihoodType.BEST', 'Overall'])
     generate_ascii_table(data_df)
-    plot_relative_quality_stats(df)
+    plot_relative_quality_stats(prefix, df)
     
     
-def plot_weirdness_stats(df):
+def plot_weirdness_stats(prefix, df):
     plt.figure()
     fig, axes = plt.subplots(1, 2)
-    fig.suptitle("Network Weirdness Statistics")
+    fig.suptitle(prefix.split("_results.csv")[0] + " - " + "Network Weirdness Statistics")
     df['true_network_weirdness'].plot.hist(bins=10, alpha=0.5, range=(0,1), title='True network weirdness', ax=axes[0])
     df['near_zero_branches_raxml'].plot.hist(bins=10, alpha=0.5, title='Near-zero branches raxml', ax=axes[1])
     plt.tight_layout()
+    plt.savefig(prefix + '_weirdness_stats.png')
     plt.show()
-    
 
 def distances_dendroscope(df):
     plt.figure()
@@ -117,18 +118,19 @@ def distances_dendroscope(df):
         plt.show()
 
 
-def distances_netrax(df):
+def distances_netrax(prefix, df):
     plt.figure()
     fig, axes = plt.subplots(1, 3, constrained_layout=True)
-    fig.suptitle("Unrooted Topological Network Distances")
+    fig.suptitle(prefix.split("_results.csv")[0] + " - " + "Unrooted Topological Network Distances")
     df['unrooted_softwired_network_distance'].plot.hist(bins=10, alpha=0.5, range=(0,1), title='Unrooted softwired cluster distance', ax=axes[0])
     df['unrooted_hardwired_network_distance'].plot.hist(bins=10, alpha=0.5, range=(0,1), title='Unrooted hardwired cluster distance', ax=axes[1])
     df['unrooted_displayed_trees_distance'].plot.hist(bins=10, alpha=0.5, range=(0,1), title='Unrooted displayed trees distance', ax=axes[2])
+    plt.savefig(prefix + '_unrooted_distances.png')
     plt.show()
 
     plt.figure()
     fig, axes = plt.subplots(2, 3, constrained_layout=True)
-    fig.suptitle("Rooted Topological Network Distances")
+    fig.suptitle(prefix.split("_results.csv")[0] + " - " + "Rooted Topological Network Distances")
     df['rooted_softwired_network_distance'].plot.hist(bins=10, alpha=0.5, range=(0,1), title='Rooted softwired cluster distance', ax=axes[0,0])
     df['rooted_hardwired_network_distance'].plot.hist(bins=10, alpha=0.5, range=(0,1), title='Rooted hardwired cluster distance', ax=axes[0,1])
     df['rooted_displayed_trees_distance'].plot.hist(bins=10, alpha=0.5, range=(0,1), title='Rooted displayed trees distance', ax=axes[0,2])
@@ -136,6 +138,7 @@ def distances_netrax(df):
     df['rooted_tripartition_distance'].plot.hist(bins=10, alpha=0.5, range=(0,1), title='Rooted tripartition distance', ax=axes[1,0])
     df['rooted_path_multiplicity_distance'].plot.hist(bins=10, alpha=0.5, range=(0,1), title='Rooted path multiplicity distance', ax=axes[1,1])
     df['rooted_nested_labels_distance'].plot.hist(bins=10, alpha=0.5, range=(0,1), title='Rooted nested labels distance', ax=axes[1,2])
+    plt.savefig(prefix + '_rooted_distances.png')
     plt.show()
 
     
@@ -145,26 +148,27 @@ def plots_setup():
     plt.rc('ytick', labelsize='x-small')
 
 
-def plot_dataset_size(df):
+def plot_dataset_size(prefix, df):
     print("Total number of datasets: " + str(len(df)))
     plt.figure()
     fig, axes = plt.subplots(2, 3)
-    fig.suptitle("Simulated Dataset Stats")
+    fig.suptitle(prefix.split("_results.csv")[0] + " - " + "Simulated Dataset Stats")
     df['n_taxa'].plot.hist(bins=10, alpha=0.5, title='Number of taxa', ax=axes[0][0])
     df['n_reticulations'].plot.hist(bins=10, alpha=0.5, title='Number of reticulations', ax=axes[0][1])
     df['msa_size'].plot.hist(bins=10, alpha=0.5, title='MSA size', ax=axes[0][2])
     df['msa_patterns'].plot.hist(bins=10, alpha=0.5, title='MSA patterns (absolute count)', ax=axes[1][0])
     df['msa_patterns_relative'].plot.hist(bins=10, alpha=0.5, range=(0,1), title='MSA patterns (fraction)', ax=axes[1][1])
     plt.tight_layout()
+    plt.savefig(prefix + '_dataset_size.png')
     plt.show()
 
 
-def show_stats(df):
-    plot_dataset_size(df)
-    plot_weirdness_stats(df)
+def show_stats(prefix, df):
+    plot_dataset_size(prefix, df)
+    plot_weirdness_stats(prefix, df)
     
 
-def show_pattern_quality_effects(df):
+def show_pattern_quality_effects(prefix, df):
     print('correlation between number of MSA patterns and better-or-equal inferred BIC')
 
     pattern_sizes = sorted(list(df['msa_patterns'].unique()))
@@ -175,12 +179,13 @@ def show_pattern_quality_effects(df):
         percentage_good = float(len(df_patterns[df_patterns['bic_inferred'] <= df_patterns['bic_true']])) / len(df_patterns)
         pattern_sizes_yvals.append(percentage_good)
     plt.scatter(pattern_sizes, pattern_sizes_yvals)
+    plt.savefig(prefix + '_pattern_correlation.png')
     plt.show()
 
     print(df['msa_patterns'].corr(df['bic_diff']))
 
 
-def show_brlen_scaler_effects(df):
+def show_brlen_scaler_effects(prefix, df):
     scalers = df.brlen_scaler.unique()
     plt.figure()
     fig, axes = plt.subplots(2, len(scalers))
@@ -190,14 +195,15 @@ def show_brlen_scaler_effects(df):
         df_scaled = df.query('brlen_scaler == ' + str(scaler))
         df_scaled['msa_patterns_relative'].plot.hist(bins=10, alpha=0.5, range=(0,1), title='MSA patterns (fraction) for brlen_scaler ' + str(scaler), ax=axes[0][i])
         df_scaled['msa_patterns'].plot.hist(bins=10, alpha=0.5, title='MSA patterns (absolute count) for brlen_scaler ' + str(scaler), ax=axes[1][i])
+    plt.savefig(prefix + '_scaler_effects.png')
     plt.show()
 
 
-def show_plots(df):
-    quality_stats(df)
+def show_plots(prefix, df):
+    quality_stats(prefix, df)
     print("")
     #distances_dendroscope(df)
-    distances_netrax(df)
+    distances_netrax(prefix, df)
     #show_pattern_quality_effects(df)
 
 
