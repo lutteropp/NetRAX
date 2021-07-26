@@ -22,7 +22,8 @@ def parse_command_line_arguments_mpi_exp():
     CLI.add_argument("--n_reticulations", type=int, default=3)
     CLI.add_argument("--iteration", type=int, default=0)
     args = CLI.parse_args()
-    return args.prefix, args.n_taxa, args.n_reticulations, args.iteration
+    prefix = args..prefix + '_' + str(args.iteration)
+    return prefix, args.n_taxa, args.n_reticulations, args.iteration
 
 
 def simulate_stuff(prefix, n_taxa, n_reticulations):
