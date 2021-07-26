@@ -51,7 +51,7 @@ def score_network(network_path, msa_path, partitions_path, likelihood_type, brle
 def infer_networks(ds, procs=0):
     netrax_cmd_start = NETRAX_PATH + " --msa " + ds.msa_path
     if procs != 0:
-        netrax_cmd_start = 'mpiexec -np ' + str(procs) + ' ' + netrax_cmd_start.split(' ')[1]
+        netrax_cmd_start = 'mpiexec -np ' + str(procs) + ' ' + netrax_cmd_start.split(' ')[1] + ' ' + netrax_cmd_start.split(' ')[2] + ' ' + netrax_cmd_start.split(' ')[3]
     for var in ds.inference_variants:
         netrax_cmd = netrax_cmd_start + " --output " + var.inferred_network_path
 
