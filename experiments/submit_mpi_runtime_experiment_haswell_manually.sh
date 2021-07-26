@@ -4,7 +4,7 @@
 
 #SBATCH -B 2:8:1
 #SBATCH --threads-per-core=1
-#SBATCH --cpus-per-task=16
+#SBATCH --cpus-per-task=1
 #SBATCH -t 24:00:00
 #SBATCH -N 4
 #SBATCH -n 64
