@@ -163,7 +163,28 @@ def quality_stats(prefix, df):
             ['Good result', report_good_result(df_likelihood_average),report_good_result(df_likelihood_best)],
             ['Okay result', report_okay_result(df_likelihood_average),report_okay_result(df_likelihood_best)],
             ['Bad result', report_bad_result(df_likelihood_average),report_bad_result(df_likelihood_best)]]
-    data_df = pd.DataFrame(data, columns=[prefix, 'LikelihoodType.AVERAGE', 'LikelihoodType.BEST'])
+    data_df = pd.DataFrame(data, columns=[prefix, 'LhType.AVERAGE', 'LhType.BEST'])
+    generate_ascii_table(data_df)
+    print(data_df.to_latex())
+    
+    
+def quality_stats_single(prefix, df):
+    data = [['Inferred BIC better or equal',report_bic_better_or_equal(df)],
+            ['Inferred AIC better or equal',report_aic_better_or_equal(df)],
+            ['Inferred AICc better or equal',report_aicc_better_or_equal(df)],
+            ['Inferred BIC worse',report_bic_worse(df)],
+            ['Inferred AIC worse',report_aic_worse(df)],
+            ['Inferred AICc worse',report_aicc_worse(df)],
+            ['Inferred logl better or equal',report_logl_better_or_equal(df)],
+            ['Inferred logl worse', report_logl_worse(df)],
+            ['Inferred n_reticulations less', report_reticulations_less(df)],
+            ['Inferred n_reticulations equal', report_reticulations_equal(df)],
+            ['Inferred n_reticulations more', report_reticulations_more(df)],
+            ['Unrooted softwired distance zero', report_unrooted_softwired_distance_zero(df)],
+            ['Good result', report_good_result(df)],
+            ['Okay result', report_okay_result(df)],
+            ['Bad result', report_bad_result(df)]]
+    data_df = pd.DataFrame(data, columns=[prefix, 'LhType.AVERAGE'])
     generate_ascii_table(data_df)
     print(data_df.to_latex())
     
