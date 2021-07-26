@@ -13,7 +13,7 @@ import argparse
 import copy
 
 
-MPI_PROCS = [1, 2, 4, 8, 16, 32, 64]
+MPI_PROCS = [64, 32, 16, 8, 4, 2, 1]
 
 def parse_command_line_arguments_mpi_exp():
     CLI = argparse.ArgumentParser()
@@ -73,6 +73,7 @@ if __name__ == '__main__':
         new_ds.mpi_procs = procs
         infer_networks(new_ds, procs)
         evaluate_dataset(new_ds)
+        write_results_to_csv(new_datasets, 'data/' + prefix + '_' + str(act_id) + "_procs_" + str(procs) + "_intermediate_results.csv")
         new_datasets.append(new_ds)
 
     write_results_to_csv(new_datasets, 'data/' + prefix + '_' + str(act_id) + "_results.csv")
