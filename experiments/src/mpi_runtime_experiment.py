@@ -22,7 +22,7 @@ def parse_command_line_arguments_mpi_exp():
     CLI.add_argument("--n_reticulations", type=int, default=3)
     CLI.add_argument("--iteration", type=int, default=0)
     args = CLI.parse_args()
-    prefix = args..prefix + '_' + str(args.iteration)
+    prefix = args.prefix + '_' + str(args.iteration)
     return prefix, args.n_taxa, args.n_reticulations, args.iteration
 
 
