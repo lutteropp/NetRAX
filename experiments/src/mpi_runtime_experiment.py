@@ -73,10 +73,10 @@ if __name__ == '__main__':
         new_ds.mpi_procs = procs
         infer_networks(new_ds, procs)
         evaluate_dataset(new_ds)
-        write_results_to_csv(new_datasets, 'data/' + prefix + '_' + str(act_id) + "_procs_" + str(procs) + "_intermediate_results.csv")
+        write_results_to_csv(new_datasets, 'data/' + prefix + "_procs_" + str(procs) + "_intermediate_results.csv")
         new_datasets.append(new_ds)
 
-    write_results_to_csv(new_datasets, 'data/' + prefix + '_' + str(act_id) + "_results.csv")
+    write_results_to_csv(new_datasets, 'data/' + prefix + "_results.csv")
 
     append_patterns(prefix + '_' + str(act_id))
     append_distances_netrax(prefix + '_' + str(act_id))
