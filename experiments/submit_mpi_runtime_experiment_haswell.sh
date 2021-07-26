@@ -6,8 +6,8 @@
 #SBATCH --threads-per-core=1
 #SBATCH --cpus-per-task=16
 #SBATCH -t 24:00:00
-#SBATCH -N 8
-#SBATCH -n 8
+#SBATCH -N 1
+#SBATCH -n 1
 
 module purge
 module load Python
