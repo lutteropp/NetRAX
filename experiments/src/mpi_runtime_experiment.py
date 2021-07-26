@@ -15,7 +15,7 @@ import copy
 
 MPI_PROCS = [1, 2, 4, 8, 16, 32, 64]
 
-gdef parse_command_line_arguments_pscramble_exp():
+def parse_command_line_arguments_mpi_exp():
     CLI = argparse.ArgumentParser()
     CLI.add_argument("--prefix", type=str, default="mpi_runtime")
     CLI.add_argument("--n_taxa", type=int, default=20)
@@ -54,7 +54,7 @@ def simulate_stuff(prefix, n_taxa, n_reticulations):
 
 
 if __name__ == '__main__':
-    prefix, n_taxa, n_reticulations, iteration = parse_command_line_arguments_pscramble_exp()
+    prefix, n_taxa, n_reticulations, iteration = parse_command_line_arguments_mpi_exp()
     ds = simulate_stuff(prefix, n_taxa, n_reticulations)
     ds.near_zero_branches_raxml = infer_raxml_tree(ds)
     infile_name = ds.partitions_path
