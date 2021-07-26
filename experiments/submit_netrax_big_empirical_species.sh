@@ -3,11 +3,11 @@
 #SBATCH -B 2:8:1
 #SBATCH --ntasks-per-node=1
 ##SBATCH --ntasks-per-socket=1
-#SBATCH --cpus-per-task=16
+#SBATCH --cpus-per-task=1
 #SBATCH --hint=compute_bound
 #SBATCH -t 24:00:00
-#SBATCH -N 30
-#SBATCH -n 30
+#SBATCH -N 32
+#SBATCH -n 512
  
 module purge
 module load gompi/2019a
