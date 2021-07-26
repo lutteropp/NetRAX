@@ -17,7 +17,7 @@ module load slurm
 
 USAGE="Usage: sh submit_mpi_runtime_experiment_haswell.sh ITERATION"
 
-if [ $# -lt 3 ]; then
+if [ $# -lt 1git  ]; then
     echo "Illegal number of parameters. ${USAGE}"
     exit 2
 fi
