@@ -7,7 +7,7 @@
 #SBATCH --cpus-per-task=16
 #SBATCH -t 24:00:00
 #SBATCH -N 4
-#SBATCH -n 4
+#SBATCH -n 64
 
 module purge
 module load Python
