@@ -26,6 +26,12 @@ def infer_raxml_tree(dataset):
     return near_zero_branches
 
 
+def infer_raxml_tree_command(dataset):
+    cmd = RAXML_PATH + ' --msa ' + str(dataset.msa_path) + ' --model ' + str(
+        dataset.partitions_path) + ' --prefix ' + str(dataset.name) + ' --seed 42'
+    print(cmd, flush=True)
+
+
 def compute_rf_dist(tree_1_path, tree_2_path):
     cmd = RAXML_PATH + " --rf " + tree_1_path + "," + tree_2_path
     print(cmd, flush=True)

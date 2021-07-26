@@ -91,6 +91,42 @@ def infer_networks(ds, procs=0):
         print(cmd_output)
 
 
+def infer_networks_commands(ds, procs=0):
+    netrax_cmd_start = NETRAX_PATH + " --msa " + ds.msa_path
+    if procs != 0:
+        netrax_cmd_start = 'mpiexec -np ' + str(procs) + ' ' + netrax_cmd_start.split(' ')[1] + ' ' + netrax_cmd_start.split(' ')[2] + ' ' + netrax_cmd_start.split(' ')[3]
+    for var in ds.inference_variants:
+        netrax_cmd = netrax_cmd_start + " --output " + var.inferred_network_path
+
+        if var.use_partitioned_msa:
+            netrax_cmd += " --model " + ds.partitions_path
+        else:
+            netrax_cmd += " --model DNA"
+
+        if var.likelihood_type == LikelihoodType.AVERAGE:
+            netrax_cmd += " --average_displayed_tree_variant"
+        else:
+            netrax_cmd += " --best_displayed_tree_variant"
+
+        if var.start_type == StartType.ENDLESS:
+            netrax_cmd += " --endless --timeout " + str(var.timeout)
+        elif var.start_type == StartType.RANDOM:
+            netrax_cmd += " --num_random_start_networks " + \
+                str(var.n_random_start_networks) + " --num_parsimony_start_networks " + \
+                str(var.n_parsimony_start_networks)
+        else:  # StartType.FROM_RAXML
+            netrax_cmd += " --start_network " + ds.raxml_tree_path + " --good_start"
+
+        if var.brlen_linkage_type == BrlenLinkageType.UNLINKED:
+            netrax_cmd += " --brlen unlinked"
+        elif var.brlen_linkage_type == BrlenLinkageType.LINKED:
+            netrax_cmd += " --brlen linked"
+        else:
+            netrax_cmd += " --brlen scaled"
+        netrax_cmd += " --seed 42"
+
+        print(netrax_cmd, flush=True)
+
 # Extracts all displayed trees of a given network, returning two lists: one containing the NEWICK strings, and one containing the tree probabilities
 def extract_displayed_trees(network_path, n_taxa):
     msa_path = "temp_fake_msa_" + str(os.getpid()) + "_" + str(random.getrandbits(64)) + ".txt"

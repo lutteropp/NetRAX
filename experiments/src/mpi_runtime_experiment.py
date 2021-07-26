@@ -1,7 +1,7 @@
 from scramble_partitions import scramble_partitions, write_partitions
 from experiment_settings import exp_runtime
-from netrax_wrapper import infer_networks, check_weird_network, extract_displayed_trees
-from raxml_wrapper import infer_raxml_tree
+from netrax_wrapper import infer_networks, infer_networks_commands, check_weird_network, extract_displayed_trees
+from raxml_wrapper import infer_raxml_tree_command
 from evaluate_experiments import run_inference_and_evaluate, write_results_to_csv
 from run_experiments import simulate_network_celine_fixed_nonweird, build_dataset
 from dataset_builder import sample_trees, build_trees_file
@@ -57,7 +57,7 @@ def simulate_stuff(prefix, n_taxa, n_reticulations):
 if __name__ == '__main__':
     prefix, n_taxa, n_reticulations, iteration = parse_command_line_arguments_mpi_exp()
     ds = simulate_stuff(prefix, n_taxa, n_reticulations)
-    ds.near_zero_branches_raxml = infer_raxml_tree(ds)
+    infer_raxml_tree_command(ds)
     infile_name = ds.partitions_path
     
     act_id = iteration
@@ -71,12 +71,4 @@ if __name__ == '__main__':
             var.inferred_network_path = name + "_" + str(var.likelihood_type) + "_" + str(
             var.brlen_linkage_type) + "_" + str(var.start_type) + "_inferred_network.nw"
         new_ds.mpi_procs = procs
-        infer_networks(new_ds, procs)
-        evaluate_dataset(new_ds)
-        write_results_to_csv(new_datasets, 'data/' + prefix + "_procs_" + str(procs) + "_intermediate_results.csv")
-        new_datasets.append(new_ds)
-
-    write_results_to_csv(new_datasets, 'data/' + prefix + "_results.csv")
-
-    append_patterns(prefix + '_' + str(act_id))
-    append_distances_netrax(prefix + '_' + str(act_id))
+        infer_networks_commands(new_ds, procs)
