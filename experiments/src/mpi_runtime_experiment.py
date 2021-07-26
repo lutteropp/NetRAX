@@ -1,5 +1,5 @@
 from scramble_partitions import scramble_partitions, write_partitions
-from experiment_settings import exp_standard
+from experiment_settings import exp_runtime
 from netrax_wrapper import infer_networks, check_weird_network, extract_displayed_trees
 from raxml_wrapper import infer_raxml_tree
 from evaluate_experiments import run_inference_and_evaluate, write_results_to_csv
@@ -15,7 +15,7 @@ import copy
 
 MPI_PROCS = [1, 2, 4, 8, 16, 32, 64]
 
-def parse_command_line_arguments_pscramble_exp():
+gdef parse_command_line_arguments_pscramble_exp():
     CLI = argparse.ArgumentParser()
     CLI.add_argument("--prefix", type=str, default="mpi_runtime")
     CLI.add_argument("--n_taxa", type=int, default=20)
