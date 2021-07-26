@@ -1,8 +1,6 @@
 #!/bin/bash
 #SBATCH -o netrax_%j.out
 #SBATCH -B 2:8:1
-#SBATCH --ntasks-per-node=1
-##SBATCH --ntasks-per-socket=1
 #SBATCH --cpus-per-task=1
 #SBATCH --hint=compute_bound
 #SBATCH -t 24:00:00
