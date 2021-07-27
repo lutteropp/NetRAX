@@ -1,6 +1,6 @@
 from scramble_partitions import scramble_partitions, write_partitions
 from experiment_settings import exp_runtime
-from netrax_wrapper import infer_networks, infer_networks_commands, check_weird_network, extract_displayed_trees
+from netrax_wrapper import infer_networks, infer_networks_commands, check_weird_network, extract_displayed_trees, change_reticulation_prob_only
 from raxml_wrapper import infer_raxml_tree_command
 from evaluate_experiments import run_inference_and_evaluate, write_results_to_csv
 from run_experiments import simulate_network_celine_fixed_nonweird, build_dataset
@@ -40,6 +40,7 @@ def simulate_stuff(prefix, n_taxa, n_reticulations):
     network_file = open(ds.true_network_path, "w")
     network_file.write(newick + '\n')
     network_file.close()
+    change_reticulation_prob_only(ds.true_network_path, ds.true_network_path, 0.5, n_taxa)
                                     
     # network topology has been simulated now.
     n_pairs, ds.n_equal_tree_pairs = check_weird_network(ds.true_network_path, ds.n_taxa)
