@@ -29,9 +29,9 @@ FOLDER_PATH="/home/luttersh/NetRAX/experiments/data"
 SUBFOLDER_PATH=${FOLDER_PATH}/${PREFIX}
 LOGS_PATH=${FOLDER_PATH}/logs_${PREFIX}
 
-echo python3 ${SCRIPTS}/mpi_runtime_experiment.py --iteration ${ITERATION}
+python3 ${SCRIPTS}/mpi_runtime_experiment.py --iteration ${ITERATION}
 
-echo /home/luttersh/NetRAX/experiments/deps/raxml-ng --msa data/datasets_mpi_runtime_${ITERATION}/0_0_msa.txt --model data/datasets_mpi_runtime_${ITERATION}/0_0_partitions.txt --prefix data/datasets_mpi_runtime_${ITERATION}/0_0 --seed 42
+/home/luttersh/NetRAX/experiments/deps/raxml-ng --msa data/datasets_mpi_runtime_${ITERATION}/0_0_msa.txt --model data/datasets_mpi_runtime_${ITERATION}/0_0_partitions.txt --prefix data/datasets_mpi_runtime_${ITERATION}/0_0 --seed 42
 
 echo "iteration,n_procs,likelihood_type,runtime_in_seconds" > mpi_experiment_results_${ITERATION}.csv
 for procs in {64,32,16,8,4,2,1}
