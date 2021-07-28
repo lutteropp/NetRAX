@@ -1,5 +1,5 @@
 from scramble_partitions import scramble_partitions, write_partitions
-from experiment_settings import exp_runtime
+from experiment_settings import exp_runtime2
 from netrax_wrapper import infer_networks, infer_networks_commands, check_weird_network, extract_displayed_trees, change_reticulation_prob_only
 from raxml_wrapper import infer_raxml_tree_command
 from evaluate_experiments import run_inference_and_evaluate, write_results_to_csv
