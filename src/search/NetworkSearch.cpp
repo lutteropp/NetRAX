@@ -152,15 +152,20 @@ void run_single_start_waves(NetraxOptions &netraxOptions,
              print_progress);
 
   if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+    std::ofstream moves_outfile(netraxOptions.output_file + ".stats");
     std::cout << "Statistics on which moves were taken:\n";
+    moves_outfile << "Statistics on which moves were taken:\n";
     std::unordered_set<MoveType> seen;
     for (const MoveType &type : typesBySpeed) {
       if (seen.count(type) == 0) {
         std::cout << toString(type) << ": "
                   << ann_network.stats.moves_taken[type] << "\n";
+        moves_outfile << toString(type) << ": "
+                  << ann_network.stats.moves_taken[type] << "\n";
       }
       seen.emplace(type);
     }
+    moves_outfile.close();
     std::cout << "Best inferred network has "
               << bestNetworkData.best_n_reticulations
               << " reticulations, logl = "
@@ -303,16 +308,21 @@ void run_random(NetraxOptions &netraxOptions, const RaxmlInstance &instance,
   }
 
   if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+    std::ofstream moves_outfile(netraxOptions.output_file + ".stats");
     std::cout << BOLDWHITE
               << "\nAggregated statistics on which moves were taken:\n";
+    moves_outfile << "\nAggregated statistics on which moves were taken:\n";
     std::unordered_set<MoveType> seen;
     for (const MoveType &type : typesBySpeed) {
       if (seen.count(type) == 0) {
         std::cout << toString(type) << ": " << totalStats.moves_taken[type]
                   << "\n";
+        moves_outfile << toString(type) << ": " << totalStats.moves_taken[type]
+                  << "\n";
       }
       seen.emplace(type);
     }
+    moves_outfile.close();
     std::cout << "\n" << RESET;
 
     std::cout << "Best inferred network has "
