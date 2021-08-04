@@ -3,8 +3,11 @@ Pkg.add(PackageSpec(name="PhyloNetworks", rev="phyLiNCmanual"))
 
 using PhyloNetworks
 
-toy_network_file = "toy_network.nw"
-toy_msa_file = "toy_msa.fasta"
+toy_network_file = "/home/sarah/code-workspace/NetRAX/experiments/src/toy_network.nw"
+toy_msa_file = "/home/sarah/code-workspace/NetRAX/experiments/src/toy_msa.fasta"
+
+#toy_network_file = "/home/luttersh/NetRAX/experiments/src/toy_network.nw"
+#toy_msa_file = "/home/luttersh/NetRAX/experiments/src/toy_msa.fasta"
 
 start_network_file = ARGS[1]
 msa_file = ARGS[2]
