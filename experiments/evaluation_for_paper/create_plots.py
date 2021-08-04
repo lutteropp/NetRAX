@@ -299,6 +299,26 @@ def show_brlen_scaler_effects(prefix, df):
     plt.show()
 
 
+def show_reduced_plots(prefix_1, df_1, prefix_2, df_2, filename):
+    plt.figure()
+    fig, axes = plt.subplots(2, 3)#, constrained_layout=True)
+    fig.suptitle(filename + "\n top row: LhType.AVERAGE, bottom row: LhType.BEST")
+    df_1['n_reticulations_inferred'].plot.hist(bins=10, alpha=0.5, title='Number of inferred reticulations', ax=axes[0][0])
+    df_1['unrooted_softwired_network_distance'].plot.hist(bins=10, alpha=0.5, range=(0,1), title='Unrooted softwired cluster distance', ax=axes[0][1])
+    #plt.xticks(rotation=90)
+    df_1['bic_diff_relative'].plot.hist(bins=100, alpha=0.5, title='Relative BIC difference (>0 means better)\n (bic_true - bic_inferred) / bic_true', ax=axes[0][2])
+    #plt.xticks(rotation=90)
+    
+    df_2['n_reticulations_inferred'].plot.hist(bins=10, alpha=0.5, title='Number of inferred reticulations', ax=axes[1][0])
+    df_2['unrooted_softwired_network_distance'].plot.hist(bins=10, alpha=0.5, range=(0,1), title='Unrooted softwired cluster distance', ax=axes[1][1])
+    #plt.xticks(rotation=90)
+    df_2['bic_diff_relative'].plot.hist(bins=100, alpha=0.5, title='Relative BIC difference (>0 means better)\n (bic_true - bic_inferred) / bic_true', ax=axes[1][2])
+    #plt.xticks(rotation=90)
+    plt.tight_layout()
+    plt.savefig(filename + '_reduced_plots.png')
+    plt.show()
+
+
 def show_plots(prefix, df):
     #quality_stats(prefix, df)
     #print("")
