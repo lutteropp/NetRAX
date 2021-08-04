@@ -5,7 +5,7 @@ PHYLINC_SCRIPT_PATH = "/home/sarah/code-workspace/NetRAX/experiments/src/run_phy
 #PHYLINC_SCRIPT_PATH = "/home/luttersh/NetRAX/experiments/src/run_phylinc_script.jl"
 
 def run_phylinc_inference(start_network, msa_file, max_reticulations):
-    cmd = "julia " + PHYLINC_SCRIPT_PATH + " " + start_network + " " + msa_file + " " + str(max_reticulations)
+    cmd = "julia -p 4 " + PHYLINC_SCRIPT_PATH + " " + start_network + " " + msa_file + " " + str(max_reticulations)
     print(cmd, flush=True)
 
     p = subprocess.run(cmd.split(), stdout=subprocess.PIPE, check=True)
