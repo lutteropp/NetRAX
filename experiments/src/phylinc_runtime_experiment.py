@@ -72,4 +72,4 @@ if __name__ == '__main__':
 
     phylinc_network, phylinc_runtime = run_phylinc_inference(ds.name + ".raxml.bestTree", ds.msa_path + ".fasta", n_reticulations+1)
     print(phylinc_network)
-    giprint(str(phylinc_runtime) + " seconds")
+    print(str(phylinc_runtime) + " seconds")
