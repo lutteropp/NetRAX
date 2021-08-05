@@ -16,8 +16,8 @@ from raxml_wrapper import infer_raxml_tree, compute_rf_dist
 
 def parse_command_line_arguments_phylinc_experiment():
     CLI = argparse.ArgumentParser()
-    CLI.add_argument("--prefix", type=str, default="phylinc_exp")
-    CLI.add_argument("--n_taxa", type=int, default=10)
+    CLI.add_argument("--prefix", type=str, default="phylinc_exp_smaller")
+    CLI.add_argument("--n_taxa", type=int, default=8)
     CLI.add_argument("--n_reticulations", type=int, default=2)
     args = CLI.parse_args()
     return args.prefix, args.n_taxa, args.n_reticulations
