@@ -73,3 +73,10 @@ if __name__ == '__main__':
     phylinc_network, phylinc_runtime = run_phylinc_inference(ds.name + ".raxml.bestTree", ds.msa_path + ".fasta", n_reticulations+1)
     print(phylinc_network)
     print(str(phylinc_runtime) + " seconds")
+
+    outfile_1 = open(ds.name + "_phylinc_inferred_network.nw", 'w')
+    outfile_1.write(phylinc_network + "\n")
+    outfile_1.close()
+    outfile_2 = open(ds.name + "_phylinc_runtime.nw", "w")
+    outfile_2.write(str(phylinc_runtime + " seconds\n"))
+    outfile_2.close()
