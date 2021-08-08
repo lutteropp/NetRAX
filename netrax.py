@@ -48,11 +48,10 @@ def infer_network(start_network_path, msa_path, partitions_path, likelihood_type
         logfile.close()
 
     bic = 0
-    aic = 0
-    aicc = 0
     logl = 0
     n_reticulations = 0
     runtime_in_seconds = 0
+    "Best inferred network has 1 reticulations, logl = -727228.5853, bic = 1499442.358"
     for line in netrax_output:
         if line.startswith("Number of reticulations:"):
             n_reticulations = float(line.split(": ")[1])
@@ -67,7 +66,7 @@ def infer_network(start_network_path, msa_path, partitions_path, likelihood_type
         if line.startswith("Total runtime:"):
             runtime_in_seconds = float(line.split(": ")[1].split(" ")[0])
     newick = open(inferred_network_path).read().strip()
-    return (bic, aic, aicc, logl, n_reticulations, runtime_in_seconds, newick)
+    return (bic, logl, n_reticulations, runtime_in_seconds, newick)
 
 
 def run_netrax_multi(name, msa_path, partitions_path, likelihood_type, brlen_linkage_type, seed, start_networks, is_good_start):
@@ -91,31 +90,33 @@ def run_netrax_multi(name, msa_path, partitions_path, likelihood_type, brlen_lin
         results.append(res)
     print(results)
     best_bic = math.inf
-    best_aic = math.inf
-    best_aicc = math.inf
     best_logl = -math.inf
     total_runtime_in_seconds = 0
     best_network = ""
     best_n_reticulations = 0
-    for (bic, aic, aicc, logl, n_reticulations, runtime_in_seconds, newick) in results:
+    best_run = 0
+    for i in range(len(results)):
+        (bic, logl, n_reticulations, runtime_in_seconds, newick) = results[i]
         if bic < best_bic:
             best_bic = bic
-            best_aic = aic
-            best_aicc = aicc
             best_logl = logl
             best_n_reticulations = n_reticulations
             best_network = newick
+            best_run = i
         total_runtime_in_seconds += runtime_in_seconds
     with open(inferred_network_path, 'w') as f:
         f.write(best_network + "\n")
         f.close()
     print("Total inference runtime: " + str(total_runtime_in_seconds) + " seconds.")
-    print("Best inferred network has" + str(best_n_reticulations) + " reticulations.")
-    print("Best inferred network has BIC: " + str(best_bic))
-    print("Best inferred network has AIC: " + str(best_aic))
-    print("Best inferred network has cAIC: " + str(best_aicc))
-    print("Best inferred network has logl: " + str(best_logl))
+    print("Best inferred network comes from run " + str(best_run) + ".")
+    print("Best inferred network has " + str(best_n_reticulations) + " reticulations, logl = " + str(best_logl) + ", bic = " + str(best_bic))
     print("Best inferred network is:\n" + best_network)
+    with open(name + "_result.txt", 'w') as f:
+        f.write("Total inference runtime: " + str(total_runtime_in_seconds) + " seconds.\n")
+        f.write("Best inferred network comes from run " + str(best_run) + ".\n")
+        f.write("Best inferred network has " + str(best_n_reticulations) + " reticulations, logl = " + str(best_logl) + ", bic = " + str(best_bic) + "\n")
+        f.write("Best inferred network is:\n" + best_network + "\n")
+        f.close()
 
 def parse_command_line_arguments_netrax_multi():
     CLI = argparse.ArgumentParser()
