@@ -61,8 +61,7 @@ double optimizeEverythingRun(
 
     while (skip_horizontal && type_idx < typesBySpeed.size() &&
            isHorizontalMove(typesBySpeed[type_idx])) {
-      type_idx++;
-      bad_rounds++;
+      type_idx++;=
       type_idx = type_idx % typesBySpeed.size();
     }
     skip_horizontal = false;
