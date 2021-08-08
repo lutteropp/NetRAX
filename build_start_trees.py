@@ -55,12 +55,16 @@ def build_trees(msa_path, partitions_path, seed, start_trees_output_path, no_inf
     run_raxml(msa_path, partitions_path, seed, start_trees_output_path, no_inference, num_parsimony_trees, num_random_trees)
     trees = []
     trees_path = ""
+
+    trees_path_no_inference = start_trees_output_path + ".raxml.startTree"
+    trees_path_only_best = start_trees_output_path + ".raxml.bestTree"
+    trees_path_all_ml = start_trees_output_path + ".raxml.mlTrees"
     if no_inference:
-        trees_path = start_trees_output_path + ".raxml.startTree"
+        trees_path = trees_path_no_inference
     elif take_only_best_tree:
-        trees_path = start_trees_output_path + ".raxml.bestTree"
+        trees_path = trees_path_only_best
     else:
-        trees_path = start_trees_output_path + ".raxml.mlTrees"
+        trees_path = trees_path_all_ml
 
     print(trees_path)
     with open(trees_path) as f:
@@ -69,6 +73,7 @@ def build_trees(msa_path, partitions_path, seed, start_trees_output_path, no_inf
 
     if (keep_only_unique) and (take_only_best_tree == False):
         trees = find_unique_trees(trees_path, trees, start_trees_output_path)
+        find_unique_trees(trees_path_no_inference, trees, start_trees_output_path)
     with open(start_trees_output_path, 'w') as g:
         for tree in trees:
             if len(tree.strip()) > 0:

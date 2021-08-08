@@ -18,17 +18,18 @@ badtrees=$root/assemble_snakes.raxml.startTrees
 badtrees_unique=$root/assemble_snakes.raxml.startTrees_unique
 outdir=$root
 
+#this command also builds the other start tree types
+#build all the RAxML-NG ML trees, keep only unique topologies
+python3 ${build_start_trees_script} --msa_path $ali_for_raxml --partitions_path $model --seed 42 --start_trees_output_path ${mltrees_unique} --num_parsimony_trees 10 --num_random_trees 10 --keep_only_unique
+
+#build random and parsimony trees, without inference, keep only unique topologies
+#python3 ${build_start_trees_script} --msa_path $ali_for_raxml --partitions_path $model --seed 42 --start_trees_output_path ${badtrees_unique} --no_inference --num_parsimony_trees 10 --num_random_trees 10 --keep_only_unique
+
 #build the RAxML-NG best tree
 #python3 ${build_start_trees_script} --msa_path $ali_for_raxml --partitions_path $model --seed 42 --start_trees_output_path $besttree --take_only_best_tree --num_parsimony_trees 10 --num_random_trees 10
 
 #build all the RAxML-NG ML trees
 #python3 ${build_start_trees_script} --msa_path $ali_for_raxml --partitions_path $model --seed 42 --start_trees_output_path $mltrees --num_parsimony_trees 10 --num_random_trees 10
 
-#build all the RAxML-NG ML trees, keep only unique topologies
-#python3 ${build_start_trees_script} --msa_path $ali_for_raxml --partitions_path $model --seed 42 --start_trees_output_path ${mltrees_unique} --num_parsimony_trees 10 --num_random_trees 10 --keep_only_unique
-
 #build random and parsimony trees, without inference
 #python3 ${build_start_trees_script} --msa_path $ali_for_raxml --partitions_path $model --seed 42 --start_trees_output_path $badtrees --no_inference --num_parsimony_trees 10 --num_random_trees 10
-
-#build random and parsimony trees, without inference, keep only unique topologies
-python3 ${build_start_trees_script} --msa_path $ali_for_raxml --partitions_path $model --seed 42 --start_trees_output_path ${badtrees_unique} --no_inference --num_parsimony_trees 10 --num_random_trees 10 --keep_only_unique
