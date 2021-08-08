@@ -13,7 +13,7 @@ RAXML_PATH = "/home/sarah/code-workspace/NetRAX/experiments/deps/raxml-ng"
 def run_raxml(msa_path, partitions_path, seed, start_trees_output_path, no_inference, num_parsimony_trees, num_random_trees):
     raxml_cmd = RAXML_PATH
     if no_inference:
-        raxml_cmd + " --start"
+        raxml_cmd += " --start"
     else:
         raxml_cmd += " --search"
     raxml_cmd += " --tree pars{" + str(num_parsimony_trees) + "},rand{" + str(num_random_trees) + "}"
