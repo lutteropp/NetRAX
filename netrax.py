@@ -73,7 +73,8 @@ def infer_network(start_network_path, msa_path, partitions_path, likelihood_type
 def run_netrax_multi(name, msa_path, partitions_path, likelihood_type, brlen_linkage_type, seed, start_networks, is_good_start):
     networks = open(start_networks).readlines()
     inferred_network_path = name + "_inferred_network.nw"
-    os.mkdir(name + "_subruns")
+    if not os.path.exists('my_folder'):
+        os.mkdir(name + "_subruns")
     results = []
     for i in range(len(networks)):
         newick = networks[i].strip()
