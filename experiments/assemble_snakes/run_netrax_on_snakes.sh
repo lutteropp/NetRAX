@@ -2,7 +2,7 @@
 
 root=/home/sarah/eclipse-workspace/NetRAX/experiments/assemble_snakes
 netrax=/home/sarah/eclipse-workspace/NetRAX/bin/netrax
-raxml=/home/sarah/eclipse-workspace/NetRAX/deps/raxml-ng
+raxml=/home/sarah/eclipse-workspace/NetRAX/experiments/deps/raxml-ng
 ali=$root/snakes_msa.fasta.raxml.rba
 model=$root/snakes_partitions.txt
 raxtree=$root/snakes.raxml.bestTree
