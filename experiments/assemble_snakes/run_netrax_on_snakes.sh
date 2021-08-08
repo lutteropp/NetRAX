@@ -15,6 +15,6 @@ time mpiexec $netrax --msa $ali --model $model --seed 42 --output $outdir/snakes
 
 time mpiexec $netrax --msa $ali --model $model --seed 42 --output $outdir/snakes_ml_average_inferred_network.nw --average_displayed_tree_variant --brlen linked --start_network $raxtree --good_start | tee netrax_snakes_ml_average_output.txt
 
-time mpiexec $netrax --msa $ali --model $model --seed 42 --output $outdir/snakes_random_best_inferred_network.nw --best_displayed_tree_variant --brlen linked -p 3 -n 3 | tee netrax_snakes_random_best_output.txt
+time mpiexec $netrax --msa $ali --model $model --seed 42 --output $outdir/snakes_random_best_inferred_network.nw --best_displayed_tree_variant --brlen linked --num_parsimony_start_networks 3 --num_random_start_networks 3 | tee netrax_snakes_random_best_output.txt
 
-time mpiexec $netrax --msa $ali --model $model --seed 42 --output $outdir/snakes_random_average_inferred_network.nw --average_displayed_tree_variant --brlen linked -p 3 -n 3 | tee netrax_snakes_random_average_output.txt
+time mpiexec $netrax --msa $ali --model $model --seed 42 --output $outdir/snakes_random_average_inferred_network.nw --average_displayed_tree_variant --brlen linked --num_parsimony_start_networks 3 --num_random_start_networks 3 | tee netrax_snakes_random_average_output.txt
