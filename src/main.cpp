@@ -3,6 +3,7 @@
 #include <limits>
 #include <random>
 #include <string>
+#include <chrono>
 
 #include <CLI11.hpp>
 #include <raxml-ng/main.hpp>
@@ -722,6 +723,7 @@ void setup_parallel_stuff(NetraxOptions &netraxOptions,
 }
 
 int internal_main_netrax(int argc, char **argv, void *comm) {
+  auto t1 = std::chrono::high_resolution_clock::now();
   ParallelContext::init_mpi(argc, argv, comm);
 
   std::cout << std::setprecision(10);
@@ -798,6 +800,12 @@ int internal_main_netrax(int argc, char **argv, void *comm) {
 
   mpfr_free_cache();
   ParallelContext::finalize();
+
+  auto t2 = std::chrono::high_resolution_clock::now();
+  if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
+    auto duration = std::chrono::duration_cast<std::chrono::seconds>(t2 - t1);
+    std::cout << "\nTotal elapse runtime:" << duration.count() << " seconds.\n";
+  }
 
   return 0;
 }
