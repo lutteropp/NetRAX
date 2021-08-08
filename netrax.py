@@ -55,7 +55,7 @@ def infer_network(start_network_path, msa_path, partitions_path, likelihood_type
         if line.startswith("Best inferred network has"):
             splitted = line.split(" ")
             n_reticulations = int(splitted[4])
-            logl = float(splitted[8])
+            logl = float(splitted[8].split(",")[0])
             bic = float(splitted[11])
         if line.startswith("Total runtime:"):
             runtime_in_seconds = float(line.split(": ")[1].split(" ")[0])
