@@ -32,8 +32,7 @@ def infer_network(start_network_path, msa_path, partitions_path, likelihood_type
     if is_good_start:
         netrax_cmd += " --good_start"
     print(netrax_cmd)
-    p = subprocess.run(netrax_cmd.split(), stdout=subprocess.PIPE, check=True)
-    cmd_output = p.stdout.decode()
+    cmd_output = run_command(netrax_cmd)
 
     with open(logfile_path, 'w') as logfile:
         logfile.write(cmd_output)
