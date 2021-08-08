@@ -19,7 +19,7 @@ def run_command(command):
         if output:
             line = output.strip().decode()
             full_output.append(line)
-            print()
+            print(line)
             timeout=0
         else:
             timeout+=1
