@@ -100,7 +100,7 @@ void filterCandidatesByScore(std::vector<T> &candidates,
       newSize++;
     }
   }
-  candidates.resize(std::min(newSize, n_keep));
+  candidates.resize(newSize);
 }
 
 void advance_progress(float progress, int barWidth) {
