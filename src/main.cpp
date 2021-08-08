@@ -54,12 +54,6 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
       "A network file (in Extended Newick format) to start the search on");
   app.add_option("-r,--max_reticulations", options->max_reticulations,
                  "Maximum number of reticulations to consider (default: 32)");
-  app.add_option("-n,--num_random_start_networks",
-                 options->num_random_start_networks,
-                 "Number of random start networks (default: 10)");
-  app.add_option("-p,--num_parsimony_start_networks",
-                 options->num_parsimony_start_networks,
-                 "Number of parsimony start networks (default: 10)");
   app.add_option("-t,--timeout", options->timeout,
                  "Maximum number of seconds to run network search.");
   app.add_flag(
@@ -657,8 +651,7 @@ void netrax_thread_main(NetraxOptions &netraxOptions,
     run_single_start_waves(netraxOptions, instance, typesBySpeed, rng, false,
                            true);
   } else {
-    std::vector<MoveType> typesBySpeed = getTypesBySpeed(netraxOptions);
-    run_random(netraxOptions, instance, typesBySpeed, rng, false, true);
+    error_exit("Start network filename is empty");
   }
   ParallelContext::global_barrier();
 }
