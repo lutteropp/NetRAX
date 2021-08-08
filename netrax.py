@@ -51,18 +51,12 @@ def infer_network(start_network_path, msa_path, partitions_path, likelihood_type
     logl = 0
     n_reticulations = 0
     runtime_in_seconds = 0
-    "Best inferred network has 1 reticulations, logl = -727228.5853, bic = 1499442.358"
     for line in netrax_output:
-        if line.startswith("Number of reticulations:"):
-            n_reticulations = float(line.split(": ")[1])
-        if line.startswith("BIC Score:"):
-            bic = float(line.split(": ")[1])
-        if line.startswith("Loglikelihood:"):
-            logl = float(line.split(": ")[1])
-        if line.startswith("AIC Score:"):
-            aic = float(line.split(": ")[1])
-        if line.startswith("AICc Score:"):
-            aicc = float(line.split(": ")[1])
+        if line.startswith("Best inferred network has"):
+            splitted = line.split(" ")
+            n_reticulations = int(splitted[4])
+            logl = float(splitted[8])
+            bic = float(splitted[11])
         if line.startswith("Total runtime:"):
             runtime_in_seconds = float(line.split(": ")[1].split(" ")[0])
     newick = open(inferred_network_path).read().strip()
