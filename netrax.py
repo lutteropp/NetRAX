@@ -11,18 +11,21 @@ NETRAX_CORE_PATH = "/home/luttersh/NetRAX/bin/netrax"
 def run_command(command):
     process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
     timeout=0
+    full_output = []]
     while True:
         output = process.stdout.readline()
         if output == '' and process.poll() is not None:
             break
         if output:
-            print(output.strip().decode())
+            line = output.strip().decode()
+            full_output.append(line)
+            print()
             timeout=0
         else:
             timeout+=1
-        if timeout >= 1000:
+        if timeout >= 100:
             break
-    return process.stdout.decode()
+    return full_output
 
 
 def infer_network(start_network_path, msa_path, partitions_path, likelihood_type, brlen_linkage_type, seed, inferred_network_path, is_good_start, logfile_path):
@@ -38,10 +41,10 @@ def infer_network(start_network_path, msa_path, partitions_path, likelihood_type
     if is_good_start:
         netrax_cmd += " --good_start"
     print(netrax_cmd)
-    cmd_output = run_command(netrax_cmd)
+    netrax_output = run_command(netrax_cmd)
 
     with open(logfile_path, 'w') as logfile:
-        logfile.write(cmd_output)
+        logfile.write("\n".join(netrax_output))
         logfile.close()
 
     bic = 0
@@ -50,8 +53,6 @@ def infer_network(start_network_path, msa_path, partitions_path, likelihood_type
     logl = 0
     n_reticulations = 0
     runtime_in_seconds = 0
-    network = ""
-    netrax_output = cmd_output.splitlines()
     for line in netrax_output:
         if line.startswith("Number of reticulations:"):
             n_reticulations = float(line.split(": ")[1])

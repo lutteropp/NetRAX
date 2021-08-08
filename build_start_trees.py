@@ -14,18 +14,22 @@ RAXML_PATH = "/home/luttersh/NetRAX/experiments/deps/raxml-ng"
 def run_command(command):
     process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
     timeout=0
+    full_output = []]
     while True:
         output = process.stdout.readline()
         if output == '' and process.poll() is not None:
             break
         if output:
-            print(output.strip().decode())
+            line = output.strip().decode()
+            full_output.append(line)
+            print()
             timeout=0
         else:
             timeout+=1
-        if timeout >= 1000:
+        if timeout >= 100:
             break
-    return process.stdout.decode()
+    return full_output
+
 
 
 def run_raxml(msa_path, partitions_path, seed, start_trees_output_path, no_inference, num_parsimony_trees, num_random_trees):
