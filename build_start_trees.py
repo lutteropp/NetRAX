@@ -10,6 +10,18 @@ RAXML_PATH = "/home/luttersh/NetRAX/experiments/deps/raxml-ng"
 #RAXML_PATH = "/home/sarah/code-workspace/NetRAX/experiments/deps/raxml-ng"
 
 
+#from https://www.endpoint.com/blog/2015/01/getting-realtime-output-using-python/
+def run_command(command):
+    process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
+    while True:
+        output = process.stdout.readline()
+        if output == '' and process.poll() is not None:
+            break
+        if output:
+            print(output.strip())
+    return process.stdout.decode()
+
+
 def run_raxml(msa_path, partitions_path, seed, start_trees_output_path, no_inference, num_parsimony_trees, num_random_trees):
     raxml_cmd = RAXML_PATH
     if no_inference:
@@ -23,14 +35,16 @@ def run_raxml(msa_path, partitions_path, seed, start_trees_output_path, no_infer
     raxml_cmd += " --prefix " + start_trees_output_path
 
     print(raxml_cmd)
-    p = subprocess.run(raxml_cmd.split(), stdout=subprocess.PIPE, check=True)
+    run_command(raxml_cmd)
+    #p = subprocess.run(raxml_cmd.split(), stdout=subprocess.PIPE, check=True)
 
 
 def find_unique_trees(trees_file, trees, start_trees_output_path):
     rf_dist_file = start_trees_output_path + ".raxml.rfDistances"
     raxml_cmd = RAXML_PATH + " --rfdist --tree " + trees_file + " --prefix " + start_trees_output_path + " --redo"
     print(raxml_cmd)
-    p = subprocess.run(raxml_cmd.split(), stdout=subprocess.PIPE, check=True)
+    run_command(raxml_cmd)
+    #subprocess.run(raxml_cmd.split(), stdout=subprocess.PIPE, check=True)
     lines = open(rf_dist_file).readlines()
     os.remove(rf_dist_file)
     

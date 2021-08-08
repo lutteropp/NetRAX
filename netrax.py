@@ -7,6 +7,18 @@ NETRAX_CORE_PATH = "/home/luttersh/NetRAX/bin/netrax"
 #NETRAX_CORE_PATH = "mpiexec /home/sarah/code-workspace/NetRAX/bin/netrax"
 
 
+#from https://www.endpoint.com/blog/2015/01/getting-realtime-output-using-python/
+def run_command(command):
+    process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
+    while True:
+        output = process.stdout.readline()
+        if output == '' and process.poll() is not None:
+            break
+        if output:
+            print(output.strip())
+    return process.stdout.decode()
+
+
 def infer_network(start_network_path, msa_path, partitions_path, likelihood_type, brlen_linkage_type, seed, inferred_network_path, is_good_start, logfile_path):
     netrax_cmd = "mpiexec " + NETRAX_CORE_PATH + " --start_network " + \
         start_network_path + " --msa " + msa_path + " --model " + partitions_path + \
