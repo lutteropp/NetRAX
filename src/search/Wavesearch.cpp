@@ -62,8 +62,10 @@ double optimizeEverythingRun(
     while (skip_horizontal && type_idx < typesBySpeed.size() &&
            isHorizontalMove(typesBySpeed[type_idx])) {
       type_idx++;
+      bad_rounds++;
       type_idx = type_idx % typesBySpeed.size();
     }
+    skip_horizontal = false;
 
     double old_score = scoreNetwork(ann_network);
     double new_score =
@@ -107,23 +109,14 @@ void wavesearch_internal_loop(
     const std::chrono::high_resolution_clock::time_point &start_time,
     bool silent, bool print_progress) {
   bool got_better = true;
-  size_t old_moves_taken = ann_network.stats.totalMovesTaken();
 
   bool skip_horizontal = ann_network.options.good_start;
 
-  while (got_better) {
-    got_better = false;
-    check_score_improvement(ann_network, best_score, bestNetworkData);
-    optimizeEverythingRun(ann_network, psq, typesBySpeed, start_time,
-                          bestNetworkData, skip_horizontal, silent,
-                          print_progress);
-    check_score_improvement(ann_network, best_score, bestNetworkData);
-    if (ann_network.stats.totalMovesTaken() > old_moves_taken) {
-      old_moves_taken = ann_network.stats.totalMovesTaken();
-      got_better = true;
-    }
-    skip_horizontal = false;
-  }
+  check_score_improvement(ann_network, best_score, bestNetworkData);
+  optimizeEverythingRun(ann_network, psq, typesBySpeed, start_time,
+                        bestNetworkData, skip_horizontal, silent,
+                        print_progress);
+  check_score_improvement(ann_network, best_score, bestNetworkData);
 }
 
 void wavesearch_internal(
