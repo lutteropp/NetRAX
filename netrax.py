@@ -52,8 +52,9 @@ def infer_network(start_network_path, msa_path, partitions_path, likelihood_type
     return (bic, aic, aicc, logl, n_reticulations, runtime_in_seconds, newick)
 
 
-def run_netrax_multi(name, msa_path, partitions_path, likelihood_type, brlen_linkage_type, seed, inferred_network_path, start_networks, is_good_start):
+def run_netrax_multi(name, msa_path, partitions_path, likelihood_type, brlen_linkage_type, seed, start_networks, is_good_start):
     networks = open(start_networks).readlines()
+    inferred_network_path = name + "_inferred_network.nw"
     os.mkdir(name + "_subruns")
     results = []
     for i in range(len(networks)):
@@ -89,13 +90,12 @@ def parse_command_line_arguments_netrax_multi():
     CLI.add_argument("--likelihood_type", type=str)
     CLI.add_argument("--brlen_linkage_type", type=str)
     CLI.add_argument("--seed", type=int, default=0)
-    CLI.add_argument("--inferred_network_path", type=str)
     CLI.add_argument("--start_networks", type=str)
     CLI.add_argument("--good_start", action='store_true')
     args = CLI.parse_args()
-    return args.name, args.msa_path, args.partitions_path, args.likelihood_type, args.brlen_linkage_type, args.seed, args.inferred_network_path, args.start_networks, args.good_start
+    return args.name, args.msa_path, args.partitions_path, args.likelihood_type, args.brlen_linkage_type, args.seed, args.start_networks, args.good_start
 
 
 if __name__ == '__main__':
-    name, msa_path, partitions_path, likelihood_type, brlen_linkage_type, seed, inferred_network_path, start_networks, good_start = parse_command_line_arguments_netrax_multi()
-    run_netrax_multi(name, msa_path, partitions_path, likelihood_type, brlen_linkage_type, seed, inferred_network_path, start_networks, good_start)
+    name, msa_path, partitions_path, likelihood_type, brlen_linkage_type, seed, start_networks, good_start = parse_command_line_arguments_netrax_multi()
+    run_netrax_multi(name, msa_path, partitions_path, likelihood_type, brlen_linkage_type, seed, start_networks, good_start)
