@@ -81,7 +81,7 @@ def find_unique_trees(trees_file, output_path):
 
     n_trees = 0
     with open(output_path, 'w') as g:
-        for tree in trees:
+        for tree in good_trees:
             if len(tree.strip()) > 0:
                 g.write(tree.strip() + "\n")
                 n_trees += 1
