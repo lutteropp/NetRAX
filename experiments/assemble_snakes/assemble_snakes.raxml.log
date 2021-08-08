@@ -1,0 +1,2226 @@
+
+RAxML-NG v. 1.0.1-master released on 28.10.2020 by The Exelixis Lab.
+Developed by: Alexey M. Kozlov and Alexandros Stamatakis.
+Contributors: Diego Darriba, Tomas Flouri, Benoit Morel, Sarah Lutteropp, Ben Bettisworth.
+Latest version: https://github.com/amkozlov/raxml-ng
+Questions/problems/suggestions? Please visit: https://groups.google.com/forum/#!forum/raxml
+
+System: Intel(R) Core(TM) i7-6700HQ CPU @ 2.60GHz, 4 cores, 15 GB RAM
+
+RAxML-NG was called at 08-Aug-2021 02:40:39 as follows:
+
+/home/sarah/eclipse-workspace/NetRAX/experiments/deps/raxml-ng --msa /home/sarah/eclipse-workspace/NetRAX/experiments/assemble_snakes/snakes_msa.fasta --model /home/sarah/eclipse-workspace/NetRAX/experiments/assemble_snakes/snakes_partitions.txt -seed 42 --prefix /home/sarah/eclipse-workspace/NetRAX/experiments/assemble_snakes --redo
+
+Analysis options:
+  run mode: ML tree search
+  start tree(s): random (10) + parsimony (10)
+  random seed: 42
+  tip-inner: OFF
+  pattern compression: ON
+  per-rate scalers: OFF
+  site repeats: ON
+  fast spr radius: AUTO
+  spr subtree cutoff: 1.000000
+  branch lengths: proportional (ML estimate, algorithm: NR-FAST)
+  SIMD kernels: AVX2
+  parallelization: coarse-grained (auto), PTHREADS (auto)
+
+WARNING: Running in REDO mode: existing checkpoints are ignored, and all result files will be overwritten!
+
+[00:00:00] Reading alignment from file: /home/sarah/eclipse-workspace/NetRAX/experiments/assemble_snakes/snakes_msa.fasta
+[00:00:00] Loaded alignment with 23 taxa and 452697 sites
+
+Alignment comprises 304 partitions and 18760 patterns
+
+Partition 0: gene_59
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 849 / 51
+Gaps: 0.66 %
+Invariant sites: 96.35 %
+
+Partition 1: gene_281
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1656 / 95
+Gaps: 0.49 %
+Invariant sites: 94.81 %
+
+Partition 2: gene_127
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1088 / 63
+Gaps: 0.21 %
+Invariant sites: 94.58 %
+
+Partition 3: gene_86
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1654 / 41
+Gaps: 0.34 %
+Invariant sites: 98.19 %
+
+Partition 4: gene_107
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1030 / 30
+Gaps: 0.11 %
+Invariant sites: 97.96 %
+
+Partition 5: gene_224
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1216 / 35
+Gaps: 0.01 %
+Invariant sites: 97.29 %
+
+Partition 6: gene_87
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1509 / 40
+Gaps: 0.03 %
+Invariant sites: 97.81 %
+
+Partition 7: gene_149
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1424 / 63
+Gaps: 0.13 %
+Invariant sites: 96.28 %
+
+Partition 8: gene_100
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1669 / 33
+Gaps: 0.12 %
+Invariant sites: 98.44 %
+
+Partition 9: gene_131
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1333 / 93
+Gaps: 0.15 %
+Invariant sites: 92.95 %
+
+Partition 10: gene_340
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1160 / 47
+Gaps: 0.01 %
+Invariant sites: 95.86 %
+
+Partition 11: gene_293
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 840 / 55
+Gaps: 0.70 %
+Invariant sites: 94.76 %
+
+Partition 12: gene_387
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1298 / 50
+Gaps: 0.25 %
+Invariant sites: 96.53 %
+
+Partition 13: gene_372
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1503 / 77
+Gaps: 0.20 %
+Invariant sites: 95.14 %
+
+Partition 14: gene_385
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1639 / 67
+Gaps: 0.15 %
+Invariant sites: 95.79 %
+
+Partition 15: gene_345
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1721 / 69
+Gaps: 0.16 %
+Invariant sites: 95.93 %
+
+Partition 16: gene_182
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1316 / 40
+Gaps: 0.13 %
+Invariant sites: 97.80 %
+
+Partition 17: gene_111
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 880 / 46
+Gaps: 0.11 %
+Invariant sites: 95.57 %
+
+Partition 18: gene_328
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1534 / 108
+Gaps: 0.27 %
+Invariant sites: 92.83 %
+
+Partition 19: gene_365
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1708 / 73
+Gaps: 0.28 %
+Invariant sites: 96.14 %
+
+Partition 20: gene_389
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1365 / 37
+Gaps: 0.07 %
+Invariant sites: 97.95 %
+
+Partition 21: gene_227
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1639 / 133
+Gaps: 0.63 %
+Invariant sites: 93.23 %
+
+Partition 22: gene_390
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1670 / 43
+Gaps: 0.14 %
+Invariant sites: 97.66 %
+
+Partition 23: gene_228
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1142 / 107
+Gaps: 0.27 %
+Invariant sites: 90.98 %
+
+Partition 24: gene_356
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1355 / 49
+Gaps: 0.22 %
+Invariant sites: 97.56 %
+
+Partition 25: gene_99
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1666 / 60
+Gaps: 0.03 %
+Invariant sites: 96.34 %
+
+Partition 26: gene_160
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1536 / 51
+Gaps: 0.36 %
+Invariant sites: 97.33 %
+
+Partition 27: gene_315
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1370 / 40
+Gaps: 0.02 %
+Invariant sites: 97.45 %
+
+Partition 28: gene_304
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 671 / 30
+Gaps: 0.69 %
+Invariant sites: 97.17 %
+
+Partition 29: gene_386
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1696 / 36
+Gaps: 0.00 %
+Invariant sites: 98.11 %
+
+Partition 30: gene_260
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1743 / 48
+Gaps: 0.29 %
+Invariant sites: 97.99 %
+
+Partition 31: gene_30
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1637 / 43
+Gaps: 0.23 %
+Invariant sites: 98.23 %
+
+Partition 32: gene_264
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1164 / 46
+Gaps: 0.19 %
+Invariant sites: 96.82 %
+
+Partition 33: gene_238
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1286 / 53
+Gaps: 0.10 %
+Invariant sites: 96.35 %
+
+Partition 34: gene_257
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1335 / 58
+Gaps: 0.08 %
+Invariant sites: 95.28 %
+
+Partition 35: gene_319
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1787 / 72
+Gaps: 0.83 %
+Invariant sites: 96.36 %
+
+Partition 36: gene_26
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1197 / 31
+Gaps: 0.04 %
+Invariant sites: 97.74 %
+
+Partition 37: gene_177
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1659 / 52
+Gaps: 0.03 %
+Invariant sites: 97.17 %
+
+Partition 38: gene_133
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1197 / 41
+Gaps: 0.09 %
+Invariant sites: 97.33 %
+
+Partition 39: gene_145
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1626 / 50
+Gaps: 0.24 %
+Invariant sites: 97.05 %
+
+Partition 40: gene_188
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1726 / 53
+Gaps: 0.44 %
+Invariant sites: 97.28 %
+
+Partition 41: gene_73
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1642 / 61
+Gaps: 0.24 %
+Invariant sites: 96.53 %
+
+Partition 42: gene_323
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1530 / 72
+Gaps: 0.14 %
+Invariant sites: 95.69 %
+
+Partition 43: gene_350
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1012 / 30
+Gaps: 0.10 %
+Invariant sites: 98.22 %
+
+Partition 44: gene_34
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 741 / 29
+Gaps: 0.35 %
+Invariant sites: 96.90 %
+
+Partition 45: gene_276
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1667 / 56
+Gaps: 0.19 %
+Invariant sites: 97.06 %
+
+Partition 46: gene_103
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1553 / 50
+Gaps: 0.39 %
+Invariant sites: 97.81 %
+
+Partition 47: gene_318
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1701 / 49
+Gaps: 0.03 %
+Invariant sites: 97.59 %
+
+Partition 48: gene_85
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1276 / 33
+Gaps: 0.00 %
+Invariant sites: 97.49 %
+
+Partition 49: gene_300
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1634 / 97
+Gaps: 0.10 %
+Invariant sites: 94.19 %
+
+Partition 50: gene_77
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1775 / 55
+Gaps: 0.39 %
+Invariant sites: 97.58 %
+
+Partition 51: gene_44
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1711 / 47
+Gaps: 0.18 %
+Invariant sites: 97.43 %
+
+Partition 52: gene_344
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1503 / 102
+Gaps: 0.59 %
+Invariant sites: 94.21 %
+
+Partition 53: gene_242
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1591 / 42
+Gaps: 2.24 %
+Invariant sites: 97.99 %
+
+Partition 54: gene_333
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1686 / 57
+Gaps: 0.09 %
+Invariant sites: 96.80 %
+
+Partition 55: gene_246
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 995 / 59
+Gaps: 0.31 %
+Invariant sites: 94.67 %
+
+Partition 56: gene_248
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1476 / 45
+Gaps: 0.22 %
+Invariant sites: 97.29 %
+
+Partition 57: gene_144
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1534 / 39
+Gaps: 0.26 %
+Invariant sites: 97.59 %
+
+Partition 58: gene_311
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 2113 / 68
+Gaps: 0.08 %
+Invariant sites: 96.97 %
+
+Partition 59: gene_125
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1715 / 46
+Gaps: 0.26 %
+Invariant sites: 97.78 %
+
+Partition 60: gene_167
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1676 / 69
+Gaps: 0.16 %
+Invariant sites: 96.30 %
+
+Partition 61: gene_391
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1824 / 75
+Gaps: 0.10 %
+Invariant sites: 96.16 %
+
+Partition 62: gene_191
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1455 / 55
+Gaps: 0.16 %
+Invariant sites: 96.91 %
+
+Partition 63: gene_18
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1240 / 51
+Gaps: 0.23 %
+Invariant sites: 96.61 %
+
+Partition 64: gene_253
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1263 / 38
+Gaps: 0.14 %
+Invariant sites: 97.94 %
+
+Partition 65: gene_279
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1637 / 55
+Gaps: 0.19 %
+Invariant sites: 96.76 %
+
+Partition 66: gene_126
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1723 / 96
+Gaps: 0.47 %
+Invariant sites: 94.89 %
+
+Partition 67: gene_33
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1347 / 46
+Gaps: 0.46 %
+Invariant sites: 96.96 %
+
+Partition 68: gene_306
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1699 / 50
+Gaps: 0.36 %
+Invariant sites: 97.94 %
+
+Partition 69: gene_307
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1582 / 67
+Gaps: 0.07 %
+Invariant sites: 96.08 %
+
+Partition 70: gene_379
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1477 / 82
+Gaps: 0.40 %
+Invariant sites: 94.99 %
+
+Partition 71: gene_225
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1727 / 50
+Gaps: 0.31 %
+Invariant sites: 97.68 %
+
+Partition 72: gene_35
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1628 / 71
+Gaps: 0.00 %
+Invariant sites: 94.90 %
+
+Partition 73: gene_118
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1713 / 32
+Gaps: 0.00 %
+Invariant sites: 98.42 %
+
+Partition 74: gene_156
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1597 / 60
+Gaps: 0.14 %
+Invariant sites: 96.74 %
+
+Partition 75: gene_136
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 2052 / 61
+Gaps: 0.02 %
+Invariant sites: 97.17 %
+
+Partition 76: gene_211
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1812 / 71
+Gaps: 0.24 %
+Invariant sites: 96.74 %
+
+Partition 77: gene_369
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1353 / 51
+Gaps: 0.71 %
+Invariant sites: 97.12 %
+
+Partition 78: gene_195
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1203 / 58
+Gaps: 0.01 %
+Invariant sites: 95.34 %
+
+Partition 79: gene_222
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1631 / 66
+Gaps: 0.11 %
+Invariant sites: 96.63 %
+
+Partition 80: gene_353
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1334 / 83
+Gaps: 0.22 %
+Invariant sites: 94.53 %
+
+Partition 81: gene_325
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1354 / 42
+Gaps: 0.37 %
+Invariant sites: 97.86 %
+
+Partition 82: gene_71
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 880 / 47
+Gaps: 0.19 %
+Invariant sites: 95.34 %
+
+Partition 83: gene_283
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1648 / 56
+Gaps: 0.32 %
+Invariant sites: 97.09 %
+
+Partition 84: gene_78
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1348 / 54
+Gaps: 0.30 %
+Invariant sites: 96.96 %
+
+Partition 85: gene_54
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1193 / 36
+Gaps: 0.01 %
+Invariant sites: 97.23 %
+
+Partition 86: gene_326
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1642 / 101
+Gaps: 0.26 %
+Invariant sites: 94.21 %
+
+Partition 87: gene_218
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1439 / 107
+Gaps: 0.14 %
+Invariant sites: 92.22 %
+
+Partition 88: gene_68
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1079 / 44
+Gaps: 1.44 %
+Invariant sites: 96.94 %
+
+Partition 89: gene_102
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1766 / 50
+Gaps: 0.07 %
+Invariant sites: 97.62 %
+
+Partition 90: gene_128
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1649 / 58
+Gaps: 0.30 %
+Invariant sites: 97.33 %
+
+Partition 91: gene_106
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1680 / 63
+Gaps: 0.04 %
+Invariant sites: 96.79 %
+
+Partition 92: gene_161
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1605 / 57
+Gaps: 0.27 %
+Invariant sites: 96.95 %
+
+Partition 93: gene_19
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1687 / 36
+Gaps: 0.14 %
+Invariant sites: 98.16 %
+
+Partition 94: gene_213
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1397 / 83
+Gaps: 0.34 %
+Invariant sites: 93.92 %
+
+Partition 95: gene_346
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1664 / 131
+Gaps: 1.28 %
+Invariant sites: 92.49 %
+
+Partition 96: gene_290
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1550 / 51
+Gaps: 0.14 %
+Invariant sites: 97.42 %
+
+Partition 97: gene_266
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 924 / 31
+Gaps: 0.32 %
+Invariant sites: 97.51 %
+
+Partition 98: gene_179
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1762 / 69
+Gaps: 0.46 %
+Invariant sites: 96.65 %
+
+Partition 99: gene_123
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1432 / 39
+Gaps: 0.13 %
+Invariant sites: 97.97 %
+
+Partition 100: gene_383
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1067 / 70
+Gaps: 0.18 %
+Invariant sites: 94.56 %
+
+Partition 101: gene_172
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1696 / 43
+Gaps: 0.19 %
+Invariant sites: 97.88 %
+
+Partition 102: gene_169
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1343 / 75
+Gaps: 0.54 %
+Invariant sites: 95.01 %
+
+Partition 103: gene_305
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1584 / 24
+Gaps: 0.24 %
+Invariant sites: 99.24 %
+
+Partition 104: gene_388
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1648 / 34
+Gaps: 0.30 %
+Invariant sites: 98.36 %
+
+Partition 105: gene_40
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1701 / 45
+Gaps: 0.03 %
+Invariant sites: 97.47 %
+
+Partition 106: gene_109
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1141 / 50
+Gaps: 0.15 %
+Invariant sites: 96.14 %
+
+Partition 107: gene_331
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1364 / 90
+Gaps: 0.61 %
+Invariant sites: 95.01 %
+
+Partition 108: gene_141
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1638 / 99
+Gaps: 0.19 %
+Invariant sites: 94.69 %
+
+Partition 109: gene_251
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1896 / 93
+Gaps: 0.32 %
+Invariant sites: 94.94 %
+
+Partition 110: gene_270
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1507 / 103
+Gaps: 0.15 %
+Invariant sites: 93.50 %
+
+Partition 111: gene_190
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1056 / 36
+Gaps: 0.10 %
+Invariant sites: 97.54 %
+
+Partition 112: gene_249
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 775 / 53
+Gaps: 0.21 %
+Invariant sites: 92.13 %
+
+Partition 113: gene_296
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1652 / 74
+Gaps: 0.20 %
+Invariant sites: 96.00 %
+
+Partition 114: gene_16
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1636 / 81
+Gaps: 0.33 %
+Invariant sites: 95.66 %
+
+Partition 115: gene_116
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1588 / 75
+Gaps: 0.33 %
+Invariant sites: 96.16 %
+
+Partition 116: gene_403
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1494 / 102
+Gaps: 0.13 %
+Invariant sites: 92.77 %
+
+Partition 117: gene_207
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1672 / 68
+Gaps: 0.15 %
+Invariant sites: 96.35 %
+
+Partition 118: gene_210
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1735 / 73
+Gaps: 0.31 %
+Invariant sites: 96.37 %
+
+Partition 119: gene_373
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1682 / 68
+Gaps: 0.32 %
+Invariant sites: 96.43 %
+
+Partition 120: gene_232
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1557 / 44
+Gaps: 0.16 %
+Invariant sites: 97.62 %
+
+Partition 121: gene_230
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1495 / 111
+Gaps: 0.16 %
+Invariant sites: 92.37 %
+
+Partition 122: gene_17
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1138 / 35
+Gaps: 0.37 %
+Invariant sites: 97.98 %
+
+Partition 123: gene_56
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1614 / 83
+Gaps: 0.38 %
+Invariant sites: 95.48 %
+
+Partition 124: gene_275
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1584 / 106
+Gaps: 0.09 %
+Invariant sites: 93.31 %
+
+Partition 125: gene_352
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1683 / 57
+Gaps: 0.25 %
+Invariant sites: 97.56 %
+
+Partition 126: gene_28
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1582 / 41
+Gaps: 0.13 %
+Invariant sites: 97.98 %
+
+Partition 127: gene_348
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1248 / 40
+Gaps: 0.12 %
+Invariant sites: 97.68 %
+
+Partition 128: gene_143
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1441 / 54
+Gaps: 0.06 %
+Invariant sites: 96.53 %
+
+Partition 129: gene_301
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1706 / 105
+Gaps: 0.33 %
+Invariant sites: 93.90 %
+
+Partition 130: gene_81
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1517 / 46
+Gaps: 0.05 %
+Invariant sites: 97.43 %
+
+Partition 131: gene_299
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1725 / 56
+Gaps: 0.49 %
+Invariant sites: 96.93 %
+
+Partition 132: gene_214
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1581 / 52
+Gaps: 0.10 %
+Invariant sites: 97.22 %
+
+Partition 133: gene_280
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 509 / 45
+Gaps: 1.16 %
+Invariant sites: 92.14 %
+
+Partition 134: gene_155
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1375 / 52
+Gaps: 0.08 %
+Invariant sites: 96.51 %
+
+Partition 135: gene_13
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1003 / 42
+Gaps: 0.09 %
+Invariant sites: 96.71 %
+
+Partition 136: gene_367
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1870 / 38
+Gaps: 0.28 %
+Invariant sites: 98.29 %
+
+Partition 137: gene_241
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1565 / 80
+Gaps: 0.19 %
+Invariant sites: 95.34 %
+
+Partition 138: gene_135
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1907 / 67
+Gaps: 0.15 %
+Invariant sites: 96.96 %
+
+Partition 139: gene_178
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1224 / 43
+Gaps: 0.20 %
+Invariant sites: 97.71 %
+
+Partition 140: gene_140
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1429 / 78
+Gaps: 0.12 %
+Invariant sites: 94.68 %
+
+Partition 141: gene_273
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1771 / 84
+Gaps: 0.27 %
+Invariant sites: 95.31 %
+
+Partition 142: gene_284
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1673 / 37
+Gaps: 0.17 %
+Invariant sites: 98.39 %
+
+Partition 143: gene_216
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1546 / 109
+Gaps: 2.41 %
+Invariant sites: 92.69 %
+
+Partition 144: gene_233
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1084 / 38
+Gaps: 0.12 %
+Invariant sites: 97.05 %
+
+Partition 145: gene_354
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1313 / 74
+Gaps: 0.11 %
+Invariant sites: 94.44 %
+
+Partition 146: gene_237
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1637 / 80
+Gaps: 0.26 %
+Invariant sites: 95.48 %
+
+Partition 147: gene_399
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1676 / 29
+Gaps: 0.10 %
+Invariant sites: 98.69 %
+
+Partition 148: gene_314
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1617 / 66
+Gaps: 0.62 %
+Invariant sites: 97.09 %
+
+Partition 149: gene_82
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1507 / 76
+Gaps: 0.42 %
+Invariant sites: 95.75 %
+
+Partition 150: gene_261
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1714 / 44
+Gaps: 0.21 %
+Invariant sites: 98.02 %
+
+Partition 151: gene_226
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1540 / 80
+Gaps: 0.24 %
+Invariant sites: 93.57 %
+
+Partition 152: gene_7
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1703 / 72
+Gaps: 0.22 %
+Invariant sites: 95.83 %
+
+Partition 153: gene_363
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1003 / 73
+Gaps: 0.18 %
+Invariant sites: 93.02 %
+
+Partition 154: gene_274
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 971 / 37
+Gaps: 0.00 %
+Invariant sites: 96.50 %
+
+Partition 155: gene_203
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1709 / 30
+Gaps: 0.25 %
+Invariant sites: 98.83 %
+
+Partition 156: gene_120
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1413 / 114
+Gaps: 0.22 %
+Invariant sites: 92.14 %
+
+Partition 157: gene_175
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1683 / 63
+Gaps: 0.23 %
+Invariant sites: 96.85 %
+
+Partition 158: gene_110
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1608 / 96
+Gaps: 0.27 %
+Invariant sites: 94.15 %
+
+Partition 159: gene_310
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 557 / 50
+Gaps: 0.60 %
+Invariant sites: 92.64 %
+
+Partition 160: gene_49
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1526 / 38
+Gaps: 0.00 %
+Invariant sites: 97.77 %
+
+Partition 161: gene_159
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1716 / 45
+Gaps: 0.10 %
+Invariant sites: 97.90 %
+
+Partition 162: gene_147
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1308 / 61
+Gaps: 0.12 %
+Invariant sites: 95.18 %
+
+Partition 163: gene_252
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1605 / 60
+Gaps: 1.00 %
+Invariant sites: 96.95 %
+
+Partition 164: gene_254
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1583 / 76
+Gaps: 0.32 %
+Invariant sites: 96.02 %
+
+Partition 165: gene_271
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1558 / 93
+Gaps: 0.01 %
+Invariant sites: 93.65 %
+
+Partition 166: gene_370
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1620 / 44
+Gaps: 0.17 %
+Invariant sites: 97.84 %
+
+Partition 167: gene_15
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1665 / 72
+Gaps: 0.83 %
+Invariant sites: 96.52 %
+
+Partition 168: gene_361
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1612 / 48
+Gaps: 0.11 %
+Invariant sites: 97.21 %
+
+Partition 169: gene_298
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1547 / 59
+Gaps: 0.10 %
+Invariant sites: 96.51 %
+
+Partition 170: gene_295
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1640 / 48
+Gaps: 0.07 %
+Invariant sites: 97.44 %
+
+Partition 171: gene_339
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1584 / 75
+Gaps: 0.17 %
+Invariant sites: 95.27 %
+
+Partition 172: gene_176
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1750 / 58
+Gaps: 0.07 %
+Invariant sites: 97.09 %
+
+Partition 173: gene_198
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 926 / 49
+Gaps: 0.17 %
+Invariant sites: 95.14 %
+
+Partition 174: gene_229
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1591 / 87
+Gaps: 0.11 %
+Invariant sites: 94.47 %
+
+Partition 175: gene_272
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1305 / 93
+Gaps: 0.57 %
+Invariant sites: 93.26 %
+
+Partition 176: gene_194
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1239 / 143
+Gaps: 1.09 %
+Invariant sites: 87.65 %
+
+Partition 177: gene_371
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1651 / 139
+Gaps: 0.59 %
+Invariant sites: 91.82 %
+
+Partition 178: gene_285
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1361 / 75
+Gaps: 0.12 %
+Invariant sites: 93.46 %
+
+Partition 179: gene_151
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1648 / 94
+Gaps: 0.13 %
+Invariant sites: 94.60 %
+
+Partition 180: gene_171
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1191 / 66
+Gaps: 0.22 %
+Invariant sites: 95.72 %
+
+Partition 181: gene_74
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1601 / 102
+Gaps: 0.29 %
+Invariant sites: 93.19 %
+
+Partition 182: gene_32
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1485 / 75
+Gaps: 0.18 %
+Invariant sites: 95.15 %
+
+Partition 183: gene_146
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1895 / 62
+Gaps: 0.14 %
+Invariant sites: 96.89 %
+
+Partition 184: gene_324
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 805 / 37
+Gaps: 0.08 %
+Invariant sites: 95.90 %
+
+Partition 185: gene_256
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 796 / 38
+Gaps: 0.19 %
+Invariant sites: 96.11 %
+
+Partition 186: gene_359
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1173 / 50
+Gaps: 0.20 %
+Invariant sites: 96.08 %
+
+Partition 187: gene_180
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1922 / 54
+Gaps: 0.02 %
+Invariant sites: 97.45 %
+
+Partition 188: gene_37
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1189 / 47
+Gaps: 0.63 %
+Invariant sites: 97.98 %
+
+Partition 189: gene_148
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1888 / 49
+Gaps: 0.21 %
+Invariant sites: 97.83 %
+
+Partition 190: gene_9
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1659 / 72
+Gaps: 0.29 %
+Invariant sites: 95.36 %
+
+Partition 191: gene_193
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1427 / 92
+Gaps: 0.18 %
+Invariant sites: 93.27 %
+
+Partition 192: gene_157
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1637 / 63
+Gaps: 1.90 %
+Invariant sites: 96.76 %
+
+Partition 193: gene_2
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1503 / 79
+Gaps: 0.49 %
+Invariant sites: 95.21 %
+
+Partition 194: gene_138
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 608 / 41
+Gaps: 0.51 %
+Invariant sites: 94.57 %
+
+Partition 195: gene_119
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1640 / 109
+Gaps: 0.01 %
+Invariant sites: 92.74 %
+
+Partition 196: gene_380
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1729 / 67
+Gaps: 0.20 %
+Invariant sites: 96.12 %
+
+Partition 197: gene_338
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1676 / 100
+Gaps: 0.13 %
+Invariant sites: 93.38 %
+
+Partition 198: gene_88
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1504 / 58
+Gaps: 0.37 %
+Invariant sites: 96.28 %
+
+Partition 199: gene_25
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1611 / 50
+Gaps: 0.21 %
+Invariant sites: 97.52 %
+
+Partition 200: gene_358
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1188 / 85
+Gaps: 0.39 %
+Invariant sites: 93.69 %
+
+Partition 201: gene_395
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1714 / 42
+Gaps: 0.08 %
+Invariant sites: 98.02 %
+
+Partition 202: gene_55
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1679 / 31
+Gaps: 0.34 %
+Invariant sites: 98.63 %
+
+Partition 203: gene_47
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1560 / 81
+Gaps: 0.10 %
+Invariant sites: 95.06 %
+
+Partition 204: gene_105
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1293 / 61
+Gaps: 0.15 %
+Invariant sites: 95.51 %
+
+Partition 205: gene_393
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1722 / 48
+Gaps: 0.46 %
+Invariant sites: 97.74 %
+
+Partition 206: gene_374
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1711 / 101
+Gaps: 0.51 %
+Invariant sites: 93.51 %
+
+Partition 207: gene_39
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1606 / 52
+Gaps: 0.09 %
+Invariant sites: 96.89 %
+
+Partition 208: gene_220
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1406 / 35
+Gaps: 0.15 %
+Invariant sites: 98.01 %
+
+Partition 209: gene_98
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1919 / 89
+Gaps: 1.98 %
+Invariant sites: 95.73 %
+
+Partition 210: gene_221
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1864 / 86
+Gaps: 0.31 %
+Invariant sites: 96.03 %
+
+Partition 211: gene_67
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1680 / 41
+Gaps: 0.24 %
+Invariant sites: 98.21 %
+
+Partition 212: gene_58
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1492 / 60
+Gaps: 0.13 %
+Invariant sites: 96.45 %
+
+Partition 213: gene_43
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1651 / 73
+Gaps: 0.12 %
+Invariant sites: 96.18 %
+
+Partition 214: gene_259
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1673 / 52
+Gaps: 0.40 %
+Invariant sites: 97.79 %
+
+Partition 215: gene_392
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1269 / 43
+Gaps: 0.40 %
+Invariant sites: 97.48 %
+
+Partition 216: gene_124
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1615 / 52
+Gaps: 0.11 %
+Invariant sites: 97.03 %
+
+Partition 217: gene_104
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1256 / 27
+Gaps: 0.09 %
+Invariant sites: 98.57 %
+
+Partition 218: gene_384
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1225 / 66
+Gaps: 0.12 %
+Invariant sites: 94.78 %
+
+Partition 219: gene_41
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1264 / 61
+Gaps: 0.97 %
+Invariant sites: 96.04 %
+
+Partition 220: gene_76
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1539 / 35
+Gaps: 0.00 %
+Invariant sites: 97.79 %
+
+Partition 221: gene_184
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1770 / 70
+Gaps: 0.30 %
+Invariant sites: 96.67 %
+
+Partition 222: gene_114
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1373 / 65
+Gaps: 0.03 %
+Invariant sites: 95.34 %
+
+Partition 223: gene_21
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1062 / 39
+Gaps: 0.32 %
+Invariant sites: 97.08 %
+
+Partition 224: gene_219
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1577 / 57
+Gaps: 0.09 %
+Invariant sites: 96.77 %
+
+Partition 225: gene_112
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1298 / 41
+Gaps: 0.10 %
+Invariant sites: 97.61 %
+
+Partition 226: gene_347
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1710 / 22
+Gaps: 0.08 %
+Invariant sites: 99.18 %
+
+Partition 227: gene_62
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1643 / 65
+Gaps: 2.55 %
+Invariant sites: 96.84 %
+
+Partition 228: gene_64
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1631 / 45
+Gaps: 0.21 %
+Invariant sites: 97.85 %
+
+Partition 229: gene_294
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1435 / 84
+Gaps: 0.00 %
+Invariant sites: 93.38 %
+
+Partition 230: gene_132
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1258 / 53
+Gaps: 0.13 %
+Invariant sites: 96.10 %
+
+Partition 231: gene_24
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1617 / 43
+Gaps: 0.05 %
+Invariant sites: 97.84 %
+
+Partition 232: gene_322
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1000 / 57
+Gaps: 0.21 %
+Invariant sites: 95.30 %
+
+Partition 233: gene_381
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1699 / 26
+Gaps: 0.11 %
+Invariant sites: 98.94 %
+
+Partition 234: gene_400
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1691 / 88
+Gaps: 0.15 %
+Invariant sites: 95.27 %
+
+Partition 235: gene_269
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1822 / 98
+Gaps: 0.03 %
+Invariant sites: 94.13 %
+
+Partition 236: gene_377
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1657 / 27
+Gaps: 0.43 %
+Invariant sites: 98.97 %
+
+Partition 237: gene_27
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 969 / 30
+Gaps: 0.00 %
+Invariant sites: 97.11 %
+
+Partition 238: gene_22
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1717 / 63
+Gaps: 0.26 %
+Invariant sites: 97.03 %
+
+Partition 239: gene_312
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1179 / 57
+Gaps: 0.04 %
+Invariant sites: 95.50 %
+
+Partition 240: gene_165
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1459 / 52
+Gaps: 0.03 %
+Invariant sites: 96.71 %
+
+Partition 241: gene_321
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1696 / 45
+Gaps: 0.20 %
+Invariant sites: 97.82 %
+
+Partition 242: gene_308
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1304 / 75
+Gaps: 0.46 %
+Invariant sites: 95.40 %
+
+Partition 243: gene_70
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1703 / 72
+Gaps: 1.34 %
+Invariant sites: 96.07 %
+
+Partition 244: gene_38
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1650 / 114
+Gaps: 0.25 %
+Invariant sites: 93.03 %
+
+Partition 245: gene_91
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1313 / 64
+Gaps: 0.02 %
+Invariant sites: 95.43 %
+
+Partition 246: gene_368
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1337 / 48
+Gaps: 0.06 %
+Invariant sites: 97.31 %
+
+Partition 247: gene_205
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1718 / 47
+Gaps: 0.17 %
+Invariant sites: 98.08 %
+
+Partition 248: gene_360
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1522 / 58
+Gaps: 0.05 %
+Invariant sites: 96.45 %
+
+Partition 249: gene_382
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1753 / 48
+Gaps: 0.23 %
+Invariant sites: 97.55 %
+
+Partition 250: gene_52
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1774 / 60
+Gaps: 0.25 %
+Invariant sites: 97.01 %
+
+Partition 251: gene_297
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1248 / 42
+Gaps: 0.20 %
+Invariant sites: 97.36 %
+
+Partition 252: gene_342
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1665 / 34
+Gaps: 0.16 %
+Invariant sites: 98.68 %
+
+Partition 253: gene_330
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1621 / 103
+Gaps: 0.15 %
+Invariant sites: 93.71 %
+
+Partition 254: gene_378
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1440 / 57
+Gaps: 0.14 %
+Invariant sites: 96.67 %
+
+Partition 255: gene_97
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1540 / 70
+Gaps: 0.04 %
+Invariant sites: 95.58 %
+
+Partition 256: gene_337
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 804 / 89
+Gaps: 2.01 %
+Invariant sites: 88.93 %
+
+Partition 257: gene_202
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1814 / 76
+Gaps: 0.10 %
+Invariant sites: 95.92 %
+
+Partition 258: gene_303
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1898 / 123
+Gaps: 0.13 %
+Invariant sites: 93.57 %
+
+Partition 259: gene_267
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1751 / 55
+Gaps: 0.05 %
+Invariant sites: 97.09 %
+
+Partition 260: gene_3
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1586 / 140
+Gaps: 0.78 %
+Invariant sites: 90.86 %
+
+Partition 261: gene_10
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1026 / 47
+Gaps: 0.64 %
+Invariant sites: 97.27 %
+
+Partition 262: gene_48
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1339 / 58
+Gaps: 0.53 %
+Invariant sites: 95.82 %
+
+Partition 263: gene_239
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1867 / 63
+Gaps: 0.10 %
+Invariant sites: 97.38 %
+
+Partition 264: gene_96
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1691 / 48
+Gaps: 0.87 %
+Invariant sites: 97.87 %
+
+Partition 265: gene_355
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1737 / 60
+Gaps: 0.17 %
+Invariant sites: 96.83 %
+
+Partition 266: gene_50
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1601 / 56
+Gaps: 0.36 %
+Invariant sites: 97.13 %
+
+Partition 267: gene_197
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1206 / 45
+Gaps: 0.08 %
+Invariant sites: 96.85 %
+
+Partition 268: gene_250
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 2224 / 64
+Gaps: 0.07 %
+Invariant sites: 97.26 %
+
+Partition 269: gene_394
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1596 / 52
+Gaps: 0.18 %
+Invariant sites: 97.31 %
+
+Partition 270: gene_20
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1400 / 40
+Gaps: 0.08 %
+Invariant sites: 97.93 %
+
+Partition 271: gene_60
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1646 / 42
+Gaps: 0.24 %
+Invariant sites: 98.12 %
+
+Partition 272: gene_36
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1680 / 54
+Gaps: 0.00 %
+Invariant sites: 96.90 %
+
+Partition 273: gene_101
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1699 / 53
+Gaps: 0.19 %
+Invariant sites: 97.17 %
+
+Partition 274: gene_317
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1770 / 54
+Gaps: 0.28 %
+Invariant sites: 97.57 %
+
+Partition 275: gene_335
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1597 / 111
+Gaps: 0.24 %
+Invariant sites: 93.11 %
+
+Partition 276: gene_139
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1312 / 69
+Gaps: 0.16 %
+Invariant sites: 95.20 %
+
+Partition 277: gene_282
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1139 / 98
+Gaps: 0.04 %
+Invariant sites: 90.52 %
+
+Partition 278: gene_130
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1943 / 60
+Gaps: 3.39 %
+Invariant sites: 97.53 %
+
+Partition 279: gene_240
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1998 / 70
+Gaps: 0.18 %
+Invariant sites: 96.90 %
+
+Partition 280: gene_200
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1602 / 48
+Gaps: 0.16 %
+Invariant sites: 97.32 %
+
+Partition 281: gene_181
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1682 / 81
+Gaps: 0.09 %
+Invariant sites: 95.66 %
+
+Partition 282: gene_174
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1689 / 73
+Gaps: 0.36 %
+Invariant sites: 95.91 %
+
+Partition 283: gene_258
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 755 / 51
+Gaps: 0.26 %
+Invariant sites: 93.77 %
+
+Partition 284: gene_206
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1874 / 41
+Gaps: 0.10 %
+Invariant sites: 98.19 %
+
+Partition 285: gene_398
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1148 / 21
+Gaps: 0.11 %
+Invariant sites: 99.04 %
+
+Partition 286: gene_122
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1132 / 107
+Gaps: 1.93 %
+Invariant sites: 90.64 %
+
+Partition 287: gene_204
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 800 / 48
+Gaps: 0.03 %
+Invariant sites: 94.50 %
+
+Partition 288: gene_108
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 913 / 33
+Gaps: 0.11 %
+Invariant sites: 97.26 %
+
+Partition 289: gene_244
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1013 / 76
+Gaps: 0.35 %
+Invariant sites: 93.29 %
+
+Partition 290: gene_65
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1215 / 26
+Gaps: 0.00 %
+Invariant sites: 98.19 %
+
+Partition 291: gene_201
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1747 / 46
+Gaps: 0.01 %
+Invariant sites: 97.08 %
+
+Partition 292: gene_334
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1634 / 80
+Gaps: 0.05 %
+Invariant sites: 95.04 %
+
+Partition 293: gene_362
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1764 / 77
+Gaps: 0.13 %
+Invariant sites: 95.58 %
+
+Partition 294: gene_12
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1680 / 55
+Gaps: 0.17 %
+Invariant sites: 97.32 %
+
+Partition 295: gene_121
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1153 / 78
+Gaps: 0.20 %
+Invariant sites: 94.02 %
+
+Partition 296: gene_234
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1155 / 54
+Gaps: 1.21 %
+Invariant sites: 95.32 %
+
+Partition 297: gene_1
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1560 / 107
+Gaps: 0.19 %
+Invariant sites: 92.63 %
+
+Partition 298: gene_192
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1820 / 51
+Gaps: 0.21 %
+Invariant sites: 97.75 %
+
+Partition 299: gene_366
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1730 / 77
+Gaps: 0.24 %
+Invariant sites: 95.55 %
+
+Partition 300: gene_51
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1528 / 65
+Gaps: 0.20 %
+Invariant sites: 95.94 %
+
+Partition 301: gene_153
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1637 / 67
+Gaps: 0.27 %
+Invariant sites: 96.27 %
+
+Partition 302: gene_288
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1734 / 25
+Gaps: 0.03 %
+Invariant sites: 98.90 %
+
+Partition 303: gene_199
+Model: GTR+FC+G4m+B
+Alignment sites / patterns: 1483 / 67
+Gaps: 0.32 %
+Invariant sites: 96.02 %
+
+
+NOTE: Binary MSA file created: /home/sarah/eclipse-workspace/NetRAX/experiments/assemble_snakes.raxml.rba
+
+Parallelization scheme autoconfig: 1 worker(s) x 4 thread(s)
+
+Parallel reduction/worker buffer size: 19 KB  / 0 KB
+
+[00:00:00] Generating 10 random starting tree(s) with 23 taxa
+[00:00:00] Generating 10 parsimony starting tree(s) with 23 taxa
+[00:00:00] Data distribution: max. partitions/sites/weight per thread: 77 / 4690 / 75040
+[00:00:00] Data distribution: max. searches per worker: 20
+
+Starting ML tree search with 20 distinct starting trees
+
+[00:00:00 -1496754.863189] Initial branch length optimization
+[00:00:01 -794769.378413] Model parameter optimization (eps = 10.000000)
+[00:00:08 -772095.574054] AUTODETECT spr round 1 (radius: 5)
+[00:00:10 -728191.374982] AUTODETECT spr round 2 (radius: 10)
+[00:00:11 -728191.374695] SPR radius for FAST iterations: 5 (autodetect)
+[00:00:11 -728191.374695] Model parameter optimization (eps = 3.000000)
+[00:00:18 -726831.192180] FAST spr round 1 (radius: 5)
+[00:00:22 -725849.224473] FAST spr round 2 (radius: 5)
+[00:00:26 -725849.224129] Model parameter optimization (eps = 1.000000)
+[00:00:29 -725831.499957] SLOW spr round 1 (radius: 5)
+[00:00:38 -725831.499955] SLOW spr round 2 (radius: 10)
+[00:00:45 -725831.499954] SLOW spr round 3 (radius: 15)
+[00:00:45 -725831.499954] SLOW spr round 4 (radius: 20)
+[00:00:46 -725831.499954] Model parameter optimization (eps = 0.100000)
+
+[00:00:46] ML tree search #1, logLikelihood: -725831.499862
+
+[00:00:46 -1495634.675128] Initial branch length optimization
+[00:00:47 -789887.336854] Model parameter optimization (eps = 10.000000)
+[00:00:54 -768469.459010] AUTODETECT spr round 1 (radius: 5)
+[00:00:56 -727638.501905] AUTODETECT spr round 2 (radius: 10)
+[00:00:58 -727638.499403] SPR radius for FAST iterations: 5 (autodetect)
+[00:00:58 -727638.499403] Model parameter optimization (eps = 3.000000)
+[00:01:03 -726909.804679] FAST spr round 1 (radius: 5)
+[00:01:08 -725882.578971] FAST spr round 2 (radius: 5)
+[00:01:12 -725855.823151] FAST spr round 3 (radius: 5)
+[00:01:17 -725855.823119] Model parameter optimization (eps = 1.000000)
+[00:01:19 -725831.529619] SLOW spr round 1 (radius: 5)
+[00:01:28 -725831.529619] SLOW spr round 2 (radius: 10)
+[00:01:35 -725831.529619] SLOW spr round 3 (radius: 15)
+[00:01:36 -725831.529619] SLOW spr round 4 (radius: 20)
+[00:01:36 -725831.529619] Model parameter optimization (eps = 0.100000)
+
+[00:01:36] ML tree search #2, logLikelihood: -725831.529519
+
+[00:01:37 -1497877.075678] Initial branch length optimization
+[00:01:37 -794014.978601] Model parameter optimization (eps = 10.000000)
+[00:01:44 -771500.252369] AUTODETECT spr round 1 (radius: 5)
+[00:01:46 -727865.921159] AUTODETECT spr round 2 (radius: 10)
+[00:01:47 -727865.921154] SPR radius for FAST iterations: 5 (autodetect)
+[00:01:47 -727865.921154] Model parameter optimization (eps = 3.000000)
+[00:01:52 -726967.299175] FAST spr round 1 (radius: 5)
+[00:01:57 -725842.910311] FAST spr round 2 (radius: 5)
+[00:02:01 -725842.909959] Model parameter optimization (eps = 1.000000)
+[00:02:03 -725831.582032] SLOW spr round 1 (radius: 5)
+[00:02:12 -725831.582032] SLOW spr round 2 (radius: 10)
+[00:02:19 -725831.582032] SLOW spr round 3 (radius: 15)
+[00:02:20 -725831.582032] SLOW spr round 4 (radius: 20)
+[00:02:20 -725831.582032] Model parameter optimization (eps = 0.100000)
+
+[00:02:21] ML tree search #3, logLikelihood: -725831.581942
+
+[00:02:21 -1496906.129390] Initial branch length optimization
+[00:02:21 -790841.131328] Model parameter optimization (eps = 10.000000)
+[00:02:29 -769011.994979] AUTODETECT spr round 1 (radius: 5)
+[00:02:31 -730429.020608] AUTODETECT spr round 2 (radius: 10)
+[00:02:32 -730429.018521] SPR radius for FAST iterations: 5 (autodetect)
+[00:02:32 -730429.018521] Model parameter optimization (eps = 3.000000)
+[00:02:37 -729814.368115] FAST spr round 1 (radius: 5)
+[00:02:42 -725866.261506] FAST spr round 2 (radius: 5)
+[00:02:47 -725866.260710] Model parameter optimization (eps = 1.000000)
+[00:02:50 -725831.340201] SLOW spr round 1 (radius: 5)
+[00:02:59 -725831.340199] SLOW spr round 2 (radius: 10)
+[00:03:06 -725831.340199] SLOW spr round 3 (radius: 15)
+[00:03:06 -725831.340199] SLOW spr round 4 (radius: 20)
+[00:03:07 -725831.340199] Model parameter optimization (eps = 0.100000)
+
+[00:03:07] ML tree search #4, logLikelihood: -725831.340089
+
+[00:03:07 -1497731.729244] Initial branch length optimization
+[00:03:08 -794183.225867] Model parameter optimization (eps = 10.000000)
+[00:03:15 -771509.489951] AUTODETECT spr round 1 (radius: 5)
+[00:03:17 -734136.175379] AUTODETECT spr round 2 (radius: 10)
+[00:03:19 -733665.286572] AUTODETECT spr round 3 (radius: 15)
+[00:03:19 -733665.285637] SPR radius for FAST iterations: 10 (autodetect)
+[00:03:19 -733665.285637] Model parameter optimization (eps = 3.000000)
+[00:03:25 -732738.770733] FAST spr round 1 (radius: 10)
+[00:03:31 -725931.792035] FAST spr round 2 (radius: 10)
+[00:03:35 -725897.680240] FAST spr round 3 (radius: 10)
+[00:03:40 -725897.680193] Model parameter optimization (eps = 1.000000)
+[00:03:42 -725831.256882] SLOW spr round 1 (radius: 5)
+[00:03:52 -725831.256874] SLOW spr round 2 (radius: 10)
+[00:03:59 -725831.256872] SLOW spr round 3 (radius: 15)
+[00:03:59 -725831.256872] SLOW spr round 4 (radius: 20)
+[00:04:00 -725831.256872] Model parameter optimization (eps = 0.100000)
+
+[00:04:01] ML tree search #5, logLikelihood: -725831.256715
+
+[00:04:01 -1491976.259627] Initial branch length optimization
+[00:04:01 -783155.204848] Model parameter optimization (eps = 10.000000)
+[00:04:08 -763269.977222] AUTODETECT spr round 1 (radius: 5)
+[00:04:10 -728913.370415] AUTODETECT spr round 2 (radius: 10)
+[00:04:12 -728913.370031] SPR radius for FAST iterations: 5 (autodetect)
+[00:04:12 -728913.370031] Model parameter optimization (eps = 3.000000)
+[00:04:16 -728277.681911] FAST spr round 1 (radius: 5)
+[00:04:22 -725888.970470] FAST spr round 2 (radius: 5)
+[00:04:26 -725864.794117] FAST spr round 3 (radius: 5)
+[00:04:31 -725864.793559] Model parameter optimization (eps = 1.000000)
+[00:04:33 -725831.511651] SLOW spr round 1 (radius: 5)
+[00:04:43 -725831.511650] SLOW spr round 2 (radius: 10)
+[00:04:50 -725831.511650] SLOW spr round 3 (radius: 15)
+[00:04:50 -725831.511650] SLOW spr round 4 (radius: 20)
+[00:04:51 -725831.511650] Model parameter optimization (eps = 0.100000)
+
+[00:04:52] ML tree search #6, logLikelihood: -725831.511333
+
+[00:04:52 -1495493.885749] Initial branch length optimization
+[00:04:52 -790848.719851] Model parameter optimization (eps = 10.000000)
+[00:05:00 -769385.453198] AUTODETECT spr round 1 (radius: 5)
+[00:05:02 -729288.435703] AUTODETECT spr round 2 (radius: 10)
+[00:05:03 -729288.433145] SPR radius for FAST iterations: 5 (autodetect)
+[00:05:03 -729288.433145] Model parameter optimization (eps = 3.000000)
+[00:05:08 -728640.916747] FAST spr round 1 (radius: 5)
+[00:05:14 -725862.781439] FAST spr round 2 (radius: 5)
+[00:05:18 -725862.780855] Model parameter optimization (eps = 1.000000)
+[00:05:21 -725831.489467] SLOW spr round 1 (radius: 5)
+[00:05:30 -725831.489467] SLOW spr round 2 (radius: 10)
+[00:05:37 -725831.489467] SLOW spr round 3 (radius: 15)
+[00:05:38 -725831.489467] SLOW spr round 4 (radius: 20)
+[00:05:38 -725831.489467] Model parameter optimization (eps = 0.100000)
+
+[00:05:39] ML tree search #7, logLikelihood: -725831.489384
+
+[00:05:39 -1497436.459343] Initial branch length optimization
+[00:05:39 -794785.552371] Model parameter optimization (eps = 10.000000)
+[00:05:46 -772178.297977] AUTODETECT spr round 1 (radius: 5)
+[00:05:48 -730686.191115] AUTODETECT spr round 2 (radius: 10)
+[00:05:50 -730686.190656] SPR radius for FAST iterations: 5 (autodetect)
+[00:05:50 -730686.190656] Model parameter optimization (eps = 3.000000)
+[00:05:55 -729667.199469] FAST spr round 1 (radius: 5)
+[00:06:00 -725867.092408] FAST spr round 2 (radius: 5)
+[00:06:05 -725867.092102] Model parameter optimization (eps = 1.000000)
+[00:06:07 -725831.791630] SLOW spr round 1 (radius: 5)
+[00:06:16 -725831.791624] SLOW spr round 2 (radius: 10)
+[00:06:23 -725831.791624] SLOW spr round 3 (radius: 15)
+[00:06:24 -725831.791624] SLOW spr round 4 (radius: 20)
+[00:06:24 -725831.791624] Model parameter optimization (eps = 0.100000)
+
+[00:06:25] ML tree search #8, logLikelihood: -725831.791453
+
+[00:06:25 -1498951.465135] Initial branch length optimization
+[00:06:26 -795681.723837] Model parameter optimization (eps = 10.000000)
+[00:06:33 -772636.784492] AUTODETECT spr round 1 (radius: 5)
+[00:06:35 -727643.150592] AUTODETECT spr round 2 (radius: 10)
+[00:06:36 -727643.150563] SPR radius for FAST iterations: 5 (autodetect)
+[00:06:36 -727643.150563] Model parameter optimization (eps = 3.000000)
+[00:06:41 -726679.638013] FAST spr round 1 (radius: 5)
+[00:06:46 -725841.707476] FAST spr round 2 (radius: 5)
+[00:06:50 -725841.707134] Model parameter optimization (eps = 1.000000)
+[00:06:53 -725831.247452] SLOW spr round 1 (radius: 5)
+[00:07:02 -725831.247426] SLOW spr round 2 (radius: 10)
+[00:07:09 -725831.247425] SLOW spr round 3 (radius: 15)
+[00:07:10 -725831.247425] SLOW spr round 4 (radius: 20)
+[00:07:10 -725831.247425] Model parameter optimization (eps = 0.100000)
+
+[00:07:10] ML tree search #9, logLikelihood: -725831.247244
+
+[00:07:11 -1491391.757119] Initial branch length optimization
+[00:07:11 -781416.401029] Model parameter optimization (eps = 10.000000)
+[00:07:18 -761924.242331] AUTODETECT spr round 1 (radius: 5)
+[00:07:20 -726639.250757] AUTODETECT spr round 2 (radius: 10)
+[00:07:22 -726639.250753] SPR radius for FAST iterations: 5 (autodetect)
+[00:07:22 -726639.250753] Model parameter optimization (eps = 3.000000)
+[00:07:26 -726100.289646] FAST spr round 1 (radius: 5)
+[00:07:30 -725844.120229] FAST spr round 2 (radius: 5)
+[00:07:35 -725844.119816] Model parameter optimization (eps = 1.000000)
+[00:07:37 -725831.714881] SLOW spr round 1 (radius: 5)
+[00:07:47 -725831.714858] SLOW spr round 2 (radius: 10)
+[00:07:54 -725831.714851] SLOW spr round 3 (radius: 15)
+[00:07:54 -725831.714851] SLOW spr round 4 (radius: 20)
+[00:07:54 -725831.714851] Model parameter optimization (eps = 0.100000)
+
+[00:07:55] ML tree search #10, logLikelihood: -725831.714293
+
+[00:07:56 -1466139.239853] Initial branch length optimization
+[00:07:56 -736259.963050] Model parameter optimization (eps = 10.000000)
+[00:08:00 -725862.793119] AUTODETECT spr round 1 (radius: 5)
+[00:08:02 -725862.793067] SPR radius for FAST iterations: 5 (autodetect)
+[00:08:02 -725862.793067] Model parameter optimization (eps = 3.000000)
+[00:08:03 -725862.785807] FAST spr round 1 (radius: 5)
+[00:08:07 -725840.294317] FAST spr round 2 (radius: 5)
+[00:08:12 -725840.293762] Model parameter optimization (eps = 1.000000)
+[00:08:14 -725832.687426] SLOW spr round 1 (radius: 5)
+[00:08:24 -725832.687424] SLOW spr round 2 (radius: 10)
+[00:08:31 -725832.687422] SLOW spr round 3 (radius: 15)
+[00:08:31 -725832.687422] SLOW spr round 4 (radius: 20)
+[00:08:31 -725832.687422] Model parameter optimization (eps = 0.100000)
+
+[00:08:32] ML tree search #11, logLikelihood: -725832.687282
+
+[00:08:32 -1466139.239853] Initial branch length optimization
+[00:08:33 -736259.967113] Model parameter optimization (eps = 10.000000)
+[00:08:37 -725862.757378] AUTODETECT spr round 1 (radius: 5)
+[00:08:39 -725862.757313] SPR radius for FAST iterations: 5 (autodetect)
+[00:08:39 -725862.757313] Model parameter optimization (eps = 3.000000)
+[00:08:40 -725862.749510] FAST spr round 1 (radius: 5)
+[00:08:44 -725840.249427] FAST spr round 2 (radius: 5)
+[00:08:48 -725840.248906] Model parameter optimization (eps = 1.000000)
+[00:08:51 -725832.653377] SLOW spr round 1 (radius: 5)
+[00:09:00 -725832.653374] SLOW spr round 2 (radius: 10)
+[00:09:07 -725832.653374] SLOW spr round 3 (radius: 15)
+[00:09:08 -725832.653374] SLOW spr round 4 (radius: 20)
+[00:09:08 -725832.653374] Model parameter optimization (eps = 0.100000)
+
+[00:09:09] ML tree search #12, logLikelihood: -725832.653237
+
+[00:09:09 -1466139.239853] Initial branch length optimization
+[00:09:09 -736259.964090] Model parameter optimization (eps = 10.000000)
+[00:09:13 -725862.787230] AUTODETECT spr round 1 (radius: 5)
+[00:09:15 -725862.787194] SPR radius for FAST iterations: 5 (autodetect)
+[00:09:15 -725862.787194] Model parameter optimization (eps = 3.000000)
+[00:09:16 -725862.780892] FAST spr round 1 (radius: 5)
+[00:09:20 -725840.285969] FAST spr round 2 (radius: 5)
+[00:09:25 -725840.285436] Model parameter optimization (eps = 1.000000)
+[00:09:27 -725832.685385] SLOW spr round 1 (radius: 5)
+[00:09:37 -725832.685367] SLOW spr round 2 (radius: 10)
+[00:09:44 -725832.685361] SLOW spr round 3 (radius: 15)
+[00:09:44 -725832.685361] SLOW spr round 4 (radius: 20)
+[00:09:45 -725832.685361] Model parameter optimization (eps = 0.100000)
+
+[00:09:45] ML tree search #13, logLikelihood: -725832.685223
+
+[00:09:45 -1466139.239853] Initial branch length optimization
+[00:09:46 -736259.964229] Model parameter optimization (eps = 10.000000)
+[00:09:50 -725862.759602] AUTODETECT spr round 1 (radius: 5)
+[00:09:52 -725862.759551] SPR radius for FAST iterations: 5 (autodetect)
+[00:09:52 -725862.759551] Model parameter optimization (eps = 3.000000)
+[00:09:53 -725862.751690] FAST spr round 1 (radius: 5)
+[00:09:58 -725840.255525] FAST spr round 2 (radius: 5)
+[00:10:02 -725840.254991] Model parameter optimization (eps = 1.000000)
+[00:10:05 -725832.702905] SLOW spr round 1 (radius: 5)
+[00:10:14 -725832.702887] SLOW spr round 2 (radius: 10)
+[00:10:21 -725832.702887] SLOW spr round 3 (radius: 15)
+[00:10:21 -725832.702887] SLOW spr round 4 (radius: 20)
+[00:10:22 -725832.702887] Model parameter optimization (eps = 0.100000)
+
+[00:10:22] ML tree search #14, logLikelihood: -725832.702737
+
+[00:10:22 -1466128.142298] Initial branch length optimization
+[00:10:23 -736286.220088] Model parameter optimization (eps = 10.000000)
+[00:10:27 -725897.522590] AUTODETECT spr round 1 (radius: 5)
+[00:10:29 -725897.522547] SPR radius for FAST iterations: 5 (autodetect)
+[00:10:29 -725897.522547] Model parameter optimization (eps = 3.000000)
+[00:10:30 -725897.520076] FAST spr round 1 (radius: 5)
+[00:10:34 -725869.483865] FAST spr round 2 (radius: 5)
+[00:10:39 -725842.792297] FAST spr round 3 (radius: 5)
+[00:10:43 -725842.792242] Model parameter optimization (eps = 1.000000)
+[00:10:45 -725832.585072] SLOW spr round 1 (radius: 5)
+[00:10:55 -725832.585037] SLOW spr round 2 (radius: 10)
+[00:11:03 -725832.585023] SLOW spr round 3 (radius: 15)
+[00:11:03 -725832.585023] SLOW spr round 4 (radius: 20)
+[00:11:03 -725832.585023] Model parameter optimization (eps = 0.100000)
+
+[00:11:04] ML tree search #15, logLikelihood: -725832.584892
+
+[00:11:04 -1466083.915052] Initial branch length optimization
+[00:11:04 -736258.093323] Model parameter optimization (eps = 10.000000)
+[00:11:09 -725872.449038] AUTODETECT spr round 1 (radius: 5)
+[00:11:11 -725840.215687] AUTODETECT spr round 2 (radius: 10)
+[00:11:12 -725840.215684] SPR radius for FAST iterations: 5 (autodetect)
+[00:11:12 -725840.215684] Model parameter optimization (eps = 3.000000)
+[00:11:14 -725832.596085] FAST spr round 1 (radius: 5)
+[00:11:18 -725832.596085] Model parameter optimization (eps = 1.000000)
+[00:11:19 -725832.595864] SLOW spr round 1 (radius: 5)
+[00:11:27 -725832.595864] SLOW spr round 2 (radius: 10)
+[00:11:34 -725832.595864] SLOW spr round 3 (radius: 15)
+[00:11:35 -725832.595864] SLOW spr round 4 (radius: 20)
+[00:11:35 -725832.595864] Model parameter optimization (eps = 0.100000)
+
+[00:11:36] ML tree search #16, logLikelihood: -725832.595726
+
+[00:11:36 -1466139.239853] Initial branch length optimization
+[00:11:36 -736259.967038] Model parameter optimization (eps = 10.000000)
+[00:11:40 -725862.790126] AUTODETECT spr round 1 (radius: 5)
+[00:11:42 -725862.790065] SPR radius for FAST iterations: 5 (autodetect)
+[00:11:42 -725862.790065] Model parameter optimization (eps = 3.000000)
+[00:11:43 -725862.782874] FAST spr round 1 (radius: 5)
+[00:11:47 -725840.295829] FAST spr round 2 (radius: 5)
+[00:11:52 -725840.295309] Model parameter optimization (eps = 1.000000)
+[00:11:54 -725832.693553] SLOW spr round 1 (radius: 5)
+[00:12:04 -725832.693537] SLOW spr round 2 (radius: 10)
+[00:12:10 -725832.693534] SLOW spr round 3 (radius: 15)
+[00:12:11 -725832.693534] SLOW spr round 4 (radius: 20)
+[00:12:11 -725832.693534] Model parameter optimization (eps = 0.100000)
+
+[00:12:12] ML tree search #17, logLikelihood: -725832.693398
+
+[00:12:12 -1466070.056810] Initial branch length optimization
+[00:12:12 -736205.454215] Model parameter optimization (eps = 10.000000)
+[00:12:17 -725832.558367] AUTODETECT spr round 1 (radius: 5)
+[00:12:19 -725832.558326] SPR radius for FAST iterations: 5 (autodetect)
+[00:12:19 -725832.558326] Model parameter optimization (eps = 3.000000)
+[00:12:20 -725832.555740] FAST spr round 1 (radius: 5)
+[00:12:24 -725832.555712] Model parameter optimization (eps = 1.000000)
+[00:12:24 -725832.555419] SLOW spr round 1 (radius: 5)
+[00:12:33 -725832.555254] SLOW spr round 2 (radius: 10)
+[00:12:40 -725832.555229] SLOW spr round 3 (radius: 15)
+[00:12:41 -725832.555214] SLOW spr round 4 (radius: 20)
+[00:12:41 -725832.555213] Model parameter optimization (eps = 0.100000)
+
+[00:12:41] ML tree search #18, logLikelihood: -725832.555085
+
+[00:12:42 -1466128.142298] Initial branch length optimization
+[00:12:42 -736286.220398] Model parameter optimization (eps = 10.000000)
+[00:12:46 -725897.539146] AUTODETECT spr round 1 (radius: 5)
+[00:12:48 -725897.539113] SPR radius for FAST iterations: 5 (autodetect)
+[00:12:48 -725897.539113] Model parameter optimization (eps = 3.000000)
+[00:12:49 -725897.536967] FAST spr round 1 (radius: 5)
+[00:12:53 -725869.497593] FAST spr round 2 (radius: 5)
+[00:12:58 -725842.804804] FAST spr round 3 (radius: 5)
+[00:13:02 -725842.804746] Model parameter optimization (eps = 1.000000)
+[00:13:04 -725832.600446] SLOW spr round 1 (radius: 5)
+[00:13:14 -725832.600397] SLOW spr round 2 (radius: 10)
+[00:13:21 -725832.600381] SLOW spr round 3 (radius: 15)
+[00:13:21 -725832.600372] SLOW spr round 4 (radius: 20)
+[00:13:22 -725832.600372] Model parameter optimization (eps = 0.100000)
+
+[00:13:22] ML tree search #19, logLikelihood: -725832.600246
+
+[00:13:22 -1466139.239853] Initial branch length optimization
+[00:13:23 -736259.965189] Model parameter optimization (eps = 10.000000)
+[00:13:27 -725862.749463] AUTODETECT spr round 1 (radius: 5)
+[00:13:29 -725862.749385] SPR radius for FAST iterations: 5 (autodetect)
+[00:13:29 -725862.749385] Model parameter optimization (eps = 3.000000)
+[00:13:30 -725862.742325] FAST spr round 1 (radius: 5)
+[00:13:34 -725840.246667] FAST spr round 2 (radius: 5)
+[00:13:39 -725840.246121] Model parameter optimization (eps = 1.000000)
+[00:13:41 -725832.641007] SLOW spr round 1 (radius: 5)
+[00:13:51 -725832.640992] SLOW spr round 2 (radius: 10)
+[00:13:57 -725832.640992] SLOW spr round 3 (radius: 15)
+[00:13:58 -725832.640992] SLOW spr round 4 (radius: 20)
+[00:13:58 -725832.640992] Model parameter optimization (eps = 0.100000)
+
+[00:13:59] ML tree search #20, logLikelihood: -725832.640744
+
+
+
+Final LogLikelihood: -725831.247244
+
+AIC score: 1457826.494488 / AICc score: 1457868.760992 / BIC score: 1491799.313628
+Free parameters (model + branch lengths): 3082
+
+Best ML tree saved to: /home/sarah/eclipse-workspace/NetRAX/experiments/assemble_snakes.raxml.bestTree
+All ML trees saved to: /home/sarah/eclipse-workspace/NetRAX/experiments/assemble_snakes.raxml.mlTrees
+Optimized model saved to: /home/sarah/eclipse-workspace/NetRAX/experiments/assemble_snakes.raxml.bestModel
+
+Execution log saved to: /home/sarah/eclipse-workspace/NetRAX/experiments/assemble_snakes.raxml.log
+
+Analysis started: 08-Aug-2021 02:40:39 / finished: 08-Aug-2021 02:54:38
+
+Elapsed time: 839.451 seconds
+
+Consumed energy: 2367869.269 Wh (= 11839 km in an electric car, or 59197 km with an e-scooter!)
+
