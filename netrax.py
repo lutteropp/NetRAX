@@ -15,7 +15,7 @@ def infer_network(start_network_path, msa_path, partitions_path, likelihood_type
         netrax_cmd += " --average_displayed_tree_variant"
     elif likelihood_type == "best":
         netrax_cmd += " --best_displayed_tree_variant"
-    if len(seed) > 0:
+    if seed > 0:
         netrax_cmd += " --seed " + str(seed)
     if is_good_start:
         netrax_cmd += " --good_start"
