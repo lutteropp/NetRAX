@@ -3,11 +3,11 @@ import argparse
 import os
 import math
 
-NETRAX_CORE_PATH = "/home/luttersh/NetRAX/bin/netrax"
-#NETRAX_CORE_PATH = "mpiexec /home/sarah/code-workspace/NetRAX/bin/netrax"
+#NETRAX_CORE_PATH = "/home/luttersh/NetRAX/bin/netrax"
+NETRAX_CORE_PATH = "/home/sarah/code-workspace/NetRAX/bin/netrax"
 
-RAXML_PATH = "/home/luttersh/NetRAX/experiments/deps/raxml-ng"
-#RAXML_PATH = "/home/sarah/code-workspace/NetRAX/experiments/deps/raxml-ng"
+#RAXML_PATH = "/home/luttersh/NetRAX/experiments/deps/raxml-ng"
+RAXML_PATH = "/home/sarah/code-workspace/NetRAX/experiments/deps/raxml-ng"
 
 
 def run_raxml(msa_path, partitions_path, seed, start_trees_output_path, no_inference, num_parsimony_trees, num_random_trees):
@@ -16,7 +16,7 @@ def run_raxml(msa_path, partitions_path, seed, start_trees_output_path, no_infer
         raxml_cmd + " --start"
     else:
         raxml_cmd += " --search"
-    raxml_cmd += "--tree pars{" + str(num_parsimony_trees) + "},rand{" + str(num_random_trees) + "}"
+    raxml_cmd += " --tree pars{" + str(num_parsimony_trees) + "},rand{" + str(num_random_trees) + "}"
     raxml_cmd += " --msa " + msa_path + " --model " + partitions_path
     raxml_cmd += " --seed " + str(seed)
     raxml_cmd += " --redo"
