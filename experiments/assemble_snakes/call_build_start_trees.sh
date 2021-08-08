@@ -1,10 +1,9 @@
 #!/bin/bash
 
-#netrax_folder=home/luttersh/NetRAX
-netraxfolder=/home/sarah/code-workspace/NetRAX
+netraxfolder=home/luttersh/NetRAX
+#netraxfolder=/home/sarah/code-workspace/NetRAX
 
 build_start_trees_script=$netraxfolder/build_start_trees.py
-multirun_script=$netraxfolder/netrax_multi.py
 
 root=$netraxfolder/experiments/assemble_snakes
 netrax=$netraxfolder/bin/netrax

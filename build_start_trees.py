@@ -3,11 +3,11 @@ import argparse
 import os
 import math
 
-#NETRAX_CORE_PATH = "/home/luttersh/NetRAX/bin/netrax"
-NETRAX_CORE_PATH = "/home/sarah/code-workspace/NetRAX/bin/netrax"
+NETRAX_CORE_PATH = "/home/luttersh/NetRAX/bin/netrax"
+#NETRAX_CORE_PATH = "/home/sarah/code-workspace/NetRAX/bin/netrax"
 
-#RAXML_PATH = "/home/luttersh/NetRAX/experiments/deps/raxml-ng"
-RAXML_PATH = "/home/sarah/code-workspace/NetRAX/experiments/deps/raxml-ng"
+RAXML_PATH = "/home/luttersh/NetRAX/experiments/deps/raxml-ng"
+#RAXML_PATH = "/home/sarah/code-workspace/NetRAX/experiments/deps/raxml-ng"
 
 
 def run_raxml(msa_path, partitions_path, seed, start_trees_output_path, no_inference, num_parsimony_trees, num_random_trees):

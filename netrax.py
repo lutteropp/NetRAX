@@ -101,7 +101,7 @@ def parse_command_line_arguments_netrax_multi():
     CLI.add_argument("--msa_path", type=str)
     CLI.add_argument("--partitions_path", type=str)
     CLI.add_argument("--likelihood_type", type=str)
-    CLI.add_argument("--brlen_linkage_type", type=str)
+    CLI.add_argument("--brlen_linkage_type", type=str, default="linked")
     CLI.add_argument("--seed", type=int, default=0)
     CLI.add_argument("--start_networks", type=str)
     CLI.add_argument("--good_start", action='store_true')

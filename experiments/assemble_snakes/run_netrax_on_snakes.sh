@@ -1,20 +1,25 @@
 #!/bin/bash
 
-root=/home/luttersh/NetRAX/experiments/assemble_snakes
-netrax=/home/luttersh/NetRAX/bin/netrax
-raxml=/home/luttersh/NetRAX/experiments/deps/raxml-ng
-ali_for_raxml=$root/snakes_msa.fasta
-ali=$root/assemble_snakes.raxml.rba
+netraxfolder=home/luttersh/NetRAX
+#netraxfolder=/home/sarah/code-workspace/NetRAX
+
+build_start_trees_script=$netraxfolder/build_start_trees.py
+netrax_script=$netraxfolder/netrax.py
+
+root=$netraxfolder/experiments/assemble_snakes
+netrax=$netraxfolder/bin/netrax
+ali=$root/snakes_msa.fasta
 model=$root/snakes_partitions.txt
-raxtree=$root/assemble_snakes.raxml.bestTree
+besttree=$root/assemble_snakes.raxml.bestTree
+mltrees=$root/assemble_snakes.raxml.mlTrees
+mltrees_unique=$root/assemble_snakes.raxml.mlTrees_unique
+badtrees=$root/assemble_snakes.raxml.startTrees
+badtrees_unique=$root/assemble_snakes.raxml.startTrees_unique
 outdir=$root
 
-time $raxml --msa $ali_for_raxml --model $model -seed 42 --prefix $outdir/assemble_snakes --redo | tee raxml_snakes_output.txt
+python3 ${build_start_trees_script} --msa_path $ali --partitions_path $model --seed 42 --start_trees_output_path ${mltrees_unique} --num_parsimony_trees 10 --num_random_trees 10 --keep_only_unique
 
-time mpiexec $netrax --msa $ali --model $model --seed 42 --output $outdir/snakes_ml_best_inferred_network.nw --best_displayed_tree_variant --brlen linked --start_network $raxtree --good_start | tee netrax_snakes_ml_best_output.txt
-
-time mpiexec $netrax --msa $ali --model $model --seed 42 --output $outdir/snakes_ml_average_inferred_network.nw --average_displayed_tree_variant --brlen linked --start_network $raxtree --good_start | tee netrax_snakes_ml_average_output.txt
-
-time mpiexec $netrax --msa $ali --model $model --seed 42 --output $outdir/snakes_random_best_inferred_network.nw --best_displayed_tree_variant --brlen linked --num_parsimony_start_networks 3 --num_random_start_networks 3 | tee netrax_snakes_random_best_output.txt
-
-time mpiexec $netrax --msa $ali --model $model --seed 42 --output $outdir/snakes_random_average_inferred_network.nw --average_displayed_tree_variant --brlen linked --num_parsimony_start_networks 3 --num_random_start_networks 3 | tee netrax_snakes_random_average_output.txt
+python3 ${netrax_script} --name "snakes_single_best" --msa_path $ali --partitions_path $model --likelihood_type best --brlen_linkage_type linked --seed 42 --start_networks $besttree --good_start
+python3 ${netrax_script} --name "snakes_single_average" --msa_path $ali --partitions_path $model --likelihood_type average --brlen_linkage_type linked --seed 42 --start_networks $besttree --good_start
+python3 ${netrax_script} --name "snakes_multi_best" --msa_path $ali --partitions_path $model --likelihood_type best --brlen_linkage_type linked --seed 42 --start_networks $mltrees_unique --good_start
+python3 ${netrax_script} --name "snakes_multi_average" --msa_path $ali --partitions_path $model --likelihood_type average --brlen_linkage_type linked --seed 42 --start_networks $mltrees_unique --good_start
