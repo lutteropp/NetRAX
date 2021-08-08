@@ -88,7 +88,7 @@ void filterCandidatesByScore(std::vector<T> &candidates,
               return lhs.bicScore < rhs.bicScore;
             });
   int newSize = 0;
-  size_t cutoff_pos = std::min(n_keep, (int)scores.size() - 1);
+  size_t cutoff_pos = std::min(n_keep - 1, (int)scores.size() - 1);
   double cutoff_bic = scores[cutoff_pos].bicScore;
   if (keep_all_better && cutoff_bic < old_score) {
     cutoff_bic = old_score;
@@ -100,7 +100,7 @@ void filterCandidatesByScore(std::vector<T> &candidates,
       newSize++;
     }
   }
-  candidates.resize(std::min(newSize, n_keep));
+  candidates.resize(newSize);
 }
 
 void advance_progress(float progress, int barWidth) {
