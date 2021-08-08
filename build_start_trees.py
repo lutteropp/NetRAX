@@ -103,7 +103,7 @@ def build_trees(msa_path, partitions_path, seed, start_trees_output_path, no_inf
             if len(tree.strip()) > 0:
                 g.write(tree.strip() + "\n")
         g.close()
-    print("\nStart trees for NetRAX written to: " + start_trees_output_path)
+    print("\n" + str(len(trees)) + " start trees for NetRAX written to: " + start_trees_output_path)
 
 
 def parse_command_line_arguments_build_start_trees():
