@@ -95,7 +95,7 @@ void filterCandidatesByScore(std::vector<T> &candidates,
   }
 
   for (size_t i = 0; i < std::min(scores.size(), candidates.size()); ++i) {
-    if (scores[i].bicScore < cutoff_bic) {
+    if (scores[i].bicScore <= cutoff_bic) {
       candidates[newSize] = scores[i].item;
       newSize++;
     }
