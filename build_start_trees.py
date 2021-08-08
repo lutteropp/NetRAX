@@ -14,7 +14,7 @@ RAXML_PATH = "/home/luttersh/NetRAX/experiments/deps/raxml-ng"
 def run_command(command):
     process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
     timeout=0
-    full_output = []]
+    full_output = []
     while True:
         output = process.stdout.readline()
         if output == '' and process.poll() is not None:
