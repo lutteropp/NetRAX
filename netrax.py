@@ -69,18 +69,31 @@ def run_netrax_multi(name, msa_path, partitions_path, likelihood_type, brlen_lin
             f.close()
         results.append(infer_network(start_network_path, msa_path, partitions_path, likelihood_type, brlen_linkage_type, seed, run_inferred_network_path, is_good_start, logfile_path))
     best_bic = math.inf
-    best_bic_idx = 0
+    best_aic = math.inf
+    best_aicc = math.inf
+    best_logl = -math.inf
     total_runtime_in_seconds = 0
     best_network = ""
+    best_n_reticulations = 0
     for (bic, aic, aicc, logl, n_reticulations, runtime_in_seconds, newick) in results:
         if bic < best_bic:
             best_bic = bic
+            best_aic = aic
+            best_aicc = aicc
+            best_logl = logl
+            best_n_reticulations = n_reticulations
             best_network = newick
         total_runtime_in_seconds += runtime_in_seconds
     with open(inferred_network_path, 'w') as f:
         f.write(best_network + "\n")
         f.close()
-
+    print("Total inference runtime: " + str(total_runtime_in_seconds) + " seconds.")
+    print("Best inferred network has" + str(best_n_reticulations) + " reticulations.")
+    print("Best inferred network has BIC: " + str(best_bic))
+    print("Best inferred network has AIC: " + str(best_aic))
+    print("Best inferred network has cAIC: " + str(best_aicc))
+    print("Best inferred network has logl: " + str(best_logl))
+    print("Best inferred network is:\n" + best_network)
 
 def parse_command_line_arguments_netrax_multi():
     CLI = argparse.ArgumentParser()
