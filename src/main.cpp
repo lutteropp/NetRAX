@@ -797,7 +797,7 @@ int internal_main_netrax(int argc, char **argv, void *comm) {
   auto t2 = std::chrono::high_resolution_clock::now();
   if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
     auto duration = std::chrono::duration_cast<std::chrono::seconds>(t2 - t1);
-    std::cout << "\nTotal elapse runtime: " << duration.count() << " seconds.\n";
+    std::cout << "\nTotal runtime: " << duration.count() << " seconds.\n";
   }
 
   return 0;
