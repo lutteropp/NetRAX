@@ -37,7 +37,7 @@ def build_trees(msa_path, partitions_path, seed, start_trees_output_path, no_inf
     trees = []
     trees_path = ""
     if no_inference:
-        trees_path = start_trees_output_path + ".raxml.startTrees"
+        trees_path = start_trees_output_path + ".raxml.startTree"
     elif take_only_best_tree:
         trees_path = start_trees_output_path + ".raxml.bestTree"
     else:
