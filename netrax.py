@@ -85,7 +85,10 @@ def run_netrax_multi(name, msa_path, partitions_path, likelihood_type, brlen_lin
         with open(start_network_path, 'w') as f:
             f.write(newick + "\n")
             f.close()
-        results.append(infer_network(start_network_path, msa_path, partitions_path, likelihood_type, brlen_linkage_type, seed, run_inferred_network_path, is_good_start, logfile_path))
+            res = infer_network(start_network_path, msa_path, partitions_path, likelihood_type, brlen_linkage_type, seed, run_inferred_network_path, is_good_start, logfile_path)
+            print(res)
+        results.append(res)
+    print(results)
     best_bic = math.inf
     best_aic = math.inf
     best_aicc = math.inf
