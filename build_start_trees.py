@@ -97,13 +97,18 @@ def build_trees(msa_path, partitions_path, seed, start_trees_output_path, no_inf
 
     if (keep_only_unique) and (take_only_best_tree == False):
         trees = find_unique_trees(trees_path, trees, start_trees_output_path)
-        find_unique_trees(trees_path_no_inference, trees, start_trees_output_path)
+        with open(trees_path_no_inference) as f:
+            trees_no_inference = f.readlines()
+            f.close()
+            find_unique_trees(trees_path_no_inference, trees_no_inference, start_trees_output_path)
+    n_trees = 0
     with open(start_trees_output_path, 'w') as g:
         for tree in trees:
             if len(tree.strip()) > 0:
                 g.write(tree.strip() + "\n")
+                n_trees += 1
         g.close()
-    print("\n" + str(len(trees)) + " start trees for NetRAX written to: " + start_trees_output_path)
+    print("\n" + str(n_trees) + " start trees for NetRAX written to: " + start_trees_output_path)
 
 
 def parse_command_line_arguments_build_start_trees():
