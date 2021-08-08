@@ -32,7 +32,7 @@ def run_command(command):
 
 
 
-def run_raxml(msa_path, partitions_path, seed, start_trees_output_path, no_inference, num_parsimony_trees, num_random_trees):
+def run_raxml(msa_path, partitions_path, seed, name, no_inference, num_parsimony_trees, num_random_trees):
     raxml_cmd = RAXML_PATH
     if no_inference:
         raxml_cmd += " --start"
@@ -42,16 +42,16 @@ def run_raxml(msa_path, partitions_path, seed, start_trees_output_path, no_infer
     raxml_cmd += " --msa " + msa_path + " --model " + partitions_path
     raxml_cmd += " --seed " + str(seed)
     raxml_cmd += " --redo"
-    raxml_cmd += " --prefix " + start_trees_output_path
+    raxml_cmd += " --prefix " + name
 
     print(raxml_cmd)
     run_command(raxml_cmd)
     #p = subprocess.run(raxml_cmd.split(), stdout=subprocess.PIPE, check=True)
 
 
-def find_unique_trees(trees_file, trees, start_trees_output_path):
-    rf_dist_file = start_trees_output_path + ".raxml.rfDistances"
-    raxml_cmd = RAXML_PATH + " --rfdist --tree " + trees_file + " --prefix " + start_trees_output_path + " --redo"
+def find_unique_trees(trees_file, output_path):
+    rf_dist_file = output_path + ".raxml.rfDistances"
+    raxml_cmd = RAXML_PATH + " --rfdist --tree " + trees_file + " --prefix " + output_path + " --redo"
     print(raxml_cmd)
     run_command(raxml_cmd)
     #subprocess.run(raxml_cmd.split(), stdout=subprocess.PIPE, check=True)
@@ -70,62 +70,51 @@ def find_unique_trees(trees_file, trees, start_trees_output_path):
                 if dist == 0:
                     bad_trees.add(min(id1, id2))
     good_trees = []
-    for i in range(len(trees)):
-        if i not in bad_trees:
-            good_trees.append(trees[i])
-    return good_trees
 
-def build_trees(msa_path, partitions_path, seed, start_trees_output_path, no_inference, take_only_best_tree, keep_only_unique, num_parsimony_trees, num_random_trees):
-    run_raxml(msa_path, partitions_path, seed, start_trees_output_path, no_inference, num_parsimony_trees, num_random_trees)
-    trees = []
-    trees_path = ""
-
-    trees_path_no_inference = start_trees_output_path + ".raxml.startTree"
-    trees_path_only_best = start_trees_output_path + ".raxml.bestTree"
-    trees_path_all_ml = start_trees_output_path + ".raxml.mlTrees"
-    if no_inference:
-        trees_path = trees_path_no_inference
-    elif take_only_best_tree:
-        trees_path = trees_path_only_best
-    else:
-        trees_path = trees_path_all_ml
-
-    print(trees_path)
-    with open(trees_path) as f:
+    with open(trees_file) as f:
         trees = f.readlines()
         f.close()
 
-    if (keep_only_unique) and (take_only_best_tree == False):
-        trees = find_unique_trees(trees_path, trees, start_trees_output_path)
-        with open(trees_path_no_inference) as f:
-            trees_no_inference = f.readlines()
-            f.close()
-            find_unique_trees(trees_path_no_inference, trees_no_inference, start_trees_output_path)
+    for i in range(len(trees)):
+        if i not in bad_trees:
+            good_trees.append(trees[i])
+
     n_trees = 0
-    with open(start_trees_output_path, 'w') as g:
+    with open(output_path, 'w') as g:
         for tree in trees:
             if len(tree.strip()) > 0:
                 g.write(tree.strip() + "\n")
                 n_trees += 1
         g.close()
-    print("\n" + str(n_trees) + " start trees for NetRAX written to: " + start_trees_output_path)
+    print("\n" + str(n_trees) + " start trees for NetRAX written to: " + output_path)
+    return good_trees
 
+def build_trees(msa_path, partitions_path, seed, name, no_inference, num_parsimony_trees, num_random_trees):
+    trees_path_no_inference = name + ".raxml.startTree"
+    trees_path_only_best = name + ".raxml.bestTree"
+    trees_path_all_ml = name + ".raxml.mlTrees"
+    trees_path_no_inference_unique = name + ".raxml.startTree.unique"
+    trees_path_all_ml_unique = name + ".raxml.mlTrees.unique"
+
+    run_raxml(msa_path, partitions_path, seed, name, no_inference, num_parsimony_trees, num_random_trees)
+
+    find_unique_trees(trees_path_no_inference, trees_path_no_inference_unique)
+    if not no_inference:
+        find_unique_trees(trees_path_all_ml, trees_path_all_ml_unique)    
 
 def parse_command_line_arguments_build_start_trees():
     CLI = argparse.ArgumentParser()
     CLI.add_argument("--msa_path", type=str)
     CLI.add_argument("--partitions_path", type=str)
     CLI.add_argument("--seed", type=int, default=0)
-    CLI.add_argument("--start_trees_output_path", type=str)
+    CLI.add_argument("--name", type=str)
     CLI.add_argument("--no_inference", action='store_true')
-    CLI.add_argument("--take_only_best_tree", action='store_true')
-    CLI.add_argument("--keep_only_unique", action='store_true')
     CLI.add_argument("--num_parsimony_trees", type=int, default=10)
     CLI.add_argument("--num_random_trees", type=int, default=10)
     args = CLI.parse_args()
-    return args.msa_path, args.partitions_path, args.seed, args.start_trees_output_path, args.no_inference, args.take_only_best_tree, args.keep_only_unique, args.num_parsimony_trees, args.num_random_trees
+    return args.msa_path, args.partitions_path, args.seed, args.name, args.no_inference, args.num_parsimony_trees, args.num_random_trees
 
 
 if __name__ == '__main__':
-    msa_path, partitions_path, seed, start_trees_output_path, no_inference, take_only_best_tree, keep_only_unique, num_parsimony_trees, num_random_trees = parse_command_line_arguments_build_start_trees()
-    build_trees(msa_path, partitions_path, seed, start_trees_output_path, no_inference, take_only_best_tree, keep_only_unique, num_parsimony_trees, num_random_trees)
+    msa_path, partitions_path, seed, name, no_inference, num_parsimony_trees, num_random_trees = parse_command_line_arguments_build_start_trees()
+    build_trees(msa_path, partitions_path, seed, name, no_inference, num_parsimony_trees, num_random_trees)
