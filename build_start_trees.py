@@ -27,7 +27,7 @@ def run_raxml(msa_path, partitions_path, seed, start_trees_output_path, no_infer
 
 
 def find_unique_trees(trees_file):
-    raxml_cmd = RAXML_PATH + " --rfdist --tree " + trees_file + " --prefix RF"
+    raxml_cmd = RAXML_PATH + " --rfdist --tree " + trees_file + " --prefix RF --redo"
     print(raxml_cmd)
     p = subprocess.run(raxml_cmd.split(), stdout=subprocess.PIPE, check=True)
 
@@ -43,6 +43,7 @@ def build_trees(msa_path, partitions_path, seed, start_trees_output_path, no_inf
     else:
         trees_path = start_trees_output_path + ".raxml.mlTrees"
 
+    print(trees_path)
     with open(trees_path) as f:
         trees = f.readlines()
         f.close()
