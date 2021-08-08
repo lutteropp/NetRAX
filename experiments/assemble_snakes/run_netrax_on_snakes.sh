@@ -1,6 +1,6 @@
 #!/bin/bash
 
-netraxfolder=home/luttersh/NetRAX
+netraxfolder=/home/luttersh/NetRAX
 #netraxfolder=/home/sarah/code-workspace/NetRAX
 
 build_start_trees_script=$netraxfolder/build_start_trees.py
