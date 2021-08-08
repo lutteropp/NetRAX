@@ -13,12 +13,18 @@ RAXML_PATH = "/home/luttersh/NetRAX/experiments/deps/raxml-ng"
 #from https://www.endpoint.com/blog/2015/01/getting-realtime-output-using-python/
 def run_command(command):
     process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
+    timeout=0
     while True:
         output = process.stdout.readline()
         if output == '' and process.poll() is not None:
             break
         if output:
             print(output.strip().decode())
+            timeout=0
+        else:
+            timeout+=1
+        if timeout >= 1000:
+            break
     return process.stdout.decode()
 
 
