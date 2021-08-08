@@ -53,6 +53,8 @@ double optimizeEverythingRun(
   unsigned int max_seconds = ann_network.options.timeout;
   double best_score = scoreNetwork(ann_network);
 
+  unsigned int bad_rounds = 0;
+
   size_t old_moves_taken = ann_network.stats.totalMovesTaken();
   do {
     skipImpossibleTypes(ann_network, typesBySpeed, type_idx);
@@ -60,10 +62,7 @@ double optimizeEverythingRun(
     while (skip_horizontal && type_idx < typesBySpeed.size() &&
            isHorizontalMove(typesBySpeed[type_idx])) {
       type_idx++;
-    }
-
-    if (type_idx >= typesBySpeed.size()) {
-      break;
+      type_idx = type_idx % typesBySpeed.size();
     }
 
     double old_score = scoreNetwork(ann_network);
@@ -77,9 +76,13 @@ double optimizeEverythingRun(
       if (ann_network.stats.totalMovesTaken() > old_moves_taken) {
         old_moves_taken = ann_network.stats.totalMovesTaken();
       }
+      bad_rounds = 0;
+    } else {
+      bad_rounds++;
     }
     assert(new_score <= old_score);
     type_idx++;
+    type_idx = type_idx % typesBySpeed.size();
 
     if (max_seconds != 0) {
       auto act_time = std::chrono::high_resolution_clock::now();
@@ -89,7 +92,7 @@ double optimizeEverythingRun(
         break;
       }
     }
-  } while (type_idx < typesBySpeed.size());
+  } while (bad_rounds < typesBySpeed.size());
 
   check_score_improvement(ann_network, &best_score, bestNetworkData);
   best_score = scoreNetwork(ann_network);
