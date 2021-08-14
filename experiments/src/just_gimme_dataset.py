@@ -12,9 +12,9 @@ import argparse
 import copy
 
 
-def parse_command_line_arguments_gimme):
+def parse_command_line_arguments_gimme():
     CLI = argparse.ArgumentParser()
-    CLI.add_argument("--prefix", type=str, default="scramble_partitions")
+    CLI.add_argument("--prefix", type=str, default="dataset")
     CLI.add_argument("--n_taxa", type=int, default=30)
     CLI.add_argument("--n_reticulations", type=int, default=3)
     CLI.add_argument("--partition_size", type=int, default=1000)
@@ -58,4 +58,4 @@ def simulate_my_stuff(prefix, n_taxa, n_reticulations, partition_size, min_retic
 
 if __name__ == '__main__':
     prefix, n_taxa, n_reticulations, partition_size, min_reticulation_prob, max_reticulation_prob = parse_command_line_arguments_gimme()
-    simulate_my_stuff(prefix, n_taxa, n_reticulations, min_reticulation_prob, max_reticulation_prob)
+    simulate_my_stuff(prefix, n_taxa, n_reticulations, partition_size, min_reticulation_prob, max_reticulation_prob)
