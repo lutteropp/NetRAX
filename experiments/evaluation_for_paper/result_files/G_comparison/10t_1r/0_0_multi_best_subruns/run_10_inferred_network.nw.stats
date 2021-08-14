@@ -1,0 +1,5 @@
+Statistics on which moves were taken:
+RSPRMove: 2
+RNNIMove: 3
+ArcRemovalMove: 0
+ArcInsertionMove: 1

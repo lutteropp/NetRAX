@@ -1,0 +1,39 @@
+
+RAxML-NG v. 1.0.1-master released on 28.10.2020 by The Exelixis Lab.
+Developed by: Alexey M. Kozlov and Alexandros Stamatakis.
+Contributors: Diego Darriba, Tomas Flouri, Benoit Morel, Sarah Lutteropp, Ben Bettisworth.
+Latest version: https://github.com/amkozlov/raxml-ng
+Questions/problems/suggestions? Please visit: https://groups.google.com/forum/#!forum/raxml
+
+System: Intel(R) Core(TM) i7-6700HQ CPU @ 2.60GHz, 4 cores, 15 GB RAM
+
+RAxML-NG was called at 14-Aug-2021 13:38:52 as follows:
+
+/home/sarah/eclipse-workspace/NetRAX/experiments/deps/raxml-ng --rfdist --tree 0_0.raxml.startTree --prefix 0_0.raxml.startTree.unique --redo
+
+Analysis options:
+  run mode: RF distance computation
+  start tree(s): user
+  random seed: 1628941132
+  SIMD kernels: AVX2
+  parallelization: coarse-grained (auto), PTHREADS (auto)
+
+WARNING: Running in REDO mode: existing checkpoints are ignored, and all result files will be overwritten!
+
+Reading input trees from file: 0_0.raxml.startTree
+Loaded 20 trees with 10 taxa.
+
+Average absolute RF distance in this tree set: 9.547368
+Average relative RF distance in this tree set: 0.681955
+Number of unique topologies in this tree set: 11
+
+Pairwise RF distances saved to: /home/sarah/eclipse-workspace/NetRAX/0_0.raxml.startTree.unique.raxml.rfDistances
+
+Execution log saved to: /home/sarah/eclipse-workspace/NetRAX/0_0.raxml.startTree.unique.raxml.log
+
+Analysis started: 14-Aug-2021 13:38:52 / finished: 14-Aug-2021 13:38:52
+
+Elapsed time: 0.019 seconds
+
+Consumed energy: 26077.536 Wh (= 130 km in an electric car, or 652 km with an e-scooter!)
+
