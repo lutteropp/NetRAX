@@ -38,6 +38,8 @@ void judgeNetwork(AnnotatedNetwork &inferredNetwork,
 
   if (ParallelContext::master_rank() && ParallelContext::master_thread()) {
     std::cout << "\nEvaluation of inference results:\n";
+    std::cout << "logl_inferred: " << computeLoglikelihood(inferredNetwork) << "\n";
+    std::cout << "logl_true: " << computeLoglikelihood(trueNetwork) << "\n";
     std::cout << "bic_inferred: " << bic_inferred << "\n";
     std::cout << "bic_true: " << bic_true << "\n";
     if (bic_inferred < bic_true) {
@@ -47,6 +49,7 @@ void judgeNetwork(AnnotatedNetwork &inferredNetwork,
     } else {
       std::cout << "Inferred an equal BIC.\n";
     }
+    std::cout << "Relative BIC difference (>0 means better): " << (bic_true - bic_inferred) / bic_true << "\n";
 
     std::cout << "n_reticulations inferred: "
               << inferredNetwork.network.num_reticulations() << "\n";

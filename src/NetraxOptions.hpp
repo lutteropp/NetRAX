@@ -46,6 +46,10 @@ class NetraxOptions {
   bool generate_random_network_only = false;
   bool pretty_print_only = false;
 
+  bool generate_trees_only = false;
+  int generate_n_parsimony = 0;
+  int generate_n_random = 0;
+
   bool change_reticulation_probs_only = false;
   double overwritten_reticulation_prob = -1;
 
@@ -65,6 +69,8 @@ class NetraxOptions {
 
   bool extreme_greedy = false;
   bool reorder_candidates = false;
+
+  bool judge_only = false;
 
   size_t prefilter_keep = 60;
   size_t rank_keep = 20;
