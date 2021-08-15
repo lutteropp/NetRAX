@@ -35,12 +35,7 @@ real_net = snaq!(real_start_tree, real_raxmlCF, hmax=max_reticulations, filename
 rightnow2 = Dates.Time(Dates.now())
 println(rightnow2)
 
-println(real_net.net)
-
 #real_net1r = snaq!(real_start_tree, real_raxmlCF, hmax=1, filename="snaq/net1_raxml", runs=n_runs)
 #real_net2r = snaq!(real_net1r, real_raxmlCF, hmax=2, filename="snaq/net2_raxml", runs=n_runs)
 #real_net3r = snaq!(real_net2r, real_raxmlCF, hmax=3, filename="snaq/net3_raxml", runs=n_runs)
 
-#println(real_net1r.net)
-#println(real_net2r.net)
-#println(real_net3r.net)
