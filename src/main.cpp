@@ -767,6 +767,7 @@ int internal_main_netrax(int argc, char **argv, void *comm) {
     ParallelContext::finalize();
     return 0;
   }
+
   parseOptions(argc, argv, &netraxOptions);
 
   // early stop if the user only wanted list of commands
@@ -801,7 +802,7 @@ int internal_main_netrax(int argc, char **argv, void *comm) {
     if (netraxOptions.msa_file.empty()) {
       error_exit("Need MSA to score a network");
     }
-    if (netraxOptions.score_only) {
+    if (netraxOptions.score_only || netraxOptions.judge_only) {
       if (netraxOptions.msa_file.empty()) {
         error_exit("Need MSA to score a network");
       }
