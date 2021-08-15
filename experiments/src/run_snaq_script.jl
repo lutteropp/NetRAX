@@ -10,7 +10,7 @@ toy_tree_file = "/home/sarah/eclipse-workspace/NetRAX/experiments/src/toy_networ
 gene_trees_file = ARGS[1]
 start_tree_file = ARGS[2]
 max_reticulations = parse(Int, ARGS[3])
-n_runs = 10
+n_runs = parse(Int, ARGS[4])
 
 # we need to do a toy inference first, as the first time we call a Julia function will be slow due to just-in-time compilation
 toy_gene_trees = readMultiTopology(toy_tree_file)
