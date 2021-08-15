@@ -10,6 +10,6 @@ END;
  
 BEGIN PHYLONET;
  
-InferNetwork_MPL (all) 2;
+InferNetwork_ML (all) 2;
  
 END;
