@@ -23,7 +23,7 @@ real_gene_trees = readMultiTopology(gene_trees_file)
 real_start_tree = readTopology(start_tree_file)
 real_raxmlCF = readTrees2CF(real_gene_trees, writeTab=false, writeSummary=false)
 
-real_net = snaq!(real_net1r, real_raxmlCF, hmax=max_reticulations, filename="snaq/real_net", runs=n_runs)
+real_net = snaq!(real_start_tree, real_raxmlCF, hmax=max_reticulations, filename="snaq/real_net", runs=n_runs)
 println(real_net.net)
 
 #real_net1r = snaq!(real_start_tree, real_raxmlCF, hmax=1, filename="snaq/net1_raxml", runs=n_runs)
