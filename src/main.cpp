@@ -86,6 +86,14 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
   app.add_option("--second_network", options->second_network_path,
                  "Path to second network file for distance computation.");
 
+  app.add_flag("--generate_trees_only", options->generate_trees_only,
+               "Only compute unrooted softwired network distance.");
+
+    bool generate_trees_only = false;
+  int generate_n_parsimony = 0;
+  int generate_n_random = 0;
+
+
   app.add_flag("--change_reticulation_prob_only",
                options->change_reticulation_probs_only,
                "Only change the reticulation probs of the input network.");
@@ -149,6 +157,9 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
   app.add_flag("--enforce_extra_search", options->enforce_extra_search,
                "After finishing the normal search, keep searching by enforcing "
                "an extra reticulation.");
+
+  app.add_flag("--judge_only", options->judge_only,
+               "Don't do any inference, just the judging.");
 
   app.add_option("--step_size", options->step_size,
                  "radius to consider when searching moves (default: 5)");
@@ -227,6 +238,10 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
 
   if (options->prefilter_keep < 1) {
     error_exit("prefilter keep must be at least 1");
+  }
+
+  if (options->judge_only && options->true_network_path.empty()) {
+    error_exit("must provide true network to judge against");
   }
 
   if (options->scrambling_only) {
@@ -386,6 +401,16 @@ void scale_branches_only(NetraxOptions &netraxOptions,
     std::cout << "Network with scaled branch lengths written to "
               << netraxOptions.output_file << "\n";
   }
+}
+
+void judge_only(NetraxOptions &netraxOptions, const RaxmlInstance &instance, std::mt19937 &rng) {
+  netrax::AnnotatedNetwork ann_network_1 = build_annotated_network_from_file(
+      netraxOptions, instance, netraxOptions.start_network_file);
+  netrax::AnnotatedNetwork true_network = build_annotated_network_from_file(
+      netraxOptions, instance, netraxOptions.true_network_path);
+  init_annotated_network(ann_network_1, rng);
+  init_annotated_network(true_network, rng);
+  judgeNetwork(ann_network_1, true_network);
 }
 
 void network_distance_only(NetraxOptions &netraxOptions,
@@ -644,7 +669,9 @@ void netrax_thread_main(NetraxOptions &netraxOptions,
   std::mt19937 rng(netraxOptions.seed);
   srand(netraxOptions.seed);
 
-  if (netraxOptions.score_only) {
+  if (netraxOptions.judge_only) {
+    judge_only(netraxOptions, instance, rng);
+  } else if (netraxOptions.score_only) {
     score_only(netraxOptions, instance, rng);
   } else if (!netraxOptions.start_network_file.empty()) {
     std::vector<MoveType> typesBySpeed = getTypesBySpeed(netraxOptions);
