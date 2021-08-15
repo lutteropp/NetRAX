@@ -2,6 +2,10 @@ using Pkg
 Pkg.add(PackageSpec(name="PhyloNetworks", rev="phyLiNCmanual"))
 
 using PhyloNetworks
+using Dates
+
+rightnow0 = Dates.Time(Dates.now())
+println(rightnow0)
 
 toy_tree_file = "/home/sarah/eclipse-workspace/NetRAX/experiments/src/toy_network.nw"
 
@@ -18,12 +22,19 @@ toy_start_tree = readTopology(toy_tree_file)
 toy_raxmlCF = readTrees2CF(toy_gene_trees, writeTab=false, writeSummary=false)
 toy_net1r = snaq!(toy_start_tree, toy_raxmlCF, hmax=1, filename="snaq/toy_net1_raxml", runs=1)
 
+rightnow = Dates.Time(Dates.now())
+println(rightnow)
+
 # now comes the real inference run
 real_gene_trees = readMultiTopology(gene_trees_file)
 real_start_tree = readTopology(start_tree_file)
 real_raxmlCF = readTrees2CF(real_gene_trees, writeTab=false, writeSummary=false)
 
 real_net = snaq!(real_start_tree, real_raxmlCF, hmax=max_reticulations, filename="snaq/real_net", runs=n_runs)
+
+rightnow2 = Dates.Time(Dates.now())
+println(rightnow2)
+
 println(real_net.net)
 
 #real_net1r = snaq!(real_start_tree, real_raxmlCF, hmax=1, filename="snaq/net1_raxml", runs=n_runs)
