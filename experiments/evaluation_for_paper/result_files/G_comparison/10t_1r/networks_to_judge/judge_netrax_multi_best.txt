@@ -1,0 +1,44 @@
+optimizing model, reticulation probs, and branch lengths (slow mode)...
+BIC score after model optimization: 30658.25644
+BIC score after updating reticulation probs: 30658.25644
+BIC score after branch length optimization: 30657.13894
+improved bic: 30657.13894
+BIC score after updating reticulation probs: 30657.13894
+BIC score after model optimization: 30644.26815
+BIC score after updating reticulation probs: 30644.26815
+BIC score after branch length optimization: 30642.97361
+improved bic: 30642.97361
+BIC score after updating reticulation probs: 30642.97361
+optimizing model, reticulation probs, and branch lengths (slow mode)...
+BIC score after model optimization: 30684.28767
+BIC score after updating reticulation probs: 30684.28767
+BIC score after branch length optimization: 30656.2118
+improved bic: 30656.2118
+BIC score after updating reticulation probs: 30656.2118
+BIC score after model optimization: 30646.33276
+BIC score after updating reticulation probs: 30646.33276
+BIC score after branch length optimization: 30643.19123
+improved bic: 30643.19123
+BIC score after updating reticulation probs: 30643.19123
+
+Evaluation of inference results:
+logl_inferred: -15123.41705
+logl_true: -15123.52586
+bic_inferred: 30642.97361
+bic_true: 30643.19123
+Inferred a better BIC.
+Relative BIC difference (>0 means better): 7.101685022e-06
+n_reticulations inferred: 1
+n_reticulations true: 1
+Inferred equal number of reticulations.
+Unrooted softwired network distance: 0.1
+Unrooted hardwired network distance: 0.2222222222
+Unrooted displayed trees distance: 1
+Rooted softwired network distance: 0.4615384615
+Rooted hardwired network distance: 0.4545454545
+Rooted displayed trees distance: 1
+Rooted tripartition distance: 0.4545454545
+Rooted path multiplicity distance: 0.2608695652
+Rooted nested labels distance: 0.5714285714
+
+Total runtime: 1 seconds.
