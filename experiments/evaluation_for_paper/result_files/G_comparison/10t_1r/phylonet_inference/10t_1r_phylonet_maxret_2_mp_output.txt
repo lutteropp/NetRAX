@@ -1,0 +1,41 @@
+sarah@sarah-ThinkPad-T460p:~/eclipse-workspace/NetRAX/experiments/evaluation_for_paper/result_files/G_comparison/10t_1r/phylonet_inference$ time java -jar PhyloNet.jar 10_1r_phylonet_maxret_2_mp.nex 
+
+InferNetwork_MP (geneTree2, geneTree1) 2 -pl 4
+Results after run #1
+2.0: ((17,((19,(16)I10#H1:::0.5)I6,(11,I10#H1:1.0::0.5)I9)I3)I1,((14,13)I4,(8,(10,(21,20)I8)I7)I5)I2)I0;
+Running Time (min): 0.016466666666666668
+===============================
+
+
+Results after run #2
+2.0: ((17,((19,(16)I10#H1:::0.5)I6,(11,I10#H1:1.0::0.5)I9)I3)I1,((14,13)I4,(8,(10,(21,20)I8)I7)I5)I2)I0;
+Running Time (min): 0.013616666666666666
+===============================
+
+
+Results after run #3
+1.0: ((17,((16,(19)I10#H1:::0.5)I6,(11,(((13,14)I4,(8,(10,(20,21)I8)I7)I5)I2)I11#H2:1.0::0.5)I12)I3)I1,(I10#H1:1.0::0.5,I11#H2:::0.5)I9)I0;
+Running Time (min): 0.05246666666666667
+===============================
+
+
+Results after run #4
+1.0: ((17,((16,(19)I10#H1:::0.5)I6,(11,(((13,14)I4,(8,(10,(20,21)I8)I7)I5)I2)I11#H2:1.0::0.5)I12)I3)I1,(I10#H1:1.0::0.5,I11#H2:::0.5)I9)I0;
+Running Time (min): 0.023466666666666667
+===============================
+
+
+Results after run #5
+1.0: ((17,((16,(19)I10#H1:::0.5)I6,(11,(((13,14)I4,(8,(10,(20,21)I8)I7)I5)I2)I11#H2:1.0::0.5)I12)I3)I1,(I10#H1:1.0::0.5,I11#H2:::0.5)I9)I0;
+Running Time (min): 0.013083333333333334
+===============================
+
+
+Inferred Network #1:
+((((16,(19)#H1:::0.5),(11,(((13,14),(8,(10,(20,21)))))#H2:1.0::0.5)),17),(#H1:1.0::0.5,#H2:::0.5));
+Total number of extra lineages: 1.0
+
+real	0m7,575s
+user	0m19,594s
+sys	0m0,697s
+
