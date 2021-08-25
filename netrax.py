@@ -3,8 +3,8 @@ import argparse
 import os
 import math
 
-NETRAX_CORE_PATH = "/home/luttersh/NetRAX/bin/netrax"
-#NETRAX_CORE_PATH = "mpiexec /home/sarah/code-workspace/NetRAX/bin/netrax"
+#NETRAX_CORE_PATH = "/home/luttersh/NetRAX/bin/netrax"
+NETRAX_CORE_PATH = "/home/sarah/eclipse-workspace/NetRAX/bin/netrax"
 
 
 #from https://www.endpoint.com/blog/2015/01/getting-realtime-output-using-python/
@@ -28,10 +28,10 @@ def run_command(command):
     return full_output
 
 
-def infer_network(start_network_path, msa_path, partitions_path, likelihood_type, brlen_linkage_type, seed, inferred_network_path, is_good_start, logfile_path):
+def infer_network(start_network_path, msa_path, partitions_path, likelihood_type, brlen_linkage_type, seed, inferred_network_path, is_good_start, logfile_path, radius, scrambling):
     netrax_cmd = "mpiexec " + NETRAX_CORE_PATH + " --start_network " + \
         start_network_path + " --msa " + msa_path + " --model " + partitions_path + \
-        " --brlen " + brlen_linkage_type + " --output " + inferred_network_path
+        " --brlen " + brlen_linkage_type + " --output " + inferred_network_path + " --step_size " + str(radius) + " --scrambling " + str(scrambling)
     if likelihood_type == "average":
         netrax_cmd += " --average_displayed_tree_variant"
     elif likelihood_type == "best":
@@ -63,7 +63,7 @@ def infer_network(start_network_path, msa_path, partitions_path, likelihood_type
     return (bic, logl, n_reticulations, runtime_in_seconds, newick)
 
 
-def run_netrax_multi(name, msa_path, partitions_path, likelihood_type, brlen_linkage_type, seed, start_networks, is_good_start):
+def run_netrax_multi(name, msa_path, partitions_path, likelihood_type, brlen_linkage_type, seed, start_networks, is_good_start, radius, scrambling):
     networks = open(start_networks).readlines()
     inferred_network_path = name + "_inferred_network.nw"
     if not os.path.exists(name + "_subruns"):
@@ -79,7 +79,7 @@ def run_netrax_multi(name, msa_path, partitions_path, likelihood_type, brlen_lin
         with open(start_network_path, 'w') as f:
             f.write(newick + "\n")
             f.close()
-            res = infer_network(start_network_path, msa_path, partitions_path, likelihood_type, brlen_linkage_type, seed, run_inferred_network_path, is_good_start, logfile_path)
+            res = infer_network(start_network_path, msa_path, partitions_path, likelihood_type, brlen_linkage_type, seed, run_inferred_network_path, is_good_start, logfile_path, radius, scrambling)
             print(res)
         results.append(res)
     print(results)
@@ -120,12 +120,14 @@ def parse_command_line_arguments_netrax_multi():
     CLI.add_argument("--likelihood_type", type=str)
     CLI.add_argument("--brlen_linkage_type", type=str, default="linked")
     CLI.add_argument("--seed", type=int, default=0)
+    CLI.add_argument("--radius", type=int, default=5)
+    CLI.add_argument("--scrambling", type=int, default=0)
     CLI.add_argument("--start_networks", type=str)
     CLI.add_argument("--good_start", action='store_true')
     args = CLI.parse_args()
-    return args.name, args.msa_path, args.partitions_path, args.likelihood_type, args.brlen_linkage_type, args.seed, args.start_networks, args.good_start
+    return args.name, args.msa_path, args.partitions_path, args.likelihood_type, args.brlen_linkage_type, args.seed, args.start_networks, args.good_start, args.radius, args.scrambling
 
 
 if __name__ == '__main__':
-    name, msa_path, partitions_path, likelihood_type, brlen_linkage_type, seed, start_networks, good_start = parse_command_line_arguments_netrax_multi()
-    run_netrax_multi(name, msa_path, partitions_path, likelihood_type, brlen_linkage_type, seed, start_networks, good_start)
+    name, msa_path, partitions_path, likelihood_type, brlen_linkage_type, seed, start_networks, good_start, radius, scrambling = parse_command_line_arguments_netrax_multi()
+    run_netrax_multi(name, msa_path, partitions_path, likelihood_type, brlen_linkage_type, seed, start_networks, good_start, radius, scrambling)
