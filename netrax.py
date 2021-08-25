@@ -3,8 +3,8 @@ import argparse
 import os
 import math
 
-#NETRAX_CORE_PATH = "/home/luttersh/NetRAX/bin/netrax"
-NETRAX_CORE_PATH = "/home/sarah/eclipse-workspace/NetRAX/bin/netrax"
+NETRAX_CORE_PATH = "/home/luttersh/NetRAX/bin/netrax"
+#NETRAX_CORE_PATH = "/home/sarah/eclipse-workspace/NetRAX/bin/netrax"
 
 
 #from https://www.endpoint.com/blog/2015/01/getting-realtime-output-using-python/
@@ -31,7 +31,11 @@ def run_command(command):
 def infer_network(start_network_path, msa_path, partitions_path, likelihood_type, brlen_linkage_type, seed, inferred_network_path, is_good_start, logfile_path, radius, scrambling):
     netrax_cmd = "mpiexec " + NETRAX_CORE_PATH + " --start_network " + \
         start_network_path + " --msa " + msa_path + " --model " + partitions_path + \
-        " --brlen " + brlen_linkage_type + " --output " + inferred_network_path + " --step_size " + str(radius) + " --scrambling " + str(scrambling)
+        " --brlen " + brlen_linkage_type + " --output " + inferred_network_path
+    if radius != 5:
+        netrax_cmd += " --step_size " + str(radius)
+    if scrambling > 0:
+        netrax_cmd += " --scrambling " + str(scrambling)
     if likelihood_type == "average":
         netrax_cmd += " --average_displayed_tree_variant"
     elif likelihood_type == "best":
