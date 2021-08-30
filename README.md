@@ -18,6 +18,39 @@ cd build
 cmake -DCMAKE_BUILD_TYPE=Release -DUSE_MPI=ON ..
 make
 ```
+
+3. **Usage Examples**
+
+For a detailed list of NetRAX commands, run:
+```
+./netrax --help
+```
+
+Run a NetRAX network inference, starting from a single start network (or tree), using LhModel.AVERAGE:
+```
+mpiexec ./netrax --name example --msa example_msa.fasta --model example_partitions.txt --average_displayed_tree_variant --start_network my_start_network.nw --output my_inferred_network.txt --seed 42
+```
+
+Judge a NetRAX inference result using LhModel.BEST, computing normalized topological network distances and BIC:
+```
+mpiexec ./netrax --name example --msa example_msa.fasta --model example_partitions.txt --best_displayed_tree_variant --start_network my_inferred_network.nw --judge my_true_network.nw --judge_only
+```
+
+4. **Convenience Python Wrappers**
+
+For the following two Python wrappers, ensure that the absolute paths to NetRAX and RAxML-NG are set correctly in the Python source files.
+
+Generate a set of start trees, using RAxML-NG:
+```
+python3 build_start_trees.py --name example_start_trees --msa_path example_msa.fasta --partitions_path example_partitions.txt --num_parsimony_trees 10 --num_random_trees 10 --seed 42
+```
+
+Run a NetRAX network inference using the more user-friendly Python wrapper, starting from a set of user-specified start networks:
+```
+python3 netrax.py --name example --msa_path example_msa.fasta --partitions_path example_partitions.txt --likelihood_type average --start_networks my_start_networks.txt --seed 42
+```
+
+
 <!---
 3. **Documentation**
 To build the documentation, run ```doxygen Doxyfile```, and then open the generated docs/html/index.html in your browser.
