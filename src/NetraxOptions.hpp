@@ -46,7 +46,6 @@ class NetraxOptions {
   bool generate_random_network_only = false;
   bool pretty_print_only = false;
 
-  bool generate_trees_only = false;
   int generate_n_parsimony = 0;
   int generate_n_random = 0;
 
@@ -82,7 +81,7 @@ class NetraxOptions {
   bool no_arc_insertion_moves = false;
   bool enforce_extra_search = false;
   unsigned int scrambling = 0;
-  unsigned int scrambling_radius = 2;
+  unsigned int scrambling_radius = 1;
   bool scrambling_only = false;
 
   bool good_start = false;

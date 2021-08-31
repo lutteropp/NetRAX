@@ -86,10 +86,6 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
   app.add_option("--second_network", options->second_network_path,
                  "Path to second network file for distance computation.");
 
-  app.add_flag("--generate_trees_only", options->generate_trees_only,
-               "Only compute unrooted softwired network distance.");
-
-    bool generate_trees_only = false;
   int generate_n_parsimony = 0;
   int generate_n_random = 0;
 
@@ -116,8 +112,8 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
   app.add_flag("--best_displayed_tree_variant", best_displayed_tree_variant,
                "Use best displayed tree instead of weighted average in network "
                "likelihood formula.");
-  app.add_flag("--pseudo_likelihood_variant", pseudo_likelihood_variant,
-               "Use pseudologlikelihood formula.");
+  /*app.add_flag("--pseudo_likelihood_variant", pseudo_likelihood_variant,
+               "Use pseudologlikelihood formula.");*/
   app.add_flag("--no_prefiltering", options->no_prefiltering,
                "Disable prefiltering of highly-promising move candidates.");
   app.add_option("--prefilter_keep", options->prefilter_keep,
@@ -169,14 +165,14 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
                  "out of local maxima (default: 0).");
   app.add_option("--scrambling_radius", options->scrambling_radius,
                  "Number of random rSPR moves to apply when scrambling a "
-                 "network (default: 2).");
+                 "network (default: 1).");
   app.add_flag("--scrambling_only", options->scrambling_only,
                "Directly go into scrambling mode.");
 
   app.add_option("--judge", options->true_network_path,
                  "Path to true network for checking the inference quality.");
 
-  app.add_flag("--sim_anneal", options->sim_anneal,
+  /*app.add_flag("--sim_anneal", options->sim_anneal,
                "Use simulated annealing instead of hill climbing during "
                "network topology search.");
   app.add_option(
@@ -185,7 +181,7 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
 
   app.add_option("--retry", options->retry,
                  "Number of times to retry taking different search paths in "
-                 "the promising states (default: 0).");
+                 "the promising states (default: 0).");*/
 
   app.add_flag("--randomize_candidates", options->randomize_candidates,
                "Randomize move candidates.");
@@ -194,7 +190,7 @@ int parseOptions(int argc, char **argv, netrax::NetraxOptions *options) {
   // options->extreme_greedy_prefiltering, "Enable extreme greedy prefiltering
   // mode.");
 
-  app.add_flag("--horizontal_after_reticulation",
+  app.add_flag("--reticulation_after_reticulation",
                options->reticulation_after_reticulation,
                "If we took an arc insertion, keep trying more arc insertions "
                "instead of going with horizontal search first.");
