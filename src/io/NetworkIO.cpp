@@ -344,12 +344,21 @@ Network convertNetwork(RootedNetwork &rnetwork, int maxReticulations) {
   return network;
 }
 
+void checkHealthyReticulations(Network &network) {
+  for (size_t i = 0; i < network.num_reticulations(); ++i) {
+    if (getChildren(network, network.reticulation_nodes[i]).empty()) {
+      throw std::runtime_error("Found a reticulation node that has no children");
+    }
+  }
+}
+
 Network readNetworkFromString(const std::string &newick,
                               const NetraxOptions &options,
                               int maxReticulations) {
   RootedNetwork *rnetwork = parseRootedNetworkFromNewickString(newick, options);
   Network network = convertNetwork(*rnetwork, maxReticulations);
   delete rnetwork;
+  checkHealthyReticulations(network);
   return network;
 }
 
@@ -376,7 +385,7 @@ std::string newickNodeName(Network &network, const Node *node,
       retLabel =
           std::to_string(node->getReticulationData()->reticulation_index);
     }
-    sb << "#" << retLabel;
+    sb << "#H" << retLabel;
     Link *link = node->getReticulationData()->getLinkToFirstParent();
     double prob = network
                       .edges_by_index[node->getReticulationData()
@@ -429,7 +438,9 @@ std::string printNodeNewick(Network &network, Node *node, Node *parent,
     }
   }
   sb << newickNodeName(network, node, parent);
-  return sb.str();
+  std::string partial_newick = sb.str();
+  //std::cout << "Node " << node->clv_index << " gives partial newick " << partial_newick << "\n";
+  return partial_newick;
 }
 
 void collect_average_branches(AnnotatedNetwork &ann_network) {
@@ -496,7 +507,12 @@ std::string toExtendedNewick(Network &network) {
 
 std::string toExtendedNewick(AnnotatedNetwork &ann_network) {
   updateNetwork(ann_network);
-  return toExtendedNewick(ann_network.network);
+  std::string extended_newick = toExtendedNewick(ann_network.network);
+
+  // Ensure that the created newick is valid, by trying to parse it back into a temporary network
+  // readNetworkFromString(extended_newick, ann_network.options);
+
+  return extended_newick;
 }
 
 Network convertUtreeToNetwork(const pll_utree_t &utree, NetraxOptions &options,
