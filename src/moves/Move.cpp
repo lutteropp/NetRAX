@@ -148,7 +148,16 @@ std::string toString(const Move &move) {
   }
 }
 
+void checkHealthyReticulations(AnnotatedNetwork &ann_network) {
+  for (size_t i = 0; i < ann_network.network.num_reticulations(); ++i) {
+    if (getChildren(ann_network.network, ann_network.network.reticulation_nodes[i]).empty()) {
+      throw std::runtime_error("Found a reticulation node that has no children");
+    }
+  }
+}
+
 bool checkSanity(AnnotatedNetwork &ann_network, const Move &move) {
+  checkHealthyReticulations(ann_network);
   switch (move.moveType) {
     case MoveType::ArcInsertionMove:
       return checkSanityArcInsertion(ann_network, move);

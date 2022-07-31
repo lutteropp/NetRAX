@@ -411,6 +411,9 @@ std::string printNodeNewick(Network &network, Node *node, Node *parent,
                             std::unordered_set<Node *> &visited_reticulations) {
   std::stringstream sb("");
   std::vector<Node *> children = getChildren(network, node);
+  if (node->getType() == NodeType::RETICULATION_NODE && children.empty()) {
+    throw std::runtime_error("Encountered a reticulation node that has no children");
+  }
   if (!children.empty() &&
       visited_reticulations.find(node) == visited_reticulations.end()) {
     sb << "(";
