@@ -34,8 +34,6 @@ void optimizeBranches(AnnotatedNetwork &ann_network, double brlen_smooth_factor,
     throw std::runtime_error("Complete brlenopt made BIC worse");
   }
 
-  assert(fabs(new_score - old_score) <= 1E-3);
-
   optimize_scalers(ann_network, silent);
 }
 
