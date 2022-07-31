@@ -50,6 +50,10 @@ Run a NetRAX network inference using the more user-friendly Python wrapper, star
 python3 netrax.py --name example --msa_path example_msa.fasta --partitions_path example_partitions.txt --likelihood_type average --start_networks my_start_networks.txt --seed 42
 ```
 
+Can't open your network inferred by NetRAX with the Dendroscope tool? Worry not! This is because Dendroscope does not work with support values or reticulation probablities being present in the Extended NEWICK file. You can use this script to get rid of these:
+```
+python3 netrax_output_to_dendroscope.py my_netrax_network.txt > network_for_dendroscope.txt
+```
 
 <!---
 3. **Documentation**
