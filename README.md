@@ -28,12 +28,12 @@ For a detailed list of NetRAX commands, run:
 
 Run a NetRAX network inference, starting from a single start network (or tree), using LhModel.AVERAGE:
 ```
-mpiexec ./netrax --name example --msa example_msa.fasta --model example_partitions.txt --average_displayed_tree_variant --start_network my_start_network.nw --output my_inferred_network.txt --seed 42
+mpiexec ./netrax --msa example_msa.fasta --model example_partitions.txt --average_displayed_tree_variant --start_network my_start_network.nw --output my_inferred_network.txt --seed 42
 ```
 
 Judge a NetRAX inference result using LhModel.BEST, computing normalized topological network distances and BIC:
 ```
-mpiexec ./netrax --name example --msa example_msa.fasta --model example_partitions.txt --best_displayed_tree_variant --start_network my_inferred_network.nw --judge my_true_network.nw --judge_only
+mpiexec ./netrax --msa example_msa.fasta --model example_partitions.txt --best_displayed_tree_variant --start_network my_inferred_network.nw --judge my_true_network.nw --judge_only
 ```
 
 4. **Convenience Python Wrappers**
