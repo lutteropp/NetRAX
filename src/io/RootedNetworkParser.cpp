@@ -161,7 +161,7 @@ void extendReticulationNodeFromString(const std::string &str,
   node->secondParentSupport = brlen_support_prob[1];
   node->secondParentProb = brlen_support_prob[2];
   node->secondParent = secondParent;
-  assert(node->firstParentProb + node->secondParentProb == 1.0);
+  assert(fabs(1.0 - (node->firstParentProb + node->secondParentProb) < 1E-6));
 }
 
 RootedNetworkNode *buildNodeFromString(
