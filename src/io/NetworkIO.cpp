@@ -352,6 +352,14 @@ void checkHealthyReticulations(Network &network) {
   }
 }
 
+void dropInternalTreeNodeNames(Network &network) {
+  for (size_t i = 0; i < network.num_nodes(); ++i) {
+    if (getChildren(network, network.nodes_by_index[i]).empty() && !network.nodes_by_index[i]->label.empty()) {
+      network.nodes_by_index[i]->label.clear();
+    }
+  }
+}
+
 Network readNetworkFromString(const std::string &newick,
                               const NetraxOptions &options,
                               int maxReticulations) {
@@ -359,6 +367,7 @@ Network readNetworkFromString(const std::string &newick,
   Network network = convertNetwork(*rnetwork, maxReticulations);
   delete rnetwork;
   checkHealthyReticulations(network);
+  dropInternalTreeNodeNames(network);
   return network;
 }
 
@@ -380,7 +389,7 @@ std::string newickNodeName(Network &network, const Node *node,
   sb << node->label;
   if (node->getType() == NodeType::RETICULATION_NODE) {
     assert(parent);
-    std::string retLabel = node->getReticulationData()->getLabel();
+    std::string retLabel = node->getReticulationData()->getLabel(); // TODO: SHould these be better dropped entirely?
     if (retLabel.empty()) {
       retLabel =
           std::to_string(node->getReticulationData()->reticulation_index);
