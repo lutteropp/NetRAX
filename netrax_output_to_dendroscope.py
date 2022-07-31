@@ -29,7 +29,7 @@ def convert_newick_to_dendroscope(newick):
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("Usage: python3 newick_to_dendroscope.py my_newick.txt")
+        print("Usage: python3 netrax_output_to_dendroscope.py my_newick.txt")
         exit()
         
     with open(sys.argv[1]) as f:
